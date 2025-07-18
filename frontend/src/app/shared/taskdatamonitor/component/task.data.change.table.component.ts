@@ -7,15 +7,15 @@ import {GlobalparameterService} from '../../service/globalparameter.service';
 import {UserSettingsService} from '../../service/user.settings.service';
 import {HelpIds} from '../../help/help.ids';
 import {DataType} from '../../../dynamic-form/models/data.type';
-import {ColumnConfig, TranslateValue} from '../../datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../../lib/datashowbase/column.config';
 import {TaskDataChangeService} from '../service/task.data.change.service';
-import {CrudMenuOptions, TableCrudSupportMenu} from '../../datashowbase/table.crud.support.menu';
-import {MessageToastService} from '../../message/message.toast.service';
+import {CrudMenuOptions, TableCrudSupportMenu} from '../../../lib/datashowbase/table.crud.support.menu';
+import {MessageToastService} from '../../../lib/message/message.toast.service';
 import {DialogService} from 'primeng/dynamicdialog';
 import {AppSettings} from '../../app.settings';
-import {FilterType} from '../../datashowbase/filter.type';
+import {FilterType} from '../../../lib/datashowbase/filter.type';
 import {combineLatest, of} from 'rxjs';
-import {InfoLevelType} from '../../message/info.leve.type';
+import {InfoLevelType} from '../../../lib/message/info.leve.type';
 import {ITaskExtendService} from './itask.extend.service';
 import {TASK_EXTENDED_SERVICE} from '../../../app.component';
 
@@ -73,8 +73,8 @@ import {TASK_EXTENDED_SERVICE} from '../../../app.component';
                 </ng-container>
               </ng-container>
               <ng-container *ngSwitchCase="FilterType.withOptions">
-                <p-dropdown [options]="field.filterValues" [style]="{'width':'100%'}"
-                            (onChange)="table.filter($event.value, field.field, 'equals')"></p-dropdown>
+                <p-select [options]="field.filterValues" [style]="{'width':'100%'}"
+                            (onChange)="table.filter($event.value, field.field, 'equals')"></p-select>
               </ng-container>
             </th>
           </tr>

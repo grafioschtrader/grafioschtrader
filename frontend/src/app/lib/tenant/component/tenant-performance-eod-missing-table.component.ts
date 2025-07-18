@@ -1,11 +1,11 @@
-import {TableConfigBase} from '../../../shared/datashowbase/table.config.base';
+import {TableConfigBase} from '../../datashowbase/table.config.base';
 import {Component, EventEmitter, Input, OnChanges, OnInit, Output} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../../shared/service/user.settings.service';
 import {Security} from '../../../entities/security';
 import {DataType} from '../../../dynamic-form/models/data.type';
-import {ColumnConfig} from '../../../shared/datashowbase/column.config';
+import {ColumnConfig} from '../../datashowbase/column.config';
 import {SecurityService} from '../../../securitycurrency/service/security.service';
 import {IFeedConnector} from '../../../securitycurrency/component/ifeed.connector';
 import {FilterService} from 'primeng/api';

@@ -1,6 +1,6 @@
 import {AddRemoveDay} from '../service/trading.days.plus.service';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {AppSettings} from '../../shared/app.settings';
@@ -9,6 +9,7 @@ import {HelpIds} from '../../shared/help/help.ids';
 import moment from 'moment';
 import {CalendarNavigation} from './calendar.navigation';
 import {TradingDaysWithDateBoundaries} from '../model/trading.days.with.date.boundaries';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * Base class for trading calendar
@@ -47,7 +48,7 @@ export abstract class TradingCalendarBase extends CalendarNavigation {
   submit(): void {
     const convertedAddRemoveDays: AddRemoveDay[] = [];
     this.addRemoveDaysMap.forEach((value: boolean, key: number) =>
-      convertedAddRemoveDays.push(new AddRemoveDay(moment(key).format(AppSettings.FORMAT_DATE_SHORT_NATIVE), value))
+      convertedAddRemoveDays.push(new AddRemoveDay(moment(key).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE), value))
     );
     this.saveData((convertedAddRemoveDays));
   }

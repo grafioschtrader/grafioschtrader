@@ -1,3 +1,12 @@
+<!--
+   For frozen columns modify header and body:
+   Modify this to <th style="width:24px"  pFrozenColumn></th>
+   Modify this to <th <th *ngIf="selectMultiMode ... pFrozenColumn></th>
+   Add this to <th> and <td> of header and body
+   pFrozenColumn  [frozen]="field.frozenColumn"
+   Add the moment is very slow!!!
+-->
+
 <div #cmDiv (click)="onComponentClick($event)" (contextmenu)="onRightClick($event)"
      [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}" class="data-container">
   <p-table (onColResize)="onColResize($event)" (sortFunction)="customSort($event)" [(selection)]="singleMultiSelection"
@@ -40,7 +49,7 @@
             <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
           </a>
         </td>
-        <td *ngIf="selectMultiMode === 'multiple'">
+        <td *ngIf="selectMultiMode === 'multiple'" pFrozenColumn>
           <p-tableCheckbox [value]="spl"></p-tableCheckbox>
         </td>
 

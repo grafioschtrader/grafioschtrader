@@ -6,7 +6,7 @@ import {catchError} from 'rxjs/operators';
 import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
 import {LoginService} from '../../shared/login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {SaveTradingDays} from '../../tradingcalendar/service/trading.days.plus.service';
 import {TradingDaysWithDateBoundaries} from '../../tradingcalendar/model/trading.days.with.date.boundaries';
 

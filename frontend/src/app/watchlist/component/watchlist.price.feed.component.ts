@@ -4,14 +4,14 @@ import {DataChangedService} from '../../shared/maintree/service/data.changed.ser
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {WatchlistService} from '../service/watchlist.service';
 import {ActivatedRoute, Router} from '@angular/router';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {AppSettings} from '../../shared/app.settings';
 import {SecurityService} from '../../securitycurrency/service/security.service';
-import {ColumnConfig} from '../../shared/datashowbase/column.config';
+import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 import {SecuritycurrencyGroup} from '../../entities/view/securitycurrency.group';
 import {SecuritycurrencyPosition} from '../../entities/view/securitycurrency.position';
@@ -27,9 +27,10 @@ import {AuditHelper} from '../../lib/helper/audit.helper';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {SecurityCurrencyHelper} from '../../securitycurrency/service/security.currency.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * View to check the reliability of the price data feeds. It has some special function implemented to update price data.
@@ -119,7 +120,7 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
     if (this.securityPositionList && AuditHelper.hasHigherPrivileges(this.gps)) {
       const menuItems: MenuItem[] = [
         {
-          label: 'WATCHLIST_ADD_PROBLEM_INSTRUMENT' + AppSettings.DIALOG_MENU_SUFFIX,
+          label: 'WATCHLIST_ADD_PROBLEM_INSTRUMENT' + BaseSettings.DIALOG_MENU_SUFFIX,
           command: (e) => this.visibleAddPriceProblemDialog = true,
           disabled: this.securityPositionList.length > 0
         },

@@ -1,12 +1,12 @@
 import {Injectable} from '@angular/core';
 import {AppSettings} from '../app.settings';
-import {MessageToastService} from '../message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Globalparameters} from '../../lib/entities/globalparameters';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
-import {Observable, of} from 'rxjs';
+import {Observable} from 'rxjs';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {GlobalSessionNames} from '../global.session.names';
-import {catchError, tap} from 'rxjs/operators';
+import {catchError} from 'rxjs/operators';
 import {Auditable} from '../../lib/entities/auditable';
 import {BaseAuthService} from '../login/service/base.auth.service';
 import {TenantLimit, TenantLimitTypes} from '../../entities/backend/tenant.limit';
@@ -17,10 +17,8 @@ import 'moment/locale/en-gb.js';
 import 'moment/locale/en-au.js';
 import 'moment/locale/en-nz.js';
 import {NgxCurrencyConfig, NgxCurrencyInputMode} from 'ngx-currency';
-import {ServiceEntityUpdate} from '../edit/service.entity.update';
+import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {FieldDescriptorInputAndShow} from '../dynamicfield/field.descriptor.input.and.show';
-import {AssetclassType} from '../types/assetclass.type';
-import {SpecialInvestmentInstruments} from '../types/special.investment.instruments';
 import {FeatureType} from '../login/component/login.component';
 import NumberFormat = Intl.NumberFormat;
 
@@ -40,7 +38,7 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
   private dateFormatCalendarTowNumber: string;
   private entityKeyMapping: { [entityName: string]: string };
   private currencyPrecisionMap: { [currency: string]: number };
-  private fieldSizeMap: {[fieldNameOrKey: string]: number};
+  private fieldSizeMap: { [fieldNameOrKey: string]: number };
   private dateFormatWithoutYear: string;
   private featureCache = new Map<FeatureType, boolean>();
 
@@ -76,10 +74,10 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
   }
 
   private getTimeLocale(): string {
-    if(['de', 'en-gb', 'en-au', 'en-nz'].indexOf(this.getLocale().toLowerCase()) != -1) {
+    if (['de', 'en-gb', 'en-au', 'en-nz'].indexOf(this.getLocale().toLowerCase()) != -1) {
       return this.getLocale().toLowerCase();
     }
-    return this.getLocale().startsWith('de')? 'de': 'en';
+    return this.getLocale().startsWith('de') ? 'de' : 'en';
   }
 
   public getLocale(): string {
@@ -122,8 +120,6 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
     }
     return this.timeSecondDateFormat;
   }
-
-
 
   public getNumberCurrencyMask(): NgxCurrencyConfig {
     return <NgxCurrencyConfig>{
@@ -302,6 +298,6 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
 
 export interface PasswordRegexProperties {
   regex: string;
-  languageErrorMsgMap: {[language: string]: string};
+  languageErrorMsgMap: { [language: string]: string };
   forceRegex: boolean;
 }

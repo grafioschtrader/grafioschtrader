@@ -2,11 +2,11 @@ import {Component, Input, OnInit, ViewChild} from '@angular/core';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
-import {ProcessedAction} from '../../shared/types/processed.action';
+import {ProcessedAction} from '../../lib/types/processed.action';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {combineLatest, Observable, Subscription} from 'rxjs';
@@ -17,7 +17,7 @@ import {Assetclass} from '../../entities/assetclass';
 import {SecurityService} from '../service/security.service';
 import {FeedIdentifier, FeedSupport, IFeedConnector} from './ifeed.connector';
 import {Security} from '../../entities/security';
-import {InfoLevelType} from '../../shared/message/info.leve.type';
+import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {SecuritycurrencyEdit} from './securitycurrency.edit';
 import {SecuritysplitService} from '../service/securitysplit.service';
 import {HelpIds} from '../../shared/help/help.ids';
@@ -25,7 +25,7 @@ import {AuditHelper} from '../../lib/helper/audit.helper';
 import {DistributionFrequency} from '../../shared/types/distribution.frequency';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
 import {CallbackValueChanged, SecurityDerived, SecurityEditSupport} from './security.edit.support';
@@ -35,7 +35,7 @@ import {HistoryquotePeriod} from '../../entities/historyquote.period';
 import {SecurityHistoryquotePeriodEditTableComponent} from './security-historyquote-period-edit-table.component';
 import {HistoryquotePeriodService} from '../service/historyquote.period.service';
 import {Securitysplit} from '../../entities/dividend.split';
-import {Helper} from '../../helper/helper';
+import {Helper} from '../../lib/helper/helper';
 import {AppSettings} from '../../shared/app.settings';
 import {FormConfig} from '../../dynamic-form/models/form.config';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
@@ -44,43 +44,49 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
  * Edit a security with possible security split and history quote period
  */
 @Component({
-    selector: 'security-edit',
-    template: `
-      <p-dialog styleClass="big-dialog"
-                header="{{'SECURITY' | translate}}" [(visible)]="visibleEditSecurityDialog"
-                [style]="{width: '600px', minHeight: '500px'}"
-                [resizable]="false"
-                (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-          <p-tabView>
-              <p-tabPanel header="{{'SECURITY' | translate}}">
-                  <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                                #dynamicFieldsetForm="dynamicForm" (submitBt)="submit($event)">
-                  </dynamic-form>
-              </p-tabPanel>
-              <p-tabPanel header="{{'SECURITY_SPLITS' | translate}}" *ngIf="canHaveSplits || !dataLoaded">
-                  <dynamic-form [config]="configSplit" [formConfig]="formConfig" [translateService]="translateService"
-                                #splitForm="dynamicForm" (submitBt)="addSplit($event)">
-                  </dynamic-form>
-                  <securitysplit-edit-table (editData)="onSelectedSecuritysplit($event)"
-                                            (savedData)="onDependingDialogSave($event)"
-                                            [maxRows]="maxSplits">
-                  </securitysplit-edit-table>
-              </p-tabPanel>
-              <p-tabPanel header="{{'HISTORYQUOTE_FOR_PERIOD' | translate}}" *ngIf="!this.securityEditSupport?.hasMarketValue
-        || !dataLoaded">
-                  <p>{{'HISTORYQUOTE_FOR_PERIOD_COMMENT' | translate}}</p>
-                  <dynamic-form [config]="periodPrices" [formConfig]="formConfigPeriod"
-                                [translateService]="translateService"
-                                #periodPriceForm="dynamicForm" (submitBt)="addHistoryquotePeriod($event)">
-                  </dynamic-form>
-                  <security-historyquote-period-edit-table (editData)="onSelectedHistoryquote($event)"
-                                                           (savedData)="onDependingDialogSave($event)"
-                                                           [maxRows]="maxHistoryquotePeriods">
-                  </security-historyquote-period-edit-table>
-              </p-tabPanel>
-          </p-tabView>
-      </p-dialog>`,
-    standalone: false
+  selector: 'security-edit',
+  template: `
+    <p-dialog class="big-dialog"
+              header="{{'SECURITY' | translate}}" [(visible)]="visibleEditSecurityDialog"
+              [style]="{width: '600px', minHeight: '500px'}"
+              [resizable]="false"
+              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
+      <p-tabs [value]="activeTabValue">
+        <p-tablist>
+          <p-tab value="security">{{'SECURITY' | translate}}</p-tab>
+          <p-tab value="splits" *ngIf="canHaveSplits || !dataLoaded">{{'SECURITY_SPLITS' | translate}}</p-tab>
+          <p-tab value="periods" *ngIf="!this.securityEditSupport?.hasMarketValue || !dataLoaded">{{'HISTORYQUOTE_FOR_PERIOD' | translate}}</p-tab>
+        </p-tablist>
+        <p-tabpanels>
+          <p-tabpanel value="security">
+            <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
+                          #dynamicFieldsetForm="dynamicForm" (submitBt)="submit($event)">
+            </dynamic-form>
+          </p-tabpanel>
+          <p-tabpanel value="splits">
+            <dynamic-form [config]="configSplit" [formConfig]="formConfig" [translateService]="translateService"
+                          #splitForm="dynamicForm" (submitBt)="addSplit($event)">
+            </dynamic-form>
+            <securitysplit-edit-table (editData)="onSelectedSecuritysplit($event)"
+                                      (savedData)="onDependingDialogSave($event)"
+                                      [maxRows]="maxSplits">
+            </securitysplit-edit-table>
+          </p-tabpanel>
+          <p-tabpanel value="periods">
+            <p>{{'HISTORYQUOTE_FOR_PERIOD_COMMENT' | translate}}</p>
+            <dynamic-form [config]="periodPrices" [formConfig]="formConfigPeriod"
+                          [translateService]="translateService"
+                          #periodPriceForm="dynamicForm" (submitBt)="addHistoryquotePeriod($event)">
+            </dynamic-form>
+            <security-historyquote-period-edit-table (editData)="onSelectedHistoryquote($event)"
+                                                     (savedData)="onDependingDialogSave($event)"
+                                                     [maxRows]="maxHistoryquotePeriods">
+            </security-historyquote-period-edit-table>
+          </p-tabpanel>
+        </p-tabpanels>
+      </p-tabs>
+    </p-dialog>`,
+  standalone: false
 })
 export class SecurityEditComponent extends SecuritycurrencyEdit implements OnInit, CallbackValueChanged {
   // Access child components
@@ -94,6 +100,9 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
 
   // Input from parent view
   @Input() visibleEditSecurityDialog: boolean;
+
+  // Tab management
+  activeTabValue: string = 'security';
 
   securityEditSupport: SecurityEditSupport;
   formConfigPeriod: FormConfig;

@@ -6,7 +6,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../../shared/service/user.settings.service';
 import {DataType} from '../../../dynamic-form/models/data.type';
 import {TransactionContextMenu} from '../../../transaction/component/transaction.context.menu';
-import {MessageToastService} from '../../../shared/message/message.toast.service';
+import {MessageToastService} from '../../message/message.toast.service';
 import {TransactionService} from '../../../transaction/service/transaction.service';
 import {ActivePanelService} from '../../../shared/mainmenubar/service/active.panel.service';
 import {SecurityService} from '../../../securitycurrency/service/security.service';
@@ -14,10 +14,10 @@ import {Transaction} from '../../../entities/transaction';
 import {Security} from '../../../entities/security';
 import {TransactionCallParam} from '../../../transaction/component/transaction.call.parm';
 import {ParentChildRegisterService} from '../../../shared/service/parent.child.register.service';
-import {TranslateHelper} from '../../../helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {Table} from 'primeng/table';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
-import {TranslateValue} from '../../../shared/datashowbase/column.config';
+import {TranslateValue} from '../../datashowbase/column.config';
 import {AppSettings} from '../../../shared/app.settings';
 
 /**

@@ -1,9 +1,9 @@
-import {DataType} from '../dynamic-form/models/data.type';
-import {InputType} from '../dynamic-form/models/input.type';
-import {FieldConfig} from '../dynamic-form/models/field.config';
+import {DataType} from '../../dynamic-form/models/data.type';
+import {InputType} from '../../dynamic-form/models/input.type';
+import {FieldConfig} from '../../dynamic-form/models/field.config';
 import moment from 'moment';
-import {FormConfig} from '../dynamic-form/models/form.config';
-import {AppSettings} from '../shared/app.settings';
+import {FormConfig} from '../../dynamic-form/models/form.config';
+import {BaseSettings} from '../base.settings';
 
 
 export abstract class Helper {
@@ -89,15 +89,15 @@ export abstract class Helper {
         targetObject[config.field] = +config.formControl.value;
       } else if (config.dataType === DataType.DateNumeric || config.dataType === DataType.DateString) {
         if (config.formControl.value) {
-          this.formatDateString(config, targetObject, AppSettings.FORMAT_DATE_SHORT_NATIVE);
+          this.formatDateString(config, targetObject, BaseSettings.FORMAT_DATE_SHORT_NATIVE);
         } else {
           targetObject[config.field] = null;
         }
       } else if (config.dataType === DataType.DateTimeNumeric) {
         targetObject[config.field] = config.formControl.value.getTime();
       } else if (config.dataType === DataType.DateStringShortUS) {
-        this.formatDateString(config, targetObject, AppSettings.FORMAT_DATE_SHORT_US);
-      } else if(config.inputType === InputType.TriStateCheckbox && config.formControl.value === null) {
+        this.formatDateString(config, targetObject, BaseSettings.FORMAT_DATE_SHORT_US);
+      } else if (config.inputType === InputType.TriStateCheckbox && config.formControl.value === null) {
         targetObject[config.field] = config.formControl.value;
       } else {
         targetObject[config.field] = config.formControl.value;

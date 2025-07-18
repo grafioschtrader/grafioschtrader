@@ -1,14 +1,14 @@
 import {Injectable} from '@angular/core';
 import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
-import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
+import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {User} from '../../lib/entities/user';
 import {LoginService} from '../../shared/login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Observable} from 'rxjs';
 import {AppSettings} from '../../shared/app.settings';
 import {catchError} from 'rxjs/operators';
-import {DeleteService} from '../../shared/datashowbase/delete.service';
+import {DeleteService} from '../../lib/datashowbase/delete.service';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 
 @Injectable()

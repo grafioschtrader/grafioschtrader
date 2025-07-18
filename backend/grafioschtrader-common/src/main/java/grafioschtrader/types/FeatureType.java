@@ -5,11 +5,13 @@ package grafioschtrader.types;
  * be switched on or off.
  */
 public enum FeatureType {
-  // Real-time data transmission. For example, the transmission of stock prices
+  /** Real-time data transmission. For example, the transmission of stock prices */
   WEBSOCKET,
-  // Algorithm for trading. For example, the automatic execution of a trading
+  /** Algorithm for trading. For example, the automatic execution of a trading */
   ALGO,
-  // Alarm for security and portfolio events. For example, if the price of a
-  // security falls below a previously determined value.
+  /**
+   * Alarm for security and portfolio events. For example, if the price of a security falls below a previously
+   * determined value.
+   */
   ALERT
 }

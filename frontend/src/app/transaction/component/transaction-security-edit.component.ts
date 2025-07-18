@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {Portfolio} from '../../entities/portfolio';
@@ -23,13 +23,13 @@ import {SecurityaccountOpenPositionUnits} from '../../entities/view/securityacco
 import {HistoryquoteService} from '../../historyquote/service/historyquote.service';
 import moment from 'moment';
 import {ActivatedRoute} from '@angular/router';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
-import {ProcessedAction} from '../../shared/types/processed.action';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
+import {ProcessedAction} from '../../lib/types/processed.action';
 import {TransactionCallParam} from './transaction.call.parm';
 import {TranslateService} from '@ngx-translate/core';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
-import {Helper} from '../../helper/helper';
-import {InfoLevelType} from '../../shared/message/info.leve.type';
+import {Helper} from '../../lib/helper/helper';
+import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {merge, Observable, Subscription} from 'rxjs';
 
 import {AssetclassType} from '../../shared/types/assetclass.type';
@@ -46,7 +46,7 @@ import {FormDefinitionHelper} from '../../shared/edit/form.definition.helper';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
 import {ClosedMarginPosition} from '../model/closed.margin.position';
 import {AbstractControl} from '@angular/forms';

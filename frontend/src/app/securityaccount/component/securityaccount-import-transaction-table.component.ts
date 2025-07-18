@@ -3,22 +3,22 @@ import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {ParentChildRowSelection} from '../../shared/datashowbase/parent.child.row.selection';
+import {ParentChildRowSelection} from '../../lib/datashowbase/parent.child.row.selection';
 import {ImportTransactionHead} from '../../entities/import.transaction.head';
 import {AppSettings} from '../../shared/app.settings';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ImportTransactionPosService} from '../service/import.transaction.pos.service';
 import {ImportTransactionTemplate} from '../../entities/import.transaction.template';
 import {FailedParsedTemplateState} from '../../imptranstemplate/component/failed.parsed.template.state';
-import {ProcessedAction} from '../../shared/types/processed.action';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
+import {ProcessedAction} from '../../lib/types/processed.action';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {InfoLevelType} from '../../shared/message/info.leve.type';
+import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {CombineTemplateAndImpTransPos} from './combine.template.and.imp.trans.pos';
 import {toClipboard} from 'copee';
 import {ImportSettings} from './import.settings';
 import {Transaction} from '../../entities/transaction';
-import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
+import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {Security} from '../../entities/security';
 import {
@@ -26,9 +26,10 @@ import {
   CallBackSetSecurityWithAfter
 } from '../../securitycurrency/component/securitycurrency-search-and-set.component';
 import {SupplementCriteria} from '../../securitycurrency/model/supplement.criteria';
-import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {SvgIconRegistryService} from 'angular-svg-icon';
 import {ImportTransactionPos} from '../../entities/import.transaction.pos';
+import {BaseSettings} from '../../lib/base.settings';
 
 
 /**
@@ -299,7 +300,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     });
 
     menuItems.push({
-      label: 'SET_SECURITY' + AppSettings.DIALOG_MENU_SUFFIX,
+      label: 'SET_SECURITY' + BaseSettings.DIALOG_MENU_SUFFIX,
       disabled: !this.selectedEntities || this.selectedEntities.length === 0
         || !this.selectedEntities.every(ctaitp => Transaction.isSecurityTransaction(ctaitp.importTransactionPos.transactionType))
         || this.selectedEntities.some(ctaitp => this.hasTransactionOrMaybe(ctaitp.importTransactionPos)),
@@ -307,14 +308,14 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     });
 
     menuItems.push({
-      label: 'SET_CASHACCOUNT' + AppSettings.DIALOG_MENU_SUFFIX,
+      label: 'SET_CASHACCOUNT' + BaseSettings.DIALOG_MENU_SUFFIX,
       disabled: !this.selectedEntities || this.selectedEntities.length === 0 ||
         this.selectedEntities.some(ctaitp => this.hasTransactionOrMaybe(ctaitp.importTransactionPos)),
       command: (event) => this.visibleSetCashaccountDialog = true
     });
     menuItems.push({separator: true});
     menuItems.push({
-      label: '_IGNORE_MAYBE_TRANSACTION' + AppSettings.DIALOG_MENU_SUFFIX,
+      label: '_IGNORE_MAYBE_TRANSACTION' + BaseSettings.DIALOG_MENU_SUFFIX,
       disabled: !this.selectedEntities || this.selectedEntities.length === 0 ||
         this.selectedEntities.some(ctaitp => ctaitp.importTransactionPos.idTransactionMaybe === null
           || ctaitp.importTransactionPos.idTransactionMaybe === 0),
@@ -322,7 +323,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     });
 
     menuItems.push({
-      label: '_IGNORE_MAYBE_TRANSACTION_UNDO' + AppSettings.DIALOG_MENU_SUFFIX,
+      label: '_IGNORE_MAYBE_TRANSACTION_UNDO' + BaseSettings.DIALOG_MENU_SUFFIX,
       disabled: !this.selectedEntities || this.selectedEntities.length === 0 ||
         this.selectedEntities.some(ctaitp => ctaitp.importTransactionPos.idTransactionMaybe !== 0),
       command: (event) => this.removeMayBeTransaction(null)

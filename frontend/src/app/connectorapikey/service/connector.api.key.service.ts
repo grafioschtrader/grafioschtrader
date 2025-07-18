@@ -1,11 +1,11 @@
 import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
 import {ConnectorApiKey, SubscriptionTypeReadableName} from '../../entities/connector.api.key';
-import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
-import {DeleteService} from '../../shared/datashowbase/delete.service';
+import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
+import {DeleteService} from '../../lib/datashowbase/delete.service';
 import {Injectable} from '@angular/core';
 import {LoginService} from '../../shared/login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Observable} from 'rxjs';
 import {AppSettings} from '../../shared/app.settings';
 import {catchError} from 'rxjs/operators';

@@ -1,15 +1,15 @@
 import {Component, OnInit} from '@angular/core';
-import {FormBase} from '../../shared/edit/form.base';
+import {FormBase} from '../../lib/edit/form.base';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {HelpIds} from '../../shared/help/help.ids';
 import {CopyTradingDaysFromSourceToTarget, TradingDaysMinusService} from '../service/trading.days.minus.service';
-import {InfoLevelType} from '../../shared/message/info.leve.type';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {InfoLevelType} from '../../lib/message/info.leve.type';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 
 
@@ -55,7 +55,7 @@ export class TradingCalendarOtherExchangeDynamicComponent extends FormBase imple
   }
 
   submit(value: { [name: string]: any }): void {
-    this.copyTradingDaysFromSourceToTarget.sourceIdStockexchange = value.name;
+    this.copyTradingDaysFromSourceToTarget.sourceIdStockexchange = +value.name;
     this.tradingDaysMinusService.copyAllTradingDaysMinusToOtherStockexchange(this.copyTradingDaysFromSourceToTarget)
       .subscribe({next: tradingDaysWithDateBoundaries => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'TRADING_CALENDAR_COPY_SUCCESS');

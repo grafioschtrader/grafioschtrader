@@ -34,7 +34,7 @@
             <a [href]="getValueByPath(content, field)" target=_blank><i class="pi pi-link"></i></a>
           </ng-container>
           <ng-container *ngIf="field.dataType === DataType.URLString && getValueByPath(content, field)?.startsWith('--')">
-            <a role="button" (click)="BusinessHelper.toExternalWebpage(getValueByPath(content, field))">
+            <a role="button" (click)="AppHelper.toExternalWebpage(getValueByPath(content, field))">
               <i class="pi pi-external-link"></i></a>
           </ng-container>
         </ng-container>

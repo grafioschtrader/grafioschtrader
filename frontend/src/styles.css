@@ -12,6 +12,11 @@ html {
   background: #2563eb !important;
 }
 
+.p-datatable-scrollable td.p-datatable-frozen-column {
+  background: #fff;
+  color: #000;
+}
+
 .word-break-header {
   hyphens: auto;
   white-space: normal;
@@ -600,13 +605,6 @@ Classes that Bootstrap 4 hat but Hootstrap 3
   align-items: center;
 }
 
-.p-dropdown-panel .p-dropdown-items .p-dropdown-item-group {
-  padding: 0.1rem 0.25rem;
-}
-
-.p-dropdown-panel .p-dropdown-items .p-dropdown-item {
-  padding: 0.25rem 1rem;
-}
 
 
 

@@ -7,16 +7,16 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {combineLatest, Subscription} from 'rxjs';
 import {AssetclassService} from '../service/assetclass.service';
 import {Assetclass} from '../../entities/assetclass';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {AssetclassCallParam} from './assetclass.call.param';
 import {plainToClass} from 'class-transformer';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {DialogService} from 'primeng/dynamicdialog';
-import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
-import {TableCrudSupportMenuSecurity} from '../../shared/datashowbase/table.crud.support.menu.security';
+import {TableCrudSupportMenuSecurity} from '../../lib/datashowbase/table.crud.support.menu.security';
 
 /**
  * Shows the asset class as a table.

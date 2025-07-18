@@ -4,11 +4,11 @@ import {CorrelationLimit, CorrelationResult, CorrelationSet, SamplingPeriodType}
 import {ConfirmationService, MenuItem} from 'primeng/api';
 import {ActivatedRoute} from '@angular/router';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {TranslateService} from '@ngx-translate/core';
 import {HelpIds} from '../../shared/help/help.ids';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {CorrelationSetService} from '../service/correlation.set.service';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {ChildToParent, CorrelationTableComponent} from './correlation-table.component';

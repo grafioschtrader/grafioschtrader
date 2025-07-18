@@ -5,7 +5,7 @@ import {ActivatedRoute, Params, Router} from '@angular/router';
 import {SecurityPositionGrandSummary} from '../../entities/view/security.position.grand.summary';
 import {SecurityaccountTable} from './securityaccountTable';
 import {TransactionCallParam} from '../../transaction/component/transaction.call.parm';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {Subscription} from 'rxjs';
@@ -19,7 +19,7 @@ import {
   SuccessFailedDirectImportTransaction
 } from '../service/import.transaction.head.service';
 
-import {InfoLevelType} from '../../shared/message/info.leve.type';
+import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {AppSettings} from '../../shared/app.settings';
 import {NgxFileDropEntry} from 'ngx-file-drop';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';

@@ -1,6 +1,6 @@
 import {Directive, EventEmitter, Input, Output, ViewChild} from '@angular/core';
-import {ProcessedActionData} from '../../../shared/types/processed.action.data';
-import {ProcessedAction} from '../../../shared/types/processed.action';
+import {ProcessedActionData} from '../../types/processed.action.data';
+import {ProcessedAction} from '../../types/processed.action';
 import {FieldConfig} from '../../../dynamic-form/models/field.config';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
 
@@ -8,14 +8,14 @@ import {TranslateService} from '@ngx-translate/core';
 import {AppHelper} from '../../helper/app.helper';
 import {DynamicFormComponent} from '../../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {CallParam} from '../../../shared/maintree/types/dialog.visible';
-import {InfoLevelType} from '../../../shared/message/info.leve.type';
-import {MessageToastService} from '../../../shared/message/message.toast.service';
+import {InfoLevelType} from '../../message/info.leve.type';
+import {MessageToastService} from '../../message/message.toast.service';
 import {TenantService} from '../service/tenant.service';
 import {Tenant} from '../../../entities/tenant';
 import {FormConfig} from '../../../dynamic-form/models/form.config';
 import {HelpIds} from '../../../shared/help/help.ids';
 import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
-import {TranslateHelper} from '../../../helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {BusinessHelper} from '../../../shared/helper/business.helper';
 import {GlobalparameterGTService} from '../../../gtservice/globalparameter.gt.service';
 

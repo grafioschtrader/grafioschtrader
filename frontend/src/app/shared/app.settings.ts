@@ -162,9 +162,7 @@ export class AppSettings {
   // HELP Support
   public static readonly HELP_DOMAIN = '//grafioschtrader.github.io/gt-user-manual/';
 
-  // Native formats
-  public static readonly FORMAT_DATE_SHORT_NATIVE = 'YYYY-MM-DD';
-  public static readonly FORMAT_DATE_SHORT_US = 'YYYYMMDD';
+
 
   public static readonly DEFAULT_LANGUAGE = 'en';
 
@@ -213,11 +211,10 @@ export class AppSettings {
   // SVG file extension
   public static readonly SVG = '.svg';
 
-  // Some menu items reference a dialog. If this is the case, the menu item should end with "...".
-  public static readonly DIALOG_MENU_SUFFIX = '...';
+
 
   public static readonly INSTRUMENT_HEADER = 'I';
-  public static readonly FIELD_SUFFIX = '$';
+
 
   public static FID_MAX_CURRENCY_EX_RATE_PRECISION = 20;
   public static FID_MAX_CURRENCY_EX_RATE_FRACTION = 10;

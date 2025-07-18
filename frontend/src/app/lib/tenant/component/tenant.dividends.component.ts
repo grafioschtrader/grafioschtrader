@@ -3,20 +3,20 @@ import {PortfolioService} from '../../../portfolio/service/portfolio.service';
 import {SecurityDividendsGrandTotal} from '../../../entities/view/securitydividends/security.dividends.grand.total';
 import {ActivatedRoute} from '@angular/router';
 import {SecurityDividendsYearGroup} from '../../../entities/view/securitydividends/security.dividends.year.group';
-import {TableConfigBase} from '../../../shared/datashowbase/table.config.base';
+import {TableConfigBase} from '../../datashowbase/table.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../../shared/service/user.settings.service';
 import {DataType} from '../../../dynamic-form/models/data.type';
 import {IGlobalMenuAttach} from '../../../shared/mainmenubar/component/iglobal.menu.attach';
 import {ActivePanelService} from '../../../shared/mainmenubar/service/active.panel.service';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
-import {ColumnConfig, ColumnGroupConfig} from '../../../shared/datashowbase/column.config';
+import {ColumnConfig, ColumnGroupConfig} from '../../datashowbase/column.config';
 import {HelpIds} from '../../../shared/help/help.ids';
 import {FilterService, MenuItem} from 'primeng/api';
-import {ProcessedActionData} from '../../../shared/types/processed.action.data';
+import {ProcessedActionData} from '../../types/processed.action.data';
 import {AppSettings} from '../../../shared/app.settings';
-import {ProcessedAction} from '../../../shared/types/processed.action';
-import {TranslateHelper} from '../../../helper/translate.helper';
+import {ProcessedAction} from '../../types/processed.action';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {IdsAccounts} from '../model/ids.accounts';
 
 /**
@@ -127,7 +127,7 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
   }
 
   public getHelpContextId(): HelpIds {
-    return HelpIds.HELP_PROTFOLIOS_DIVIDENDS;
+    return HelpIds.HELP_PORTFOLIOS_DIVIDENDS;
   }
 
   ngOnDestroy(): void {

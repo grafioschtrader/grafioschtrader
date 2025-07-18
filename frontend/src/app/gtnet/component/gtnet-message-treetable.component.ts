@@ -1,5 +1,5 @@
 import {Component, Input, OnInit, ViewChild} from '@angular/core';
-import {TreeTableConfigBase} from '../../shared/datashowbase/tree.table.config.base';
+import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {GTNetMessage, MsgCallParam} from '../model/gtnet.message';
 import {MenuItem, TreeNode} from 'primeng/api';
@@ -8,7 +8,7 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
 import {HelpIds} from '../../shared/help/help.ids';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
-import {TranslateValue} from '../../shared/datashowbase/column.config';
+import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
 
 /**

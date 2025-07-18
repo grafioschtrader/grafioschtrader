@@ -8,7 +8,7 @@ import {AppSettings} from '../../shared/app.settings';
 import {ContentBase, SecuritycurrencyBaseInfoFields} from './securitycurrency.base.info.fields';
 import {Security} from '../../entities/security';
 import {DistributionFrequency} from '../../shared/types/distribution.frequency';
-import {ColumnConfig} from '../../shared/datashowbase/column.config';
+import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {WatchlistTable} from './watchlist.table';

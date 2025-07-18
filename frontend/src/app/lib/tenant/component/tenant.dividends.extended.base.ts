@@ -1,4 +1,4 @@
-import {TableConfigBase} from '../../../shared/datashowbase/table.config.base';
+import {TableConfigBase} from '../../datashowbase/table.config.base';
 import {FilterService} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';

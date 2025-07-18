@@ -3,7 +3,7 @@ import {AuthServiceWithLogout} from '../../login/service/base.auth.service.with.
 import {UDFData} from '../model/udf.metadata';
 import {LoginService} from '../../login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
-import {MessageToastService} from '../../message/message.toast.service';
+import {MessageToastService} from '../../../lib/message/message.toast.service';
 import {Observable} from 'rxjs';
 import {AppSettings} from '../../app.settings';
 import {catchError} from 'rxjs/operators';

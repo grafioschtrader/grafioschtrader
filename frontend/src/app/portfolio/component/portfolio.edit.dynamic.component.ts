@@ -5,15 +5,15 @@ import {TranslateService} from '@ngx-translate/core';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {Portfolio} from '../../entities/portfolio';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {Tenant} from '../../entities/tenant';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
-import {SimpleDynamicEditBase} from '../../shared/edit/simple.dynamic.edit.base';
+import {SimpleDynamicEditBase} from '../../lib/edit/simple.dynamic.edit.base';
 
 /**
  * Component for editing the portfolio.

@@ -1,13 +1,13 @@
 import {Injectable} from '@angular/core';
 import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
 import {GTNet, GTNetWithMessages, MsgRequest} from '../model/gtnet';
-import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
+import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {Observable} from 'rxjs/internal/Observable';
 import {AppSettings} from '../../shared/app.settings';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../shared/login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ApplicationInfo} from '../../shared/service/actuator.service';
 
 @Injectable()

@@ -3,11 +3,11 @@ import {AuthServiceWithLogout} from '../../../shared/login/service/base.auth.ser
 import {MailSendForwardDefault, MailSettingForward} from '../model/mail.send.recv';
 import {LoginService} from '../../../shared/login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
-import {MessageToastService} from '../../../shared/message/message.toast.service';
+import {MessageToastService} from '../../message/message.toast.service';
 import {Observable} from 'rxjs';
 import {AppSettings} from '../../../shared/app.settings';
 import {catchError} from 'rxjs/operators';
-import {ServiceEntityUpdate} from '../../../shared/edit/service.entity.update';
+import {ServiceEntityUpdate} from '../../edit/service.entity.update';
 
 @Injectable()
 export class MailSettingForwardService extends AuthServiceWithLogout<MailSettingForward> implements ServiceEntityUpdate<MailSettingForward> {

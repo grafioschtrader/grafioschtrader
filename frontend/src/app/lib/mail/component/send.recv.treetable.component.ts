@@ -1,8 +1,8 @@
-import {TreeTableConfigBase} from '../../../shared/datashowbase/tree.table.config.base';
+import {TreeTableConfigBase} from '../../datashowbase/tree.table.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
 import {DataType} from '../../../dynamic-form/models/data.type';
-import {ColumnConfig, TranslateValue} from '../../../shared/datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../datashowbase/column.config';
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {IGlobalMenuAttach} from '../../../shared/mainmenubar/component/iglobal.menu.attach';
 import {HelpIds} from '../../../shared/help/help.ids';
@@ -13,11 +13,11 @@ import {MailInboxWithSend, MailSendRecv, SendRecvType} from '../model/mail.send.
 import {AppSettings} from '../../../shared/app.settings';
 import {SvgIconRegistryService} from 'angular-svg-icon';
 import {DialogService} from 'primeng/dynamicdialog';
-import {TranslateHelper} from '../../../helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {MailSendParam} from '../../../shared/dynamicdialog/component/mail.send.dynamic.component';
 import {AppHelper} from '../../helper/app.helper';
-import {InfoLevelType} from '../../../shared/message/info.leve.type';
-import {MessageToastService} from '../../../shared/message/message.toast.service';
+import {InfoLevelType} from '../../message/info.leve.type';
+import {MessageToastService} from '../../message/message.toast.service';
 import {DynamicDialogs} from '../../../shared/dynamicdialog/component/dynamic.dialogs';
 
 /**

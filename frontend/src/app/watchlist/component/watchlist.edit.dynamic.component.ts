@@ -1,16 +1,16 @@
 import {AfterViewInit, Component, OnInit} from '@angular/core';
-import {SimpleDynamicEditBase} from '../../shared/edit/simple.dynamic.edit.base';
+import {SimpleDynamicEditBase} from '../../lib/edit/simple.dynamic.edit.base';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {WatchlistService} from '../service/watchlist.service';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {Watchlist} from '../../entities/watchlist';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {HelpIds} from '../../shared/help/help.ids';
 
 /**

@@ -6,7 +6,7 @@ import {DataType} from '../../dynamic-form/models/data.type';
 import {StockexchangeService} from '../service/stockexchange.service';
 import {Stockexchange} from '../../entities/stockexchange';
 import {combineLatest} from 'rxjs';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {plainToInstance} from 'class-transformer';
@@ -14,13 +14,14 @@ import {StockexchangeCallParam} from './stockexchange.call.param';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {DialogService} from 'primeng/dynamicdialog';
-import {ColumnConfig} from '../../shared/datashowbase/column.config';
+import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
-import {TableCrudSupportMenuSecurity} from '../../shared/datashowbase/table.crud.support.menu.security';
+import {TableCrudSupportMenuSecurity} from '../../lib/datashowbase/table.crud.support.menu.security';
 import {StockexchangeBaseData, StockexchangeMic} from '../model/stockexchange.base.data';
 import {StockexchangeHasSecurity} from '../model/stockexchange.has.security';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {StockexchangeHelper} from './stockexchange.helper';
+import {AppHelper} from '../../lib/helper/app.helper';
 
 /**
  * Shows stock exchanges in a table
@@ -95,7 +96,6 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
 
   callParam: StockexchangeCallParam = new StockexchangeCallParam();
 
-  private countriesAsHtmlOptions: ValueKeyHtmlSelectOptions[];
   private countriesAsKeyValue: { [cc: string]: string } = {};
   private stockexchangeMics: StockexchangeMic[];
 
@@ -155,7 +155,6 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
   }
 
   getCopySourceStockexchanges(targetIdStockexchange: number): ValueKeyHtmlSelectOptions[] {
-    const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [];
     return this.entityList.filter(stockexhange => !stockexhange.noMarketValue
       && targetIdStockexchange !== stockexhange.idStockexchange)
       .map(stockexchange => new ValueKeyHtmlSelectOptions(stockexchange.idStockexchange, stockexchange.name));
@@ -164,7 +163,7 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
   protected override readData(): void {
     if (this.callParam.countriesAsHtmlOptions) {
       combineLatest([this.stockexchangeService.getAllStockexchanges(true),
-        this.stockexchangeService.stockexchangesHasSecurity()]).subscribe(data => {
+        this.stockexchangeService.stockexchangesHasSecurity()]).subscribe((data: [Stockexchange[], StockexchangeHasSecurity[]]) => {
         this.prepareStockexchanges(data[0], data[1]);
       });
     } else {
@@ -191,7 +190,7 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
     const menuItems: MenuItem[] = super.getEditMenuItems(this.selectedEntity);
     menuItems.push({separator: true});
     menuItems.push({
-      label: 'WEBSITE', command: (e) => BusinessHelper.toExternalWebpage(this.selectedEntity.website, 'stockexchange'),
+      label: 'WEBSITE', command: (e) => AppHelper.toExternalWebpage(this.selectedEntity.website, 'stockexchange'),
       disabled: !this.selectedEntity || !this.selectedEntity.website
     });
     return menuItems;

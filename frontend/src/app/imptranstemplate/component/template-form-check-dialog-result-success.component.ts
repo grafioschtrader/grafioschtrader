@@ -3,8 +3,8 @@ import {FormTemplateCheck} from './form.template.check';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
-import {SingleRecordConfigBase} from '../../shared/datashowbase/single.record.config.base';
-import {TranslateValue} from '../../shared/datashowbase/column.config';
+import {SingleRecordConfigBase} from '../../lib/datashowbase/single.record.config.base';
+import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 
 /**

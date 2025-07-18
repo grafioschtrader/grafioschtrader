@@ -2,15 +2,15 @@ import {Component, Input, OnInit} from '@angular/core';
 import {HelpIds} from '../../shared/help/help.ids';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ImportTransactionHeadService} from '../service/import.transaction.head.service';
 import {ImportTransactionHead} from '../../entities/import.transaction.head';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {Securityaccount} from '../../entities/securityaccount';
-import {SimpleEntityEditBase} from '../../shared/edit/simple.entity.edit.base';
+import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 
 

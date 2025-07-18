@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {SimpleEditBase} from '../../edit/simple.edit.base';
+import {SimpleEditBase} from '../../../lib/edit/simple.edit.base';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../service/globalparameter.service';
 import {HelpIds} from '../../help/help.ids';
@@ -11,9 +11,9 @@ import {MainDialogService} from '../../mainmenubar/service/main.dialog.service';
 import {combineLatest} from 'rxjs';
 import {UserOwnProjection} from '../../../lib/entities/projection/user.own.projection';
 import {SuccessfullyChanged} from '../../../entities/backend/successfully.changed';
-import {InfoLevelType} from '../../message/info.leve.type';
-import {MessageToastService} from '../../message/message.toast.service';
-import {TranslateHelper} from '../../../helper/translate.helper';
+import {InfoLevelType} from '../../../lib/message/info.leve.type';
+import {MessageToastService} from '../../../lib/message/message.toast.service';
+import {TranslateHelper} from '../../../lib/helper/translate.helper';
 
 /**
  * Change nickname and locale of a user

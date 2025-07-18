@@ -14,12 +14,12 @@ import {
   MessageComType
 } from '../model/mail.send.recv';
 import {DataType} from '../../../dynamic-form/models/data.type';
-import {TranslateValue} from '../../../shared/datashowbase/column.config';
+import {TranslateValue} from '../../datashowbase/column.config';
 import {AppSettings} from '../../../shared/app.settings';
-import {MessageToastService} from '../../../shared/message/message.toast.service';
+import {MessageToastService} from '../../message/message.toast.service';
 import {ProductIconService} from '../../../securitycurrency/service/product.icon.service';
 import {DialogService} from 'primeng/dynamicdialog';
-import {TableCrudSupportMenu} from '../../../shared/datashowbase/table.crud.support.menu';
+import {TableCrudSupportMenu} from '../../datashowbase/table.crud.support.menu';
 
 /**
  * This component shows the message settings in a table.

@@ -4,6 +4,7 @@ import {Currencypair} from '../../entities/currencypair';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {WatchlistService} from '../service/watchlist.service';
 import {Securitycurrency} from '../../entities/securitycurrency';
+import {AppHelper} from '../../lib/helper/app.helper';
 
 /**
  * Is intended for static methods. This means that the methods cannot be in a possible inheritance or association.
@@ -17,9 +18,9 @@ export class WatchlistHelper {
     if (url === 'lazy') {
       watchlistService.getDataProviderLinkForUser(securitycurrency.idSecuritycurrency, isIntra,
         !(securitycurrency instanceof Currencypair)).subscribe(
-        urlWebpage => BusinessHelper.toExternalWebpage(urlWebpage, targetPage))
+        urlWebpage => AppHelper.toExternalWebpage(urlWebpage, targetPage))
     } else {
-      BusinessHelper.toExternalWebpage(url, targetPage);
+      AppHelper.toExternalWebpage(url, targetPage);
     }
   }
 }

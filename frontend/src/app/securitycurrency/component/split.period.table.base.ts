@@ -1,17 +1,18 @@
-import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
+import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {Directive, EventEmitter, Input, Output} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import moment from 'moment';
 import {AppSettings} from '../../shared/app.settings';
-import {InfoLevelType} from '../../shared/message/info.leve.type';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {InfoLevelType} from '../../lib/message/info.leve.type';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Security} from '../../entities/security';
 import {plainToInstance} from 'class-transformer';
 import {DeleteCreateMultiple} from '../service/delete.create.multiple';
 import {ClassConstructor} from 'class-transformer/types/interfaces';
 import {FilterService} from 'primeng/api';
+import {BaseSettings} from '../../lib/base.settings';
 
 
 @Directive()
@@ -48,9 +49,9 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
   }
 
   public addDataRow(rowData: T): void {
-    const dateStr = moment(rowData[this.dataSortKey]).format(AppSettings.FORMAT_DATE_SHORT_NATIVE);
+    const dateStr = moment(rowData[this.dataSortKey]).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
     const replacePos = this._dataList.findIndex(ss => ss[this.dataSortKey] === dateStr ||
-      moment(ss[this.dataSortKey]).format(AppSettings.FORMAT_DATE_SHORT_NATIVE) === dateStr);
+      moment(ss[this.dataSortKey]).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE) === dateStr);
 
     if (replacePos === -1) {
       if (this._dataList.length < this.maxRows) {

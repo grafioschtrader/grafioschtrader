@@ -8,10 +8,10 @@ import {CurrencypairWithHistoryquote} from '../../entities/view/currencypair.wit
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {Observable} from 'rxjs';
 import {SecurityTransactionSummary} from '../../entities/view/security.transaction.summary';
-import {MessageToastService} from '../message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {HistoryquoteService} from '../../historyquote/service/historyquote.service';
 import {GlobalparameterService} from '../service/globalparameter.service';
-import {InfoLevelType} from '../message/info.leve.type';
+import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {Securitycurrency} from '../../entities/securitycurrency';
 import {MenuItem} from 'primeng/api';
 import {Security} from '../../entities/security';
@@ -22,8 +22,10 @@ import {AssetclassType} from '../types/assetclass.type';
 import {SpecialInvestmentInstruments} from '../types/special.investment.instruments';
 import {Assetclass} from '../../entities/assetclass';
 import {ISecuritycurrencyIdDateClose} from '../../entities/projection/i.securitycurrency.id.date.close';
-import {ColumnConfig} from '../datashowbase/column.config';
+import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {GlobalSessionNames} from '../global.session.names';
+import {AppHelper} from '../../lib/helper/app.helper';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * Utility class providing static helper methods for financial business operations.
@@ -253,7 +255,7 @@ export class BusinessHelper {
     menuItems.push(
       {
         label: 'STOCKEXCHANGE_LINK',
-        command: (e) => this.toExternalWebpage(securitycurrency.stockexchangeLink, 'exchange'),
+        command: (e) => AppHelper.toExternalWebpage(securitycurrency.stockexchangeLink, 'exchange'),
         disabled: !securitycurrency.stockexchangeLink
       }
     );
@@ -261,7 +263,7 @@ export class BusinessHelper {
       menuItems.push(
         {
           label: 'PRODUCT_LINK',
-          command: (e) => this.toExternalWebpage((<Security>securitycurrency).productLink, 'product'),
+          command: (e) => AppHelper.toExternalWebpage((<Security>securitycurrency).productLink, 'product'),
           disabled: !(<Security>securitycurrency).productLink
         }
       );
@@ -283,7 +285,7 @@ export class BusinessHelper {
    * ```
    */
   public static toExternalHelpWebpage(language: string, helpIds: HelpIds) {
-    this.toExternalWebpage(AppSettings.HELP_DOMAIN + '/' + language + '/' + helpIds, 'help');
+    AppHelper.toExternalWebpage(AppSettings.HELP_DOMAIN + '/' + language + '/' + helpIds, 'help');
   }
 
   /**
@@ -306,24 +308,7 @@ export class BusinessHelper {
     }
   }
 
-  /**
-   * Opens an external webpage in a new window or tab. Handles URL preprocessing
-   * including domain prefixing for internal links and protocol addition for external links.
-   *
-   * @param url The URL to open (can be relative, absolute, or prefixed with '--') A “--” is used in the user interface
-   * with the link output, and an icon should also appear after the link content. Clicking on the icon navigates to
-   * the corresponding page.
-   * @param targetPage The target window name (default: 'blank' for new tab)
-   */
-  public static toExternalWebpage(url: string, targetPage: string = 'blank'): void {
-    if (url.startsWith('--')) {
-      url = location.host + url.substring(2);
-    }
-    if (!url.match(/^https?:\/\//i)) {
-      url = 'http://' + url;
-    }
-    window.open(url, targetPage);
-  }
+
 
   /**
    * Constructs a server URL using the current location hostname and specified port.
@@ -411,7 +396,7 @@ export class BusinessHelper {
    * @param date Date object to store
    */
   private static saveDateToSessionStore(property: string, date: Date) {
-    sessionStorage.setItem(property, moment(date).format(AppSettings.FORMAT_DATE_SHORT_NATIVE));
+    sessionStorage.setItem(property, moment(date).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE));
   }
 
 }

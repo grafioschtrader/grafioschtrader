@@ -12,32 +12,33 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {SecurityTransactionSummary} from '../../entities/view/security.transaction.summary';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 import {CurrencypairWithTransaction} from '../../entities/view/currencypair.with.transaction';
-import {TableCrudSupportMenu} from '../../shared/datashowbase/table.crud.support.menu';
+import {TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
 import {TranslateService} from '@ngx-translate/core';
 import {INameSecuritycurrency} from '../../entities/view/iname.securitycurrency';
 import {SecurityTransactionPosition} from '../../entities/view/security.transaction.position';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {TimeSeriesParam} from './time.series.chart.component';
-import {FilterType} from '../../shared/datashowbase/filter.type';
+import {FilterType} from '../../lib/datashowbase/filter.type';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {Securitycurrency} from '../../entities/securitycurrency';
 import {Security} from '../../entities/security';
 import {Currencypair} from '../../entities/currencypair';
 import {plainToClass} from 'class-transformer';
 import {BusinessHelper} from '../../shared/helper/business.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
-import {ProcessedAction} from '../../shared/types/processed.action';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
+import {ProcessedAction} from '../../lib/types/processed.action';
 import {HistoryquotesWithMissings} from '../model/historyquotes.with.missings';
 import {DataChangedService} from '../../shared/maintree/service/data.changed.service';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {FileUploadParam} from '../../shared/generaldialog/model/file.upload.param';
-import {ColumnConfig} from '../../shared/datashowbase/column.config';
+import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {SvgIconRegistryService} from 'angular-svg-icon';
 import {DialogService} from 'primeng/dynamicdialog';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * Shows the history quotes in a table
@@ -93,8 +94,8 @@ import {DialogService} from 'primeng/dynamicdialog';
                   </ng-container>
                 </ng-container>
                 <ng-container *ngSwitchCase="FilterType.withOptions">
-                  <p-dropdown [options]="field.filterValues" [style]="{'width':'100%'}"
-                              (onChange)="table.filter($event.value, field.field, 'equals')"></p-dropdown>
+                  <p-select [options]="field.filterValues" [style]="{'width':'100%'}"
+                              (onChange)="table.filter($event.value, field.field, 'equals')"></p-select>
                 </ng-container>
               </th>
             </tr>
@@ -176,15 +177,15 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
   visibleFillGapsDialog = false;
   visibleDeleteHistoryquotes = false;
   importQuotesMenu: MenuItem = {
-    label: 'IMPORT_QUOTES' + AppSettings.DIALOG_MENU_SUFFIX,
+    label: 'IMPORT_QUOTES' + BaseSettings.DIALOG_MENU_SUFFIX,
     command: (event) => this.uploadImportQuotes()
   };
   fillGapsMenu: MenuItem = {
-    label: 'HISTORYQUOTE_FILL_GAPS' + AppSettings.DIALOG_MENU_SUFFIX,
+    label: 'HISTORYQUOTE_FILL_GAPS' + BaseSettings.DIALOG_MENU_SUFFIX,
     command: (event) => this.fillLinearGap()
   };
   deleteCreateTypesMenu: MenuItem = {
-    label: 'DELETE_CREATE_TYPES_QUOTES' + AppSettings.DIALOG_MENU_SUFFIX,
+    label: 'DELETE_CREATE_TYPES_QUOTES' + BaseSettings.DIALOG_MENU_SUFFIX,
     command: (event) => this.deleteCreateTypeQuotes()
   };
   protected transactionPositionList: SecurityTransactionPosition[] = [];

@@ -1,21 +1,19 @@
 import {UDFMetadata, UDFMetadataParam, UDFSpecialType} from '../model/udf.metadata';
 import {ConfirmationService, FilterService, MenuItem, SortMeta} from 'primeng/api';
-import {MessageToastService} from '../../message/message.toast.service';
+import {MessageToastService} from '../../../lib/message/message.toast.service';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {DialogService} from 'primeng/dynamicdialog';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../service/globalparameter.service';
 import {UserSettingsService} from '../../service/user.settings.service';
-import {DeleteService} from '../../datashowbase/delete.service';
+import {DeleteService} from '../../../lib/datashowbase/delete.service';
 import {DataType} from '../../../dynamic-form/models/data.type';
-import {ColumnConfig, TranslateValue} from '../../datashowbase/column.config';
-import {Observable} from 'rxjs';
+import {ColumnConfig, TranslateValue} from '../../../lib/datashowbase/column.config';
+import {combineLatest, Observable} from 'rxjs';
 import {plainToInstance} from 'class-transformer';
 import {ClassConstructor} from 'class-transformer/types/interfaces';
-import {TableCrudSupportMenu} from '../../datashowbase/table.crud.support.menu';
+import {TableCrudSupportMenu} from '../../../lib/datashowbase/table.crud.support.menu';
 import {UDFSpecialTypeDisableUserService} from '../service/udf.special.type.disable.user.service';
-import {combineLatest} from 'rxjs';
-import {TaskDataChange} from '../../../entities/task.data.change';
 
 
 /**
@@ -70,7 +68,7 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
 
   override readData(): void {
     combineLatest([this.deleteReadAllService.getAllByIdUser(),
-      this.udfSpecialTypeDisableUserService.getDisabledSpecialTypes()]).subscribe(data => {
+      this.udfSpecialTypeDisableUserService.getDisabledSpecialTypes()]).subscribe((data: [T[], UDFSpecialType[]]) => {
       this.entityList = plainToInstance(this.classz, data[0]);
       this.specialTypeDisabledArr = data[1];
       console.log(this.specialTypeDisabledArr);
@@ -79,23 +77,23 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
   }
 
   protected override addCustomMenusToSelectedEntity(udfMetaData: T, menuItems: MenuItem[]): void {
-       menuItems.push({
-         label: 'UDF_TURN_ON_OFF_FIELD_USER0',
-         command: (event) => this.turnOnOffFieldUser0(udfMetaData),
-         disabled: !udfMetaData.udfSpecialType
-       });
+    menuItems.push({
+      label: 'UDF_TURN_ON_OFF_FIELD_USER0',
+      command: (event) => this.turnOnOffFieldUser0(udfMetaData),
+      disabled: !udfMetaData.udfSpecialType
+    });
   }
 
   turnOnOffFieldUser0(udfMetaData: T): void {
-    if(this.specialTypeDisabledArr.indexOf(udfMetaData.udfSpecialType) >= 0) {
-      this.udfSpecialTypeDisableUserService.delete(UDFSpecialType[udfMetaData.udfSpecialType]).subscribe( () =>  this.readData());
+    if (this.specialTypeDisabledArr.indexOf(udfMetaData.udfSpecialType) >= 0) {
+      this.udfSpecialTypeDisableUserService.delete(UDFSpecialType[udfMetaData.udfSpecialType]).subscribe(() => this.readData());
     } else {
       this.udfSpecialTypeDisableUserService.create(UDFSpecialType[udfMetaData.udfSpecialType]).subscribe(() => this.readData());
     }
   }
 
   udfDisabled(entity: T, field: ColumnConfig, valueField: any): boolean {
-    console.log('value:',entity.udfSpecialType)
+    console.log('value:', entity.udfSpecialType)
     return this.specialTypeDisabledArr.indexOf(entity.udfSpecialType) >= 0;
   }
 

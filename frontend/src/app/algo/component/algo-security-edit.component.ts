@@ -2,7 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {AlgoSecurity} from '../model/algo.security';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {AlgoSecurityService} from '../service/algo.security.service';
 import {AlgoAssetclass} from '../model/algo.assetclass';
 import {AppHelper} from '../../lib/helper/app.helper';
@@ -14,7 +14,7 @@ import {SecurityService} from '../../securitycurrency/service/security.service';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {BusinessSelectOptionsHelper} from '../../securitycurrency/component/business.select.options.helper';
 

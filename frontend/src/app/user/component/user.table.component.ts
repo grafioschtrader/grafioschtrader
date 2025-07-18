@@ -1,10 +1,10 @@
-import {CrudMenuOptions, TableCrudSupportMenu} from '../../shared/datashowbase/table.crud.support.menu';
+import {CrudMenuOptions, TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
 import {Component, OnDestroy} from '@angular/core';
 import {UserAdminService} from '../service/user.admin.service';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {TranslateService} from '@ngx-translate/core';
 import {DataType} from '../../dynamic-form/models/data.type';
@@ -12,19 +12,20 @@ import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {User} from '../../lib/entities/user';
 import {UserEntityChangeLimitTableComponent} from './user-entity-change-limit-table.component';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
-import {ProcessedAction} from '../../shared/types/processed.action';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
+import {ProcessedAction} from '../../lib/types/processed.action';
 import {AuditHelper} from '../../lib/helper/audit.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
-import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
-import {UserTaskType} from '../../shared/types/user.task.type';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
+import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
+import {UserTaskType} from '../../lib/types/user.task.type';
 import {SvgIconRegistryService} from 'angular-svg-icon';
 import {AppSettings} from '../../shared/app.settings';
 import {LimitEntityTransactionError} from '../../shared/login/service/limit.entity.transaction.error';
 import {DynamicDialogHelper} from '../../shared/dynamicdialog/component/dynamicDialogHelper';
 import {ProposeUserTaskService} from '../../shared/dynamicdialog/service/propose.user.task.service';
-import {InfoLevelType} from '../../shared/message/info.leve.type';
+import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {DynamicDialogs} from '../../shared/dynamicdialog/component/dynamic.dialogs';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * Main component for the user table. It contains nested table to change the limits on information classes.
@@ -123,12 +124,12 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
   visibleChangeEntitiesOwnerDialog: boolean;
 
   private limitChangeMenuItem: MenuItem = {
-    label: 'CREATE|' + UserEntityChangeLimitTableComponent.USER_ENTITY_CHANGE_LIMIT + AppSettings.DIALOG_MENU_SUFFIX,
+    label: 'CREATE|' + UserEntityChangeLimitTableComponent.USER_ENTITY_CHANGE_LIMIT + BaseSettings.DIALOG_MENU_SUFFIX,
     command: (event) => this.addUserEntityChangeLimit()
   };
 
   private changeEntitiesOwnerMenuItem: MenuItem = {
-    label: 'USER_CHANGE_OWNER_ENTITIES' + AppSettings.DIALOG_MENU_SUFFIX, command: (event) => this.changeOwnerEntities()
+    label: 'USER_CHANGE_OWNER_ENTITIES' + BaseSettings.DIALOG_MENU_SUFFIX, command: (event) => this.changeOwnerEntities()
   };
 
   constructor(private iconReg: SvgIconRegistryService,

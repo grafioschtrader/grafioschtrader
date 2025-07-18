@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {BaseInputComponent} from '../base.input.component';
-import {Helper} from '../../../helper/helper';
+import {Helper} from '../../../lib/helper/helper';
 
 
 @Component({

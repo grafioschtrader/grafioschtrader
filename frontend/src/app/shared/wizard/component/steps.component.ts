@@ -10,114 +10,107 @@ import {
   SimpleChanges
 } from '@angular/core';
 
-import {StepComponent} from './step.component';
-import {MenuItem} from 'primeng/api';
+import { StepComponent } from './step.component';
 
 @Component({
-    selector: 'pe-steps',
-    template: `
-    <p-steps [model]="items" [(activeIndex)]="activeIndex"
-             [styleClass]="styleClass" [readonly]="true"></p-steps>
+  selector: 'pe-steps',
+  template: `
+    <p-stepper [value]="activeIndex + 1" [class]="styleClass">
+      <p-step-list>
+        <p-step
+          *ngFor="let step of steps.toArray(); let i = index"
+          [value]="i + 1"
+          [class]="step.styleClass || stepClass"
+          (click)="onStepClick(i)">
+          {{ step.label }}
+        </p-step>
+      </p-step-list>
+    </p-stepper>
+
+    <!-- Content is rendered outside stepper -->
     <ng-content></ng-content>
-    <button pButton type="text" *ngIf="activeIndex > 0"
-            (click)="previous()" icon="pi pi-chevron-left" label="Previous"></button>
-    <button pButton type="text" *ngIf="activeIndex < items.length - 1"
-            (click)="next()" icon="pi pi-chevron-right" iconPos="right" label="Next"></button>
+
+    <!-- Navigation buttons -->
+    <div class="flex pt-6 justify-between">
+      <button
+        pButton
+        type="button"
+        *ngIf="activeIndex > 0"
+        (click)="previous()"
+        icon="pi pi-chevron-left"
+        label="Previous"
+        severity="secondary">
+      </button>
+
+      <button
+        pButton
+        type="button"
+        *ngIf="activeIndex < steps.length - 1"
+        (click)="next()"
+        icon="pi pi-chevron-right"
+        iconPos="right"
+        label="Next">
+      </button>
+    </div>
   `,
-    standalone: false
+  standalone: false
 })
 export class StepsComponent implements AfterContentInit, OnChanges {
   @Input() activeIndex = 0;
   @Input() styleClass: string;
   @Input() stepClass: string;
-  @Output() activeIndexChange: EventEmitter<any> = new EventEmitter();
-  @Output() activeLabelChange = new EventEmitter();
-
-  items: MenuItem[] = [];
+  @Output() activeIndexChange: EventEmitter<number> = new EventEmitter();
+  @Output() activeLabelChange = new EventEmitter<string>();
 
   @ContentChildren(StepComponent) steps: QueryList<StepComponent>;
 
   ngAfterContentInit() {
-    this.steps.toArray().forEach((step: StepComponent, index: number) => {
-      if (!step.styleClass) {
-        // set style class if it was not set on step component directly
-        step.styleClass = this.stepClass;
-      }
-
-      if (index === this.activeIndex) {
-        // show this step on init
-        step.active = true;
-      }
-
-      this.items[index] = {
-        label: step.label,
-        command: (event: any) => {
-          // hide all steps
-          this.steps.toArray().forEach((s: StepComponent) => s.active = false);
-
-          // show the step the user has clicked on.
-          step.active = true;
-          this.activeIndex = index;
-
-          // emit currently selected index (two-way binding)
-          this.activeIndexChange.emit(index);
-          // emit currently selected label
-          this.activeLabelChange.next(step.label);
-        }
-      };
-    });
+    this.updateSteps();
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (!this.steps) {
-      // we could also check changes['activeIndex'].isFirstChange()
       return;
     }
 
-    for (const prop in changes) {
-      if (prop === 'activeIndex') {
-        const curIndex = changes[prop].currentValue;
-        this.steps.toArray().forEach((step: StepComponent, index: number) => {
-          // show / hide the step
-          const selected = index === curIndex;
-          step.active = selected;
-
-          if (selected) {
-            // emit currently selected label
-            this.activeLabelChange.next(step.label);
-          }
-        });
-      }
+    if (changes['activeIndex']) {
+      this.updateSteps();
     }
   }
 
-  private previous() {
-    this.activeIndex--;
-    // emit currently selected index (two-way binding)
-    this.activeIndexChange.emit(this.activeIndex);
-    // show / hide steps and emit selected label
-    this.ngOnChanges({
-      activeIndex: {
-        currentValue: this.activeIndex,
-        previousValue: this.activeIndex + 1,
-        firstChange: false,
-        isFirstChange: () => false
+  private updateSteps() {
+    this.steps.toArray().forEach((step: StepComponent, index: number) => {
+      if (!step.styleClass) {
+        step.styleClass = this.stepClass;
+      }
+
+      step.active = index === this.activeIndex;
+
+      if (step.active) {
+        this.activeLabelChange.emit(step.label);
       }
     });
   }
 
-  private next() {
-    this.activeIndex++;
-    // emit currently selected index (two-way binding)
+  onStepClick(index: number) {
+    this.activeIndex = index;
     this.activeIndexChange.emit(this.activeIndex);
-    // show / hide steps and emit selected label
-    this.ngOnChanges({
-      activeIndex: {
-        currentValue: this.activeIndex,
-        previousValue: this.activeIndex - 1,
-        firstChange: false,
-        isFirstChange: () => false
-      }
-    });
+    this.updateSteps();
+  }
+
+  previous() {
+    if (this.activeIndex > 0) {
+      this.activeIndex--;
+      this.activeIndexChange.emit(this.activeIndex);
+      this.updateSteps();
+    }
+  }
+
+  next() {
+    if (this.activeIndex < this.steps.length - 1) {
+      this.activeIndex++;
+      this.activeIndexChange.emit(this.activeIndex);
+      this.updateSteps();
+    }
   }
 }

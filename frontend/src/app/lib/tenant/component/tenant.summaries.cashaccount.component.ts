@@ -11,15 +11,15 @@ import {PortfolioService} from '../../../portfolio/service/portfolio.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {ActivePanelService} from '../../../shared/mainmenubar/service/active.panel.service';
 import {IGlobalMenuAttach} from '../../../shared/mainmenubar/component/iglobal.menu.attach';
-import {ColumnConfig, ColumnGroupConfig} from '../../../shared/datashowbase/column.config';
-import {TableConfigBase} from '../../../shared/datashowbase/table.config.base';
+import {ColumnConfig, ColumnGroupConfig} from '../../datashowbase/column.config';
+import {TableConfigBase} from '../../datashowbase/table.config.base';
 import {AppSettings} from '../../../shared/app.settings';
 import {AppHelper} from '../../helper/app.helper';
 import {ChartDataService} from '../../../shared/chart/service/chart.data.service';
 import {PlotlyHelper} from '../../../shared/chart/plotly.helper';
 import {HelpIds} from '../../../shared/help/help.ids';
 import {TenantPortfolioSummary} from '../model/tenant.portfolio.summary';
-import {TranslateHelper} from '../../../helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {SelectOptionsHelper} from '../../helper/select.options.helper';
 import {FilterService, MenuItem, SelectItem} from 'primeng/api';
 import {BusinessHelper} from '../../../shared/helper/business.helper';
@@ -189,7 +189,7 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
   }
 
   public getHelpContextId(): HelpIds {
-    return HelpIds.HELP_PROTFOLIOS_PORTFOLIOS;
+    return HelpIds.HELP_PORTFOLIOS_PORTFOLIOS;
   }
 
   onComponentClick(event): void {

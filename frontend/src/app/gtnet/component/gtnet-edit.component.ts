@@ -1,9 +1,9 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {SimpleEntityEditBase} from '../../shared/edit/simple.entity.edit.base';
+import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
 import {GTNet, GTNetServerStateTypes} from '../model/gtnet';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {AppSettings} from '../../shared/app.settings';
 import {GTNetService} from '../service/gtnet.service';
@@ -11,7 +11,7 @@ import {AppHelper} from '../../lib/helper/app.helper';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {Subscription} from 'rxjs';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {DataType} from '../../dynamic-form/models/data.type';
 

@@ -8,9 +8,9 @@
         <div class="flex-two-columns">
           <div class="left-half">
             <h4>{{'PORTFOLIOS' | translate}}:
-              <p-dropdown (onChange)="handleChangeGroup($event)" [(ngModel)]="selectedGroup"
+              <p-select (onChange)="handleChangeGroup($event)" [(ngModel)]="selectedGroup"
                           [options]="groupOptions">
-              </p-dropdown>
+              </p-select>
             </h4>
           </div>
           <div class="right-half">

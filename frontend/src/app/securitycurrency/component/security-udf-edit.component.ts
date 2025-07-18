@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {UDFDataService} from '../../shared/udfmeta/service/udf.data.service';
 import {AppHelper} from '../../lib/helper/app.helper';

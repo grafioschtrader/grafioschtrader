@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
-import {ProcessedAction} from '../../shared/types/processed.action';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
+import {ProcessedAction} from '../../lib/types/processed.action';
 import {MenuItem} from 'primeng/api';
 
 /**

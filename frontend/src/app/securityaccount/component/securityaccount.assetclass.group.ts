@@ -1,6 +1,6 @@
 import {SecurityaccountGroupBaseDynamic} from './securityaccount.group.base.dynamic';
 import {TranslateService} from '@ngx-translate/core';
-import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
+import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {Security} from '../../entities/security';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {SecurityPositionDynamicGroupSummary} from '../../entities/view/security.position.dynamic.group.summary';

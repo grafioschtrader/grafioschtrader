@@ -1,3 +1,5 @@
+import {BaseSettings} from '../../lib/base.settings';
+
 export enum HelpIds {
 
   // Intro
@@ -14,11 +16,11 @@ export enum HelpIds {
   HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT = 'tenantportfolio/securityaccounts/transactionimport',
 
   // Tenant and  Portfolios / Reports
-  HELP_PROTFOLIOS = 'reportportfolio',
-  HELP_PROTFOLIOS_PORTFOLIOS = 'reportportfolio/portfolios',
+  HELP_PORTFOLIOS = 'reportportfolio',
+  HELP_PORTFOLIOS_PORTFOLIOS = 'reportportfolio/portfolios',
   HELP_PORTFOLIOS_PERIODPERFORMANCE = 'reportportfolio/periodperformance',
-  HELP_PROTFOLIOS_SECURITY_ACCOUNT_REPORT = 'reportportfolio/securityaccountreport',
-  HELP_PROTFOLIOS_DIVIDENDS = 'reportportfolio/dividends',
+  HELP_PORTFOLIOS_SECURITY_ACCOUNT_REPORT = 'reportportfolio/securityaccountreport',
+  HELP_PORTFOLIOS_DIVIDENDS = 'reportportfolio/dividends',
   HELP_PORTFOLIOS_TRANSACTIONCOSTS = 'reportportfolio/transactioncosts',
   HELP_PORTFOLIOS_TRANSACTIONLIST = 'reportportfolio/transactionlist',
 

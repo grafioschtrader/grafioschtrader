@@ -3,16 +3,16 @@ import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {WatchlistService} from '../service/watchlist.service';
-import {SimpleEditBase} from '../../shared/edit/simple.edit.base';
+import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {IntraHistoricalWatchlistProblem} from '../model/intra.historical.watchlist.problem';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {atLeastOneFieldValidator} from '../../lib/validator/validator';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
-import {ProcessedAction} from '../../shared/types/processed.action';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
+import {ProcessedAction} from '../../lib/types/processed.action';
 
 /**
  * Dialog for adding securities and currencies to an empty watchlist whose repeat counter has reached its limit.

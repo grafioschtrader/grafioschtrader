@@ -7,13 +7,10 @@ import java.util.Arrays;
  * operations on an information class.
  */
 public enum UserTaskType {
-  /**
-   * Used for the User violations (request per period or security breach).
-   */
+  /** Used for the User violations (request per period or security breach).  */
   RELEASE_LOGOUT((byte) 0),
-  /**
-   * Used for user entity change limit, for example number of CUD on stock exchange
-   */
+  
+  /** Used for user entity change limit, for example number of CUD on stock exchange   */
   LIMIT_CUD_CHANGE((byte) 1);
 
   private final Byte value;

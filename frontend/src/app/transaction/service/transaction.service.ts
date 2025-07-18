@@ -3,7 +3,7 @@ import {Injectable} from '@angular/core';
 import {AppSettings} from '../../shared/app.settings';
 import {Transaction} from '../../entities/transaction';
 import {CashaccountTransactionPosition} from '../../entities/view/cashaccount.transaction.position';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
 
 import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';

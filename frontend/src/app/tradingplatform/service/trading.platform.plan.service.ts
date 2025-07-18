@@ -1,13 +1,13 @@
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import {AppSettings} from '../../shared/app.settings';
-import {MessageToastService} from '../../shared/message/message.toast.service';
-import {DeleteService} from '../../shared/datashowbase/delete.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
+import {DeleteService} from '../../lib/datashowbase/delete.service';
 import {HttpClient} from '@angular/common/http';
 import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
 
 import {TradingPlatformPlan} from '../../entities/tradingplatformplan';
-import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
+import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../shared/login/service/log-in.service';
 

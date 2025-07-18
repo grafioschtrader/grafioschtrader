@@ -34,18 +34,19 @@ import {
   TaIndicators,
   TaTraceIndicatorData
 } from './indicator.definitions';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
-import {ProcessedAction} from '../../shared/types/processed.action';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
+import {ProcessedAction} from '../../lib/types/processed.action';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
-import {InfoLevelType} from '../../shared/message/info.leve.type';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {InfoLevelType} from '../../lib/message/info.leve.type';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {BusinessHelper} from '../../shared/helper/business.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {HistoryquoteDateClose} from '../../entities/projection/historyquote.date.close';
 import {TwoKeyMap} from '../../lib/helper/two.key.map';
 import {Transaction} from '../../entities/transaction';
 import {Moment} from 'moment/moment';
 import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.helper';
+import {BaseSettings} from '../../lib/base.settings';
 
 declare let Plotly: any;
 
@@ -103,9 +104,9 @@ interface Data {
         <input type="checkbox" [(ngModel)]="connectGaps" (change)="toggleCheckbox($event)">
 
         <label>{{'CURRENCY' | translate}}</label>
-        <p-dropdown [options]="currenciesOptions" [(ngModel)]="requestedCurrency"
+        <p-select [options]="currenciesOptions" [(ngModel)]="requestedCurrency"
                     (onChange)="handleChangeCurrency($event)">
-        </p-dropdown>
+        </p-select>
 
       </div>
       <div #chart class="plot-container">
@@ -355,7 +356,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
   getHistoricalLineTrace(loadedData: LoadedData): any {
     let foundStartIndex = Math.abs(AppHelper.binarySearch(loadedData.historyquotesNorm,
-      moment(this.fromDate).format(AppSettings.FORMAT_DATE_SHORT_NATIVE), this.compareHistoricalFN));
+      moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE), this.compareHistoricalFN));
     // const foundEndIndex = AppHelper.binarySearch(loadedData.historyquotes, this.youngestDate, this.compareHistoricalFN);
 
     while (loadedData.historyquotesNorm[foundStartIndex].close === null) {
@@ -411,7 +412,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
           traces[transactionTypeStr] = this.initializeBuySellTrace(transactionTypeStr, transactionType);
           cptv.sizes[transactionTypeStr] = {size: []};
         }
-        const transactionDateStr = moment(transaction.transactionTime).format(AppSettings.FORMAT_DATE_SHORT_NATIVE);
+        const transactionDateStr = moment(transaction.transactionTime).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
 
         traces[transactionTypeStr].x.push(transactionDateStr);
         traces[transactionTypeStr].text.push(transaction.cashaccount.name + ':' + amount);
@@ -469,7 +470,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       });
     if (before != 0) {
       trace.y.push(before);
-      trace.x.push(moment(this.endDate).format(AppSettings.FORMAT_DATE_SHORT_NATIVE));
+      trace.x.push(moment(this.endDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE));
     }
     this.translateTraceName(trace);
     return trace;
@@ -498,7 +499,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
             let normalizeFactor = 1;
             if (!this.normalizeNotNeeded(loadedData)) {
               const foundStartIndex = AppHelper.binarySearch(loadedData.historyquotes,
-                moment(securityTransactionPosition.transaction.transactionTime).format(AppSettings.FORMAT_DATE_SHORT_NATIVE),
+                moment(securityTransactionPosition.transaction.transactionTime).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE),
                 this.compareHistoricalFN);
               normalizeFactor = loadedData.historyquotesNorm[foundStartIndex].close / loadedData.historyquotes[foundStartIndex].close;
             }
@@ -512,7 +513,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private getDateTimeAsStringPutAsX(transaction: Transaction, xaxis: string[]): string {
-    const transactionDateStr = moment(transaction.transactionTime).format(AppSettings.FORMAT_DATE_SHORT_NATIVE);
+    const transactionDateStr = moment(transaction.transactionTime).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
     xaxis.push(transactionDateStr);
     return transactionDateStr;
   }
@@ -709,7 +710,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   private createTaTrace(iDef: IndicatorDefinition): void {
     iDef.taTraceIndicatorDataList.forEach((taTraceIndicatorData: TaTraceIndicatorData) => {
       const foundStartIndex = AppHelper.binarySearch(taTraceIndicatorData.taIndicatorData,
-        moment(this.fromDate).format(AppSettings.FORMAT_DATE_SHORT_NATIVE), this.compareHistoricalFN);
+        moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE), this.compareHistoricalFN);
       Plotly.addTraces(this.chartElement.nativeElement, {
         type: 'scatter',
         mode: 'lines',
@@ -762,7 +763,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     let i = 0;
     while (i < this.loadedData.length) {
       const foundStartIndex = AppHelper.binarySearch(this.loadedData[i].historyquotesNorm,
-        moment(this.fromDate).format(AppSettings.FORMAT_DATE_SHORT_NATIVE), this.compareHistoricalFN);
+        moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE), this.compareHistoricalFN);
       if (foundStartIndex < 0) {
         this.fromDate = moment(this.fromDate).add(1, 'days').toDate();
         i = 0;
@@ -800,7 +801,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
   private createTodayAsHistoryquote(sTimestamp: number, sLast: number, historyquotes: HistoryquoteDateClose[]) {
     if (sLast) {
-      const dateLastStr = moment(sTimestamp).format(AppSettings.FORMAT_DATE_SHORT_NATIVE);
+      const dateLastStr = moment(sTimestamp).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
       if (historyquotes.length === 0 || dateLastStr > historyquotes[historyquotes.length - 1].date) {
         const historyquoteToday: HistoryquoteDateClose = {
           date: dateLastStr, close: sLast
@@ -815,7 +816,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private getLayout(holdingLayout): any {
-    const dateNative = moment(this.fromDate).format(AppSettings.FORMAT_DATE_SHORT_NATIVE);
+    const dateNative = moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
     const layout = {
       title: 'LINE_CHART',
       showlegend: true,

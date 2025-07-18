@@ -1,6 +1,6 @@
 import {BaseUDFDataEdit} from './base.udf.data.edit';
 import {Component, OnInit} from '@angular/core';
-import {MessageToastService} from '../../message/message.toast.service';
+import {MessageToastService} from '../../../lib/message/message.toast.service';
 import {UDFDataService} from '../service/udf.data.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../service/globalparameter.service';

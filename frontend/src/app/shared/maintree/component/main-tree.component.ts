@@ -7,14 +7,14 @@ import {TranslateService} from '@ngx-translate/core';
 import {AppHelper} from '../../../lib/helper/app.helper';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach';
-import {ProcessedActionData} from '../../types/processed.action.data';
-import {ProcessedAction} from '../../types/processed.action';
+import {ProcessedActionData} from '../../../lib/types/processed.action.data';
+import {ProcessedAction} from '../../../lib/types/processed.action';
 import {Portfolio} from '../../../entities/portfolio';
 import {Cashaccount} from '../../../entities/cashaccount';
 import {CallParam} from '../types/dialog.visible';
 import {PortfolioService} from '../../../portfolio/service/portfolio.service';
-import {InfoLevelType} from '../../message/info.leve.type';
-import {MessageToastService} from '../../message/message.toast.service';
+import {InfoLevelType} from '../../../lib/message/info.leve.type';
+import {MessageToastService} from '../../../lib/message/message.toast.service';
 import {Securityaccount} from '../../../entities/securityaccount';
 import {SecurityaccountService} from '../../../securityaccount/service/securityaccount.service';
 import {GlobalparameterService} from '../../service/globalparameter.service';
@@ -30,7 +30,7 @@ import {AlgoTopCreate} from '../../../entities/backend/algo.top.create';
 import {RuleStrategyType} from '../../types/rule.strategy.type';
 import {TenantLimit, TenantLimitTypes} from '../../../entities/backend/tenant.limit';
 import {AuditHelper} from '../../../lib/helper/audit.helper';
-import {TranslateHelper} from '../../../helper/translate.helper';
+import {TranslateHelper} from '../../../lib/helper/translate.helper';
 import {BusinessHelper} from '../../helper/business.helper';
 import {WatchlistSecurityExists} from '../../../entities/dnd/watchlist.security.exists';
 import {ConfirmationService, MenuItem, TreeNode} from 'primeng/api';
@@ -45,6 +45,7 @@ import {
   SecurityaccountEditDynamicComponent
 } from '../../../securityaccount/component/securityaccount.edit.dynamic.component';
 import {AlgoRuleStrategyCreateDynamicComponent} from '../../../algo/component/algo.rule.strategy.create.component';
+import {BaseSettings} from '../../../lib/base.settings';
 
 /**
  * This is the component for displaying the navigation tree. It is used to control the indicators of the main area.
@@ -418,14 +419,14 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     switch (typeNodeData.treeNodeType) {
       case TreeNodeType.PortfolioRoot:
         menuItems.push({
-            label: 'EDIT_RECORD|CLIENT' + AppSettings.DIALOG_MENU_SUFFIX,
+            label: 'EDIT_RECORD|CLIENT' + BaseSettings.DIALOG_MENU_SUFFIX,
             command: (event) => {
               this.onlyCurrency = false;
               this.handleTenantEditDynamicDialog(selectedNodeData, false);
             }
           },
           {
-            label: 'CLIENT_CHANGE_CURRENCY' + AppSettings.DIALOG_MENU_SUFFIX,
+            label: 'CLIENT_CHANGE_CURRENCY' + BaseSettings.DIALOG_MENU_SUFFIX,
             command: (event) => {
               this.onlyCurrency = true;
               this.handleTenantEditDynamicDialog(selectedNodeData, true);
@@ -433,14 +434,14 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
           });
         menuItems.push({separator: true});
         menuItems.push({
-          label: 'CREATE|PORTFOLIO' + AppSettings.DIALOG_MENU_SUFFIX,
+          label: 'CREATE|PORTFOLIO' + BaseSettings.DIALOG_MENU_SUFFIX,
           command: (event) => this.handleDynamicNew(PortfolioEditDynamicComponent,
             selectedNodeData, null, TenantLimitTypes.MAX_PORTFOLIO, AppSettings.PORTFOLIO.toUpperCase())
         });
         break;
       case TreeNodeType.Portfolio:
         menuItems.push({
-          label: 'EDIT_RECORD|PORTFOLIO' + AppSettings.DIALOG_MENU_SUFFIX, command: (event) =>
+          label: 'EDIT_RECORD|PORTFOLIO' + BaseSettings.DIALOG_MENU_SUFFIX, command: (event) =>
             this.handleDynamicEdit(PortfolioEditDynamicComponent, parentNodeData, selectedNodeData, AppSettings.PORTFOLIO.toUpperCase())
         });
         menuItems.push({
@@ -451,7 +452,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
         break;
       case TreeNodeType.SecurityaccountRoot:
         menuItems.push({
-          label: 'CREATE|SECURITYACCOUNT' + AppSettings.DIALOG_MENU_SUFFIX,
+          label: 'CREATE|SECURITYACCOUNT' + BaseSettings.DIALOG_MENU_SUFFIX,
           command: (event) => this.handleDynamicNew(SecurityaccountEditDynamicComponent, selectedNodeData, null,
             TenantLimitTypes.MAX_SECURITY_ACCOUNT, AppSettings.SECURITYACCOUNT.toUpperCase())
         });
@@ -469,12 +470,12 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
         break;
       case TreeNodeType.AlgoRoot:
         menuItems.push({
-          label: 'CREATE|ALGO_PORTFOLIO_STRATEGY' + AppSettings.DIALOG_MENU_SUFFIX, command: (event) =>
+          label: 'CREATE|ALGO_PORTFOLIO_STRATEGY' + BaseSettings.DIALOG_MENU_SUFFIX, command: (event) =>
             this.handleDynamicNew(AlgoRuleStrategyCreateDynamicComponent, parentNodeData, new AlgoTopCreate(RuleStrategyType.RS_STRATEGY),
               null, 'ALGO_PORTFOLIO_STRATEGY')
         });
         menuItems.push({
-          label: 'CREATE|ALGO_RULE_BASED' + AppSettings.DIALOG_MENU_SUFFIX, command: (event) =>
+          label: 'CREATE|ALGO_RULE_BASED' + BaseSettings.DIALOG_MENU_SUFFIX, command: (event) =>
             this.handleDynamicNew(AlgoRuleStrategyCreateDynamicComponent, parentNodeData, new AlgoTopCreate(RuleStrategyType.RS_RULE),
               null, 'ALGO_RULE_BASED')
         });
@@ -487,14 +488,14 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
         break;
       case TreeNodeType.WatchlistRoot:
         menuItems.push({
-          label: 'CREATE|WATCHLIST' + AppSettings.DIALOG_MENU_SUFFIX, command: (event) =>
+          label: 'CREATE|WATCHLIST' + BaseSettings.DIALOG_MENU_SUFFIX, command: (event) =>
             this.handleDynamicNew(WatchlistEditDynamicComponent, parentNodeData, selectedNodeData,
               TenantLimitTypes.MAX_WATCHLIST, AppSettings.WATCHLIST.toUpperCase())
         });
         break;
       case TreeNodeType.Watchlist:
         menuItems.push({
-          label: 'EDIT_RECORD|WATCHLIST' + AppSettings.DIALOG_MENU_SUFFIX, command: (event) =>
+          label: 'EDIT_RECORD|WATCHLIST' + BaseSettings.DIALOG_MENU_SUFFIX, command: (event) =>
             this.handleDynamicEdit(WatchlistEditDynamicComponent, parentNodeData, selectedNodeData, AppSettings.WATCHLIST.toUpperCase())
         });
         menuItems.push({
@@ -504,7 +505,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
         });
         menuItems.push({separator: true});
         menuItems.push({
-          label: 'WATCHLIST_AS_PERFORMANCE' + AppSettings.DIALOG_MENU_SUFFIX, command: (event) =>
+          label: 'WATCHLIST_AS_PERFORMANCE' + BaseSettings.DIALOG_MENU_SUFFIX, command: (event) =>
             this.handleWatchlistForPerformance(selectedNodeData.idWatchlist)
         });
         break;

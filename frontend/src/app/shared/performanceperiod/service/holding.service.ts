@@ -7,7 +7,7 @@ import {catchError, map} from 'rxjs/operators';
 import {plainToClass, Type} from 'class-transformer';
 import {LoginService} from '../../login/service/log-in.service';
 import {HttpClient, HttpParams} from '@angular/common/http';
-import {MessageToastService} from '../../message/message.toast.service';
+import {MessageToastService} from '../../../lib/message/message.toast.service';
 import {PerformancePeriod} from '../model/performance.period';
 import {MissingQuotesWithSecurities} from '../../../lib/tenant/model/missing.quotes.with.securities';
 

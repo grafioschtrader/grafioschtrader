@@ -3,17 +3,18 @@ import {combineLatest} from 'rxjs';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {Helper} from '../../helper/helper';
-import {ColumnConfig} from '../../shared/datashowbase/column.config';
+import {Helper} from './helper';
+import {ColumnConfig} from '../datashowbase/column.config';
 import {ParamMap} from '@angular/router';
 import {FormConfig} from '../../dynamic-form/models/form.config';
 import {HttpHeaders, HttpParams} from '@angular/common/http';
 import {ConfirmationService} from 'primeng/api';
 import {FileSystemFileEntry, NgxFileDropEntry} from 'ngx-file-drop';
-import {InfoLevelType} from '../../shared/message/info.leve.type';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {InfoLevelType} from '../message/info.leve.type';
+import {MessageToastService} from '../message/message.toast.service';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {AppSettings} from '../../shared/app.settings';
+import {BaseSettings} from '../base.settings';
 
 export const enum Comparison { GT, LT, EQ }
 
@@ -85,7 +86,7 @@ export class AppHelper {
    */
   static getOptionsWithUntilDate(untilDate: Date, httpHeaders: HttpHeaders) {
     const httpParams = new HttpParams()
-      .set('untilDate', moment(untilDate).format(AppSettings.FORMAT_DATE_SHORT_NATIVE));
+      .set('untilDate', moment(untilDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE));
     return {headers: httpHeaders, params: httpParams};
   }
 
@@ -147,6 +148,25 @@ export class AppHelper {
    */
   public static removeSomeStringAndToUpperCaseWithUnderscore(upperLower: string): string {
     return this.toUpperCaseWithUnderscore(upperLower.replace(this.fieldToLabelRegex, ''));
+  }
+
+  /**
+   * Opens an external webpage in a new window or tab. Handles URL preprocessing
+   * including domain prefixing for internal links and protocol addition for external links.
+   *
+   * @param url The URL to open (can be relative, absolute, or prefixed with '--') A “--” is used in the user interface
+   * with the link output, and an icon should also appear after the link content. Clicking on the icon navigates to
+   * the corresponding page.
+   * @param targetPage The target window name (default: 'blank' for new tab)
+   */
+  public static toExternalWebpage(url: string, targetPage: string = 'blank'): void {
+    if (url.startsWith('--')) {
+      url = location.host + url.substring(2);
+    }
+    if (!url.match(/^https?:\/\//i)) {
+      url = 'http://' + url;
+    }
+    window.open(url, targetPage);
   }
 
   /**

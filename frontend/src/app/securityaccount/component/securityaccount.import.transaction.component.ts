@@ -13,23 +13,24 @@ import {Subscription} from 'rxjs';
 import {SecurityaccountImportTransactionTableComponent} from './securityaccount-import-transaction-table.component';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {SingleRecordMasterViewBase} from '../../shared/masterdetail/component/single.record.master.view.base';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ConfirmationService, MenuItem} from 'primeng/api';
-import {ParentChildRowSelection} from '../../shared/datashowbase/parent.child.row.selection';
+import {ParentChildRowSelection} from '../../lib/datashowbase/parent.child.row.selection';
 import {ImportTransactionTemplateService} from '../../imptranstemplate/service/import.transaction.template.service';
 import {ImportTransactionTemplate} from '../../entities/import.transaction.template';
-import {ProcessedAction} from '../../shared/types/processed.action';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
+import {ProcessedAction} from '../../lib/types/processed.action';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {CombineTemplateAndImpTransPos} from './combine.template.and.imp.trans.pos';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {plainToInstance} from 'class-transformer';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
-import {InfoLevelType} from '../../shared/message/info.leve.type';
+import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {AdditionalFieldConfig, FileUploadParam} from '../../shared/generaldialog/model/file.upload.param';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
+import {BaseSettings} from '../../lib/base.settings';
 
 
 /**
@@ -153,18 +154,18 @@ export class SecurityaccountImportTransactionComponent
 
     menuItems.push({separator: true});
     menuItems.push({
-      label: 'UPLOAD_CSV' + AppSettings.DIALOG_MENU_SUFFIX,
+      label: 'UPLOAD_CSV' + BaseSettings.DIALOG_MENU_SUFFIX,
       disabled: !this.selectedEntity,
       command: (event) => this.handleUploadCSVFile()
     });
     menuItems.push({
-      label: 'UPLOAD_PDFS' + AppSettings.DIALOG_MENU_SUFFIX,
+      label: 'UPLOAD_PDFS' + BaseSettings.DIALOG_MENU_SUFFIX,
       disabled: !this.selectedEntity,
       command: (event) => this.handleUploadFiles(null, this.selectedEntity, 'UPLOAD_PDFs', 'pdf', true)
     });
 
     menuItems.push({
-      label: 'UPLOAD_TXT_FROM_GT_TRANSFORM' + AppSettings.DIALOG_MENU_SUFFIX,
+      label: 'UPLOAD_TXT_FROM_GT_TRANSFORM' + BaseSettings.DIALOG_MENU_SUFFIX,
       disabled: !this.selectedEntity,
       command: (event) => this.handleUploadFiles(null, this.selectedEntity, 'UPLOAD_TXT_FROM_GT_TRANSFORM', 'txt', false)
     });

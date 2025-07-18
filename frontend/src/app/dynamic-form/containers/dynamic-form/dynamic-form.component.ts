@@ -4,7 +4,7 @@ import {AbstractControl, FormBuilder, UntypedFormBuilder, UntypedFormGroup} from
 
 import {FieldConfig} from '../../models/field.config';
 import {InputType} from '../../models/input.type';
-import {Helper} from '../../../helper/helper';
+import {Helper} from '../../../lib/helper/helper';
 import {DataType} from '../../models/data.type';
 import {TranslateService} from '@ngx-translate/core';
 import {FormConfig} from '../../models/form.config';

@@ -1,21 +1,22 @@
-import {SimpleEditBase} from '../../edit/simple.edit.base';
-import {MessageToastService} from '../../message/message.toast.service';
+import {SimpleEditBase} from '../../../lib/edit/simple.edit.base';
+import {MessageToastService} from '../../../lib/message/message.toast.service';
 import {UDFDataService} from '../service/udf.data.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../service/globalparameter.service';
 import {HelpIds} from '../../help/help.ids';
 import {AppHelper} from '../../../lib/helper/app.helper';
 import {UDFData, UDFDataKey, UDFGeneralCallParam} from '../model/udf.metadata';
-import {InfoLevelType} from '../../message/info.leve.type';
-import {ProcessedActionData} from '../../types/processed.action.data';
-import {ProcessedAction} from '../../types/processed.action';
+import {InfoLevelType} from '../../../lib/message/info.leve.type';
+import {ProcessedActionData} from '../../../lib/types/processed.action.data';
+import {ProcessedAction} from '../../../lib/types/processed.action';
 import {DynamicFieldModelHelper} from '../../../lib/helper/dynamic.field.model.helper';
-import {TranslateHelper} from '../../../helper/translate.helper';
+import {TranslateHelper} from '../../../lib/helper/translate.helper';
 import {FieldDescriptorInputAndShowExtended} from '../../dynamicfield/field.descriptor.input.and.show';
 import {Directive, Input} from '@angular/core';
 import {DataType} from '../../../dynamic-form/models/data.type';
-import {Helper} from '../../../helper/helper';
+import {Helper} from '../../../lib/helper/helper';
 import {AppSettings} from '../../app.settings';
+import {BaseSettings} from '../../../lib/base.settings';
 
 /**
  * This is the base class for editing the content of user-defined fields.
@@ -71,6 +72,6 @@ export abstract class BaseUDFDataEdit extends SimpleEditBase {
 
   private formatDate(value: { [name: string]: any }): void {
     this.config.filter(c => c.dataType === DataType.DateString).forEach(c => value[c.field] =
-      Helper.formatDateStringAsString(c, AppSettings.FORMAT_DATE_SHORT_NATIVE));
+      Helper.formatDateStringAsString(c, BaseSettings.FORMAT_DATE_SHORT_NATIVE));
   }
 }

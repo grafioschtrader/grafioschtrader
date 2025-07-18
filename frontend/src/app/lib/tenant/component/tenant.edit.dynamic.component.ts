@@ -1,13 +1,13 @@
 import {Component, OnInit} from '@angular/core';
 import {TenantEditComponent} from './tenant.edit.component';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
-import {MessageToastService} from '../../../shared/message/message.toast.service';
+import {MessageToastService} from '../../message/message.toast.service';
 import {TenantService} from '../service/tenant.service';
 import {TranslateService} from '@ngx-translate/core';
-import {ProcessedActionData} from '../../../shared/types/processed.action.data';
-import {ProcessedAction} from '../../../shared/types/processed.action';
+import {ProcessedActionData} from '../../types/processed.action.data';
+import {ProcessedAction} from '../../types/processed.action';
 import {Tenant} from '../../../entities/tenant';
-import {InfoLevelType} from '../../../shared/message/info.leve.type';
+import {InfoLevelType} from '../../message/info.leve.type';
 import {GlobalparameterGTService} from '../../../gtservice/globalparameter.gt.service';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 

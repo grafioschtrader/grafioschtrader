@@ -1,22 +1,22 @@
 import {Transaction} from '../../entities/transaction';
 import {CloseMarginPosition, TransactionCallParam} from './transaction.call.parm';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
-import {ProcessedAction} from '../../shared/types/processed.action';
-import {InfoLevelType} from '../../shared/message/info.leve.type';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
+import {ProcessedAction} from '../../lib/types/processed.action';
+import {InfoLevelType} from '../../lib/message/info.leve.type';
 
 import {TransactionService} from '../service/transaction.service';
 import {TranslateService} from '@ngx-translate/core';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Directive, EventEmitter, Output, ViewChild} from '@angular/core';
 import {Security} from '../../entities/security';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
-import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
+import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {PageFirstRowSelectedRow, ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
 import {HelpIds} from '../../shared/help/help.ids';

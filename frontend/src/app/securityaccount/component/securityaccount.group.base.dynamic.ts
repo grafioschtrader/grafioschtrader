@@ -1,5 +1,5 @@
-import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
-import {ColumnConfig, ColumnGroupConfig} from '../../shared/datashowbase/column.config';
+import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
+import {ColumnConfig, ColumnGroupConfig} from '../../lib/datashowbase/column.config';
 import {TranslateService} from '@ngx-translate/core';
 import {SecurityaccountGroupBase} from './securityaccount.group.base';
 import {DataType} from '../../dynamic-form/models/data.type';

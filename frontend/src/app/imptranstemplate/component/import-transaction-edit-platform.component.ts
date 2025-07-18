@@ -1,8 +1,8 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {SimpleEntityEditBase} from '../../shared/edit/simple.entity.edit.base';
+import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
 import {ImportTransactionPlatform} from '../../entities/import.transaction.platform';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {HelpIds} from '../../shared/help/help.ids';
@@ -13,7 +13,7 @@ import {AuditHelper} from '../../lib/helper/audit.helper';
 import {Auditable} from '../../lib/entities/auditable';
 import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 
 /**
  * Dialog for editing the transaction import template group

@@ -1,15 +1,15 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {SimpleEntityEditBase} from '../../edit/simple.entity.edit.base';
+import {SimpleEntityEditBase} from '../../../lib/edit/simple.entity.edit.base';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../service/globalparameter.service';
-import {MessageToastService} from '../../message/message.toast.service';
+import {MessageToastService} from '../../../lib/message/message.toast.service';
 import {HelpIds} from '../../help/help.ids';
 import {AppSettings} from '../../app.settings';
 import {TaskDataChangeService} from '../service/task.data.change.service';
 import {TaskDataChange, TaskDataChangeFormConstraints, TaskType} from '../../../entities/task.data.change';
 import {AppHelper} from '../../../lib/helper/app.helper';
 import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../../helper/translate.helper';
+import {TranslateHelper} from '../../../lib/helper/translate.helper';
 import {SelectOptionsHelper} from '../../../lib/helper/select.options.helper';
 import {Subscription} from 'rxjs';
 import {FormHelper} from '../../../dynamic-form/components/FormHelper';

@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {SimpleEntityEditBase} from '../../../shared/edit/simple.entity.edit.base';
+import {SimpleEntityEditBase} from '../../edit/simple.entity.edit.base';
 import {
   MailSendForwardDefaultConfig,
   MailSettingForward,
@@ -10,12 +10,12 @@ import {
 } from '../model/mail.send.recv';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
-import {MessageToastService} from '../../../shared/message/message.toast.service';
+import {MessageToastService} from '../../message/message.toast.service';
 import {HelpIds} from '../../../shared/help/help.ids';
 import {AppSettings} from '../../../shared/app.settings';
 import {MailSettingForwardService} from '../service/mail.setting.forward.service';
 import {AppHelper} from '../../helper/app.helper';
-import {TranslateHelper} from '../../../helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
 import {Subscription} from 'rxjs';
 import {SelectOptionsHelper} from '../../helper/select.options.helper';

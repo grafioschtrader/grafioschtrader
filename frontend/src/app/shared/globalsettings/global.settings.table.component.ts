@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {TableConfigBase} from '../datashowbase/table.config.base';
+import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {Globalparameters} from '../../lib/entities/globalparameters';
 import {FilterService, MenuItem} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
@@ -9,14 +9,15 @@ import {IGlobalMenuAttach} from '../mainmenubar/component/iglobal.menu.attach';
 import {HelpIds} from '../help/help.ids';
 import {ActivePanelService} from '../mainmenubar/service/active.panel.service';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {ColumnConfig, TranslateValue} from '../datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {AppSettings} from '../app.settings';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {User} from '../../lib/entities/user';
-import {ProcessedActionData} from '../types/processed.action.data';
-import {ProcessedAction} from '../types/processed.action';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
+import {ProcessedAction} from '../../lib/types/processed.action';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * Shows global settings in table. Here TableCrudSupportMenu is not derived because no entities can be deleted or added.
@@ -111,7 +112,7 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
         this.addColumn(DataType.String, this.PROPERTY_NAME + '1', TranslateHelper.camelToUnderscoreCase(this.PROPERTY_NAME), true, false,
             {width: 200, fieldValueFN: this.getPropertyName1.bind(this)});
         this.editMenu = {
-            label: 'EDIT_RECORD|GLOBAL_SETTINGS' + AppSettings.DIALOG_MENU_SUFFIX,
+            label: 'EDIT_RECORD|GLOBAL_SETTINGS' + BaseSettings.DIALOG_MENU_SUFFIX,
             command: (event) => this.handleEditEntity(this.selectedEntity),
             disabled: !AuditHelper.hasAdminRole(this.gps)
         };

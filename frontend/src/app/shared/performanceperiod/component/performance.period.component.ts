@@ -1,8 +1,8 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
 import {DataType} from '../../../dynamic-form/models/data.type';
-import {FormBase} from '../../edit/form.base';
-import {TranslateHelper} from '../../../helper/translate.helper';
+import {FormBase} from '../../../lib/edit/form.base';
+import {TranslateHelper} from '../../../lib/helper/translate.helper';
 import {TranslateService} from '@ngx-translate/core';
 import {FirstAndMissingTradingDays, HoldingService, PerformanceWindowDef, WeekYear} from '../service/holding.service';
 import {GlobalSessionNames} from '../../global.session.names';

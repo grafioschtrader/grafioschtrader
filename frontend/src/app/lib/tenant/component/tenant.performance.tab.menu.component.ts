@@ -1,43 +1,30 @@
-import {Component, OnInit} from '@angular/core';
-import {MenuItem} from 'primeng/api';
-import {ActivatedRoute, Router} from '@angular/router';
-import {TranslateService} from '@ngx-translate/core';
+import {Component} from '@angular/core';
 import {AppSettings} from '../../../shared/app.settings';
-import {TranslateHelper} from '../../../helper/translate.helper';
+import {TabItem} from '../../../shared/types/tab.item';
 
-/**
- * Showing the tab menu with period performance and missing EOD data
- */
 @Component({
-    template: `
-    <p-tabMenu [model]="items" [activeItem]="items[0]"></p-tabMenu>
-    <router-outlet></router-outlet>
+  template: `
+    <app-shared-tab-menu
+      [tabs]="tabs"
+      [defaultRoute]="defaultRoute">
+      <router-outlet></router-outlet>
+    </app-shared-tab-menu>
   `,
-    standalone: false
+  standalone: false
 })
-export class TenantPerformanceTabMenuComponent implements OnInit {
-  items: MenuItem[];
+export class TenantPerformanceTabMenuComponent {
+  tabs: TabItem[] = [
+    {
+      label: 'PERFORMANCE',
+      route: AppSettings.PERFORMANCE_KEY,
+      icon: ''
+    },
+    {
+      label: 'PERFORMANCE_EOD_MISSING',
+      route: AppSettings.EOD_DATA_QUALITY_KEY,
+      icon: ''
+    }
+  ];
 
-  constructor(private router: Router, private activatedRoute: ActivatedRoute, public translateService: TranslateService) {
-    this.items = [
-      {
-        label: 'PERFORMANCE',
-        command: (event) => this.router.navigate([AppSettings.PERFORMANCE_KEY], {relativeTo: this.activatedRoute})
-      },
-      {
-        label: 'PERFORMANCE_EOD_MISSING',
-        command: (event) => this.router.navigate([AppSettings.EOD_DATA_QUALITY_KEY], {relativeTo: this.activatedRoute})
-      }
-    ];
-    TranslateHelper.translateMenuItems(this.items, this.translateService);
-  }
-
-  ngOnInit(): void {
-    this.navigateToPortfolio();
-  }
-
-  private navigateToPortfolio(): void {
-    this.router.navigate([AppSettings.PERFORMANCE_KEY], {relativeTo: this.activatedRoute});
-  }
-
+  defaultRoute = AppSettings.PERFORMANCE_KEY;
 }

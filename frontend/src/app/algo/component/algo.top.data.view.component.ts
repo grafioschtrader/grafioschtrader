@@ -1,5 +1,5 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {TreeTableConfigBase} from '../../shared/datashowbase/tree.table.config.base';
+import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {DataType} from '../../dynamic-form/models/data.type';
@@ -11,13 +11,13 @@ import {AlgoAssetclassService} from '../service/algo.assetclass.service';
 import {AlgoAssetclass} from '../model/algo.assetclass';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {plainToClass} from 'class-transformer';
-import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {AlgoTopAssetSecurity} from '../model/algo.top.asset.security';
 import {AlgoStrategy} from '../model/algo.strategy';
 import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
 import {HelpIds} from '../../shared/help/help.ids';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {AlgoTreeName} from '../../entities/view/algo.tree.name';
 import {AlgoSecurity} from '../model/algo.security';
 
@@ -27,16 +27,16 @@ import {
   AlgoStrategyDefinitionForm,
   AlgoStrategyParamCall
 } from '../model/algo.dialog.visible';
-import {ProcessedAction} from '../../shared/types/processed.action';
-import {InfoLevelType} from '../../shared/message/info.leve.type';
-import {DeleteService} from '../../shared/datashowbase/delete.service';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {ProcessedAction} from '../../lib/types/processed.action';
+import {InfoLevelType} from '../../lib/message/info.leve.type';
+import {DeleteService} from '../../lib/datashowbase/delete.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {BaseID} from '../../lib/entities/base.id';
 import {AlgoSecurityService} from '../service/algo.security.service';
 import {AlgoStrategyService} from '../service/algo.strategy.service';
 import {AlgoStrategyImplementationType} from '../../shared/types/algo.strategy.implementation.type';
 import {RuleStrategyType} from '../../shared/types/rule.strategy.type';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AlgoStrategyHelper} from './algo.strategy.helper';
 import {AlgoTopService} from '../service/algo.top.service';
 import {DataChangedService} from '../../shared/maintree/service/data.changed.service';

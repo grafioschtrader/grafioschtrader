@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 
 import {AppSettings} from '../../../shared/app.settings';
 import {Tenant} from '../../../entities/tenant';
-import {MessageToastService} from '../../../shared/message/message.toast.service';
+import {MessageToastService} from '../../message/message.toast.service';
 import {lastValueFrom, Observable} from 'rxjs';
 import {AuthServiceWithLogout} from '../../../shared/login/service/base.auth.service.with.logout';
 import {HttpClient} from '@angular/common/http';

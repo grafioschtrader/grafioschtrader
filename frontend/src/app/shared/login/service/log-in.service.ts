@@ -4,7 +4,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../service/globalparameter.service';
 import {User} from '../../../lib/entities/user';
 import {AppSettings} from '../../app.settings';
-import {MessageToastService} from '../../message/message.toast.service';
+import {MessageToastService} from '../../../lib/message/message.toast.service';
 import {Router} from '@angular/router';
 import {ChangePasswordDTO} from '../model/change.password.dto';
 import {GlobalSessionNames} from '../../global.session.names';
@@ -17,6 +17,7 @@ import {SuccessfullyChanged} from '../../../entities/backend/successfully.change
 import {ConfigurationWithLoginGT} from '../component/login.component';
 import {AppHelper} from '../../../lib/helper/app.helper';
 import {PrimeNG} from 'primeng/config';
+import {BaseSettings} from '../../../lib/base.settings';
 
 
 @Injectable()
@@ -64,7 +65,10 @@ export class LoginService extends BaseAuthService<User> {
     sessionStorage.setItem(GlobalSessionNames.ROLES, responseClaim.roles);
     sessionStorage.setItem(GlobalSessionNames.LANGUAGE, responseClaim.localeStr.slice(0, 2));
     sessionStorage.setItem(GlobalSessionNames.JWT, token);
-    sessionStorage.setItem(GlobalSessionNames.REPORT_UNTIL_DATE, moment().format(AppSettings.FORMAT_DATE_SHORT_NATIVE));
+
+
+
+    sessionStorage.setItem(GlobalSessionNames.REPORT_UNTIL_DATE, moment().format(BaseSettings.FORMAT_DATE_SHORT_NATIVE));
 
     sessionStorage.setItem(GlobalSessionNames.USE_FEATURES, JSON.stringify(configurationWithLogin.useFeatures));
     sessionStorage.setItem(GlobalSessionNames.CRYPTOS, JSON.stringify(configurationWithLogin.cryptocurrencies));

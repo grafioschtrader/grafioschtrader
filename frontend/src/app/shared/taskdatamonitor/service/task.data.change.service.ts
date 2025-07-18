@@ -5,13 +5,13 @@ import {
 } from '../../../entities/task.data.change';
 import {LoginService} from '../../login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
-import {MessageToastService} from '../../message/message.toast.service';
+import {MessageToastService} from '../../../lib/message/message.toast.service';
 import {Observable} from 'rxjs/internal/Observable';
 import {AppSettings} from '../../app.settings';
 import {catchError} from 'rxjs/operators';
 import {Injectable} from '@angular/core';
-import {ServiceEntityUpdate} from '../../edit/service.entity.update';
-import {DeleteService} from '../../datashowbase/delete.service';
+import {ServiceEntityUpdate} from '../../../lib/edit/service.entity.update';
+import {DeleteService} from '../../../lib/datashowbase/delete.service';
 
 @Injectable()
 export class TaskDataChangeService extends AuthServiceWithLogout<TaskDataChange> implements ServiceEntityUpdate<TaskDataChange>,

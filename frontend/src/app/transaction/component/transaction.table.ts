@@ -3,22 +3,22 @@ import {CurrencypairService} from '../../securitycurrency/service/currencypair.s
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {TranslateService} from '@ngx-translate/core';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {TransactionService} from '../service/transaction.service';
 import {Directive} from '@angular/core';
 import {TransactionContextMenu} from './transaction.context.menu';
-import {FilterType} from '../../shared/datashowbase/filter.type';
+import {FilterType} from '../../lib/datashowbase/filter.type';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {Transaction} from '../../entities/transaction';
 import {Currencypair} from '../../entities/currencypair';
 import {Security} from '../../entities/security';
-import {ProcessedAction} from '../../shared/types/processed.action';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
+import {ProcessedAction} from '../../lib/types/processed.action';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {TransactionCallParam} from './transaction.call.parm';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {HelpIds} from '../../shared/help/help.ids';
-import {TranslateValue} from '../../shared/datashowbase/column.config';
+import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 
 @Directive()

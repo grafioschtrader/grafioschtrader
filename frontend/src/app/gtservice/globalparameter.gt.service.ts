@@ -3,7 +3,7 @@ import {GlobalSessionNames} from '../shared/global.session.names';
 import {GlobalparameterService} from '../shared/service/globalparameter.service';
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {MessageToastService} from '../shared/message/message.toast.service';
+import {MessageToastService} from '../lib/message/message.toast.service';
 import {ValueKeyHtmlSelectOptions} from '../dynamic-form/models/value.key.html.select.options';
 import {AppSettings} from '../shared/app.settings';
 import {catchError, tap} from 'rxjs/operators';

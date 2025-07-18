@@ -3,13 +3,13 @@ import {TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {SecuritysplitService} from '../service/securitysplit.service';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {SplitPeriodTableBase} from './split.period.table.base';
 import {CreateType, Securitysplit} from '../../entities/dividend.split';
 import {SvgIconRegistryService} from 'angular-svg-icon';
 import {DividendSplitSvgCreator} from '../../shared/dividendsplit/dividend.split.svg.creator';
-import {ColumnConfig} from '../../shared/datashowbase/column.config';
+import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {FilterService} from 'primeng/api';
 
 /**

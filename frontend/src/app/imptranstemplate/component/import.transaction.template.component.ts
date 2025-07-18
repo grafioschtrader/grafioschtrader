@@ -11,23 +11,24 @@ import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {ImportTransactionTemplate} from '../../entities/import.transaction.template';
 import {ImportTransactionTemplateTableComponent} from './import-transaction-template-table.component';
-import {ParentChildRowSelection} from '../../shared/datashowbase/parent.child.row.selection';
+import {ParentChildRowSelection} from '../../lib/datashowbase/parent.child.row.selection';
 import {ConfirmationService, MenuItem} from 'primeng/api';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {plainToClass, plainToInstance} from 'class-transformer';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
-import {InfoLevelType} from '../../shared/message/info.leve.type';
+import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {
   ImportTransactionTemplateService,
   SuccessFailedImportTransactionTemplate
 } from '../service/import.transaction.template.service';
-import filesaver from '../../shared/filesaver/filesaver';
+import filesaver, {saveAs} from '../../lib/filesaver/filesaver';
 import {NgxFileDropEntry} from 'ngx-file-drop';
 import {AppHelper} from '../../lib/helper/app.helper';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * Main component of import transaction template. It combines other components like a table.
@@ -139,7 +140,7 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
   prepareEditMenu(): MenuItem[] {
     let menuItems: MenuItem[] = [];
     menuItems.push({
-      label: 'TRANSFORM_PDF_TO_TXT' + AppSettings.DIALOG_MENU_SUFFIX,
+      label: 'TRANSFORM_PDF_TO_TXT' + BaseSettings.DIALOG_MENU_SUFFIX,
       command: () => this.transformPDFToTxtDialog()
     });
     menuItems.push({separator: true});
@@ -152,7 +153,7 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
 
     menuItems.push({separator: true});
     menuItems.push({
-      label: 'CHECK_TEMPLATE_FORM' + AppSettings.DIALOG_MENU_SUFFIX,
+      label: 'CHECK_TEMPLATE_FORM' + BaseSettings.DIALOG_MENU_SUFFIX,
       command: () => this.testTemplateDialog(),
       disabled: !this.selectedEntity || this.ittdc.isEmpty()
     });
@@ -207,7 +208,7 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
       this.selectedEntity.idTransactionImportPlatform)
       .catch(error => this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'DOWNLOAD_TEMPLATE_DATA_FAILED'));
     if (blob) {
-      filesaver.saveAs(blob, itp.name + '.zip');
+      saveAs(blob, itp.name + '.zip');
       this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'DOWNLOAD_TEMPLATE_DATA_SUCCESS');
     }
   }

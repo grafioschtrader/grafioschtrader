@@ -1,5 +1,5 @@
 import {Observable} from 'rxjs';
-import {ColumnConfig} from '../../datashowbase/column.config';
+import {ColumnConfig} from '../../../lib/datashowbase/column.config';
 
 export interface ITaskExtendService {
   supportAdditionalToolTipData(): boolean;

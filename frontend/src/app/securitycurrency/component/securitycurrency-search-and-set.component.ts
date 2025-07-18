@@ -1,8 +1,8 @@
 import {Component, EventEmitter, Input, Output, ViewChild} from '@angular/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
-import {ProcessedAction} from '../../shared/types/processed.action';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
+import {ProcessedAction} from '../../lib/types/processed.action';
 import {SecuritycurrencySearchBase} from './securitycurrency.search.base';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
 import {SecuritycurrencySearchAndSetTableComponent} from './securitycurrency-search-and-set-table.component';

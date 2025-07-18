@@ -6,7 +6,7 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {SecurityPositionGrandSummary} from '../../../entities/view/security.position.grand.summary';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
 import {ChartDataService} from '../../../shared/chart/service/chart.data.service';
-import {MessageToastService} from '../../../shared/message/message.toast.service';
+import {MessageToastService} from '../../message/message.toast.service';
 import {UserSettingsService} from '../../../shared/service/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
 import {SecurityaccountAssetclassCategortypeGroup} from '../../../securityaccount/component/securityaccount.assetclass.categortype.group';

@@ -5,13 +5,13 @@ import {
   CorrelationRollingResult,
   CorrelationSet
 } from '../../entities/correlation.set';
-import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
+import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {LoginService} from '../../shared/login/service/log-in.service';
 import {HttpClient, HttpParams} from '@angular/common/http';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Injectable} from '@angular/core';
 import {AppSettings} from '../../shared/app.settings';
-import {DeleteService} from '../../shared/datashowbase/delete.service';
+import {DeleteService} from '../../lib/datashowbase/delete.service';
 import {Observable} from 'rxjs';
 import {catchError} from 'rxjs/operators';
 import {TenantLimit} from '../../entities/backend/tenant.limit';

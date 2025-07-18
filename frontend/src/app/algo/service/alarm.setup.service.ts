@@ -3,12 +3,13 @@ import {MenuItem, MenuItemCommandEvent} from 'primeng/api';
 import {Securitycurrency} from '../../entities/securitycurrency';
 import {AppSettings} from '../../shared/app.settings';
 import {AlgoCallParam, AlgoStrategyDefinitionForm} from '../model/algo.dialog.visible';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {AlgoSecurity, AlgoSecurityStrategyImplType} from '../model/algo.security';
 import {Security} from '../../entities/security';
 import {AlgoSecurityService} from './algo.security.service';
-import {ProcessedAction} from '../../shared/types/processed.action';
+import {ProcessedAction} from '../../lib/types/processed.action';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {BaseSettings} from '../../lib/base.settings';
 
 
 @Injectable()
@@ -22,7 +23,7 @@ export class AlarmSetupService {
 
   getMenuItem(securitycurrency: Securitycurrency): MenuItem[] {
     return this.gps.useAlert()? [{separator: true}, {
-      label: 'ADD_ALERT' + AppSettings.DIALOG_MENU_SUFFIX,
+      label: 'ADD_ALERT' + BaseSettings.DIALOG_MENU_SUFFIX,
       command: (e: MenuItemCommandEvent) => this.showStrategyEdit(securitycurrency)
     }]: [];
   }

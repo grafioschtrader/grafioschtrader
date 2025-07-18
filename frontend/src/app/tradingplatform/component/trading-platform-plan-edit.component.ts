@@ -1,20 +1,20 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
 import {TradingPlatformPlanService} from '../service/trading.platform.plan.service';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {TradingPlatformPlan} from '../../entities/tradingplatformplan';
 import {HelpIds} from '../../shared/help/help.ids';
 import {TradingPlatformFeePlan} from '../../shared/types/trading.platform.fee.plan';
-import {SimpleEntityEditBase} from '../../shared/edit/simple.entity.edit.base';
+import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
 import {ImportTransactionPlatform} from '../../entities/import.transaction.platform';
 import {ImportTransactionPlatformService} from '../../imptranstemplate/service/import.transaction.platform.service';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 
 @Component({
