@@ -4,7 +4,7 @@ import {SecurityPositionGrandSummary} from '../../../entities/view/security.posi
 
 import {ActivatedRoute, Router} from '@angular/router';
 import {TransactionCallParam} from '../../../transaction/component/transaction.call.parm';
-import {MessageToastService} from '../../../shared/message/message.toast.service';
+import {MessageToastService} from '../../message/message.toast.service';
 import {SecurityaccountService} from '../../../securityaccount/service/securityaccount.service';
 import {TranslateService} from '@ngx-translate/core';
 import {ActivePanelService} from '../../../shared/mainmenubar/service/active.panel.service';

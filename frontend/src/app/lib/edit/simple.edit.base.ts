@@ -1,11 +1,11 @@
 import {ProcessedActionData} from '../types/processed.action.data';
 import {ProcessedAction} from '../types/processed.action';
-import {GlobalparameterService} from '../service/globalparameter.service';
+import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {Directive, EventEmitter, Input, Output, ViewChild} from '@angular/core';
 import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {HelpIds} from '../help/help.ids';
+import {HelpIds} from '../../shared/help/help.ids';
 import {FormBase} from './form.base';
-import {BusinessHelper} from '../helper/business.helper';
+import {BusinessHelper} from '../../shared/helper/business.helper';
 
 /**
  * Base class for simple editing fields of object in a dialog.

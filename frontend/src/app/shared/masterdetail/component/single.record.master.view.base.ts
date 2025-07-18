@@ -7,19 +7,20 @@ import {FormConfig} from '../../../dynamic-form/models/form.config';
 import {Directive, ViewChild} from '@angular/core';
 import {DynamicFormComponent} from '../../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {Subscription} from 'rxjs';
-import {InfoLevelType} from '../../message/info.leve.type';
+import {InfoLevelType} from '../../../lib/message/info.leve.type';
 import {AppHelper} from '../../../lib/helper/app.helper';
 import {TranslateService} from '@ngx-translate/core';
 import {ConfirmationService, MenuItem} from 'primeng/api';
-import {MessageToastService} from '../../message/message.toast.service';
-import {DeleteService} from '../../datashowbase/delete.service';
+import {MessageToastService} from '../../../lib/message/message.toast.service';
+import {DeleteService} from '../../../lib/datashowbase/delete.service';
 import {BaseID} from '../../../lib/entities/base.id';
 import {CallParam} from '../../maintree/types/dialog.visible';
-import {ProcessedActionData} from '../../types/processed.action.data';
-import {ProcessedAction} from '../../types/processed.action';
+import {ProcessedActionData} from '../../../lib/types/processed.action.data';
+import {ProcessedAction} from '../../../lib/types/processed.action';
 import {AuditHelper} from '../../../lib/helper/audit.helper';
 import {GlobalparameterService} from '../../service/globalparameter.service';
 import {AppSettings} from '../../app.settings';
+import {BaseSettings} from '../../../lib/base.settings';
 
 @Directive()
 export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements IGlobalMenuAttach {
@@ -98,12 +99,12 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
   getBaseEditMenu(entityName: string): MenuItem[] {
     const menuItems: MenuItem[] = [];
     menuItems.push({
-      label: 'CREATE|' + entityName + AppSettings.DIALOG_MENU_SUFFIX,
+      label: 'CREATE|' + entityName + BaseSettings.DIALOG_MENU_SUFFIX,
       command: (event) => this.handleEditEntityOpenDialog(null),
       disabled: !this.canCreate()
     });
     menuItems.push({
-      label: 'EDIT_RECORD|' + entityName + AppSettings.DIALOG_MENU_SUFFIX,
+      label: 'EDIT_RECORD|' + entityName + BaseSettings.DIALOG_MENU_SUFFIX,
       command: (event) => this.handleEditEntityOpenDialog(this.selectedEntity),
       disabled: !this.selectedEntity
     });

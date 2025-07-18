@@ -1,4 +1,4 @@
-import {UserTaskType} from '../../shared/types/user.task.type';
+import {UserTaskType} from '../types/user.task.type';
 import {ProposeRequest} from './propose.request';
 
 export class ProposeUserTask extends ProposeRequest {

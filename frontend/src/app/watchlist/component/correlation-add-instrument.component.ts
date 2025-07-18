@@ -1,11 +1,11 @@
 import {SecuritycurrencySearchBase} from '../../securitycurrency/component/securitycurrency.search.base';
 import {Component, EventEmitter, Input, Output, ViewChild} from '@angular/core';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {MultipleRequestToOneService} from '../../shared/service/multiple.request.to.one.service';
 import {TranslateService} from '@ngx-translate/core';
-import {ProcessedAction} from '../../shared/types/processed.action';
+import {ProcessedAction} from '../../lib/types/processed.action';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
 import {CorrelationSetAddInstrumentTableComponent} from './correlation-set-add-instrument-table.component';
 

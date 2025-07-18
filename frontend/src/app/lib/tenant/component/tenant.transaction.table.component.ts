@@ -2,7 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {PageFirstRowSelectedRow, ParentChildRegisterService} from '../../../shared/service/parent.child.register.service';
 import {TranslateService} from '@ngx-translate/core';
 import {TransactionService} from '../../../transaction/service/transaction.service';
-import {MessageToastService} from '../../../shared/message/message.toast.service';
+import {MessageToastService} from '../../message/message.toast.service';
 import {UserSettingsService} from '../../../shared/service/user.settings.service';
 import {ActivePanelService} from '../../../shared/mainmenubar/service/active.panel.service';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';

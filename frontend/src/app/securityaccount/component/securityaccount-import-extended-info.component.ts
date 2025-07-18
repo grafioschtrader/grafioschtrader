@@ -1,11 +1,11 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {SingleRecordConfigBase} from '../../shared/datashowbase/single.record.config.base';
+import {SingleRecordConfigBase} from '../../lib/datashowbase/single.record.config.base';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
 import {CombineTemplateAndImpTransPos} from './combine.template.and.imp.trans.pos';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {ImportSettings} from './import.settings';
-import {TranslateValue} from '../../shared/datashowbase/column.config';
+import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 import {SecurityaccountImportTransactionTableComponent} from './securityaccount-import-transaction-table.component';
 import {AppHelper} from '../../lib/helper/app.helper';

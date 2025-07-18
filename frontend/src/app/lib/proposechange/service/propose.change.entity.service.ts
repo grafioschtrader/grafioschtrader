@@ -4,10 +4,10 @@ import {ProposeChangeEntity} from '../../entities/propose.change.entity';
 import {AppSettings} from '../../../shared/app.settings';
 import {catchError} from 'rxjs/operators';
 import {AuthServiceWithLogout} from '../../../shared/login/service/base.auth.service.with.logout';
-import {MessageToastService} from '../../../shared/message/message.toast.service';
+import {MessageToastService} from '../../message/message.toast.service';
 import {HttpClient} from '@angular/common/http';
 import {ProposeChangeEntityWithEntity} from '../model/propose.change.entity.whit.entity';
-import {DeleteService} from '../../../shared/datashowbase/delete.service';
+import {DeleteService} from '../../datashowbase/delete.service';
 import {LoginService} from '../../../shared/login/service/log-in.service';
 
 

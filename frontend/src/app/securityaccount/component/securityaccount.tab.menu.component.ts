@@ -1,103 +1,168 @@
-import {TranslateService} from '@ngx-translate/core';
-import {ActivatedRoute, Params, Router} from '@angular/router';
-import {AppSettings} from '../../shared/app.settings';
-import {Securityaccount} from '../../entities/securityaccount';
-import {MenuItem} from 'primeng/api';
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {Subscription} from 'rxjs';
-import {TranslateHelper} from '../../helper/translate.helper';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { ActivatedRoute, Params, Router } from '@angular/router';
+import { AppSettings } from '../../shared/app.settings';
+import { Securityaccount } from '../../entities/securityaccount';
+import { Subscription } from 'rxjs';
+import {BaseTabMenuComponent} from '../../lib/tabmenu/component/base.tab.menu.component';
+import {TabItem} from '../../shared/types/tab.item';
 
 /**
  * Tab menu for security account.
- * TODO Until now the change detection for the disabled menu does not work as expected.
+ * Uses BaseTabMenuComponent for consistent tab behavior with custom navigation logic.
  */
 @Component({
-    template: `
-    <p-tabMenu #tabMenu [model]="items" [activeItem]="activeTab"></p-tabMenu>
-    <router-outlet></router-outlet>
+  template: `
+    <div class="card">
+      <p-tabs [value]="activeRoute">
+        <p-tablist>
+          @for (tab of tabs; track tab.route) {
+            <p-tab
+              [value]="tab.route"
+              [disabled]="isTabDisabled(tab)"
+              (click)="!isTabDisabled(tab) && navigateTo(tab.route)">
+              <span>{{ tab.label | translate }}</span>
+            </p-tab>
+          }
+        </p-tablist>
+      </p-tabs>
+      <router-outlet></router-outlet>
+    </div>
   `,
-    standalone: false
+  standalone: false
 })
-export class SecurityaccountTabMenuComponent implements OnInit, OnDestroy {
-
-  /**
-   * Only way to activate a menu item programmatically
-   */
-    // @ViewChild('tabMenu', { static: false }) tabMenu: TabMenu;
-  @ViewChild('tabMenu') tabMenu: any;
-  activeTab: MenuItem;
-  items: MenuItem[];
-  readonly platTransImportMenuItem: MenuItem;
-  private lastItemIndex = 0;
+export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implements OnInit, OnDestroy {
   private routeParamSubscribe: Subscription;
   private queryParamSubscribe: Subscription;
   private securityaccount: Securityaccount;
-  private lastRouteKey = AppSettings.SECURITYACCOUNT_SUMMERY_ROUTE_KEY;
+  private lastRouteKey: string = AppSettings.SECURITYACCOUNT_SUMMERY_ROUTE_KEY;
+  private successFailedImportTransParam: any = null;
 
-  constructor(private router: Router,
-              private activatedRoute: ActivatedRoute,
-              public translateService: TranslateService) {
-
-    this.platTransImportMenuItem = {
-      label: 'IMPORT_TRANSACTION',
-      command: (event) => this.navigateToRoute(AppSettings.SECURITYACCOUNT_IMPORT_KEY, 1)
-    };
-
-    this.items = [
-      {
-        label: AppSettings.SECURITYACCOUNT.toUpperCase(),
-        command: (event) => this.navigateToRoute(AppSettings.SECURITYACCOUNT_SUMMERY_ROUTE_KEY, 0)
-      },
-      this.platTransImportMenuItem
-    ];
-    TranslateHelper.translateMenuItems(this.items, this.translateService);
+  constructor(
+    router: Router,
+    activatedRoute: ActivatedRoute,
+    translateService: TranslateService
+  ) {
+    super(router, activatedRoute, translateService);
   }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
+    // Initialize tabs first
+    super.ngOnInit();
+
+    // Subscribe to route parameters for securityaccount data
     this.routeParamSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
       if (params['object']) {
         this.securityaccount = JSON.parse(params['object']);
-        const importDisabled = !this.securityaccount.tradingPlatformPlan.importTransactionPlatform;
-        this.platTransImportMenuItem.disabled = importDisabled;
-        this.items = [...this.items];
-        if (params[AppSettings.SUCCESS_FAILED_IMP_TRANS]) {
-          this.tabMenu.activeItem = this.items[1];
-          this.navigateToRoute(AppSettings.SECURITYACCOUNT_IMPORT_KEY, 1, params[AppSettings.SUCCESS_FAILED_IMP_TRANS]);
-        } else {
 
-          if (!importDisabled) {
-            this.navigateToRoute(this.lastRouteKey, this.lastItemIndex);
-          } else {
-            this.lastItemIndex = 0;
-            this.activeTab = this.items[this.lastItemIndex];
-            this.navigateToRoute(AppSettings.SECURITYACCOUNT_SUMMERY_ROUTE_KEY, this.lastItemIndex);
-          }
+        // Handle special import transaction parameter
+        if (params[AppSettings.SUCCESS_FAILED_IMP_TRANS]) {
+          this.successFailedImportTransParam = params[AppSettings.SUCCESS_FAILED_IMP_TRANS];
+          this.navigateTo(AppSettings.SECURITYACCOUNT_IMPORT_KEY);
+        } else {
+          this.handleNormalNavigation();
         }
       }
-      this.activeTab = this.items[this.lastItemIndex];
     });
   }
 
-  ngOnDestroy(): void {
-    this.routeParamSubscribe && this.routeParamSubscribe.unsubscribe();
-    this.queryParamSubscribe && this.queryParamSubscribe.unsubscribe();
+  override ngOnDestroy(): void {
+    super.ngOnDestroy();
+    if (this.routeParamSubscribe) {
+      this.routeParamSubscribe.unsubscribe();
+    }
+    if (this.queryParamSubscribe) {
+      this.queryParamSubscribe.unsubscribe();
+    }
   }
 
   /**
-   * Is needed for the default navigation
+   * Handle normal navigation logic based on import availability
    */
-  private navigateToRoute(routeKey: string, itemIndex: number, sfdit?: any) {
-    this.lastRouteKey = routeKey;
-    this.lastItemIndex = itemIndex;
-    const data = {securityaccount: JSON.stringify(this.securityaccount)};
-    if (sfdit) {
-      data[AppSettings.SUCCESS_FAILED_IMP_TRANS] = sfdit;
-    }
+  private handleNormalNavigation(): void {
+    const importDisabled = this.isImportDisabled();
 
+    if (!importDisabled) {
+      // Navigate to last active route if import is available
+      this.navigateTo(this.lastRouteKey);
+    } else {
+      // Force navigation to summary if import is disabled
+      this.navigateTo(AppSettings.SECURITYACCOUNT_SUMMERY_ROUTE_KEY);
+    }
+  }
+
+  /**
+   * Check if import functionality is disabled
+   */
+  private isImportDisabled(): boolean {
+    return !this.securityaccount?.tradingPlatformPlan?.importTransactionPlatform;
+  }
+
+  /**
+   * Check if a specific tab should be disabled
+   * @param tab - The tab to check
+   */
+  isTabDisabled(tab: TabItem): boolean {
+    if (tab.route === AppSettings.SECURITYACCOUNT_IMPORT_KEY) {
+      return this.isImportDisabled();
+    }
+    return false;
+  }
+
+  protected initializeTabs(): TabItem[] {
+    return [
+      {
+        label: AppSettings.SECURITYACCOUNT.toUpperCase(),
+        route: AppSettings.SECURITYACCOUNT_SUMMERY_ROUTE_KEY,
+        icon: ''
+      },
+      {
+        label: 'IMPORT_TRANSACTION',
+        route: AppSettings.SECURITYACCOUNT_IMPORT_KEY,
+        icon: ''
+      }
+    ];
+  }
+
+  protected getDefaultRoute(): string {
+    return AppSettings.SECURITYACCOUNT_SUMMERY_ROUTE_KEY;
+  }
+
+  /**
+   * Override navigateTo to handle custom securityaccount navigation
+   * @param route - The route to navigate to
+   */
+  override navigateTo(route: string): void {
+    if (!this.securityaccount) {
+      console.warn('No securityaccount available for navigation');
+      return;
+    }
+    // Update active route and remember last route
+    this.activeRoute = route;
+    this.lastRouteKey = route;
+    // Prepare navigation data
+    const data: any = {
+      securityaccount: JSON.stringify(this.securityaccount)
+    };
+    // Add special import transaction parameter if available
+    if (this.successFailedImportTransParam) {
+      data[AppSettings.SUCCESS_FAILED_IMP_TRANS] = this.successFailedImportTransParam;
+      this.successFailedImportTransParam = null; // Reset after use
+    }
+    // Navigate with complex route structure
     this.router.navigate([
-      `${AppSettings.MAINVIEW_KEY}/${AppSettings.SECURITYACCOUNT_TAB_MENU_KEY}/${this.securityaccount.idSecuritycashAccount}/${routeKey}`,
-      this.securityaccount.idSecuritycashAccount, data]);
+      `${AppSettings.MAINVIEW_KEY}/${AppSettings.SECURITYACCOUNT_TAB_MENU_KEY}/${this.securityaccount.idSecuritycashAccount}/${route}`,
+      this.securityaccount.idSecuritycashAccount,
+      data
+    ]);
+  }
+
+  /**
+   * Override the default navigation to not navigate immediately
+   * Wait for securityaccount to be available
+   */
+  protected override navigateToDefault(): void {
+    // Don't navigate immediately - wait for securityaccount to be set
+    // Navigation will happen in the params subscription
   }
 }
-
-

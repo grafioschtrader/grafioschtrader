@@ -1,12 +1,12 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {ConfirmationService, FilterService, MenuItem, TreeNode} from 'primeng/api';
 import {TransactionContextMenu} from './transaction.context.menu';
-import {ColumnConfig} from '../../shared/datashowbase/column.config';
+import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {TransactionService} from '../service/transaction.service';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
@@ -16,7 +16,7 @@ import {SecurityTransactionSummary} from '../../entities/view/security.transacti
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {SecurityTransactionPosition} from '../../entities/view/security.transaction.position';
 import {CloseMarginPosition, TransactionCallParam} from './transaction.call.parm';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {TransactionType} from '../../shared/types/transaction.type';
 import {ProposedMarginFinanceCost} from '../model/proposed.margin.finance.cost';
 import {TransactionSecurityFieldDefinition} from './transaction.security.field.definition';

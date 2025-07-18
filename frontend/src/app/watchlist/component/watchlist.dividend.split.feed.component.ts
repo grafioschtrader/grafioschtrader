@@ -9,7 +9,7 @@ import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.
 import {WatchlistService} from '../service/watchlist.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {ConfirmationService, FilterService} from 'primeng/api';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
@@ -20,7 +20,7 @@ import {combineLatest, Observable} from 'rxjs';
 import {SecuritycurrencyGroup} from '../../entities/view/securitycurrency.group';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {SecurityCurrencyHelper} from '../../securitycurrency/service/security.currency.helper';
-import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {HelpIds} from '../../shared/help/help.ids';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 import {AlgoDialogVisible} from '../../algo/model/algo.dialog.visible';

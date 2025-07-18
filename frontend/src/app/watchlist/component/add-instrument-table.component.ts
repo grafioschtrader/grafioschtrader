@@ -7,8 +7,8 @@ import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.sea
 import {SecuritycurrencyLists} from '../../entities/view/securitycurrency.lists';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
 import {DataChangedService} from '../../shared/maintree/service/data.changed.service';
-import {ProcessedAction} from '../../shared/types/processed.action';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
+import {ProcessedAction} from '../../lib/types/processed.action';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {SecuritycurrencySearchTableBase} from '../../securitycurrency/component/securitycurrency.search.table.base';

@@ -11,7 +11,7 @@ import {FieldDescriptorInputAndShowExtendedSecurity} from '../../shared/udfmeta/
 import {GlobalSessionNames} from '../../shared/global.session.names';
 import {AppSettings} from '../../shared/app.settings';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
-import {OptionalParams} from '../../shared/datashowbase/column.config';
+import {OptionalParams} from '../../lib/datashowbase/column.config';
 import {WatchlistService} from '../service/watchlist.service';
 
 

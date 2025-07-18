@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {TreeTableConfigBase} from '../../shared/datashowbase/tree.table.config.base';
+import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {SecurityService} from '../service/security.service';
@@ -11,13 +11,13 @@ import {
 } from '../model/historyquote.quality.group';
 import {MenuItem, SelectItem, TreeNode} from 'primeng/api';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {ColumnGroupConfig} from '../../shared/datashowbase/column.config';
+import {ColumnGroupConfig} from '../../lib/datashowbase/column.config';
 import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
 import {HelpIds} from '../../shared/help/help.ids';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {plainToInstance} from 'class-transformer';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {SecurityIdWithCurrency} from './security-historyquote-quality-table.component';
@@ -34,9 +34,9 @@ import {SecurityIdWithCurrency} from './security-historyquote-quality-table.comp
           <h4>{{'SECURITY_HISTORY_QUALITY' | translate}} ({{'LAST_UPDATE' | translate}}: {{lastUpdate}})</h4>
         </p-header>
         <label class="small-padding control-label" for="groupSelect">{{'MAIN_QUALITY_GROUP' | translate}}</label>
-        <p-dropdown id="groupSelect" [options]="groups" [(ngModel)]="selectedGroup"
-                    (onChange)="groupChanged($event)">
-        </p-dropdown>
+        <p-select id="groupSelect" [options]="groups" [(ngModel)]="selectedGroup"
+                  (onChange)="groupChanged($event)">
+        </p-select>
       </p-panel>
       <p-treeTable [value]="qualityNode" [columns]="fields" dataKey="uniqueKey" sortField="name"
                    selectionMode="single" [(selection)]="selectedNode" (onNodeSelect)="nodeSelect($event)">

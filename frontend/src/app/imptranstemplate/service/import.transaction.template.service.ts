@@ -1,12 +1,12 @@
 import {Injectable} from '@angular/core';
 import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
 import {ImportTransactionTemplate} from '../../entities/import.transaction.template';
-import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
+import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {AppSettings} from '../../shared/app.settings';
 import {lastValueFrom, Observable} from 'rxjs';
 import {HttpClient, HttpParams} from '@angular/common/http';
-import {MessageToastService} from '../../shared/message/message.toast.service';
-import {DeleteService} from '../../shared/datashowbase/delete.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
+import {DeleteService} from '../../lib/datashowbase/delete.service';
 import {FormTemplateCheck} from '../component/form.template.check';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../shared/login/service/log-in.service';

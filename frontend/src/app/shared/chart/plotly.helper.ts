@@ -1,5 +1,5 @@
 import {TranslateService} from '@ngx-translate/core';
-import {Helper} from '../../helper/helper';
+import {Helper} from '../../lib/helper/helper';
 import {Legend} from 'plotly.js';
 import {ElementRef} from '@angular/core';
 import tippy from 'tippy.js';

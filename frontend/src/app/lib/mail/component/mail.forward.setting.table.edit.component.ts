@@ -16,13 +16,13 @@ import {
   MessageTargetType
 } from '../model/mail.send.recv';
 import {DataType} from '../../../dynamic-form/models/data.type';
-import {ColumnConfig, TranslateValue} from '../../../shared/datashowbase/column.config';
-import {TableEditConfigBase} from '../../../shared/datashowbase/table.edit.config.base';
+import {ColumnConfig, TranslateValue} from '../../datashowbase/column.config';
+import {TableEditConfigBase} from '../../datashowbase/table.edit.config.base';
 import {SelectOptionsHelper} from '../../helper/select.options.helper';
-import {TranslateHelper} from '../../../helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {AppHelper} from '../../helper/app.helper';
-import {InfoLevelType} from '../../../shared/message/info.leve.type';
-import {MessageToastService} from '../../../shared/message/message.toast.service';
+import {InfoLevelType} from '../../message/info.leve.type';
+import {MessageToastService} from '../../message/message.toast.service';
 
 /**
  * Editing this information class is very simple. Therefore

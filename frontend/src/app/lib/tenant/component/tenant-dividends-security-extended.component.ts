@@ -7,7 +7,7 @@ import {SecurityDividendsGrandTotal} from '../../../entities/view/securitydivide
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
 import {Security} from '../../../entities/security';
 import {BusinessHelper} from '../../../shared/helper/business.helper';
-import {ProcessedActionData} from '../../../shared/types/processed.action.data';
+import {ProcessedActionData} from '../../types/processed.action.data';
 import {TransactionSecurityOptionalParam} from '../../../transaction/model/transaction.security.optional.param';
 import {FilterService} from 'primeng/api';
 import {TenantDividendsExtendedBase} from './tenant.dividends.extended.base';

@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {TransactionCallParam} from './transaction.call.parm';
-import {SimpleEditBase} from '../../shared/edit/simple.edit.base';
+import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
 import {HelpIds} from '../../shared/help/help.ids';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';

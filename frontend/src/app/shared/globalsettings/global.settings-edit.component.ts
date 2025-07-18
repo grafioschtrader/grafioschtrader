@@ -2,16 +2,16 @@
  * Component for editing the portfolio.
  */
 import {Component, Input, OnInit} from '@angular/core';
-import {SimpleEntityEditBase} from '../edit/simple.entity.edit.base';
+import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
 import {Globalparameters} from '../../lib/entities/globalparameters';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../service/globalparameter.service';
-import {MessageToastService} from '../message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {HelpIds} from '../help/help.ids';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {AppSettings} from '../app.settings';
 

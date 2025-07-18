@@ -15,7 +15,7 @@ import {Security} from '../../entities/security';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
 import {DynamicFieldHelper, VALIDATION_SPECIAL} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {SupplementCriteria} from '../model/supplement.criteria';
 import {AppSettings} from '../../shared/app.settings';

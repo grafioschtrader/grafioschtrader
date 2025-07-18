@@ -6,13 +6,13 @@ import {CashaccountService} from '../service/cashaccount.service';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {Cashaccount} from '../../entities/cashaccount';
 import {Portfolio} from '../../entities/portfolio';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {HelpIds} from '../../shared/help/help.ids';
-import {SimpleEntityEditBase} from '../../shared/edit/simple.entity.edit.base';
+import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 

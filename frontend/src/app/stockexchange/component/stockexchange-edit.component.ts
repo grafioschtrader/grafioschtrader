@@ -2,16 +2,16 @@ import {Component, Input, OnInit} from '@angular/core';
 import {Stockexchange} from '../../entities/stockexchange';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
 import {StockexchangeService} from '../service/stockexchange.service';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {HelpIds} from '../../shared/help/help.ids';
-import {SimpleEntityEditBase} from '../../shared/edit/simple.entity.edit.base';
+import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import {DynamicFieldHelper, VALIDATION_SPECIAL} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {StockexchangeCallParam} from './stockexchange.call.param';
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
 import {SecurityService} from '../../securitycurrency/service/security.service';
@@ -24,9 +24,10 @@ import {Security} from '../../entities/security';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import moment from 'moment';
 import {AppSettings} from '../../shared/app.settings';
-import {GroupItem} from '../../dynamic-form/models/value.key.html.select.options';
+import {GroupItem, ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {StockexchangeMic} from '../model/stockexchange.base.data';
 import {StockexchangeHelper} from './stockexchange.helper';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * Edit stockexchnage
@@ -101,11 +102,10 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
     if (this.callParam.stockexchange) {
       observables.push(this.getSecurityObservable());
     }
-
     combineLatest(observables).subscribe(data => {
       this.countriesAsKeyValue = StockexchangeHelper.transform(this.callParam.countriesAsHtmlOptions);
       this.configObject.mic.groupItem = this.createMicOptions(true);
-      this.configObject.timeZone.valueKeyHtmlOptions = data[0];
+      this.configObject.timeZone.valueKeyHtmlOptions = data[0] as ValueKeyHtmlSelectOptions[];
       this.configObject.countryCode.valueKeyHtmlOptions = this.callParam.countriesAsHtmlOptions;
       this.form.setDefaultValuesAndEnableSubmit();
       AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.gps,
@@ -115,7 +115,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
       this.disableEnableCountry();
       if (data.length > 1) {
         this.configObject.idIndexUpdCalendar.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
-          'idSecuritycurrency', 'name', data[1], true);
+          'idSecuritycurrency', 'name', data[1] as Security[], true);
       }
       if (this.canAssignMic()) {
         this.valueChangedOnOnlyMainStockexchange();
@@ -208,7 +208,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
     const securitycurrencySearch = new SecuritycurrencySearch();
     securitycurrencySearch.assetclassType = AssetclassType[AssetclassType.EQUITIES];
     securitycurrencySearch.specialInvestmentInstruments = SpecialInvestmentInstruments[SpecialInvestmentInstruments.NON_INVESTABLE_INDICES];
-    securitycurrencySearch.activeDate = moment().format(AppSettings.FORMAT_DATE_SHORT_US);
+    securitycurrencySearch.activeDate = moment().format(BaseSettings.FORMAT_DATE_SHORT_US);
     securitycurrencySearch.stockexchangeCountryCode = this.callParam.stockexchange.countryCode;
     return this.securityService.searchByCriteria(securitycurrencySearch);
   }

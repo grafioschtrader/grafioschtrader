@@ -1,11 +1,11 @@
 import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
-import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
+import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {SecurityPositionDynamicGroupSummary} from '../../entities/view/security.position.dynamic.group.summary';
 import {Directive, ElementRef, ViewChild} from '@angular/core';
 import {SecurityaccountGroupBase} from './securityaccount.group.base';
 import {SecurityPositionCurrenyGroupSummary} from '../../entities/view/security.position.curreny.group.summary';
 import {Subscription} from 'rxjs';
-import {ColumnConfig, ColumnGroupConfig} from '../../shared/datashowbase/column.config';
+import {ColumnConfig, ColumnGroupConfig} from '../../lib/datashowbase/column.config';
 import {SecurityPositionSummary} from '../../entities/view/security.position.summary';
 import {TransactionCallParam} from '../../transaction/component/transaction.call.parm';
 import {FilterService, MenuItem} from 'primeng/api';
@@ -16,7 +16,7 @@ import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.
 import {ActivatedRoute, Router} from '@angular/router';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {ChartDataService} from '../../shared/chart/service/chart.data.service';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
 import {AppSettings} from '../../shared/app.settings';
@@ -24,17 +24,18 @@ import {DataType} from '../../dynamic-form/models/data.type';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {TransactionType} from '../../shared/types/transaction.type';
 import {Security} from '../../entities/security';
-import {ProcessedAction} from '../../shared/types/processed.action';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
+import {ProcessedAction} from '../../lib/types/processed.action';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {HelpIds} from '../../shared/help/help.ids';
 import {OptionalParameters, TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
 import {AssetclassType} from '../../shared/types/assetclass.type';
 import {Securitycurrency} from '../../entities/securitycurrency';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
+import {BaseSettings} from '../../lib/base.settings';
 
 
 @Directive()
@@ -220,7 +221,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   }
 
   public getHelpContextId(): HelpIds {
-    return HelpIds.HELP_PROTFOLIOS_SECURITY_ACCOUNT_REPORT;
+    return HelpIds.HELP_PORTFOLIOS_SECURITY_ACCOUNT_REPORT;
   }
 
   destroy(): void {
@@ -397,7 +398,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
 
       if (!BusinessHelper.isMarginProduct(securityPositionSummary.security)) {
         menuItems.push({
-          label: AppSettings.DIVIDEND.toUpperCase() + AppSettings.DIALOG_MENU_SUFFIX,
+          label: AppSettings.DIVIDEND.toUpperCase() + BaseSettings.DIALOG_MENU_SUFFIX,
           command: (e) => this.handleTransaction(TransactionType.DIVIDEND, securityPositionSummary.security)
         });
       }

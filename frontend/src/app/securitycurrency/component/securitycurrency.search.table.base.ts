@@ -1,4 +1,4 @@
-import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
+import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
@@ -7,7 +7,7 @@ import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist'
 import {Currencypair} from '../../entities/currencypair';
 import {Security} from '../../entities/security';
 import {FilterService} from 'primeng/api';
-import {TranslateValue} from '../../shared/datashowbase/column.config';
+import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 
 /**

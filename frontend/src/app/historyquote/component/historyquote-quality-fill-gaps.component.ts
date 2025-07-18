@@ -1,19 +1,19 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {SimpleEditBase} from '../../shared/edit/simple.edit.base';
+import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
 import {HelpIds} from '../../shared/help/help.ids';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {IHistoryquoteQuality} from '../../entities/view/ihistoryquote.quality';
 import {Securitycurrency} from '../../entities/securitycurrency';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {HisotryqouteLinearFilledSummary} from '../../securitycurrency/model/historyquote.quality.group';
-import {InfoLevelType} from '../../shared/message/info.leve.type';
-import {MessageToastService} from '../../shared/message/message.toast.service';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
-import {ProcessedAction} from '../../shared/types/processed.action';
+import {InfoLevelType} from '../../lib/message/info.leve.type';
+import {MessageToastService} from '../../lib/message/message.toast.service';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
+import {ProcessedAction} from '../../lib/types/processed.action';
 
 /**
  * Dialog to fill gaps of history quotes.

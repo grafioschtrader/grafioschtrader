@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {AuthServiceWithLogout} from '../../../shared/login/service/base.auth.service.with.logout';
 import {LoginService} from '../../../shared/login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
-import {MessageToastService} from '../../../shared/message/message.toast.service';
+import {MessageToastService} from '../../message/message.toast.service';
 import {Observable} from 'rxjs';
 import {AppSettings} from '../../../shared/app.settings';
 import {catchError} from 'rxjs/operators';

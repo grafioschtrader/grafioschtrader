@@ -1,45 +1,35 @@
-import {MenuItem} from 'primeng/api';
-import {ActivatedRoute, Router} from '@angular/router';
-import {TranslateService} from '@ngx-translate/core';
-import {TranslateHelper} from '../../../helper/translate.helper';
-import {Component, OnInit} from '@angular/core';
-import {AppSettings} from '../../../shared/app.settings';
-import {AppHelper} from '../../helper/app.helper';
+import { Component } from '@angular/core';
+import { AppSettings } from '../../../shared/app.settings';
+import { AppHelper } from '../../helper/app.helper';
+import {TabItem} from '../../../shared/types/tab.item';
 
 /**
  * The tab menu for messages.
+ * Uses SharedTabMenuComponent for consistent tab behavior.
  */
 @Component({
-    template: `
-    <p-tabMenu [model]="items" [activeItem]="items[0]"></p-tabMenu>
-    <router-outlet></router-outlet>
+  template: `
+    <app-shared-tab-menu
+      [tabs]="tabs"
+      [defaultRoute]="defaultRoute">
+      <router-outlet></router-outlet>
+    </app-shared-tab-menu>
   `,
-    standalone: false
+  standalone: false
 })
-export class SendRecvForwardTabMenuComponent implements OnInit {
-  items: MenuItem[];
+export class SendRecvForwardTabMenuComponent {
+  tabs: TabItem[] = [
+    {
+      label: AppHelper.toUpperCaseWithUnderscore(AppSettings.MAIL_SEND_RECV),
+      route: AppSettings.MAIL_SEND_RECV_KEY,
+      icon: ''
+    },
+    {
+      label: AppHelper.toUpperCaseWithUnderscore(AppSettings.MAIL_SETTING_FORWARD),
+      route: AppSettings.MAIL_SETTING_FORWARD_KEY,
+      icon: ''
+    }
+  ];
 
-  constructor(private router: Router, private activatedRoute: ActivatedRoute, public translateService: TranslateService) {
-    this.items = [
-      {label: AppHelper.toUpperCaseWithUnderscore(AppSettings.MAIL_SEND_RECV), command: (event) => this.navigateToChangeRequest(true)},
-      {
-        label: AppHelper.toUpperCaseWithUnderscore(AppSettings.MAIL_SETTING_FORWARD),
-        command: (event) => this.router.navigate([AppSettings.MAIL_SETTING_FORWARD_KEY],
-          {relativeTo: this.activatedRoute})
-      }
-    ];
-    TranslateHelper.translateMenuItems(this.items, this.translateService);
-  }
-
-  ngOnInit(): void {
-    this.navigateToChangeRequest(false);
-  }
-
-  /**
-   * Is needed for the default navigation
-   */
-  private navigateToChangeRequest(activatePanel: boolean) {
-    this.router.navigate([AppSettings.MAIL_SEND_RECV_KEY], {relativeTo: this.activatedRoute});
-  }
-
+  defaultRoute: string = AppSettings.MAIL_SEND_RECV_KEY;
 }

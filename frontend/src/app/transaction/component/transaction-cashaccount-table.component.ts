@@ -6,7 +6,7 @@ import {CurrencypairService} from '../../securitycurrency/service/currencypair.s
 import {CashaccountTransactionPosition} from '../../entities/view/cashaccount.transaction.position';
 import {TransactionContextMenu} from './transaction.context.menu';
 import {TranslateService} from '@ngx-translate/core';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Security} from '../../entities/security';
 import {Portfolio} from '../../entities/portfolio';
 import {TransactionCallParam} from './transaction.call.parm';
@@ -23,7 +23,7 @@ import {
 } from '../../shared/service/parent.child.register.service';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {ConfirmationService, FilterService} from 'primeng/api';
-import {TranslateValue} from '../../shared/datashowbase/column.config';
+import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 import {TransactionType} from '../../shared/types/transaction.type';
 

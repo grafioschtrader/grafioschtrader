@@ -1,6 +1,6 @@
 import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {IGlobalMenuAttach} from '../../../shared/mainmenubar/component/iglobal.menu.attach';
-import {TableConfigBase} from '../../../shared/datashowbase/table.config.base';
+import {TableConfigBase} from '../../datashowbase/table.config.base';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
 import {ActivePanelService} from '../../../shared/mainmenubar/service/active.panel.service';
 import {PortfolioService} from '../../../portfolio/service/portfolio.service';
@@ -11,15 +11,15 @@ import {DataType} from '../../../dynamic-form/models/data.type';
 import {Subscription} from 'rxjs';
 import {TransactionCostGrandSummary} from '../../../entities/view/transactioncost/transaction.cost.grand.summary';
 import {TransactionCostGroupSummary} from '../../../entities/view/transactioncost/transaction.cost.group.summary';
-import {ColumnConfig, ColumnGroupConfig} from '../../../shared/datashowbase/column.config';
-import {ProcessedActionData} from '../../../shared/types/processed.action.data';
+import {ColumnConfig, ColumnGroupConfig} from '../../datashowbase/column.config';
+import {ProcessedActionData} from '../../types/processed.action.data';
 
 import {AppSettings} from '../../../shared/app.settings';
 import {ChartDataService} from '../../../shared/chart/service/chart.data.service';
 import {ChartTrace, PlotlyHelper} from '../../../shared/chart/plotly.helper';
 import {TransactionCostPosition} from '../../../entities/view/transactioncost/transaction.cost.position';
 import {HelpIds} from '../../../shared/help/help.ids';
-import {TranslateHelper} from '../../../helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {FilterService, MenuItem} from 'primeng/api';
 
 

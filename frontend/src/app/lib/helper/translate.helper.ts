@@ -1,11 +1,11 @@
 import {TranslateService} from '@ngx-translate/core';
-import {FieldFormGroup, FormGroupDefinition} from '../dynamic-form/models/form.group.definition';
-import {FieldConfig} from '../dynamic-form/models/field.config';
-import {FormHelper} from '../dynamic-form/components/FormHelper';
+import {FieldFormGroup, FormGroupDefinition} from '../../dynamic-form/models/form.group.definition';
+import {FieldConfig} from '../../dynamic-form/models/field.config';
+import {FormHelper} from '../../dynamic-form/components/FormHelper';
 import {MenuItem} from 'primeng/api';
-import {ColumnConfig, TranslateValue} from '../shared/datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../datashowbase/column.config';
 import {Helper} from './helper';
-import {AppSettings} from '../shared/app.settings';
+import {BaseSettings} from '../base.settings';
 
 /**
  * Utility class providing static helper methods for handling internationalization (i18n) and translation operations.
@@ -198,7 +198,7 @@ export class TranslateHelper {
     const columnConfigs = fields.filter(columnConfig => !!columnConfig.translateValues);
     if (columnConfigs.length > 0) {
       data.forEach(dataValue => TranslateHelper.createTranslatedValueStoreForTranslation(translateService, columnConfigs, dataValue));
-      columnConfigs.forEach(columnConfig => columnConfig.fieldTranslated = columnConfig.field + AppSettings.FIELD_SUFFIX);
+      columnConfigs.forEach(columnConfig => columnConfig.fieldTranslated = columnConfig.field + BaseSettings.FIELD_SUFFIX);
     }
   }
 
@@ -248,7 +248,7 @@ export class TranslateHelper {
     columnConfig: ColumnConfig, value: any, dataObject: any): void {
     if (columnConfig.translatedValueMap.hasOwnProperty(value)) {
       // Expand data with a field and existing translation
-      Helper.setValueByPath(dataObject, columnConfig.field + AppSettings.FIELD_SUFFIX, columnConfig.translatedValueMap[value]);
+      Helper.setValueByPath(dataObject, columnConfig.field + BaseSettings.FIELD_SUFFIX, columnConfig.translatedValueMap[value]);
     } else {
       if (value) {
         // Add value and translation
@@ -256,7 +256,7 @@ export class TranslateHelper {
         translateService.get(value).subscribe(translated => {
           columnConfig.translatedValueMap[value] = translated;
           // Expand data with a field that contains the value
-          Helper.setValueByPath(dataObject, columnConfig.field + AppSettings.FIELD_SUFFIX, translated);
+          Helper.setValueByPath(dataObject, columnConfig.field + BaseSettings.FIELD_SUFFIX, translated);
         });
       }
     }
@@ -288,7 +288,7 @@ export class TranslateHelper {
         });
       }
     });
-    Helper.setValueByPath(dataObject, columnConfig.field + AppSettings.FIELD_SUFFIX, commaSeparatorValue);
+    Helper.setValueByPath(dataObject, columnConfig.field + BaseSettings.FIELD_SUFFIX, commaSeparatorValue);
   }
 
   /**
@@ -311,7 +311,7 @@ export class TranslateHelper {
   private static translateMenuItem(menuItem: MenuItem, targetProperty: string, translateService: TranslateService, translateParam: boolean): void {
     if (menuItem[targetProperty] && menuItem[targetProperty].toUpperCase() === menuItem[targetProperty]) {
       // Translate only once
-      const dialogMenuItem = menuItem[targetProperty].endsWith(AppSettings.DIALOG_MENU_SUFFIX);
+      const dialogMenuItem = menuItem[targetProperty].endsWith(BaseSettings.DIALOG_MENU_SUFFIX);
       if (dialogMenuItem) {
         menuItem[targetProperty] = TranslateHelper.cutOffDialogDots(menuItem[targetProperty]);
       }
@@ -321,7 +321,7 @@ export class TranslateHelper {
         if (translateParam) {
           translateService.get(labelWord[1]).subscribe(param =>
             translateService.get(labelWord[0], {i18nRecord: param}).subscribe(message =>
-              menuItem[targetProperty] = message + (dialogMenuItem ? AppSettings.DIALOG_MENU_SUFFIX : ''))
+              menuItem[targetProperty] = message + (dialogMenuItem ? BaseSettings.DIALOG_MENU_SUFFIX : ''))
           );
         } else {
           translateService.get(labelWord[0], {i18nRecord: labelWord[1]}).subscribe(
@@ -329,7 +329,7 @@ export class TranslateHelper {
         }
       } else {
         translateService.get(menuItem[targetProperty]).subscribe(translated => menuItem[targetProperty] =
-          translated + (dialogMenuItem ? AppSettings.DIALOG_MENU_SUFFIX : ''));
+          translated + (dialogMenuItem ? BaseSettings.DIALOG_MENU_SUFFIX : ''));
       }
     }
   }
@@ -350,7 +350,7 @@ export class TranslateHelper {
    * ```
    */
   private static cutOffDialogDots(label: string): string {
-    return label.endsWith(AppSettings.DIALOG_MENU_SUFFIX) ? label.slice(0, -AppSettings.DIALOG_MENU_SUFFIX.length) : label;
+    return label.endsWith(BaseSettings.DIALOG_MENU_SUFFIX) ? label.slice(0, -BaseSettings.DIALOG_MENU_SUFFIX.length) : label;
   }
 
 }

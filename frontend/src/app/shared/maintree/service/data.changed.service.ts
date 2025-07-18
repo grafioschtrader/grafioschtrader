@@ -1,4 +1,4 @@
-import {ProcessedActionData} from '../../types/processed.action.data';
+import {ProcessedActionData} from '../../../lib/types/processed.action.data';
 import {Subject} from 'rxjs';
 import {Injectable} from '@angular/core';
 

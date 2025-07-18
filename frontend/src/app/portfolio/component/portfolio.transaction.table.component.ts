@@ -10,7 +10,7 @@ import {TransactionService} from '../../transaction/service/transaction.service'
 import {Transaction} from '../../entities/transaction';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {TranslateService} from '@ngx-translate/core';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ActivatedRoute, Params} from '@angular/router';
 import {ConfirmationService, FilterService} from 'primeng/api';
 

@@ -1,7 +1,7 @@
-import {SingleRecordConfigBase} from '../../shared/datashowbase/single.record.config.base';
+import {SingleRecordConfigBase} from '../../lib/datashowbase/single.record.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {Security} from '../../entities/security';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
 import {DataType} from '../../dynamic-form/models/data.type';

@@ -1,10 +1,10 @@
 import {Component} from '@angular/core';
-import {CrudMenuOptions, TableCrudSupportMenu} from '../../shared/datashowbase/table.crud.support.menu';
+import {CrudMenuOptions, TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
 import {GTNet, GTNetWithMessages} from '../model/gtnet';
 import {GTNetMessage, MsgCallParam} from '../model/gtnet.message';
 import {GTNetService} from '../service/gtnet.service';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {DialogService} from 'primeng/dynamicdialog';
 import {TranslateService} from '@ngx-translate/core';
@@ -12,7 +12,7 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {AppSettings} from '../../shared/app.settings';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {TranslateValue} from '../../shared/datashowbase/column.config';
+import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {HelpIds} from '../../shared/help/help.ids';
 import {GTNetMessageTreeTableComponent} from './gtnet-message-treetable.component';
 import {combineLatest} from 'rxjs';

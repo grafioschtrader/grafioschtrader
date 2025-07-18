@@ -1,10 +1,10 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Portfolio} from '../../../entities/portfolio';
-import {TreeTableConfigBase} from '../../../shared/datashowbase/tree.table.config.base';
+import {TreeTableConfigBase} from '../../datashowbase/tree.table.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
 import {TreeNode} from 'primeng/api';
-import {ColumnConfig} from '../../../shared/datashowbase/column.config';
+import {ColumnConfig} from '../../datashowbase/column.config';
 
 /**
  * Display all portfolios and corresponding accounts in a tree structure. This enables a selection of these.

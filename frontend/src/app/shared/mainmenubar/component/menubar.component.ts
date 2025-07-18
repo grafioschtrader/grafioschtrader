@@ -9,16 +9,19 @@ import {ViewSizeChangedService} from '../../layout/service/view.size.changed.ser
 import {HelpIds} from '../../help/help.ids';
 import {Location} from '@angular/common';
 import {GlobalparameterService} from '../../service/globalparameter.service';
-import filesaver from '../../../shared/filesaver/filesaver';
 import {TenantService} from '../../../lib/tenant/service/tenant.service';
-import {InfoLevelType} from '../../message/info.leve.type';
-import {MessageToastService} from '../../message/message.toast.service';
+import {InfoLevelType} from '../../../lib/message/info.leve.type';
+import {MessageToastService} from '../../../lib/message/message.toast.service';
 import {UserSettingsDialogs} from './main.dialog.component';
 import {Subscription} from 'rxjs';
-import {TranslateHelper} from '../../../helper/translate.helper';
+import {TranslateHelper} from '../../../lib/helper/translate.helper';
 import {BusinessHelper} from '../../helper/business.helper';
 import {ConfirmationService, MenuItem} from 'primeng/api';
 import {AppSettings} from '../../app.settings';
+import saveAs from '../../../lib/filesaver/filesaver';
+import {BaseSettings} from '../../../lib/base.settings';
+
+
 
 /**
  * Represents the menubar of GT
@@ -59,11 +62,11 @@ export class MenubarComponent implements OnInit, OnDestroy {
       label: 'SETTINGS', icon: 'fa fa-fw fa-wrench', visible: true,
       items: [
         {
-          label: 'PASSWORD_CHANGE' + AppSettings.DIALOG_MENU_SUFFIX,
+          label: 'PASSWORD_CHANGE' + BaseSettings.DIALOG_MENU_SUFFIX,
           command: () => this.mainDialogService.visibleDialog(true, UserSettingsDialogs.Password)
         },
         {
-          label: 'NICKNAME_LOCALE_CHANGE' + AppSettings.DIALOG_MENU_SUFFIX,
+          label: 'NICKNAME_LOCALE_CHANGE' + BaseSettings.DIALOG_MENU_SUFFIX,
           command: () => this.mainDialogService.visibleDialog(true, UserSettingsDialogs.NicknameLocale)
         },
         {label: '_EXPORT_DATA_SQL', command: () => this.downloadPersonalDataAsZip()},
@@ -88,7 +91,7 @@ export class MenubarComponent implements OnInit, OnDestroy {
     const blob = await this.tenantService.getExportPersonalDataAsZip()
       .catch(error => this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'DOWNLOAD_PERSONAL_DATA_FAILED'));
     if (blob) {
-      filesaver.saveAs(blob, 'gtPersonalData.zip');
+      saveAs(blob, 'gtPersonalData.zip');
       this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'DOWNLOAD_PERSONAL_DATA_SUCCESS');
     }
   }

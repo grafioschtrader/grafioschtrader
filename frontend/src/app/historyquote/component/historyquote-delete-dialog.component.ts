@@ -1,19 +1,19 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {SimpleEditBase} from '../../shared/edit/simple.edit.base';
+import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {TranslateService} from '@ngx-translate/core';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {IHistoryquoteQuality} from '../../entities/view/ihistoryquote.quality';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {HistoryquoteCreateType} from '../../entities/historyquote';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {HistoryquoteService} from '../service/historyquote.service';
 import {DeleteHistoryquotesSuccess} from '../../securitycurrency/model/historyquote.quality.group';
-import {InfoLevelType} from '../../shared/message/info.leve.type';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
-import {ProcessedAction} from '../../shared/types/processed.action';
+import {InfoLevelType} from '../../lib/message/info.leve.type';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
+import {ProcessedAction} from '../../lib/types/processed.action';
 
 @Component({
     selector: 'historyquote-delete-dialog',

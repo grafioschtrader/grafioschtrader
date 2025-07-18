@@ -3,7 +3,7 @@ import {CalendarNavigation} from '../../../tradingcalendar/component/calendar.na
 import {RangeSelectDays} from '../../../fullyearcalendar/Interface/range.select.days';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
 import {ActivePanelService} from '../../../shared/mainmenubar/service/active.panel.service';
-import {MessageToastService} from '../../../shared/message/message.toast.service';
+import {MessageToastService} from '../../message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
 import {MenuItem} from 'primeng/api';
 import {IGlobalMenuAttach} from '../../../shared/mainmenubar/component/iglobal.menu.attach';
@@ -12,15 +12,16 @@ import {HoldingService} from '../../../shared/performanceperiod/service/holding.
 import {MissingQuotesWithSecurities} from '../model/missing.quotes.with.securities';
 import {Security} from '../../../entities/security';
 import moment from 'moment';
-import {TranslateHelper} from '../../../helper/translate.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {Subscription} from 'rxjs';
 import {Router} from '@angular/router';
 import {TimeSeriesQuotesService} from '../../../historyquote/service/time.series.quotes.service';
 import {DataChangedService} from '../../../shared/maintree/service/data.changed.service';
-import {ProcessedAction} from '../../../shared/types/processed.action';
+import {ProcessedAction} from '../../types/processed.action';
 import {Historyquote} from '../../../entities/historyquote';
 import {BusinessHelper} from '../../../shared/helper/business.helper';
 import {AppSettings} from '../../../shared/app.settings';
+import {BaseSettings} from '../../base.settings';
 
 /**
  * Displays an annual calendar with a table of missing EOD courses.
@@ -34,9 +35,9 @@ import {AppSettings} from '../../../shared/app.settings';
           <h5>{{'MISSING_DAY_CALENDAR_MARK'|translate}}</h5>
         </p-header>
         <label class="small-padding control-label" for="idYearSelect">{{'YEAR' | translate}}</label>
-        <p-dropdown id="idYearSelect" [options]="possibleYears" [(ngModel)]="selectedYear"
+        <p-select id="idYearSelect" [options]="possibleYears" [(ngModel)]="selectedYear"
                     (onChange)="yearChanged($event)">
-        </p-dropdown>
+        </p-select>
         <ng-fullyearcalendar-lib [locale]="locale" [underline]="underline" [yearCalendarData]="yearCalendarData">
         </ng-fullyearcalendar-lib>
         <p-footer>
@@ -148,7 +149,7 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
       this.addRemoveOnOffDay(range.start);
       this.selectedDayByUser = range.start;
       this.selectedDayIdSecurities = this.missingQuotesWithSecurities.dateSecurityMissingMap[
-        moment(range.start).format(AppSettings.FORMAT_DATE_SHORT_NATIVE)];
+        moment(range.start).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE)];
     }
   }
 

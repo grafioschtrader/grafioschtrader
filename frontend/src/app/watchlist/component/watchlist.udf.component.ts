@@ -9,7 +9,7 @@ import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.
 import {WatchlistService} from '../service/watchlist.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {ConfirmationService, FilterService} from 'primeng/api';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
@@ -23,7 +23,7 @@ import {GlobalSessionNames} from '../../shared/global.session.names';
 import {FieldDescriptorInputAndShowExtendedSecurity} from '../../shared/udfmeta/model/udf.metadata';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {SvgIconRegistryService} from 'angular-svg-icon';
-import {ColumnConfig, OptionalParams} from '../../shared/datashowbase/column.config';
+import {ColumnConfig, OptionalParams} from '../../lib/datashowbase/column.config';
 import {HelpIds} from '../../shared/help/help.ids';
 import {WatchlistHelper} from './watchlist.helper';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';

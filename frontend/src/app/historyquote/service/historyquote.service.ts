@@ -3,12 +3,12 @@ import {Injectable} from '@angular/core';
 import {Historyquote, HistoryquoteCreateType} from '../../entities/historyquote';
 
 import {AppSettings} from '../../shared/app.settings';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Observable} from 'rxjs';
-import {DeleteService} from '../../shared/datashowbase/delete.service';
+import {DeleteService} from '../../lib/datashowbase/delete.service';
 import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
 import {HttpClient, HttpParams} from '@angular/common/http';
-import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
+import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../shared/login/service/log-in.service';
 import {TaFormDefinition, TaTraceIndicatorData} from '../component/indicator.definitions';

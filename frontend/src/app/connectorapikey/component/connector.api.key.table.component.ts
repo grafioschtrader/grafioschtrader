@@ -1,9 +1,9 @@
 import {Component, OnDestroy} from '@angular/core';
 import {DialogService} from 'primeng/dynamicdialog';
-import {TableCrudSupportMenu} from '../../shared/datashowbase/table.crud.support.menu';
+import {TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
 import {ConnectorApiKey, SubscriptionTypeReadableName} from '../../entities/connector.api.key';
 import {ConfirmationService, FilterService} from 'primeng/api';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
@@ -12,7 +12,7 @@ import {AppSettings} from '../../shared/app.settings';
 import {HelpIds} from '../../shared/help/help.ids';
 import {ConnectorApiKeyService} from '../service/connector.api.key.service';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 

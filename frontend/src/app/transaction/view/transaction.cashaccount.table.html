@@ -40,8 +40,8 @@
               </ng-container>
             </ng-container>
             <ng-container *ngSwitchCase="FilterType.withOptions">
-              <p-dropdown (onChange)="table.filter($event.value, field.field, 'equals')" [options]="field.filterValues"
-                          [style]="{'width':'100%'}"></p-dropdown>
+              <p-select (onChange)="table.filter($event.value, field.field, 'equals')" [options]="field.filterValues"
+                          [style]="{'width':'100%'}"></p-select>
             </ng-container>
           </th>
         </tr>

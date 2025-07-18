@@ -1,9 +1,9 @@
 import {Component, OnDestroy} from '@angular/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {TableCrudSupportMenu} from '../../shared/datashowbase/table.crud.support.menu';
+import {TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
 import {TradingPlatformPlan} from '../../entities/tradingplatformplan';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {TradingPlatformPlanService} from '../service/trading.platform.plan.service';
@@ -12,7 +12,7 @@ import {HelpIds} from '../../shared/help/help.ids';
 import {ImportTransactionPlatformService} from '../../imptranstemplate/service/import.transaction.platform.service';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService} from 'primeng/api';
-import {TranslateValue} from '../../shared/datashowbase/column.config';
+import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 
 @Component({

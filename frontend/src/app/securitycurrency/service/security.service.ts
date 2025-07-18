@@ -1,7 +1,7 @@
 import {Security} from '../../entities/security';
 import {Injectable, InjectionToken} from '@angular/core';
 import {AppSettings} from '../../shared/app.settings';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {SecurityOpenPositionPerSecurityaccount} from '../../entities/view/security.open.position.per.securityaccount';
 import {Observable} from 'rxjs';
 import {IFeedConnector} from '../component/ifeed.connector';
@@ -22,7 +22,8 @@ import {SecurityCurrencyService} from './security.currency.service';
 import {InstrumentStatisticsResult} from '../../entities/view/instrument.statistics.result';
 import moment from 'moment';
 import {ITaskExtendService} from '../../shared/taskdatamonitor/component/itask.extend.service';
-import {ColumnConfig} from '../../shared/datashowbase/column.config';
+import {ColumnConfig} from '../../lib/datashowbase/column.config';
+import {BaseSettings} from '../../lib/base.settings';
 
 
 
@@ -133,8 +134,8 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
 
   private getDateFromAndTo(dateFrom: Date | string, dateTo: Date | string, httpHeaders: HttpHeaders) {
     let httpParams = new HttpParams();
-    dateFrom && (httpParams = httpParams.append('dateFrom', moment(dateFrom).format(AppSettings.FORMAT_DATE_SHORT_NATIVE)));
-    dateTo && (httpParams = httpParams.append('dateTo', moment(dateTo).format(AppSettings.FORMAT_DATE_SHORT_NATIVE)));
+    dateFrom && (httpParams = httpParams.append('dateFrom', moment(dateFrom).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE)));
+    dateTo && (httpParams = httpParams.append('dateTo', moment(dateTo).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE)));
     return {headers: httpHeaders, params: httpParams};
   }
 

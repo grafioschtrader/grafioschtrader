@@ -1,5 +1,5 @@
 import {Component, Input, OnDestroy} from '@angular/core';
-import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
+import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {FilterService, MenuItem} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
@@ -14,16 +14,16 @@ import {
 } from '../../entities/correlation.set';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {AppSettings} from '../../shared/app.settings';
-import {ColumnConfig} from '../../shared/datashowbase/column.config';
+import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {Securitycurrency} from '../../entities/securitycurrency';
 import {Security} from '../../entities/security';
-import {InfoLevelType} from '../../shared/message/info.leve.type';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
+import {InfoLevelType} from '../../lib/message/info.leve.type';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {CorrelationSetService} from '../service/correlation.set.service';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {DataChangedService} from '../../shared/maintree/service/data.changed.service';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
-import {ProcessedAction} from '../../shared/types/processed.action';
+import {ProcessedAction} from '../../lib/types/processed.action';
 import {Subscription} from 'rxjs';
 import {ChartDataService} from '../../shared/chart/service/chart.data.service';
 import {Router} from '@angular/router';
@@ -31,14 +31,15 @@ import {PlotlyHelper} from '../../shared/chart/plotly.helper';
 import moment from 'moment';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {AppHelper} from '../../lib/helper/app.helper';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * Component to add and remove instruments to the correlation matrix. It supports also creation of line graph
  * for showing the rolling correlation.
  */
 @Component({
-    selector: 'correlation-table',
-    template: `
+  selector: 'correlation-table',
+  template: `
     <p-table [columns]="fields" [value]="securitycurrencyList" selectionMode="single"
              [(selection)]="selectedEntity" dataKey="idSecuritycurrency"
              (sortFunction)="customSort($event)" [customSort]="true" responsiveLayout="scroll"
@@ -49,7 +50,7 @@ import {AppHelper} from '../../lib/helper/app.helper';
           <th *ngFor="let field of fields" [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated"
               [style.max-width.px]="field.width"
               [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-            {{field.headerTranslated}}
+            {{ field.headerTranslated }}
             <p-sortIcon [field]="field.field"></p-sortIcon>
           </th>
         </tr>
@@ -71,7 +72,7 @@ import {AppHelper} from '../../lib/helper/app.helper';
                 <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>
               </ng-container>
               <ng-container *ngSwitchDefault>
-                {{getValueByPath(el, field)}}
+                {{ getValueByPath(el, field) }}
               </ng-container>
             </ng-container>
           </td>
@@ -93,7 +94,7 @@ import {AppHelper} from '../../lib/helper/app.helper';
                                 (closeDialog)="handleCloseAddInstrumentDialog($event)">
     </correlation-add-instrument>
   `,
-    standalone: false
+  standalone: false
 })
 export class CorrelationTableComponent extends TableConfigBase implements OnDestroy {
   @Input() childToParent: ChildToParent;
@@ -151,7 +152,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
     menuItems.push({separator: true});
     menuItems.push(
       {
-        label: 'ADD_EXISTING_SECURITY' + AppSettings.DIALOG_MENU_SUFFIX, command: (e) => this.addExistingSecurity(e),
+        label: 'ADD_EXISTING_SECURITY' + BaseSettings.DIALOG_MENU_SUFFIX, command: (e) => this.addExistingSecurity(e),
         disabled: !this.tenantLimits || !this.correlationSet
           || this.correlationSet.securitycurrencyList.length >= this.tenantLimits[0].limit
       }
@@ -414,8 +415,8 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
 
     this.chartDataService.sentToChart({
       data: chartData,
-      layout: this.getChartLayout(minDate.format(AppSettings.FORMAT_DATE_SHORT_NATIVE),
-        maxDate.format(AppSettings.FORMAT_DATE_SHORT_NATIVE)),
+      layout: this.getChartLayout(minDate.format(BaseSettings.FORMAT_DATE_SHORT_NATIVE),
+        maxDate.format(BaseSettings.FORMAT_DATE_SHORT_NATIVE)),
       legendTooltipMap,
       options: {
         modeBarButtonsToRemove: ['hoverCompareCartesian', 'hoverClosestCartesian']

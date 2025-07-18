@@ -1,12 +1,12 @@
 import {Component, EventEmitter, Input, Output, ViewChild} from '@angular/core';
 import {DataType} from '../../../dynamic-form/models/data.type';
 import {Portfolio} from '../../../entities/portfolio';
-import {ProcessedActionData} from '../../../shared/types/processed.action.data';
-import {ProcessedAction} from '../../../shared/types/processed.action';
+import {ProcessedActionData} from '../../types/processed.action.data';
+import {ProcessedAction} from '../../types/processed.action';
 import {TenantDividendAccountSelectionComponent} from './tenant-dividend-account-selection.component';
-import {ColumnConfig} from '../../../shared/datashowbase/column.config';
+import {ColumnConfig} from '../../datashowbase/column.config';
 import {IdsAccounts} from '../model/ids.accounts';
-import {ShowRecordConfigBase} from '../../../shared/datashowbase/show.record.config.base';
+import {ShowRecordConfigBase} from '../../datashowbase/show.record.config.base';
 
 /**
  * This dialog allows to select certain cash or security accounts. It includes two tree table one for cash the other

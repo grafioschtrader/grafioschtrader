@@ -6,18 +6,18 @@ import {
   TradingDaysPlusService
 } from '../../tradingcalendar/service/trading.days.plus.service';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {CopyTradingDaysFromSourceToTarget, TradingDaysMinusService} from '../service/trading.days.minus.service';
 import {combineLatest, Observable} from 'rxjs';
 import {RangeSelectDays} from '../../fullyearcalendar/Interface/range.select.days';
 import {TradingCalendarGlobalComponent} from '../../tradingcalendar/component/trading.calendar.global.component';
-import {InfoLevelType} from '../../shared/message/info.leve.type';
+import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {TradingDaysWithDateBoundaries} from '../../tradingcalendar/model/trading.days.with.date.boundaries';
 import {DialogService} from 'primeng/dynamicdialog';
 import {MenuItem} from 'primeng/api';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {TradingCalendarOtherExchangeDynamicComponent} from './trading.calendar.other.exchange.dynamic.component';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import moment from 'moment';
@@ -25,6 +25,7 @@ import {AuditHelper} from '../../lib/helper/audit.helper';
 import {Stockexchange} from '../../entities/stockexchange';
 import {AppSettings} from '../../shared/app.settings';
 import {CreateType} from '../../entities/dividend.split';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * The calendar component for the stock exchange.
@@ -139,11 +140,11 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
     if (this.hasRightsToModify()) {
       menuItems = [
         {
-          label: this.COPY_FULL_TITLE_KEY + AppSettings.DIALOG_MENU_SUFFIX,
+          label: this.COPY_FULL_TITLE_KEY + BaseSettings.DIALOG_MENU_SUFFIX,
           command: (e) => this.copyCalendarFromOtherExchange(true)
         },
         {
-          label: this.COPY_YEAR_TITLE_KEY + AppSettings.DIALOG_MENU_SUFFIX,
+          label: this.COPY_YEAR_TITLE_KEY + BaseSettings.DIALOG_MENU_SUFFIX,
           command: (e) => this.copyCalendarFromOtherExchange(false)
         }
       ];

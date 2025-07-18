@@ -1,18 +1,18 @@
 import {Component} from '@angular/core';
-import {CrudMenuOptions, TableCrudSupportMenu} from '../../../shared/datashowbase/table.crud.support.menu';
+import {CrudMenuOptions, TableCrudSupportMenu} from '../../datashowbase/table.crud.support.menu';
 import {ProposeChangeEntity} from '../../entities/propose.change.entity';
 import {ActivePanelService} from '../../../shared/mainmenubar/service/active.panel.service';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
 import {DataType} from '../../../dynamic-form/models/data.type';
 import {AssetclassService} from '../../../assetclass/service/assetclass.service';
-import {MessageToastService} from '../../../shared/message/message.toast.service';
+import {MessageToastService} from '../../message/message.toast.service';
 import {UserSettingsService} from '../../../shared/service/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
 import {ProposeChangeEntityService} from '../service/propose.change.entity.service';
 import {plainToInstance} from 'class-transformer';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService} from 'primeng/api';
-import {TranslateValue} from '../../../shared/datashowbase/column.config';
+import {TranslateValue} from '../../datashowbase/column.config';
 import {AppSettings} from '../../../shared/app.settings';
 
 

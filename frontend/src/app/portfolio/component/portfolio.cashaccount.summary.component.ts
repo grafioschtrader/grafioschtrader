@@ -8,28 +8,29 @@ import {TranslateService} from '@ngx-translate/core';
 import {AccountPositionSummary} from '../../entities/view/account.position.summary';
 import {TransactionCallParam} from '../../transaction/component/transaction.call.parm';
 import {Portfolio} from '../../entities/portfolio';
-import {ProcessedAction} from '../../shared/types/processed.action';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
+import {ProcessedAction} from '../../lib/types/processed.action';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
-import {InfoLevelType} from '../../shared/message/info.leve.type';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {InfoLevelType} from '../../lib/message/info.leve.type';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Subscription} from 'rxjs';
 import {DataChangedService} from '../../shared/maintree/service/data.changed.service';
 import {ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
-import {ColumnConfig, ColumnGroupConfig} from '../../shared/datashowbase/column.config';
+import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
+import {ColumnConfig, ColumnGroupConfig} from '../../lib/datashowbase/column.config';
 import {HelpIds} from '../../shared/help/help.ids';
 import {TenantLimit, TenantLimitTypes} from '../../entities/backend/tenant.limit';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {AppSettings} from '../../shared/app.settings';
+import {BaseSettings} from '../../lib/base.settings';
 
 
 /**
@@ -164,13 +165,13 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
     const menuItems: MenuItem[] = [];
 
     menuItems.push({
-      label: 'NEW|CASHACCOUNT' + AppSettings.DIALOG_MENU_SUFFIX,
+      label: 'NEW|CASHACCOUNT' + BaseSettings.DIALOG_MENU_SUFFIX,
       command: (event) => this.handleNewAccount(this.portfolio)
     });
 
     if (accountPositionSummary) {
       menuItems.push({
-        label: 'EDIT_RECORD|CASHACCOUNT' + AppSettings.DIALOG_MENU_SUFFIX,
+        label: 'EDIT_RECORD|CASHACCOUNT' + BaseSettings.DIALOG_MENU_SUFFIX,
         command: (e) => (accountPositionSummary) ? this.handleEditAccount(this.portfolio, accountPositionSummary.cashaccount,
           {hasTransaction: accountPositionSummary.hasTransaction}) : null
       });
@@ -183,13 +184,13 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
       });
       menuItems.push({separator: true});
       menuItems.push({
-        label: 'SINGLE_ACCOUNT_TRANSACTION' + AppSettings.DIALOG_MENU_SUFFIX,
+        label: 'SINGLE_ACCOUNT_TRANSACTION' + BaseSettings.DIALOG_MENU_SUFFIX,
         command: (e) => (accountPositionSummary) ? this.handleSingleAccountTransaction(TransactionType.WITHDRAWAL,
           accountPositionSummary.cashaccount) : null
       });
 
       menuItems.push({
-        label: 'ACCOUNT_TRANSFER' + AppSettings.DIALOG_MENU_SUFFIX,
+        label: 'ACCOUNT_TRANSFER' + BaseSettings.DIALOG_MENU_SUFFIX,
         command: (e) => (accountPositionSummary) ? this.handleDoubleAccountTransaction(accountPositionSummary.cashaccount) : null
       });
     }
@@ -291,7 +292,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
   }
 
   public getHelpContextId(): HelpIds {
-    return HelpIds.HELP_PROTFOLIOS_PORTFOLIOS;
+    return HelpIds.HELP_PORTFOLIOS_PORTFOLIOS;
   }
 
   onContextMenuClick(event) {

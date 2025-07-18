@@ -1,6 +1,6 @@
 import {Component, Input, OnChanges} from '@angular/core';
 import {AlgoStrategyParamCall} from '../model/algo.dialog.visible';
-import {SingleRecordConfigBase} from '../../shared/datashowbase/single.record.config.base';
+import {SingleRecordConfigBase} from '../../lib/datashowbase/single.record.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {
@@ -10,7 +10,7 @@ import {
 import {DataType} from '../../dynamic-form/models/data.type';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {AppSettings} from '../../shared/app.settings';
-import {OptionalParams, TranslateValue} from '../../shared/datashowbase/column.config';
+import {OptionalParams, TranslateValue} from '../../lib/datashowbase/column.config';
 import {AlgoStrategyHelper} from './algo.strategy.helper';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.helper';

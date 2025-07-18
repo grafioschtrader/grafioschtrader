@@ -1,13 +1,13 @@
 import {TableConfigBase} from './table.config.base';
 import {FilterService} from 'primeng/api';
-import {UserSettingsService} from '../service/user.settings.service';
+import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../service/globalparameter.service';
+import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {ColumnConfig, OptionalParams} from './column.config';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {AppHelper} from '../../lib/helper/app.helper';
+import {AppHelper} from '../helper/app.helper';
 import {Validators} from '@angular/forms';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
+import {DynamicFieldHelper} from '../helper/dynamic.field.helper';
 
 export abstract class TableEditConfigBase extends TableConfigBase {
   protected constructor(filterService: FilterService,
@@ -26,7 +26,6 @@ export abstract class TableEditConfigBase extends TableConfigBase {
                 optionalParams?: OptionalParams): ColumnConfig {
     const cc: ColumnConfig = this.addColumnToFields(this.fields, dataType, field, headerKey, true, true, optionalParams);
     cc.cec = {validation:  required ? [Validators.required] : null, errors:  required ? [DynamicFieldHelper.RULE_REQUIRED_TOUCHED] : null};
-
     return cc;
   }
 

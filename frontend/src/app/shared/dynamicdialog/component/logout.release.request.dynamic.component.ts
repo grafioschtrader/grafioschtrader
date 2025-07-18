@@ -1,15 +1,15 @@
-import {FormBase} from '../../edit/form.base';
+import {FormBase} from '../../../lib/edit/form.base';
 import {Component, OnInit} from '@angular/core';
 import {AppHelper} from '../../../lib/helper/app.helper';
 import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../../helper/translate.helper';
+import {TranslateHelper} from '../../../lib/helper/translate.helper';
 import {BusinessHelper} from '../../helper/business.helper';
 import {HelpIds} from '../../help/help.ids';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../service/globalparameter.service';
 import {LoginService} from '../../login/service/log-in.service';
-import {InfoLevelType} from '../../message/info.leve.type';
-import {MessageToastService} from '../../message/message.toast.service';
+import {InfoLevelType} from '../../../lib/message/info.leve.type';
+import {MessageToastService} from '../../../lib/message/message.toast.service';
 import {DialogService, DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {AppSettings} from '../../app.settings';
 

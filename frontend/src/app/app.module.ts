@@ -14,7 +14,6 @@ import {TreeModule} from 'primeng/tree';
 import {WatchlistService} from './watchlist/service/watchlist.service';
 import {ContextMenuModule} from 'primeng/contextmenu';
 import {PortfolioCashaccountSummaryComponent} from './portfolio/component/portfolio.cashaccount.summary.component';
-import {DropdownModule} from 'primeng/dropdown';
 import {SecurityaccountSummariesComponent} from './securityaccount/component/securityaccount.summaries.component';
 import {SecurityaccountSummaryComponent} from './securityaccount/component/securityaccount.summary.component';
 import {SecurityaccountService} from './securityaccount/service/securityaccount.service';
@@ -25,9 +24,8 @@ import {CurrencypairService} from './securitycurrency/service/currencypair.servi
 import {ReplacePipe} from './shared/pipe/replace.pipe';
 import {SplitLayoutComponent} from './shared/layout/component/split.layout.component';
 import {LoginService} from './shared/login/service/log-in.service';
-import {TabMenuModule} from 'primeng/tabmenu';
-import {MessageToastComponent} from './shared/message/message.toast.component';
-import {MessageToastService} from './shared/message/message.toast.service';
+import {MessageToastComponent} from './lib/message/message.toast.component';
+import {MessageToastService} from './lib/message/message.toast.service';
 import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
 import {UserSettingsService} from './shared/service/user.settings.service';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
@@ -70,7 +68,9 @@ import {TenantDividendsComponent} from './lib/tenant/component/tenant.dividends.
 import {TenantTransactionCostComponent} from './lib/tenant/component/tenant.transaction.cost.component';
 import {TenantSummariesAssetclassComponent} from './lib/tenant/component/tenant.summaries.assetclass.component';
 import {TenantSummariesCashaccountComponent} from './lib/tenant/component/tenant.summaries.cashaccount.component';
-import {TenantSummariesSecurityaccountComponent} from './lib/tenant/component/tenant.summaries.securityaccount.component';
+import {
+  TenantSummariesSecurityaccountComponent
+} from './lib/tenant/component/tenant.summaries.securityaccount.component';
 import {TenantTabMenuComponent} from './lib/tenant/component/tenant.tab.menu.component';
 import {PortfolioTabMenuComponent} from './portfolio/component/portfolio.tab.menu.component';
 import {TenantTransactionTableComponent} from './lib/tenant/component/tenant.transaction.table.component';
@@ -100,7 +100,9 @@ import {
   TenantDividendsSecurityExtendedComponent
 } from './lib/tenant/component/tenant-dividends-security-extended.component';
 import {SecuritycurrencyExtendedInfoComponent} from './watchlist/component/securitycurrency-extended-info.component';
-import {TenantTransactionCostExtendedComponent} from './lib/tenant/component/tenant-transaction-cost-extended.component';
+import {
+  TenantTransactionCostExtendedComponent
+} from './lib/tenant/component/tenant-transaction-cost-extended.component';
 import {SecuritysplitEditTableComponent} from './securitycurrency/component/securitysplit-edit-table.component';
 import {PortfolioEditDynamicComponent} from './portfolio/component/portfolio.edit.dynamic.component';
 import {AssetclassEditComponent} from './assetclass/component/assetclass-edit.component';
@@ -166,7 +168,6 @@ import {AlgoTopDataViewComponent} from './algo/component/algo.top.data.view.comp
 import {FormTriStateCheckboxComponent} from './dynamic-form/components/form-input/form-tri-state-checkbox.component';
 import {AlgoRuleStrategyCreateWizardComponent} from './algo/component/algo-rule-strategy-create-wizard.component';
 import {StepComponent} from './shared/wizard/component/step.component';
-import {StepsComponent} from './shared/wizard/component/steps.component';
 import {AlgoAssetclassService} from './algo/service/algo.assetclass.service';
 import {AlgoStrategyService} from './algo/service/algo.strategy.service';
 import {StrategyDetailComponent} from './algo/component/strategy-detail.component';
@@ -179,7 +180,9 @@ import {AlgoRuleStrategyCreateDynamicComponent} from './algo/component/algo.rule
 import {
   TenantDividendSecurityAccountSelectionDialogComponent
 } from './lib/tenant/component/tenant-dividend-security-account-selection-dialog.component';
-import {TenantDividendAccountSelectionComponent} from './lib/tenant/component/tenant-dividend-account-selection.component';
+import {
+  TenantDividendAccountSelectionComponent
+} from './lib/tenant/component/tenant-dividend-account-selection.component';
 import {UserAdminService} from './user/service/user.admin.service';
 import {UserTableComponent} from './user/component/user.table.component';
 import {UserEntityChangeLimitTableComponent} from './user/component/user-entity-change-limit-table.component';
@@ -246,9 +249,7 @@ import {TreeTableModule} from 'primeng/treetable';
 import {CheckboxModule} from 'primeng/checkbox';
 import {ConfirmDialogModule} from 'primeng/confirmdialog';
 import {InputMaskModule} from 'primeng/inputmask';
-import {Textarea, TextareaModule} from 'primeng/textarea';
-import {TabViewModule} from 'primeng/tabview';
-import {StepsModule} from 'primeng/steps';
+import {Textarea} from 'primeng/textarea';
 import {TooltipModule} from 'primeng/tooltip';
 import {ConfirmationService, SharedModule} from 'primeng/api';
 import {
@@ -344,6 +345,11 @@ import {SecurityService} from './securitycurrency/service/security.service';
 import {GlobalparameterGTService} from './gtservice/globalparameter.gt.service';
 import {GlobalparameterService} from './shared/service/globalparameter.service';
 import {TabsModule} from 'primeng/tabs';
+import {TabMenuService} from './lib/tabmenu/service/tab.menu.service';
+import {SharedTabMenuComponent} from './lib/tabmenu/component/shared.tab.menu.component';
+import {SelectModule} from 'primeng/select';
+import {StepperModule} from 'primeng/stepper';
+import {StepsComponent} from './shared/wizard/component/steps.component';
 
 
 const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader(http, [
@@ -379,6 +385,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     SecurityEditComponent, SecurityHistoryquotePeriodEditTableComponent, SecurityHistoryquoteQualityTableComponent,
     SecurityHistoryquoteQualityTreetableComponent, SecuritysplitEditTableComponent, SecurityUDFEditComponent, SendRecvForwardTabMenuComponent,
     SendRecvTreetableComponent, SplitLayoutComponent, StepComponent, StepsComponent, StockexchangeEditComponent,
+    SharedTabMenuComponent,
     StockexchangeTableComponent, StrategyDetailComponent, StrategyOverviewComponent, TaskDataChangeEditComponent,
     TaskDataChangeTableComponent, TemplateFormCheckDialogComponent, TemplateFormCheckDialogResultFailedComponent,
     TemplateFormCheckDialogResultSuccessComponent, TenantAlertComponent, TenantDividendAccountSelectionComponent,
@@ -414,7 +421,6 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     TreeTableModule,
     DialogModule,
     DragDropModule,
-    DropdownModule,
     DynamicDialogModule,
     DynamicFormModule.withComponents([
       FormButtonComponent,
@@ -447,11 +453,10 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     ReactiveFormsModule,
     routing,
     ScrollPanelModule,
+    SelectModule,
     SharedModule,
-    StepsModule,
-    TabViewModule,
+    StepperModule,
     TabsModule,
-    TabMenuModule,
     TieredMenuModule,
     ToastrModule.forRoot({
       timeOut: 10000,
@@ -473,7 +478,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
   providers: [ActivePanelService, ActuatorService, AlarmSetupService, AlgoAssetclassService, AlgoSecurityService, AlgoStrategyService,
     AlgoTopService, AssetclassService, CashaccountService, ChartDataService, ConfirmationService, ConnectorApiKeyService,
     CorrelationSetService, CurrencypairService, DataChangedService, DividendService, GlobalparameterService,
-    GlobalparameterGTService, GTNetMessageService,
+    GlobalparameterGTService, GTNetMessageService, TabMenuService,
     GTNetService, HistoryquotePeriodService, HistoryquoteService, HoldingService, ImportTransactionHeadService,
     ImportTransactionPlatformService, ImportTransactionPosService, ImportTransactionTemplateService, LoginService,
     MailSendRecvService, MailSendRecvService, MailSettingForwardService, MainDialogService, MessageToastService,

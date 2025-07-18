@@ -1,16 +1,16 @@
 import {Injectable} from '@angular/core';
 import {AuthServiceWithLogout} from '../../login/service/base.auth.service.with.logout';
-import {DeleteService} from '../../datashowbase/delete.service';
-import {ServiceEntityUpdate} from '../../edit/service.entity.update';
+import {DeleteService} from '../../../lib/datashowbase/delete.service';
+import {ServiceEntityUpdate} from '../../../lib/edit/service.entity.update';
 import {ProposeUserTask} from '../../../lib/entities/propose.user.task';
 import {Observable} from 'rxjs';
 import {AppSettings} from '../../app.settings';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
-import {MessageToastService} from '../../message/message.toast.service';
+import {MessageToastService} from '../../../lib/message/message.toast.service';
 import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
-import {UserTaskType} from '../../types/user.task.type';
+import {UserTaskType} from '../../../lib/types/user.task.type';
 import {StringResponse} from '../../../entities/backend/string.response';
 
 @Injectable()

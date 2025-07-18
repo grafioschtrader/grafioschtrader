@@ -1,5 +1,5 @@
 import {Component, Input, OnChanges, OnInit} from '@angular/core';
-import {TreeTableConfigBase} from '../../datashowbase/tree.table.config.base';
+import {TreeTableConfigBase} from '../../../lib/datashowbase/tree.table.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../service/globalparameter.service';
 import {
@@ -11,9 +11,9 @@ import {
 } from '../model/performance.period';
 import {TreeNode} from 'primeng/api';
 import {DataType} from '../../../dynamic-form/models/data.type';
-import {ColumnConfig, ColumnGroupConfig} from '../../datashowbase/column.config';
+import {ColumnConfig, ColumnGroupConfig} from '../../../lib/datashowbase/column.config';
 import {WeekYear} from '../service/holding.service';
-import {Helper} from '../../../helper/helper';
+import {Helper} from '../../../lib/helper/helper';
 import moment from 'moment';
 import {AppHelper} from '../../../lib/helper/app.helper';
 import {AppSettings} from '../../app.settings';

@@ -8,14 +8,14 @@ import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
-import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
+import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {MessageToastService} from '../../shared/message/message.toast.service';
-import {InfoLevelType} from '../../shared/message/info.leve.type';
+import {MessageToastService} from '../../lib/message/message.toast.service';
+import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {Watchlist} from '../../entities/watchlist';
 import {TransactionType} from '../../shared/types/transaction.type';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
-import {ProcessedAction} from '../../shared/types/processed.action';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
+import {ProcessedAction} from '../../lib/types/processed.action';
 import {TransactionCallParam} from '../../transaction/component/transaction.call.parm';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
@@ -30,10 +30,10 @@ import {HelpIds} from '../../shared/help/help.ids';
 import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
-import {ColumnConfig} from '../../shared/datashowbase/column.config';
+import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {WatchlistSecurityExists} from '../../entities/dnd/watchlist.security.exists';
 import {DynamicDialogHelper} from '../../shared/dynamicdialog/component/dynamicDialogHelper';
 import {MailSendParam} from '../../shared/dynamicdialog/component/mail.send.dynamic.component';
@@ -46,6 +46,7 @@ import {WatchlistHelper} from './watchlist.helper';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 import {DynamicDialogs} from '../../shared/dynamicdialog/component/dynamic.dialogs';
+import {BaseSettings} from '../../lib/base.settings';
 
 @Directive()
 export abstract class WatchlistTable extends TableConfigBase implements OnDestroy, IGlobalMenuAttach {
@@ -401,7 +402,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       menuItems.push(...this.alarmSetupService.getMenuItem(securitycurrencyPosition.securitycurrency));
       menuItems.push({separator: true});
       menuItems.push({
-        label: '_MAIL_TO_CREATOR' + AppSettings.DIALOG_MENU_SUFFIX,
+        label: '_MAIL_TO_CREATOR' + BaseSettings.DIALOG_MENU_SUFFIX,
         command: (e) => this.mailToCreator(securitycurrencyPosition.securitycurrency)
       });
     }
@@ -419,7 +420,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
 
     menuItems.push(
       {
-        label: 'ADD_EXISTING_SECURITY' + AppSettings.DIALOG_MENU_SUFFIX, command: (e) => this.addExistingSecurity(e),
+        label: 'ADD_EXISTING_SECURITY' + BaseSettings.DIALOG_MENU_SUFFIX, command: (e) => this.addExistingSecurity(e),
         disabled: this.reachedWatchlistLimits()
       }
     );
@@ -452,21 +453,21 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     menuItems.push({separator: true});
     menuItems.push(
       {
-        label: 'CREATE_AND_ADD_SECURITY' + AppSettings.DIALOG_MENU_SUFFIX,
+        label: 'CREATE_AND_ADD_SECURITY' + BaseSettings.DIALOG_MENU_SUFFIX,
         command: (e) => this.modifyOrCreateAndAddSecurity(null),
         disabled: this.reachedWatchlistLimits()
       }
     );
     menuItems.push(
       {
-        label: 'CREATE_AND_ADD_SECURITY_DERIVED' + AppSettings.DIALOG_MENU_SUFFIX,
+        label: 'CREATE_AND_ADD_SECURITY_DERIVED' + BaseSettings.DIALOG_MENU_SUFFIX,
         command: (e) => this.modifyOrCreateAndAddSecurityDerived(null),
         disabled: this.reachedWatchlistLimits()
       }
     );
     menuItems.push(
       {
-        label: 'EDIT_SECURITY_UDF' + AppSettings.DIALOG_MENU_SUFFIX,
+        label: 'EDIT_SECURITY_UDF' + BaseSettings.DIALOG_MENU_SUFFIX,
         command: (e) => this.modifyOrCreateUDFData(securitycurrencyPosition.securitycurrency),
         disabled: !securitycurrencyPosition || !this.enableMenuItemUDF(securitycurrencyPosition.securitycurrency)
       }
@@ -484,7 +485,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
 
       menuItems.push(
         {
-          label: 'EDIT_RECORD|INSTRUMENT' + AppSettings.DIALOG_MENU_SUFFIX,
+          label: 'EDIT_RECORD|INSTRUMENT' + BaseSettings.DIALOG_MENU_SUFFIX,
           command: (e) => this.modifySecurityOrSecurityDerived(<Security>securitycurrencyPosition.securitycurrency)
         }
       );
@@ -494,13 +495,13 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
         menuItems.push({separator: true});
 
         menuItems.push({
-          label: 'ACCUMULATE' + AppSettings.DIALOG_MENU_SUFFIX,
+          label: 'ACCUMULATE' + BaseSettings.DIALOG_MENU_SUFFIX,
           command: (e) => this.handleTransaction(TransactionType.ACCUMULATE,
             <Security>securitycurrencyPosition.securitycurrency)
         });
 
         menuItems.push({
-          label: 'REDUCE' + AppSettings.DIALOG_MENU_SUFFIX,
+          label: 'REDUCE' + BaseSettings.DIALOG_MENU_SUFFIX,
           command: (e) => (securitycurrencyPosition) ? this.handleTransaction(TransactionType.REDUCE,
             <Security>securitycurrencyPosition.securitycurrency) : null,
           disabled: (securitycurrencyPosition.units === null || securitycurrencyPosition.units === 0)
@@ -509,7 +510,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
 
         if (!this.isMarginProduct(securitycurrencyPosition)) {
           menuItems.push({
-            label: AppSettings.DIVIDEND.toUpperCase() + AppSettings.DIALOG_MENU_SUFFIX,
+            label: AppSettings.DIVIDEND.toUpperCase() + BaseSettings.DIALOG_MENU_SUFFIX,
             command: (e) => this.handleTransaction(TransactionType.DIVIDEND,
               <Security>securitycurrencyPosition.securitycurrency)
           });
@@ -520,7 +521,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     menuItems.push({separator: true});
     menuItems.push(
       {
-        label: 'CREATE_AND_ADD_CURRENCYPAIR' + AppSettings.DIALOG_MENU_SUFFIX,
+        label: 'CREATE_AND_ADD_CURRENCYPAIR' + BaseSettings.DIALOG_MENU_SUFFIX,
         command: (e) => this.modifyOrCreateAndAddCurrencypair(null),
         disabled: this.reachedWatchlistLimits()
       }
@@ -529,7 +530,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       if (securitycurrencyPosition.securitycurrency instanceof CurrencypairWatchlist) {
         menuItems.push(
           {
-            label: 'EDIT_RECORD|CURRENCYPAIR' + AppSettings.DIALOG_MENU_SUFFIX,
+            label: 'EDIT_RECORD|CURRENCYPAIR' + BaseSettings.DIALOG_MENU_SUFFIX,
             command: (e) => this.modifyOrCreateAndAddCurrencypair(securitycurrencyPosition.securitycurrency)
           }
         );

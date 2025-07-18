@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {Watchlist} from '../../entities/watchlist';
 import {AppSettings} from '../../shared/app.settings';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {SecuritycurrencyGroup, SecuritycurrencyUDFGroup} from '../../entities/view/securitycurrency.group';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
 import {SecuritycurrencyLists} from '../../entities/view/securitycurrency.lists';
@@ -12,7 +12,7 @@ import {Observable} from 'rxjs';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
 import {Securitycurrency} from '../../entities/securitycurrency';
-import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
+import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../shared/login/service/log-in.service';

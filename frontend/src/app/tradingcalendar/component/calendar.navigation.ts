@@ -1,11 +1,11 @@
 import {LocaleSettings} from '../../fullyearcalendar/Interface/locale.settings';
 import {YearCalendarData} from '../../fullyearcalendar/Interface/year.calendar.data';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {Helper} from '../../helper/helper';
+import {Helper} from '../../lib/helper/helper';
 import {MenuItem, SelectItem} from 'primeng/api';
 import {DayOfWeek} from '../../fullyearcalendar/model/day.of.week';
 import {RangeSelectDays} from '../../fullyearcalendar/Interface/range.select.days';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {TranslateService} from '@ngx-translate/core';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';

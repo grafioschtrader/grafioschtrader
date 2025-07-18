@@ -1,13 +1,13 @@
 import {Injectable} from '@angular/core';
 import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
-import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
+import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {ImportTransactionHead} from '../../entities/import.transaction.head';
 import {Observable} from 'rxjs';
 import {AppSettings} from '../../shared/app.settings';
 import {HttpClient} from '@angular/common/http';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {IPlatformTransactionImport} from '../../portfolio/component/iplatform.transaction.import';
-import {DeleteService} from '../../shared/datashowbase/delete.service';
+import {DeleteService} from '../../lib/datashowbase/delete.service';
 import {catchError, map} from 'rxjs/operators';
 import {LoginService} from '../../shared/login/service/log-in.service';
 import {UploadServiceFunction} from '../../shared/generaldialog/model/file.upload.param';

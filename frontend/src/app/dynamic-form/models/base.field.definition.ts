@@ -5,9 +5,7 @@ import {ValueKeyHtmlSelectOptions} from './value.key.html.select.options';
  * Common properties from the definition of a table column and an input field should be included here.
  */
 export interface BaseFieldDefinition {
-  /**
-   * Property name of the field
-   */
+  /** Property name of the field */
   field?: string;
 
   /**
@@ -23,8 +21,6 @@ export interface BaseFieldDefinition {
  * The common properties for editing in a table and in a form should be included here.
  */
 export interface PropertyEditShare {
-  /**
-   * Contains the options for a html select
-   */
+  /** Contains the options for a html select   */
   valueKeyHtmlOptions?: ValueKeyHtmlSelectOptions[];
 }

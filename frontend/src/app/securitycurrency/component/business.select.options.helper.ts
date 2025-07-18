@@ -3,7 +3,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {Assetclass} from '../../entities/assetclass';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {combineLatest} from 'rxjs';
-import {Helper} from '../../helper/helper';
+import {Helper} from '../../lib/helper/helper';
 import {AppHelper, Comparison} from '../../lib/helper/app.helper';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {Security} from '../../entities/security';

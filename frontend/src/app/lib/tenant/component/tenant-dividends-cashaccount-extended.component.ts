@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {TableConfigBase} from '../../../shared/datashowbase/table.config.base';
+import {TableConfigBase} from '../../datashowbase/table.config.base';
 import {FilterService} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
@@ -7,7 +7,7 @@ import {UserSettingsService} from '../../../shared/service/user.settings.service
 import {CashAccountPosition} from '../../../entities/view/securitydividends/security.dividends.position';
 import {DataType} from '../../../dynamic-form/models/data.type';
 import {SecurityDividendsGrandTotal} from '../../../entities/view/securitydividends/security.dividends.grand.total';
-import {ProcessedActionData} from '../../../shared/types/processed.action.data';
+import {ProcessedActionData} from '../../types/processed.action.data';
 import {CashAccountTableInputFilter} from '../../../transaction/component/transaction-cashaccount-table.component';
 import {TransactionType} from '../../../shared/types/transaction.type';
 import {TenantDividendsExtendedBase} from './tenant.dividends.extended.base';

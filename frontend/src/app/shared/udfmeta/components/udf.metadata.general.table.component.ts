@@ -2,7 +2,7 @@ import {Component, OnDestroy} from '@angular/core';
 import {DialogService} from 'primeng/dynamicdialog';
 import {UDFMetadataGeneral, UDFMetadataGeneralParam} from '../model/udf.metadata';
 import {ConfirmationService, FilterService} from 'primeng/api';
-import {MessageToastService} from '../../message/message.toast.service';
+import {MessageToastService} from '../../../lib/message/message.toast.service';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../service/globalparameter.service';
@@ -12,7 +12,7 @@ import {UDFMetadataGeneralService} from '../service/udf.metadata.general.service
 import {HelpIds} from '../../help/help.ids';
 import {UDFMetaTable} from './udf.metadata.table';
 import {DataType} from '../../../dynamic-form/models/data.type';
-import {TranslateValue} from '../../datashowbase/column.config';
+import {TranslateValue} from '../../../lib/datashowbase/column.config';
 import {GlobalSessionNames} from '../../global.session.names';
 import {UDFSpecialTypeDisableUserService} from '../service/udf.special.type.disable.user.service';
 

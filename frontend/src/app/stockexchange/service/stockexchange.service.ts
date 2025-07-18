@@ -1,12 +1,12 @@
 import {Stockexchange} from '../../entities/stockexchange';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {AppSettings} from '../../shared/app.settings';
 import {Observable} from 'rxjs';
 import {Injectable} from '@angular/core';
-import {DeleteService} from '../../shared/datashowbase/delete.service';
+import {DeleteService} from '../../lib/datashowbase/delete.service';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
-import {ServiceEntityUpdate} from '../../shared/edit/service.entity.update';
+import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../shared/login/service/log-in.service';
 import {StockexchangeHasSecurity} from '../model/stockexchange.has.security';

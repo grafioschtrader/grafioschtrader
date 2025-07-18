@@ -1,7 +1,7 @@
 import {Security} from '../../entities/security';
 import {SecurityPositionGroupSummary} from '../../entities/view/security.position.group.summary';
-import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
-import {ColumnConfig} from '../../shared/datashowbase/column.config';
+import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
+import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {TranslateService} from '@ngx-translate/core';
 import {SecurityPositionGrandSummary} from '../../entities/view/security.position.grand.summary';
 

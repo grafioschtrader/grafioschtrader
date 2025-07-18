@@ -42,7 +42,6 @@
               "node_modules/split.js/dist/split.js",
               "node_modules/plotly.js/dist/plotly.min.js",
               "node_modules/reflect-metadata/Reflect.js",
-              "src/app/shared/filesaver/filesaver.js"
             ],
             "allowedCommonJsDependencies": [
               "moment",

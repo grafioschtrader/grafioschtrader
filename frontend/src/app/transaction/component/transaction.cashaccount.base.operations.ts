@@ -10,10 +10,10 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {FieldFormGroup} from '../../dynamic-form/models/form.group.definition';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {Subscription} from 'rxjs';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
-import {ProcessedAction} from '../../shared/types/processed.action';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
+import {ProcessedAction} from '../../lib/types/processed.action';
 import {AppSettings} from '../../shared/app.settings';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {HistoryquoteService} from '../../historyquote/service/historyquote.service';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 

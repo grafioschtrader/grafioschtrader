@@ -4,10 +4,10 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {TranslateService} from '@ngx-translate/core';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {TaEditParam, TaEditReturn} from './indicator.definitions';
-import {DynamicFieldSimpleEditBase} from '../../shared/edit/dynamic.field.simple.edit.base.directive';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
-import {ProcessedAction} from '../../shared/types/processed.action';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {DynamicFieldSimpleEditBase} from '../../lib/edit/dynamic.field.simple.edit.base.directive';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
+import {ProcessedAction} from '../../lib/types/processed.action';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 
 @Component({
     selector: 'indicator-edit',

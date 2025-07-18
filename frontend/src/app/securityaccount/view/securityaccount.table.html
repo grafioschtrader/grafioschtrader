@@ -12,9 +12,9 @@
                     <div class="left-half">
                         <h4 #title>{{'SECURITYACCOUNT' | translate}}: {{portfolio?.name}} {{securityAccount?.name}}
                             <ng-container *ngIf="groupOptions">
-                                <p-dropdown (onChange)="handleChangeGroup($event)" [(ngModel)]="selectedGroup"
+                                <p-select (onChange)="handleChangeGroup($event)" [(ngModel)]="selectedGroup"
                                             [options]="groupOptions">
-                                </p-dropdown>
+                                </p-select>
                             </ng-container>
                         </h4>
                     </div>

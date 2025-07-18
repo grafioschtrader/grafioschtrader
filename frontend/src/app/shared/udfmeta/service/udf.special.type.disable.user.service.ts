@@ -4,7 +4,7 @@ import {UDFSpecialType, UDFSpecialTypeDisableUser} from '../model/udf.metadata';
 import {Observable} from 'rxjs';
 import {LoginService} from '../../login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
-import {MessageToastService} from '../../message/message.toast.service';
+import {MessageToastService} from '../../../lib/message/message.toast.service';
 import {AppSettings} from '../../app.settings';
 import {catchError} from 'rxjs/operators';
 

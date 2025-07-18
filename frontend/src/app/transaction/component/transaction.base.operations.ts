@@ -6,7 +6,7 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {Currencypair} from '../../entities/currencypair';
 import {BusinessHelper} from '../../shared/helper/business.helper';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {HistoryquoteService} from '../../historyquote/service/historyquote.service';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';

@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
+import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {FailedParsedTemplateState} from './failed.parsed.template.state';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';

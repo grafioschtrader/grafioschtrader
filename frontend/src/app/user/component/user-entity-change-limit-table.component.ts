@@ -1,4 +1,4 @@
-import {TableConfigBase} from '../../shared/datashowbase/table.config.base';
+import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
@@ -9,19 +9,20 @@ import {UserEntityChangeLimit} from '../../lib/entities/user.entity.change.limit
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
 import {HelpIds} from '../../shared/help/help.ids';
-import {ProcessedActionData} from '../../shared/types/processed.action.data';
-import {ProcessedAction} from '../../shared/types/processed.action';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
+import {ProcessedAction} from '../../lib/types/processed.action';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {User} from '../../lib/entities/user';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {InfoLevelType} from '../../shared/message/info.leve.type';
+import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {UserEntityChangeLimitService} from '../service/user.entity.change.limit.service';
-import {MessageToastService} from '../../shared/message/message.toast.service';
-import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
+import {MessageToastService} from '../../lib/message/message.toast.service';
+import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import {AppSettings} from '../../shared/app.settings';
 import {ProposeUserTaskService} from '../../shared/dynamicdialog/service/propose.user.task.service';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * For a user it is possible to set a limit cf changes for a certain entity. It is implemented as a nested table.
@@ -113,7 +114,7 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
   };
   private menuItems: MenuItem[] = [
     {
-      label: 'EDIT_RECORD|' + UserEntityChangeLimitTableComponent.USER_ENTITY_CHANGE_LIMIT + AppSettings.DIALOG_MENU_SUFFIX,
+      label: 'EDIT_RECORD|' + UserEntityChangeLimitTableComponent.USER_ENTITY_CHANGE_LIMIT + BaseSettings.DIALOG_MENU_SUFFIX,
       command: (event) => this.handleEditEntity(this.selectedUserEntityChangeLimit)
     },
     this.deleteMenu

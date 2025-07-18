@@ -1,99 +1,212 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Params, Router} from '@angular/router';
 import {TranslateService} from '@ngx-translate/core';
-import {AppSettings} from '../../shared/app.settings';
 import {combineLatest, Observable, Subscription} from 'rxjs';
 import {Watchlist} from '../../entities/watchlist';
-import {TranslateHelper} from '../../helper/translate.helper';
-import {MenuItem} from 'primeng/api';
 import {UDFMetadataSecurityService} from '../../shared/udfmeta/service/udf.metadata.security.service';
 import {GlobalSessionNames} from '../../shared/global.session.names';
 import {UDFMetadataGeneralService} from '../../shared/udfmeta/service/udf.metadata.general.service';
+import {BaseTabMenuComponent} from '../../lib/tabmenu/component/base.tab.menu.component';
+import {AppSettings} from '../../shared/app.settings';
+import {TabItem} from '../../shared/types/tab.item';
 
+/**
+ * Watchlist Tab Menu Component extending BaseTabMenuComponent.
+ * Manages tab navigation for watchlist-related views with complex initialization
+ * including UDF metadata loading and watchlist parameter handling.
+ * Preserves active tab state when switching between different watchlists.
+ */
 @Component({
-    template: `
-    <p-tabMenu [model]="items" [activeItem]="activeTab"></p-tabMenu>
-    <router-outlet></router-outlet>
+  template: `
+    <div class="card">
+      <p-tabs [value]="activeRoute">
+        <p-tablist>
+          @for (tab of tabs; track tab.route) {
+            <p-tab [value]="tab.route" (click)="navigateTo(tab.route)">
+              <span>{{ tab.label | translate }}</span>
+            </p-tab>
+          }
+        </p-tablist>
+      </p-tabs>
+      <router-outlet></router-outlet>
+    </div>
   `,
-    standalone: false
+  standalone: false
 })
-export class WatchlistTabMenuComponent implements OnInit, OnDestroy {
-  items: MenuItem[];
+export class WatchlistTabMenuComponent extends BaseTabMenuComponent implements OnInit, OnDestroy {
 
-  activeTab: MenuItem;
-  private routeSubscribe: Subscription;
+  /** The current watchlist object containing ID and data. */
   private watchlist: Watchlist;
 
-  private lastRouteKey = AppSettings.WATCHLIST_PERFORMANCE_KEY;
-  private lastItemIndex = 0;
+  /** Subscription to route parameter changes for watchlist updates. */
+  private routeSubscribe: Subscription;
 
-  constructor(private uDFMetadataSecurityService: UDFMetadataSecurityService,
-    private uDFMetadataGeneralService: UDFMetadataGeneralService,
-    private router: Router,
-    private activatedRoute: ActivatedRoute,
-    public translateService: TranslateService) {
-    this.items = [
-      {
-        label: 'WATCHLIST_PERFORMANCE',
-        command: (event) => this.navigateToRoute(AppSettings.WATCHLIST_PERFORMANCE_KEY, 0)
-      },
-      {
-        label: 'WATCHLIST_PRICE_FEED',
-        command: (event) => this.navigateToRoute(AppSettings.WATCHLIST_PRICE_FEED_KEY, 1)
-      },
-      {
-        label: 'UDF',
-        command: (event) => this.navigateToRoute(AppSettings.WATCHLIST_UDF_KEY, 2)
-      },
-      {
-        label: 'WATCHLIST_DIVIDEND_SPLIT_FEED',
-        command: (event) => this.navigateToRoute(AppSettings.WATCHLIST_DIVIDEND_SPLIT_FEED_KEY, 2)
-      }
-    ];
-    TranslateHelper.translateMenuItems(this.items, this.translateService);
+  /** The last active route to preserve tab state across watchlist changes. */
+  private lastActiveRoute: string = AppSettings.WATCHLIST_PERFORMANCE_KEY;
+
+  /** Flag to track if this is the initial component load. */
+  private isFirstLoad: boolean = true;
+
+  /**
+   * Creates an instance of WatchlistTabMenuComponent.
+   *
+   * @param router Angular Router for navigation
+   * @param activatedRoute Current activated route for parameter access
+   * @param translateService Translation service for internationalization
+   * @param uDFMetadataSecurityService Service for loading UDF security metadata
+   * @param uDFMetadataGeneralService Service for loading UDF general metadata
+   */
+  constructor(
+    router: Router,
+    activatedRoute: ActivatedRoute,
+    translateService: TranslateService,
+    private uDFMetadataSecurityService: UDFMetadataSecurityService,
+    private uDFMetadataGeneralService: UDFMetadataGeneralService
+  ) {
+    super(router, activatedRoute, translateService);
   }
 
-  ngOnInit(): void {
+  /**
+   * Initializes the component with UDF metadata loading and watchlist subscription setup.
+   * Loads required UDF metadata before setting up watchlist parameter tracking.
+   */
+  override ngOnInit(): void {
+    // Handle UDF metadata loading first
     const observables: Observable<any>[] = [];
-    !sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY) && observables.push(this.uDFMetadataSecurityService.getAllByIdUserInOrderByUiOrderExcludeDisabled());
-    !sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL) && observables.push(this.uDFMetadataGeneralService.getFieldDescriptorByIdUserAndEveryUserForEntity(AppSettings.CURRENCYPAIR));
+    if (!sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY)) {
+      observables.push(this.uDFMetadataSecurityService.getAllByIdUserInOrderByUiOrderExcludeDisabled());
+    }
+    if (!sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL)) {
+      observables.push(this.uDFMetadataGeneralService.getFieldDescriptorByIdUserAndEveryUserForEntity(AppSettings.CURRENCYPAIR));
+    }
     if (observables.length > 0) {
       combineLatest(observables).subscribe((data: any[]) => {
-        !sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY)
-        && sessionStorage.setItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY, JSON.stringify(data[0]));
-        !sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL)
-        && sessionStorage.setItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL, JSON.stringify(data[data.length - 1]));
+        let dataIndex = 0;
+        if (!sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY)) {
+          sessionStorage.setItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY, JSON.stringify(data[dataIndex]));
+          dataIndex++;
+        }
+        if (!sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL)) {
+          sessionStorage.setItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL, JSON.stringify(data[dataIndex]));
+        }
         this.subscribeWatchlistChange();
       });
     } else {
       this.subscribeWatchlistChange();
     }
-  }
-
-
-  private subscribeWatchlistChange(): void {
-    this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
-      this.watchlist = JSON.parse(params['object']);
-      this.navigateToRoute(this.lastRouteKey, this.lastItemIndex);
-      this.activeTab = this.items[this.lastItemIndex];
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.routeSubscribe && this.routeSubscribe.unsubscribe();
+    // Call parent initialization after setting up watchlist subscription
+    super.ngOnInit();
   }
 
   /**
-   * Is needed for the default navigation
+   * Cleans up component subscriptions to prevent memory leaks.
    */
-  private navigateToRoute(routeKey: string, itemIndex?: number) {
-    this.lastRouteKey = routeKey;
-    this.lastItemIndex = itemIndex;
-
-    this.router.navigate([routeKey, this.watchlist.idWatchlist, {watchlist: JSON.stringify(this.watchlist)}], {
-      relativeTo: this.activatedRoute
-    });
-
+  override ngOnDestroy(): void {
+    super.ngOnDestroy();
+    if (this.routeSubscribe) {
+      this.routeSubscribe.unsubscribe();
+    }
   }
 
+  /**
+   * Sets up subscription to route parameter changes to track watchlist updates.
+   * Preserves the active tab when switching between different watchlists.
+   */
+  private subscribeWatchlistChange(): void {
+    this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
+      if (params['object']) {
+        this.watchlist = JSON.parse(params['object']);
+
+        // Preserve the current active tab when switching watchlists
+        if (this.isFirstLoad) {
+          // On first load, check if there's already an active route in URL
+          const currentRouteFromUrl = this.getCurrentRouteFromUrl();
+          if (currentRouteFromUrl) {
+            this.lastActiveRoute = currentRouteFromUrl;
+            this.activeRoute = currentRouteFromUrl;
+          }
+          this.isFirstLoad = false;
+        }
+        // Navigate to the last active route (or default on first load)
+        this.navigateTo(this.lastActiveRoute);
+      }
+    });
+  }
+
+  /**
+   * Extracts the current route from the URL by matching against available tabs.
+   * @returns The matching route or null if no match found
+   */
+  private getCurrentRouteFromUrl(): string | null {
+    const urlSegments = this.router.url.split('/');
+    return this.tabs.find(tab => urlSegments.includes(tab.route))?.route || null;
+  }
+
+  /**
+   * Defines the available tabs for the watchlist menu.
+   * @returns Array of tab items for watchlist functionality
+   */
+  protected initializeTabs(): TabItem[] {
+    return [
+      {
+        label: 'WATCHLIST_PERFORMANCE',
+        route: AppSettings.WATCHLIST_PERFORMANCE_KEY,
+        icon: ''
+      },
+      {
+        label: 'WATCHLIST_PRICE_FEED',
+        route: AppSettings.WATCHLIST_PRICE_FEED_KEY,
+        icon: ''
+      },
+      {
+        label: 'UDF',
+        route: AppSettings.WATCHLIST_UDF_KEY,
+        icon: ''
+      },
+      {
+        label: 'WATCHLIST_DIVIDEND_SPLIT_FEED',
+        route: AppSettings.WATCHLIST_DIVIDEND_SPLIT_FEED_KEY,
+        icon: ''
+      }
+    ];
+  }
+
+  /**
+   * Gets the default route for initial navigation.
+   * @returns The default watchlist route
+   */
+  protected getDefaultRoute(): string {
+    return AppSettings.WATCHLIST_PERFORMANCE_KEY;
+  }
+
+  /**
+   * Override navigateTo to handle watchlist parameter and preserve active tab.
+   * Navigates with watchlist ID and serialized watchlist object as route parameters.
+   *
+   * @param route The route to navigate to
+   */
+  override navigateTo(route: string): void {
+    if (!this.watchlist) {
+      console.warn('No watchlist available for navigation');
+      return;
+    }
+    // Update active route and remember the last active route
+    this.activeRoute = route;
+    this.lastActiveRoute = route;
+    // Navigate with watchlist ID and object
+    this.router.navigate([route, this.watchlist.idWatchlist, {
+      watchlist: JSON.stringify(this.watchlist)
+    }], {
+      relativeTo: this.activatedRoute,
+    });
+  }
+
+  /**
+   * Override the default navigation to wait for watchlist data.
+   * Prevents immediate navigation until watchlist is loaded from route parameters.
+   */
+  protected override navigateToDefault(): void {
+    // Don't navigate immediately - wait for watchlist to be set
+    // Navigation will happen in subscribeWatchlistChange
+  }
 }

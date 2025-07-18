@@ -6,7 +6,7 @@ import {TradingDaysPlus} from '../../entities/trading.days.plus';
 import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
 import {LoginService} from '../../shared/login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TradingDaysWithDateBoundaries} from '../model/trading.days.with.date.boundaries';
 
 @Injectable()

@@ -1,13 +1,13 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {SimpleEntityEditBase} from '../../shared/edit/simple.entity.edit.base';
+import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {CorrelationSetService} from '../service/correlation.set.service';
 import {CorrelationLimit, CorrelationSet, SamplingPeriodType} from '../../entities/correlation.set';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {CorrelationEditingSupport} from './correlation.editing.support';

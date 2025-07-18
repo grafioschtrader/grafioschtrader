@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, Input, OnInit} from '@angular/core';
 import {TenantEditComponent} from './tenant.edit.component';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
-import {MessageToastService} from '../../../shared/message/message.toast.service';
+import {MessageToastService} from '../../message/message.toast.service';
 import {TenantService} from '../service/tenant.service';
 import {TranslateService} from '@ngx-translate/core';
 import {Tenant} from '../../../entities/tenant';

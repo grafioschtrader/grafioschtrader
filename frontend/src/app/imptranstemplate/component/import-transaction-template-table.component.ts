@@ -5,17 +5,17 @@ import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {ImportTransactionTemplateService} from '../service/import.transaction.template.service';
-import {ParentChildRowSelection} from '../../shared/datashowbase/parent.child.row.selection';
+import {ParentChildRowSelection} from '../../lib/datashowbase/parent.child.row.selection';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {ImportTransactionPlatform} from '../../entities/import.transaction.platform';
-import {CrudMenuOptions, TableCrudSupportMenu} from '../../shared/datashowbase/table.crud.support.menu';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {CrudMenuOptions, TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {plainToClass} from 'class-transformer';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {combineLatest} from 'rxjs';
-import {ColumnConfig, TranslateValue} from '../../shared/datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 
 /**

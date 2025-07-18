@@ -4,7 +4,7 @@ import {DataChangedService} from '../../shared/maintree/service/data.changed.ser
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {WatchlistService} from '../service/watchlist.service';
 import {ActivatedRoute, Router} from '@angular/router';
-import {MessageToastService} from '../../shared/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
@@ -22,9 +22,9 @@ import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.qu
 import {ViewSizeChangedService} from '../../shared/layout/service/view.size.changed.service';
 import {combineLatest, Observable, Subscription} from 'rxjs';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
-import {TranslateHelper} from '../../helper/translate.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
-import {TranslateValue} from '../../shared/datashowbase/column.config';
+import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';

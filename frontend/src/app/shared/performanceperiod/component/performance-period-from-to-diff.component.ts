@@ -1,4 +1,4 @@
-import {SingleRecordConfigBase} from '../../datashowbase/single.record.config.base';
+import {SingleRecordConfigBase} from '../../../lib/datashowbase/single.record.config.base';
 import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../service/globalparameter.service';
