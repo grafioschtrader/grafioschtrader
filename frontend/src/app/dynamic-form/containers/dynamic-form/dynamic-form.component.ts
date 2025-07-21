@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnChanges, OnInit, Output} from '@angular/core';
-import {AbstractControl, FormBuilder, UntypedFormBuilder, UntypedFormGroup} from '@angular/forms';
+import {AbstractControl, UntypedFormBuilder, UntypedFormGroup} from '@angular/forms';
 
 
 import {FieldConfig} from '../../models/field.config';
@@ -16,74 +16,70 @@ import {ValueKeyHtmlSelectOptions} from '../../models/value.key.html.select.opti
  * The form with its label, input fields and buttons.
  */
 @Component({
-    exportAs: 'dynamicForm',
-    selector: 'dynamic-form',
-    template: `
+  exportAs: 'dynamicForm',
+  selector: 'dynamic-form',
+  template: `
     <div class="nopadding container-fluid #actualTarget">
       <form [formGroup]="form" (ngSubmit)="handleSubmit($event)">
-        <div *ngIf="showWithFieldset; then withFieldset else withoutFieldset"></div>
-        <ng-template #withFieldset>
-          <fieldset [ngClass]="fieldsetConfig.fieldsetName? 'out-border': ''"
-                    *ngFor="let fieldsetConfig of fieldsetConfigs;">
-            <legend
-              [ngClass]="fieldsetConfig.fieldsetName? 'out-border-legend': ''">{{fieldsetConfig.fieldsetName | translate}}
-            </legend>
-            <ng-container *ngFor="let field of fieldsetConfig.fieldConfig;">
-              <dynamic-form-layout
-                [config]="field"
-                [formConfig]="formConfig"
-                [group]="form">
-              </dynamic-form-layout>
-            </ng-container>
-          </fieldset>
-        </ng-template>
-
-        <ng-template #withoutFieldset>
+        @if (showWithFieldset) {
+          @for (fieldsetConfig of fieldsetConfigs; track fieldsetConfig) {
+            <fieldset [ngClass]="fieldsetConfig.fieldsetName? 'out-border': ''">
+              <legend
+                [ngClass]="fieldsetConfig.fieldsetName? 'out-border-legend': ''">{{ fieldsetConfig.fieldsetName | translate }}
+              </legend>
+              @for (field of fieldsetConfig.fieldConfig; track field) {
+                <dynamic-form-layout
+                  [config]="field"
+                  [formConfig]="formConfig"
+                  [group]="form">
+                </dynamic-form-layout>
+              }
+            </fieldset>
+          }
+        } @else {
           <div class="row">
-            <ng-container *ngFor="let field of controlsWithGroups;">
-              <ng-container *ngIf="field['inputType']; then fieldTemplate else groupTemplate"></ng-container>
-              <ng-template #fieldTemplate>
+            @for (field of controlsWithGroups; track field) {
+              @if (field['inputType']) {
                 <dynamic-form-layout [config]="field"
                                      [formConfig]="formConfig"
                                      [group]="form">
                 </dynamic-form-layout>
-              </ng-template>
-
-              <ng-template #groupTemplate>
+              } @else {
                 <div [formGroupName]="field['formGroupName']">
-
-                  <ng-container *ngFor="let childField of field['fieldConfig'];">
+                  @for (childField of field['fieldConfig']; track childField) {
                     <dynamic-form-layout [config]="childField"
                                          [formConfig]="formConfig"
                                          [group]="field.formControl">
                     </dynamic-form-layout>
-                  </ng-container>
+                  }
                   <error-message [baseFieldFieldgroupConfig]="field"></error-message>
                 </div>
-              </ng-template>
-            </ng-container>
+              }
+            }
           </div>
-        </ng-template>
+        }
 
         <!-- Buttons -->
         <div [class.ui-widget-content]="!formConfig.nonModal">
-          <button *ngIf="formConfig.helpLinkFN" pButton pRipple type="button" icon="pi pi-question"
-                  (click)="helpLink($event)" class="p-button-rounded"></button>
-
+          @if (formConfig.helpLinkFN) {
+            <button pButton pRipple type="button" icon="pi pi-question"
+                    (click)="helpLink($event)" class="p-button-rounded"></button>
+          }
           <div class="float-right">
-            <ng-container *ngFor="let field of buttons;">
-              <dynamicField *ngIf="!field.invisible"
-                            [config]="field"
-                            [formConfig]="formConfig"
-                            [group]="form">
-              </dynamicField>
-            </ng-container>
+            @for (field of buttons; track field) {
+              @if (!field.invisible) {
+                <dynamicField [config]="field"
+                              [formConfig]="formConfig"
+                              [group]="form">
+                </dynamicField>
+              }
+            }
           </div>
         </div>
       </form>
     </div>
   `,
-    standalone: false
+  standalone: false
 })
 export class DynamicFormComponent implements OnChanges, OnInit {
   @Input() formConfig: FormConfig;

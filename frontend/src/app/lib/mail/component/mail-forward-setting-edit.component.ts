@@ -29,7 +29,7 @@ import {ValueKeyHtmlSelectOptions} from '../../../dynamic-form/models/value.key.
     selector: 'mail-forward-setting-edit',
     template: `
     <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '500px'}"
+              [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"

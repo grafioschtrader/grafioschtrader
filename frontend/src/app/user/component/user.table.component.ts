@@ -21,7 +21,6 @@ import {UserTaskType} from '../../lib/types/user.task.type';
 import {SvgIconRegistryService} from 'angular-svg-icon';
 import {AppSettings} from '../../shared/app.settings';
 import {LimitEntityTransactionError} from '../../shared/login/service/limit.entity.transaction.error';
-import {DynamicDialogHelper} from '../../shared/dynamicdialog/component/dynamicDialogHelper';
 import {ProposeUserTaskService} from '../../shared/dynamicdialog/service/propose.user.task.service';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {DynamicDialogs} from '../../shared/dynamicdialog/component/dynamic.dialogs';
@@ -31,85 +30,96 @@ import {BaseSettings} from '../../lib/base.settings';
  * Main component for the user table. It contains nested table to change the limits on information classes.
  */
 @Component({
-    template: `
+  template: `
     <div class="data-container" (click)="onComponentClick($event)"
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
-               sortField="nickname" [dataKey]="entityKeyName"
-               responsiveLayout="scroll" [contextMenu]="cmDiv"
+               sortField="nickname" [dataKey]="entityKeyName" [contextMenu]="cmDiv"
                stripedRows showGridlines>
         <ng-template #caption>
-          <h4>{{entityNameUpper | translate}}</h4>
+          <h4>{{ entityNameUpper | translate }}</h4>
         </ng-template>
         <ng-template #header let-fields>
           <tr>
             <th style="width:24px"></th>
-            <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                [pTooltip]="field.headerTooltipTranslated">
-              {{field.headerTranslated}}
-              <p-sortIcon [field]="field.field"></p-sortIcon>
-            </th>
+            @for (field of fields; track field) {
+              <th [pSortableColumn]="field.field" [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
+                  [pTooltip]="field.headerTooltipTranslated">
+                {{ field.headerTranslated }}
+                <p-sortIcon [field]="field.field"></p-sortIcon>
+              </th>
+            }
           </tr>
         </ng-template>
         <ng-template #body let-el let-expanded="expanded" let-columns="fields">
           <tr [pContextMenuRow] [pSelectableRow]="el">
             <td>
-              <a *ngIf="el.userEntityChangeLimitList.length + el.userChangeLimitProposeList.length > 0" href="#"
-                 [pRowToggler]="el">
-                <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
-              </a>
+              @if (el.userEntityChangeLimitList.length + el.userChangeLimitProposeList.length > 0) {
+                <a href="#" [pRowToggler]="el">
+                  <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
+                </a>
+              }
             </td>
 
-            <td *ngFor="let field of fields" [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                [ngClass]="(field.dataType===DataType.NumericShowZero || field.dataType === DataType.DateTimeNumeric
+            @for (field of fields; track field) {
+              <td [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
+                  [ngClass]="(field.dataType===DataType.NumericShowZero || field.dataType === DataType.DateTimeNumeric
               || field.dataType===DataType.NumericInteger)? 'text-right': ''">
-              <ng-container [ngSwitch]="field.templateName">
-                <ng-container *ngSwitchCase="'check'">
-                  <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>
-                </ng-container>
-                <ng-container *ngSwitchCase="'icon'">
-                  <svg-icon [name]="getValueByPath(el, field)"
-                            [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
-                </ng-container>
-                <ng-container *ngSwitchDefault>
-                  {{getValueByPath(el, field)}}
-                </ng-container>
-              </ng-container>
+                @switch (field.templateName) {
+                  @case ('check') {
+                    <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>
+                  }
+                  @case ('icon') {
+                    <svg-icon [name]="getValueByPath(el, field)"
+                              [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
+                  }
+                  @default {
+                    {{ getValueByPath(el, field) }}
+                  }
+                }
+              </td>
+            }
           </tr>
         </ng-template>
         <ng-template #expandedrow let-user let-columns="fields">
-          <tr *ngIf="user.userEntityChangeLimitList.length + user.userChangeLimitProposeList.length > 0">
-            <td [attr.colspan]="numberOfVisibleColumns + 1">
-              <user-entity-change-limit-table [user]="user"
-                                              (dateChanged)="handleChangesOnLimitTable($event)">
-              </user-entity-change-limit-table>
-            </td>
-          </tr>
+          @if (user.userEntityChangeLimitList.length + user.userChangeLimitProposeList.length > 0) {
+            <tr>
+              <td [attr.colspan]="numberOfVisibleColumns + 1">
+                <user-entity-change-limit-table [user]="user"
+                                                (dateChanged)="handleChangesOnLimitTable($event)">
+                </user-entity-change-limit-table>
+              </td>
+            </tr>
+          }
         </ng-template>
       </p-table>
-      <p-contextMenu #cmDiv appendTo="body"  [model]="contextMenuItems"></p-contextMenu>
+      <p-contextMenu #cmDiv appendTo="body" [model]="contextMenuItems"></p-contextMenu>
     </div>
-    <user-edit *ngIf="visibleDialog" [visibleDialog]="visibleDialog"
-               [callParam]="callParam"
-               (closeDialog)="handleCloseDialog($event)">
-    </user-edit>
-    <user-entity-change-limit-edit *ngIf="visibleEditLimitDialog"
-                                   [visibleDialog]="visibleEditLimitDialog"
-                                   [user]="selectedEntity"
-                                   (closeDialog)="handleEditLimitCloseDialog($event)">
-    </user-entity-change-limit-edit>
+    @if (visibleDialog) {
+      <user-edit [visibleDialog]="visibleDialog"
+                 [callParam]="callParam"
+                 (closeDialog)="handleCloseDialog($event)">
+      </user-edit>
+    }
+    @if (visibleEditLimitDialog) {
+      <user-entity-change-limit-edit [visibleDialog]="visibleEditLimitDialog"
+                                     [user]="selectedEntity"
+                                     (closeDialog)="handleEditLimitCloseDialog($event)">
+      </user-entity-change-limit-edit>
+    }
 
-    <user-change-owner-entities *ngIf="visibleChangeEntitiesOwnerDialog"
-                                [visibleDialog]="visibleChangeEntitiesOwnerDialog"
-                                [fromUser]="selectedEntity"
-                                [allUsers]="entityList"
-                                (closeDialog)="handleChangeOwnerCloseDialog($event)">
-    </user-change-owner-entities>
+    @if (visibleChangeEntitiesOwnerDialog) {
+      <user-change-owner-entities [visibleDialog]="visibleChangeEntitiesOwnerDialog"
+                                  [fromUser]="selectedEntity"
+                                  [allUsers]="entityList"
+                                  (closeDialog)="handleChangeOwnerCloseDialog($event)">
+      </user-change-owner-entities>
+    }
   `,
-    providers: [DialogService],
-    standalone: false
+  providers: [DialogService],
+  standalone: false
 })
 export class UserTableComponent extends TableCrudSupportMenu<User> implements OnDestroy {
 
@@ -129,20 +139,21 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
   };
 
   private changeEntitiesOwnerMenuItem: MenuItem = {
-    label: 'USER_CHANGE_OWNER_ENTITIES' + BaseSettings.DIALOG_MENU_SUFFIX, command: (event) => this.changeOwnerEntities()
+    label: 'USER_CHANGE_OWNER_ENTITIES' + BaseSettings.DIALOG_MENU_SUFFIX,
+    command: (event) => this.changeOwnerEntities()
   };
 
   constructor(private iconReg: SvgIconRegistryService,
-              private userAdminService: UserAdminService,
-              private proposeUserTaskService: ProposeUserTaskService,
-              confirmationService: ConfirmationService,
-              messageToastService: MessageToastService,
-              activePanelService: ActivePanelService,
-              dialogService: DialogService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+    private userAdminService: UserAdminService,
+    private proposeUserTaskService: ProposeUserTaskService,
+    confirmationService: ConfirmationService,
+    messageToastService: MessageToastService,
+    activePanelService: ActivePanelService,
+    dialogService: DialogService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService) {
     super(AppSettings.USER, userAdminService, confirmationService, messageToastService, activePanelService, dialogService,
       filterService, translateService, gps, usersettingsService, [CrudMenuOptions.ParentControl, CrudMenuOptions.Allow_Edit]);
     UserTableComponent.registerIcons(this.iconReg);
@@ -154,7 +165,6 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
       {fieldValueFN: this.getReleaseLogoutProposeIcon.bind(this), templateName: 'icon', width: 20});
     this.addColumn(DataType.None, 'userLimit', 'L', true, true,
       {fieldValueFN: this.getLimitProposeIcon.bind(this), templateName: 'icon', width: 20});
-
     this.addColumnFeqH(DataType.String, 'mostPrivilegedRole', true, false,
       {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.Boolean, 'enabled', true, false,
@@ -163,7 +173,6 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
     this.addColumnFeqH(DataType.NumericInteger, 'timezoneOffset', true, false);
     this.addColumnFeqH(DataType.NumericInteger, 'securityBreachCount', true, false);
     this.addColumnFeqH(DataType.NumericInteger, 'limitRequestExceedCount', true, false);
-
     TranslateHelper.translateMenuItems([this.limitChangeMenuItem, this.changeEntitiesOwnerMenuItem], translateService);
     this.prepareTableAndTranslate();
   }
@@ -178,11 +187,11 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
   }
 
   getReleaseLogoutProposeIcon(user: User, field: ColumnConfig): string {
-    return user.userChangePropose? UserTableComponent.createTypeIconMap[UserTaskType.RELEASE_LOGOUT]: null;
+    return user.userChangePropose ? UserTableComponent.createTypeIconMap[UserTaskType.RELEASE_LOGOUT] : null;
   }
 
   getLimitProposeIcon(user: User, field: ColumnConfig): string {
-    return (user.userChangeLimitProposeList.length > 0)? UserTableComponent.createTypeIconMap[UserTaskType.LIMIT_CUD_CHANGE]: null;
+    return (user.userChangeLimitProposeList.length > 0) ? UserTableComponent.createTypeIconMap[UserTaskType.LIMIT_CUD_CHANGE] : null;
   }
 
   public override getHelpContextId(): HelpIds {

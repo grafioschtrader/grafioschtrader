@@ -3,6 +3,8 @@ import {AppSettings} from '../../../shared/app.settings';
 import {TabItem} from '../../../shared/types/tab.item';
 
 @Component({
+  // Selector is not used
+  selector: 'tenant-performance-tab-menu',
   template: `
     <app-shared-tab-menu
       [tabs]="tabs"

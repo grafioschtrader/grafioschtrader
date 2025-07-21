@@ -1,13 +1,11 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
-import {GTNetMessage, GTNetMessageCodeType, MsgCallParam, SendReceivedType} from '../model/gtnet.message';
+import {GTNetMessageCodeType, MsgCallParam} from '../model/gtnet.message';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {AppSettings} from '../../shared/app.settings';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {GTNetMessageService} from '../service/gtnet.message.service';
 import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
@@ -15,11 +13,9 @@ import {Subscription} from 'rxjs';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.helper';
-import {FieldFormGroup} from '../../dynamic-form/models/form.group.definition';
 import {BaseParam} from '../../lib/entities/base.param';
 import {Helper} from '../../lib/helper/helper';
 import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
-import {HisotryqouteLinearFilledSummary} from '../../securitycurrency/model/historyquote.quality.group';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
@@ -30,10 +26,10 @@ import {GTNetWithMessages, MsgRequest} from '../model/gtnet';
  * Crate a new GTNet message. A message can not be changed.
  */
 @Component({
-    selector: 'gtnet-message-edit',
-    template: `
+  selector: 'gtnet-message-edit',
+  template: `
     <p-dialog header="{{'GT_NET_MESSAGE_SEND' | translate}}" [(visible)]="visibleDialog"
-             [style]="{width: '500px'}"
+              [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
@@ -42,7 +38,7 @@ import {GTNetWithMessages, MsgRequest} from '../model/gtnet';
       </dynamic-form>
     </p-dialog>
   `,
-    standalone: false
+  standalone: false
 })
 export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit {
   @Input() msgCallParam: MsgCallParam;
@@ -51,9 +47,9 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
   messageCodeSubscription: Subscription;
 
   constructor(public translateService: TranslateService,
-              private messageToastService: MessageToastService,
-              private gtNetService: GTNetService,
-              gps: GlobalparameterService) {
+    private messageToastService: MessageToastService,
+    private gtNetService: GTNetService,
+    gps: GlobalparameterService) {
     super(HelpIds.HELP_GT_NET, gps);
   }
 
@@ -62,7 +58,7 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       4, this.helpLink.bind(this));
     this.config = [
       DynamicFieldHelper.createFieldSelectStringHeqF(this.MESSAGE_CODE, true),
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF('message',  AppSettings.FID_MAX_LETTERS, false),
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF('message', AppSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton('SEND')
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -85,8 +81,8 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
   private valueChangedOnMessageCode(): void {
     this.messageCodeSubscription = this.configObject[this.MESSAGE_CODE].formControl.valueChanges.subscribe(
       (messageCode: GTNetMessageCodeType) => {
-      this.createViewFromSelectedEnum(messageCode);
-    });
+        this.createViewFromSelectedEnum(messageCode);
+      });
   }
 
   private createViewFromSelectedEnum(gtNetMessageCodeType: string | GTNetMessageCodeType): void {
@@ -95,7 +91,7 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
   }
 
   private createDynamicInputFields(): void {
-    const fieldConfig: FieldConfig[] = <FieldConfig[]> DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
+    const fieldConfig: FieldConfig[] = <FieldConfig[]>DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
       this.classDescriptorInputAndShows,
       '', false);
 
@@ -120,14 +116,16 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
     const msgRequest = new MsgRequest(this.msgCallParam.idGTNet, this.msgCallParam.replyTo,
       value[this.MESSAGE_CODE], value.message,);
     msgRequest.gtNetMessageParamMap = this.getMessageParam(value);
-    this.gtNetService.submitMsg(msgRequest).subscribe({next: (gtNetWithMessages: GTNetWithMessages) => {
+    this.gtNetService.submitMsg(msgRequest).subscribe({
+      next: (gtNetWithMessages: GTNetWithMessages) => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'GT_NET_MESSAGE'});
-          this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED, gtNetWithMessages));
-        }, error: () => this.configObject.submit.disabled = false});
+        this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED, gtNetWithMessages));
+      }, error: () => this.configObject.submit.disabled = false
+    });
   }
 
   private getMessageParam(value: { [name: string]: any }): Map<string, BaseParam> | { [key: string]: BaseParam } {
-    const gtNetMessageParamMap: Map<string, BaseParam> | { [key: string]: BaseParam }  = {};
+    const gtNetMessageParamMap: Map<string, BaseParam> | { [key: string]: BaseParam } = {};
     const valuesFlatten = Helper.flattenObject(value);
     this.classDescriptorInputAndShows && this.classDescriptorInputAndShows.fieldDescriptorInputAndShows.forEach(fDIAS =>
       gtNetMessageParamMap[fDIAS.fieldName] = new BaseParam(valuesFlatten[fDIAS.fieldName]));

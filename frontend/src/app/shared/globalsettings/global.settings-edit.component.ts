@@ -19,7 +19,7 @@ import {AppSettings} from '../app.settings';
     selector: 'globalsettings-edit',
     template: `
     <p-dialog header="{{'GLOBAL_SETTINGS' | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '800px'}"
+              [style]="{width: '800px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <h5>{{globalparameters.propertyName}}</h5>

@@ -37,7 +37,7 @@ export abstract class SecuritycurrencyEdit extends FormBase {
 
   // connectorFieldConfig: FieldConfig[];
 
-  constructor(public translateService: TranslateService,
+  protected constructor(public translateService: TranslateService,
               public gps: GlobalparameterService) {
     super();
   }

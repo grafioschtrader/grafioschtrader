@@ -21,7 +21,7 @@ import {AppSettings} from '../../shared/app.settings';
     selector: 'securityaccount-import-set-cashaccount',
     template: `
     <p-dialog header="{{'CASHACCOUNT' | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '400px'}"
+              [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"

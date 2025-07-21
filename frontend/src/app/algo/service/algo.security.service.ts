@@ -9,7 +9,6 @@ import {Observable} from 'rxjs';
 import {AppSettings} from '../../shared/app.settings';
 import {catchError} from 'rxjs/operators';
 import {Injectable} from '@angular/core';
-import {AlgoStrategyImplementationType} from '../../shared/types/algo.strategy.implementation.type';
 
 
 @Injectable()

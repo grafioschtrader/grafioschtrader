@@ -23,7 +23,7 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
     selector: 'cashaccount-edit',
     template: `
     <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '400px', minWidth: '350px', minHeight:'180px' }"
+              [style]="{width: '400px', minWidth: '350px', minHeight:'180px' }"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"

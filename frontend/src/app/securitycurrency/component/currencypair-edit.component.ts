@@ -30,10 +30,10 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
  * Only on a new record is the source and target currency editable.
  */
 @Component({
-    selector: 'currencypair-edit',
-    template: `
+  selector: 'currencypair-edit',
+  template: `
     <p-dialog header="{{'CURRENCYPAIR' | translate}}" [(visible)]="visibleEditCurrencypairDialog"
-              [responsive]="true" [style]="{width: '600px'}"
+              [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
@@ -41,7 +41,7 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`,
-    standalone: false
+  standalone: false
 })
 export class CurrencypairEditComponent extends SecuritycurrencyEdit implements OnInit {
 
@@ -54,12 +54,12 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
   private fromCurrencyChangedSub: Subscription;
 
   constructor(private messageToastService: MessageToastService,
-              private gpsGT: GlobalparameterGTService,
-              private stockexchangeService: StockexchangeService,
-              private assetclassService: AssetclassService,
-              private currencypairService: CurrencypairService,
-              translateService: TranslateService,
-              gps: GlobalparameterService) {
+    private gpsGT: GlobalparameterGTService,
+    private stockexchangeService: StockexchangeService,
+    private assetclassService: AssetclassService,
+    private currencypairService: CurrencypairService,
+    translateService: TranslateService,
+    gps: GlobalparameterService) {
     super(translateService, gps);
   }
 
@@ -101,12 +101,14 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
     AuditHelper.copyProposeChangeEntityToEntityAfterEdit(this, currencypair, this.proposeChangeEntityWithEntity);
     this.dynamicForm.cleanMaskAndTransferValuesToBusinessObject(currencypair);
 
-    this.currencypairService.update(currencypair).subscribe({next: newSecurity => {
-      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED',
-        {i18nRecord: AppSettings.CURRENCYPAIR.toUpperCase()});
-      this.closeDialog.emit(new ProcessedActionData(this.securityCurrencypairCallParam ? ProcessedAction.UPDATED
-        : ProcessedAction.CREATED, newSecurity));
-    }, error: () => this.configObject.submit.disabled = false});
+    this.currencypairService.update(currencypair).subscribe({
+      next: newSecurity => {
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED',
+          {i18nRecord: AppSettings.CURRENCYPAIR.toUpperCase()});
+        this.closeDialog.emit(new ProcessedActionData(this.securityCurrencypairCallParam ? ProcessedAction.UPDATED
+          : ProcessedAction.CREATED, newSecurity));
+      }, error: () => this.configObject.submit.disabled = false
+    });
   }
 
   override onHide(event): void {
@@ -124,10 +126,11 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
     const observableFeedConnectors: Observable<IFeedConnector[]> = this.currencypairService.getFeedConnectors();
     const observableAllCurrencypairs: Observable<Currencypair[]> = this.currencypairService.getAllCurrencypairs();
     combineLatest([observableCurrencies, observableFeedConnectors, observableAllCurrencypairs])
-      .subscribe(data => {
-        this.configObject.fromCurrency.valueKeyHtmlOptions = data[0];
-        this.prepareFeedConnectors(data[1], true);
-        this.existingCurrencypairs = data[2];
+      .subscribe(([currencies, feedConnectors, allCurrencypairs]: [ValueKeyHtmlSelectOptions[],
+        IFeedConnector[], Currencypair[]]) => {
+        this.configObject.fromCurrency.valueKeyHtmlOptions = currencies;
+        this.prepareFeedConnectors(feedConnectors, true);
+        this.existingCurrencypairs = allCurrencypairs;
         this.removeByUpdateFormExstingCurrency();
         this.valueChangedOnFromCurrency();
         this.disableEnableInputForExisting(!!this.securityCurrencypairCallParam);

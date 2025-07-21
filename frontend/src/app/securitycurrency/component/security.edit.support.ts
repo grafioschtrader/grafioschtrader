@@ -1,5 +1,5 @@
 import {FieldConfig} from '../../dynamic-form/models/field.config';
-import {DynamicFieldHelper, VALIDATION_SPECIAL} from '../../lib/helper/dynamic.field.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {Assetclass} from '../../entities/assetclass';
 import {Helper} from '../../lib/helper/helper';

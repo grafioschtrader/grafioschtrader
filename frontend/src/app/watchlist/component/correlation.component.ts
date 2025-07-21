@@ -18,59 +18,87 @@ import {AppHelper} from '../../lib/helper/app.helper';
 import {CorrelationEditingSupport} from './correlation.editing.support';
 
 /**
- * Main component of correlation set. It supports the creation and deletion of a correlation set.
+ * Main component for correlation set management. Supports the creation, deletion, and calculation of correlation sets
+ * with financial instruments. Provides a form interface for correlation configuration and displays correlation matrices
+ * and rolling correlation charts.
  */
 @Component({
-    template: `
+  template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
-
       <p-panel>
         <p-header>
-          <h4 class="ui-widget-header singleRowTableHeader">{{'CORRELATION_MATRIX' | translate}}</h4>
+          <h4 class="ui-widget-header singleRowTableHeader">{{ 'CORRELATION_MATRIX' | translate }}</h4>
         </p-header>
       </p-panel>
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm" (submitBt)="saveAndCalculate($event)">
       </dynamic-form>
-
-      <p-contextMenu  [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+      <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
       <br/>
-      <p
-        *ngIf="timePeriod">{{'TIME_PERIOD' | translate}} {{timePeriod}} {{'INSTRUMENT_OVERLAPPING_PRICE_DATA' | translate}}</p>
-      <p *ngIf="nonOverlappingDates" style="color:tomato;">{{'NON_OVERLAPPING_DATES' | translate}}</p>
+      @if (timePeriod) {
+        <p>{{ 'TIME_PERIOD' | translate }} {{ timePeriod }} {{ 'INSTRUMENT_OVERLAPPING_PRICE_DATA' | translate }}</p>
+      }
+      @if (nonOverlappingDates) {
+        <p style="color:tomato;">{{ 'NON_OVERLAPPING_DATES' | translate }}</p>
+      }
       <correlation-table [childToParent]="this">
       </correlation-table>
     </div>
-    <correlation-set-edit *ngIf="visibleEditDialog"
-                          [visibleDialog]="visibleEditDialog"
-                          [callParam]="callParam"
-                          [correlationLimit]="correlationLimit"
-                          (closeDialog)="handleCloseEditDialog($event)">
-    </correlation-set-edit>
+    @if (visibleEditDialog) {
+      <correlation-set-edit [visibleDialog]="visibleEditDialog"
+                            [callParam]="callParam"
+                            [correlationLimit]="correlationLimit"
+                            (closeDialog)="handleCloseEditDialog($event)">
+      </correlation-set-edit>
+    }
   `,
-    standalone: false
+  standalone: false
 })
 export class CorrelationComponent extends SingleRecordMasterViewBase<CorrelationSet, Securitycurrency>
   implements AfterViewInit, OnDestroy, ChildToParent {
 
+  /** Primary key field name for correlation set selection */
   private static readonly MAIN_FIELD = 'idCorrelationSet';
+
+  /** Reference to the correlation table child component */
   @ViewChild(CorrelationTableComponent, {static: true}) correlationTableComponent: CorrelationTableComponent;
+
+  /** Formatted time period string showing date range of overlapping price data */
   timePeriod: string = null;
+
+  /** Flag indicating whether instruments have non-overlapping date ranges */
   nonOverlappingDates = false;
 
+  /** Field name for ticker symbol property */
   private readonly tickerSymbol = 'tickerSymbol';
-  private correlationLimit: CorrelationLimit;
+
+  /** Correlation limits and configuration settings */
+  correlationLimit: CorrelationLimit;
+
+  /** Current correlation calculation results */
   private correlationResult: CorrelationResult;
+
+  /** Helper class for correlation form configuration and value changes */
   private correlationEditingSupport: CorrelationEditingSupport = new CorrelationEditingSupport();
 
+  /**
+   * Creates a new correlation component instance with required services and configuration.
+   * @param activatedRoute - Angular activated route for parameter access
+   * @param correlationSetService - Service for correlation set operations
+   * @param gps - Global parameter service for user settings and configuration
+   * @param confirmationService - PrimeNG confirmation dialog service
+   * @param messageToastService - Service for displaying user messages
+   * @param activePanelService - Service for managing active panel state
+   * @param translateService - Angular translation service for internationalization
+   */
   constructor(private activatedRoute: ActivatedRoute,
-              private correlationSetService: CorrelationSetService,
-              gps: GlobalparameterService,
-              confirmationService: ConfirmationService,
-              messageToastService: MessageToastService,
-              activePanelService: ActivePanelService,
-              translateService: TranslateService) {
+    private correlationSetService: CorrelationSetService,
+    gps: GlobalparameterService,
+    confirmationService: ConfirmationService,
+    messageToastService: MessageToastService,
+    activePanelService: ActivePanelService,
+    translateService: TranslateService) {
 
     super(gps, HelpIds.HELP_WATCHLIST_CORRELATION,
       CorrelationComponent.MAIN_FIELD,
@@ -84,6 +112,9 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
       SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, SamplingPeriodType, null);
   }
 
+  /**
+   * Angular lifecycle hook called after view initialization. Loads correlation limits and sets up form configuration.
+   */
   ngAfterViewInit(): void {
     this.correlationSetService.getCorrelationSetLimit().subscribe((correlationLimit: CorrelationLimit) => {
       this.correlationLimit = correlationLimit;
@@ -93,6 +124,10 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
     });
   }
 
+  /**
+   * Refreshes component data when correlation set is updated externally or when instruments are added/removed.
+   * @param correlationSet - Updated correlation set or null to reload from service
+   */
   refreshData(correlationSet: CorrelationSet): void {
     if (correlationSet) {
       this.selectedEntity.securitycurrencyList = correlationSet.securitycurrencyList;
@@ -102,10 +137,17 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
     }
   }
 
+  /**
+   * Gets localized period and rolling parameter strings for chart display.
+   * @returns Array containing translated period and rolling parameters with prefixes
+   */
   getPeriodAndRollingWithParamPrefix(): string[] {
     return this.correlationEditingSupport.getPeriodAndRollingWithParamPrefix(this.configObject);
   }
 
+  /**
+   * Loads correlation sets from the backend and updates form dropdown options.
+   */
   override readData(): void {
     this.correlationSetService.getCorrelationSetByTenant().subscribe((correlationSets: CorrelationSet[]) => {
       this.entityList = correlationSets;
@@ -119,36 +161,54 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
     });
   }
 
+  /**
+   * Saves correlation set configuration and triggers calculation of correlation matrix.
+   * @param event - Form submission event
+   */
   saveAndCalculate(event): void {
     this.form.cleanMaskAndTransferValuesToBusinessObject(this.selectedEntity);
-    this.correlationSetService.update(this.selectedEntity).subscribe({next: cs => {
-      Object.assign(this.selectedEntity, cs);
-      this.setChildData(this.selectedEntity);
-      this.configObject.submit.disabled = false;
-    }, error: errorBackend => (this.configObject.submit.disabled = false)});
+    this.correlationSetService.update(this.selectedEntity).subscribe({
+      next: cs => {
+        Object.assign(this.selectedEntity, cs);
+        this.setChildData(this.selectedEntity);
+        this.configObject.submit.disabled = false;
+      }, error: errorBackend => (this.configObject.submit.disabled = false)
+    });
   }
 
+  /**
+   * Angular lifecycle hook for cleanup. Destroys form helper and calls parent cleanup.
+   */
   ngOnDestroy(): void {
     super.destroy();
     this.correlationEditingSupport.destroy();
   }
 
   /**
-   * Selection of parent may be changed or update
+   * Updates child table component when parent correlation set selection changes.
+   * @param selectedEntity - The newly selected correlation set
    */
   override setChildData(selectedEntity: CorrelationSet): void {
     this.setChildDataAndCalculateWhenPossible(selectedEntity, true);
   }
 
+  /**
+   * Determines if new correlation sets can be created based on tenant limits.
+   * @returns True if creation is allowed, false if limit is reached
+   */
   protected override canCreate(): boolean {
     return this.correlationLimit.tenantLimit.actual < this.correlationLimit.tenantLimit.limit;
   }
 
+  /**
+   * Sets child data and optionally triggers correlation calculation based on instrument count and overlapping dates.
+   * @param selectedEntity - The correlation set to display
+   * @param calculate - Whether to perform correlation calculation
+   */
   setChildDataAndCalculateWhenPossible(selectedEntity: CorrelationSet, calculate: boolean): void {
     this.timePeriod = null;
     this.nonOverlappingDates = false;
     if (selectedEntity) {
-
       this.childEntityList = selectedEntity.securitycurrencyList;
       if (selectedEntity.securitycurrencyList.length >= 2 && calculate) {
         this.correlationSetService.getCalculationByCorrelationSet(selectedEntity.idCorrelationSet).subscribe(
@@ -171,6 +231,9 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
     }
   }
 
+  /**
+   * Refreshes context menus by combining edit and show menu items from base class and child table component.
+   */
   override refreshMenus(): void {
     const editMenu = this.prepareEditMenu();
     const showMenu = this.prepareShowMenu();
@@ -178,6 +241,10 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
     this.activePanelService.activatePanel(this, {editMenu, showMenu});
   }
 
+  /**
+   * Prepares edit menu items by combining base edit menu with correlation table-specific edit options.
+   * @returns Array of translated menu items for editing operations
+   */
   override prepareEditMenu(): MenuItem[] {
     const menuItems = this.getBaseEditMenu('CORRELATION_SET');
     menuItems.push(...this.correlationTableComponent.prepareEditMenu());
@@ -185,12 +252,20 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
     return menuItems;
   }
 
+  /**
+   * Prepares show menu items from the correlation table component.
+   * @returns Array of translated menu items for view operations
+   */
   protected override prepareShowMenu(): MenuItem[] {
     const menuItems = this.correlationTableComponent.prepareShowMenu();
     TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
 
+  /**
+   * Prepares call parameters for opening edit dialogs.
+   * @param entity - The correlation set entity to edit or null for new creation
+   */
   protected prepareCallParam(entity: CorrelationSet): void {
     this.callParam = new CallParam(null, entity);
   }

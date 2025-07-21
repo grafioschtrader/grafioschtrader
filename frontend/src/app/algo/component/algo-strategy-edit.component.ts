@@ -19,8 +19,6 @@ import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AlgoStrategyHelper} from './algo.strategy.helper';
 import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.helper';
-import {AlgoSecurity} from '../model/algo.security';
-import {AlgoLevelType} from '../model/algo.top';
 
 /**
  * Allows editing a new or existing strategy. The input fields will be different according to the selected strategy.
@@ -33,7 +31,7 @@ import {AlgoLevelType} from '../model/algo.top';
     selector: 'algo-strategy-edit',
     template: `
     <p-dialog header="{{'ALGO_STRATEGY' | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '600px'}"
+              [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"

@@ -29,7 +29,7 @@ import {FormHelper} from '../../../dynamic-form/components/FormHelper';
  * Performance over a certain period for a tenant or portfolio.
  */
 @Component({
-    template: `
+  template: `
     <div class="data-container" (click)="onComponentClick($event)"
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p>{{'PERFORMANCE_REMARK' | translate}} {{firstAndMissingTradingDays?.firstEverTradingDay
@@ -38,10 +38,14 @@ import {FormHelper} from '../../../dynamic-form/components/FormHelper';
                     #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-      <div *ngIf="loading" class="progress-bar-box">
-        <h4>{{'LOADING' | translate}}</h4>
-        <p-progressBar mode="indeterminate" [style]="{'height': '6px'}"></p-progressBar>
-      </div>
+
+      @if (loading) {
+        <div class="progress-bar-box">
+          <h4>{{'LOADING' | translate}}</h4>
+          <p-progressBar mode="indeterminate" [style]="{'height': '6px'}"></p-progressBar>
+        </div>
+      }
+
       <performance-period-from-to-diff [periodHoldingsAndDiff]="periodHoldingsAndDiff">
       </performance-period-from-to-diff>
 

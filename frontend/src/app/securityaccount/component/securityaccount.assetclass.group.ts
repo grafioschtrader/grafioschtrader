@@ -4,7 +4,6 @@ import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {Security} from '../../entities/security';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {SecurityPositionDynamicGroupSummary} from '../../entities/view/security.position.dynamic.group.summary';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {BusinessSelectOptionsHelper} from '../../securitycurrency/component/business.select.options.helper';
 
 /**
@@ -14,8 +13,8 @@ export class SecurityaccountAssetclassGroup extends SecurityaccountGroupBaseDyna
   private readonly language: string;
 
   constructor(gps: GlobalparameterService,
-              translateService: TranslateService,
-              datatableConfigBase: TableConfigBase) {
+    translateService: TranslateService,
+    datatableConfigBase: TableConfigBase) {
 
     super(translateService, datatableConfigBase, 'idassetclass',
       'security.assetClass', 'GROUP_BY_ASSETCLASS_COMBINATION');

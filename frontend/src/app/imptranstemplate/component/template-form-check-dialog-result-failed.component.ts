@@ -13,32 +13,35 @@ import {FilterService} from 'primeng/api';
  */
 @Component({
     selector: 'template-form-check-dialog-result-failed',
-    template: `
+  template: `
     <div class="datatable">
       <p-table [columns]="fields" [value]="failedParsedTemplateStateList" selectionMode="single"
-               responsiveLayout="scroll" sortField="security.name"
-               stripedRows showGridlines>
+               sortField="security.name" stripedRows showGridlines>
         <ng-template #caption>
           <h4>{{'IMPORT_POS_CHECK_FAILED' | translate}}</h4>
         </ng-template>
         <ng-template #header let-fields>
           <tr>
-            <th *ngFor="let field of fields" [pSortableColumn]="field.field"
-                [pTooltip]="field.headerTooltipTranslated" [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-              {{field.headerTranslated}}
-              <p-sortIcon [field]="field.field"></p-sortIcon>
-            </th>
+            @for (field of fields; track field) {
+              <th [pSortableColumn]="field.field"
+                  [pTooltip]="field.headerTooltipTranslated" [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+                {{field.headerTranslated}}
+                <p-sortIcon [field]="field.field"></p-sortIcon>
+              </th>
+            }
           </tr>
         </ng-template>
         <ng-template #body let-el let-columns="fields">
           <tr [pSelectableRow]="el">
-            <td *ngFor="let field of fields" [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+            @for (field of fields; track field) {
+              <td [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
+                  [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                 || field.dataType===DataType.NumericInteger)? 'text-right': ''">
-              {{getValueByPath(el, field)}}
-            </td>
+                {{getValueByPath(el, field)}}
+              </td>
+            }
           </tr>
         </ng-template>
       </p-table>

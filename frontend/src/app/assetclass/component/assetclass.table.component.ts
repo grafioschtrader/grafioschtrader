@@ -25,9 +25,8 @@ import {TableCrudSupportMenuSecurity} from '../../lib/datashowbase/table.crud.su
   template: `
     <div class="data-container-full" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
-
       <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
-               responsiveLayout="scroll" scrollHeight="flex" [scrollable]="true"
+               scrollHeight="flex" [scrollable]="true"
                [dataKey]="entityKeyName" sortMode="multiple" [multiSortMeta]="multiSortMeta"
                (sortFunction)="customSort($event)" [customSort]="true"
                stripedRows showGridlines>
@@ -36,45 +35,50 @@ import {TableCrudSupportMenuSecurity} from '../../lib/datashowbase/table.crud.su
         </ng-template>
         <ng-template #header let-fields>
           <tr>
-            <th *ngFor="let field of fields" [pSortableColumn]="field.field"
-                [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-              {{field.headerTranslated}}
-              <p-sortIcon [field]="field.field"></p-sortIcon>
-            </th>
+            @for (field of fields; track field) {
+              <th [pSortableColumn]="field.field"
+                  [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+                {{field.headerTranslated}}
+                <p-sortIcon [field]="field.field"></p-sortIcon>
+              </th>
+            }
           </tr>
         </ng-template>
         <ng-template #body let-el let-columns="fields">
           <tr [pSelectableRow]="el">
-            <td *ngFor="let field of fields"
-                [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-              <ng-container [ngSwitch]="field.templateName">
-                <ng-container *ngSwitchCase="'owner'">
-                  <span [style]='isNotSingleModeAndOwner(field, el)? "font-weight:500": null'>
+            @for (field of fields; track field) {
+              <td [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+                @switch (field.templateName) {
+                  @case ('owner') {
+                    <span [style]='isNotSingleModeAndOwner(field, el)? "font-weight:500": null'>
                    {{getValueByPath(el, field)}}</span>
-                </ng-container>
-                <ng-container *ngSwitchCase="'icon'">
-                  <svg-icon [name]="getValueByPath(el, field)"
-                            [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
-                </ng-container>
-                <ng-container *ngSwitchDefault>
-                  {{getValueByPath(el, field)}}
-                </ng-container>
-              </ng-container>
-            </td>
+                  }
+                  @case ('icon') {
+                    <svg-icon [name]="getValueByPath(el, field)"
+                              [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
+                  }
+                  @default {
+                    {{getValueByPath(el, field)}}
+                  }
+                }
+              </td>
+            }
           </tr>
         </ng-template>
       </p-table>
-      <p-contextMenu *ngIf="isActivated()" [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+      @if (isActivated()) {
+        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+      }
     </div>
-
-    <assetclass-edit *ngIf="visibleDialog"
-                     [visibleDialog]="visibleDialog"
-                     [callParam]="callParam"
-                     [proposeChangeEntityWithEntity]=""
-                     (closeDialog)="handleCloseDialog($event)">
-    </assetclass-edit>
+    @if (visibleDialog) {
+      <assetclass-edit [visibleDialog]="visibleDialog"
+                       [callParam]="callParam"
+                       [proposeChangeEntityWithEntity]=""
+                       (closeDialog)="handleCloseDialog($event)">
+      </assetclass-edit>
+    }
   `,
   providers: [DialogService],
   standalone: false
@@ -119,13 +123,11 @@ export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Asset
   readData(): void {
     this.readDataSub?.unsubscribe();
     combineLatest([this.assetclassService.getAllAssetclass(),
-      this.assetclassService.assetclassesHasSecurity()]).subscribe(data => {
-      const assetclassList = plainToClass(Assetclass, data[0]);
-
+      this.assetclassService.assetclassesHasSecurity()]).subscribe((data: [Assetclass[], number[]]) => {
+      const assetclassList: Assetclass[] = plainToClass(Assetclass, data[0]);
       this.callParam.setSuggestionsArrayOfAssetclassList(assetclassList);
       this.createTranslatedValueStoreAndFilterField(assetclassList);
       this.entityList = assetclassList;
-
       data[1].forEach(keyvalue => this.hasSecurityObject[keyvalue[0]] = keyvalue[1]);
       this.refreshSelectedEntity();
     });

@@ -16,7 +16,7 @@ import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descr
  */
 @Component({
     selector: 'gtnet-message-treetable',
-    template: `
+  template: `
     <div #cmDiv class="data-container" (click)="onComponentClick($event)"
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <div class="datatable nestedtable">
@@ -25,32 +25,38 @@ import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descr
                      showGridlines="true">
           <ng-template #header let-fields>
             <tr>
-              <th *ngFor="let field of fields" [style.width.px]="field.width">
-                {{field.headerTranslated}}
-              </th>
+              @for (field of fields; track field) {
+                <th [style.width.px]="field.width">
+                  {{ field.headerTranslated }}
+                </th>
+              }
             </tr>
           </ng-template>
           <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
             <tr [ttSelectableRow]="rowNode">
-              <ng-container *ngFor="let field of fields; let i = index">
-                <td *ngIf="field.visible"
+              @for (field of fields; track field; let i = $index) {
+                @if (field.visible) {
+                  <td
                     [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
                     [style.width.px]="field.width">
-                  <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
-                  <ng-container [ngSwitch]="field.templateName">
-                    <ng-container *ngSwitchCase="'greenRed'">
-                  <span [pTooltip]="getValueByPath(rowData, field)"
-                        [style.color]='isValueByPathMinus(rowData, field)? "red": "inherit"'
-                        tooltipPosition="top">
-                    {{getValueByPath(rowData, field)}}
-                  </span>
-                    </ng-container>
-                    <ng-container *ngSwitchDefault>
-                      <span [pTooltip]="getValueByPath(rowData, field)">{{getValueByPath(rowData, field)}}</span>
-                    </ng-container>
-                  </ng-container>
-                </td>
-              </ng-container>
+                    @if (i === 0) {
+                      <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+                    }
+                    @switch (field.templateName) {
+                      @case ('greenRed') {
+                        <span [pTooltip]="getValueByPath(rowData, field)"
+                              [style.color]='isValueByPathMinus(rowData, field)? "red": "inherit"'
+                              tooltipPosition="top">
+                        {{ getValueByPath(rowData, field) }}
+                      </span>
+                      }
+                      @default {
+                        <span [pTooltip]="getValueByPath(rowData, field)">{{ getValueByPath(rowData, field) }}</span>
+                      }
+                    }
+                  </td>
+                }
+              }
             </tr>
           </ng-template>
         </p-treeTable>
@@ -58,11 +64,12 @@ import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descr
         </p-contextMenu>
       </div>
     </div>
-    <gtnet-message-edit *ngIf="visibleDialogMsg"
-                        [visibleDialog]="visibleDialogMsg"
-                        [msgCallParam]="msgCallParam"
-                        (closeDialog)="handleCloseDialogMsg($event)">
-    </gtnet-message-edit>
+    @if (visibleDialogMsg) {
+      <gtnet-message-edit [visibleDialog]="visibleDialogMsg"
+                          [msgCallParam]="msgCallParam"
+                          (closeDialog)="handleCloseDialogMsg($event)">
+      </gtnet-message-edit>
+    }
   `,
     standalone: false
 })

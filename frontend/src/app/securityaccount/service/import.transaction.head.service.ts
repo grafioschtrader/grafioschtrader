@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
 import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {ImportTransactionHead} from '../../entities/import.transaction.head';
-import {Observable} from 'rxjs';
+import {Observable, of} from 'rxjs';
 import {AppSettings} from '../../shared/app.settings';
 import {HttpClient} from '@angular/common/http';
 import {MessageToastService} from '../../lib/message/message.toast.service';
@@ -41,13 +41,17 @@ export class ImportTransactionHeadService extends AuthServiceWithLogout<ImportTr
         formData, this.getMultipartHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-
-  uploadFiles(idTransactionHead: number, formData: FormData):
-    Observable<SuccessFailedDirectImportTransaction> {
+  uploadFiles(idTransactionHead: number, formData: FormData): Observable<boolean> {
     return this.httpClient
-      .post(`${AppSettings.API_ENDPOINT}${AppSettings.IMPORT_TRANSACTION_HEAD_KEY}/${idTransactionHead}/uploadtransaction`,
+      .post<void>(`${AppSettings.API_ENDPOINT}${AppSettings.IMPORT_TRANSACTION_HEAD_KEY}/${idTransactionHead}/uploadtransaction`,
         formData, this.getMultipartHeaders())
-      .pipe(map(() => true), catchError(this.handleError.bind(this)));
+      .pipe(
+        map(() => true), // HTTP 204 = Success
+        catchError((error) => {
+          this.handleError.bind(this);
+          return of(false);
+        })
+      );
   }
 
   update(importTransactionHead: ImportTransactionHead): Observable<ImportTransactionHead> {

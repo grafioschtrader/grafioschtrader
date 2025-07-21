@@ -7,7 +7,6 @@ import {Observable} from 'rxjs';
 import {AppSettings} from '../../../shared/app.settings';
 import {catchError} from 'rxjs/operators';
 import {MailInboxWithSend, MailSendRecv} from '../model/mail.send.recv';
-import {ValueKeyHtmlSelectOptions} from '../../../dynamic-form/models/value.key.html.select.options';
 
 @Injectable()
 export class MailSendRecvService extends AuthServiceWithLogout<MailSendRecv> {

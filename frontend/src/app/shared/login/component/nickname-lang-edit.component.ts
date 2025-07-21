@@ -14,6 +14,7 @@ import {SuccessfullyChanged} from '../../../entities/backend/successfully.change
 import {InfoLevelType} from '../../../lib/message/info.leve.type';
 import {MessageToastService} from '../../../lib/message/message.toast.service';
 import {TranslateHelper} from '../../../lib/helper/translate.helper';
+import {ValueKeyHtmlSelectOptions} from '../../../dynamic-form/models/value.key.html.select.options';
 
 /**
  * Change nickname and locale of a user
@@ -22,7 +23,7 @@ import {TranslateHelper} from '../../../lib/helper/translate.helper';
     selector: 'nickname-lang-edit',
     template: `
     <p-dialog header="{{'NICKNAME_LOCALE_CHANGE' | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '450px'}"
+              [style]="{width: '450px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
                     (submitBt)="submit($event)">
@@ -68,9 +69,9 @@ export class NicknameLangEditComponent extends SimpleEditBase implements OnInit 
 
   protected override initialize(): void {
     combineLatest([this.gps.getSupportedLocales(), this.loginService.getOwnUser()])
-      .subscribe(data => {
-        this.configObject.localeStr.valueKeyHtmlOptions = data[0];
-        this.form.transferBusinessObjectToForm(data[1]);
+      .subscribe(([locales, user]: [ValueKeyHtmlSelectOptions[], UserOwnProjection]) => {
+        this.configObject.localeStr.valueKeyHtmlOptions = locales;
+        this.form.transferBusinessObjectToForm(user);
         this.configObject.nickname.elementRef.nativeElement.focus();
       });
   }

@@ -36,14 +36,13 @@ import {BaseSettings} from '../../lib/base.settings';
  * This table is controlled by a master data selection view.
  */
 @Component({
-    selector: 'securityaccount-import-transaction-table',
-    template: `
+  selector: 'securityaccount-import-transaction-table',
+  template: `
     <div class="datatable">
       <p-table [columns]="fields" [value]="entityList" [(selection)]="selectedEntities"
                dataKey="importTransactionPos.idTransactionPos" [paginator]="true" [rows]="50"
-               [rowsPerPageOptions]="[20,30,50,80]" responsiveLayout="scroll"
+               [rowsPerPageOptions]="[20,30,50,80]" [multiSortMeta]="multiSortMeta"
                selectionMode="multiple" (onRowExpand)="onRowExpand($event)" sortMode="multiple"
-               [multiSortMeta]="multiSortMeta"
                stripedRows showGridlines>
         <ng-template #header let-fields>
           <tr>
@@ -51,14 +50,16 @@ import {BaseSettings} from '../../lib/base.settings';
             <th style="width: 2.25em">
               <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
             </th>
-            <ng-container *ngFor="let field of fields">
-              <th *ngIf="field.visible" [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated"
-                  [style.max-width.px]="field.width"
-                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-                {{field.headerTranslated}}
-                <p-sortIcon [field]="field.field"></p-sortIcon>
-              </th>
-            </ng-container>
+            @for (field of fields; track field) {
+              @if (field.visible) {
+                <th [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated"
+                    [style.max-width.px]="field.width"
+                    [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+                  {{ field.headerTranslated }}
+                  <p-sortIcon [field]="field.field"></p-sortIcon>
+                </th>
+              }
+            }
           </tr>
         </ng-template>
 
@@ -72,65 +73,73 @@ import {BaseSettings} from '../../lib/base.settings';
             <td>
               <p-tableCheckbox [value]="el"></p-tableCheckbox>
             </td>
-            <ng-container *ngFor="let field of fields">
-              <td *ngIf="field.visible" [style.max-width.px]="field.width"
-                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                  [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+            @for (field of fields; track field) {
+              @if (field.visible) {
+                <td [style.max-width.px]="field.width"
+                    [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
+                    [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                 || field.dataType===DataType.NumericInteger)? 'text-right': ''">
-                <ng-container [ngSwitch]="field.templateName">
-                  <ng-container *ngSwitchCase="'check'">
-                                      <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}"
-                                               aria-hidden="true"></i></span>
-                  </ng-container>
-                  <ng-container *ngSwitchCase="'icon'">
-                    <svg-icon [name]="getValueByPath(el, field)"
-                              [svgStyle]="{ 'width.px':16, 'height.px':16 }"></svg-icon>
-                  </ng-container>
-                  <ng-container *ngSwitchDefault>
-                    {{getValueByPath(el, field)}}
-                  </ng-container>
-                </ng-container>
-              </td>
-            </ng-container>
+                  @switch (field.templateName) {
+                    @case ('check') {
+                      <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}"
+                               aria-hidden="true"></i></span>
+                    }
+                    @case ('icon') {
+                      <svg-icon [name]="getValueByPath(el, field)"
+                                [svgStyle]="{ 'width.px':16, 'height.px':16 }"></svg-icon>
+                    }
+                    @default {
+                      {{ getValueByPath(el, field) }}
+                    }
+                  }
+                </td>
+              }
+            }
           </tr>
         </ng-template>
 
         <ng-template #expandedrow let-el let-columns="fields">
           <tr>
             <td [attr.colspan]="numberOfVisibleColumns + 2">
-              <template-form-check-dialog-result-failed *ngIf="failedParsedTemplateStateList.length > 0"
-                                                        [failedParsedTemplateStateList]="failedParsedTemplateStateList">
-              </template-form-check-dialog-result-failed>
-              <securityaccount-import-extended-info-filename *ngIf="failedParsedTemplateStateList.length > 0"
-                                                             [combineTemplateAndImpTransPos]="el">
-              </securityaccount-import-extended-info-filename>
-              <securityaccount-import-extended-info *ngIf="failedParsedTemplateStateList.length === 0"
-                                                    [combineTemplateAndImpTransPos]="el">
-              </securityaccount-import-extended-info>
+              @if (failedParsedTemplateStateList.length > 0) {
+                <template-form-check-dialog-result-failed
+                  [failedParsedTemplateStateList]="failedParsedTemplateStateList">
+                </template-form-check-dialog-result-failed>
+              }
+              @if (failedParsedTemplateStateList.length > 0) {
+                <securityaccount-import-extended-info-filename [combineTemplateAndImpTransPos]="el">
+                </securityaccount-import-extended-info-filename>
+              }
+              @if (failedParsedTemplateStateList.length === 0) {
+                <securityaccount-import-extended-info [combineTemplateAndImpTransPos]="el">
+                </securityaccount-import-extended-info>
+              }
             </td>
           </tr>
         </ng-template>
 
         <ng-template pTemplate="paginatorleft" let-state>
-          {{selectedEntities.length}} {{'SELECTED_FROM' | translate}} {{entityList.length}}
+          {{ selectedEntities.length }} {{ 'SELECTED_FROM' | translate }} {{ entityList.length }}
         </ng-template>
       </p-table>
     </div>
-    <securitycurrency-search-and-set *ngIf="visibleSetSecurityDialog"
-                                     [visibleDialog]="visibleSetSecurityDialog"
-                                     [callBackSetSecurityWithAfter]="this"
-                                     [supplementCriteria]="supplementCriteria"
-                                     (closeDialog)="handleOnCloseSetDialog($event)">
-    </securitycurrency-search-and-set>
+    @if (visibleSetSecurityDialog) {
+      <securitycurrency-search-and-set [visibleDialog]="visibleSetSecurityDialog"
+                                       [callBackSetSecurityWithAfter]="this"
+                                       [supplementCriteria]="supplementCriteria"
+                                       (closeDialog)="handleOnCloseSetDialog($event)">
+      </securitycurrency-search-and-set>
+    }
 
-    <securityaccount-import-set-cashaccount *ngIf="visibleSetCashaccountDialog"
-                                            [visibleDialog]="visibleSetCashaccountDialog"
-                                            [combineTemplateAndImpTransPos]="selectedEntities"
-                                            [idSecuritycashAccount]="selectImportTransactionHead.securityaccount.idSecuritycashAccount"
-                                            (closeDialog)="handleOnCloseSetDialog($event)">
-    </securityaccount-import-set-cashaccount>
+    @if (visibleSetCashaccountDialog) {
+      <securityaccount-import-set-cashaccount [visibleDialog]="visibleSetCashaccountDialog"
+                                              [combineTemplateAndImpTransPos]="selectedEntities"
+                                              [idSecuritycashAccount]="selectImportTransactionHead.securityaccount.idSecuritycashAccount"
+                                              (closeDialog)="handleOnCloseSetDialog($event)">
+      </securityaccount-import-set-cashaccount>
+    }
   `,
-    standalone: false
+  standalone: false
 })
 export class SecurityaccountImportTransactionTableComponent extends TableConfigBase
   implements OnDestroy, CallBackSetSecurityWithAfter {
@@ -160,13 +169,13 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
   private readonly ITP = 'IMPORT_TRANSACTION_POS';
 
   constructor(private importTransactionPosService: ImportTransactionPosService,
-              private confirmationService: ConfirmationService,
-              private messageToastService: MessageToastService,
-              private iconReg: SvgIconRegistryService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+    private confirmationService: ConfirmationService,
+    private messageToastService: MessageToastService,
+    private iconReg: SvgIconRegistryService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService) {
     super(filterService, usersettingsService, translateService, gps);
 
     this.supplementCriteria = new SupplementCriteria(true, false);
@@ -210,7 +219,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
   }
 
   public static hasTransaction(entity: CombineTemplateAndImpTransPos, field: ColumnConfig,
-                               valueField: any): string {
+    valueField: any): string {
     return SecurityaccountImportTransactionTableComponent.createTypeIconMap[
       entity.importTransactionPos.idTransaction ? SecurityaccountImportTransactionTableComponent.CHECK_OK
         : entity.importTransactionPos.transactionError ? SecurityaccountImportTransactionTableComponent.TRANSACTION_ERROR : null];
@@ -226,8 +235,8 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
   }
 
   parentSelectionChanged(selectImportTransactionHead: ImportTransactionHead,
-                         parentChildRowSelection: ParentChildRowSelection<CombineTemplateAndImpTransPos>,
-                         importTransactionTemplates: ImportTransactionTemplate[]) {
+    parentChildRowSelection: ParentChildRowSelection<CombineTemplateAndImpTransPos>,
+    importTransactionTemplates: ImportTransactionTemplate[]) {
     this.selectImportTransactionHead = selectImportTransactionHead;
     this.parentChildRowSelection = parentChildRowSelection;
     this.importTransactionTemplates = importTransactionTemplates;
@@ -402,14 +411,14 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
   }
 
   getFileTypeIcon(entity: CombineTemplateAndImpTransPos, field: ColumnConfig,
-                  valueField: any): string {
+    valueField: any): string {
     return SecurityaccountImportTransactionTableComponent.createTypeIconMap[entity.importTransactionPos.fileType];
   }
 
   getMayBeHasTransactionIcon(entity: CombineTemplateAndImpTransPos, field: ColumnConfig,
-                             valueField: any): string {
+    valueField: any): string {
     return SecurityaccountImportTransactionTableComponent.createTypeIconMap[entity.importTransactionPos.idTransactionMaybe == null
-      ? "" : entity.importTransactionPos.idTransactionMaybe > 0 ? SecurityaccountImportTransactionTableComponent.CHECK_OK : 'B'];
+      ? '' : entity.importTransactionPos.idTransactionMaybe > 0 ? SecurityaccountImportTransactionTableComponent.CHECK_OK : 'B'];
   }
 
   ngOnDestroy(): void {

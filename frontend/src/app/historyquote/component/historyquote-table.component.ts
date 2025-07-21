@@ -44,16 +44,16 @@ import {BaseSettings} from '../../lib/base.settings';
  * Shows the history quotes in a table
  */
 @Component({
-    template: `
+  template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-panel>
         <p-header>
-          <h4>{{entityNameUpper | translate}} {{nameSecuritycurrency?.getName()}}</h4>
-          <ng-container *ngIf="security">
-            {{'TRADING_FROM_TO' | translate }}: {{getDateByFormat(security.activeFromDate)}}
-            - {{getDateByFormat(security.activeToDate)}}
-          </ng-container>
+          <h4>{{ entityNameUpper | translate }} {{ nameSecuritycurrency?.getName() }}</h4>
+          @if (security) {
+            {{ 'TRADING_FROM_TO' | translate }}: {{ getDateByFormat(security.activeFromDate) }}
+            - {{ getDateByFormat(security.activeToDate) }}
+          }
         </p-header>
         <historyquote-quality [historyquoteQuality]="historyquotesWithMissings?.historyquoteQuality"
                               [securitycurrency]="historyquotesWithMissings?.securitycurrency">
@@ -61,100 +61,118 @@ import {BaseSettings} from '../../lib/base.settings';
       </p-panel>
       <div class="datatable">
         <p-table #table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
-                 responsiveLayout="scroll"
                  [first]="firstRow" (onPage)="onPage($event)" sortMode="multiple" [multiSortMeta]="multiSortMeta"
-                 [paginator]="true" [rows]="20" [dataKey]="entityKeyName"
-                 stripedRows showGridlines>
+                 [paginator]="true" [rows]="20" [dataKey]="entityKeyName" stripedRows showGridlines>
           <ng-template #header let-fields>
             <tr>
-              <th *ngFor="let field of fields" [pSortableColumn]="field.field"
-                  [style.width.px]="field.width" [pTooltip]="field.headerTooltipTranslated">
-                {{field.headerTranslated}}
-                <p-sortIcon [field]="field.field"></p-sortIcon>
-              </th>
+              @for (field of fields; track field) {
+                <th [pSortableColumn]="field.field"
+                    [style.width.px]="field.width" [pTooltip]="field.headerTooltipTranslated">
+                  {{ field.headerTranslated }}
+                  <p-sortIcon [field]="field.field"></p-sortIcon>
+                </th>
+              }
             </tr>
-            <tr *ngIf="hasFilter">
-              <th *ngFor="let field of fields" [ngSwitch]="field.filterType" style="overflow:visible;">
-                <ng-container *ngSwitchCase="FilterType.likeDataType">
-                  <ng-container [ngSwitch]="field.dataType">
-                    <p-columnFilter *ngSwitchCase="field.dataType === DataType.DateString || field.dataType === DataType.DateNumeric
-                              ? field.dataType : ''" [field]="field.field" display="menu" [showOperator]="true"
-                                    [matchModeOptions]="customMatchModeOptions" [matchMode]="'gtNoFilter'">
-                      <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                        <p-datepicker #cal [ngModel]="value" [dateFormat]="baseLocale.dateFormat"
-                                    (onSelect)="filter($event)"
-                                    monthNavigator="true" yearNavigator="true" yearRange="2000:2099"
-                                    (onInput)="filter(cal.value)">
-                        </p-datepicker>
-                      </ng-template>
-                    </p-columnFilter>
-                    <p-columnFilter *ngSwitchCase="DataType.Numeric" type="numeric" [field]="field.field"
-                                    [locale]="formLocale"
-                                    minFractionDigits="2" display="menu"></p-columnFilter>
-                  </ng-container>
-                </ng-container>
-                <ng-container *ngSwitchCase="FilterType.withOptions">
-                  <p-select [options]="field.filterValues" [style]="{'width':'100%'}"
-                              (onChange)="table.filter($event.value, field.field, 'equals')"></p-select>
-                </ng-container>
-              </th>
-            </tr>
+            @if (hasFilter) {
+              <tr>
+                @for (field of fields; track field) {
+                  <th style="overflow:visible;">
+                    @switch (field.filterType) {
+                      @case (FilterType.likeDataType) {
+                        @switch (field.dataType) {
+                          @case (field.dataType === DataType.DateString || field.dataType === DataType.DateNumeric ? field.dataType : '') {
+                            <p-columnFilter [field]="field.field" display="menu" [showOperator]="true"
+                                            [matchModeOptions]="customMatchModeOptions" [matchMode]="'gtNoFilter'">
+                              <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                <p-datepicker #cal [ngModel]="value" [dateFormat]="baseLocale.dateFormat"
+                                              (onSelect)="filter($event)"
+                                              [minDate]="minDate" [maxDate]="maxDate"
+                                              (onInput)="filter(cal.value)">
+                                </p-datepicker>
+                              </ng-template>
+                            </p-columnFilter>
+                          }
+                          @case (DataType.Numeric) {
+                            <p-columnFilter type="numeric" [field]="field.field"
+                                            [locale]="formLocale"
+                                            minFractionDigits="2" display="menu"></p-columnFilter>
+                          }
+                        }
+                      }
+                      @case (FilterType.withOptions) {
+                        <p-select [options]="field.filterValues" [style]="{'width':'100%'}"
+                                  (onChange)="table.filter($event.value, field.field, 'equals')"></p-select>
+                      }
+                    }
+                  </th>
+                }
+              </tr>
+            }
           </ng-template>
 
           <ng-template #body let-el let-columns="fields">
             <tr [pSelectableRow]="el">
-              <ng-container *ngFor="let field of fields">
-                <td *ngIf="field.visible" [style.width.px]="field.width"
-                    [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+              @for (field of fields; track field) {
+                @if (field.visible) {
+                  <td [style.width.px]="field.width"
+                      [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                 || field.dataType===DataType.NumericInteger)? 'text-right': ''">
-                  <ng-container [ngSwitch]="field.templateName">
-                    <ng-container *ngSwitchCase="'icon'">
-                      <svg-icon [name]="getValueByPath(el, field)"
-                                [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
-                    </ng-container>
-                    <ng-container *ngSwitchDefault>
-                      {{getValueByPath(el, field)}}
-                    </ng-container>
-                  </ng-container>
-                </td>
-              </ng-container>
+                    @switch (field.templateName) {
+                      @case ('icon') {
+                        <svg-icon [name]="getValueByPath(el, field)"
+                                  [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
+                      }
+                      @default {
+                        {{ getValueByPath(el, field) }}
+                      }
+                    }
+                  </td>
+                }
+              }
             </tr>
           </ng-template>
         </p-table>
-        <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+        @if (contextMenuItems) {
+          <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+        }
       </div>
     </div>
-    <historyquote-edit *ngIf="visibleDialog"
-                       [visibleDialog]="visibleDialog"
-                       [callParam]="callParam"
-                       (closeDialog)="handleCloseDialog($event)">
-    </historyquote-edit>
+    @if (visibleDialog) {
+      <historyquote-edit [visibleDialog]="visibleDialog"
+                         [callParam]="callParam"
+                         (closeDialog)="handleCloseDialog($event)">
+      </historyquote-edit>
+    }
 
-    <upload-file-dialog *ngIf="visibleUploadFileDialog"
-                        [visibleDialog]="visibleUploadFileDialog"
-                        [fileUploadParam]="fileUploadParam"
-                        (closeDialog)="handleCloseDialogAndRead($event)">
-    </upload-file-dialog>
+    @if (visibleUploadFileDialog) {
+      <upload-file-dialog [visibleDialog]="visibleUploadFileDialog"
+                          [fileUploadParam]="fileUploadParam"
+                          (closeDialog)="handleCloseDialogAndRead($event)">
+      </upload-file-dialog>
+    }
 
-    <historyquote-quality-fill-gaps *ngIf="visibleFillGapsDialog"
-                                    [visibleDialog]="visibleFillGapsDialog"
-                                    [historyquoteQuality]="historyquotesWithMissings?.historyquoteQuality"
-                                    [securitycurrency]="historyquotesWithMissings?.securitycurrency"
-                                    (closeDialog)="handleCloseDialogAndRead($event)">
-    </historyquote-quality-fill-gaps>
+    @if (visibleFillGapsDialog) {
+      <historyquote-quality-fill-gaps [visibleDialog]="visibleFillGapsDialog"
+                                      [historyquoteQuality]="historyquotesWithMissings?.historyquoteQuality"
+                                      [securitycurrency]="historyquotesWithMissings?.securitycurrency"
+                                      (closeDialog)="handleCloseDialogAndRead($event)">
+      </historyquote-quality-fill-gaps>
+    }
 
-    <historyquote-delete-dialog *ngIf="visibleDeleteHistoryquotes"
-                                [visibleDialog]="visibleDeleteHistoryquotes"
-                                [idSecuritycurrency]="historyquotesWithMissings.securitycurrency.idSecuritycurrency"
-                                [historyquoteQuality]="historyquotesWithMissings.historyquoteQuality"
-                                (closeDialog)="handleCloseDialogAndRead($event)">
-    </historyquote-delete-dialog>
+    @if (visibleDeleteHistoryquotes) {
+      <historyquote-delete-dialog [visibleDialog]="visibleDeleteHistoryquotes"
+                                  [idSecuritycurrency]="historyquotesWithMissings.securitycurrency.idSecuritycurrency"
+                                  [historyquoteQuality]="historyquotesWithMissings.historyquoteQuality"
+                                  (closeDialog)="handleCloseDialogAndRead($event)">
+      </historyquote-delete-dialog>
+    }
   `,
-    providers: [DialogService],
-    standalone: false
+  providers: [DialogService],
+  standalone: false
 })
 export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquote> implements OnDestroy {
-
+  minDate: Date = new Date('2000-01-01');
+  maxDate: Date = new Date('2099-12-31');
 
   private static createTypeIconMap: { [key: number]: string } = {
     [HistoryquoteCreateType.CONNECTOR_CREATED]: 'connector',
@@ -193,20 +211,21 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
   private timeSeriesParams: TimeSeriesParam[];
   private historyquoteSpecMenuItems: MenuItem[];
 
+
   constructor(private iconReg: SvgIconRegistryService,
-              private securityService: SecurityService,
-              private currencypairService: CurrencypairService,
-              private activatedRoute: ActivatedRoute,
-              private historyquoteService: HistoryquoteService,
-              private dataChangedService: DataChangedService,
-              usersettingsService: UserSettingsService,
-              confirmationService: ConfirmationService,
-              messageToastService: MessageToastService,
-              activePanelService: ActivePanelService,
-              dialogService: DialogService,
-              filterService: FilterService,
-              gps: GlobalparameterService,
-              translateService: TranslateService) {
+    private securityService: SecurityService,
+    private currencypairService: CurrencypairService,
+    private activatedRoute: ActivatedRoute,
+    private historyquoteService: HistoryquoteService,
+    private dataChangedService: DataChangedService,
+    usersettingsService: UserSettingsService,
+    confirmationService: ConfirmationService,
+    messageToastService: MessageToastService,
+    activePanelService: ActivePanelService,
+    dialogService: DialogService,
+    filterService: FilterService,
+    gps: GlobalparameterService,
+    translateService: TranslateService) {
     super(AppSettings.HISTORYQUOTE, historyquoteService, confirmationService, messageToastService, activePanelService,
       dialogService, filterService, translateService, gps, usersettingsService);
 
@@ -350,7 +369,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
   /**
    * The creation of a history quote depends on the right on the security or currency
    */
-  protected override hasRightsForCreateEntity(histroyquote: Historyquote): boolean {
+  protected override hasRightsForCreateEntity(historyquote: Historyquote): boolean {
     return AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps,
       this.nameSecuritycurrency.getSecuritycurrency());
   }
@@ -358,7 +377,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
   /**
    * The deletion of a history quote depends on the right on the security or currency
    */
-  protected override hasRightsForDeleteEntity(histroyquote: Historyquote): boolean {
+  protected override hasRightsForDeleteEntity(historyquote: Historyquote): boolean {
     return AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps,
       this.nameSecuritycurrency.getSecuritycurrency());
   }

@@ -103,7 +103,7 @@ const MyPreset = definePreset(Aura, {
 
 export class AppComponent implements OnDestroy {
 
-  private subscription: Subscription;
+  private readonly subscription: Subscription;
 
   constructor(translateService: TranslateService, primeNGConfig: PrimeNG, private router: Router) {
     translateService.addLangs(['en', 'de']);

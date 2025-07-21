@@ -22,29 +22,38 @@ import {DynamicFieldModelHelper} from '../../../lib/helper/dynamic.field.model.h
  * Shows the user register form.
  */
 @Component({
-    template: `
+  template: `
     <div class="container">
       <div class="login jumbotron center-block">
 
-        <div class="alert alert-danger" role="alert" *ngIf="errorLastRegistration">
-          {{errorLastRegistration | translate}}
-        </div>
+        @if (errorLastRegistration) {
+          <div class="alert alert-danger" role="alert">
+            {{errorLastRegistration | translate}}
+          </div>
+        }
+
         <application-info [applicationInfo]="applicationInfo"></application-info>
-        <ng-container *ngIf="applicationInfo">
+
+        @if (applicationInfo) {
           <h2>{{'REGISTRATION' | translate}}</h2>
           <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                         #form="dynamicForm"
                         (submitBt)="submit($event)">
           </dynamic-form>
 
-          <div *ngIf="progressValue">
-            <h4>{{'REGISTER_WAIT' | translate}}</h4>
-            <p-progressBar [value]="progressValue"></p-progressBar>
-          </div>
-          <div class="alert alert-info" role="alert" *ngIf="confirmEmail">
-            {{'REGISTRATION_EMAIL' | translate}}
-          </div>
-        </ng-container>
+          @if (progressValue) {
+            <div>
+              <h4>{{'REGISTER_WAIT' | translate}}</h4>
+              <p-progressBar [value]="progressValue"></p-progressBar>
+            </div>
+          }
+
+          @if (confirmEmail) {
+            <div class="alert alert-info" role="alert">
+              {{'REGISTRATION_EMAIL' | translate}}
+            </div>
+          }
+        }
       </div>
     </div>
   `,

@@ -23,7 +23,7 @@ import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propo
     selector: 'user-entity-change-limit-edit',
     template: `
     <p-dialog header="{{'USER_ENTITY_CHANGE_LIMIT' | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '500px'}"
+              [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"

@@ -12,7 +12,7 @@ import {MenuItem} from 'primeng/api';
     selector: 'algo-strategy-create-wizard',
     template: `
     <p-dialog header="{{'STRATEGY_CREATE' | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true"  [style]="{width: '400px'}"
+              [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <pe-steps [(activeIndex)]="activeIndex" styleClass="steps-custom">

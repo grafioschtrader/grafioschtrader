@@ -10,7 +10,7 @@ import {HelpIds} from '../../shared/help/help.ids';
 import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
-import {DynamicFieldHelper, VALIDATION_SPECIAL} from '../../lib/helper/dynamic.field.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {StockexchangeCallParam} from './stockexchange.call.param';
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
@@ -33,10 +33,10 @@ import {BaseSettings} from '../../lib/base.settings';
  * Edit stockexchnage
  */
 @Component({
-    selector: 'stockexchange-edit',
-    template: `
+  selector: 'stockexchange-edit',
+  template: `
     <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '500px'}"
+              [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
@@ -44,7 +44,7 @@ import {BaseSettings} from '../../lib/base.settings';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`,
-    standalone: false
+  standalone: false
 })
 export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchange> implements OnInit {
 
@@ -56,10 +56,10 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   private micSubscribe: Subscription;
 
   constructor(translateService: TranslateService,
-              gps: GlobalparameterService,
-              messageToastService: MessageToastService,
-              stockexchangeService: StockexchangeService,
-              private securityService: SecurityService) {
+    gps: GlobalparameterService,
+    messageToastService: MessageToastService,
+    stockexchangeService: StockexchangeService,
+    private securityService: SecurityService) {
     super(HelpIds.HELP_BASEDATA_STOCKEXCHANGE, AppSettings.STOCKEXCHANGE.toUpperCase(), translateService, gps,
       messageToastService, stockexchangeService);
   }
@@ -169,7 +169,9 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
     return Object.values(countryMap).sort((a, b) => a.optionsText.localeCompare(b.optionsText));
   }
 
-  private createGreopAndFristEntry(countryMap: { [cc: string]: GroupItem }, sm: StockexchangeMic, country: string): void {
+  private createGreopAndFristEntry(countryMap: {
+    [cc: string]: GroupItem
+  }, sm: StockexchangeMic, country: string): void {
     const gp = new GroupItem(null, null, country, 'fi fi-' + sm.countryCode.toLowerCase());
     countryMap[sm.countryCode] = gp;
     gp.children = [];

@@ -26,14 +26,14 @@ import {SecurityIdWithCurrency} from './security-historyquote-quality-table.comp
  * Shows the quality of historical price data per stock exchange or data provider.
  */
 @Component({
-    template: `
+  template: `
     <div class="data-container" (click)="onComponentClick($event)"
          #cmDiv [ngClass]=" {'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-panel>
         <p-header>
-          <h4>{{'SECURITY_HISTORY_QUALITY' | translate}} ({{'LAST_UPDATE' | translate}}: {{lastUpdate}})</h4>
+          <h4>{{ 'SECURITY_HISTORY_QUALITY' | translate }} ({{ 'LAST_UPDATE' | translate }}: {{ lastUpdate }})</h4>
         </p-header>
-        <label class="small-padding control-label" for="groupSelect">{{'MAIN_QUALITY_GROUP' | translate}}</label>
+        <label class="small-padding control-label" for="groupSelect">{{ 'MAIN_QUALITY_GROUP' | translate }}</label>
         <p-select id="groupSelect" [options]="groups" [(ngModel)]="selectedGroup"
                   (onChange)="groupChanged($event)">
         </p-select>
@@ -42,31 +42,38 @@ import {SecurityIdWithCurrency} from './security-historyquote-quality-table.comp
                    selectionMode="single" [(selection)]="selectedNode" (onNodeSelect)="nodeSelect($event)">
         <ng-template #header let-fields>
           <tr>
-            <th *ngFor="let field of fields" [ttSortableColumn]="field.field" [style.width.px]="field.width">
-              {{field.headerTranslated}}
-              <p-treeTableSortIcon [field]="field.field"></p-treeTableSortIcon>
-            </th>
+            @for (field of fields; track field) {
+              <th [ttSortableColumn]="field.field" [style.width.px]="field.width">
+                {{ field.headerTranslated }}
+                <p-treeTableSortIcon [field]="field.field"></p-treeTableSortIcon>
+              </th>
+            }
           </tr>
         </ng-template>
         <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
           <tr [ttSelectableRow]="rowNode">
-            <td *ngFor="let field of fields; let i = index"
-                [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
-              || field.dataType===DataType.DateTimeNumeric)}">
-              <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
-              {{getValueByPath(rowData, field)}}
-            </td>
+            @for (field of fields; track field; let i = $index) {
+              <td [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
+                || field.dataType===DataType.DateTimeNumeric)}">
+                @if (i === 0) {
+                  <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+                }
+                {{ getValueByPath(rowData, field) }}
+              </td>
+            }
           </tr>
         </ng-template>
         <ng-template pTemplate="footer">
           <tr>
-            <ng-container *ngFor="let field of fields">
-              <td *ngIf="field.visible" class="row-total" [style.width.px]="field.width"
-                  [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
-              || field.dataType===DataType.DateTimeNumeric)}">
-                {{getValueColumnTotal(field, 0, historyquoteQualityHead, null)}}
-              </td>
-            </ng-container>
+            @for (field of fields; track field) {
+              @if (field.visible) {
+                <td class="row-total" [style.width.px]="field.width"
+                    [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
+                || field.dataType===DataType.DateTimeNumeric)}">
+                  {{ getValueColumnTotal(field, 0, historyquoteQualityHead, null) }}
+                </td>
+              }
+            }
           </tr>
         </ng-template>
       </p-treeTable>
@@ -74,11 +81,13 @@ import {SecurityIdWithCurrency} from './security-historyquote-quality-table.comp
                                            [groupTitle]="groupTitle"
                                            (changedIdSecurity)="handleChangedIdSecurity($event)">
       </security-historyquote-quality-table>
-      <p-contextMenu *ngIf="contextMenuItems" #contextMenu [model]="contextMenuItems" [target]="cmDiv">
-      </p-contextMenu>
+      @if (contextMenuItems) {
+        <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="cmDiv">
+        </p-contextMenu>
+      }
     </div>
   `,
-    standalone: false
+  standalone: false
 })
 export class SecurityHistoryquoteQualityTreetableComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {
 
@@ -96,10 +105,10 @@ export class SecurityHistoryquoteQualityTreetableComponent extends TreeTableConf
   groups: SelectItem[] = [];
 
   constructor(private timeSeriesQuotesService: TimeSeriesQuotesService,
-              private activePanelService: ActivePanelService,
-              private securityService: SecurityService,
-              translateService: TranslateService,
-              gps: GlobalparameterService) {
+    private activePanelService: ActivePanelService,
+    private securityService: SecurityService,
+    translateService: TranslateService,
+    gps: GlobalparameterService) {
     super(translateService, gps);
     this.addColumnFeqH(DataType.String, 'name', true, false,
       {width: 250, columnGroupConfigs: [new ColumnGroupConfig(null, 'GRAND_TOTAL')]});
@@ -163,7 +172,8 @@ export class SecurityHistoryquoteQualityTreetableComponent extends TreeTableConf
     const hqg: HistoryquoteQualityGroup = event.node.data;
     if (hqg.categoryType !== null) {
       this.groupTitle = event.node.parent.parent.data.name + ' / ' + event.node.parent.data.name + ' / ' + hqg.name;
-      this.historyquoteQualityIds = plainToInstance(HistoryquoteQualityIds, event.node.data, {excludeExtraneousValues: true});
+      this.historyquoteQualityIds = plainToInstance(HistoryquoteQualityIds, event.node.data,
+        {excludeExtraneousValues: true}) as HistoryquoteQualityIds;
     }
   }
 

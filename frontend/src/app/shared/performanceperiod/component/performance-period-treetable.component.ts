@@ -23,69 +23,78 @@ import {AppSettings} from '../../app.settings';
  * The header shows gain for each day or each month.
  */
 @Component({
-    selector: 'performance-period-treetable',
-    template: `
-      <p-treeTable [value]="periodWindowsNodes" [columns]="fields"
-                   selectionMode="single" [(selection)]="selectedNodes">
-          <ng-template #header let-fields>
-              <tr>
-                  <th *ngFor="let field of fields" [style.width.px]="field.width">
-                      {{field.headerTranslated}}
-                  </th>
-              </tr>
-          </ng-template>
-          <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
-              <tr>
-                  <td *ngFor="let field of fields; let i = index"
-                      [ngClass]="{'text-right': (field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric),
-              'cell-holiday': getHolidayMissing(rowData, field) === HolidayMissing[HolidayMissing.HM_HOLIDAY],
-              'cell-data-missing': getHolidayMissing(rowData, field) === HolidayMissing[HolidayMissing.HM_HISTORY_DATA_MISSING]}"
-                      [style.width.px]="field.width">
-                      <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
-                      <ng-container [ngSwitch]="field.templateName">
-                          <ng-container *ngSwitchCase="'greenRed'">
-                <span [style.color]='isValueByPathMinusWithEmptyColor(rowData, field)? "red": "green"'>
-                  {{getValueByPath(rowData, field)}}
-                </span>
-                          </ng-container>
-                          <ng-container *ngSwitchDefault>
-                              <span [pTooltip]="getValueByPath(rowData, field)">{{getValueByPath(rowData, field)}}</span>
-                          </ng-container>
-                      </ng-container>
-                  </td>
-              </tr>
-          </ng-template>
-          <ng-template pTemplate="footer">
-              <tr>
-                  <ng-container *ngFor="let field of fields">
-                      <td *ngIf="field.visible" class="row-total" [style.width.px]="field.width"
-                          [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
-              || field.dataType===DataType.DateTimeNumeric)}">
-                          <ng-container [ngSwitch]="field.templateName">
-                              <ng-container *ngSwitchCase="'greenRed'">
-                <span [style.color]='isValueByPathMinus(performancePeriod?.sumPeriodColSteps, field)? "red": "green"'>
-                  {{getValueColumnTotal(field, 0, performancePeriod?.sumPeriodColSteps, null)}}
-                </span>
-                              </ng-container>
-                              <ng-container *ngSwitchDefault>
-                                  <span>{{getValueColumnTotal(field, 0, performancePeriod?.sumPeriodColSteps, null)}}</span>
-                              </ng-container>
-                          </ng-container>
-                      </td>
-                  </ng-container>
-              </tr>
-          </ng-template>
-      </p-treeTable>
+  selector: 'performance-period-treetable',
+  template: `
+    <p-treeTable [value]="periodWindowsNodes" [columns]="fields"
+                 selectionMode="single" [(selection)]="selectedNodes">
+      <ng-template #header let-fields>
+        <tr>
+          @for (field of fields; track field) {
+            <th [style.width.px]="field.width">
+              {{ field.headerTranslated }}
+            </th>
+          }
+        </tr>
+      </ng-template>
+      <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
+        <tr>
+          @for (field of fields; track field; let i = $index) {
+            <td [ngClass]="{'text-right': (field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric),
+            'cell-holiday': getHolidayMissing(rowData, field) === HolidayMissing[HolidayMissing.HM_HOLIDAY],
+            'cell-data-missing': getHolidayMissing(rowData, field) === HolidayMissing[HolidayMissing.HM_HISTORY_DATA_MISSING]}"
+                [style.width.px]="field.width">
+              @if (i === 0) {
+                <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+              }
+              @switch (field.templateName) {
+                @case ('greenRed') {
+                  <span [style.color]='isValueByPathMinusWithEmptyColor(rowData, field)? "red": "green"'>
+                                  {{ getValueByPath(rowData, field) }}
+                                </span>
+                }
+                @default {
+                  <span [pTooltip]="getValueByPath(rowData, field)">{{ getValueByPath(rowData, field) }}</span>
+                }
+              }
+            </td>
+          }
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="footer">
+        <tr>
+          @for (field of fields; track field) {
+            @if (field.visible) {
+              <td class="row-total" [style.width.px]="field.width"
+                  [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
+            || field.dataType===DataType.DateTimeNumeric)}">
+                @switch (field.templateName) {
+                  @case ('greenRed') {
+                    <span
+                      [style.color]='isValueByPathMinus(performancePeriod?.sumPeriodColSteps, field)? "red": "green"'>
+                                      {{ getValueColumnTotal(field, 0, performancePeriod?.sumPeriodColSteps, null) }}
+                                    </span>
+                  }
+                  @default {
+                    <span>{{ getValueColumnTotal(field, 0, performancePeriod?.sumPeriodColSteps, null) }}</span>
+                  }
+                }
+              </td>
+            }
+          }
+        </tr>
+      </ng-template>
+    </p-treeTable>
   `,
-    styles: [`
-      .cell-holiday {
-          background-color: greenyellow !important;
-      }
-      .cell-data-missing {
-          background-color: orange !important;
-      }
+  styles: [`
+    .cell-holiday {
+      background-color: greenyellow !important;
+    }
+
+    .cell-data-missing {
+      background-color: orange !important;
+    }
   `],
-    standalone: false
+  standalone: false
 })
 export class TenantPerformanceTreetableComponent extends TreeTableConfigBase implements OnInit, OnChanges {
   @Input() performancePeriod: PerformancePeriod;
@@ -103,7 +112,7 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
   lastPeriodSplit: WeekYear | string;
 
   constructor(translateService: TranslateService,
-              gps: GlobalparameterService) {
+    gps: GlobalparameterService) {
     super(translateService, gps);
   }
 

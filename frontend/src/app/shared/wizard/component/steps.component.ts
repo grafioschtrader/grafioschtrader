@@ -17,13 +17,14 @@ import { StepComponent } from './step.component';
   template: `
     <p-stepper [value]="activeIndex + 1" [class]="styleClass">
       <p-step-list>
-        <p-step
-          *ngFor="let step of steps.toArray(); let i = index"
-          [value]="i + 1"
-          [class]="step.styleClass || stepClass"
-          (click)="onStepClick(i)">
-          {{ step.label }}
-        </p-step>
+        @for (step of steps.toArray(); track step; let i = $index) {
+          <p-step
+            [value]="i + 1"
+            [class]="step.styleClass || stepClass"
+            (click)="onStepClick(i)">
+            {{ step.label }}
+          </p-step>
+        }
       </p-step-list>
     </p-stepper>
 
@@ -32,25 +33,24 @@ import { StepComponent } from './step.component';
 
     <!-- Navigation buttons -->
     <div class="flex pt-6 justify-between">
-      <button
-        pButton
-        type="button"
-        *ngIf="activeIndex > 0"
-        (click)="previous()"
-        icon="pi pi-chevron-left"
-        label="Previous"
-        severity="secondary">
-      </button>
+      @if (activeIndex > 0) {
+        <p-button
+          type="button"
+          (click)="previous()"
+          severity="secondary">
+          <i class="pi pi-chevron-left mr-2"></i>
+          Previous
+        </p-button>
+      }
 
-      <button
-        pButton
-        type="button"
-        *ngIf="activeIndex < steps.length - 1"
-        (click)="next()"
-        icon="pi pi-chevron-right"
-        iconPos="right"
-        label="Next">
-      </button>
+      @if (activeIndex < steps.length - 1) {
+        <p-button
+          type="button"
+          (click)="next()">
+          Next
+          <i class="pi pi-chevron-right ml-2"></i>
+        </p-button>
+      }
     </div>
   `,
   standalone: false

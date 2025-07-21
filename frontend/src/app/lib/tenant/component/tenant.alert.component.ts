@@ -6,6 +6,8 @@ import {Component} from '@angular/core';
  * TODO:
  */
 @Component({
+  // Selector is not used
+  selector: 'tenant-alert',
     template: `
     Alert
   `,

@@ -14,24 +14,28 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
 
 @Component({
     selector: 'template-form-check-dialog',
-    template: `
+  template: `
     <p-dialog header="{{'CHECK_TEMPLATE_FORM' | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" showEffect="fade" [style]="{width: '600px'}"
+              showEffect="fade" [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
 
-      <ng-container *ngIf="formTemplateCheck">
-        <template-form-check-dialog-result-success *ngIf="formTemplateCheck.importTransactionPos"
-                                                   [formTemplateCheck]="formTemplateCheck">
-        </template-form-check-dialog-result-success>
+      @if (formTemplateCheck) {
+        @if (formTemplateCheck.importTransactionPos) {
+          <template-form-check-dialog-result-success
+            [formTemplateCheck]="formTemplateCheck">
+          </template-form-check-dialog-result-success>
+        }
 
-        <template-form-check-dialog-result-failed *ngIf="formTemplateCheck.failedParsedTemplateStateList"
-                                                  [failedParsedTemplateStateList]="formTemplateCheck.failedParsedTemplateStateList">
-        </template-form-check-dialog-result-failed>
-      </ng-container>
+        @if (formTemplateCheck.failedParsedTemplateStateList) {
+          <template-form-check-dialog-result-failed
+            [failedParsedTemplateStateList]="formTemplateCheck.failedParsedTemplateStateList">
+          </template-form-check-dialog-result-failed>
+        }
+      }
     </p-dialog>`,
     standalone: false
 })

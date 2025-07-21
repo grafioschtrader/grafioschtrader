@@ -28,14 +28,15 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 
 /**
- * Used for cash account transaction where only one cash account is involved.
+ * Component for editing single cash account transactions where only one cash account is involved.
+ * Supports deposit, withdrawal, fee, and interest transactions with dynamic form validation.
  */
 @Component({
     selector: 'transaction-cashaccount-editsingle',
     template: `
     <p-dialog header="{{'SINGLE_ACCOUNT_TRANSACTION' | translate}}"
               [(visible)]="visibleCashaccountTransactionSingleDialog"
-              [responsive]="true" [style]="{width: '400px'}"
+              [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
@@ -48,17 +49,35 @@ import {AppSettings} from '../../shared/app.settings';
 })
 export class TransactionCashaccountEditSingleComponent extends TransactionCashaccountBaseOperations implements OnInit {
 
-  // InputMask from parent view
+  /** Controls visibility of the cash account transaction dialog */
   @Input() visibleCashaccountTransactionSingleDialog: boolean;
+
+  /** Form configuration object containing locale and validation settings */
   formConfig: FormConfig;
 
+  /** Minimum allowed transaction amount */
   readonly minAmount = 0.00000001;
+
+  /** Currency symbol for the selected cash account */
   cashaccountCurrency = ' ';
 
+  /** Subscription for transaction type changes */
   private transactionTypeChangedSub: Subscription;
+
+  /** Subscription for cash account changes */
   private chashaccountChangedSub: Subscription;
+
+  /** Standard required field error configuration */
   private errorRequired = {name: 'required', keyi18n: 'required', rules: [RuleEvent.TOUCHED]};
 
+  /**
+   * Creates an instance of TransactionCashaccountEditSingleComponent.
+   * @param portfolioService Service for portfolio operations
+   * @param transactionService Service for transaction operations
+   * @param messageToastService Service for displaying user messages
+   * @param translateService Angular translation service
+   * @param gps Global parameter service for application settings
+   */
   constructor(private portfolioService: PortfolioService,
               private transactionService: TransactionService,
               messageToastService: MessageToastService,
@@ -67,10 +86,12 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     super(messageToastService, null, null, translateService, gps);
   }
 
+  /**
+   * Initializes the component and sets up form configuration with dynamic field definitions.
+   */
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       5, this.helpLink.bind(this));
-
     const calcGroupConfig: FieldConfig[] = [
       // Validator for amount is set dynamically
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('cashaccountAmount', true,
@@ -80,7 +101,6 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
         }, true),
       this.getTransactionCostFieldDefinition()
     ];
-
     this.config = [
       DynamicFieldHelper.createFieldSelectStringHeqF('transactionType', true),
       FormDefinitionHelper.getTransactionTime(),
@@ -101,10 +121,19 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
+  /**
+   * Returns the visibility state of the transaction dialog.
+   * @returns True if dialog should be visible
+   */
   isVisibleDialog(): boolean {
     return this.visibleCashaccountTransactionSingleDialog;
   }
 
+  /**
+   * Selects the first available option for fields with single or forced selection.
+   * @param fieldConfig Field configuration to potentially auto-select
+   * @param force Whether to force selection even with multiple options
+   */
   selectSingleOptions(fieldConfig: FieldConfig, force: boolean) {
     if (fieldConfig.valueKeyHtmlOptions.length === 1 || force && fieldConfig.valueKeyHtmlOptions.length > 0) {
       fieldConfig.formControl.setValue(fieldConfig.valueKeyHtmlOptions[0].key);
@@ -112,7 +141,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
   }
 
   /**
-   * Depending on the transaction type a validator will be set on some input fields set visible or invisible
+   * Sets up subscription for transaction type changes to adjust form validation and visibility.
    */
   valueChangedOnTransactionType() {
     this.transactionTypeChangedSub = this.configObject.transactionType.formControl.valueChanges.subscribe(
@@ -120,6 +149,10 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     );
   }
 
+  /**
+   * Adjusts form fields and validation based on the selected transaction type.
+   * @param transactionType The selected transaction type string
+   */
   private changeTransactionType(transactionType: string): void {
     switch (TransactionType[transactionType]) {
       case TransactionType.FEE:
@@ -143,7 +176,6 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
         AppHelper.disableAndHideInput(this.configObject.taxCost);
         this.setAmountValidator(false, gteWithMask(this.minAmount), 'gte');
     }
-
     this.configObject.cashaccountAmount.labelKey = this.configObject.transactionType.valueKeyHtmlOptions
       .find(vkho => vkho.key === transactionType).value;
     const invisibleWithdrawal = TransactionType[transactionType] !== TransactionType.WITHDRAWAL;
@@ -168,6 +200,9 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     });
   }
 
+  /**
+   * Sets up subscription for calculation field changes to update debit amount for withdrawal transactions.
+   */
   valueChangedOnCalcFields(): void {
     this.valueChangedOnValueCalcFieldsSub = this.configObject.calcGroup.formControl.valueChanges.subscribe(data => {
       if (!this.configObject.transactionCost.invisible) {
@@ -179,12 +214,20 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     });
   }
 
+  /**
+   * Handles dialog hide event and cleans up subscriptions.
+   * @param event Dialog hide event
+   */
   onHide(event) {
     this.transactionTypeChangedSub && this.transactionTypeChangedSub.unsubscribe();
     this.chashaccountChangedSub && this.chashaccountChangedSub.unsubscribe();
     super.close();
   }
 
+  /**
+   * Submits the transaction form and processes the transaction creation or update.
+   * @param value Form values object
+   */
   submit(value: { [name: string]: any }) {
     const transaction: Transaction = new Transaction();
     if (this.transactionCallParam.transaction) {
@@ -193,11 +236,9 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     this.form.cleanMaskAndTransferValuesToBusinessObject(transaction);
     transaction.cashaccount = this.getCashaccountByIdCashaccountFromPortfolios(this.portfolios,
       transaction.idCashaccount).cashaccount;
-
     if (TransactionType[transaction.transactionType] === TransactionType.WITHDRAWAL) {
       transaction.cashaccountAmount = transaction.cashaccountAmount + transaction.transactionCost;
     }
-
     this.transactionService.updateCreateSingleCashTrans(transaction).subscribe({next: newTransaction => {
       this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED',
         {i18nRecord: AppSettings.TRANSACTION.toUpperCase()});
@@ -210,6 +251,9 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_TRANSACTION_ACCOUNT);
   }
 
+  /**
+   * Initializes component data and sets up form options and subscriptions.
+   */
   protected override initialize(): void {
     this.configObject.transactionType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
       TransactionType, [TransactionType.DEPOSIT, TransactionType.INTEREST_CASHACCOUNT,
@@ -222,18 +266,30 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     }
   }
 
+  /**
+   * Adjusts number input field precision and currency prefix.
+   * @param fieldConfig Field configuration to adjust
+   * @param integerDigits Maximum number of integer digits
+   * @param precision Number of decimal places
+   */
   private adjustNumberInputFractions(fieldConfig: FieldConfig, integerDigits: number, precision: number): void {
     DynamicFieldHelper.setCurrency(fieldConfig, this.cashaccountCurrency);
     DynamicFieldHelper.adjustNumberFraction(fieldConfig, integerDigits,
       precision);
   }
 
+  /**
+   * Sets up all value change subscriptions for form fields.
+   */
   private setValueChanged(): void {
     this.valueChangedOnCashaccount();
     this.valueChangedOnTransactionType();
     this.valueChangedOnCalcFields();
   }
 
+  /**
+   * Loads portfolio data for a single portfolio and initializes form options.
+   */
   private getSinglePortfolioByIdPortfolio(): void {
     // Portfolio maybe out of date
     this.portfolioService.getPortfolioByIdPortfolio(this.transactionCallParam.portfolio.idPortfolio).subscribe((portfolio: Portfolio) => {
@@ -246,6 +302,9 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     );
   }
 
+  /**
+   * Loads all portfolios for the tenant and initializes form options.
+   */
   private getAllPortfolios(): void {
     this.portfolioService.getPortfoliosForTenantOrderByName()
       .subscribe((data: Portfolio[]) => {
@@ -256,6 +315,9 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
       });
   }
 
+  /**
+   * Sets existing transaction data to form fields or sets default values for new transactions.
+   */
   private setExistingTransactionToView(): void {
     if (this.transactionCallParam.transaction === null) {
       this.configObject.idCashaccount.formControl.setValue(this.transactionCallParam.cashaccount.idSecuritycashAccount);
@@ -268,6 +330,12 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     }
   }
 
+  /**
+   * Sets amount field validator based on transaction type requirements.
+   * @param allowNegative Whether negative values are allowed
+   * @param validator Validator function to apply
+   * @param validatorKey Validation error key for error messages
+   */
   private setAmountValidator(allowNegative: boolean, validator: ValidatorFn, validatorKey: string) {
     this.configObject.cashaccountAmount.currencyMaskConfig.allowNegative = allowNegative;
     this.configObject.cashaccountAmount.validation = [Validators.required, validator];
@@ -279,6 +347,10 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     this.configObject.cashaccountAmount.baseInputComponent.reEvaluateRequired();
   }
 
+  /**
+   * Prepares security account options for the given portfolio.
+   * @param portfolio Portfolio containing security accounts
+   */
   private prepareSecurityaccount(portfolio: Portfolio) {
     if (!this.configObject.idSecurityaccount.invisible) {
       this.configObject.idSecurityaccount.valueKeyHtmlOptions =

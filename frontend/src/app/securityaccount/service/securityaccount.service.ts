@@ -10,7 +10,6 @@ import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../shared/login/service/log-in.service';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {InstrumentStatisticsResult} from '../../entities/view/instrument.statistics.result';
 
 
 @Injectable()
@@ -21,7 +20,7 @@ export class SecurityaccountService extends AuthServiceWithLogout<Securityaccoun
   }
 
   getSecurityPositionSummaryTenant(group: string, includeClosedPosition: boolean,
-                                   untilDate: Date): Observable<SecurityPositionGrandSummary> {
+    untilDate: Date): Observable<SecurityPositionGrandSummary> {
     return <Observable<SecurityPositionGrandSummary>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
       + `${AppSettings.SECURITYACCOUNT_KEY}/tenantsecurityaccountsummary/${group}`,
       AppHelper.getOptionsWithIncludeClosedPositionAndUntilDate(includeClosedPosition, untilDate, this.prepareHeaders()))
@@ -29,7 +28,7 @@ export class SecurityaccountService extends AuthServiceWithLogout<Securityaccoun
   }
 
   getSecurityPositionSummaryPortfolio(idPortfolio: number, group: string,
-                                      includeClosedPosition: boolean, untilDate: Date): Observable<SecurityPositionGrandSummary> {
+    includeClosedPosition: boolean, untilDate: Date): Observable<SecurityPositionGrandSummary> {
     return <Observable<SecurityPositionGrandSummary>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.SECURITYACCOUNT_KEY}/`
       + `${idPortfolio}/portfoliosecurityaccountsummary/${group}`,
       AppHelper.getOptionsWithIncludeClosedPositionAndUntilDate(includeClosedPosition, untilDate, this.prepareHeaders()))
@@ -37,7 +36,7 @@ export class SecurityaccountService extends AuthServiceWithLogout<Securityaccoun
   }
 
   getPositionSummarySecurityaccount(idSecurityaccount: number, group: string,
-                                    includeClosedPosition: boolean, untilDate: Date): Observable<SecurityPositionGrandSummary> {
+    includeClosedPosition: boolean, untilDate: Date): Observable<SecurityPositionGrandSummary> {
     return <Observable<SecurityPositionGrandSummary>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
       + `${AppSettings.SECURITYACCOUNT_KEY}/${idSecurityaccount}/securityaccountsummary/${group}`,
       AppHelper.getOptionsWithIncludeClosedPositionAndUntilDate(includeClosedPosition, untilDate, this.prepareHeaders()))

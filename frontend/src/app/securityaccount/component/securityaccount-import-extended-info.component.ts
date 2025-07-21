@@ -11,8 +11,7 @@ import {SecurityaccountImportTransactionTableComponent} from './securityaccount-
 import {AppHelper} from '../../lib/helper/app.helper';
 
 /**
- * Shows the extended information to a single import import transaction record in case when a
- * import template could read the data.
+ * Shows the extended information to a single import transaction record in case when an import template could read the data.
  */
 @Component({
     selector: 'securityaccount-import-extended-info',

@@ -14,11 +14,10 @@ import {FilterService} from 'primeng/api';
  */
 @Component({
     selector: 'security-historyquote-quality-table',
-    template: `
+  template: `
     <p-table [columns]="fields" [value]="hqwspList" selectionMode="single"
              [(selection)]="selectedSecurity" (onRowSelect)="onRowSelect($event)"
-             (onRowUnselect)="onRowUnselect($event)"
-             dataKey="idSecurity" responsiveLayout="scroll"
+             (onRowUnselect)="onRowUnselect($event)" dataKey="idSecurity"
              (sortFunction)="customSort($event)" [customSort]="true" sortMode="multiple" [multiSortMeta]="multiSortMeta"
              stripedRows showGridlines>
       <ng-template #caption>
@@ -26,19 +25,22 @@ import {FilterService} from 'primeng/api';
       </ng-template>
       <ng-template #header let-fields>
         <tr>
-          <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.width.px]="field.width">
-            {{field.headerTranslated}}
-            <p-sortIcon [field]="field.field"></p-sortIcon>
-          </th>
+          @for (field of fields; track field) {
+            <th [pSortableColumn]="field.field" [style.width.px]="field.width">
+              {{field.headerTranslated}}
+              <p-sortIcon [field]="field.field"></p-sortIcon>
+            </th>
+          }
         </tr>
       </ng-template>
       <ng-template #body let-el let-columns="fields">
         <tr [pSelectableRow]="el">
-          <td *ngFor="let field of fields"
-              [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.NumericInteger
+          @for (field of fields; track field) {
+            <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.NumericInteger
               || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''">
-            {{getValueByPath(el, field)}}
-          </td>
+              {{getValueByPath(el, field)}}
+            </td>
+          }
         </tr>
       </ng-template>
     </p-table>

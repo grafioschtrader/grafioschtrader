@@ -75,7 +75,8 @@ export class HistoryquoteEditComponent extends SimpleEntityEditBase<Historyquote
         this.gps.getNumberCurrencyMask(), false),
       ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
     ];
-    this.configObject = Object.assign({}, ...this.config.map(d => ({[d.field]: d})));
+    this.configObject = this.config.reduce((acc, d) => ({
+      ...acc, [d.field]: d }), {});
     TranslateHelper.translateMessageErrors(this.translateService, this.config);
   }
 

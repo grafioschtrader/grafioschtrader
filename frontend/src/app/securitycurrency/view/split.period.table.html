@@ -1,33 +1,37 @@
 <p-table [(selection)]="selectedRow" [columns]="fields" [dataKey]="dataSortKey" [multiSortMeta]="multiSortMeta" [paginator]="true"
-         [rows]="10" [value]="_dataList" responsiveLayout="scroll" selectionMode="single" sortMode="multiple"
+         [rows]="10" [value]="_dataList" selectionMode="single" sortMode="multiple"
          stripedRows showGridlines>
   <ng-template #header let-fields >
     <tr>
-      <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
-          [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-        {{field.headerTranslated}}
-        <p-sortIcon [field]="field.field"></p-sortIcon>
-      </th>
+      @for (field of fields; track field) {
+        <th [pSortableColumn]="field.field" [style.max-width.px]="field.width"
+            [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+          {{field.headerTranslated}}
+          <p-sortIcon [field]="field.field"></p-sortIcon>
+        </th>
+      }
     </tr>
   </ng-template>
   <ng-template #body let-columns="fields" let-el>
     <tr [pSelectableRow]="el">
-      <ng-container *ngFor="let field of fields">
-        <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''"
-            [style.max-width.px]="field.width"
-            [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-          <ng-container [ngSwitch]="field.templateName">
-            <ng-container *ngSwitchCase="'icon'">
-              <svg-icon [name]="getValueByPath(el, field)"
-                        [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
-            </ng-container>
-            <ng-container *ngSwitchDefault>
-              {{getValueByPath(el, field)}}
-            </ng-container>
-          </ng-container>
-        </td>
-      </ng-container>
+      @for (field of fields; track field) {
+        @if (field.visible) {
+          <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+                  || field.dataType===DataType.NumericInteger)? 'text-right': ''"
+              [style.max-width.px]="field.width"
+              [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+            @switch (field.templateName) {
+              @case ('icon') {
+                <svg-icon [name]="getValueByPath(el, field)"
+                          [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
+              }
+              @default {
+                {{getValueByPath(el, field)}}
+              }
+            }
+          </td>
+        }
+      }
     </tr>
   </ng-template>
   <ng-template let-state pTemplate="paginatorleft">
@@ -35,13 +39,11 @@
   </ng-template>
 </p-table>
 
-
 <button (click)="onClickDelete()" [disabled]="!selectedRow" class="btn btn-primary mr-1" label="{{ 'DELETE' | translate }}"
         pButton
         type="button"></button>
 <button (click)="onClickEdit()" [disabled]="!selectedRow" class="btn btn-primary" label="{{ 'EDIT' | translate }}"
         pButton
         type="button"></button>
-
 
 

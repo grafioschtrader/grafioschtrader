@@ -17,7 +17,7 @@ import {MultipleRequestToOneService} from '../../shared/service/multiple.request
     selector: 'securitycurrency-search-and-set',
     template: `
       <p-dialog header="{{'SET_SECURITY' | translate}}" [(visible)]="visibleDialog" appendTo="body"
-                [responsive]="true" [style]="{width: '720px'}" [resizable]="false"
+                [style]="{width: '720px'}" [resizable]="false"
                 (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
           <p class="big-size">{{'SEARCH_DIALOG_HELP' | translate}}</p>
           <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"

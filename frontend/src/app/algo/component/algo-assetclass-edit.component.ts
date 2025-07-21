@@ -14,7 +14,6 @@ import {AlgoTop} from '../model/algo.top';
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
 import {AlgoAssetclassSecurityBaseEdit} from './algo.assetclass.security.base.edit';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {BusinessSelectOptionsHelper} from '../../securitycurrency/component/business.select.options.helper';
@@ -26,7 +25,7 @@ import {BusinessSelectOptionsHelper} from '../../securitycurrency/component/busi
     selector: 'algo-assetclass-edit',
     template: `
     <p-dialog header="{{'ALGO_ASSETCLASS' | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '500px'}"
+              [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"

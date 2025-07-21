@@ -22,6 +22,8 @@ import {UDFSpecialTypeDisableUserService} from '../service/udf.special.type.disa
  * for example for currency pairs.
  */
 @Component({
+    // Selector is not used
+    selector: 'udf-metadata-general-table',
     templateUrl: '../view/udf.metadata.table.html',
     providers: [DialogService],
     standalone: false

@@ -1,4 +1,4 @@
-import {GroupItem, ValueKeyHtmlSelectOptions} from './value.key.html.select.options';
+import {GroupItem} from './value.key.html.select.options';
 import {InputType} from './input.type';
 import {BaseInputComponent} from '../components/base.input.component';
 import {BaseFieldFieldgroupConfig} from './base.field.fieldgroup.config';

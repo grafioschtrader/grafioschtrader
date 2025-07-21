@@ -1,7 +1,6 @@
 import {Injectable} from '@angular/core';
 import {MenuItem, MenuItemCommandEvent} from 'primeng/api';
 import {Securitycurrency} from '../../entities/securitycurrency';
-import {AppSettings} from '../../shared/app.settings';
 import {AlgoCallParam, AlgoStrategyDefinitionForm} from '../model/algo.dialog.visible';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {AlgoSecurity, AlgoSecurityStrategyImplType} from '../model/algo.security';

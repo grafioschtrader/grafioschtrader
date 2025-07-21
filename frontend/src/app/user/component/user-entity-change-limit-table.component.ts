@@ -20,7 +20,6 @@ import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
-import {AppSettings} from '../../shared/app.settings';
 import {ProposeUserTaskService} from '../../shared/dynamicdialog/service/propose.user.task.service';
 import {BaseSettings} from '../../lib/base.settings';
 
@@ -28,8 +27,8 @@ import {BaseSettings} from '../../lib/base.settings';
  * For a user it is possible to set a limit cf changes for a certain entity. It is implemented as a nested table.
  */
 @Component({
-    selector: 'user-entity-change-limit-table',
-    template: `
+  selector: 'user-entity-change-limit-table',
+  template: `
     <div class="data-container" (click)="onComponentClick($event)"
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <div class="datatable nestedtable">
@@ -37,39 +36,40 @@ import {BaseSettings} from '../../lib/base.settings';
                  (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)"
                  (onPage)="onPage($event)" dataKey="idUserEntityChangeLimit" [paginator]="true" [rows]="20"
                  (sortFunction)="customSort($event)" [customSort]="true"
-                 sortMode="multiple" [multiSortMeta]="multiSortMeta"
-                 responsiveLayout="scroll" [contextMenu]="cm"
+                 sortMode="multiple" [multiSortMeta]="multiSortMeta" [contextMenu]="cm"
                  stripedRows showGridlines>
           <ng-template #header let-fields>
             <tr>
-              <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
-                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                  [pTooltip]="field.headerTooltipTranslated">
-                {{field.headerTranslated}}
-                <p-sortIcon [field]="field.field"></p-sortIcon>
-              </th>
+              @for (field of fields; track field) {
+                <th [pSortableColumn]="field.field" [style.max-width.px]="field.width"
+                    [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
+                    [pTooltip]="field.headerTooltipTranslated">
+                  {{ field.headerTranslated }}
+                  <p-sortIcon [field]="field.field"></p-sortIcon>
+                </th>
+              }
             </tr>
           </ng-template>
-
           <ng-template #body let-el let-columns="fields">
             <tr [pContextMenuRow] [pSelectableRow]="el">
-              <ng-container *ngFor="let field of fields">
-
-                <td *ngIf="field.visible" [style.max-width.px]="field.width"
-                    [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                    [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)?
+              @for (field of fields; track field) {
+                @if (field.visible) {
+                  <td [style.max-width.px]="field.width"
+                      [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
+                      [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)?
                                       'text-right': ''">
-                  <ng-container [ngSwitch]="field.templateName">
-                    <ng-container *ngSwitchCase="'icon'">
-                      <svg-icon [name]="getValueByPath(el, field)"
-                                [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
-                    </ng-container>
-                    <ng-container *ngSwitchDefault>
-                      {{getValueByPath(el, field)}}
-                    </ng-container>
-                  </ng-container>
-                </td>
-              </ng-container>
+                    @switch (field.templateName) {
+                      @case ('icon') {
+                        <svg-icon [name]="getValueByPath(el, field)"
+                                  [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
+                      }
+                      @default {
+                        {{ getValueByPath(el, field) }}
+                      }
+                    }
+                  </td>
+                }
+              }
             </tr>
           </ng-template>
         </p-table>
@@ -77,15 +77,15 @@ import {BaseSettings} from '../../lib/base.settings';
       </div>
     </div>
 
-    <user-entity-change-limit-edit *ngIf="visibleDialog"
-                                   [visibleDialog]="visibleDialog"
-                                   [user]="user"
-                                   [existingUserEntityChangeLimit]="existingUserEntityChangeLimit"
-                                   [proposeChangeEntityWithEntity]="proposeChangeEntityWithEntity"
-                                   (closeDialog)="handleCloseDialog($event)">
-    </user-entity-change-limit-edit>
-  `,
-    standalone: false
+    @if (visibleDialog) {
+      <user-entity-change-limit-edit [visibleDialog]="visibleDialog"
+                                     [user]="user"
+                                     [existingUserEntityChangeLimit]="existingUserEntityChangeLimit"
+                                     [proposeChangeEntityWithEntity]="proposeChangeEntityWithEntity"
+                                     (closeDialog)="handleCloseDialog($event)">
+      </user-entity-change-limit-edit>
+    }`,
+  standalone: false
 })
 export class UserEntityChangeLimitTableComponent extends TableConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
 
@@ -106,7 +106,7 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
 
   existingUserEntityChangeLimit: UserEntityChangeLimit;
 
-  private proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
+  proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
   private proposeMap: Map<number, ProposeChangeEntityWithEntity> = new Map();
   private deleteMenu: MenuItem = {
     label: 'DELETE_RECORD|' + UserEntityChangeLimitTableComponent.USER_ENTITY_CHANGE_LIMIT,
@@ -121,14 +121,14 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
   ];
 
   constructor(private activePanelService: ActivePanelService,
-              private userEntityChangeLimitService: UserEntityChangeLimitService,
-              private messageToastService: MessageToastService,
-              private confirmationService: ConfirmationService,
-              private proposeUserTaskService: ProposeUserTaskService,
-              filterService: FilterService,
-              usersettingsService: UserSettingsService,
-              translateService: TranslateService,
-              gps: GlobalparameterService) {
+    private userEntityChangeLimitService: UserEntityChangeLimitService,
+    private messageToastService: MessageToastService,
+    private confirmationService: ConfirmationService,
+    private proposeUserTaskService: ProposeUserTaskService,
+    filterService: FilterService,
+    usersettingsService: UserSettingsService,
+    translateService: TranslateService,
+    gps: GlobalparameterService) {
     super(filterService, usersettingsService, translateService, gps);
 
     this.addColumn(DataType.String, this.UPPER_CASE_ENTITY_NAME, 'ENTITY_NAME', true, false,
@@ -145,8 +145,8 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
 
 
   getLimitProposeIcon(userEntityChangeLimit: UserEntityChangeLimit, field: ColumnConfig): string {
-   return !userEntityChangeLimit.idUserEntityChangeLimit || this.proposeMap.has(userEntityChangeLimit.idUserEntityChangeLimit)?
-      'user_limit_update': null;
+    return !userEntityChangeLimit.idUserEntityChangeLimit || this.proposeMap.has(userEntityChangeLimit.idUserEntityChangeLimit) ?
+      'user_limit_update' : null;
   }
 
   onComponentClick(event): void {

@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {MainDialogService} from '../../mainmenubar/service/main.dialog.service';
 import {TranslateService} from '@ngx-translate/core';
 import {LoginService} from '../service/log-in.service';
@@ -14,16 +14,15 @@ import {TranslateHelper} from '../../../lib/helper/translate.helper';
 import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
 import {GlobalSessionNames} from '../../global.session.names';
 import {DynamicFieldModelHelper} from '../../../lib/helper/dynamic.field.model.helper';
-import {ProcessedAction} from '../../../lib/types/processed.action';
 
 /**
  * Change the password with a dialog.
  */
 @Component({
-    selector: 'password-edit',
-    template: `
+  selector: 'password-edit',
+  template: `
     <p-dialog header="{{'PASSWORD_CHANGE' | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '450px'}"
+              [style]="{width: '450px'}"
               [closeOnEscape]="!forcePasswordChange" [closable]="!forcePasswordChange"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
@@ -31,7 +30,7 @@ import {ProcessedAction} from '../../../lib/types/processed.action';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`,
-    standalone: false
+  standalone: false
 })
 export class PasswordEditComponent extends PasswordBaseComponent implements OnInit {
   @Input() forcePasswordChange: boolean;
@@ -40,10 +39,10 @@ export class PasswordEditComponent extends PasswordBaseComponent implements OnIn
   private static readonly passwordOld = 'passwordOld';
 
   constructor(private mainDialogService: MainDialogService,
-              private messageToastService: MessageToastService,
-              private loginService: LoginService,
-              gps: GlobalparameterService,
-              translateService: TranslateService) {
+    private messageToastService: MessageToastService,
+    private loginService: LoginService,
+    gps: GlobalparameterService,
+    translateService: TranslateService) {
     super(gps, translateService);
     this.changePasswdFormDefinition(JSON.parse(sessionStorage.getItem(GlobalSessionNames.USER_FORM_DEFINITION)));
   }

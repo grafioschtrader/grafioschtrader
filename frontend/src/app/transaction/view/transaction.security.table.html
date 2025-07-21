@@ -4,45 +4,48 @@
   <div class="datatable nestedtable">
     <p-table (onPage)="onPage($event)" (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)"
              (sortFunction)="customSort($event)" [(selection)]="pageFirstRowSelectedRow.selectedRow"
-             [columns]="fields" [customSort]="true" responsiveLayout="scroll"
+             [columns]="fields" [customSort]="true"
              [first]="pageFirstRowSelectedRow.topPageRow" [multiSortMeta]="multiSortMeta" [paginator]="true" [rows]="20"
              [value]="transactionPositionList" dataKey="transaction.idTransaction" selectionMode="single"
              sortMode="multiple"
              stripedRows showGridlines>
       <ng-template #header let-fields>
         <tr>
-          <th *ngFor="let field of fields" [pSortableColumn]="field.field"
-              [pTooltip]="field.headerTooltipTranslated" [style.max-width.px]="field.width"
-              [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-            {{field.headerTranslated}}
-            <p-sortIcon [field]="field.field"></p-sortIcon>
-          </th>
+          @for (field of fields; track field.field) {
+            <th [pSortableColumn]="field.field"
+                [pTooltip]="field.headerTooltipTranslated" [style.max-width.px]="field.width"
+                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+              {{field.headerTranslated}}
+              <p-sortIcon [field]="field.field"></p-sortIcon>
+            </th>
+          }
         </tr>
       </ng-template>
       <ng-template #body let-columns="fields" let-el>
         <tr [pContextMenuRow] [pSelectableRow]="el">
-          <ng-container *ngFor="let field of fields">
-            <td *ngIf="field.visible"
-                [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
-                [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-              <ng-container [ngSwitch]="field.templateName">
-                <ng-container *ngSwitchCase="'check'">
-                  <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>
-                </ng-container>
-                <ng-container *ngSwitchCase="'greenRed'">
-                  <span [pTooltip]="getValueByPath(el, field)"
-                        [style.color]='isValueByPathMinus(el, field)? "red": "inherit"'
-                        tooltipPosition="top">
-                    {{getValueByPath(el, field)}}
-                  </span>
-                </ng-container>
-                <ng-container *ngSwitchDefault>
-                  <span [pTooltip]="getValueByPath(el, field)">{{getValueByPath(el, field)}}</span>
-                </ng-container>
-              </ng-container>
-            </td>
-          </ng-container>
+          @for (field of fields; track field.field) {
+            @if (field.visible) {
+              <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
+                  [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+                @switch (field.templateName) {
+                  @case ('check') {
+                    <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>
+                  }
+                  @case ('greenRed') {
+                    <span [pTooltip]="getValueByPath(el, field)"
+                          [style.color]='isValueByPathMinus(el, field)? "red": "inherit"'
+                          tooltipPosition="top">
+                      {{getValueByPath(el, field)}}
+                    </span>
+                  }
+                  @default {
+                    <span [pTooltip]="getValueByPath(el, field)">{{getValueByPath(el, field)}}</span>
+                  }
+                }
+              </td>
+            }
+          }
         </tr>
       </ng-template>
     </p-table>
@@ -50,10 +53,10 @@
   <p-contextMenu #cm [model]="contextMenuItems" [target]="cmDiv" appendTo="body">
   </p-contextMenu>
 
-
-  <transaction-security-edit (closeDialog)="handleCloseTransactionDialog($event)"
-                             *ngIf="visibleSecurityTransactionDialog"
-                             [transactionCallParam]="transactionCallParam"
-                             [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog">
-  </transaction-security-edit>
+  @if (visibleSecurityTransactionDialog) {
+    <transaction-security-edit (closeDialog)="handleCloseTransactionDialog($event)"
+                               [transactionCallParam]="transactionCallParam"
+                               [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog">
+    </transaction-security-edit>
+  }
 </div>

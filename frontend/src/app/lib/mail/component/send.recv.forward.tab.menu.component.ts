@@ -8,6 +8,8 @@ import {TabItem} from '../../../shared/types/tab.item';
  * Uses SharedTabMenuComponent for consistent tab behavior.
  */
 @Component({
+  // Selector is not used
+  selector: 'send-recv-forward-tab-menu',
   template: `
     <app-shared-tab-menu
       [tabs]="tabs"

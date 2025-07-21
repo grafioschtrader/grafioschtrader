@@ -10,7 +10,7 @@ import {FormDefinitionHelper} from '../../shared/edit/form.definition.helper';
     selector: 'transaction-cashaccount-connect-debit-credit',
     template: `
     <p-dialog header="{{'CHANGE_TO_ACCOUNT_TRANSFER' | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '450px'}"
+              [style]="{width: '450px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"

@@ -4,7 +4,7 @@ import {HttpClient, HttpParams} from '@angular/common/http';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 
 export abstract class SecurityCurrencyService<T> extends AuthServiceWithLogout<T> {
-  constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
+  protected constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
     super(loginService, httpClient, messageToastService);
   }
 

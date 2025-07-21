@@ -12,7 +12,6 @@ import {AppHelper} from '../../lib/helper/app.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {OptionalParams, TranslateValue} from '../../lib/datashowbase/column.config';
 import {AlgoStrategyHelper} from './algo.strategy.helper';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.helper';
 
 /**
@@ -22,15 +21,17 @@ import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.help
  */
 @Component({
     selector: 'strategy-detail',
-    template: `
-    <div *ngFor="let field of fields" class="row">
-      <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 showlabel" align="right">
-        {{field.headerTranslated}}:
+  template: `
+    @for (field of fields; track field) {
+      <div class="row">
+        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 showlabel text-end">
+          {{field.headerTranslated}}:
+        </div>
+        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 nopadding wrap">
+          {{getValueByPath(dynamicModel, field)}}{{field.headerSuffix}}
+        </div>
       </div>
-      <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 nopadding wrap">
-        {{getValueByPath(dynamicModel, field)}}{{field.headerSuffix}}
-      </div>
-    </div>
+    }
   `,
     standalone: false
 })

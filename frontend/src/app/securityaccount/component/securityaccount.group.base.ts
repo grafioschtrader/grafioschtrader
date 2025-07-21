@@ -15,7 +15,7 @@ export abstract class SecurityaccountGroupBase<T extends SecurityPositionGroupSu
    * @param defaultEntityGroup
    * @param groupedBy
    */
-  constructor(protected translateService: TranslateService,
+  protected constructor(protected translateService: TranslateService,
               protected datatableConfigBase: TableConfigBase,
               public defaultGroup: string,
               public defaultEntityGroup: string,

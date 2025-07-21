@@ -20,7 +20,7 @@ import {Security} from '../../entities/security';
 import {Currencypair} from '../../entities/currencypair';
 import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
 import {ViewSizeChangedService} from '../../shared/layout/service/view.size.changed.service';
-import {combineLatest, Observable, Subscription} from 'rxjs';
+import {combineLatest, Observable} from 'rxjs';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
@@ -33,41 +33,41 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
  * Shows the performance watchlist. It has no special function implemented.
  */
 @Component({
-    templateUrl: '../view/watchlist.data.html',
-    styles: [`
+  templateUrl: '../view/watchlist.data.html',
+  styles: [`
     .cell-move {
       cursor: move !important;
     }
   `],
-    providers: [DialogService]
-    // changeDetection: ChangeDetectionStrategy.OnPush
-    ,
-    standalone: false
+  providers: [DialogService]
+  // changeDetection: ChangeDetectionStrategy.OnPush
+  ,
+  standalone: false
 })
 export class WatchlistPerformanceComponent extends WatchlistTable implements OnInit, OnDestroy {
 
-
-  private subscriptionViewSizeChanged: Subscription;
-  private topicSubscription: Subscription;
-
+  /**
+   * Creates a new WatchlistPerformanceComponent with all required dependencies and initializes performance columns
+   * and time frames.
+   */
   constructor(private viewSizeChangedService: ViewSizeChangedService,
-              dialogService: DialogService,
-              alarmSetupService: AlarmSetupService,
-              timeSeriesQuotesService: TimeSeriesQuotesService,
-              dataChangedService: DataChangedService,
-              activePanelService: ActivePanelService,
-              watchlistService: WatchlistService,
-              router: Router,
-              activatedRoute: ActivatedRoute,
-              confirmationService: ConfirmationService,
-              messageToastService: MessageToastService,
-              productIconService: ProductIconService,
-              changeDetectionStrategy: ChangeDetectorRef,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gpsGT: GlobalparameterGTService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+    dialogService: DialogService,
+    alarmSetupService: AlarmSetupService,
+    timeSeriesQuotesService: TimeSeriesQuotesService,
+    dataChangedService: DataChangedService,
+    activePanelService: ActivePanelService,
+    watchlistService: WatchlistService,
+    router: Router,
+    activatedRoute: ActivatedRoute,
+    confirmationService: ConfirmationService,
+    messageToastService: MessageToastService,
+    productIconService: ProductIconService,
+    changeDetectionStrategy: ChangeDetectorRef,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gpsGT: GlobalparameterGTService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService) {
     super(WatchListType.PERFORMANCE, AppSettings.WATCHLIST_PERFORMANCE_TABLE_SETTINGS_STORE, dialogService, alarmSetupService,
       timeSeriesQuotesService, dataChangedService, activePanelService, watchlistService, router, activatedRoute, confirmationService,
       messageToastService, productIconService, changeDetectionStrategy, filterService, translateService, gpsGT, gps,
@@ -118,7 +118,6 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.addColumnFeqH(DataType.Numeric, 'positionGainLossPercentage', true, true, {
       headerSuffix: '%', templateName: 'greenRed'
     });
-
     this.addColumnFeqH(DataType.Numeric, 'valueSecurity', true, true);
     this.addColumn(DataType.Numeric, 'securitycurrency.sPrevClose', 'DAY_BEFORE_CLOSE',
       true, true, {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
@@ -140,15 +139,12 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     return HelpIds.HELP_WATCHLIST_PERFORMANCE;
   }
 
-  override ngOnDestroy(): void {
-    this.topicSubscription && this.topicSubscription.unsubscribe();
-    super.ngOnDestroy();
-  }
 
+  /** Loads watchlist data without price updates and combines with tenant limit information. */
   protected override getWatchlistWithoutUpdate(): void {
     const watchListObservable: Observable<SecuritycurrencyGroup> = this.watchlistService.getWatchlistWithoutUpdate(this.idWatchlist);
     const tenantLimitObservable: Observable<TenantLimit[]> = this.watchlistService.getSecuritiesCurrenciesWatchlistLimits(this.idWatchlist);
-    combineLatest([watchListObservable, tenantLimitObservable]).subscribe(result => {
+    combineLatest([watchListObservable, tenantLimitObservable]).subscribe((result: [SecuritycurrencyGroup, TenantLimit[]]) => {
       this.createSecurityPositionList(result[0]);
       this.tenantLimits = result[1];
       this.loading = false;
@@ -156,10 +152,16 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     });
   }
 
+  /** Updates all price data for the watchlist by delegating to REST service implementation. */
   protected override updateAllPrice(): void {
     this.updateAllPriceThruRest();
   }
 
+  /**
+   * Creates the show menu with context items, time frame selection, and column visibility options.
+   * @param securitycurrencyPosition The currently selected security or currency position
+   * @returns Array of translated menu items for the show menu
+   */
   protected override getShowMenu(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): MenuItem[] {
     const menuItems = [...this.getShowContextMenuItems(securitycurrencyPosition, false), {separator: true},
       this.getMenuTimeFrame(), ...this.getMenuShowOptions()];
@@ -167,6 +169,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     return menuItems;
   }
 
+  /** Updates price data through REST service call with period performance data for the selected time frame. */
   private updateAllPriceThruRest(): void {
     this.watchlistService.getWatchlistWithPeriodPerformance(this.idWatchlist, this.choosenTimeFrame.days)
       .subscribe((data: SecuritycurrencyGroup) => {
@@ -177,9 +180,9 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
       });
   }
 
+  /** Creates the time frame selection menu with checkable items for different time periods. */
   private getMenuTimeFrame(): MenuItem {
     const childMenuItems: MenuItem[] = [];
-
     this.timeFrames.forEach(timeFrame => {
       childMenuItems.push({
         label: timeFrame.name,
@@ -190,6 +193,12 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     return {label: 'TIME_FRAME', items: childMenuItems};
   }
 
+  /**
+   * Handles time frame selection by updating the chosen time frame, menu icons, column visibility, and refreshing data.
+   * @param event The menu click event
+   * @param timeFrame The selected time frame object
+   * @param childMenuItems The array of child menu items to update icons for
+   */
   private handleTimeFrame(event, timeFrame: TimeFrame, childMenuItems: MenuItem[]) {
     this.choosenTimeFrame = timeFrame;
     childMenuItems.forEach(menuItem => menuItem.icon = AppSettings.ICONNAME_CIRCLE_EMTPY);

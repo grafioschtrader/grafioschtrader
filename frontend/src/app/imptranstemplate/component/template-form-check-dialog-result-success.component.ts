@@ -12,16 +12,18 @@ import {AppSettings} from '../../shared/app.settings';
  */
 @Component({
     selector: 'template-form-check-dialog-result-success',
-    template: `
+  template: `
     <h4>{{'IMPORT_POS_CHECK_SUCCESS' | translate}}</h4>
-    <div *ngFor="let field of fields" class="row">
-      <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 showlabel" align="right">
-        {{field.headerTranslated}}:
+    @for (field of fields; track field) {
+      <div class="row">
+        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 showlabel text-end">
+          {{field.headerTranslated}}:
+        </div>
+        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 nopadding wrap">
+          {{getValueByPath(formTemplateCheck.importTransactionPos, field)}}
+        </div>
       </div>
-      <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 nopadding wrap">
-        {{getValueByPath(formTemplateCheck.importTransactionPos, field)}}
-      </div>
-    </div>
+    }
   `,
     standalone: false
 })

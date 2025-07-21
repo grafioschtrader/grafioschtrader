@@ -20,32 +20,37 @@ import {AppSettings} from '../../../shared/app.settings';
  * Shows your created change request on entities in a table. The only available operation is to delete a request.
  */
 @Component({
-    template: `
+  template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
-               [dataKey]="entityKeyName" responsiveLayout="scroll"
-               stripedRows showGridlines>
+               [dataKey]="entityKeyName" stripedRows showGridlines>
         <ng-template #caption>
           <h4>{{'YOUR_CHANGE_REQUESTS' | translate}}</h4>
         </ng-template>
         <ng-template #header let-fields>
           <tr>
-            <th *ngFor="let field of fields" [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated">
-              {{field.headerTranslated}}
-              <p-sortIcon [field]="field.field"></p-sortIcon>
-            </th>
+            @for (field of fields; track field) {
+              <th [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated">
+                {{field.headerTranslated}}
+                <p-sortIcon [field]="field.field"></p-sortIcon>
+              </th>
+            }
           </tr>
         </ng-template>
         <ng-template #body let-el let-columns="fields">
           <tr [pSelectableRow]="el">
-            <td *ngFor="let field of fields">
-              {{getValueByPath(el, field)}}
-            </td>
+            @for (field of fields; track field) {
+              <td>
+                {{getValueByPath(el, field)}}
+              </td>
+            }
           </tr>
         </ng-template>
       </p-table>
-      <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+      @if (contextMenuItems) {
+        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+      }
     </div>
   `,
     providers: [DialogService],

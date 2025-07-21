@@ -14,7 +14,6 @@ import {IGlobalMenuAttach} from '../../../shared/mainmenubar/component/iglobal.m
 import {ColumnConfig, ColumnGroupConfig} from '../../datashowbase/column.config';
 import {TableConfigBase} from '../../datashowbase/table.config.base';
 import {AppSettings} from '../../../shared/app.settings';
-import {AppHelper} from '../../helper/app.helper';
 import {ChartDataService} from '../../../shared/chart/service/chart.data.service';
 import {PlotlyHelper} from '../../../shared/chart/plotly.helper';
 import {HelpIds} from '../../../shared/help/help.ids';
@@ -30,8 +29,8 @@ import {BusinessHelper} from '../../../shared/helper/business.helper';
  * currencies or portfolios.
  */
 @Component({
-    templateUrl: '../view/tenant.summaries.cashaccount.table.html',
-    standalone: false
+  templateUrl: '../view/tenant.summaries.cashaccount.table.html',
+  standalone: false
 })
 export class TenantSummariesCashaccountComponent extends TableConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
 
@@ -52,14 +51,14 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
   private CHART_TITLE = 'CASH_BALANCE_SECURITIES';
 
   constructor(private portfolioService: PortfolioService,
-              private activatedRoute: ActivatedRoute,
-              private activePanelService: ActivePanelService,
-              private router: Router,
-              private chartDataService: ChartDataService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+    private activatedRoute: ActivatedRoute,
+    private activePanelService: ActivePanelService,
+    private router: Router,
+    private chartDataService: ChartDataService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService) {
     super(filterService, usersettingsService, translateService, gps);
 
     this.addColumn(DataType.String, 'cashaccount.name', 'NAME', true, false,
@@ -107,11 +106,11 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
           new ColumnGroupConfig('grandAccountInterestMC')]
       }));
     this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'gainLossCurrencyMC', true, false,
-         {
-           templateName: 'greenRed',
-           columnGroupConfigs: [new ColumnGroupConfig('groupGainLossCurrencyMC'),
-             new ColumnGroupConfig('grandGainLossCurrencyMC')]
-         }));
+      {
+        templateName: 'greenRed',
+        columnGroupConfigs: [new ColumnGroupConfig('groupGainLossCurrencyMC'),
+          new ColumnGroupConfig('grandGainLossCurrencyMC')]
+      }));
     this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'gainLossSecurities', true, false,
       {
         templateName: 'greenRed',

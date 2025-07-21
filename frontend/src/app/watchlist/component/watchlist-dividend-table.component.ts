@@ -11,7 +11,8 @@ import {FilterService} from 'primeng/api';
 import {AppSettings} from '../../shared/app.settings';
 
 /**
- * Time the imported dividends as a table for a security.
+ * Component that displays imported dividends as a table for a specific security.
+ * Provides a tabular view of dividend data including ex-date, pay date, amounts, and creation source information.
  */
 @Component({
     selector: 'watchlist-dividend-table',
@@ -19,9 +20,23 @@ import {AppSettings} from '../../shared/app.settings';
     standalone: false
 })
 export class WatchlistDividendTableComponent extends DividendSplitTableBase<Dividend> implements OnInit {
+  /** Field name constant for the ex-date column */
   private static EX_DATE = 'exDate';
+
+  /** The unique identifier of the security/currency to display dividends for */
   @Input() idSecuritycurrency: number;
 
+
+  /**
+   * Creates a new watchlist dividend table component and configures the table columns.
+   *
+   * @param dividendService Service for retrieving dividend data
+   * @param filterService PrimeNG service for table filtering functionality
+   * @param usersettingsService Service for persisting user table preferences
+   * @param translateService Angular translation service for internationalization
+   * @param gps Global parameter service for locale and formatting settings
+   * @param iconReg Service for registering SVG icons used in the table
+   */
   constructor(private dividendService: DividendService,
               filterService: FilterService,
               usersettingsService: UserSettingsService,
@@ -40,6 +55,7 @@ export class WatchlistDividendTableComponent extends DividendSplitTableBase<Divi
     this.prepareTableAndTranslate();
   }
 
+  /** Initializes the component by loading dividend data for the specified security */
   ngOnInit(): void {
     this.dividendService.getDividendsByIdSecuritycurrency(this.idSecuritycurrency).subscribe((dividend) => {
       this.data = dividend;

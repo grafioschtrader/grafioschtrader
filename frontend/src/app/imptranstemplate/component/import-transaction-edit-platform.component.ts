@@ -22,7 +22,7 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
     selector: 'import-transaction-edit-platform',
     template: `
     <p-dialog header="{{'IMPORT_TRANSACTION_PLATFORM' | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '500px'}"
+              [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"

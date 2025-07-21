@@ -27,23 +27,24 @@ import {FilterService, MenuItem} from 'primeng/api';
  * Report of transaction cost and transaction tax.
  */
 @Component({
-    template: `
+  template: `
     <div class="data-container" (click)="onComponentClick($event)"
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <div class="datatable">
-
         <p-table #dataTable [columns]="fields" [value]="transactionCostGroupSummaries" selectionMode="single"
                  [(selection)]="selectedRow" dataKey="securityaccount.idSecuritycashAccount"
                  [expandedRowKeys]="expandedTCGSid" sortMode="multiple" [multiSortMeta]="multiSortMeta"
-                 responsiveLayout="scroll" stripedRows showGridlines>
+                 stripedRows showGridlines>
           <ng-template #header let-fields>
             <tr>
               <th style="width:24px"></th>
-              <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
-                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-                {{field.headerTranslated}}
-                <p-sortIcon [field]="field.field"></p-sortIcon>
-              </th>
+              @for (field of fields; track field) {
+                <th [pSortableColumn]="field.field" [style.max-width.px]="field.width"
+                    [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+                  {{field.headerTranslated}}
+                  <p-sortIcon [field]="field.field"></p-sortIcon>
+                </th>
+              }
             </tr>
           </ng-template>
 
@@ -54,27 +55,31 @@ import {FilterService, MenuItem} from 'primeng/api';
                   <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
                 </a>
               </td>
-              <ng-container *ngFor="let field of fields">
-                <td *ngIf="field.visible" [style.max-width.px]="field.width"
-                    [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                    [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+              @for (field of fields; track field) {
+                @if (field.visible) {
+                  <td [style.max-width.px]="field.width"
+                      [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
+                      [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                      || field.dataType===DataType.NumericInteger)? 'text-right': ''">
-                  {{getValueByPath(el, field)}}
-                </td>
-              </ng-container>
+                    {{getValueByPath(el, field)}}
+                  </td>
+                }
+              }
             </tr>
           </ng-template>
 
           <ng-template pTemplate="footer">
             <tr>
               <td></td>
-              <ng-container *ngFor="let field of fields">
-                <td *ngIf="field.visible" class="row-total" [style.width.px]="field.width"
-                    [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+              @for (field of fields; track field) {
+                @if (field.visible) {
+                  <td class="row-total" [style.width.px]="field.width"
+                      [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                 || field.dataType===DataType.NumericInteger)? 'text-right': ''">
-                  {{getValueColumnTotal(field, 0, transactionCostGrandSummary, null)}}
-                </td>
-              </ng-container>
+                    {{getValueColumnTotal(field, 0, transactionCostGrandSummary, null)}}
+                  </td>
+                }
+              }
             </tr>
           </ng-template>
 
@@ -162,10 +167,8 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
     });
   }
 
-
   override getMenuShowOptions(): MenuItem[] {
     const otherMenuShowOptions: MenuItem[] = super.getMenuShowOptions();
-
     const menuItems: MenuItem[] = [];
     if (otherMenuShowOptions) {
       menuItems.push(...otherMenuShowOptions);

@@ -13,7 +13,6 @@ import {FileSystemFileEntry, NgxFileDropEntry} from 'ngx-file-drop';
 import {InfoLevelType} from '../message/info.leve.type';
 import {MessageToastService} from '../message/message.toast.service';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
-import {AppSettings} from '../../shared/app.settings';
 import {BaseSettings} from '../base.settings';
 
 export const enum Comparison { GT, LT, EQ }

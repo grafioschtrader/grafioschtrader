@@ -23,7 +23,6 @@ import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.htm
 import moment from 'moment';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {Stockexchange} from '../../entities/stockexchange';
-import {AppSettings} from '../../shared/app.settings';
 import {CreateType} from '../../entities/dividend.split';
 import {BaseSettings} from '../../lib/base.settings';
 
@@ -31,9 +30,9 @@ import {BaseSettings} from '../../lib/base.settings';
  * The calendar component for the stock exchange.
  */
 @Component({
-    selector: 'trading-calendar-stockexchange',
-    templateUrl: '../../tradingcalendar/view/trading.calendar.html',
-    standalone: false
+  selector: 'trading-calendar-stockexchange',
+  templateUrl: '../../tradingcalendar/view/trading.calendar.html',
+  standalone: false
 })
 export class TradingCalendarStockexchangeComponent extends TradingCalendarBase implements OnInit {
   static readonly SYSTEM_CREATED_COLOR = 'red';
@@ -59,12 +58,12 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
   private dateCreateTypes: { [key: number]: CreateType };
 
   constructor(private tradingDaysMinusService: TradingDaysMinusService,
-              private tradingDaysPlusService: TradingDaysPlusService,
-              private dialogService: DialogService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              activePanelService: ActivePanelService,
-              messageToastService: MessageToastService) {
+    private tradingDaysPlusService: TradingDaysPlusService,
+    private dialogService: DialogService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    activePanelService: ActivePanelService,
+    messageToastService: MessageToastService) {
     super(translateService, gps, [TradingCalendarStockexchangeComponent.USER_CREATED_COLOR,
       TradingCalendarStockexchangeComponent.SYSTEM_CREATED_COLOR], activePanelService, messageToastService);
   }

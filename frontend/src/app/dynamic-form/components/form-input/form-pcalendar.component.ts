@@ -17,7 +17,6 @@ import {Helper} from '../../../lib/helper/helper';
                   pTooltip="{{config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP'}}"
                   #input
                   [hideOnDateTimeSelect]="true"
-                  [locale]="language"
                   [minDate]="config.calendarConfig.minDate"
                   [maxDate]="config.calendarConfig.maxDate"
                   [disabledDates]="config.calendarConfig.disabledDates"

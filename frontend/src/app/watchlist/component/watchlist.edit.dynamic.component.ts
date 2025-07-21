@@ -14,9 +14,15 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {HelpIds} from '../../shared/help/help.ids';
 
 /**
- * Create or modify a watchlist, only the name can be edited.
+ * Angular component for creating or modifying watchlists in a dynamic dialog.
+ *
+ * Provides a simple form interface that allows users to edit only the name
+ * property of a watchlist entity. Extends SimpleDynamicEditBase for common
+ * CRUD functionality and dynamic form generation.
  */
 @Component({
+  // Selector is not used
+  selector: 'watchlist-edit-dynamic',
   template: `
     <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
                   (submitBt)="submit($event)">
@@ -25,8 +31,22 @@ import {HelpIds} from '../../shared/help/help.ids';
   standalone: false
 })
 export class WatchlistEditDynamicComponent extends SimpleDynamicEditBase<Watchlist> implements OnInit, AfterViewInit {
+  /**
+   * Call parameters containing the watchlist entity to be edited and operation context.
+   */
   callParam: CallParam;
 
+  /**
+   * Creates an instance of WatchlistEditDynamicComponent.
+   *
+   * @param {GlobalparameterGTService} gpsGT - GT-specific global parameters service
+   * @param {DynamicDialogConfig} dynamicDialogConfig - PrimeNG dialog configuration
+   * @param {DynamicDialogRef} dynamicDialogRef - PrimeNG dialog reference
+   * @param {TranslateService} translateService - Angular translation service
+   * @param {GlobalparameterService} gps - Global parameters service
+   * @param {MessageToastService} messageToastService - Toast notification service
+   * @param {WatchlistService} watchlistService - Watchlist CRUD service
+   */
   constructor(private gpsGT: GlobalparameterGTService,
     dynamicDialogConfig: DynamicDialogConfig,
     dynamicDialogRef: DynamicDialogRef,
@@ -37,6 +57,10 @@ export class WatchlistEditDynamicComponent extends SimpleDynamicEditBase<Watchli
     super(dynamicDialogConfig, dynamicDialogRef, HelpIds.HELP_WATCHLIST, translateService, gps, messageToastService, watchlistService);
   }
 
+  /**
+   * Initializes the component and configures the dynamic form.
+   * Sets up form configuration, extracts call parameters, and creates field definitions.
+   */
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, this.helpLink.bind(this));
@@ -48,6 +72,10 @@ export class WatchlistEditDynamicComponent extends SimpleDynamicEditBase<Watchli
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
+  /**
+   * Completes form setup after view initialization.
+   * Enables submit button, populates form with existing data if editing, and sets focus.
+   */
   ngAfterViewInit(): void {
     this.form.setDefaultValuesAndEnableSubmit();
     if (this.callParam.thisObject != null) {
@@ -57,6 +85,13 @@ export class WatchlistEditDynamicComponent extends SimpleDynamicEditBase<Watchli
   }
 
 
+  /**
+   * Creates or updates a watchlist entity before saving.
+   * Handles both new watchlist creation and existing watchlist updates.
+   *
+   * @param {Object} value - Form field values
+   * @returns {Watchlist} The prepared watchlist entity for backend persistence
+   */
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Watchlist {
     const watchlist: Watchlist = new Watchlist();
     if (this.callParam.thisObject) {

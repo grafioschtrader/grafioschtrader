@@ -8,13 +8,17 @@ import {DayOfWeek} from './model/day.of.week';
 
 @Component({
     selector: 'ng-fullyearcalendar-lib',
-    template: `
-    <div *ngIf="year" class="flex-container">
-      <div *ngFor="let month of year.months" class="grid-item">
-        <month-calendar [underline]="underline" (dayClicked)="dayClicked($event)" [month]="month"
-                        [disabledDaysOfWeek]="disabledDaysOfWeek" [locale]="locale"></month-calendar>
+  template: `
+    @if (year) {
+      <div class="flex-container">
+        @for (month of year.months; track month) {
+          <div class="grid-item">
+            <month-calendar [underline]="underline" (dayClicked)="dayClicked($event)" [month]="month"
+                            [disabledDaysOfWeek]="disabledDaysOfWeek" [locale]="locale"></month-calendar>
+          </div>
+        }
       </div>
-    </div>
+    }
   `,
     styleUrls: ['./fullyearcalendar-lib.scss'],
     standalone: false
@@ -97,11 +101,9 @@ export class FullyearcalendarLibComponent implements OnDestroy, DoCheck {
     const cvs = document.createElement('canvas');
     cvs.height = 1;
     cvs.width = 1;
-    const ctx = cvs.getContext('2d');
+    const ctx = cvs.getContext('2d', { willReadFrequently: true });
     ctx.fillStyle = color;
     ctx.fillRect(0, 0, 1, 1);
-    const rgb: Uint8ClampedArray = ctx.getImageData(0, 0, 1, 1).data;
-
     return ctx.getImageData(0, 0, 1, 1).data;
   }
 

@@ -19,8 +19,6 @@ import {InfoLevelType} from '../../../lib/message/info.leve.type';
 import {ITaskExtendService} from './itask.extend.service';
 import {TASK_EXTENDED_SERVICE} from '../../../app.component';
 
-
-
 /**
  * Shows the batch Jobs in a table.
  */
@@ -29,10 +27,9 @@ import {TASK_EXTENDED_SERVICE} from '../../../app.component';
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-table #table [columns]="fields" [value]="taskDataChangeList"
-               selectionMode="single"
-               [(selection)]="selectedEntity" dataKey="idTaskDataChange"
+               selectionMode="single" [(selection)]="selectedEntity" dataKey="idTaskDataChange"
                sortMode="multiple" [multiSortMeta]="multiSortMeta"
-               responsiveLayout="scroll" (sortFunction)="customSort($event)" [customSort]="true"
+               (sortFunction)="customSort($event)" [customSort]="true"
                stripedRows showGridlines>
         <ng-template #caption>
           <h4>{{ 'TASK_DATA_MONITOR' | translate }}</h4>
@@ -41,89 +38,106 @@ import {TASK_EXTENDED_SERVICE} from '../../../app.component';
         <ng-template #header let-fields>
           <tr>
             <th style="width:24px"></th>
-            <th *ngFor="let field of fields" [pSortableColumn]="field.field"
-                [pTooltip]="field.headerTooltipTranslated"
-                [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-              {{ field.headerTranslated }}
-              <p-sortIcon [field]="field.field"></p-sortIcon>
-            </th>
+            @for (field of fields; track field) {
+              <th [pSortableColumn]="field.field"
+                  [pTooltip]="field.headerTooltipTranslated"
+                  [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+                {{ field.headerTranslated }}
+                <p-sortIcon [field]="field.field"></p-sortIcon>
+              </th>
+            }
           </tr>
-          <tr *ngIf="hasFilter">
-            <th style="width:24px"></th>
-            <th *ngFor="let field of fields" [ngSwitch]="field.filterType" style="overflow:visible;">
-              <ng-container *ngSwitchCase="FilterType.likeDataType">
-                <ng-container [ngSwitch]="field.dataType">
-                  <p-columnFilter *ngSwitchCase="field.dataType === DataType.DateString || field.dataType === DataType.DateNumeric
-                              ? field.dataType : ''" [field]="field.field" display="menu" [showOperator]="true"
-                                  [matchModeOptions]="customMatchModeOptions"
-                                  [matchMode]="'gtNoFilter'">
-                    <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                      <p-datepicker #cal [ngModel]="value" [dateFormat]="baseLocale.dateFormat"
-                                    (onSelect)="filter($event)"
-                                    monthNavigator="true" yearNavigator="true" yearRange="2000:2099"
-                                    (onInput)="filter(cal.value)">
-                      </p-datepicker>
-                    </ng-template>
-                  </p-columnFilter>
-                  <p-columnFilter *ngSwitchCase="DataType.NumericShowZero" type="numeric"
-                                  [field]="field.field"
-                                  [locale]="formLocale"
-                                  minFractionDigits="0" display="menu"></p-columnFilter>
-                </ng-container>
-              </ng-container>
-              <ng-container *ngSwitchCase="FilterType.withOptions">
-                <p-select [options]="field.filterValues" [style]="{'width':'100%'}"
-                            (onChange)="table.filter($event.value, field.field, 'equals')"></p-select>
-              </ng-container>
-            </th>
-          </tr>
+          @if (hasFilter) {
+            <tr>
+              <th style="width:24px"></th>
+              @for (field of fields; track field) {
+                <th style="overflow:visible;">
+                  @switch (field.filterType) {
+                    @case (FilterType.likeDataType) {
+                      @switch (field.dataType) {
+                        @case (field.dataType === DataType.DateString || field.dataType === DataType.DateNumeric ? field.dataType : '') {
+                          <p-columnFilter [field]="field.field" display="menu" [showOperator]="true"
+                                          [matchModeOptions]="customMatchModeOptions"
+                                          [matchMode]="'gtNoFilter'">
+                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                              <p-datepicker #cal [ngModel]="value" [dateFormat]="baseLocale.dateFormat"
+                                            (onSelect)="filter($event)"
+                                            [minDate]="minDate" [maxDate]="maxDate"
+                                            (onInput)="filter(cal.value)">
+                              </p-datepicker>
+                            </ng-template>
+                          </p-columnFilter>
+                        }
+                        @case (DataType.NumericShowZero) {
+                          <p-columnFilter type="numeric"
+                                          [field]="field.field"
+                                          [locale]="formLocale"
+                                          minFractionDigits="0" display="menu"></p-columnFilter>
+                        }
+                      }
+                    }
+                    @case (FilterType.withOptions) {
+                      <p-select [options]="field.filterValues" [style]="{'width':'100%'}"
+                                (onChange)="table.filter($event.value, field.field, 'equals')"></p-select>
+                    }
+                  }
+                </th>
+              }
+            </tr>
+          }
         </ng-template>
         <ng-template #body let-expanded="expanded" let-el let-columns="fields">
           <tr [pSelectableRow]="el">
             <td>
-              <a *ngIf="ProgressStateType[el.progressStateType] === ProgressStateType.PROG_FAILED"
-                 href="#"
-                 [pRowToggler]="el">
-                <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
-              </a>
+              @if (ProgressStateType[el.progressStateType] === ProgressStateType.PROG_FAILED) {
+                <a href="#" [pRowToggler]="el">
+                  <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
+                </a>
+              }
             </td>
-            <td *ngFor="let field of fields"
-                [ngClass]="(field.dataType===DataType.NumericShowZero || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''" [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-              <ng-container [ngSwitch]="field.templateName">
-                <ng-container *ngSwitchCase="'check'">
-                                    <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}"
-                                             aria-hidden="true"></i></span>
-                </ng-container>
-                <ng-container *ngSwitchDefault>
-                  <span [pTooltip]="getTooltipValueByPath(el, field)"
-                        tooltipPosition="top">{{ getValueByPath(el, field) }}</span>
-                </ng-container>
-              </ng-container>
-            </td>
+            @for (field of fields; track field) {
+              <td [ngClass]="(field.dataType===DataType.NumericShowZero || field.dataType===DataType.DateTimeNumeric
+                  || field.dataType===DataType.NumericInteger)? 'text-right': ''" [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+                @switch (field.templateName) {
+                  @case ('check') {
+                    <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}"
+                             aria-hidden="true"></i></span>
+                  }
+                  @default {
+                    <span [pTooltip]="getTooltipValueByPath(el, field)"
+                          tooltipPosition="top">{{ getValueByPath(el, field) }}</span>
+                  }
+                }
+              </td>
+            }
           </tr>
         </ng-template>
         <ng-template #expandedrow let-tdc let-columns="fields">
           <tr>
             <td [attr.colspan]="numberOfVisibleColumns + 1" style="overflow:visible;">
               <h4>{{ tdc.failedMessageCode | translate }}</h4>
-              <textarea *ngIf="tdc.failedStackTrace" [rows]="getShowLines(tdc.failedStackTrace)">
-              {{tdc.failedStackTrace}}
-              </textarea>
+              @if (tdc.failedStackTrace) {
+                <textarea [rows]="getShowLines(tdc.failedStackTrace)">
+                {{tdc.failedStackTrace}}
+                </textarea>
+              }
             </td>
           </tr>
         </ng-template>
       </p-table>
-      <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+      @if (contextMenuItems) {
+        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+      }
     </div>
-    <task-data-change-edit *ngIf="visibleDialog"
-                           [visibleDialog]="visibleDialog"
-                           [callParam]="callParam"
-                           [tdcFormConstraints]="tdcFormConstraints"
-                           (closeDialog)="handleCloseDialog($event)">
-    </task-data-change-edit>
+    @if (visibleDialog) {
+      <task-data-change-edit [visibleDialog]="visibleDialog"
+                             [callParam]="callParam"
+                             [tdcFormConstraints]="tdcFormConstraints"
+                             (closeDialog)="handleCloseDialog($event)">
+      </task-data-change-edit>
+    }
   `,
   styles: ['textarea { width:100%; }'],
   providers: [DialogService],
@@ -131,6 +145,8 @@ import {TASK_EXTENDED_SERVICE} from '../../../app.component';
 })
 export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataChange> {
 
+  minDate: Date = new Date('2000-01-01');
+  maxDate: Date = new Date('2099-12-31');
   taskDataChangeList: TaskDataChange[];
   additionalData: any;
   callParam: TaskDataChange;
@@ -203,8 +219,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
 
   protected override readData(): void {
     combineLatest([this.taskDataChangeService.getAllTaskDataChange(), this.taskExtendService.supportAdditionalToolTipData()
-        ? this.taskExtendService.getAdditionalData() : of([])]).
-        subscribe(([taskDataChanges, additionalData]: [TaskDataChange[], any]) => {
+      ? this.taskExtendService.getAdditionalData() : of([])]).subscribe(([taskDataChanges, additionalData]: [TaskDataChange[], any]) => {
       this.taskDataChangeList = taskDataChanges;
       if (this.taskExtendService.supportAdditionalToolTipData()) {
         this.additionalData = additionalData;

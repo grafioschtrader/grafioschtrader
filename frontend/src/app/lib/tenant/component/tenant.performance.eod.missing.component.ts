@@ -20,35 +20,39 @@ import {DataChangedService} from '../../../shared/maintree/service/data.changed.
 import {ProcessedAction} from '../../types/processed.action';
 import {Historyquote} from '../../../entities/historyquote';
 import {BusinessHelper} from '../../../shared/helper/business.helper';
-import {AppSettings} from '../../../shared/app.settings';
 import {BaseSettings} from '../../base.settings';
 
 /**
  * Displays an annual calendar with a table of missing EOD courses.
  */
 @Component({
-    template: `
+  template: `
     <div class="data-container" (click)="onComponentClick($event)" (contextmenu)="onRightClick($event)"
          #cmDiv [ngClass]=" {'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-panel>
         <p-header>
-          <h5>{{'MISSING_DAY_CALENDAR_MARK'|translate}}</h5>
+          <h5>{{ 'MISSING_DAY_CALENDAR_MARK'|translate }}</h5>
         </p-header>
-        <label class="small-padding control-label" for="idYearSelect">{{'YEAR' | translate}}</label>
+        <label class="small-padding control-label" for="idYearSelect">{{ 'YEAR' | translate }}</label>
         <p-select id="idYearSelect" [options]="possibleYears" [(ngModel)]="selectedYear"
-                    (onChange)="yearChanged($event)">
+                  (onChange)="yearChanged($event)">
         </p-select>
         <ng-fullyearcalendar-lib [locale]="locale" [underline]="underline" [yearCalendarData]="yearCalendarData">
         </ng-fullyearcalendar-lib>
         <p-footer>
           <div class="ui-dialog-buttonpane ui-widget-content flexRight">
-            <button pButton class="btn" (click)="addMinusYear(-1)" label="{{yearCalendarData.year-1}}"
-                    icon="pi pi-angle-left" *ngIf="containsYear(yearCalendarData.year - 1)">
-            </button>
-            <button pButton class="btn" (click)="addMinusYear(1)" label="{{yearCalendarData.year+1}}" iconPos="right"
-                    icon="pi pi-angle-right" *ngIf="containsYear(yearCalendarData.year + 1)">
-            </button>
-
+            @if (containsYear(yearCalendarData.year - 1)) {
+              <p-button class="btn" (click)="addMinusYear(-1)">
+                <i class="pi pi-angle-left mr-2"></i>
+                {{ yearCalendarData.year - 1 }}
+              </p-button>
+            }
+            @if (containsYear(yearCalendarData.year + 1)) {
+              <p-button class="btn" (click)="addMinusYear(1)">
+                {{ yearCalendarData.year + 1 }}
+                <i class="pi pi-angle-right ml-2"></i>
+              </p-button>
+            }
           </div>
         </p-footer>
       </p-panel>
@@ -59,11 +63,13 @@ import {BaseSettings} from '../../base.settings';
         (changedSecurity)="handleChangedSecurity($event)">
       </tenant-performance-eod-missing-table>
 
-      <p-contextMenu *ngIf="contextMenuItems" #contextMenu [model]="contextMenuItems" [target]="cmDiv">
-      </p-contextMenu>
+      @if (contextMenuItems) {
+        <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="cmDiv">
+        </p-contextMenu>
+      }
     </div>
   `,
-    standalone: false
+  standalone: false
 })
 export class TenantPerformanceEodMissingComponent extends CalendarNavigation implements IGlobalMenuAttach, OnInit, OnDestroy {
   missingQuotesWithSecurities: MissingQuotesWithSecurities;
@@ -78,13 +84,13 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
   private subscriptionHistoryquoteChanged: Subscription;
 
   constructor(private timeSeriesQuotesService: TimeSeriesQuotesService,
-              private holdingService: HoldingService,
-              private messageToastService: MessageToastService,
-              private router: Router,
-              private dataChangedService: DataChangedService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              activePanelService: ActivePanelService) {
+    private holdingService: HoldingService,
+    private messageToastService: MessageToastService,
+    private router: Router,
+    private dataChangedService: DataChangedService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    activePanelService: ActivePanelService) {
     super(translateService, gps, activePanelService, ['yellow']);
   }
 

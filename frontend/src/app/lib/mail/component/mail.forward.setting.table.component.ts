@@ -25,44 +25,51 @@ import {TableCrudSupportMenu} from '../../datashowbase/table.crud.support.menu';
  * This component shows the message settings in a table.
  */
 @Component({
-    template: `
+  template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
 
       <p-table [columns]="fields" [value]="mailSettingForwardList" selectionMode="single"
-               [(selection)]="selectedEntity" dataKey="idMailSettingForward" responsiveLayout="scroll"
+               [(selection)]="selectedEntity" dataKey="idMailSettingForward"
                (sortFunction)="customSort($event)" [customSort]="true"
                stripedRows showGridlines>
         <ng-template #header let-fields>
           <tr>
-            <th *ngFor="let field of fields" [pSortableColumn]="field.field"
-                [pTooltip]="field.headerTooltipTranslated"
-                [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-              {{field.headerTranslated}}
-              <p-sortIcon [field]="field.field"></p-sortIcon>
-            </th>
+            @for (field of fields; track field) {
+              <th [pSortableColumn]="field.field"
+                  [pTooltip]="field.headerTooltipTranslated"
+                  [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+                {{ field.headerTranslated }}
+                <p-sortIcon [field]="field.field"></p-sortIcon>
+              </th>
+            }
           </tr>
         </ng-template>
         <ng-template #body let-el let-columns="fields">
           <tr [pSelectableRow]="el">
-            <td *ngFor="let field of fields" [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-              {{getValueByPath(el, field)}}
-            </td>
+            @for (field of fields; track field) {
+              <td [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+                {{ getValueByPath(el, field) }}
+              </td>
+            }
           </tr>
         </ng-template>
       </p-table>
-      <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+      @if (contextMenuItems) {
+        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+      }
     </div>
-    <mail-forward-setting-edit *ngIf="visibleDialog"
-                               [visibleDialog]="visibleDialog"
-                               [callParam]="callParam"
-                               (closeDialog)="handleCloseDialog($event)">
-    </mail-forward-setting-edit>
+    @if (visibleDialog) {
+      <mail-forward-setting-edit [visibleDialog]="visibleDialog"
+                                 [callParam]="callParam"
+                                 (closeDialog)="handleCloseDialog($event)">
+      </mail-forward-setting-edit>
+    }
   `,
-    providers: [DialogService],
-    standalone: false
+  providers: [DialogService],
+  standalone: false
 })
 export class MailForwardSettingTableComponent extends TableCrudSupportMenu<MailSettingForward> implements OnDestroy {
   callParam: MailSettingForwardParam;
@@ -71,15 +78,15 @@ export class MailForwardSettingTableComponent extends TableCrudSupportMenu<MailS
   private mailSendForwardDefault: MailSendForwardDefault;
 
   constructor(private mailSettingForwardService: MailSettingForwardService,
-              private productIconService: ProductIconService,
-              confirmationService: ConfirmationService,
-              messageToastService: MessageToastService,
-              activePanelService: ActivePanelService,
-              dialogService: DialogService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+    private productIconService: ProductIconService,
+    confirmationService: ConfirmationService,
+    messageToastService: MessageToastService,
+    activePanelService: ActivePanelService,
+    dialogService: DialogService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService) {
     super(AppSettings.MAIL_SETTING_FORWARD, mailSettingForwardService, confirmationService, messageToastService,
       activePanelService, dialogService, filterService, translateService, gps, usersettingsService);
     this.addColumnFeqH(DataType.String, MailSettingForwardVar.MESSAGE_COM_TYPE, true, false,

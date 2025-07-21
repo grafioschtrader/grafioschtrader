@@ -6,69 +6,90 @@
              (sortFunction)="customSort($event)" [(selection)]="pageFirstRowSelectedRow.selectedRow"
              [columns]="fields" [customSort]="true"
              [first]="pageFirstRowSelectedRow.topPageRow" [multiSortMeta]="multiSortMeta" [paginator]="true"
-             [rowsPerPageOptions]="[20,30,50,100]" responsiveLayout="scroll" [rows]="50"
+             [rowsPerPageOptions]="[20,30,50,100]" [rows]="50"
              [value]="cashaccountTransactionPositions" dataKey="idTransaction" selectionMode="single"
-             sortMode="multiple"
-             stripedRows showGridlines>
+             sortMode="multiple"  stripedRows showGridlines>
       <ng-template #header let-fields>
         <tr>
-          <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
-              [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-            {{field.headerTranslated}}
-            <p-sortIcon [field]="field.field"></p-sortIcon>
-          </th>
+          @for (field of fields; track field.field) {
+            <th [pSortableColumn]="field.field" [style.max-width.px]="field.width"
+                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+              {{field.headerTranslated}}
+              <p-sortIcon [field]="field.field"></p-sortIcon>
+            </th>
+          }
         </tr>
-        <tr *ngIf="hasFilter">
-          <th *ngFor="let field of fields" [ngSwitch]="field.filterType" style="overflow:visible;">
-            <ng-container *ngSwitchCase="FilterType.likeDataType">
-              <ng-container [ngSwitch]="field.dataType">
-
-                <p-columnFilter *ngSwitchCase="field.dataType === DataType.DateString || field.dataType === DataType.DateNumeric
-                              ? field.dataType : ''" [field]="field.field" [matchModeOptions]="customMatchModeOptions"
-                                [matchMode]="'gtNoFilter'"
-                                [showOperator]="true" display="menu">
-                  <ng-template let-filter="filterCallback" let-value pTemplate="filter">
-                    <p-datepicker #cal (onInput)="filter(cal.value)" (onSelect)="filter($event)"
-                                [dateFormat]="baseLocale.dateFormat"
-                                [ngModel]="value">
-                    </p-datepicker>
-                  </ng-template>
-                </p-columnFilter>
-                <p-columnFilter *ngSwitchCase="DataType.Numeric" [field]="field.field" [locale]="formLocale"
-                                display="menu"
-                                minFractionDigits="2" type="numeric"></p-columnFilter>
-              </ng-container>
-            </ng-container>
-            <ng-container *ngSwitchCase="FilterType.withOptions">
-              <p-select (onChange)="table.filter($event.value, field.field, 'equals')" [options]="field.filterValues"
-                          [style]="{'width':'100%'}"></p-select>
-            </ng-container>
-          </th>
-        </tr>
+        @if (hasFilter) {
+          <tr>
+            @for (field of fields; track field.field) {
+              <th style="overflow:visible;">
+                @switch (field.filterType) {
+                  @case (FilterType.likeDataType) {
+                    @switch (field.dataType) {
+                      @case (DataType.DateString) {
+                        <p-columnFilter [field]="field.field" [matchModeOptions]="customMatchModeOptions"
+                                        [matchMode]="'gtNoFilter'"
+                                        [showOperator]="true" display="menu">
+                          <ng-template let-filter="filterCallback" let-value pTemplate="filter">
+                            <p-datepicker #cal (onInput)="filter(cal.value)" (onSelect)="filter($event)"
+                                          [dateFormat]="baseLocale.dateFormat"
+                                          [ngModel]="value">
+                            </p-datepicker>
+                          </ng-template>
+                        </p-columnFilter>
+                      }
+                      @case (DataType.DateNumeric) {
+                        <p-columnFilter [field]="field.field" [matchModeOptions]="customMatchModeOptions"
+                                        [matchMode]="'gtNoFilter'"
+                                        [showOperator]="true" display="menu">
+                          <ng-template let-filter="filterCallback" let-value pTemplate="filter">
+                            <p-datepicker #cal (onInput)="filter(cal.value)" (onSelect)="filter($event)"
+                                          [dateFormat]="baseLocale.dateFormat"
+                                          [ngModel]="value">
+                            </p-datepicker>
+                          </ng-template>
+                        </p-columnFilter>
+                      }
+                      @case (DataType.Numeric) {
+                        <p-columnFilter [field]="field.field" [locale]="formLocale"
+                                        display="menu"
+                                        minFractionDigits="2" type="numeric"></p-columnFilter>
+                      }
+                    }
+                  }
+                  @case (FilterType.withOptions) {
+                    <p-select (onChange)="table.filter($event.value, field.field, 'equals')" [options]="field.filterValues"
+                              [style]="{'width':'100%'}"></p-select>
+                  }
+                }
+              </th>
+            }
+          </tr>
+        }
       </ng-template>
 
       <ng-template #body let-columns="fields" let-el>
         <tr [pContextMenuRow]="el" [pSelectableRow]="el">
-          <ng-container *ngFor="let field of fields">
-
-            <td *ngIf="field.visible"
-                [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
-                [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-              <ng-container [ngSwitch]="field.templateName">
-                <ng-container *ngSwitchCase="'greenRed'">
-                  <span [pTooltip]="getValueByPath(el, field)"
-                        [style.color]='isValueByPathMinus(el, field)? "red": "inherit"'
-                        tooltipPosition="top">
-                    {{getValueByPath(el, field)}}
-                  </span>
-                </ng-container>
-                <ng-container *ngSwitchDefault>
-                  <span [pTooltip]="getValueByPath(el, field)">{{getValueByPath(el, field)}}</span>
-                </ng-container>
-              </ng-container>
-            </td>
-          </ng-container>
+          @for (field of fields; track field.field) {
+            @if (field.visible) {
+              <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
+                  [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+                @switch (field.templateName) {
+                  @case ('greenRed') {
+                    <span [pTooltip]="getValueByPath(el, field)"
+                          [style.color]='isValueByPathMinus(el, field)? "red": "inherit"'
+                          tooltipPosition="top">
+                      {{getValueByPath(el, field)}}
+                    </span>
+                  }
+                  @default {
+                    <span [pTooltip]="getValueByPath(el, field)">{{getValueByPath(el, field)}}</span>
+                  }
+                }
+              </td>
+            }
+          }
         </tr>
       </ng-template>
     </p-table>
@@ -79,27 +100,30 @@
   </div>
 </div>
 
-<transaction-security-edit (closeDialog)="handleCloseTransactionDialog($event)"
-                           *ngIf="visibleSecurityTransactionDialog"
-                           [transactionCallParam]="transactionCallParam"
-                           [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog">
-</transaction-security-edit>
+@if (visibleSecurityTransactionDialog) {
+  <transaction-security-edit (closeDialog)="handleCloseTransactionDialog($event)"
+                             [transactionCallParam]="transactionCallParam"
+                             [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog">
+  </transaction-security-edit>
+}
 
-<transaction-cashaccount-editsingle (closeDialog)="handleCloseTransactionDialog($event)"
-                                    *ngIf="visibleCashaccountTransactionSingleDialog"
-                                    [transactionCallParam]="transactionCallParam"
-                                    [visibleCashaccountTransactionSingleDialog]="visibleCashaccountTransactionSingleDialog">
-</transaction-cashaccount-editsingle>
+@if (visibleCashaccountTransactionSingleDialog) {
+  <transaction-cashaccount-editsingle (closeDialog)="handleCloseTransactionDialog($event)"
+                                      [transactionCallParam]="transactionCallParam"
+                                      [visibleCashaccountTransactionSingleDialog]="visibleCashaccountTransactionSingleDialog">
+  </transaction-cashaccount-editsingle>
+}
 
-<transaction-cashaccount-editdouble (closeDialog)="handleCloseTransactionDialog($event)"
-                                    *ngIf="visibleCashaccountTransactionDoubleDialog"
-                                    [transactionCallParam]="transactionCallParam"
-                                    [visibleCashaccountTransactionDoubleDialog]="visibleCashaccountTransactionDoubleDialog">
-</transaction-cashaccount-editdouble>
+@if (visibleCashaccountTransactionDoubleDialog) {
+  <transaction-cashaccount-editdouble (closeDialog)="handleCloseTransactionDialog($event)"
+                                      [transactionCallParam]="transactionCallParam"
+                                      [visibleCashaccountTransactionDoubleDialog]="visibleCashaccountTransactionDoubleDialog">
+  </transaction-cashaccount-editdouble>
+}
 
-<transaction-cashaccount-connect-debit-credit (closeDialog)="handleCloseTransactionDialog($event)"
-                                              *ngIf="visibleConnectDebitCreditDialog"
-                                              [transactionCallParam]="transactionCallParam"
-                                              [visibleDialog]="visibleConnectDebitCreditDialog">
-</transaction-cashaccount-connect-debit-credit>
-
+@if (visibleConnectDebitCreditDialog) {
+  <transaction-cashaccount-connect-debit-credit (closeDialog)="handleCloseTransactionDialog($event)"
+                                                [transactionCallParam]="transactionCallParam"
+                                                [visibleDialog]="visibleConnectDebitCreditDialog">
+  </transaction-cashaccount-connect-debit-credit>
+}

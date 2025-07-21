@@ -7,7 +7,6 @@ import {CurrencypairWithTransaction} from '../../entities/view/currencypair.with
 import {Observable} from 'rxjs';
 import {IFeedConnector} from '../component/ifeed.connector';
 import {HttpClient} from '@angular/common/http';
-import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../shared/login/service/log-in.service';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';

@@ -33,89 +33,158 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
 import {BaseSettings} from '../../lib/base.settings';
 
 /**
- * View to check the reliability of the price data feeds. It has some special function implemented to update price data.
+ * Angular component for monitoring and managing price data feed reliability in watchlists.
+ * Extends WatchlistTable to provide specialized functionality for checking feed status,
+ * retry counts, and data provider connectivity. Includes special functions for updating
+ * price data and managing problematic instruments.
+ *
+ * Key features:
+ * - Display feed connector information and retry counts
+ * - Show youngest historical data dates and full load timestamps
+ * - Provide repair functions for failed history/intraday loads
+ * - Support adding instruments with price data problems
+ * - Integration with security and currency pair services
  */
 @Component({
-    templateUrl: '../view/watchlist.data.html',
-    styles: [`
+  templateUrl: '../view/watchlist.data.html',
+  styles: [`
     .cell-move {
       cursor: move !important;
     }
   `],
-    providers: [DialogService],
-    standalone: false
+  providers: [DialogService],
+  standalone: false
 })
 export class WatchlistPriceFeedComponent extends WatchlistTable implements OnInit, OnDestroy {
 
-  feedConnectorsKV: { [id: string]: string } = {};
-  public visibleAddPriceProblemDialog = false;
+  /**
+   * Field name constant for accessing retry history load count in security currency objects.
+   * Used to reference the retryHistoryLoad property in data objects.
+   */
   private readonly f_retryHistoryLoad = 'retryHistoryLoad';
+  /**
+   * Field name constant for accessing retry intraday load count in security currency objects.
+   * Used to reference the retryIntraLoad property in data objects.
+   */
   private readonly f_retryIntraLoad = 'retryIntraLoad';
 
+  /**
+   * Creates a new instance of WatchlistPriceFeedComponent with comprehensive dependency injection.
+   * Initializes the table with price feed specific columns including data providers, retry counts,
+   * youngest history dates, and full load timestamps.
+   *
+   * @param securityService - Service for security-related operations and data retrieval
+   * @param currencypairService - Service for currency pair operations and data retrieval
+   * @param dialogService - PrimeNG service for managing dynamic dialogs
+   * @param alarmSetupService - Service for setting up and managing alarms
+   * @param timeSeriesQuotesService - Service for time series quote operations
+   * @param dataChangedService - Service for tracking data changes across components
+   * @param activePanelService - Service for managing active panel state
+   * @param watchlistService - Service for watchlist operations and data management
+   * @param router - Angular router for navigation
+   * @param activatedRoute - Current activated route for parameter access
+   * @param confirmationService - PrimeNG service for confirmation dialogs
+   * @param messageToastService - Service for displaying toast messages to users
+   * @param productIconService - Service for retrieving product-specific icons
+   * @param changeDetectionStrategy - Angular change detection reference
+   * @param filterService - PrimeNG service for table filtering functionality
+   * @param translateService - Angular service for internationalization
+   * @param gpsGT - Global parameter service for GT-specific settings
+   * @param gps - Global parameter service for application-wide settings
+   * @param usersettingsService - Service for managing user preferences and settings
+   */
   constructor(private securityService: SecurityService,
-              private currencypairService: CurrencypairService,
-              dialogService: DialogService,
-              alarmSetupService: AlarmSetupService,
-              timeSeriesQuotesService: TimeSeriesQuotesService,
-              dataChangedService: DataChangedService,
-              activePanelService: ActivePanelService,
-              watchlistService: WatchlistService,
-              router: Router,
-              activatedRoute: ActivatedRoute,
-              confirmationService: ConfirmationService,
-              messageToastService: MessageToastService,
-              productIconService: ProductIconService,
-              changeDetectionStrategy: ChangeDetectorRef,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gpsGT: GlobalparameterGTService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+    private currencypairService: CurrencypairService,
+    dialogService: DialogService,
+    alarmSetupService: AlarmSetupService,
+    timeSeriesQuotesService: TimeSeriesQuotesService,
+    dataChangedService: DataChangedService,
+    activePanelService: ActivePanelService,
+    watchlistService: WatchlistService,
+    router: Router,
+    activatedRoute: ActivatedRoute,
+    confirmationService: ConfirmationService,
+    messageToastService: MessageToastService,
+    productIconService: ProductIconService,
+    changeDetectionStrategy: ChangeDetectorRef,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gpsGT: GlobalparameterGTService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService) {
     super(WatchListType.PRICE_FEED, AppSettings.WATCHLIST_PRICE_FEED_TABLE_SETTINGS_STORE, dialogService, alarmSetupService,
       timeSeriesQuotesService, dataChangedService, activePanelService, watchlistService, router, activatedRoute, confirmationService,
       messageToastService, productIconService, changeDetectionStrategy, filterService, translateService,
       gpsGT, gps, usersettingsService, WatchlistTable.SINGLE);
     const date = new Date();
-
     this.addBaseColumns();
     this.addColumn(DataType.String, 'securitycurrency.idConnectorIntra', 'INTRA_DATA_PROVIDER', true, true,
       {fieldValueFN: this.getFeedConnectorReadableName.bind(this)});
-
     this.addColumn(DataType.NumericInteger, 'securitycurrency.' + this.f_retryIntraLoad, 'RETRY_INTRA_LOAD', true, true);
     this.addColumn(DataType.String, 'securitycurrency.idConnectorHistory', 'HISTORY_DATA_PROVIDER', true, true,
       {fieldValueFN: this.getFeedConnectorReadableName.bind(this)});
     this.addColumn(DataType.DateString, 'youngestHistoryDate', 'YOUNGEST_EOD', true, true);
     this.addColumn(DataType.NumericInteger, 'securitycurrency.' + this.f_retryHistoryLoad, 'RETRY_HISTORY_LOAD', true, true);
     this.addColumn(DataType.DateTimeNumeric, 'securitycurrency.fullLoadTimestamp', 'FULL_LOAD_DATE', true, true);
-
     this.prepareTableAndTranslate();
     this.watchlistHasModifiedFromOutside();
   }
 
+  /**
+   * Angular lifecycle hook called after component initialization.
+   * Initializes the watchlist table and loads feed connector data.
+   */
   ngOnInit(): void {
     this.init();
     this.loadData();
   }
 
+  /**
+   * Retrieves the human-readable name for a feed connector based on its ID.
+   * Used as a field value function to transform connector IDs into user-friendly names
+   * for display in the table columns.
+   *
+   * @param dataobject - The row data object (unused in current implementation)
+   * @param field - The column configuration object (unused in current implementation)
+   * @param valueField - The feed connector ID to transform
+   * @returns The human-readable name of the feed connector, or undefined if not found
+   */
   getFeedConnectorReadableName(dataobject: any, field: ColumnConfig, valueField: any): string {
     return this.feedConnectorsKV[valueField];
   }
 
+  /**
+   * Loads watchlist data without triggering price updates, focusing on feed reliability metrics.
+   * Combines watchlist data with security position limits and updates the component state.
+   * Specifically retrieves data with maximum history quote information for feed analysis.
+   */
   protected override getWatchlistWithoutUpdate(): void {
     const watchListObservable: Observable<SecuritycurrencyGroup> =
       this.watchlistService.getWatchlistWithoutUpdateAndMaxHistoryquote(this.idWatchlist);
     const tenantLimitObservable: Observable<TenantLimit[]> = this.watchlistService.getSecuritiesCurrenciesWatchlistLimits(this.idWatchlist);
-    combineLatest([watchListObservable, tenantLimitObservable]).subscribe(result => {
+    combineLatest([watchListObservable, tenantLimitObservable]).subscribe((result: [SecuritycurrencyGroup, TenantLimit[]]) => {
       this.createSecurityPositionList(result[0]);
       this.tenantLimits = result[1];
       this.loading = false;
     });
   }
 
+  /** Returns the help context identifier for this component. Used by the help system to display relevant documentation. */
   public override getHelpContextId(): HelpIds {
     return HelpIds.HELP_WATCHLIST_PRICE_FEED;
   }
 
+  /**
+   * Creates edit menu items with price feed specific options for users with appropriate privileges.
+   * Extends the base edit menu with options to add problematic instruments and repair failed loads.
+   * Menu items include:
+   * - Add problem instrument dialog (for empty watchlists)
+   * - Repair history load (for instruments with retry count > 0)
+   * - Repair intraday load (for instruments with retry count > 0)
+   *
+   * @param securitycurrencyPosition - The currently selected security or currency position
+   * @returns Array of menu items for edit operations, or base menu items if user lacks privileges
+   */
   protected override getEditMenuItems(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): MenuItem[] {
     if (this.securityPositionList && AuditHelper.hasHigherPrivileges(this.gps)) {
       const menuItems: MenuItem[] = [
@@ -145,24 +214,46 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
     }
   }
 
+  /**
+   * Triggers a complete price data update by reloading watchlist data.
+   * Sets loading state and refreshes the watchlist to get updated feed information.
+   */
   protected override updateAllPrice(): void {
     this.loading = true;
     this.getWatchlistWithoutUpdate();
   }
 
+  /**
+   * Determines whether feed repair menu items should be disabled based on retry counts and active dates.
+   * Checks if all securities have zero retry counts or are past their active date.
+   *
+   * @param propName - The property name to check ('retryHistoryLoad' or 'retryIntraLoad')
+   * @param untilDate - The date to compare against active dates (null for history, current date for intraday)
+   * @returns True if the repair menu should be disabled, false otherwise
+   */
   private disableUpToDateFeedDataMenu(propName: string, untilDate: Date): boolean {
     return this.securityPositionList.every(sp => sp.securitycurrency[propName] === 0
       || (!(sp.securitycurrency instanceof CurrencypairWatchlist)
         && new Date((<Security>sp.securitycurrency).activeToDate) <= (untilDate === null ? sp.youngestHistoryDate : untilDate)));
   }
 
+  /**
+   * Loads feed connector data and initializes the watchlist.
+   * Uses SecurityCurrencyHelper to load all available connectors into the feedConnectorsKV mapping,
+   * then triggers the watchlist data loading process.
+   */
   private loadData(): void {
     SecurityCurrencyHelper.loadAllConnectors(this.securityService, this.currencypairService, this.feedConnectorsKV,
       this.getWatchlistWithoutUpdate.bind(this));
   }
 
-
-  handleCloseAddPriceProblemInstrument(processedActionData: ProcessedActionData): void {
+  /**
+   * Handles the closing of the add price problem instrument dialog.
+   * Hides the dialog and triggers a complete price data update to reflect any changes.
+   *
+   * @param processedActionData - Data about the action performed in the dialog
+   */
+  override handleCloseAddPriceProblemInstrument(processedActionData: ProcessedActionData): void {
     this.visibleAddPriceProblemDialog = false;
     this.updateAllPrice();
   }

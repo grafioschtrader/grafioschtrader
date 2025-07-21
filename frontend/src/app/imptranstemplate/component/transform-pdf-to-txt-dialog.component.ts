@@ -16,7 +16,7 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
     selector: 'transform-pdf-to-txt-dialog',
     template: `
     <p-dialog header="{{'TRANSFORM_PDF_TO_TXT' | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '600px'}"
+              [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"

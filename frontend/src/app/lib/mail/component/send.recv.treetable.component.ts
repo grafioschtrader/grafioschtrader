@@ -27,7 +27,6 @@ import {DynamicDialogs} from '../../../shared/dynamicdialog/component/dynamic.di
   template: `
     <div class="data-container" (click)="onComponentClick($event)"
          #cmDiv [ngClass]=" {'active-border': isActivated(), 'passiv-border': !isActivated()}">
-
       <p-treeTable [value]="sendRecvRootNode" [columns]="fields" dataKey="idMailSendRecv"
                    selectionMode="single" [(selection)]="selectedNode" (onNodeSelect)="nodeSelect($event)"
                    sortField="sendRecvTime" [sortOrder]="sortOrder" showGridlines="true">
@@ -37,37 +36,41 @@ import {DynamicDialogs} from '../../../shared/dynamicdialog/component/dynamic.di
               : {{ gps.getMostPrivilegedRole() | translate }}</h5>
           </div>
         </ng-template>
-
         <ng-template #header let-fields>
           <tr>
-            <th *ngFor="let field of fields" [ttSortableColumn]="field.field" [style.width.px]="field.width"
-                [pTooltip]="field.headerTooltipTranslated">
-              {{ field.headerTranslated }}
-              <p-treeTableSortIcon [field]="field.field"></p-treeTableSortIcon>
-            </th>
+            @for (field of fields; track field.field) {
+              <th [ttSortableColumn]="field.field" [style.width.px]="field.width"
+                  [pTooltip]="field.headerTooltipTranslated">
+                {{ field.headerTranslated }}
+                <p-treeTableSortIcon [field]="field.field"></p-treeTableSortIcon>
+              </th>
+            }
           </tr>
         </ng-template>
         <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
           <tr [ngClass]="rowNode.level === 0 && rowNode.node?.children.length > 0 ? 'row-total' : null"
               [ttSelectableRow]="rowNode">
-            <td *ngFor="let field of fields; let i = index"
-                [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
-              || field.dataType===DataType.DateTimeNumeric)}">
-              <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
-              <ng-container [ngSwitch]="field.templateName">
-                <ng-container *ngSwitchCase="'check'">
-                                  <span><i [ngClass]="{'fa fa-check': getValueByPath(rowData, field)}"
-                                           aria-hidden="true"></i></span>
-                </ng-container>
-                <ng-container *ngSwitchCase="'icon'">
-                  <svg-icon [name]="getValueByPath(rowData, field)"
-                            [svgStyle]="{ 'width.px':16, 'height.px':16 }"></svg-icon>
-                </ng-container>
-                <ng-container *ngSwitchDefault>
-                  {{ getValueByPath(rowData, field) }}
-                </ng-container>
-              </ng-container>
-            </td>
+            @for (field of fields; track field.field; let i = $index) {
+              <td [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
+            || field.dataType===DataType.DateTimeNumeric)}">
+                @if (i === 0) {
+                  <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+                }
+                @switch (field.templateName) {
+                  @case ('check') {
+                    <span><i [ngClass]="{'fa fa-check': getValueByPath(rowData, field)}"
+                             aria-hidden="true"></i></span>
+                  }
+                  @case ('icon') {
+                    <svg-icon [name]="getValueByPath(rowData, field)"
+                              [svgStyle]="{ 'width.px':16, 'height.px':16 }"></svg-icon>
+                  }
+                  @default {
+                    {{ getValueByPath(rowData, field) }}
+                  }
+                }
+              </td>
+            }
           </tr>
         </ng-template>
       </p-treeTable>
@@ -199,7 +202,7 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
 
   getRollOrUser(entity: MailSendRecv, field: ColumnConfig,
     valueField: any): string {
-    return valueField ? valueField : entity.idUserTo;
+    return valueField ? valueField : '' + entity.idUserTo;
   }
 
   reply(): void {
