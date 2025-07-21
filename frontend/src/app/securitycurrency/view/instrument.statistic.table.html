@@ -2,46 +2,48 @@
   <p-table [columns]="fields" [dataKey]="datakey"
            [value]="values" selectionMode="single"
            sortMode="single" [sortField]="datakey" [sortOrder]="sortOrder"
-           [paginator]="true" [rows]="5" responsiveLayout="scroll"
-           stripedRows showGridlines>
+           [paginator]="true" [rows]="5" stripedRows showGridlines>
     <ng-template #caption>
       <div class="table-header">
-        <h5>{{groupTitle | translate}}</h5>
-        <p>{{titleRemark | translate}}</p>
+        <h5>{{ groupTitle | translate }}</h5>
+        <p>{{ titleRemark | translate }}</p>
       </div>
     </ng-template>
     <ng-template #header let-fields>
       <tr>
-        <th *ngFor="let field of fields" [pSortableColumn]="field.field"
-            [pTooltip]="field.headerTooltipTranslated" [style.max-width.px]="field.width"
-            [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-          {{field.headerTranslated}}
-          <p-sortIcon [field]="field.field"></p-sortIcon>
-        </th>
+        @for (field of fields; track field) {
+          <th [pSortableColumn]="field.field"
+              [pTooltip]="field.headerTooltipTranslated" [style.max-width.px]="field.width"
+              [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+            {{ field.headerTranslated }}
+            <p-sortIcon [field]="field.field"></p-sortIcon>
+          </th>
+        }
       </tr>
     </ng-template>
 
     <ng-template #body let-columns="fields" let-el>
       <tr [pSelectableRow]="el">
-        <ng-container *ngFor="let field of fields">
-          <td *ngIf="field.visible"
-              [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
-              [style.max-width.px]="field.width"
-              [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-            <ng-container [ngSwitch]="field.templateName">
-              <ng-container *ngSwitchCase="'greenRed'">
+        @for (field of fields; track field) {
+          @if (field.visible) {
+            <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
+                [style.max-width.px]="field.width"
+                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+              @switch (field.templateName) {
+                @case ('greenRed') {
                   <span [pTooltip]="getValueByPath(el, field)"
                         [style.color]='isValueByPathMinus(el, field)? "red": "inherit"'
                         tooltipPosition="top">
-                    {{getValueByPath(el, field)}}
+                    {{ getValueByPath(el, field) }}
                   </span>
-              </ng-container>
-              <ng-container *ngSwitchDefault>
-                <span [pTooltip]="getValueByPath(el, field)">{{getValueByPath(el, field)}}</span>
-              </ng-container>
-            </ng-container>
-          </td>
-        </ng-container>
+                }
+                @default {
+                  <span [pTooltip]="getValueByPath(el, field)">{{ getValueByPath(el, field) }}</span>
+                }
+              }
+            </td>
+          }
+        }
       </tr>
     </ng-template>
   </p-table>

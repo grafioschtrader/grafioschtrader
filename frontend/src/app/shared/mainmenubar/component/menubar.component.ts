@@ -17,36 +17,34 @@ import {Subscription} from 'rxjs';
 import {TranslateHelper} from '../../../lib/helper/translate.helper';
 import {BusinessHelper} from '../../helper/business.helper';
 import {ConfirmationService, MenuItem} from 'primeng/api';
-import {AppSettings} from '../../app.settings';
 import saveAs from '../../../lib/filesaver/filesaver';
 import {BaseSettings} from '../../../lib/base.settings';
-
 
 
 /**
  * Represents the menubar of GT
  */
 @Component({
-    selector: 'menubar',
-    template: `
+  selector: 'menubar',
+  template: `
     <p-menubar [model]="this.activePanelService.topMenuItems"></p-menubar>
   `,
-    standalone: false
+  standalone: false
 })
 export class MenubarComponent implements OnInit, OnDestroy {
   menuItems: MenuItem[] = new Array<MenuItem>(4);
   private subscriptionViewSizeChanged: Subscription;
 
   constructor(public translateService: TranslateService,
-              public mainDialogService: MainDialogService,
-              private messageToastService: MessageToastService,
-              public activePanelService: ActivePanelService,
-              private loginService: LoginService,
-              private viewSizeChangedService: ViewSizeChangedService,
-              private location: Location,
-              private gps: GlobalparameterService,
-              private tenantService: TenantService,
-              private confirmationService: ConfirmationService) {
+    public mainDialogService: MainDialogService,
+    private messageToastService: MessageToastService,
+    public activePanelService: ActivePanelService,
+    private loginService: LoginService,
+    private viewSizeChangedService: ViewSizeChangedService,
+    private location: Location,
+    private gps: GlobalparameterService,
+    private tenantService: TenantService,
+    private confirmationService: ConfirmationService) {
     this.activePanelService.topMenuItems = this.menuItems;
   }
 

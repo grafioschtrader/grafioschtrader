@@ -7,15 +7,18 @@ import {FormConfig} from '../../models/form.config';
 
 @Component({
     selector: 'form-button',
-    template: `
-      <button *ngIf="!config.buttonFN" class="btn ml-1"
+  template: `
+    @if (!config.buttonFN) {
+      <button class="btn ml-1"
               type="submit" [disabled]="!group.valid || config.disabled">
-          {{config.labelKey | translate}}
+        {{config.labelKey | translate}}
       </button>
-      <button *ngIf="config.buttonFN" class="btn ml-1"
+    } @else {
+      <button class="btn ml-1"
               [disabled]="config.disabled" type="button" (click)="config.buttonFN($event)">
-          {{config.labelKey | translate}}
+        {{config.labelKey | translate}}
       </button>
+    }
   `,
     standalone: false
 })

@@ -24,7 +24,7 @@ import {FileUploadParam, SupportedCSVFormat, UploadHistoryquotesSuccess} from '.
     selector: 'upload-file-dialog',
     template: `
     <p-dialog header="{{fileUploadParam.title | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '400px'}"
+              [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm"

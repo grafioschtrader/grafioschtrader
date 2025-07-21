@@ -1,13 +1,11 @@
-import {Directive, EventEmitter, Input, Output, ViewChild} from '@angular/core';
+import {Directive, EventEmitter, Output, ViewChild} from '@angular/core';
 import {ProcessedActionData} from '../../types/processed.action.data';
 import {ProcessedAction} from '../../types/processed.action';
 import {FieldConfig} from '../../../dynamic-form/models/field.config';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
-
 import {TranslateService} from '@ngx-translate/core';
 import {AppHelper} from '../../helper/app.helper';
 import {DynamicFormComponent} from '../../../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {CallParam} from '../../../shared/maintree/types/dialog.visible';
 import {InfoLevelType} from '../../message/info.leve.type';
 import {MessageToastService} from '../../message/message.toast.service';
 import {TenantService} from '../service/tenant.service';
@@ -28,7 +26,6 @@ export abstract class TenantEditComponent {
 
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
 
-
   // Output for parent view
   @Output() closeDialog = new EventEmitter<ProcessedActionData>();
 
@@ -36,12 +33,12 @@ export abstract class TenantEditComponent {
   config: FieldConfig[] = [];
   formConfig: FormConfig;
 
- protected constructor(protected gpsGT: GlobalparameterGTService,
-              protected gps: GlobalparameterService,
-              protected messageToastService: MessageToastService,
-              protected tenantService: TenantService,
-              public translateService: TranslateService,
-              private nonModal: boolean, private labelColumns: number) {
+  protected constructor(protected gpsGT: GlobalparameterGTService,
+    protected gps: GlobalparameterService,
+    protected messageToastService: MessageToastService,
+    protected tenantService: TenantService,
+    public translateService: TranslateService,
+    private nonModal: boolean, private labelColumns: number) {
   }
 
   init(onlyCurrency: boolean): void {
@@ -61,11 +58,13 @@ export abstract class TenantEditComponent {
       Object.assign(tenant, this.existingTenant);
     }
     this.form.cleanMaskAndTransferValuesToBusinessObject(tenant);
-    this.tenantService.update(tenant).subscribe({ next: newTenant => {
+    this.tenantService.update(tenant).subscribe({
+      next: newTenant => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'CLIENT'});
         const tenantNew: Tenant = Object.assign(new Tenant(), newTenant);
         this.closeInputDialog(tenantNew);
-      }, error: () => this.configObject.submit.disabled = false});
+      }, error: () => this.configObject.submit.disabled = false
+    });
   }
 
   protected closeInputDialog(tenant: Tenant): void {

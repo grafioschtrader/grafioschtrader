@@ -13,7 +13,6 @@ import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {Subscription} from 'rxjs';
-import {Cashaccount} from '../../entities/cashaccount';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {SubscriptionType} from '../../shared/types/subscription.type';
 

@@ -9,46 +9,49 @@ import {ColumnConfig} from '../../datashowbase/column.config';
 import {SecurityService} from '../../../securitycurrency/service/security.service';
 import {IFeedConnector} from '../../../securitycurrency/component/ifeed.connector';
 import {FilterService} from 'primeng/api';
-import {SecurityIdWithCurrency} from '../../../securitycurrency/component/security-historyquote-quality-table.component';
 
 /**
  * Shows a table with the missing instruments that do not have a complete price history.
  */
 @Component({
-    selector: 'tenant-performance-eod-missing-table',
-    template: `
+  selector: 'tenant-performance-eod-missing-table',
+  template: `
     <p-table [columns]="fields" [value]="securities" selectionMode="single"
              [(selection)]="selectedSecurity" (onRowSelect)="onRowSelect($event)"
              (onRowUnselect)="onRowUnselect($event)"
-             responsiveLayout="scroll" dataKey="idSecuritycurrency" (sortFunction)="customSort($event)" [customSort]="true"
+             dataKey="idSecuritycurrency" (sortFunction)="customSort($event)" [customSort]="true"
              sortMode="multiple" [multiSortMeta]="multiSortMeta"
              stripedRows showGridlines>
       <ng-template #caption>
-        <h5>{{'MISSING_DAY_TABLE_MARK'|translate}}</h5>
+        <h5>{{ 'MISSING_DAY_TABLE_MARK'|translate }}</h5>
       </ng-template>
       <ng-template #header let-fields>
         <tr>
-          <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
-              [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-            {{field.headerTranslated}}
-            <p-sortIcon [field]="field.field"></p-sortIcon>
-          </th>
+          @for (field of fields; track field) {
+            <th [pSortableColumn]="field.field" [style.max-width.px]="field.width"
+                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+              {{ field.headerTranslated }}
+              <p-sortIcon [field]="field.field"></p-sortIcon>
+            </th>
+          }
         </tr>
       </ng-template>
       <ng-template #body let-el let-columns="fields">
         <tr [pSelectableRow]="el"
             [ngClass]="selectedDayIdSecurities.indexOf(el.idSecuritycurrency)>= 0 ? 'rowgroup-total' : null">
-          <td *ngFor="let field of fields"
+          @for (field of fields; track field) {
+            <td
               [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
               [style.max-width.px]="field.width"
               [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-            <span [pTooltip]="getValueByPath(el, field)" tooltipPosition="top">{{getValueByPath(el, field)}}</span>
-          </td>
+              <span [pTooltip]="getValueByPath(el, field)" tooltipPosition="top">{{ getValueByPath(el, field) }}</span>
+            </td>
+          }
         </tr>
       </ng-template>
     </p-table>
   `,
-    standalone: false
+  standalone: false
 })
 export class TenantPerformanceEodMissingTableComponent extends TableConfigBase implements OnInit, OnChanges {
   /**
@@ -63,10 +66,10 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
   private feedConnectorsKV: { [id: string]: string };
 
   constructor(private securityService: SecurityService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService) {
     super(filterService, usersettingsService, translateService, gps);
     this.addColumnFeqH(DataType.String, 'name', true, false, {width: 250});
     this.addColumnFeqH(DataType.String, 'isin');
@@ -99,11 +102,14 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
   }
 
   ngOnInit(): void {
-    this.securityService.getFeedConnectors().subscribe((feedConnectors: IFeedConnector[]) =>
-      this.feedConnectorsKV = Object.assign({}, ...feedConnectors.map((feedConnector) =>
-        ({[feedConnector.id]: feedConnector.readableName})))
-    );
+    this.securityService.getFeedConnectors().subscribe((feedConnectors: IFeedConnector[]) => {
+      this.feedConnectorsKV = feedConnectors.reduce((acc, feedConnector) => {
+        acc[feedConnector.id] = feedConnector.readableName;
+        return acc;
+      }, {} as { [key: string]: string });
+    });
   }
+
 
   ngOnChanges(): void {
     if (this.selectedDayIdSecurities.length > 0) {

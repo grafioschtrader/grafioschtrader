@@ -44,93 +44,107 @@ import {AppSettings} from '../../../shared/app.settings';
  * Shows the requested changes on entities in a table.
  */
 @Component({
-    template: `
+  template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
-
       <p-table [columns]="fields" [value]="proposeChangeEntityWithEntityList" selectionMode="single"
                [(selection)]="selectedEntity"
-               responsiveLayout="scroll" dataKey="proposeChangeEntity.idProposeRequest"
+               dataKey="proposeChangeEntity.idProposeRequest"
                stripedRows showGridlines>
         <ng-template #caption>
           <h4>{{'PROPOSE_CHANGE_ENTITY_FOR_USER' | translate}} {{gps.getIdUser()}}</h4>
         </ng-template>
         <ng-template #header let-fields>
           <tr>
-            <th *ngFor="let field of fields" [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated">
-              {{field.headerTranslated}}
-              <p-sortIcon [field]="field.field"></p-sortIcon>
-            </th>
+            @for (field of fields; track field) {
+              <th [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated">
+                {{field.headerTranslated}}
+                <p-sortIcon [field]="field.field"></p-sortIcon>
+              </th>
+            }
           </tr>
         </ng-template>
         <ng-template #body let-el let-columns="fields">
           <tr [pSelectableRow]="el">
-            <td *ngFor="let field of fields">
-              {{getValueByPath(el, field)}}
-            </td>
+            @for (field of fields; track field) {
+              <td>
+                {{getValueByPath(el, field)}}
+              </td>
+            }
           </tr>
         </ng-template>
       </p-table>
-      <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+      @if (contextMenuItems) {
+        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+      }
     </div>
 
-    <assetclass-edit *ngIf="entityMappingArr[ASSETCLASS].visibleDialog"
-                     [visibleDialog]="entityMappingArr[ASSETCLASS].visibleDialog"
-                     [callParam]="entityMappingArr[ASSETCLASS].callParam"
+    @if (entityMappingArr[ASSETCLASS].visibleDialog) {
+      <assetclass-edit [visibleDialog]="entityMappingArr[ASSETCLASS].visibleDialog"
+                       [callParam]="entityMappingArr[ASSETCLASS].callParam"
+                       [proposeChangeEntityWithEntity]="selectedEntity"
+                       (closeDialog)="handleCloseDialog(selectedEntity, $event)">
+      </assetclass-edit>
+    }
+
+    @if (entityMappingArr[STOCKEXCHANGE].visibleDialog) {
+      <stockexchange-edit [visibleDialog]="entityMappingArr[STOCKEXCHANGE].visibleDialog"
+                          [callParam]="entityMappingArr[STOCKEXCHANGE].callParam"
+                          [proposeChangeEntityWithEntity]="selectedEntity"
+                          (closeDialog)="handleCloseDialog(selectedEntity, $event)">
+      </stockexchange-edit>
+    }
+    @if (entityMappingArr[IMPORT_TRANSACTION_PLATFORM].visibleDialog) {
+      <import-transaction-edit-platform [visibleDialog]="entityMappingArr[IMPORT_TRANSACTION_PLATFORM].visibleDialog"
+                                        [callParam]="entityMappingArr[IMPORT_TRANSACTION_PLATFORM].callParam"
+                                        [platformTransactionImportHtmlOptions]="entityMappingArr[IMPORT_TRANSACTION_PLATFORM].option"
+                                        [proposeChangeEntityWithEntity]="selectedEntity"
+                                        (closeDialog)="handleCloseDialog(selectedEntity, $event)">
+      </import-transaction-edit-platform>
+    }
+    @if (entityMappingArr[IMPORT_TRANSACTION_TEMPLATE].visibleDialog) {
+      <import-transaction-edit-template [visibleDialog]="entityMappingArr[IMPORT_TRANSACTION_TEMPLATE].visibleDialog"
+                                        [callParam]="entityMappingArr[IMPORT_TRANSACTION_TEMPLATE].callParam"
+                                        [proposeChangeEntityWithEntity]="selectedEntity"
+                                        (closeDialog)="handleCloseDialog(selectedEntity, $event)">
+      </import-transaction-edit-template>
+    }
+    @if (entityMappingArr[CURRENCYPAIR].visibleDialog) {
+      <currencypair-edit [visibleEditCurrencypairDialog]="entityMappingArr[CURRENCYPAIR].visibleDialog"
+                         [securityCurrencypairCallParam]="entityMappingArr[CURRENCYPAIR].callParam"
+                         [proposeChangeEntityWithEntity]="selectedEntity"
+                         (closeDialog)="handleCloseDialog(selectedEntity, $event)">
+      </currencypair-edit>
+    }
+
+    @if (entityMappingArr[SECURITY].visibleDialog) {
+      <security-edit [visibleEditSecurityDialog]="entityMappingArr[SECURITY].visibleDialog"
+                     [securityCurrencypairCallParam]="entityMappingArr[SECURITY].callParam"
                      [proposeChangeEntityWithEntity]="selectedEntity"
                      (closeDialog)="handleCloseDialog(selectedEntity, $event)">
-    </assetclass-edit>
-
-    <stockexchange-edit *ngIf="entityMappingArr[STOCKEXCHANGE].visibleDialog"
-                        [visibleDialog]="entityMappingArr[STOCKEXCHANGE].visibleDialog"
-                        [callParam]="entityMappingArr[STOCKEXCHANGE].callParam"
-                        [proposeChangeEntityWithEntity]="selectedEntity"
-                        (closeDialog)="handleCloseDialog(selectedEntity, $event)">
-    </stockexchange-edit>
-    <import-transaction-edit-platform *ngIf="entityMappingArr[IMPORT_TRANSACTION_PLATFORM].visibleDialog"
-                                      [visibleDialog]="entityMappingArr[IMPORT_TRANSACTION_PLATFORM].visibleDialog"
-                                      [callParam]="entityMappingArr[IMPORT_TRANSACTION_PLATFORM].callParam"
-                                      [platformTransactionImportHtmlOptions]="entityMappingArr[IMPORT_TRANSACTION_PLATFORM].option"
-                                      [proposeChangeEntityWithEntity]="selectedEntity"
-                                      (closeDialog)="handleCloseDialog(selectedEntity, $event)">
-    </import-transaction-edit-platform>
-    <import-transaction-edit-template *ngIf="entityMappingArr[IMPORT_TRANSACTION_TEMPLATE].visibleDialog"
-                                      [visibleDialog]="entityMappingArr[IMPORT_TRANSACTION_TEMPLATE].visibleDialog"
-                                      [callParam]="entityMappingArr[IMPORT_TRANSACTION_TEMPLATE].callParam"
-                                      [proposeChangeEntityWithEntity]="selectedEntity"
-                                      (closeDialog)="handleCloseDialog(selectedEntity, $event)">
-    </import-transaction-edit-template>
-    <currencypair-edit *ngIf="entityMappingArr[CURRENCYPAIR].visibleDialog"
-                       [visibleEditCurrencypairDialog]="entityMappingArr[CURRENCYPAIR].visibleDialog"
-                       [securityCurrencypairCallParam]="entityMappingArr[CURRENCYPAIR].callParam"
-                       [proposeChangeEntityWithEntity]="selectedEntity"
-                       (closeDialog)="handleCloseDialog(selectedEntity, $event)">
-    </currencypair-edit>
-
-    <security-edit *ngIf="entityMappingArr[SECURITY].visibleDialog"
-                   [visibleEditSecurityDialog]="entityMappingArr[SECURITY].visibleDialog"
-                   [securityCurrencypairCallParam]="entityMappingArr[SECURITY].callParam"
-                   [proposeChangeEntityWithEntity]="selectedEntity"
-                   (closeDialog)="handleCloseDialog(selectedEntity, $event)">
-    </security-edit>
-    <security-derived-edit *ngIf="entityMappingArr[SECURITY_DERIVED].visibleDialog"
-                           [visibleDialog]="entityMappingArr[SECURITY_DERIVED].visibleDialog"
-                           [securityCallParam]="entityMappingArr[SECURITY_DERIVED].callParam"
-                           [proposeChangeEntityWithEntity]="selectedEntity"
-                           (closeDialog)="handleCloseDialog(selectedEntity, $event)">
-    </security-derived-edit>
-    <trading-platform-plan-edit *ngIf="entityMappingArr[TRADING_PLATFORM_PLAN].visibleDialog"
-                                [visibleDialog]="entityMappingArr[TRADING_PLATFORM_PLAN].visibleDialog"
-                                [callParam]="entityMappingArr[TRADING_PLATFORM_PLAN].callParam"
-                                [proposeChangeEntityWithEntity]="selectedEntity"
-                                (closeDialog)="handleCloseDialog(selectedEntity, $event)">
-    </trading-platform-plan-edit>
-    <historyquote-edit *ngIf="entityMappingArr[HISTORYQUOTE].visibleDialog"
-                       [visibleDialog]="entityMappingArr[HISTORYQUOTE].visibleDialog"
-                       [callParam]="entityMappingArr[HISTORYQUOTE].callParam"
-                       [proposeChangeEntityWithEntity]="selectedEntity"
-                       (closeDialog)="handleCloseDialog(selectedEntity, $event)">
-    </historyquote-edit>
+      </security-edit>
+    }
+    @if (entityMappingArr[SECURITY_DERIVED].visibleDialog) {
+      <security-derived-edit [visibleDialog]="entityMappingArr[SECURITY_DERIVED].visibleDialog"
+                             [securityCallParam]="entityMappingArr[SECURITY_DERIVED].callParam"
+                             [proposeChangeEntityWithEntity]="selectedEntity"
+                             (closeDialog)="handleCloseDialog(selectedEntity, $event)">
+      </security-derived-edit>
+    }
+    @if (entityMappingArr[TRADING_PLATFORM_PLAN].visibleDialog) {
+      <trading-platform-plan-edit [visibleDialog]="entityMappingArr[TRADING_PLATFORM_PLAN].visibleDialog"
+                                  [callParam]="entityMappingArr[TRADING_PLATFORM_PLAN].callParam"
+                                  [proposeChangeEntityWithEntity]="selectedEntity"
+                                  (closeDialog)="handleCloseDialog(selectedEntity, $event)">
+      </trading-platform-plan-edit>
+    }
+    @if (entityMappingArr[HISTORYQUOTE].visibleDialog) {
+      <historyquote-edit [visibleDialog]="entityMappingArr[HISTORYQUOTE].visibleDialog"
+                         [callParam]="entityMappingArr[HISTORYQUOTE].callParam"
+                         [proposeChangeEntityWithEntity]="selectedEntity"
+                         (closeDialog)="handleCloseDialog(selectedEntity, $event)">
+      </historyquote-edit>
+    }
   `,
     standalone: false
 })
@@ -180,7 +194,6 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
     this.entityMappingArr[this.TRADING_PLATFORM_PLAN] = new EntityMapping(new GeneralEntityPrepareEdit(TradingPlatformPlan));
     this.entityMappingArr[this.HISTORYQUOTE] = new EntityMapping(new HistoryquotePrepareEdit(this.securityService,
       this.currencypairService));
-
     this.addColumnFeqH(DataType.String, 'proposeChangeEntity.entity', true, false,
       {translateValues: TranslateValue.UPPER_CASE});
     this.addColumnFeqH(DataType.String, 'proposeChangeEntity.noteRequest', true, false);

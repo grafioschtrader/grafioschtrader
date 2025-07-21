@@ -6,8 +6,7 @@
     <p-table (onRowCollapse)="onRowCollapse($event)" (onRowExpand)="onRowExpand($event)" [(selection)]="selectedAccountPositionSummary"
              [columns]="fields" [multiSortMeta]="multiSortMeta"
              [value]="accountPositionGroupSummary?.accountPositionSummaryList" dataKey="cashaccount.idSecuritycashAccount"
-             selectionMode="single" responsiveLayout="scroll" sortMode="multiple"
-             stripedRows showGridlines>
+             selectionMode="single" sortMode="multiple" stripedRows showGridlines>
       <ng-template #caption>
         <div class="flex-two-columns">
           <div class=".left-half">
@@ -16,11 +15,11 @@
           <div class="right-half">
             <label for="untilDate" style="margin-right: 5px; margin-top: 5px;">{{'UNTIL_DATE' | translate}}</label>
             <p-datepicker #cal (onSelect)="filterDate($event)"
-                        [(ngModel)]="untilDate"
-                        [dateFormat]="baseLocale.dateFormat"
-                        appendTo="body"
-                        style="width: 80px !important;"
-                        id="untilDate">
+                          [(ngModel)]="untilDate"
+                          [dateFormat]="baseLocale.dateFormat"
+                          appendTo="body"
+                          style="width: 80px !important;"
+                          id="untilDate">
             </p-datepicker>
             <i (click)="onResetToDay($event)" class="pi pi-replay" style="font-size: 1.5em"></i>
           </div>
@@ -30,13 +29,15 @@
       <ng-template #header let-fields>
         <tr>
           <th style="width:24px"></th>
-          <th *ngFor="let field of fields" [pSortableColumn]="field.field"
-              [pTooltip]="field.headerTooltipTranslated"
-              [style.max-width.px]="field.width"
-              [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-            {{field.headerTranslated}}
-            <p-sortIcon [field]="field.field"></p-sortIcon>
-          </th>
+          @for (field of fields; track field) {
+            <th [pSortableColumn]="field.field"
+                [pTooltip]="field.headerTooltipTranslated"
+                [style.max-width.px]="field.width"
+                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+              {{field.headerTranslated}}
+              <p-sortIcon [field]="field.field"></p-sortIcon>
+            </th>
+          }
         </tr>
       </ng-template>
 
@@ -47,47 +48,51 @@
               <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
             </a>
           </td>
-          <ng-container *ngFor="let field of fields">
-            <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''"
-                [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+          @for (field of fields; track field) {
+            @if (field.visible) {
+              <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+                  || field.dataType===DataType.NumericInteger)? 'text-right': ''"
+                  [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
 
-              <ng-container [ngSwitch]="field.templateName">
-                <ng-container *ngSwitchCase="'greenRed'">
-                  <span [pTooltip]="getValueByPath(el, field)" [style.color]='isValueByPathMinus(el, field)? "red": "inherit"'
-                        tooltipPosition="top">
-                    {{getValueByPath(el, field)}}
-                  </span>
-                </ng-container>
-                <ng-container *ngSwitchDefault>
-                  <span [pTooltip]="getValueByPath(el, field)">{{getValueByPath(el, field)}}</span>
-                </ng-container>
-              </ng-container>
-            </td>
-          </ng-container>
+                @switch (field.templateName) {
+                  @case ('greenRed') {
+                    <span [pTooltip]="getValueByPath(el, field)" [style.color]='isValueByPathMinus(el, field)? "red": "inherit"'
+                          tooltipPosition="top">
+                      {{getValueByPath(el, field)}}
+                    </span>
+                  }
+                  @default {
+                    <span [pTooltip]="getValueByPath(el, field)">{{getValueByPath(el, field)}}</span>
+                  }
+                }
+              </td>
+            }
+          }
         </tr>
       </ng-template>
 
       <ng-template pTemplate="footer">
         <tr>
           <td></td>
-          <ng-container *ngFor="let field of fields">
-            <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''" [style.width.px]="field.width"
-                class="row-total">
-              <ng-container [ngSwitch]="field.templateName">
-                <ng-container *ngSwitchCase="'greenRed'">
-                <span [style.color]='isValueColumnTotalMinus(field, 0, accountPositionGroupSummary, null)? "red": "inherit"'>
-                  {{getValueColumnTotal(field, 0, accountPositionGroupSummary, null)}}
-                </span>
-                </ng-container>
-                <ng-container *ngSwitchDefault>
-                  <span>{{getValueColumnTotal(field, 0, accountPositionGroupSummary, null)}}</span>
-                </ng-container>
-              </ng-container>
-            </td>
-          </ng-container>
+          @for (field of fields; track field) {
+            @if (field.visible) {
+              <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+                  || field.dataType===DataType.NumericInteger)? 'text-right': ''" [style.width.px]="field.width"
+                  class="row-total">
+                @switch (field.templateName) {
+                  @case ('greenRed') {
+                    <span [style.color]='isValueColumnTotalMinus(field, 0, accountPositionGroupSummary, null)? "red": "inherit"'>
+                      {{getValueColumnTotal(field, 0, accountPositionGroupSummary, null)}}
+                    </span>
+                  }
+                  @default {
+                    <span>{{getValueColumnTotal(field, 0, accountPositionGroupSummary, null)}}</span>
+                  }
+                }
+              </td>
+            }
+          }
         </tr>
       </ng-template>
 
@@ -107,22 +112,23 @@
   <p-contextMenu #contextMenuPCD [model]="contextMenuItems" [target]="cmDiv"></p-contextMenu>
 </div>
 
+@if (visibleCashaccountTransactionSingleDialog) {
+  <transaction-cashaccount-editsingle (closeDialog)="handleCloseDialog($event)"
+                                      [transactionCallParam]="transactionCallParam"
+                                      [visibleCashaccountTransactionSingleDialog]="visibleCashaccountTransactionSingleDialog">
+  </transaction-cashaccount-editsingle>
+}
 
-<transaction-cashaccount-editsingle (closeDialog)="handleCloseDialog($event)"
-                                    *ngIf="visibleCashaccountTransactionSingleDialog"
-                                    [transactionCallParam]="transactionCallParam"
-                                    [visibleCashaccountTransactionSingleDialog]="visibleCashaccountTransactionSingleDialog">
-</transaction-cashaccount-editsingle>
+@if (visibleCashaccountTransactionDoubleDialog) {
+  <transaction-cashaccount-editdouble (closeDialog)="handleCloseDialog($event)"
+                                      [transactionCallParam]="transactionCallParam"
+                                      [visibleCashaccountTransactionDoubleDialog]="visibleCashaccountTransactionDoubleDialog">
+  </transaction-cashaccount-editdouble>
+}
 
-<transaction-cashaccount-editdouble (closeDialog)="handleCloseDialog($event)"
-                                    *ngIf="visibleCashaccountTransactionDoubleDialog"
-                                    [transactionCallParam]="transactionCallParam"
-                                    [visibleCashaccountTransactionDoubleDialog]="visibleCashaccountTransactionDoubleDialog">
-</transaction-cashaccount-editdouble>
-
-<cashaccount-edit (closeDialog)="handleCloseCashaccountDialog($event)" *ngIf="visibleCashaccountDialog"
-                  [callParam]="callParam"
-                  [visibleDialog]="visibleCashaccountDialog">
-</cashaccount-edit>
-
-
+@if (visibleCashaccountDialog) {
+  <cashaccount-edit (closeDialog)="handleCloseCashaccountDialog($event)"
+                    [callParam]="callParam"
+                    [visibleDialog]="visibleCashaccountDialog">
+  </cashaccount-edit>
+}

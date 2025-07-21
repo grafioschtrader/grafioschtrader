@@ -19,7 +19,7 @@ import {ProcessedAction} from '../../lib/types/processed.action';
     selector: 'historyquote-delete-dialog',
     template: `
       <p-dialog header="{{'DELETE_CREATE_TYPES_QUOTES' | translate}}" [(visible)]="visibleDialog"
-                [responsive]="true" [style]="{width: '500px'}"
+                [style]="{width: '500px'}"
                 (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
           <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"

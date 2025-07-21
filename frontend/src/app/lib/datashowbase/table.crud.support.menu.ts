@@ -18,7 +18,6 @@ import {TranslateHelper} from '../helper/translate.helper';
 import {LimitEntityTransactionError} from '../../shared/login/service/limit.entity.transaction.error';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
-import {AppSettings} from '../../shared/app.settings';
 import {DynamicDialogs} from '../../shared/dynamicdialog/component/dynamic.dialogs';
 import saveAs from '../filesaver/filesaver';
 import {BaseSettings} from '../base.settings';

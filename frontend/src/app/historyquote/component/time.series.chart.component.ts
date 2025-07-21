@@ -21,7 +21,7 @@ import {combineLatest, Observable, Subscription} from 'rxjs';
 import {PlotlyHelper} from '../../shared/chart/plotly.helper';
 import {TransactionType} from '../../shared/types/transaction.type';
 import {AppHelper, Comparison} from '../../lib/helper/app.helper';
-import moment from 'moment';
+import moment, {Moment} from 'moment';
 import {AppSettings} from '../../shared/app.settings';
 import {SecurityTransactionPosition} from '../../entities/view/security.transaction.position';
 import {MenuItem, SelectItem} from 'primeng/api';
@@ -44,7 +44,6 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {HistoryquoteDateClose} from '../../entities/projection/historyquote.date.close';
 import {TwoKeyMap} from '../../lib/helper/two.key.map';
 import {Transaction} from '../../entities/transaction';
-import {Moment} from 'moment/moment';
 import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.helper';
 import {BaseSettings} from '../../lib/base.settings';
 
@@ -69,43 +68,43 @@ interface Data {
  * removed.
  */
 @Component({
-    template: `
+  template: `
     <div #container class="fullChart" [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
          (click)="onComponentClick($event)" (contextmenu)="onRightClick($event)">
       <div class="input-w">
-        <label for="fromDate">{{'FROM_DATE' | translate}}</label>
+        <label for="fromDate">{{ 'FROM_DATE' | translate }}</label>
         <p-datepicker #cal appendTo="body"
-                    baseZIndex="100"
-                    [(ngModel)]="fromDate" id="fromDate"
-                    [dateFormat]="dateFormat"
-                    [disabledDays]="[0,6]"
-                    (onBlur)="onBlurFromDate($event)"
-                    (onSelect)="onBlurFromDate($event)"
-                    [minDate]="startDate" [maxDate]="endDate">
+                      baseZIndex="100"
+                      [(ngModel)]="fromDate" id="fromDate"
+                      [dateFormat]="dateFormat"
+                      [disabledDays]="[0,6]"
+                      (onBlur)="onBlurFromDate($event)"
+                      (onSelect)="onBlurFromDate($event)"
+                      [minDate]="startDate" [maxDate]="endDate">
         </p-datepicker>
         <i class="fa fa-undo fa-border fa-lg" (click)="onResetOldestDate($event)"></i>
-        <button type="button" (click)="fiveDays($event)">5{{"D" | translate}}</button>
+        <button type="button" (click)="fiveDays($event)">5{{ "D" | translate }}</button>
         <button type="button" (click)="oneMonth($event)">1M</button>
         <button type="button" (click)="threeMonth($event)">3M</button>
         <button type="button" (click)="yearToDate($event)">YTD</button>
-        <button type="button" (click)="oneYear($event)">1{{"Y" | translate}}</button>
+        <button type="button" (click)="oneYear($event)">1{{ "Y" | translate }}</button>
         <button type="button" (click)="oldestTrade($event)" title="{{'OLDEST_TRADE_TOOLTIP' | translate}}">
-            {{"OLDEST_TRADE" | translate}}
-       </button>
-        <ng-container *ngIf="this.loadedData.length===1">
-          <label>{{'HOLDING' | translate}}</label>
+          {{ "OLDEST_TRADE" | translate }}
+        </button>
+        @if (this.loadedData.length === 1) {
+          <label>{{ 'HOLDING' | translate }}</label>
           <input type="checkbox" [(ngModel)]="showHolding" (change)="toggleCheckbox($event)">
-        </ng-container>
+        }
 
-        <label>{{'PERCENTAGE' | translate}}</label>
+        <label>{{ 'PERCENTAGE' | translate }}</label>
         <input type="checkbox" [(ngModel)]="usePercentage" (change)="toggleCheckbox($event)">
 
-        <label>{{'CONNECT_GAPS' | translate}}</label>
+        <label>{{ 'CONNECT_GAPS' | translate }}</label>
         <input type="checkbox" [(ngModel)]="connectGaps" (change)="toggleCheckbox($event)">
 
-        <label>{{'CURRENCY' | translate}}</label>
+        <label>{{ 'CURRENCY' | translate }}</label>
         <p-select [options]="currenciesOptions" [(ngModel)]="requestedCurrency"
-                    (onChange)="handleChangeCurrency($event)">
+                  (onChange)="handleChangeCurrency($event)">
         </p-select>
 
       </div>
@@ -113,13 +112,14 @@ interface Data {
       </div>
       <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="container"></p-contextMenu>
     </div>
-    <indicator-edit *ngIf="visibleTaDialog"
-                    [visibleDialog]="visibleTaDialog" [taEditParam]="taEditParam"
-                    (closeDialog)="handleCloseTaDialog($event)">
-    </indicator-edit>
+    @if (visibleTaDialog) {
+      <indicator-edit [visibleDialog]="visibleTaDialog" [taEditParam]="taEditParam"
+                      (closeDialog)="handleCloseTaDialog($event)">
+      </indicator-edit>
+    }
   `,
-    styles: ['button { border: 0; margin-left: 3px}'],
-    standalone: false
+  styles: ['button { border: 0; margin-left: 3px}'],
+  standalone: false
 })
 export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   @ViewChild('container', {static: true}) container: ElementRef;

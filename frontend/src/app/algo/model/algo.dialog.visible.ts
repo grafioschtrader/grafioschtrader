@@ -5,8 +5,6 @@ import {AlgoStrategyImplementationType} from '../../shared/types/algo.strategy.i
 import {InputAndShowDefinitionStrategy} from './input.and.show.definition.strategy';
 import {AlgoStrategy} from './algo.strategy';
 import {FieldDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
-import {Securitycurrency} from '../../entities/securitycurrency';
-import {Observable} from 'rxjs';
 
 export enum AlgoDialogVisible {
   ALGO_ASSETCLASS = 1,

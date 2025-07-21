@@ -34,6 +34,7 @@ import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
   standalone: false
 })
 export class SecurityaccountEditDynamicComponent extends SimpleDynamicEditBase<Securityaccount> implements OnInit, AfterViewInit {
+  static readonly DIALOG_WIDTH = 500;
   callParam: CallParam;
   untilFields: UntilField[];
 
@@ -103,7 +104,9 @@ export class SecurityaccountEditDynamicComponent extends SimpleDynamicEditBase<S
       } else {
         this.untilFields.forEach(uf => uf.active && this.configObject[uf.fieldName].formControl.setValue(new Date('2099-12-31')));
       }
-      this.configObject.name.elementRef.nativeElement.focus();
+      setTimeout(() => {
+        this.configObject.name.elementRef?.nativeElement?.focus();
+      }, 50);
     });
   }
 

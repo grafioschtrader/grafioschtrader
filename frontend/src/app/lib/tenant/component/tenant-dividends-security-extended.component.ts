@@ -17,9 +17,9 @@ import {TenantDividendsExtendedBase} from './tenant.dividends.extended.base';
  */
 @Component({
     selector: 'tenant-dividends-security-extended',
-    template: `
+  template: `
     <div class="datatable">
-      <p-table [columns]="fields" [value]="securityDividendsPositions" selectionMode="single" responsiveLayout="scroll"
+      <p-table [columns]="fields" [value]="securityDividendsPositions" selectionMode="single"
                dataKey="security.idSecuritycurrency" sortMode="multiple" [multiSortMeta]="multiSortMeta"
                stripedRows showGridlines>
         <ng-template #caption>
@@ -28,12 +28,14 @@ import {TenantDividendsExtendedBase} from './tenant.dividends.extended.base';
         <ng-template #header let-fields>
           <tr>
             <th style="width:24px"></th>
-            <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                [pTooltip]="field.headerTooltipTranslated">
-              {{ field.headerTranslated }}
-              <p-sortIcon [field]="field.field"></p-sortIcon>
-            </th>
+            @for (field of fields; track field) {
+              <th [pSortableColumn]="field.field" [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
+                  [pTooltip]="field.headerTooltipTranslated">
+                {{ field.headerTranslated }}
+                <p-sortIcon [field]="field.field"></p-sortIcon>
+              </th>
+            }
           </tr>
         </ng-template>
         <ng-template #body let-expanded="expanded" let-el let-columns="fields">
@@ -43,33 +45,37 @@ import {TenantDividendsExtendedBase} from './tenant.dividends.extended.base';
                 <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
               </a>
             </td>
-            <td *ngFor="let field of fields" [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+            @for (field of fields; track field) {
+              <td [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
+                  [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                 || field.dataType===DataType.NumericInteger)? 'text-right': ''">
-              <span [pTooltip]="getValueByPath(el, field)" tooltipPosition="top">{{ getValueByPath(el, field) }}</span>
-            </td>
+                <span [pTooltip]="getValueByPath(el, field)" tooltipPosition="top">{{ getValueByPath(el, field) }}</span>
+              </td>
+            }
           </tr>
         </ng-template>
         <ng-template #expandedrow let-sdp let-columns="fields">
           <tr>
             <td [attr.colspan]="numberOfVisibleColumns + 1">
-              <transaction-security-table *ngIf="!!sdp.security.stockexchange && !isMarginProduct(sdp.security)"
-                                          [idTenant]="idTenant"
-                                          [idSecuritycurrency]="sdp.security.idSecuritycurrency"
-                                          [idsSecurityaccount]="idsSecurityaccount"
-                                          [transactionSecurityOptionalParam]="tsop"
-                                          (dateChanged)="transactionDataChanged($event)">
-              </transaction-security-table>
+              @if (!!sdp.security.stockexchange && !isMarginProduct(sdp.security)) {
+                <transaction-security-table [idTenant]="idTenant"
+                                            [idSecuritycurrency]="sdp.security.idSecuritycurrency"
+                                            [idsSecurityaccount]="idsSecurityaccount"
+                                            [transactionSecurityOptionalParam]="tsop"
+                                            (dateChanged)="transactionDataChanged($event)">
+                </transaction-security-table>
+              }
 
-              <transaction-security-margin-treetable
-                *ngIf="!!sdp.security.stockexchange && isMarginProduct(sdp.security)"
-                [idTenant]="idTenant"
-                [idSecuritycurrency]="sdp.security.idSecuritycurrency"
-                [idsSecurityaccount]="idsSecurityaccount"
-                [transactionSecurityOptionalParam]="tsop"
-                (dateChanged)="transactionDataChanged($event)">
-              </transaction-security-margin-treetable>
+              @if (!!sdp.security.stockexchange && isMarginProduct(sdp.security)) {
+                <transaction-security-margin-treetable
+                  [idTenant]="idTenant"
+                  [idSecuritycurrency]="sdp.security.idSecuritycurrency"
+                  [idsSecurityaccount]="idsSecurityaccount"
+                  [transactionSecurityOptionalParam]="tsop"
+                  (dateChanged)="transactionDataChanged($event)">
+                </transaction-security-margin-treetable>
+              }
             </td>
           </tr>
         </ng-template>

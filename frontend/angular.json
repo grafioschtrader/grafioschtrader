@@ -9,7 +9,7 @@
       "projectType": "application",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:application",
+          "builder": "@angular/build:application",
           "options": {
             "aot": true,
             "outputPath": {
@@ -41,14 +41,12 @@
               "node_modules/deepmerge/dist/umd.js",
               "node_modules/split.js/dist/split.js",
               "node_modules/plotly.js/dist/plotly.min.js",
-              "node_modules/reflect-metadata/Reflect.js",
+              "node_modules/reflect-metadata/Reflect.js"
             ],
             "allowedCommonJsDependencies": [
               "moment",
               "deepmerge",
-              "angular2-uuid",
-              "plotly.js-locales/de-ch",
-              "plotly.js-locales/fr"
+              "angular2-uuid"
             ],
             "browser": "src/main.ts"
           },
@@ -85,7 +83,7 @@
           "defaultConfiguration": "development"
         },
         "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
+          "builder": "@angular/build:dev-server",
           "options": {
             "port": 4200,
             "buildTarget": "frontend:build"
@@ -97,13 +95,13 @@
           }
         },
         "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n",
+          "builder": "@angular/build:extract-i18n",
           "options": {
             "buildTarget": "frontend:build"
           }
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "@angular/build:karma",
           "options": {
             "polyfills": [
               "zone.js",
@@ -132,5 +130,31 @@
   },
   "cli": {
     "analytics": false
+  },
+  "schematics": {
+    "@schematics/angular:component": {
+      "type": "component"
+    },
+    "@schematics/angular:directive": {
+      "type": "directive"
+    },
+    "@schematics/angular:service": {
+      "type": "service"
+    },
+    "@schematics/angular:guard": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:interceptor": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:module": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:pipe": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:resolver": {
+      "typeSeparator": "."
+    }
   }
 }

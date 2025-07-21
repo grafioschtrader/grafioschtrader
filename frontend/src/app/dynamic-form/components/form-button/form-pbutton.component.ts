@@ -11,30 +11,39 @@ import {FormConfig} from '../../models/form.config';
  * a label only the icon.
  */
 @Component({
-    selector: 'form-pbutton',
-    template: `
-      <button *ngIf="!config.buttonFN" pButton class="btn ml-1" [loading]="config.groupItemUseOrLoading"
+  selector: 'form-pbutton',
+  template: `
+    @if (!config.buttonFN) {
+      <button pButton class="btn ml-1" [loading]="config.groupItemUseOrLoading"
               type="submit" [label]="config.labelKey | translate" [disabled]="!group.valid || config.disabled"
               pTooltip="{{config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP' }}">
-        <svg-icon *ngIf="config.icon"
-                  [src]="config.icon" [svgStyle]="{ 'width.px':16, 'height.px':16 }"></svg-icon>
+        @if (config.icon) {
+          <svg-icon [src]="config.icon" [svgStyle]="{ 'width.px':16, 'height.px':16 }"></svg-icon>
+        }
       </button>
-      <button *ngIf="config.buttonFN && !config.labelKey.endsWith('_')" pButton class="btn ml-1"
+    }
+    @if (config.buttonFN && !config.labelKey.endsWith('_')) {
+      <button pButton class="btn ml-1"
               [disabled]="config.disabled"
               pTooltip="{{config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP' }}"
               type="button" [label]="config.labelKey | translate" (click)="config.buttonFN($event)">
-        <svg-icon *ngIf="config.icon"
-          [src]="config.icon" [svgStyle]="{ 'width.px':16, 'height.px':16}"></svg-icon>
+        @if (config.icon) {
+          <svg-icon [src]="config.icon" [svgStyle]="{ 'width.px':16, 'height.px':16}"></svg-icon>
+        }
       </button>
-      <button *ngIf="config.buttonFN && config.labelKey.endsWith('_')" pButton
+    }
+    @if (config.buttonFN && config.labelKey.endsWith('_')) {
+      <button pButton
               class="btn ml-1 button-no-label"
               pTooltip="{{config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP'}}"
               [disabled]="config.disabled" type="button" (click)="config.buttonFN($event)">
-        <svg-icon *ngIf="config.icon"
-                  [src]="config.icon" [svgStyle]="{ 'width.px':13, 'height.px':13}"></svg-icon>
+        @if (config.icon) {
+          <svg-icon [src]="config.icon" [svgStyle]="{ 'width.px':13, 'height.px':13}"></svg-icon>
+        }
       </button>
+    }
   `,
-    standalone: false
+  standalone: false
 })
 
 export class FormPButtonComponent implements FieldFormFormGroupConfig {

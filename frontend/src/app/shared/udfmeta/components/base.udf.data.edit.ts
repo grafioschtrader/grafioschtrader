@@ -15,7 +15,6 @@ import {FieldDescriptorInputAndShowExtended} from '../../dynamicfield/field.desc
 import {Directive, Input} from '@angular/core';
 import {DataType} from '../../../dynamic-form/models/data.type';
 import {Helper} from '../../../lib/helper/helper';
-import {AppSettings} from '../../app.settings';
 import {BaseSettings} from '../../../lib/base.settings';
 
 /**

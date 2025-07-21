@@ -59,10 +59,24 @@ export class TranslateHelper {
   public static prepareFieldsAndErrors(translateService: TranslateService,
     fieldFormGroup: FieldFormGroup[]): { [name: string]: FieldConfig } {
     const fieldConfigs = FormHelper.flattenConfigMap(fieldFormGroup);
-    const flattenFieldConfigObject: {
-      [name: string]: FieldConfig
-    } = Object.assign({}, ...fieldConfigs.map(d => ({[d.field]: d})),
-      ...FormHelper.getFormGroupDefinition(fieldFormGroup).map(d => ({[d.formGroupName]: d})));
+
+    // Fix für Object.assign Spread-Problem
+    const fieldConfigMap = fieldConfigs.reduce((acc, d) => {
+      if (d.field) {
+        acc[d.field] = d;
+      }
+      return acc;
+    }, {} as { [name: string]: FieldConfig });
+
+    const formGroupMap = FormHelper.getFormGroupDefinition(fieldFormGroup).reduce((acc, d) => {
+      acc[d.formGroupName] = d as any; // Type assertion für Kompatibilität
+      return acc;
+    }, {} as { [name: string]: any });
+
+    const flattenFieldConfigObject = {
+      ...fieldConfigMap,
+      ...formGroupMap
+    } as { [name: string]: FieldConfig };
 
     this.translateMessageErrors(translateService, fieldFormGroup);
     return flattenFieldConfigObject;

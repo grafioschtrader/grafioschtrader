@@ -48,6 +48,10 @@ export abstract class SingleRecordConfigBase extends ShowRecordConfigBase {
     return this._fieldSetGroups;
   }
 
+  getFieldsForFieldSet(fieldSetName: string): ColumnConfig[] {
+    const groups = this.fieldSetGroups;
+    return (groups[fieldSetName] || []) as ColumnConfig[];
+  }
 
   /**
    * Adds a field property with explicit header key for single record display.

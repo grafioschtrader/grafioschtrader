@@ -1,6 +1,5 @@
 import {Observable, of} from 'rxjs';
 import {GlobalSessionNames} from '../shared/global.session.names';
-import {GlobalparameterService} from '../shared/service/globalparameter.service';
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {MessageToastService} from '../lib/message/message.toast.service';

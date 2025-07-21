@@ -1,5 +1,5 @@
 import {Security} from '../../entities/security';
-import {Injectable, InjectionToken} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {AppSettings} from '../../shared/app.settings';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {SecurityOpenPositionPerSecurityaccount} from '../../entities/view/security.open.position.per.securityaccount';
@@ -24,7 +24,6 @@ import moment from 'moment';
 import {ITaskExtendService} from '../../shared/taskdatamonitor/component/itask.extend.service';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {BaseSettings} from '../../lib/base.settings';
-
 
 
 @Injectable()
@@ -162,14 +161,14 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
     return true;
   }
 
-  getAdditionalData(): Observable<{[key: number]: string}> {
-    return <Observable<{[key: number]: string}>>this.httpClient.get(
+  getAdditionalData(): Observable<{ [key: number]: string }> {
+    return <Observable<{ [key: number]: string }>>this.httpClient.get(
       `${AppSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/tooltip`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-  getToolTipByPath(dataobject: any, field: ColumnConfig, additionalData: {[key: number]: string}): any {
-    if (field.field === 'idEntity' && (dataobject.entity === 'Security' || dataobject.entity === 'Currencypair' )) {
+  getToolTipByPath(dataobject: any, field: ColumnConfig, additionalData: { [key: number]: string }): any {
+    if (field.field === 'idEntity' && (dataobject.entity === 'Security' || dataobject.entity === 'Currencypair')) {
       return additionalData[dataobject['idEntity']];
     }
     return null;

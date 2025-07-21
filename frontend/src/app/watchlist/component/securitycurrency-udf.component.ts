@@ -13,17 +13,20 @@ import {AppSettings} from '../../shared/app.settings';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
 import {OptionalParams} from '../../lib/datashowbase/column.config';
 import {WatchlistService} from '../service/watchlist.service';
+import {AppHelper} from '../../lib/helper/app.helper';
 
 
 /**
  * Shows all corresponding basic and additional fields grouped together.
  */
 @Component({
-    selector: 'securitycurrency-udf',
-    templateUrl: '../view/securitycurrency.base.info.fields.html',
-    standalone: false
+  selector: 'securitycurrency-udf',
+  templateUrl: '../view/securitycurrency.base.info.fields.html',
+  standalone: false
 })
 export class SecuritycurrencyUdfComponent extends SecuritycurrencyBaseInfoFields implements OnInit {
+
+  protected readonly AppHelper = AppHelper;
 
   constructor(watchlistService: WatchlistService,
     securityService: SecurityService,

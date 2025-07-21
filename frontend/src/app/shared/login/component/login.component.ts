@@ -26,17 +26,19 @@ import {DynamicDialogs} from '../../dynamicdialog/component/dynamic.dialogs';
   template: `
     <div class="container">
       <div class="login jumbotron center-block">
-        <div class="alert alert-success" role="alert" *ngIf="successLastRegistration">
-          {{ successLastRegistration | translate }}
-        </div>
+        @if (successLastRegistration) {
+          <div class="alert alert-success" role="alert">
+            {{ successLastRegistration | translate }}
+          </div>
+        }
         <application-info [applicationInfo]="applicationInfo"></application-info>
-        <ng-container *ngIf="formConfig">
+        @if (formConfig) {
           <h2>{{ 'SIGN_IN' | translate }}</h2>
           <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                         #form="dynamicForm"
                         (submitBt)="submit($event)">
           </dynamic-form>
-        </ng-container>
+        }
         <p-card header="{{'RELEASE_NOTE' | translate}}">
           <h4>0.33.0</h4>
           {{ 'V_0_33_0' | translate }}
@@ -47,9 +49,12 @@ import {DynamicDialogs} from '../../dynamicdialog/component/dynamic.dialogs';
         </p-card>
       </div>
     </div>
-    <password-edit *ngIf="visiblePasswordDialog" [forcePasswordChange]="true"
-                   [visibleDialog]="visiblePasswordDialog">
-    </password-edit>
+
+    @if (visiblePasswordDialog) {
+      <password-edit [forcePasswordChange]="true"
+                     [visibleDialog]="visiblePasswordDialog">
+      </password-edit>
+    }
   `,
   providers: [DialogService],
   standalone: false

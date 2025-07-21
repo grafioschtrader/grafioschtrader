@@ -3,27 +3,28 @@
   <div class="datatable">
     <p-table [(selection)]="securityDividendsGrandTotalSelected" [columns]="fields" [multiSortMeta]="multiSortMeta"
              [paginator]="true" [rows]="30" [value]="securityDividendsYearGroup"
-             responsiveLayout="scroll"
              dataKey="year" selectionMode="single" sortMode="multiple"
              stripedRows showGridlines>
       <ng-template #caption>
-        <ng-container *ngIf="securityDividendsGrandTotal">
+        @if (securityDividendsGrandTotal) {
           <h4 [translateParams]="{select: selectedSecurityAccounts, total: totalSecurityAccounts}"
               [translate]="'PORTFOLIO_DIVIDENDS_YEAR'"></h4>
           <h4 [translateParams]="{select: selectedCashAccounts, total: totalCashAccounts}"
               [translate]="'PORTFOLIO_INTEREST_YEAR'"></h4>
-        </ng-container>
+        }
       </ng-template>
 
       <ng-template #header let-fields>
         <tr>
           <th style="width:24px"></th>
-          <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
-              [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-              [pTooltip]="field.headerTooltipTranslated">
-            {{field.headerTranslated}}
-            <p-sortIcon [field]="field.field"></p-sortIcon>
-          </th>
+          @for (field of fields; track field) {
+            <th [pSortableColumn]="field.field" [style.max-width.px]="field.width"
+                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
+                [pTooltip]="field.headerTooltipTranslated">
+              {{ field.headerTranslated }}
+              <p-sortIcon [field]="field.field"></p-sortIcon>
+            </th>
+          }
         </tr>
       </ng-template>
 
@@ -34,27 +35,31 @@
               <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
             </a>
           </td>
-          <ng-container *ngFor="let field of fields">
-            <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''"
-                [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-              {{getValueByPath(el, field)}}
-            </td>
-          </ng-container>
+          @for (field of fields; track field) {
+            @if (field.visible) {
+              <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+                  || field.dataType===DataType.NumericInteger)? 'text-right': ''"
+                  [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+                {{ getValueByPath(el, field) }}
+              </td>
+            }
+          }
         </tr>
       </ng-template>
 
       <ng-template pTemplate="footer">
         <tr>
           <td></td>
-          <ng-container *ngFor="let field of fields">
-            <td *ngIf="field.visible" [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''" [style.width.px]="field.width"
-                class="row-total">
-              {{getValueColumnTotal(field, 0, securityDividendsGrandTotal, null)}}
-            </td>
-          </ng-container>
+          @for (field of fields; track field) {
+            @if (field.visible) {
+              <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+                  || field.dataType===DataType.NumericInteger)? 'text-right': ''" [style.width.px]="field.width"
+                  class="row-total">
+                {{ getValueColumnTotal(field, 0, securityDividendsGrandTotal, null) }}
+              </td>
+            }
+          }
         </tr>
       </ng-template>
 
@@ -84,9 +89,10 @@
   </div>
 </div>
 
-<tenant-dividend-security-account-selection-dialog (closeDialog)="handleOnProcessedDialog($event)"
-                                                   *ngIf="visibleSecurityaccountDialog"
-                                                   [idsAccounts]="idsAccounts"
-                                                   [portfolios]="securityDividendsGrandTotal.portfolioList"
-                                                   [visibleDialog]="visibleSecurityaccountDialog">
-</tenant-dividend-security-account-selection-dialog>
+@if (visibleSecurityaccountDialog) {
+  <tenant-dividend-security-account-selection-dialog (closeDialog)="handleOnProcessedDialog($event)"
+                                                     [idsAccounts]="idsAccounts"
+                                                     [portfolios]="securityDividendsGrandTotal.portfolioList"
+                                                     [visibleDialog]="visibleSecurityaccountDialog">
+  </tenant-dividend-security-account-selection-dialog>
+}

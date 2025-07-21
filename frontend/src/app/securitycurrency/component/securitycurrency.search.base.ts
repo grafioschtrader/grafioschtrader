@@ -13,7 +13,7 @@ import {atLeastOneFieldValidator} from '../../lib/validator/validator';
 import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
 import {Security} from '../../entities/security';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
-import {DynamicFieldHelper, VALIDATION_SPECIAL} from '../../lib/helper/dynamic.field.helper';
+import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
@@ -44,9 +44,9 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   private monitor: boolean;
 
   protected constructor(protected multiplyAddClose: boolean,
-              protected gps: GlobalparameterService,
-              protected multipleRequestToOneService: MultipleRequestToOneService,
-              public translateService: TranslateService) {
+    protected gps: GlobalparameterService,
+    protected multipleRequestToOneService: MultipleRequestToOneService,
+    public translateService: TranslateService) {
   }
 
   abstract childClearList(): void;

@@ -61,7 +61,6 @@ import {SendRecvForwardTabMenuComponent} from './lib/mail/component/send.recv.fo
 import {MailForwardSettingTableComponent} from './lib/mail/component/mail.forward.setting.table.component';
 import {UDFMetadataSecurityTableComponent} from './shared/udfmeta/components/udf.metadata.security.table.component';
 import {WatchlistUdfComponent} from './watchlist/component/watchlist.udf.component';
-import {UDFMetadataGeneral} from './shared/udfmeta/model/udf.metadata';
 import {UDFMetadataGeneralTableComponent} from './shared/udfmeta/components/udf.metadata.general.table.component';
 import {TenantAlertComponent} from './lib/tenant/component/tenant.alert.component';
 

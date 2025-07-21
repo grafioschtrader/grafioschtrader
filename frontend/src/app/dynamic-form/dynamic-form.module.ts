@@ -42,7 +42,7 @@ import {FormInputDropdownComponent} from './components/form-input/form-input-dro
 import {InputNumberModule} from 'primeng/inputnumber';
 import {NgxCurrencyDirective} from 'ngx-currency';
 import {FormInputMultiSelectComponent} from './components/form-input/form-input-multi-select.component';
-import {MultiSelect, MultiSelectModule} from 'primeng/multiselect';
+import {MultiSelectModule} from 'primeng/multiselect';
 import {ContextMenuModule} from 'primeng/contextmenu';
 import {KeyFilterModule} from 'primeng/keyfilter';
 import {DatePicker} from 'primeng/datepicker';

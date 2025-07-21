@@ -18,33 +18,35 @@ import {FilterService} from 'primeng/api';
  */
 @Component({
     selector: 'securitycurrency-search-and-set-table',
-    template: `
+  template: `
     <div class="col-md-12">
-
       <p-table [columns]="fields" [value]="securitycurrencyList" selectionMode="single" [(selection)]="selectedSecurity"
                dataKey="idSecuritycurrency" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10,20,30]"
-               sortField="name" sortMode="multiple" responsiveLayout="scroll"
-               stripedRows showGridlines>
+               sortField="name" sortMode="multiple"  stripedRows showGridlines>
         <ng-template #header let-fields>
           <tr>
-            <th *ngFor="let field of fields" [pSortableColumn]="field.field" [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-              {{field.headerTranslated}}
-              <p-sortIcon [field]="field.field"></p-sortIcon>
-            </th>
+            @for (field of fields; track field) {
+              <th [pSortableColumn]="field.field" [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+                {{field.headerTranslated}}
+                <p-sortIcon [field]="field.field"></p-sortIcon>
+              </th>
+            }
           </tr>
         </ng-template>
 
         <ng-template #body let-el let-columns="fields">
           <tr [pSelectableRow]="el">
-            <ng-container *ngFor="let field of fields">
-              <td *ngIf="field.visible" [style.max-width.px]="field.width"
-                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                  [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+            @for (field of fields; track field) {
+              @if (field.visible) {
+                <td [style.max-width.px]="field.width"
+                    [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
+                    [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                 || field.dataType===DataType.NumericInteger)? 'text-right': ''">
-                {{getValueByPath(el, field)}}
-              </td>
-            </ng-container>
+                  {{getValueByPath(el, field)}}
+                </td>
+              }
+            }
           </tr>
         </ng-template>
       </p-table>
@@ -52,8 +54,9 @@ import {FilterService} from 'primeng/api';
 
     <div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix">
       <button pButton [disabled]="!selectedSecurity"
-              class="btn pull-right" [label]="'ASSIGN_SELECTED' | translate"
+              class="btn pull-right"
               (click)="chooseSecurity()" type="button">
+        {{'ASSIGN_SELECTED' | translate}}
       </button>
     </div>
   `,
@@ -76,11 +79,9 @@ export class SecuritycurrencySearchAndSetTableComponent extends Securitycurrency
 
   loadData(securitycurrencySearch: SecuritycurrencySearch): void {
     securitycurrencySearch.excludeDerivedSecurity = this.supplementCriteria.excludeDerivedSecurity;
-
     const obs: Observable<(Currencypair | Security)[]>[] = [this.securityService.searchByCriteria(securitycurrencySearch)];
     !this.supplementCriteria.onlySecurity && obs.push(this.currencypairService.searchByCriteria(securitycurrencySearch));
-
-    combineLatest(obs).subscribe(data => {
+    combineLatest(obs).subscribe((data: ((Currencypair | Security)[])[]) => {
       this.securitycurrencyList = data[0];
       this.createTranslatedValueStoreAndFilterField(data[0]);
       if (!this.supplementCriteria.onlySecurity) {

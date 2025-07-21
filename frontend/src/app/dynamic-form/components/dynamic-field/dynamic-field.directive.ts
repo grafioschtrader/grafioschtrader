@@ -1,10 +1,7 @@
 import {ComponentRef, Directive, Input, OnChanges, OnInit, Type, ViewContainerRef} from '@angular/core';
 import {UntypedFormGroup} from '@angular/forms';
-
 import {FormButtonComponent} from '../form-button/form-button.component';
 import {FormInputComponent} from '../form-input/form-input.component';
-
-
 import {FieldFormFormGroupConfig} from '../../models/field.form.form.group.config';
 import {FieldConfig} from '../../models/field.config';
 import {FormPCalendarComponent} from '../form-input/form-pcalendar.component';
@@ -73,7 +70,7 @@ export class DynamicFieldDirective implements FieldFormFormGroupConfig, OnChange
         Supported types: ${supportedTypes}`
       );
     }
-    this.component = this.viewContainerRef.createComponent(components[this.config.inputType]);
+    this.component = this.viewContainerRef.createComponent(components[this.config.inputType] as any);
     this.component.instance.config = this.config;
     this.component.instance.formConfig = this.formConfig;
     this.component.instance.group = this.group;

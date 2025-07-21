@@ -13,7 +13,6 @@ import {Security} from '../../entities/security';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {BusinessSelectOptionsHelper} from '../../securitycurrency/component/business.select.options.helper';

@@ -11,7 +11,7 @@ import {ColumnConfig} from '../../datashowbase/column.config';
  */
 @Component({
     selector: 'tenant-dividend-account-selection',
-    template: `
+  template: `
     <p-treeTable [value]="portfolioAccounts" [columns]="fields" selectionMode="checkbox" [(selection)]="selectedNodes"
                  [scrollable]="true" scrollHeight="600px">
       <ng-template #caption>
@@ -23,26 +23,36 @@ import {ColumnConfig} from '../../datashowbase/column.config';
       </ng-template>
       <ng-template #header let-fields>
         <tr>
-          <th *ngFor="let field of fields">
-            {{field.headerTranslated}}
-          </th>
+          @for (field of fields; track field) {
+            <th>
+              {{field.headerTranslated}}
+            </th>
+          }
         </tr>
       </ng-template>
       <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
         <tr>
-          <td *ngFor="let field of fields; let i = index">
-            <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
-            <p-treeTableCheckbox [value]="rowNode" *ngIf="i === 0"></p-treeTableCheckbox>
-            {{getValueByPath(rowData, field)}}
-          </td>
+          @for (field of fields; track field; let i = $index) {
+            <td>
+              @if (i === 0) {
+                <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+              }
+              @if (i === 0) {
+                <p-treeTableCheckbox [value]="rowNode"></p-treeTableCheckbox>
+              }
+              {{getValueByPath(rowData, field)}}
+            </td>
+          }
         </tr>
       </ng-template>
     </p-treeTable>
-    <div *ngIf="selectionRequired && selectedNodes.length === 0">
-      <div class="alert alert-danger">
-        {{'selectionrequried' | translate}}
+    @if (selectionRequired && selectedNodes.length === 0) {
+      <div>
+        <div class="alert alert-danger">
+          {{'selectionrequried' | translate}}
+        </div>
       </div>
-    </div>
+    }
   `,
     standalone: false
 })

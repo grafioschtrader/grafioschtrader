@@ -37,7 +37,7 @@ import {BaseSettings} from '../../lib/base.settings';
  * Main component for the transaction import
  */
 @Component({
-    template: `
+  template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
 
@@ -45,24 +45,30 @@ import {BaseSettings} from '../../lib/base.settings';
                     #form="dynamicForm">
       </dynamic-form>
 
-      <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+      @if (contextMenuItems) {
+        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+      }
       <br/>
       <securityaccount-import-transaction-table></securityaccount-import-transaction-table>
     </div>
 
-    <securityaccount-import-transaction-edit-head *ngIf="visibleEditDialog"
-                                                  [visibleDialog]="visibleEditDialog"
-                                                  [callParam]="callParam"
-                                                  (closeDialog)="handleCloseEditDialog($event)">
-    </securityaccount-import-transaction-edit-head>
+    @if (visibleEditDialog) {
+      <securityaccount-import-transaction-edit-head
+        [visibleDialog]="visibleEditDialog"
+        [callParam]="callParam"
+        (closeDialog)="handleCloseEditDialog($event)">
+      </securityaccount-import-transaction-edit-head>
+    }
 
-    <upload-file-dialog *ngIf="visibleUploadFileDialog"
-                        [visibleDialog]="visibleUploadFileDialog"
-                        [fileUploadParam]="fileUploadParam"
-                        (closeDialog)="handleCloseImportUploadDialog($event)">
-    </upload-file-dialog>
+    @if (visibleUploadFileDialog) {
+      <upload-file-dialog
+        [visibleDialog]="visibleUploadFileDialog"
+        [fileUploadParam]="fileUploadParam"
+        (closeDialog)="handleCloseImportUploadDialog($event)">
+      </upload-file-dialog>
+    }
   `,
-    standalone: false
+  standalone: false
 })
 export class SecurityaccountImportTransactionComponent
   extends SingleRecordMasterViewBase<ImportTransactionHead, CombineTemplateAndImpTransPos>
@@ -86,13 +92,13 @@ export class SecurityaccountImportTransactionComponent
   private routeSubscribe: Subscription;
 
   constructor(private activatedRoute: ActivatedRoute,
-              private importTransactionHeadService: ImportTransactionHeadService,
-              private importTransactionTemplateService: ImportTransactionTemplateService,
-              gps: GlobalparameterService,
-              confirmationService: ConfirmationService,
-              messageToastService: MessageToastService,
-              activePanelService: ActivePanelService,
-              translateService: TranslateService) {
+    private importTransactionHeadService: ImportTransactionHeadService,
+    private importTransactionTemplateService: ImportTransactionTemplateService,
+    gps: GlobalparameterService,
+    confirmationService: ConfirmationService,
+    messageToastService: MessageToastService,
+    activePanelService: ActivePanelService,
+    translateService: TranslateService) {
 
     super(gps, HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT,
       SecurityaccountImportTransactionComponent.MAIN_FIELD,
@@ -197,7 +203,7 @@ export class SecurityaccountImportTransactionComponent
   }
 
   handleUploadFiles(additionalFieldConfig: AdditionalFieldConfig, importTransactionHead: ImportTransactionHead,
-                    titleUpload: string, acceptFileType: string, multiple: boolean): void {
+    titleUpload: string, acceptFileType: string, multiple: boolean): void {
     this.fileUploadParam = new FileUploadParam(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT,
       additionalFieldConfig, acceptFileType, titleUpload, multiple, this.importTransactionHeadService,
       importTransactionHead.idTransactionHead);

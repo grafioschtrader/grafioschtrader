@@ -21,10 +21,31 @@ import {HelpIds} from '../../shared/help/help.ids';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 
+/**
+ * Abstract base class for displaying transactions in a tabular format with comprehensive filtering, sorting, and
+ * editing capabilities. Provides standardized column definitions, data processing, and user interaction handling
+ * for transaction-related table components throughout the application.
+ */
 @Directive()
 export abstract class TransactionTable extends TransactionContextMenu {
 
+  /** Array of transaction positions displayed in the cash account table */
   cashaccountTransactionPositions: Transaction[];
+
+  /**
+   * Creates a new TransactionTable instance with comprehensive service dependencies and predefined column configuration.
+   *
+   * @param currencypairService Service for handling currency pair operations and data retrieval
+   * @param parentChildRegisterService Service for managing parent-child component relationships and state preservation
+   * @param activePanelService Service for managing active panel states and menu interactions
+   * @param transactionService Service for transaction CRUD operations and business logic
+   * @param confirmationService PrimeNG service for displaying confirmation dialogs
+   * @param messageToastService Service for displaying user notification messages
+   * @param filterService PrimeNG service for table filtering functionality
+   * @param translateService Angular service for internationalization and text translation
+   * @param gps Global parameter service for application-wide settings and configurations
+   * @param usersettingsService Service for managing user-specific settings and preferences
+   */
 
   protected constructor(protected currencypairService: CurrencypairService,
               parentChildRegisterService: ParentChildRegisterService,
@@ -71,15 +92,32 @@ export abstract class TransactionTable extends TransactionContextMenu {
       });
   }
 
+  /**
+   * Extracts the security object from a transaction for display and processing purposes.
+   *
+   * @param transaction The transaction from which to extract the security information
+   * @returns The security object associated with the transaction
+   */
   getSecurity(transaction: Transaction): Security {
     return transaction.security;
   }
 
+  /**
+   * Handles row selection events in the transaction table and updates the active panel menu accordingly.
+   *
+   * @param event The row selection event containing the selected transaction data
+   */
   onRowSelect(event): void {
     this.selectedTransaction = event.data;
     this.setMenuItemsToActivePanel();
   }
 
+  /**
+   * Handles the closing of transaction dialog windows and processes any resulting data changes. Updates the selected
+   * transaction if modifications were made and refreshes the table data when necessary.
+   *
+   * @param processedActionData Contains information about the action performed and any resulting data changes
+   */
   override handleCloseTransactionDialog(processedActionData: ProcessedActionData) {
     super.handleCloseTransactionDialog(processedActionData);
     if (processedActionData.action === ProcessedAction.UPDATED) {
@@ -94,6 +132,11 @@ export abstract class TransactionTable extends TransactionContextMenu {
     processedActionData.action !== ProcessedAction.NO_CHANGE && this.initialize();
   }
 
+  /**
+   * Handles post-deletion cleanup by clearing the selected transaction and reinitializing the table data.
+   *
+   * @param transaction The transaction that was deleted
+   */
   override afterDelete(transaction: Transaction): void {
     this.selectedTransaction = null;
     this.initialize();
@@ -103,11 +146,18 @@ export abstract class TransactionTable extends TransactionContextMenu {
     return HelpIds.HELP_PORTFOLIOS_TRANSACTIONLIST;
   }
 
+  /**
+   * Associates currency pair objects with transactions based on their currency pair IDs and creates translated
+   * value stores for proper display and filtering functionality.
+   *
+   * @param transactions Array of transactions to be enhanced with currency pair information
+   * @param currencypairs Array of available currency pairs for association
+   * @returns The enhanced transaction array with currency pair objects attached
+   */
   protected addCurrencypairToTransaction(transactions: Transaction[],
                                          currencypairs: Currencypair[]): Transaction[] {
     const currencypairMap: Map<number, Currencypair> = new Map();
     currencypairs.forEach(currencypair => currencypairMap.set(currencypair.idSecuritycurrency, currencypair));
-
     for (const transaction of transactions) {
       if (transaction.idCurrencypair != null) {
         transaction.currencypair = currencypairMap.get(transaction.idCurrencypair);
@@ -117,6 +167,12 @@ export abstract class TransactionTable extends TransactionContextMenu {
     return transactions;
   }
 
+  /**
+   * Template method for subclasses to customize transaction call parameters. Default implementation provides
+   * no additional configuration.
+   *
+   * @param transactionCallParam The transaction call parameter object to be configured
+   */
   protected override prepareTransactionCallParam(transactionCallParam: TransactionCallParam) {
   }
 

@@ -17,7 +17,7 @@ export abstract class SecuritycurrencySearchTableBase extends TableConfigBase {
 
   securitycurrencyList: (Security | Currencypair)[] = [];
 
-  constructor(filterService: FilterService,
+  protected constructor(filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
               gps: GlobalparameterService) {

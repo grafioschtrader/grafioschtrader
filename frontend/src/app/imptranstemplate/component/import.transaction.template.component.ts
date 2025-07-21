@@ -15,17 +15,16 @@ import {ParentChildRowSelection} from '../../lib/datashowbase/parent.child.row.s
 import {ConfirmationService, MenuItem} from 'primeng/api';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {plainToClass, plainToInstance} from 'class-transformer';
+import {plainToInstance} from 'class-transformer';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {AppSettings} from '../../shared/app.settings';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {
   ImportTransactionTemplateService,
   SuccessFailedImportTransactionTemplate
 } from '../service/import.transaction.template.service';
-import filesaver, {saveAs} from '../../lib/filesaver/filesaver';
+import {saveAs} from '../../lib/filesaver/filesaver';
 import {NgxFileDropEntry} from 'ngx-file-drop';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {BaseSettings} from '../../lib/base.settings';
@@ -34,43 +33,50 @@ import {BaseSettings} from '../../lib/base.settings';
  * Main component of import transaction template. It combines other components like a table.
  */
 @Component({
-    template: `
+  template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
 
       <div class="flex-two-columns">
-        <h4 class="ui-widget-header singleRowTableHeader">{{'IMPORT_TRANSACTION_PLATFORM' | translate}}</h4>
-        <div class="right-half" *ngIf="selectedEntity">
-          <ngx-file-drop dropZoneLabel="{{'DROP_TEMPLATE_HERE' | translate}}" (onFileDrop)="dropped($event)"
-                         dropZoneClassName="drop-zone-trans-long"
-                         contentClassName="content-trans">
-          </ngx-file-drop>
-        </div>
+        <h4 class="ui-widget-header singleRowTableHeader">{{ 'IMPORT_TRANSACTION_PLATFORM' | translate }}</h4>
+        @if (selectedEntity) {
+          <div class="right-half">
+            <ngx-file-drop dropZoneLabel="{{'DROP_TEMPLATE_HERE' | translate}}" (onFileDrop)="dropped($event)"
+                           dropZoneClassName="drop-zone-trans-long"
+                           contentClassName="content-trans">
+            </ngx-file-drop>
+          </div>
+        }
       </div>
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm">
       </dynamic-form>
-      <p-contextMenu *ngIf="isActivated() && contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+      @if (isActivated() && contextMenuItems) {
+        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+      }
       <br/>
       <import-transaction-template-table></import-transaction-template-table>
     </div>
-    <import-transaction-edit-platform *ngIf="visibleEditDialog"
-                                      [visibleDialog]="visibleEditDialog"
-                                      [callParam]="callParam"
-                                      [platformTransactionImportHtmlOptions]="platformTransactionImportHtmlOptions"
-                                      (closeDialog)="handleCloseEditDialog($event)">
-    </import-transaction-edit-platform>
-    <transform-pdf-to-txt-dialog *ngIf="visibleTransformPDFToTxtDialog"
-                                 [visibleDialog]="visibleTransformPDFToTxtDialog"
-                                 (closeDialog)="handleCloseTransformPDFToTxtDialog()">
-    </transform-pdf-to-txt-dialog>
-    <template-form-check-dialog *ngIf="visibleTemplateFormCheckDialog"
-                                [visibleDialog]="visibleTemplateFormCheckDialog"
-                                [importTransactionPlatform]="selectedEntity"
-                                (closeDialog)="handleCloseTemplateFormCheckDialog()">
-    </template-form-check-dialog>
+    @if (visibleEditDialog) {
+      <import-transaction-edit-platform [visibleDialog]="visibleEditDialog"
+                                        [callParam]="callParam"
+                                        [platformTransactionImportHtmlOptions]="platformTransactionImportHtmlOptions"
+                                        (closeDialog)="handleCloseEditDialog($event)">
+      </import-transaction-edit-platform>
+    }
+    @if (visibleTransformPDFToTxtDialog) {
+      <transform-pdf-to-txt-dialog [visibleDialog]="visibleTransformPDFToTxtDialog"
+                                   (closeDialog)="handleCloseTransformPDFToTxtDialog()">
+      </transform-pdf-to-txt-dialog>
+    }
+    @if (visibleTemplateFormCheckDialog) {
+      <template-form-check-dialog [visibleDialog]="visibleTemplateFormCheckDialog"
+                                  [importTransactionPlatform]="selectedEntity"
+                                  (closeDialog)="handleCloseTemplateFormCheckDialog()">
+      </template-form-check-dialog>
+    }
   `,
-    standalone: false
+  standalone: false
 })
 export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBase<ImportTransactionPlatform, ImportTransactionTemplate>
   implements OnInit, OnDestroy, ParentChildRowSelection<ImportTransactionTemplate> {
@@ -85,13 +91,13 @@ export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBa
   platformTransactionImportHtmlOptions: ValueKeyHtmlSelectOptions[];
 
   constructor(private activatedRoute: ActivatedRoute,
-              private importTransactionPlatformService: ImportTransactionPlatformService,
-              private importTransactionTemplateService: ImportTransactionTemplateService,
-              gps: GlobalparameterService,
-              confirmationService: ConfirmationService,
-              messageToastService: MessageToastService,
-              activePanelService: ActivePanelService,
-              translateService: TranslateService) {
+    private importTransactionPlatformService: ImportTransactionPlatformService,
+    private importTransactionTemplateService: ImportTransactionTemplateService,
+    gps: GlobalparameterService,
+    confirmationService: ConfirmationService,
+    messageToastService: MessageToastService,
+    activePanelService: ActivePanelService,
+    translateService: TranslateService) {
     super(gps, HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_GROUP, ImportTransactionTemplateComponent.MAIN_FIELD,
       'IMPORT_TRANSACTION_PLATFORM', importTransactionPlatformService,
       confirmationService, messageToastService, activePanelService, translateService);

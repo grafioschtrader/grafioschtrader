@@ -12,15 +12,15 @@ import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {CorrelationEditingSupport} from './correlation.editing.support';
 
-
 /**
- * Dialog for editing the transaction import template group
+ * Dialog component for creating and editing correlation sets with form validation and dynamic field configuration.
+ * Provides a modal dialog interface for correlation set management with sampling period and rolling configuration.
  */
 @Component({
     selector: 'correlation-set-edit',
     template: `
     <p-dialog header="{{'CORRELATION_SET' | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '400px'}"
+              [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
@@ -32,10 +32,22 @@ import {CorrelationEditingSupport} from './correlation.editing.support';
 })
 export class CorrelationSetEditComponent extends SimpleEntityEditBase<CorrelationSet> implements OnInit {
 
+  /** Dialog configuration parameters containing entity data and operation context */
   @Input() callParam: CallParam;
+
+  /** Correlation set limits and configuration constraints for validation */
   @Input() correlationLimit: CorrelationLimit;
+
+  /** Helper service for managing correlation-specific form fields and validation */
   private correlationEditingSupport: CorrelationEditingSupport = new CorrelationEditingSupport();
 
+  /**
+   * Creates correlation set edit dialog with required services.
+   * @param translateService Service for internationalization and text translation
+   * @param gps Global parameter service for application settings and locale
+   * @param messageToastService Service for displaying user notifications and messages
+   * @param correlationSetService Service for correlation set CRUD operations
+   */
   constructor(translateService: TranslateService,
               gps: GlobalparameterService,
               messageToastService: MessageToastService,
@@ -44,6 +56,10 @@ export class CorrelationSetEditComponent extends SimpleEntityEditBase<Correlatio
       messageToastService, correlationSetService);
   }
 
+  /**
+   * Initializes component with form configuration and field definitions.
+   * Sets up dynamic form fields for correlation set properties including sampling period and rolling configuration.
+   */
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       5, this.helpLink.bind(this));
@@ -51,6 +67,10 @@ export class CorrelationSetEditComponent extends SimpleEntityEditBase<Correlatio
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
+  /**
+   * Sets up form validation, dropdown options, and initial values.
+   * Configures sampling period options, establishes field dependencies, and loads existing entity data if available.
+   */
   protected override initialize(): void {
     this.configObject.samplingPeriod.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
       SamplingPeriodType);
@@ -61,6 +81,12 @@ export class CorrelationSetEditComponent extends SimpleEntityEditBase<Correlatio
     setTimeout(() => this.configObject.name.elementRef.nativeElement.focus());
   }
 
+  /**
+   * Prepares correlation set entity for save operation.
+   * Creates new or updates existing correlation set instance with form data, excluding runtime-only properties.
+   * @param value Form values containing user input data
+   * @returns Prepared correlation set entity ready for persistence
+   */
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): CorrelationSet {
     const newCorrelationSet = this.copyFormToPrivateBusinessObject(new CorrelationSet(),
       <CorrelationSet>this.callParam.thisObject);
@@ -68,6 +94,11 @@ export class CorrelationSetEditComponent extends SimpleEntityEditBase<Correlatio
     return newCorrelationSet;
   }
 
+  /**
+   * Handles dialog close event with cleanup operations.
+   * Destroys correlation editing support resources and calls parent cleanup logic.
+   * @param event Dialog hide event data
+   */
   override onHide(event): void {
     this.correlationEditingSupport.destroy();
     super.onHide(event);

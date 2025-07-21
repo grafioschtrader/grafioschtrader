@@ -14,20 +14,22 @@ import {CurrencypairService} from '../../securitycurrency/service/currencypair.s
  * Shows some statistical data on the quality of the historical price data
  */
 @Component({
-    selector: 'historyquote-quality',
-    template: `
+  selector: 'historyquote-quality',
+  template: `
     <div class="gbox">
-      <div *ngFor="let field of fields" >
-        <div class="glabel" [pTooltip]="field.headerTooltipTranslated">
-          {{field.headerTranslated}}
+      @for (field of fields; track field) {
+        <div>
+          <div class="glabel" [pTooltip]="field.headerTooltipTranslated">
+            {{ field.headerTranslated }}
+          </div>
+          <div class="gvalue">
+            {{ getValueByPath(historyquoteQuality, field) }}
+          </div>
         </div>
-        <div class="gvalue">
-          {{getValueByPath(historyquoteQuality, field)}}
-        </div>
-      </div>
+      }
     </div>
   `,
-    standalone: false
+  standalone: false
 })
 export class HistoryquoteQualityComponent extends SingleRecordConfigBase implements OnInit {
   @Input() historyquoteQuality: IHistoryquoteQuality;
@@ -35,9 +37,9 @@ export class HistoryquoteQualityComponent extends SingleRecordConfigBase impleme
   private feedConnectorsKV: { [id: string]: string } = {};
 
   constructor(private securityService: SecurityService,
-              private currencypairService: CurrencypairService,
-              translateService: TranslateService,
-              gps: GlobalparameterService) {
+    private currencypairService: CurrencypairService,
+    translateService: TranslateService,
+    gps: GlobalparameterService) {
     super(translateService, gps);
   }
 

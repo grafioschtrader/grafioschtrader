@@ -241,7 +241,6 @@ import {NgxFileDropModule} from 'ngx-file-drop';
 import {ButtonModule} from 'primeng/button';
 import {DialogModule} from 'primeng/dialog';
 import {InputTextModule} from 'primeng/inputtext';
-import {MessagesModule} from 'primeng/messages';
 import {PanelModule} from 'primeng/panel';
 import {ProgressBarModule} from 'primeng/progressbar';
 import {PasswordModule} from 'primeng/password';
@@ -445,7 +444,6 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     InputTextModule,
     MenubarModule,
     MenuModule,
-    MessagesModule,
     PanelModule,
     InputNumberModule,
     PasswordModule,

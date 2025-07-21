@@ -53,9 +53,13 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
       <p-tabs [value]="activeTabValue">
         <p-tablist>
-          <p-tab value="security">{{'SECURITY' | translate}}</p-tab>
-          <p-tab value="splits" *ngIf="canHaveSplits || !dataLoaded">{{'SECURITY_SPLITS' | translate}}</p-tab>
-          <p-tab value="periods" *ngIf="!this.securityEditSupport?.hasMarketValue || !dataLoaded">{{'HISTORYQUOTE_FOR_PERIOD' | translate}}</p-tab>
+          <p-tab value="security">{{ 'SECURITY' | translate }}</p-tab>
+          @if (canHaveSplits || !dataLoaded) {
+            <p-tab value="splits">{{ 'SECURITY_SPLITS' | translate }}</p-tab>
+          }
+          @if (!this.securityEditSupport?.hasMarketValue || !dataLoaded) {
+            <p-tab value="periods">{{ 'HISTORYQUOTE_FOR_PERIOD' | translate }}</p-tab>
+          }
         </p-tablist>
         <p-tabpanels>
           <p-tabpanel value="security">
@@ -73,7 +77,7 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
             </securitysplit-edit-table>
           </p-tabpanel>
           <p-tabpanel value="periods">
-            <p>{{'HISTORYQUOTE_FOR_PERIOD_COMMENT' | translate}}</p>
+            <p>{{ 'HISTORYQUOTE_FOR_PERIOD_COMMENT' | translate }}</p>
             <dynamic-form [config]="periodPrices" [formConfig]="formConfigPeriod"
                           [translateService]="translateService"
                           #periodPriceForm="dynamicForm" (submitBt)="addHistoryquotePeriod($event)">

@@ -23,50 +23,56 @@ import {AppSettings} from '../../shared/app.settings';
  * TODO: Change to DatatableCRUDSupportMenu
  */
 @Component({
-    selector: 'import-transaction-template-table',
-    template: `
+  selector: 'import-transaction-template-table',
+  template: `
     <p-table [columns]="fields" [value]="entityList"
              selectionMode="single" sortMode="multiple" [multiSortMeta]="multiSortMeta"
-             responsiveLayout="scroll" [dataKey]="entityKeyName" [(selection)]="selectedEntity"
+             [dataKey]="entityKeyName" [(selection)]="selectedEntity"
              stripedRows showGridlines>
       <ng-template #header let-fields>
         <tr>
-          <th *ngFor="let field of fields" [pSortableColumn]="field.field"
-              [style.max-width.px]="field.width" [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-            {{field.headerTranslated}}
-            <p-sortIcon [field]="field.field"></p-sortIcon>
-          </th>
+          @for (field of fields; track field) {
+            <th [pSortableColumn]="field.field"
+                [style.max-width.px]="field.width"
+                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+              {{ field.headerTranslated }}
+              <p-sortIcon [field]="field.field"></p-sortIcon>
+            </th>
+          }
         </tr>
       </ng-template>
       <ng-template #body let-el let-columns="fields">
         <tr [pSelectableRow]="el">
-          <ng-container *ngFor="let field of fields">
-            <td *ngIf="field.visible" [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''">
-              <ng-container [ngSwitch]="field.templateName">
-                <ng-container *ngSwitchCase="'owner'">
-                  <span [style]='isNotSingleModeAndOwner(field, el)? "font-weight:500": null'>
-                   {{getValueByPath(el, field)}}</span>
-                </ng-container>
-                <ng-container *ngSwitchDefault>
-                  {{getValueByPath(el, field)}}
-                </ng-container>
-              </ng-container>
-            </td>
-          </ng-container>
+          @for (field of fields; track field) {
+            @if (field.visible) {
+              <td [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
+                  [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+              || field.dataType===DataType.NumericInteger)? 'text-right': ''">
+                @switch (field.templateName) {
+                  @case ('owner') {
+                    <span [style]='isNotSingleModeAndOwner(field, el)? "font-weight:500": null'>
+                   {{ getValueByPath(el, field) }}</span>
+                  }
+                  @default {
+                    {{ getValueByPath(el, field) }}
+                  }
+                }
+              </td>
+            }
+          }
         </tr>
       </ng-template>
     </p-table>
-    <import-transaction-edit-template *ngIf="visibleDialog"
-                                      [visibleDialog]="visibleDialog"
-                                      [callParam]="callParam"
-                                      (closeDialog)="handleCloseDialog($event)">
-    </import-transaction-edit-template>
+    @if (visibleDialog) {
+      <import-transaction-edit-template [visibleDialog]="visibleDialog"
+                                        [callParam]="callParam"
+                                        (closeDialog)="handleCloseDialog($event)">
+      </import-transaction-edit-template>
+    }
   `,
-    providers: [DialogService],
-    standalone: false
+  providers: [DialogService],
+  standalone: false
 })
 export class ImportTransactionTemplateTableComponent extends TableCrudSupportMenu<ImportTransactionTemplate> {
   callParam: CallParam;
@@ -78,14 +84,14 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
   private languageAsKeyValue: { [key: string]: string } = {};
 
   constructor(private importTransactionTemplateService: ImportTransactionTemplateService,
-              confirmationService: ConfirmationService,
-              messageToastService: MessageToastService,
-              activePanelService: ActivePanelService,
-              dialogService: DialogService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+    confirmationService: ConfirmationService,
+    messageToastService: MessageToastService,
+    activePanelService: ActivePanelService,
+    dialogService: DialogService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService) {
     super(AppSettings.IMPORT_TRANSACTION_TEMPLATE, importTransactionTemplateService, confirmationService,
       messageToastService, activePanelService, dialogService, filterService, translateService, gps,
       usersettingsService, [CrudMenuOptions.ParentControl, ...TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS]);
@@ -105,7 +111,7 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
   }
 
   parentSelectionChanged(seclectImportTransactionPlatform: ImportTransactionPlatform,
-                         parentChildRowSelection: ParentChildRowSelection<ImportTransactionTemplate>) {
+    parentChildRowSelection: ParentChildRowSelection<ImportTransactionTemplate>) {
     this.selectImportTransactionPlatform = seclectImportTransactionPlatform;
     this.parentChildRowSelection = parentChildRowSelection;
     this.readData();
@@ -113,21 +119,25 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
 
   override readData(): void {
     if (this.selectImportTransactionPlatform) {
-      combineLatest([this.importTransactionTemplateService.getImportTransactionPlatformByPlatform(
-        this.selectImportTransactionPlatform.idTransactionImportPlatform, false),
-        this.importTransactionTemplateService.getPossibleLanguagesForTemplate()]).subscribe(data => {
-        this.createTranslatedValueStoreAndFilterField(data[0]);
-        this.entityList = plainToClass(ImportTransactionTemplate, data[0]);
-        data[1].forEach(o => {
-          this.languageAsKeyValue.key = <string>o.key;
-          this.languageAsKeyValue[o.key] = o.value;
+      combineLatest([
+        this.importTransactionTemplateService.getImportTransactionPlatformByPlatform(
+          this.selectImportTransactionPlatform.idTransactionImportPlatform,
+          false
+        ),
+        this.importTransactionTemplateService.getPossibleLanguagesForTemplate()
+      ]).subscribe(([templates, languages]: [ImportTransactionTemplate[], any[]]) => {
+        this.createTranslatedValueStoreAndFilterField(templates);
+        this.entityList = plainToClass(ImportTransactionTemplate, templates);
+        languages.forEach((o: any) => {
+          this.languageAsKeyValue.key = o.key as string;
+          this.languageAsKeyValue[o.key as string] = o.value;
         });
         this.refreshSelectedEntity();
-        this.parentChildRowSelection && this.parentChildRowSelection.rowSelectionChanged(this.entityList, this.selectedEntity);
+        this.parentChildRowSelection?.rowSelectionChanged(this.entityList, this.selectedEntity);
       });
     } else {
       this.entityList = [];
-      this.parentChildRowSelection && this.parentChildRowSelection.rowSelectionChanged(this.entityList, this.selectedEntity);
+      this.parentChildRowSelection?.rowSelectionChanged(this.entityList, this.selectedEntity);
     }
   }
 

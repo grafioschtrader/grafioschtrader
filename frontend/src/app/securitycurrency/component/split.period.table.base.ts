@@ -4,7 +4,6 @@ import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import moment from 'moment';
-import {AppSettings} from '../../shared/app.settings';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Security} from '../../entities/security';
@@ -26,14 +25,14 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
   _dataList: T[] = [];
 
   protected constructor(public dataSortKey: string,
-                        public maxRowMessageKey: string,
-                        private classz: ClassConstructor<T>,
-                        private messageToastService: MessageToastService,
-                        private deleteCreateMultipleService: DeleteCreateMultiple<T>,
-                        filterService: FilterService,
-                        usersettingsService: UserSettingsService,
-                        translateService: TranslateService,
-                        gps: GlobalparameterService) {
+    public maxRowMessageKey: string,
+    private classz: ClassConstructor<T>,
+    private messageToastService: MessageToastService,
+    private deleteCreateMultipleService: DeleteCreateMultiple<T>,
+    filterService: FilterService,
+    usersettingsService: UserSettingsService,
+    translateService: TranslateService,
+    gps: GlobalparameterService) {
     super(filterService, usersettingsService, translateService, gps);
     this.multiSortMeta.push({field: dataSortKey, order: 1});
   }

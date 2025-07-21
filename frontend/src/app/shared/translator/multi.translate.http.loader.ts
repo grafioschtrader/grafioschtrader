@@ -20,11 +20,16 @@ export class MultiTranslateHttpLoader implements TranslateLoader {
   public getTranslation(language: string): Observable<any> {
     const requests = this.resources.map(resource => {
       const path = resource.prefix + language + resource.suffix;
-      return this.http.get(path).pipe(catchError(res => {
-        console.error('Could not find translation file:', path);
-        return of({});
-      }));
+      return this.http.get<Record<string, any>>(path).pipe(
+        catchError(res => {
+          console.error('Could not find translation file:', path);
+          return of({} as Record<string, any>);
+        })
+      );
     });
-    return forkJoin(requests).pipe(map(response => deepmerge.all(response)));
+
+    return forkJoin(requests).pipe(
+      map((response: Record<string, any>[]) => deepmerge.all(response))
+    );
   }
 }

@@ -1,5 +1,3 @@
-import {BaseSettings} from '../../lib/base.settings';
-
 export enum HelpIds {
 
   // Intro

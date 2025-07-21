@@ -6,13 +6,16 @@ import {MainDialogService} from '../service/main.dialog.service';
  */
 @Component({
     selector: 'main-dialog',
-    template: `
-    <password-edit *ngIf="mainDialogService.visibleDialogs[UserSettingsDialogs.Password]" [forcePasswordChange]="false"
-                   [visibleDialog]="mainDialogService.visibleDialogs[UserSettingsDialogs.Password]">
-    </password-edit>
-    <nickname-lang-edit *ngIf="mainDialogService.visibleDialogs[UserSettingsDialogs.NicknameLocale]"
-                        [visibleDialog]="mainDialogService.visibleDialogs[UserSettingsDialogs.NicknameLocale]">
-    </nickname-lang-edit>
+  template: `
+    @if (mainDialogService.visibleDialogs[UserSettingsDialogs.Password]) {
+      <password-edit [forcePasswordChange]="false"
+                     [visibleDialog]="mainDialogService.visibleDialogs[UserSettingsDialogs.Password]">
+      </password-edit>
+    }
+    @if (mainDialogService.visibleDialogs[UserSettingsDialogs.NicknameLocale]) {
+      <nickname-lang-edit [visibleDialog]="mainDialogService.visibleDialogs[UserSettingsDialogs.NicknameLocale]">
+      </nickname-lang-edit>
+    }
   `,
     standalone: false
 })

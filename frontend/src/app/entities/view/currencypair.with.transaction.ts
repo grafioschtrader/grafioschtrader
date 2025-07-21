@@ -14,7 +14,7 @@ export class CurrencypairWithTransaction implements INameSecuritycurrency {
   public cwtReverse: CurrencypairWithTransaction;
 
   constructor(notRealCwt: CurrencypairWithTransaction) {
-    Object.assign(this, notRealCwt);
+    Object.assign(this as any, notRealCwt);
     this.currencypair = new Currencypair(this.currencypair.fromCurrency, this.currencypair.toCurrency);
     this.currencypair.sLast = notRealCwt.currencypair.sLast;
     this.currencypair.sTimestamp = notRealCwt.currencypair.sTimestamp;

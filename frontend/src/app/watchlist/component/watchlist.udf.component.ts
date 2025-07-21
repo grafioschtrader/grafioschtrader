@@ -30,7 +30,9 @@ import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 
 /**
- * Display of the watchlist with the user-defined additional fields.
+ * Angular component that displays a watchlist with user-defined additional fields (UDF).
+ * Extends WatchlistTable to provide UDF-specific functionality including dynamic column generation
+ * from UDF metadata and integration of custom field values into the security data display.
  */
 @Component({
     templateUrl: '../view/watchlist.data.html',
@@ -44,11 +46,43 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
 })
 export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnDestroy {
 
+  /** Base name for link icon assets */
   private static readonly LINK_ICON = 'link';
+
+  /** Map of security currency IDs to their UDF values as JSON strings */
   private udfEntityValues: { [idSecuritycurrency: number]: string };
-  private fdSecurityList: FieldDescriptorInputAndShowExtendedSecurity[];
+
+  /** List of field descriptors for security and general UDF metadata */
+  private readonly fdSecurityList: FieldDescriptorInputAndShowExtendedSecurity[];
+
+  /** Regular expression to extract trailing numbers from field names */
   fieldNumberRegex = /\d+$/;
 
+  /**
+   * Creates a new WatchlistUdfComponent instance with all required services and dependencies.
+   *
+   * @param iconReg Service for registering SVG icons
+   * @param securityService Service for security-related operations
+   * @param currencypairService Service for currency pair operations
+   * @param uDFMetadataSecurityService Service for UDF metadata operations
+   * @param dialogService PrimeNG service for dynamic dialog management
+   * @param alarmSetupService Service for alarm configuration
+   * @param timeSeriesQuotesService Service for time series quote operations
+   * @param dataChangedService Service for data change notifications
+   * @param activePanelService Service for panel activation management
+   * @param watchlistService Service for watchlist operations
+   * @param router Angular router for navigation
+   * @param activatedRoute Current activated route
+   * @param confirmationService PrimeNG service for confirmation dialogs
+   * @param messageToastService Service for displaying toast messages
+   * @param productIconService Service for product icon management
+   * @param changeDetectionStrategy Angular change detection reference
+   * @param filterService PrimeNG service for table filtering
+   * @param translateService Angular translation service
+   * @param gpsGT Global parameter service for GT-specific settings
+   * @param gps Global parameter service for application settings
+   * @param usersettingsService Service for user preference management
+   */
   constructor(private iconReg: SvgIconRegistryService,
     private securityService: SecurityService,
     private currencypairService: CurrencypairService,
@@ -84,21 +118,33 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
     this.watchlistHasModifiedFromOutside();
   }
 
+  /**
+   * Registers SVG icons for link functionality by loading numbered link icons (0-3) into the icon registry.
+   *
+   * @param iconReg The SVG icon registry service to register icons with
+   */
   private static registerIcons(iconReg: SvgIconRegistryService): void {
     for (let i = 0; i < 4; i++) {
       iconReg.loadSvg(AppSettings.PATH_ASSET_ICONS + WatchlistUdfComponent.LINK_ICON + i + AppSettings.SVG, WatchlistUdfComponent.LINK_ICON + i);
     }
   }
 
+  /**
+   * Angular lifecycle hook that initializes the component by setting up the watchlist and loading data.
+   */
   ngOnInit(): void {
     this.init();
     this.getWatchlistWithoutUpdate();
   }
 
+  /**
+   * Loads watchlist data with UDF information and tenant limits without triggering price updates.
+   * Combines watchlist UDF data and tenant limit observables to populate the component state.
+   */
   protected override getWatchlistWithoutUpdate(): void {
     const watchListObservable: Observable<SecuritycurrencyUDFGroup> = this.watchlistService.getWatchlistWithUDFData(this.idWatchlist);
     const tenantLimitObservable: Observable<TenantLimit[]> = this.watchlistService.getSecuritiesCurrenciesWatchlistLimits(this.idWatchlist);
-    combineLatest([watchListObservable, tenantLimitObservable]).subscribe(result => {
+    combineLatest([watchListObservable, tenantLimitObservable]).subscribe((result:[SecuritycurrencyUDFGroup, TenantLimit[]] ) => {
       this.createSecurityPositionList(result[0]);
       this.udfEntityValues = (<SecuritycurrencyUDFGroup>result[0]).udfEntityValues;
       this.tenantLimits = result[1];
@@ -107,6 +153,10 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
     });
   }
 
+  /**
+   * Extends security position list items with their corresponding UDF values by parsing JSON strings
+   * and merging UDF data directly into the security currency objects for display purposes.
+   */
   private extendSecurityWithUDF(): void {
     this.udfValuesMap.clear();
     this.securityPositionList.forEach(spl => {
@@ -119,6 +169,9 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
     });
   }
 
+  /**
+   * Refreshes all price data by setting loading state and triggering a complete data reload.
+   */
   protected override updateAllPrice(): void {
     this.loading = true;
     this.getWatchlistWithoutUpdate();
@@ -128,6 +181,10 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
     return HelpIds.HELP_WATCHLIST_UDF;
   }
 
+  /**
+   * Creates table columns dynamically from UDF metadata by processing field descriptors and configuring
+   * column display properties based on data types. Sets up appropriate templates and widths for different field types.
+   */
   private createColumnsFromUDFMetaData(): void {
     for (const fd of this.fdSecurityList) {
       const optionalParam: OptionalParams = {};

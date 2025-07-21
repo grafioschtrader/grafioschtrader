@@ -1,9 +1,7 @@
-import {Component, Input, OnInit, ViewChild} from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {TranslateService} from '@ngx-translate/core';
 import {CashAccountTransfer, TransactionService} from '../service/transaction.service';
-import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {TransactionCallParam} from './transaction.call.parm';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {TransactionCashaccountBaseOperations} from './transaction.cashaccount.base.operations';
@@ -33,10 +31,10 @@ import {AppSettings} from '../../shared/app.settings';
  * Cash transfer between two cash accounts which are managed by this application.
  */
 @Component({
-    selector: 'transaction-cashaccount-editdouble',
-    template: `
+  selector: 'transaction-cashaccount-editdouble',
+  template: `
     <p-dialog header="{{'ACCOUNT_TRANSFER' | translate}}" [(visible)]="visibleCashaccountTransactionDoubleDialog"
-              [responsive]="true" [style]="{width: '550px'}"
+              [style]="{width: '550px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
@@ -45,13 +43,13 @@ import {AppSettings} from '../../shared/app.settings';
       </dynamic-form>
     </p-dialog>
   `,
-    standalone: false
+  standalone: false
 })
 export class TransactionCashaccountEditDoubleComponent extends TransactionCashaccountBaseOperations implements OnInit {
 
   // InputMask from parent view
   @Input() visibleCashaccountTransactionDoubleDialog: boolean;
- // @Input() transactionCallParam: TransactionCallParam;
+  // @Input() transactionCallParam: TransactionCallParam;
 
   // Access the form
 //  @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
@@ -73,12 +71,12 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   private creditChashaccountChangedSub: Subscription;
 
   constructor(private portfolioService: PortfolioService,
-              private transactionService: TransactionService,
-              messageToastService: MessageToastService,
-              currencypairService: CurrencypairService,
-              historyquoteService: HistoryquoteService,
-              translateService: TranslateService,
-              gps: GlobalparameterService) {
+    private transactionService: TransactionService,
+    messageToastService: MessageToastService,
+    currencypairService: CurrencypairService,
+    historyquoteService: HistoryquoteService,
+    translateService: TranslateService,
+    gps: GlobalparameterService) {
     super(messageToastService, currencypairService, historyquoteService, translateService, gps);
   }
 
@@ -101,7 +99,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
               }, VALIDATION_SPECIAL.GT_With_Mask_Param, 0.01),
       */
       DynamicFieldHelper.createFieldCurrencyNumberVSParamHeqF('creditAmount', true,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE, AppSettings.FID_MAX_FRACTION_DIGITS, false,{
+        AppSettings.FID_MAX_INT_REAL_DOUBLE, AppSettings.FID_MAX_FRACTION_DIGITS, false, {
           ...this.gps.getNumberCurrencyMask(), allowZero: false
         }, null, null, true),
 

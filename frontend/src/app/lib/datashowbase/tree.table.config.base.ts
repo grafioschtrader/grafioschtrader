@@ -3,7 +3,6 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {TableTreetableTotalBase} from './table.treetable.total.base';
 import {TreeNode} from 'primeng/api';
 import {TranslateHelper} from '../helper/translate.helper';
-import {AppSettings} from '../../shared/app.settings';
 import {BaseSettings} from '../base.settings';
 
 /**

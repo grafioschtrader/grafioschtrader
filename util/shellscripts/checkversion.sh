@@ -4,10 +4,10 @@
 . ~/gtvar.sh
 
 # Required Node.js versions
-node_required="^18.19.1 || ^20.11.1 || ^22.0.0"
+node_required="^20.19.0 || ^22.12.0 || ^24.0.0"
 
 # Required Angular CLI version
-angular_cli_required=19
+angular_cli_required=20
 
 # Function to check and install semver if missing
 ensure_semver_installed() {

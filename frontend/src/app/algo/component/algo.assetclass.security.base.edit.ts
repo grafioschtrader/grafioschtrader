@@ -24,7 +24,7 @@ export abstract class AlgoAssetclassSecurityBaseEdit<T> extends SimpleEntityEdit
   protected securityaccount1ChangedSub: Subscription;
   protected portfolios: Portfolio[];
 
-  constructor(i18nRecord: string,
+  protected constructor(i18nRecord: string,
               translateService: TranslateService,
               gps: GlobalparameterService,
               messageToastService: MessageToastService,

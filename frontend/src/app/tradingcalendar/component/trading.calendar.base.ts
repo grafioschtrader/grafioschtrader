@@ -3,7 +3,6 @@ import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {AppSettings} from '../../shared/app.settings';
 import {RangeSelectDays} from '../../fullyearcalendar/Interface/range.select.days';
 import {HelpIds} from '../../shared/help/help.ids';
 import moment from 'moment';
@@ -17,11 +16,11 @@ import {BaseSettings} from '../../lib/base.settings';
 export abstract class TradingCalendarBase extends CalendarNavigation {
 
   protected constructor(translateService: TranslateService,
-              gps: GlobalparameterService,
-              markExistingColor: string[],
-              activePanelService: ActivePanelService,
-              protected messageToastService: MessageToastService,
-              public titleKey?: string) {
+    gps: GlobalparameterService,
+    markExistingColor: string[],
+    activePanelService: ActivePanelService,
+    protected messageToastService: MessageToastService,
+    public titleKey?: string) {
     super(translateService, gps, activePanelService, markExistingColor);
   }
 
@@ -54,7 +53,7 @@ export abstract class TradingCalendarBase extends CalendarNavigation {
   }
 
   protected setYearsBoundariesAfterRead(tradingDaysWithDateBoundaries: TradingDaysWithDateBoundaries,
-                                        yearChange: boolean): void {
+    yearChange: boolean): void {
     if (!yearChange) {
       this.setYearsBoundaries(moment(tradingDaysWithDateBoundaries.oldestTradingCalendarDay).year(),
         moment(tradingDaysWithDateBoundaries.youngestTradingCalendarDay).year());

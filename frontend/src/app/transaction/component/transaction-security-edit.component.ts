@@ -58,16 +58,18 @@ import {BusinessSelectOptionsHelper} from '../../securitycurrency/component/busi
  * finance cost) can not be changed in this form, it has to be set in advance.
  */
 @Component({
-    selector: 'transaction-security-edit',
-    template: `
+  selector: 'transaction-security-edit',
+  template: `
     <p-dialog [(visible)]="visibleSecurityTransactionDialog"
-              [responsive]="true" [style]="{width: '720px'}" [resizable]="false"
+              [style]="{width: '720px'}" [resizable]="false"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
       <p-header>
-        <h4>{{'INVESTMENT_TRANSACTION' | translate}}</h4>
-        <div *ngIf="isOpenMarginInstrument && !transactionCallParam.transaction">
-          <p class="big-size">{{'MARGIN_BUY_SELL' | translate}}</p>
-        </div>
+        <h4>{{ 'INVESTMENT_TRANSACTION' | translate }}</h4>
+        @if (isOpenMarginInstrument && !transactionCallParam.transaction) {
+          <div>
+            <p class="big-size">{{ 'MARGIN_BUY_SELL' | translate }}</p>
+          </div>
+        }
       </p-header>
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
@@ -76,7 +78,7 @@ import {BusinessSelectOptionsHelper} from '../../securitycurrency/component/busi
       </dynamic-form>
     </p-dialog>
   `,
-    standalone: false
+  standalone: false
 })
 export class TransactionSecurityEditComponent extends TransactionBaseOperations implements OnInit {
 
@@ -131,14 +133,14 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   private historyquoteCheck = new ChangedIdSecurityAndTime();
 
   constructor(private transactionService: TransactionService,
-              private portfolioService: PortfolioService,
-              private securityService: SecurityService,
-              private activeRoute: ActivatedRoute,
-              messageToastService: MessageToastService,
-              currencypairService: CurrencypairService,
-              historyquoteService: HistoryquoteService,
-              translateService: TranslateService,
-              gps: GlobalparameterService) {
+    private portfolioService: PortfolioService,
+    private securityService: SecurityService,
+    private activeRoute: ActivatedRoute,
+    messageToastService: MessageToastService,
+    currencypairService: CurrencypairService,
+    historyquoteService: HistoryquoteService,
+    translateService: TranslateService,
+    gps: GlobalparameterService) {
     super(messageToastService, currencypairService, historyquoteService, translateService, gps);
   }
 
@@ -592,7 +594,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     } else {
       // For Edge an empty Option is needed, otherwise the first Account would be selected
       securityaccountsHtmlSelect.splice(0, 0, new ValueKeyHtmlSelectOptions('', ''));
-      !(this.closedMarginPosition?.hasPosition === true) &&  this.configObject.idSecurityaccount.formControl.enable();
+      !(this.closedMarginPosition?.hasPosition === true) && this.configObject.idSecurityaccount.formControl.enable();
       this.selectAccumulateSecurityaccountWhenAvailable(securityaccountsHtmlSelect);
     }
     this.transactionCallParam.transaction && this.setCurrencyOnSecurityAndCashaccount(this.transactionCallParam.transaction.security);
@@ -850,7 +852,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   private createHtmlSelectKeyValue(portfolioName: string, securitycashaccounts: any[],
-                                   callBackFn?: (securityaccount: Securityaccount) => string): ValueKeyHtmlSelectOptions[] {
+    callBackFn?: (securityaccount: Securityaccount) => string): ValueKeyHtmlSelectOptions[] {
     const valueKeyHtmlSelect: ValueKeyHtmlSelectOptions[] = [];
     const securityaccountOpenPositionUnits: SecurityaccountOpenPositionUnits[] =
       this.securityOpenPositionPerSecurityaccount?.securityaccountOpenPositionUnitsList || [];

@@ -47,7 +47,7 @@ import {TreeAlgoAssetclass, TreeAlgoSecurity, TreeAlgoStrategy, TreeAlgoTop} fro
  * Project: Grafioschtrader
  */
 @Component({
-    template: `
+  template: `
     <div class="data-container" (click)="onComponentClick($event)" (contextmenu)="onRightClick($event)"
          #cmDiv [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-treeTable [columns]="fields" [value]="treeNodes" selectionMode="single" [(selection)]="selectedNode"
@@ -61,43 +61,52 @@ import {TreeAlgoAssetclass, TreeAlgoSecurity, TreeAlgoStrategy, TreeAlgoTop} fro
 
         <ng-template #header let-fields>
           <tr>
-            <th *ngFor="let field of fields">
-              {{ field.headerTranslated }}
-            </th>
+            @for (field of fields; track field) {
+              <th>
+                {{ field.headerTranslated }}
+              </th>
+            }
           </tr>
         </ng-template>
         <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
           <tr [ttContextMenuRow]="rowNode" [ttSelectableRow]="rowNode"
               [ngClass]="{'kb-row': rowData.constructor.name  === 'AlgoAssetclass'}">
-            <td *ngFor="let field of fields; let i = index"
-                [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
+            @for (field of fields; track field; let i = $index) {
+              <td [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
               || field.dataType===DataType.DateTimeNumeric) || field.dataType===DataType.NumericShowZero}">
-              <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
-              {{ getValueByPath(rowData, field) }}
-            </td>
+                @if (i === 0) {
+                  <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+                }
+                {{ getValueByPath(rowData, field) }}
+              </td>
+            }
           </tr>
         </ng-template>
       </p-treeTable>
       <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="cmDiv"></p-contextMenu>
-      <strategy-detail *ngIf="algoStrategyShowParamCall.algoStrategy"
-                       [algoStrategyParamCall]="algoStrategyShowParamCall">
-      </strategy-detail>
+      @if (algoStrategyShowParamCall.algoStrategy) {
+        <strategy-detail [algoStrategyParamCall]="algoStrategyShowParamCall">
+        </strategy-detail>
+      }
     </div>
-    <algo-assetclass-edit *ngIf="visibleDialogs[AlgoDialogVisible.ALGO_ASSETCLASS]"
-                          [visibleDialog]="visibleDialogs[AlgoDialogVisible.ALGO_ASSETCLASS]"
+    @if (visibleDialogs[AlgoDialogVisible.ALGO_ASSETCLASS]) {
+      <algo-assetclass-edit [visibleDialog]="visibleDialogs[AlgoDialogVisible.ALGO_ASSETCLASS]"
+                            [algoCallParam]="algoCallParam"
+                            (closeDialog)="handleCloseAlgoAssetclassDialog($event)">
+      </algo-assetclass-edit>
+    }
+    @if (visibleDialogs[AlgoDialogVisible.ALGO_SECURITY]) {
+      <algo-security-edit [visibleDialog]="visibleDialogs[AlgoDialogVisible.ALGO_SECURITY]"
                           [algoCallParam]="algoCallParam"
                           (closeDialog)="handleCloseAlgoAssetclassDialog($event)">
-    </algo-assetclass-edit>
-    <algo-security-edit *ngIf="visibleDialogs[AlgoDialogVisible.ALGO_SECURITY]"
-                        [visibleDialog]="visibleDialogs[AlgoDialogVisible.ALGO_SECURITY]"
-                        [algoCallParam]="algoCallParam"
-                        (closeDialog)="handleCloseAlgoAssetclassDialog($event)">
-    </algo-security-edit>
-    <algo-strategy-edit *ngIf="visibleDialogs[AlgoDialogVisible.ALGO_STRATEGY]"
-                        [visibleDialog]="visibleDialogs[AlgoDialogVisible.ALGO_STRATEGY]"
-                        [algoCallParam]="algoCallParam"
-                        (closeDialog)="handleCloseAlgoAssetclassDialog($event)">
-    </algo-strategy-edit>
+      </algo-security-edit>
+    }
+    @if (visibleDialogs[AlgoDialogVisible.ALGO_STRATEGY]) {
+      <algo-strategy-edit [visibleDialog]="visibleDialogs[AlgoDialogVisible.ALGO_STRATEGY]"
+                          [algoCallParam]="algoCallParam"
+                          (closeDialog)="handleCloseAlgoAssetclassDialog($event)">
+      </algo-strategy-edit>
+    }
   `,
     styles: [`
     .kb-row {

@@ -6,34 +6,56 @@ import {Transaction} from '../../entities/transaction';
 import {Cashaccount} from '../../entities/cashaccount';
 
 /**
- * It contains call parameters for the different transaction forms.
+ * Container class that holds call parameters for different transaction forms and dialogs.
+ * This class centralizes all the necessary data required to initialize and configure various transaction editing
+ * components, whether they are for security transactions, cash account transactions, or margin trading operations.
+ * It supports both new transaction creation and existing transaction modification scenarios.
  */
 export class TransactionCallParam {
-  /**
-   * When not null the transaction can not be set to another portfolio.
-   */
+  /** When not null, restricts the transaction to this specific portfolio and prevents portfolio changes */
   public portfolio: Portfolio = null;
+
+  /** Existing transaction to be edited, null for new transaction creation */
   public transaction: Transaction = null;
+
+  /** Type of transaction being performed (buy, sell, dividend, etc.) */
   public transactionType: TransactionType;
-  // Manly used for Security transaction
+
+  /** Security currency identifier, mainly used for security transactions */
   public idSecuritycurrency: number;
+
+  /** Security entity associated with the transaction */
   public security: Security = null;
+
+  /** Security account where the transaction will be recorded */
   public securityaccount: Securityaccount = null;
-  // Manly usd for Cashaccount transaction
+
+  /** Cash account for cash-based transactions */
   public cashaccount: Cashaccount;
-  // User for security transaction, it is base for filling the
-  // security select options.
+
+  /** Watchlist identifier used as basis for populating security select options in transaction forms */
   public idWatchList: number;
 
+  /** Default transaction time to be pre-filled in transaction forms */
   public defaultTransactionTime;
 
-  /**
-   * Closing a margin trade, contains maximal number of units to close the position
-   */
+  /** Configuration for closing margin trades, contains position limits and constraints */
   public closeMarginPosition: CloseMarginPosition;
 }
 
+/**
+ * Configuration class for closing margin trading positions. Contains all necessary information to properly
+ * close an existing margin position including position limits, quotation data, and related transaction references.
+ */
 export class CloseMarginPosition {
+  /**
+   * Creates a new CloseMarginPosition configuration.
+   * @param quotationOpenPosition The quotation price when the margin position was originally opened
+   * @param originUnits The original number of units in the margin position
+   * @param closeMaxMarginUnits Maximum number of units that can be closed from this position
+   * @param idSecurityaccount Security account identifier where the position is held
+   * @param idOpenMarginTransaction Transaction identifier of the original margin opening transaction
+   */
   constructor(public quotationOpenPosition: number,
               public originUnits: number,
               public closeMaxMarginUnits: number,
@@ -41,6 +63,3 @@ export class CloseMarginPosition {
               public idOpenMarginTransaction: number) {
   }
 }
-
-
-// http://stackoverflow.com/questions/38113489/typescript-json-arrays-optional-properties-typescript-is-too-helpful

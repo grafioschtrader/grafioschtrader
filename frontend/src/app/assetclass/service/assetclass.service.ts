@@ -10,8 +10,6 @@ import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.htm
 import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../shared/login/service/log-in.service';
-import {AssetclassType} from '../../shared/types/assetclass.type';
-import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
 
 
 @Injectable()

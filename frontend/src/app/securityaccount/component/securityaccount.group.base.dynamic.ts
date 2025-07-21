@@ -19,7 +19,7 @@ export abstract class SecurityaccountGroupBaseDynamic<S> extends Securityaccount
   // protected translatedShort: string;
   protected translatedGroupValues: { [key: string]: string } = {};
 
-  constructor(translateService: TranslateService,
+  protected constructor(translateService: TranslateService,
               datatableConfigBase: TableConfigBase,
               defaultGroup: string,
               defaultEntityGroup: string,

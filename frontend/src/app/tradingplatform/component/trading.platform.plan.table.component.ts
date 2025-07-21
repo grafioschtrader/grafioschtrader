@@ -16,46 +16,52 @@ import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 
 @Component({
-    template: `
+  template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
-               responsiveLayout="scroll" [dataKey]="entityKeyName"
-               stripedRows showGridlines>
+               [dataKey]="entityKeyName" stripedRows showGridlines>
         <ng-template #caption>
           <h4>{{entityNameUpper | translate}}</h4>
         </ng-template>
         <ng-template #header let-fields>
           <tr>
-            <th *ngFor="let field of fields" [pSortableColumn]="field.field">
-              {{field.headerTranslated}}
-              <p-sortIcon [field]="field.field"></p-sortIcon>
-            </th>
+            @for (field of fields; track field) {
+              <th [pSortableColumn]="field.field">
+                {{field.headerTranslated}}
+                <p-sortIcon [field]="field.field"></p-sortIcon>
+              </th>
+            }
           </tr>
         </ng-template>
         <ng-template #body let-el let-columns="fields">
           <tr [pSelectableRow]="el">
-            <td *ngFor="let field of fields">
-              <ng-container [ngSwitch]="field.templateName">
-                <ng-container *ngSwitchCase="'owner'">
-                  <span [style]='isNotSingleModeAndOwner(field, el)? "font-weight:500": null'>
+            @for (field of fields; track field) {
+              <td>
+                @switch (field.templateName) {
+                  @case ('owner') {
+                    <span [style]='isNotSingleModeAndOwner(field, el)? "font-weight:500": null'>
                    {{getValueByPath(el, field)}}</span>
-                </ng-container>
-                <ng-container *ngSwitchDefault>
-                  {{getValueByPath(el, field)}}
-                </ng-container>
-              </ng-container>
-            </td>
+                  }
+                  @default {
+                    {{getValueByPath(el, field)}}
+                  }
+                }
+              </td>
+            }
           </tr>
         </ng-template>
       </p-table>
-      <p-contextMenu [target]="cmDiv" *ngIf="isActivated()" [model]="contextMenuItems"></p-contextMenu>
+      @if (isActivated()) {
+        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+      }
     </div>
-    <trading-platform-plan-edit *ngIf="visibleDialog"
-                                [visibleDialog]="visibleDialog"
-                                [callParam]="callParam"
-                                (closeDialog)="handleCloseDialog($event)">
-    </trading-platform-plan-edit>
+    @if (visibleDialog) {
+      <trading-platform-plan-edit [visibleDialog]="visibleDialog"
+                                  [callParam]="callParam"
+                                  (closeDialog)="handleCloseDialog($event)">
+      </trading-platform-plan-edit>
+    }
   `,
     providers: [DialogService],
     standalone: false

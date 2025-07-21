@@ -19,7 +19,6 @@ import {AppSettings} from '../../shared/app.settings';
 import {TableCrudSupportMenuSecurity} from '../../lib/datashowbase/table.crud.support.menu.security';
 import {StockexchangeBaseData, StockexchangeMic} from '../model/stockexchange.base.data';
 import {StockexchangeHasSecurity} from '../model/stockexchange.has.security';
-import {BusinessHelper} from '../../shared/helper/business.helper';
 import {StockexchangeHelper} from './stockexchange.helper';
 import {AppHelper} from '../../lib/helper/app.helper';
 
@@ -27,48 +26,54 @@ import {AppHelper} from '../../lib/helper/app.helper';
  * Shows stock exchanges in a table
  */
 @Component({
-    template: `
+  template: `
     <div class="data-container-full" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
                (sortFunction)="customSort($event)" [customSort]="true" sortMode="multiple"
-               responsiveLayout="scroll" scrollHeight="flex" [scrollable]="true"
+               scrollHeight="flex" [scrollable]="true"
                [multiSortMeta]="multiSortMeta" [dataKey]="entityKeyName"
                stripedRows showGridlines>
         <ng-template #caption>
-          <h4>{{entityNameUpper | translate}}</h4>
+          <h4>{{ entityNameUpper | translate }}</h4>
         </ng-template>
         <ng-template #header let-fields>
           <tr>
             <th style="max-width:24px"></th>
-            <th *ngFor="let field of fields" [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated"
-                [style.min-width.px]="field.width">
-              {{field.headerTranslated}}
-              <p-sortIcon [field]="field.field"></p-sortIcon>
-            </th>
+            @for (field of fields; track field) {
+              <th [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated"
+                  [style.min-width.px]="field.width">
+                {{ field.headerTranslated }}
+                <p-sortIcon [field]="field.field"></p-sortIcon>
+              </th>
+            }
           </tr>
         </ng-template>
         <ng-template #body let-expanded="expanded" let-el let-columns="fields">
           <tr [pSelectableRow]="el">
             <td style="max-width:24px">
-              <a *ngIf="!el.noMarketValue" href="#" [pRowToggler]="el">
-                <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
-              </a>
+              @if (!el.noMarketValue) {
+                <a href="#" [pRowToggler]="el">
+                  <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
+                </a>
+              }
             </td>
-            <td *ngFor="let field of fields" [style.min-width.px]="field.width">
-              <ng-container [ngSwitch]="field.templateName">
-                <ng-container *ngSwitchCase="'owner'">
-                  <span [style]='isNotSingleModeAndOwner(field, el)? "font-weight:500": null'>
-                   {{getValueByPath(el, field)}}</span>
-                </ng-container>
-                <ng-container *ngSwitchCase="'check'">
-                  <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>
-                </ng-container>
-                <ng-container *ngSwitchDefault>
-                  {{getValueByPath(el, field)}}
-                </ng-container>
-              </ng-container>
-            </td>
+            @for (field of fields; track field) {
+              <td [style.min-width.px]="field.width">
+                @switch (field.templateName) {
+                  @case ('owner') {
+                    <span [style]='isNotSingleModeAndOwner(field, el)? "font-weight:500": null'>
+                   {{ getValueByPath(el, field) }}</span>
+                  }
+                  @case ('check') {
+                    <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>
+                  }
+                  @default {
+                    {{ getValueByPath(el, field) }}
+                  }
+                }
+              </td>
+            }
           </tr>
         </ng-template>
         <ng-template #expandedrow let-stockexchange let-columns="fields">
@@ -81,13 +86,17 @@ import {AppHelper} from '../../lib/helper/app.helper';
           </tr>
         </ng-template>
       </p-table>
-      <p-contextMenu [target]="cmDiv" *ngIf="isActivated()" [model]="contextMenuItems"></p-contextMenu>
+      @if (isActivated()) {
+        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+      }
     </div>
 
-    <stockexchange-edit *ngIf="visibleDialog" [visibleDialog]="visibleDialog"
-                        [callParam]="callParam"
-                        (closeDialog)="handleCloseDialog($event)">
-    </stockexchange-edit>
+    @if (visibleDialog) {
+      <stockexchange-edit [visibleDialog]="visibleDialog"
+                          [callParam]="callParam"
+                          (closeDialog)="handleCloseDialog($event)">
+      </stockexchange-edit>
+    }
   `,
     providers: [DialogService],
     standalone: false

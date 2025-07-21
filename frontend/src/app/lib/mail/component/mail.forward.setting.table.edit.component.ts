@@ -34,83 +34,94 @@ import {MessageToastService} from '../../message/message.toast.service';
  *   See https://stackoverflow.com/questions/74102652/primeng-table-programmatically-handle-row-editing-psaveeditablerow.
  */
 @Component({
-    template: `
+  template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
 
       <p-table [columns]="fields" [value]="mailSettingForwardList" selectionMode="single"
                [(selection)]="selectedEntity" (onRowSelect)="onRowSelect($event)"
-               (onRowUnselect)="onRowUnselect($event)"
-               dataKey="idMailSettingForward" responsiveLayout="scroll" editMode="row"
+               (onRowUnselect)="onRowUnselect($event)" dataKey="idMailSettingForward" editMode="row"
                (sortFunction)="customSort($event)" [customSort]="true"
                stripedRows showGridlines>
         <ng-template #header let-fields>
           <tr>
-            <th *ngFor="let field of fields" [pSortableColumn]="field.field"
-                [pTooltip]="field.headerTooltipTranslated"
-                [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-              {{field.headerTranslated}}
-              <p-sortIcon [field]="field.field"></p-sortIcon>
-            </th>
+            @for (field of fields; track field) {
+              <th [pSortableColumn]="field.field"
+                  [pTooltip]="field.headerTooltipTranslated"
+                  [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+                {{field.headerTranslated}}
+                <p-sortIcon [field]="field.field"></p-sortIcon>
+              </th>
+            }
             <th style="width:20%"></th>
           </tr>
         </ng-template>
         <ng-template #body let-elEdit let-columns="fields" let-editing="editing" let-ri="rowIndex">
           <tr [pEditableRow]="elEdit" [pSelectableRow]="elEdit">
-            <td *ngFor="let field of fields" [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+            @for (field of fields; track field) {
+              <td [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
 
-              <p-cellEditor>
+                <p-cellEditor>
 
-                <ng-template pTemplate="input">
-                  <ng-container *ngIf="canEdit(field, elEdit); else showTemplate">
-                    <ng-container [ngSwitch]="field.dataType">
-                      <ng-container *ngSwitchCase="DataType.String">
-                        <select #input
-                                [ngStyle]="{'width': (field.width+1) + 'em'}"
-                                class="form-control input-sm"
-                                [(ngModel)]="elEdit[field.field]"
-                                [id]="field.field">
-                          <option *ngFor="let s of field.cec.valueKeyHtmlOptions"
-                                  [value]="s.key"
-                                  [disabled]="s.disabled">
-                            {{ s.value }}
-                          </option>
-                        </select>
-                      </ng-container>
-                      <ng-container *ngSwitchCase="DataType.NumericInteger">
-                        <input pInputText type="number" [(ngModel)]="elEdit[field.field]">
-                      </ng-container>
-                    </ng-container>
-                  </ng-container>
-                  <ng-template #showTemplate>
+                  <ng-template pTemplate="input">
+                    @if (canEdit(field, elEdit)) {
+                      @switch (field.dataType) {
+                        @case (DataType.String) {
+                          <select #input
+                                  [ngStyle]="{'width': (field.width+1) + 'em'}"
+                                  class="form-control input-sm"
+                                  [(ngModel)]="elEdit[field.field]"
+                                  [id]="field.field">
+                            @for (s of field.cec.valueKeyHtmlOptions; track s) {
+                              <option [value]="s.key"
+                                      [disabled]="s.disabled">
+                                {{ s.value }}
+                              </option>
+                            }
+                          </select>
+                        }
+                        @case (DataType.NumericInteger) {
+                          <input pInputText type="number" [(ngModel)]="elEdit[field.field]">
+                        }
+                      }
+                    } @else {
+                      {{getValueByPath(elEdit, field)}}
+                    }
+                  </ng-template>
+                  <ng-template pTemplate="output">
                     {{getValueByPath(elEdit, field)}}
                   </ng-template>
-                </ng-template>
-                <ng-template pTemplate="output">
-                  {{getValueByPath(elEdit, field)}}
-                </ng-template>
-              </p-cellEditor>
-            </td>
+                </p-cellEditor>
+              </td>
+            }
             <td>
               <div class="flex align-items-center justify-content-center gap-2">
-                <button *ngIf="!editing" pButton pRipple type="button" pInitEditableRow
-                        icon="pi pi-pencil"
-                        (click)="onRowEditInit(elEdit)" class="p-button-rounded p-button-text"></button>
-                <button *ngIf="editing" pButton pRipple type="button" pSaveEditableRow icon="pi pi-check"
-                        (click)="onRowEditSave(elEdit)"
-                        class="p-button-rounded p-button-text p-button-success mr-2"></button>
-                <button *ngIf="editing" pButton pRipple type="button" pCancelEditableRow
-                        icon="pi pi-times"
-                        (click)="onRowEditCancel(elEdit, ri)"
-                        class="p-button-rounded p-button-text p-button-danger"></button>
+                @if (!editing) {
+                  <button pButton pRipple type="button" pInitEditableRow
+                          icon="pi pi-pencil"
+                          (click)="onRowEditInit(elEdit)" class="p-button-rounded p-button-text"></button>
+                }
+                @if (editing) {
+                  <button pButton pRipple type="button" pSaveEditableRow icon="pi pi-check"
+                          (click)="onRowEditSave(elEdit)"
+                          class="p-button-rounded p-button-text p-button-success mr-2"></button>
+                }
+                @if (editing) {
+                  <button pButton pRipple type="button" pCancelEditableRow
+                          icon="pi pi-times"
+                          (click)="onRowEditCancel(elEdit, ri)"
+                          class="p-button-rounded p-button-text p-button-danger"></button>
+                }
               </div>
             </td>
           </tr>
         </ng-template>
       </p-table>
-      <p-contextMenu *ngIf="contextMenuItems" [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+      @if (contextMenuItems) {
+        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+      }
     </div>
   `,
     standalone: false

@@ -12,8 +12,8 @@ import {TranslateValue} from '../../lib/datashowbase/column.config';
  * Shows statistical data about an instrument.
  */
 @Component({
-    selector: 'instrument-statistics-summary',
-    template: `
+  selector: 'instrument-statistics-summary',
+  template: `
     <div class="datatable nestedtable" style="min-width: 200px; max-width: 400px;">
       <p-treeTable [value]="rootNodes" [columns]="fields">
         <ng-template #caption>
@@ -23,38 +23,43 @@ import {TranslateValue} from '../../lib/datashowbase/column.config';
         </ng-template>
         <ng-template #header let-fields>
           <tr>
-            <th *ngFor="let field of fields" [style.width.px]="field.width">
-              {{field.headerTranslated}}
-            </th>
+            @for (field of fields; track field.headerTranslated) {
+              <th [style.width.px]="field.width">
+                {{field.headerTranslated}}
+              </th>
+            }
           </tr>
         </ng-template>
         <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
           <tr>
-            <ng-container *ngFor="let field of fields; let i = index">
-              <td *ngIf="field.visible"
-                  [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
-                  [style.width.px]="field.width">
-                <p-treeTableToggler [rowNode]="rowNode" *ngIf="i === 0"></p-treeTableToggler>
-                <ng-container [ngSwitch]="field.templateName">
-                  <ng-container *ngSwitchCase="'greenRed'">
-                  <span [pTooltip]="getValueByPath(rowData, field)"
-                        [style.color]='isValueByPathMinus(rowData, field)? "red": "inherit"'
-                        tooltipPosition="top">
-                    {{getValueByPath(rowData, field)}}
-                  </span>
-                  </ng-container>
-                  <ng-container *ngSwitchDefault>
-                    <span [pTooltip]="getValueByPath(rowData, field)">{{getValueByPath(rowData, field)}}</span>
-                  </ng-container>
-                </ng-container>
-              </td>
-            </ng-container>
+            @for (field of fields; track field.headerTranslated; let i = $index) {
+              @if (field.visible) {
+                <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
+                    [style.width.px]="field.width">
+                  @if (i === 0) {
+                    <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+                  }
+                  @switch (field.templateName) {
+                    @case ('greenRed') {
+                      <span [pTooltip]="getValueByPath(rowData, field)"
+                            [style.color]='isValueByPathMinus(rowData, field)? "red": "inherit"'
+                            tooltipPosition="top">
+                        {{getValueByPath(rowData, field)}}
+                      </span>
+                    }
+                    @default {
+                      <span [pTooltip]="getValueByPath(rowData, field)">{{getValueByPath(rowData, field)}}</span>
+                    }
+                  }
+                </td>
+              }
+            }
           </tr>
         </ng-template>
       </p-treeTable>
     </div>
   `,
-    standalone: false
+  standalone: false
 })
 export class InstrumentStatisticsSummaryComponent extends TreeTableConfigBase implements OnInit {
   @Input() statisticsSummary: StatisticsSummary;
@@ -62,7 +67,7 @@ export class InstrumentStatisticsSummaryComponent extends TreeTableConfigBase im
   rootNodes: TreeNode[];
 
   constructor(translateService: TranslateService,
-              gps: GlobalparameterService) {
+    gps: GlobalparameterService) {
     super(translateService, gps);
   }
 

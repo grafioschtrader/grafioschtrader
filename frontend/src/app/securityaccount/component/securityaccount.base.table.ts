@@ -21,7 +21,6 @@ import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
 import {AppSettings} from '../../shared/app.settings';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {AppHelper} from '../../lib/helper/app.helper';
 import {TransactionType} from '../../shared/types/transaction.type';
 import {Security} from '../../entities/security';
 import {ProcessedAction} from '../../lib/types/processed.action';
@@ -68,18 +67,18 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   private subscriptionRequestFromChart: Subscription;
 
   protected constructor(protected timeSeriesQuotesService: TimeSeriesQuotesService,
-                        protected alarmSetupService: AlarmSetupService,
-                        protected activePanelService: ActivePanelService,
-                        protected messageToastService: MessageToastService,
-                        protected securityaccountService: SecurityaccountService,
-                        protected productIconService: ProductIconService,
-                        protected activatedRoute: ActivatedRoute,
-                        protected router: Router,
-                        private chartDataService: ChartDataService,
-                        filterService: FilterService,
-                        translateService: TranslateService,
-                        gps: GlobalparameterService,
-                        usersettingsService: UserSettingsService) {
+    protected alarmSetupService: AlarmSetupService,
+    protected activePanelService: ActivePanelService,
+    protected messageToastService: MessageToastService,
+    protected securityaccountService: SecurityaccountService,
+    protected productIconService: ProductIconService,
+    protected activatedRoute: ActivatedRoute,
+    protected router: Router,
+    private chartDataService: ChartDataService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService) {
     super(filterService, usersettingsService, translateService, gps);
     this.untilDate = BusinessHelper.getUntilDateBySessionStorage();
   }
@@ -280,11 +279,11 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
         columnGroupConfigs: [new ColumnGroupConfig('groupGainLossSecurityMC'),
           new ColumnGroupConfig('grandGainLossSecurityMC')]
       }));
-/*
-    this.addColumnFeqH(DataType.Numeric, 'currencyGainLossMC', true, false,
-      { columnGroupConfigs: [new ColumnGroupConfig('groupCurrencyGainLossMC'),
-          new ColumnGroupConfig('grandCurrencyGainLossMC')]});
-*/
+    /*
+        this.addColumnFeqH(DataType.Numeric, 'currencyGainLossMC', true, false,
+          { columnGroupConfigs: [new ColumnGroupConfig('groupCurrencyGainLossMC'),
+              new ColumnGroupConfig('grandCurrencyGainLossMC')]});
+    */
 
     this.addColumn(DataType.Numeric, 'accountValueSecurity', AppSettings.VALUE_SECURITY_ACCOUNT_HEADER, true, false,
       {columnGroupConfigs: [new ColumnGroupConfig('groupAccountValueSecurity')]});

@@ -1,45 +1,45 @@
 import {Component} from '@angular/core';
-import {NgxCurrencyConfig, NgxCurrencyInputMode} from 'ngx-currency';
+import {NgxCurrencyInputMode} from 'ngx-currency';
 
 /**
  * Project: Grafioschtrader
  */
 @Component({
-    template: `
+  template: `
     <h4>Strategy Overview</h4>
     <input currencyMask [options]="optionsInput01"/>
     <input currencyMask [options]="optionsInput02"/>
-    <input type="number" id="tentacles21" name="tentacles" >
-    <input type="number" id="tentacles32" name="tentacles" >
+    <input type="number" id="tentacles21" name="tentacles">
+    <input type="number" id="tentacles32" name="tentacles">
     <p-inputNumber [(ngModel)]="price1" mode="currency" [currency]="curreny1" locale="de-CH" onfocus="this.select()"
                    currencyDisplay="code" inputStyleClass="text-right"></p-inputNumber>
 
     <p-inputNumber [(ngModel)]="price2" mode="currency" [currency]="curreny2" locale="de-CH" onfocus="this.select()"
-                   currencyDisplay="code"  inputStyleClass="text-right"></p-inputNumber>
-
+                   currencyDisplay="code" inputStyleClass="text-right"></p-inputNumber>
 
 
     <p-button (click)="showBasicDialog()" icon="pi pi-external-link" label="Show"></p-button>
     <p-button (click)="changeCurrency()" icon="pi pi-external-link" label="Change currency"></p-button>
-    <p-dialog header="Header" [(visible)]="displayBasic" [style]="{width: '50vw'}" [baseZIndex]="10000" focusTrap="false">
+    <p-dialog header="Header" [(visible)]="displayBasic" [style]="{width: '50vw'}" [baseZIndex]="10000"
+              focusTrap="false">
 
       <p-inputNumber [(ngModel)]="price1" mode="currency" [currency]="curreny1" locale="de-CH" onfocus="this.select()"
                      currencyDisplay="code" inputStyleClass="text-right"></p-inputNumber>
 
       <p-inputNumber [(ngModel)]="price2" mode="currency" [currency]="curreny2" locale="en-US" onfocus="this.select()"
-                     currencyDisplay="code"  inputStyleClass="text-right"></p-inputNumber>
+                     currencyDisplay="code" inputStyleClass="text-right"></p-inputNumber>
 
       <input currencyMask [options]="optionsInput01" onfocus="this.select()"/>
       <input currencyMask [options]="optionsInput02" onfocus="this.select()"/>
       <input type="number" id="tentacles1" name="tentacles">
       <input type="number" id="tentacles2" name="tentacles">
 
-     <ng-template pTemplate="footer">
+      <ng-template pTemplate="footer">
         <p-button icon="pi pi-check" (click)="displayBasic=false" label="Ok" styleClass="p-button-text"></p-button>
       </ng-template>
     </p-dialog>
   `,
-    standalone: false
+  standalone: false
 })
 export class StrategyOverviewComponent {
   displayBasic: boolean;

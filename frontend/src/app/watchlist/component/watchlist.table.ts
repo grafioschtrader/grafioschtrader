@@ -35,7 +35,6 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {WatchlistSecurityExists} from '../../entities/dnd/watchlist.security.exists';
-import {DynamicDialogHelper} from '../../shared/dynamicdialog/component/dynamicDialogHelper';
 import {MailSendParam} from '../../shared/dynamicdialog/component/mail.send.dynamic.component';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {AppSettings} from '../../shared/app.settings';
@@ -48,47 +47,144 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
 import {DynamicDialogs} from '../../shared/dynamicdialog/component/dynamic.dialogs';
 import {BaseSettings} from '../../lib/base.settings';
 
+/**
+ * Abstract base class for watchlist table components that provides comprehensive functionality for displaying
+ * and managing securities and currency pairs in tabular format. Handles CRUD operations, context menus,
+ * transaction dialogs, drag-and-drop, and various editing capabilities.
+ */
 @Directive()
 export abstract class WatchlistTable extends TableConfigBase implements OnDestroy, IGlobalMenuAttach {
-  public static readonly SINGLE = 'single';
-  public static readonly MULTIPLE = 'multiple';
 
+  /**
+   * Key-value mapping of feed connector IDs to human-readable names.
+   * Used for displaying user-friendly connector names in the UI instead of technical IDs.
+   */
+  feedConnectorsKV: { [id: string]: string } = {};
+
+  /** Single selection mode constant. */
+  public static readonly SINGLE = 'single';
+  /** Multiple selection mode constant. */
+  public static readonly MULTIPLE = 'multiple';
+  /** Enum reference for watchlist types used in templates. */
   WatchListType: typeof WatchListType = WatchListType;
+  /** Enum reference for special investment instruments used in templates. */
   SpecialInvestmentInstruments: typeof SpecialInvestmentInstruments = SpecialInvestmentInstruments;
+  /** Security and currency group data containing positions and metadata. */
   securitycurrencyGroup: SecuritycurrencyGroup;
+  /** List of security and currency positions displayed in the table. */
   securityPositionList: SecuritycurrencyPosition<Security | Currencypair>[];
-  // For child transaction dialogs
+  /** Controls visibility of the security transaction dialog. */
   visibleSecurityTransactionDialog: boolean;
+  /** Parameters for the transaction dialog. */
   transactionCallParam: TransactionCallParam;
-  // For child Security dialogs
+  /** Controls visibility of the add instrument dialog. */
   visibleAddInstrumentDialog: boolean;
+  /** Controls visibility of the security edit dialog. */
   visibleEditSecurityDialog: boolean;
+  /** Controls visibility of the currency pair edit dialog. */
   visibleEditCurrencypairDialog: boolean;
+  /** Controls visibility of the derived security edit dialog. */
   visibleEditSecurityDerivedDialog: boolean;
+
+  /** Controls visibility of the UDF security edit dialog. */
   visibleUDFSecurityDialog: boolean;
+
+  /** Controls visibility of the UDF general edit dialog. */
   visibleUDFGeneralDialog: boolean;
+
+  /**
+   * Controls the visibility of the dialog for adding instruments with price data problems.
+   * When true, displays a dialog allowing users to add instruments that have feed issues.
+   */
+  public visibleAddPriceProblemDialog = false;
+
+  /** Security parameter for derived security dialogs. */
   securityCallParam: Security;
+
+  /** Security or currency parameter for edit dialogs. */
   securityCurrencypairCallParam: Security | Securitycurrency;
+
+  /** Current tenant ID. */
   idTenant: number;
+
+  /** Loading state indicator. */
   loading: boolean;
+
+  /** Current watchlist ID. */
   idWatchlist: number;
+
+  /** Pagination enabled flag. */
   paginator = false;
+
+  /** Intraday update timeout in seconds. */
   intraUpdateTimoutSeconds: number;
+
+  /** Current watchlist object. */
   watchlist: Watchlist;
+
+  /** Constant for security currency name field path. */
   readonly SECURITYCURRENCY_NAME = WatchlistHelper.SECURITYCURRENCY + '.name';
+
+  /** Context menu items for the table. */
   contextMenuItems: MenuItem[] = [];
+
+  /** Available time frames for performance views. */
   timeFrames: TimeFrame[] = [];
+
+  /** Currently selected time frame. */
   choosenTimeFrame: TimeFrame;
+
+  /** Tenant limits for securities and currencies. */
   tenantLimits: TenantLimit[];
+
+  /** Single or multiple selection state. */
   singleMultiSelection: SecuritycurrencyPosition<Security | Currencypair> | SecuritycurrencyPosition<Security | Currencypair>[];
+
+  /** Currently selected security currency position. */
   selectedSecuritycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>;
+
+  /** Reference to the context menu component. */
   @ViewChild('contextMenu') protected contextMenu: any;
+
+  /** Parameters for UDF general dialogs. */
   uDFGeneralCallParam: UDFGeneralCallParam;
+
+  /** Map of UDF values by security currency ID. */
   protected udfValuesMap = new Map<number, any>;
+
+  /** Subscription to route parameter changes. */
   private routeSubscribe: Subscription;
+
+  /** Subscription to watchlist modification events. */
   private subscriptionWatchlistAdded: Subscription;
+
+  /** Cache for UDF availability by security currency ID. */
   private lazyMapHasUDF: { [idSecuritycurrency: number]: boolean } = {};
 
+  /**
+   * Creates an instance of WatchlistTable.
+   *
+   * @param {WatchListType} watchlistType - Type of watchlist (performance, price feed, etc.)
+   * @param {string} storeKey - Local storage key for table settings
+   * @param {DialogService} dialogService - PrimeNG dialog service
+   * @param {AlarmSetupService} alarmSetupService - Service for alarm setup functionality
+   * @param {TimeSeriesQuotesService} timeSeriesQuotesService - Service for time series operations
+   * @param {DataChangedService} dataChangedService - Service for data change notifications
+   * @param {ActivePanelService} activePanelService - Service for active panel management
+   * @param {WatchlistService} watchlistService - Service for watchlist operations
+   * @param {Router} router - Angular router for navigation
+   * @param {ActivatedRoute} activatedRoute - Current activated route
+   * @param {ConfirmationService} confirmationService - PrimeNG confirmation dialog service
+   * @param {MessageToastService} messageToastService - Service for toast notifications
+   * @param {ProductIconService} productIconService - Service for product icons
+   * @param {ChangeDetectorRef} changeDetectionStrategy - Angular change detection reference
+   * @param {FilterService} filterService - PrimeNG filter service
+   * @param {TranslateService} translateService - Angular translation service
+   * @param {GlobalparameterGTService} gpsGT - GT-specific global parameters service
+   * @param {GlobalparameterService} gps - Global parameters service
+   * @param {UserSettingsService} usersettingsService - User settings service
+   * @param {string} selectMultiMode - Selection mode (single or multiple)
+   */
   protected constructor(public watchlistType: WatchListType,
     protected storeKey: string,
     protected dialogService: DialogService,
@@ -108,7 +204,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     private gpsGT: GlobalparameterGTService,
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService,
-    public selectMultiMode: string) {
+    public selectMultiMode: 'single' | 'multiple' ) {
     super(filterService, usersettingsService, translateService, gps);
     if (selectMultiMode === WatchlistTable.MULTIPLE) {
       this.singleMultiSelection = [];
@@ -117,11 +213,15 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   }
 
 
+  /**
+   * Creates security position list from security currency group data and handles currency pair transformations.
+   *
+   * @param {SecuritycurrencyGroup} data - Security currency group containing separate lists of security and currency positions
+   */
   createSecurityPositionList(data: SecuritycurrencyGroup) {
     this.createTranslatedValueStoreAndFilterField(data.securityPositionList);
     this.securitycurrencyGroup = data;
     this.securityPositionList = data.securityPositionList;
-
     this.securitycurrencyGroup.currencypairPositionList.forEach((sp: SecuritycurrencyPosition<Currencypair>) => {
       const currencypairWatchlist: CurrencypairWatchlist = new CurrencypairWatchlist(sp.securitycurrency.fromCurrency,
         sp.securitycurrency.toCurrency);
@@ -129,20 +229,26 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       sp.securitycurrency = currencypairWatchlist;
       this.securityPositionList.push(sp);
     });
-
     this.translateFormulaToUserLanguage();
   }
 
+  /**
+   * Gets the appropriate icon for a security or currency pair instrument.
+   *
+   * @param {SecuritycurrencyPosition<Security | Currencypair>} securitycurrencyPosition - Position containing the instrument to get icon for
+   * @param {ColumnConfig} field - Column configuration object containing display settings
+   * @param {any} valueField - Current field value (not used in this implementation)
+   * @returns {string} Icon name/path for the instrument type
+   */
   getInstrumentIcon(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>, field: ColumnConfig,
     valueField: any): string {
-
-
     const currencypair: Currencypair = securitycurrencyPosition.securitycurrency instanceof CurrencypairWatchlist ?
       securitycurrencyPosition.securitycurrency : null;
     return this.productIconService.getIconForInstrument(currencypair ? null : <Security>securitycurrencyPosition.securitycurrency,
       currencypair?.isCryptocurrency);
   }
 
+  /** Cleans up subscriptions and saves table configuration on component destruction. */
   ngOnDestroy(): void {
     this.writeTableDefinition(this.storeKey);
     this.activePanelService.destroyPanel(this);
@@ -150,10 +256,20 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     this.routeSubscribe.unsubscribe();
   }
 
+  /**
+   * Opens the add existing security dialog.
+   *
+   * @param event - Click event that triggered the action (event details not used)
+   */
   addExistingSecurity(event) {
     this.visibleAddInstrumentDialog = true;
   }
 
+  /**
+   * Removes a single instrument from the watchlist.
+   *
+   * @param {Security | Currencypair} securityCurrency - Security or currency pair entity to remove from watchlist
+   */
   removeInstrument(securityCurrency: Security | Currencypair) {
     this.watchlistService.removeSecuritycurrenciesFromWatchlist(this.idWatchlist, securityCurrency).subscribe(watchlist => {
       this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'REMOVED_SECURITY_FROM_WATCHLIST',
@@ -162,6 +278,11 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     });
   }
 
+  /**
+   * Removes multiple selected securities and currency pairs from the watchlist with confirmation.
+   *
+   * @param {SecuritycurrencyPosition<Security | Currencypair>[]} selectedSecurityCurrencies - Array of selected positions to remove
+   */
   removeSecuritiesAndCurrencypairs(selectedSecurityCurrencies: SecuritycurrencyPosition<Security | Currencypair>[]): void {
     AppHelper.confirmationDialog(this.translateService, this.confirmationService,
       'REMOVE_INSTRUMENT_FROM_WATCHLIST_CONFIRM', () => {
@@ -174,19 +295,29 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       });
   }
 
+  /**
+   * Removes and deletes a security or currency from both watchlist and system with confirmation.
+   *
+   * @param {Securitycurrency} securityCurrency - Security or currency entity to remove and permanently delete
+   * @param {string} domainKey - Translation key for the entity type used in confirmation messages
+   */
   removeAndDeleteSecuritycurrency(securityCurrency: Securitycurrency, domainKey: string) {
     AppHelper.confirmationDialog(this.translateService, this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|' + domainKey, () => {
         this.watchlistService.removeSecuritycurrencyFromWatchlistAndDelete(this.idWatchlist, securityCurrency).subscribe(response => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
             'MSG_DELETE_RECORD', {i18nRecord: domainKey});
-
           this.getWatchlistWithoutUpdate();
           this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.DELETED, new Watchlist()));
         });
       });
   }
 
+  /**
+   * Determines whether to edit a regular security or derived security based on link presence.
+   *
+   * @param {Security} security - Security entity to check for derived security properties
+   */
   modifySecurityOrSecurityDerived(security: Security): void {
     if (security.idLinkSecuritycurrency) {
       this.modifyOrCreateAndAddSecurityDerived(security);
@@ -195,16 +326,31 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     }
   }
 
+  /**
+   * Opens the security edit dialog for creating or modifying a security.
+   *
+   * @param {Security} security - Security entity to edit, or null to create a new security
+   */
   modifyOrCreateAndAddSecurity(security: Security): void {
     this.securityCurrencypairCallParam = security;
     this.visibleEditSecurityDialog = true;
   }
 
+  /**
+   * Opens the derived security edit dialog for creating or modifying a derived security.
+   *
+   * @param {Security} security - Derived security entity to edit, or null to create a new derived security
+   */
   modifyOrCreateAndAddSecurityDerived(security: Security): void {
     this.securityCallParam = security;
     this.visibleEditSecurityDerivedDialog = true;
   }
 
+  /**
+   * Opens the appropriate UDF edit dialog based on security currency type.
+   *
+   * @param {Securitycurrency} securityCurrency - Security or currency entity to edit user-defined field data for
+   */
   modifyOrCreateUDFData(securityCurrency: Securitycurrency): void {
     const udfValues = this.udfValuesMap.get(securityCurrency.idSecuritycurrency);
     if (securityCurrency instanceof CurrencypairWatchlist) {
@@ -216,11 +362,22 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     }
   }
 
+  /**
+   * Opens the currency pair edit dialog for creating or modifying a currency pair.
+   *
+   * @param {Securitycurrency} securityCurrency - Currency pair entity to edit, or null to create a new currency pair
+   */
   modifyOrCreateAndAddCurrencypair(securityCurrency: Securitycurrency): void {
     this.securityCurrencypairCallParam = securityCurrency;
     this.visibleEditCurrencypairDialog = true;
   }
 
+  /**
+   * Prepares and opens the transaction dialog for the specified transaction type and security.
+   *
+   * @param {TransactionType} transactionType - Type of transaction to create (ACCUMULATE, REDUCE, DIVIDEND, etc.)
+   * @param {Security} security - Security entity for which to create the transaction
+   */
   handleTransaction(transactionType: TransactionType, security: Security) {
     this.transactionCallParam = Object.assign(new TransactionCallParam(), {
       transactionType,
@@ -230,12 +387,13 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     this.transactionCallParam.idWatchList = this.idWatchlist;
     const activeToDate: Date = new Date(security.activeToDate);
     this.transactionCallParam.defaultTransactionTime = activeToDate.getTime() < new Date().getTime() ? activeToDate : new Date();
-
     this.visibleSecurityTransactionDialog = true;
   }
 
   /**
-   * Data of child was changed.
+   * Handles transaction dialog close event and updates prices if changes were made.
+   *
+   * @param {ProcessedActionData} processedActionData - Result data containing action type and any created/modified data
    */
   handleCloseTransactionDialog(processedActionData: ProcessedActionData): void {
     this.visibleSecurityTransactionDialog = false;
@@ -244,10 +402,29 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     }
   }
 
+  /**
+   * Handles the closing of the add price problem instrument dialog.
+   * Hides the dialog and triggers a complete price data update to reflect any changes.
+   *
+   * @param processedActionData - Data about the action performed in the dialog
+   */
+  handleCloseAddPriceProblemInstrument(processedActionData: ProcessedActionData): void {
+  }
+
+  /**
+   * Handles add instrument dialog close event.
+   *
+   * @param {ProcessedActionData} processedActionData - Result data from the add instrument dialog operation
+   */
   handleCloseAddInstrumentDialog(processedActionData: ProcessedActionData): void {
     this.visibleAddInstrumentDialog = false;
   }
 
+  /**
+   * Handles security/currency edit dialog close event and manages post-edit actions.
+   *
+   * @param {ProcessedActionData} processedActionData - Result data containing action type and any modified entity data
+   */
   handleCloseEditSecuritycurrencyDialog(processedActionData: ProcessedActionData): void {
     this.visibleEditSecurityDialog = false;
     this.visibleEditCurrencypairDialog = false;
@@ -265,25 +442,40 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     }
   }
 
+  /** Returns whether this component is currently the active panel. */
   isActivated(): boolean {
     return this.activePanelService.isActivated(this);
   }
 
+  /** Called when component is deactivated (empty implementation for subclasses to override). */
   callMeDeactivate(): void {
   }
 
+
+  /** Hides the context menu if it exists. */
   hideContextMenu(): void {
     this.contextMenu && this.contextMenu.hide();
   }
 
+  /** Returns the help context ID for this component. */
   public getHelpContextId(): HelpIds {
     return HelpIds.HELP_WATCHLIST;
   }
 
+  /**
+   * Handles component click events and manages context menu visibility and selection.
+   *
+   * @param event - Mouse click event with potential consumed flag
+   */
   onRightClick(event): void {
     //  this.isActivated() ? this.contextMenu.show() : this.hideContextMenu();
   }
 
+  /**
+   * Handles component click events and manages context menu visibility and selection.
+   *
+   * @param event - Mouse click event with potential consumed flag
+   */
   onComponentClick(event): void {
     if (!event[this.consumedGT]) {
       this.contextMenu && this.contextMenu.hide();
@@ -291,20 +483,39 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     }
   }
 
+  /**
+   * Determines if a security position represents a margin product (CFD or FOREX).
+   *
+   * @param {SecuritycurrencyPosition<Security | Currencypair>} securitycurrencyPosition - Position to check for margin product type
+   * @returns {boolean} True if the position represents a CFD or FOREX instrument
+   */
   isMarginProduct(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): boolean {
     return BusinessHelper.isMarginProduct(<Security>securitycurrencyPosition.securitycurrency);
   }
 
+  /**
+   * Initiates drag operation with watchlist security data transfer.
+   *
+   * @param {DragEvent} event - Drag start event containing data transfer object
+   * @param {SecuritycurrencyPosition<Security | Currencypair>} data - Position data being dragged for drop operations
+   */
   dragStart(event: DragEvent, data: SecuritycurrencyPosition<Security | Currencypair>) {
     this.changeDetectionStrategy.detach();
     event.dataTransfer.setData('text/plain',
       JSON.stringify(new WatchlistSecurityExists(this.watchlist.idWatchlist, data.securitycurrency.idSecuritycurrency)));
   }
 
+  /**
+   * Completes drag operation and reattaches change detection.
+   *
+   * @param {DragEvent} event - Drag end event
+   * @param {any} item - Item that was being dragged (not used in current implementation)
+   */
   public dragEnd(event: DragEvent, item: any) {
     this.changeDetectionStrategy.reattach();
   }
 
+  /** Adds the base columns common to all watchlist table types. */
   protected addBaseColumns(): void {
     this.addColumn(DataType.String, this.SECURITYCURRENCY_NAME, 'NAME', true, false,
       {width: 200, frozenColumn: true, templateName: AppSettings.OWNER_TEMPLATE});
@@ -326,6 +537,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
    */
   protected abstract updateAllPrice(): void;
 
+  /** Sets up subscription to external watchlist modification events. */
   protected watchlistHasModifiedFromOutside(): void {
     this.subscriptionWatchlistAdded = this.dataChangedService.dateChanged$.subscribe(processedActionData => {
       if (processedActionData.data instanceof Watchlist && processedActionData.action === ProcessedAction.UPDATED) {
@@ -337,6 +549,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     });
   }
 
+  /** Initializes the component with route subscriptions and panel registration. */
   protected init(): void {
     this.idTenant = this.gps.getIdTenant();
     this.activePanelService.registerPanel(this);
@@ -351,7 +564,6 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
           .subscribe((updateTimeout: number) => this.intraUpdateTimoutSeconds = updateTimeout);
         this.readTableDefinition(this.storeKey);
       }
-
       this.idWatchlist = +params['id'];
       this.activePanelService.activatePanel(this, {
         showMenu: this.getShowMenu(this.selectedSecuritycurrencyPosition),
@@ -361,6 +573,12 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     });
   }
 
+  /**
+   * Creates the show menu items for the selected security currency position.
+   *
+   * @param {SecuritycurrencyPosition<Security | Currencypair>} securitycurrencyPosition - Currently selected position or null
+   * @returns {MenuItem[]} Array of show menu items with translations applied
+   */
   protected getShowMenu(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): MenuItem[] {
     const menuItems = [...this.getShowContextMenuItems(securitycurrencyPosition, false), {separator: true},
       ...this.getMenuShowOptions()];
@@ -368,6 +586,13 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     return menuItems;
   }
 
+  /**
+   * Creates context menu items for display operations like charts and external links.
+   *
+   * @param {SecuritycurrencyPosition<Security | Currencypair>} securitycurrencyPosition - Selected position for context operations
+   * @param {boolean} translate - Whether to apply translations to menu items
+   * @returns {MenuItem[]} Array of show context menu items
+   */
   protected getShowContextMenuItems(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>,
     translate: boolean): MenuItem[] {
     let menuItems: MenuItem[] = [];
@@ -410,11 +635,25 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     return menuItems;
   }
 
+  /**
+   * Gets download link for historical or intraday data.
+   *
+   * @param {string} url - Data provider URL or 'lazy' for dynamic URL generation
+   * @param {string} targetPage - Target page name for opening external links
+   * @param {SecuritycurrencyPosition<Security | Currencypair>} securitycurrencyPosition - Position containing the security/currency
+   * @param {boolean} isIntra - True for intraday data, false for historical data
+   */
   private getDownloadLinkHistoricalIntra(url: string, targetPage: string, securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>,
     isIntra: boolean): void {
     WatchlistHelper.getDownloadLinkHistoricalIntra(url, targetPage, securitycurrencyPosition.securitycurrency, isIntra, this.watchlistService);
   }
 
+  /**
+   * Creates context menu items for edit operations like add, remove, and transaction handling.
+   *
+   * @param {SecuritycurrencyPosition<Security | Currencypair>} securitycurrencyPosition - Selected position for edit operations
+   * @returns {MenuItem[]} Array of edit menu items with command handlers
+   */
   protected getEditMenuItems(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): MenuItem[] {
     const menuItems: MenuItem[] = [];
 
@@ -435,7 +674,6 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
         }
       );
     }
-
     if (securitycurrencyPosition) {
       menuItems.push(
         {
@@ -546,8 +784,14 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     return menuItems;
   }
 
+  /**
+   * Determines if UDF menu item should be enabled based on available UDF fields for the security type.
+   *
+   * @param {Securitycurrency} securitycurreny - Security or currency entity to check for UDF field availability
+   * @returns {boolean} True if UDF fields are defined and available for this entity type
+   */
   private enableMenuItemUDF(securitycurreny: Securitycurrency): boolean {
-    const key = securitycurreny instanceof CurrencypairWatchlist? -1: securitycurreny.idSecuritycurrency;
+    const key = securitycurreny instanceof CurrencypairWatchlist ? -1 : securitycurreny.idSecuritycurrency;
     let hasUDF = this.lazyMapHasUDF[key];
     if (this.lazyMapHasUDF[key] === undefined) {
       const fd = securitycurreny instanceof CurrencypairWatchlist
@@ -558,6 +802,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     return hasUDF;
   }
 
+  /** Translates formula prices to user's decimal symbol format. */
   private translateFormulaToUserLanguage(): void {
     if (this.gps.getDecimalSymbol() !== '.') {
       this.securitycurrencyGroup.securityPositionList.filter(sp => sp.securitycurrency.formulaPrices)
@@ -566,6 +811,12 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     }
   }
 
+  /**
+   * Gets single security position from single or multi-selection.
+   *
+   * @param {SecuritycurrencyPosition<Security | Currencypair> | SecuritycurrencyPosition<Security | Currencypair>[]} singleMultiSelection - Current selection state (single item or array)
+   * @returns {SecuritycurrencyPosition<Security | Currencypair>} Single position or null if multiple items selected
+   */
   private getSSP(singleMultiSelection: SecuritycurrencyPosition<Security | Currencypair>
     | SecuritycurrencyPosition<Security | Currencypair>[]): SecuritycurrencyPosition<Security | Currencypair> {
     if (Array.isArray(singleMultiSelection)) {
@@ -575,6 +826,11 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     }
   }
 
+  /**
+   * Opens mail dialog to send message to security/currency creator.
+   *
+   * @param {Securitycurrency} securitycurrency - Security or currency entity whose creator will receive the message
+   */
   private mailToCreator(securitycurrency: Securitycurrency): void {
     const subject = securitycurrency instanceof CurrencypairWatchlist ? (<CurrencypairWatchlist>securitycurrency).name
       : (<Security>securitycurrency).name;
@@ -582,6 +838,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       new MailSendParam(securitycurrency.createdBy, null, subject));
   }
 
+  /** Handles price update with timeout check to prevent excessive API calls. */
   private handleUpdateAllPrice() {
     if (Date.now() < +this.securitycurrencyGroup.lastTimestamp + this.intraUpdateTimoutSeconds * 1000) {
       const minutes = this.millisToMinutesAndSeconds(+this.securitycurrencyGroup.lastTimestamp
@@ -592,18 +849,35 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     }
   }
 
+  /**
+   * Converts milliseconds to MM:SS format for display.
+   *
+   * @param {number} millis - Milliseconds value to convert to readable time format
+   * @returns {string} Formatted time string in MM:SS format
+   */
   private millisToMinutesAndSeconds(millis: number): string {
     const minutes: number = Math.floor(millis / 60000);
     const seconds: number = +((millis % 60000) / 1000).toFixed(0);
     return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
   }
 
+  /**
+   * Creates edit menu with translated menu items.
+   *
+   * @param {SecuritycurrencyPosition<Security | Currencypair>} securitycurrencyPosition - Selected position for edit menu context
+   * @returns {MenuItem[]} Array of translated edit menu items
+   */
   private getEditMenu(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): MenuItem[] {
     const menuItems: MenuItem[] = this.getEditMenuItems(securitycurrencyPosition);
     TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
 
+  /**
+   * Checks if any tenant limits have been reached for the watchlist.
+   *
+   * @returns {boolean} True if any security or currency limits have been reached
+   */
   private reachedWatchlistLimits(): boolean {
     if (this.tenantLimits) {
       for (const tenantLimit of this.tenantLimits) {
@@ -615,6 +889,11 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     return false;
   }
 
+  /**
+   * Updates selected position and refreshes context menus.
+   *
+   * @param {SecuritycurrencyPosition<Security | Currencypair>} selectedSecuritycurrencyPosition - The security position to select
+   */
   private resetMenu(selectedSecuritycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>) {
     this.selectedSecuritycurrencyPosition = selectedSecuritycurrencyPosition;
     this.contextMenuItems = [...this.getEditMenu(selectedSecuritycurrencyPosition),
@@ -627,14 +906,29 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
 
 }
 
+/**
+ * Data class representing a time frame for performance analysis and filtering.
+ * Used in performance watchlists to filter data by specific time periods and calculate
+ * period-based performance metrics and changes.
+ *
+ * @param {string} name - Display name of the time frame (e.g., 'THIS_WEEK', 'DAYS_30', 'YEAR_1')
+ * @param {number} days - Number of days from current date to calculate performance metrics
+ */
 export class TimeFrame {
   constructor(public name: string, public days: number) {
   }
 }
-
+/**
+ * Enumeration defining different types of watchlist views and their specific functionality.
+ * Each type determines which columns are displayed and which expanded row content is shown.
+ */
 export enum WatchListType {
+  /** Performance view showing price changes, holdings, and gains/losses with transaction history in expanded rows */
   PERFORMANCE,
+  /** Price feed reliability view showing data provider information and feed status with detailed connection info in expanded rows */
   PRICE_FEED,
+  /** User-defined fields view displaying custom fields and metadata with UDF details in expanded rows */
   UDF,
+  /** Dividend and split feed view showing distribution data with dividend and split history tables in expanded rows */
   DIVIDEND_SPLIT_FEED
 }

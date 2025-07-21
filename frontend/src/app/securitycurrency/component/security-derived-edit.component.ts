@@ -46,9 +46,9 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
  */
 @Component({
     selector: 'security-derived-edit',
-    template: `
+  template: `
     <p-dialog header="{{'DERIVED_DATA' | translate}}" [(visible)]="visibleDialog"
-              [responsive]="true" [style]="{width: '600px'}"
+              [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
@@ -56,12 +56,14 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
                     (submitBt)="submit($event)">
       </dynamic-form>
 
-      <securitycurrency-search-and-set *ngIf="visibleSetSecurityDialog"
-                                       [visibleDialog]="visibleSetSecurityDialog"
-                                       [supplementCriteria]="supplementCriteria"
-                                       [callBackSetSecurityWithAfter]="this"
-                                       (closeDialog)="handleOnCloseSetDialog($event)">
-      </securitycurrency-search-and-set>
+      @if (visibleSetSecurityDialog) {
+        <securitycurrency-search-and-set
+          [visibleDialog]="visibleSetSecurityDialog"
+          [supplementCriteria]="supplementCriteria"
+          [callBackSetSecurityWithAfter]="this"
+          (closeDialog)="handleOnCloseSetDialog($event)">
+        </securitycurrency-search-and-set>
+      }
     </p-dialog>
   `,
     standalone: false

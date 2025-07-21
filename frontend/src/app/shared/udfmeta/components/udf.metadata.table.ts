@@ -93,7 +93,6 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
   }
 
   udfDisabled(entity: T, field: ColumnConfig, valueField: any): boolean {
-    console.log('value:', entity.udfSpecialType)
     return this.specialTypeDisabledArr.indexOf(entity.udfSpecialType) >= 0;
   }
 

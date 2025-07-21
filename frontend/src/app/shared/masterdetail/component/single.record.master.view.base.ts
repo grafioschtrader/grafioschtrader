@@ -19,7 +19,6 @@ import {ProcessedActionData} from '../../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../../lib/types/processed.action';
 import {AuditHelper} from '../../../lib/helper/audit.helper';
 import {GlobalparameterService} from '../../service/globalparameter.service';
-import {AppSettings} from '../../app.settings';
 import {BaseSettings} from '../../../lib/base.settings';
 
 @Directive()
@@ -67,15 +66,15 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
    * @param activePanelService Service for active panel
    * @param translateService Service for translation
    */
-  constructor(protected gps: GlobalparameterService,
-              private helpId: HelpIds,
-              private mainFieldId: string,
-              private entityName: string,
-              protected deleteService: DeleteService,
-              protected confirmationService: ConfirmationService,
-              protected messageToastService: MessageToastService,
-              protected activePanelService: ActivePanelService,
-              public translateService: TranslateService) {
+  protected constructor(protected gps: GlobalparameterService,
+    private helpId: HelpIds,
+    private mainFieldId: string,
+    private entityName: string,
+    protected deleteService: DeleteService,
+    protected confirmationService: ConfirmationService,
+    protected messageToastService: MessageToastService,
+    protected activePanelService: ActivePanelService,
+    public translateService: TranslateService) {
   }
 
   abstract prepareEditMenu(): MenuItem[];
