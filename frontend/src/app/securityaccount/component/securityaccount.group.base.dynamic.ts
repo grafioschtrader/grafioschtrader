@@ -2,7 +2,7 @@ import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {ColumnConfig, ColumnGroupConfig} from '../../lib/datashowbase/column.config';
 import {TranslateService} from '@ngx-translate/core';
 import {SecurityaccountGroupBase} from './securityaccount.group.base';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {SecurityPositionDynamicGroupSummary} from '../../entities/view/security.position.dynamic.group.summary';
 import {SecurityPositionDynamicGrandSummary} from '../../entities/view/security.position.dynamic.grand.summary';
 import {AssetclassType} from '../../shared/types/assetclass.type';

@@ -2,7 +2,7 @@ import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {SecurityDividendsPosition} from '../../../entities/view/securitydividends/security.dividends.position';
 import {TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../../shared/service/user.settings.service';
-import {DataType} from '../../../dynamic-form/models/data.type';
+import {DataType} from '../../dynamic-form/models/data.type';
 import {SecurityDividendsGrandTotal} from '../../../entities/view/securitydividends/security.dividends.grand.total';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
 import {Security} from '../../../entities/security';

@@ -1,14 +1,15 @@
-import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
+import {AuthServiceWithLogout} from '../../lib/login/service/base.auth.service.with.logout';
 import {AlgoSecurity, AlgoSecurityStrategyImplType} from '../model/algo.security';
 import {DeleteService} from '../../lib/datashowbase/delete.service';
 import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
-import {LoginService} from '../../shared/login/service/log-in.service';
+import {LoginService} from '../../lib/login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Observable} from 'rxjs';
 import {AppSettings} from '../../shared/app.settings';
 import {catchError} from 'rxjs/operators';
 import {Injectable} from '@angular/core';
+import {BaseSettings} from '../../lib/base.settings';
 
 
 @Injectable()
@@ -21,7 +22,7 @@ export class AlgoSecurityService extends AuthServiceWithLogout<AlgoSecurity> imp
 
   getAlgoSecurityStrategyImplTypeByIdSecuritycurrency(idSecuritycurrency: number): Observable<AlgoSecurityStrategyImplType> {
     return <Observable<AlgoSecurityStrategyImplType>>
-      this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.ALGO_SECURITY_KEY}/security/${idSecuritycurrency}`,
+      this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_SECURITY_KEY}/security/${idSecuritycurrency}`,
         this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -30,7 +31,7 @@ export class AlgoSecurityService extends AuthServiceWithLogout<AlgoSecurity> imp
   }
 
   public deleteEntity(idAlgoAssetclassSecurity: number): Observable<any> {
-    return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.ALGO_SECURITY_KEY}/${idAlgoAssetclassSecurity}`,
+    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_SECURITY_KEY}/${idAlgoAssetclassSecurity}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 

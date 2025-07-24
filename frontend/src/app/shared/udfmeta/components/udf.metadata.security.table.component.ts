@@ -9,7 +9,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../service/globalparameter.service';
 import {UserSettingsService} from '../../service/user.settings.service';
 import {UDFMetadataSecurity, UDFMetadataSecurityParam} from '../model/udf.metadata';
-import {DataType} from '../../../dynamic-form/models/data.type';
+import {DataType} from '../../../lib/dynamic-form/models/data.type';
 import {TranslateValue} from '../../../lib/datashowbase/column.config';
 import {HelpIds} from '../../help/help.ids';
 import {UDFMetaTable} from './udf.metadata.table';

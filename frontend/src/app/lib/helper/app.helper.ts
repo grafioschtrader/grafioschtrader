@@ -2,17 +2,17 @@ import moment from 'moment';
 import {combineLatest} from 'rxjs';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../dynamic-form/models/data.type';
 import {Helper} from './helper';
 import {ColumnConfig} from '../datashowbase/column.config';
 import {ParamMap} from '@angular/router';
-import {FormConfig} from '../../dynamic-form/models/form.config';
+import {FormConfig} from '../dynamic-form/models/form.config';
 import {HttpHeaders, HttpParams} from '@angular/common/http';
 import {ConfirmationService} from 'primeng/api';
 import {FileSystemFileEntry, NgxFileDropEntry} from 'ngx-file-drop';
 import {InfoLevelType} from '../message/info.leve.type';
 import {MessageToastService} from '../message/message.toast.service';
-import {FieldConfig} from '../../dynamic-form/models/field.config';
+import {FieldConfig} from '../dynamic-form/models/field.config';
 import {BaseSettings} from '../base.settings';
 
 export const enum Comparison { GT, LT, EQ }

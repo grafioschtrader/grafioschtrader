@@ -15,7 +15,7 @@ import {
   MessageComType,
   MessageTargetType
 } from '../model/mail.send.recv';
-import {DataType} from '../../../dynamic-form/models/data.type';
+import {DataType} from '../../dynamic-form/models/data.type';
 import {ColumnConfig, TranslateValue} from '../../datashowbase/column.config';
 import {TableEditConfigBase} from '../../datashowbase/table.edit.config.base';
 import {SelectOptionsHelper} from '../../helper/select.options.helper';

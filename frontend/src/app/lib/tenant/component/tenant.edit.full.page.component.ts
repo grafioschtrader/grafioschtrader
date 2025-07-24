@@ -5,7 +5,7 @@ import {MessageToastService} from '../../message/message.toast.service';
 import {TenantService} from '../service/tenant.service';
 import {TranslateService} from '@ngx-translate/core';
 import {Tenant} from '../../../entities/tenant';
-import {LoginService} from '../../../shared/login/service/log-in.service';
+import {LoginService} from '../../login/service/log-in.service';
 import {GlobalparameterGTService} from '../../../gtservice/globalparameter.gt.service';
 
 /**

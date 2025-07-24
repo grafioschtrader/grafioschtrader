@@ -10,7 +10,7 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {HistoryquoteService} from '../service/historyquote.service';
 import {ActivatedRoute} from '@angular/router';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
-import {ViewSizeChangedService} from '../../shared/layout/service/view.size.changed.service';
+import {ViewSizeChangedService} from '../../lib/layout/service/view.size.changed.service';
 import {TranslateService} from '@ngx-translate/core';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {HelpIds} from '../../shared/help/help.ids';

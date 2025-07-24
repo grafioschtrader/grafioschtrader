@@ -1,4 +1,4 @@
-package grafioschtrader.connector.instrument.yahoo;
+package grafioschtrader.connector.yahoo;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -34,7 +34,7 @@ public class CrumbManager {
     StringBuilder response = new StringBuilder();
 
     try {
-      URL url = new URI("https://query2.finance.yahoo.com/v1/test/getcrumb").toURL();
+      URL url = new URI("https://query1.finance.yahoo.com/v1/test/getcrumb").toURL();
       HttpURLConnection connection = (HttpURLConnection) url.openConnection();
       // Set the cookie
       connection.setRequestProperty("Cookie", cookie);

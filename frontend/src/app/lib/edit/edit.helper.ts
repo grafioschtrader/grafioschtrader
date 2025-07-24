@@ -1,7 +1,7 @@
 import {ProposeTransientTransfer} from '../entities/propose.transient.transfer';
 import {ProposeChangeEntityWithEntity} from '../proposechange/model/propose.change.entity.whit.entity';
 import {AuditHelper} from '../helper/audit.helper';
-import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import {DynamicFormComponent} from '../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {FormBase} from './form.base';
 
 /**

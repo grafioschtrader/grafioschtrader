@@ -1,4 +1,4 @@
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../dynamic-form/models/data.type';
 import {ColumnConfig, OptionalParams} from './column.config';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';

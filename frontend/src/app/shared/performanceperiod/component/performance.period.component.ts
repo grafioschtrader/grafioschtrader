@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
-import {DataType} from '../../../dynamic-form/models/data.type';
+import {DataType} from '../../../lib/dynamic-form/models/data.type';
 import {FormBase} from '../../../lib/edit/form.base';
 import {TranslateHelper} from '../../../lib/helper/translate.helper';
 import {TranslateService} from '@ngx-translate/core';
@@ -17,13 +17,13 @@ import {Subscription} from 'rxjs';
 import moment from 'moment';
 import {Weekday} from '../../helper/weekday';
 import {SelectOptionsHelper} from '../../../lib/helper/select.options.helper';
-import {DynamicFormComponent} from '../../../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import {DynamicFormComponent} from '../../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {PerformancePeriod, PeriodHoldingAndDiff} from '../model/performance.period';
 import {AppSettings} from '../../app.settings';
 import {ActivatedRoute, Router} from '@angular/router';
 import {ChartDataService} from '../../chart/service/chart.data.service';
 import {ChartTrace, PlotlyHelper} from '../../chart/plotly.helper';
-import {FormHelper} from '../../../dynamic-form/components/FormHelper';
+import {FormHelper} from '../../../lib/dynamic-form/components/FormHelper';
 
 /**
  * Performance over a certain period for a tenant or portfolio.

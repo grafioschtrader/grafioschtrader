@@ -5,11 +5,12 @@ import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Cashaccount} from '../../entities/cashaccount';
 import {Observable} from 'rxjs';
 import {HttpClient} from '@angular/common/http';
-import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
+import {AuthServiceWithLogout} from '../../lib/login/service/base.auth.service.with.logout';
 import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {catchError} from 'rxjs/operators';
-import {LoginService} from '../../shared/login/service/log-in.service';
+import {LoginService} from '../../lib/login/service/log-in.service';
 import {AppHelper} from '../../lib/helper/app.helper';
+import {BaseSettings} from '../../lib/base.settings';
 
 @Injectable()
 export class CashaccountService extends AuthServiceWithLogout<Cashaccount> implements ServiceEntityUpdate<Cashaccount> {
@@ -19,7 +20,7 @@ export class CashaccountService extends AuthServiceWithLogout<Cashaccount> imple
   }
 
   getCashaccountPositionGroupSummary(idCashaccount: number, untilDate: Date): Observable<AccountPositionGroupSummary> {
-    return <Observable<AccountPositionGroupSummary>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.CASHACCOUNT_KEY}/`
+    return <Observable<AccountPositionGroupSummary>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.CASHACCOUNT_KEY}/`
       + `${idCashaccount}/portfoliocashaccountsummary`,
       AppHelper.getOptionsWithUntilDate(untilDate, this.prepareHeaders())).pipe(catchError(this.handleError.bind(this)));
   }
@@ -32,7 +33,7 @@ export class CashaccountService extends AuthServiceWithLogout<Cashaccount> imple
   }
 
   deleteCashaccount(idSecuritycashaccount: number): Observable<any> {
-    return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.CASHACCOUNT_KEY}/${idSecuritycashaccount}`,
+    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.CASHACCOUNT_KEY}/${idSecuritycashaccount}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 

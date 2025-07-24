@@ -9,7 +9,7 @@ import {ImportTransactionTemplateService} from '../service/import.transaction.te
 import {ImportTransactionTemplate, TemplateCategory} from '../../entities/import.transaction.template';
 import {ImportTransactionPlatform} from '../../entities/import.transaction.platform';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {TemplateFormatType} from '../../shared/types/template.format.type';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';

@@ -12,8 +12,8 @@ import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../../lib/helper/translate.helper';
 import {SelectOptionsHelper} from '../../../lib/helper/select.options.helper';
 import {Subscription} from 'rxjs';
-import {FormHelper} from '../../../dynamic-form/components/FormHelper';
-import {DataType} from '../../../dynamic-form/models/data.type';
+import {FormHelper} from '../../../lib/dynamic-form/components/FormHelper';
+import {DataType} from '../../../lib/dynamic-form/models/data.type';
 import moment from 'moment';
 import {Validators} from '@angular/forms';
 

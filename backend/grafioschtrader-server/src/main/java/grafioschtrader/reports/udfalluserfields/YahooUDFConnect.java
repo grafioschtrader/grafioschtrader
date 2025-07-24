@@ -1,10 +1,11 @@
 package grafioschtrader.reports.udfalluserfields;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
@@ -16,13 +17,6 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.collections4.map.PassiveExpiringMap;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import grafiosch.BaseConstants;
 import grafiosch.entities.UDFData;
@@ -31,7 +25,12 @@ import grafiosch.repository.UDFDataJpaRepository;
 import grafiosch.udfalluserfields.UDFFieldsHelper;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
-import grafioschtrader.connector.instrument.FeedConnectorHelper;
+import grafioschtrader.connector.yahoo.AbstractYahooFinanceConnector;
+import grafioschtrader.connector.yahoo.YahooFinanceDTO;
+import grafioschtrader.connector.yahoo.YahooFinanceDTO.QueryOperand;
+import grafioschtrader.connector.yahoo.YahooFinanceDTO.VisualizationDocument;
+import grafioschtrader.connector.yahoo.YahooFinanceDTO.VisualizationResponse;
+import grafioschtrader.connector.yahoo.YahooFinanceDTO.VisualizationResult;
 import grafioschtrader.connector.yahoo.YahooHelper;
 import grafioschtrader.connector.yahoo.YahooSymbolSearch;
 import grafioschtrader.entities.Security;
@@ -61,12 +60,9 @@ import io.github.bucket4j.Refill;
  * The class is designed to work within the UDF framework, storing and retrieving Yahoo symbols as user-defined field
  * values for securities, enabling automated financial data collection and analysis across the application.
  */
-public class YahooUDFConnect {
-
-  private final Logger log = LoggerFactory.getLogger(this.getClass());
+public class YahooUDFConnect extends AbstractYahooFinanceConnector {
 
   private YahooSymbolSearch yahooSymbolSearch = new YahooSymbolSearch();
-
   private Bucket bucket;
 
   /**
@@ -86,31 +82,18 @@ public class YahooUDFConnect {
    * This is the date format that comes from Yahoo. The time may have to be adapted to the local user.
    */
   private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy 'at' h a z", Locale.ENGLISH);
-
   private final SimpleDateFormat dateFormatEarnings = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
 
   public YahooUDFConnect() {
+    super(10); // 10 seconds connection timeout
+
+    // Initialize rate limiting
     Bandwidth limit = Bandwidth.classic(2, Refill.intervally(1, Duration.ofSeconds(2)));
     this.bucket = Bucket.builder().addLimit(limit).build();
   }
 
   /**
-   * Evaluates and determines the Yahoo Finance symbol for a given security using multiple resolution strategies. This
-   * method attempts to find the Yahoo symbol through the following prioritized approaches:<br>
-   * 1. Existing Yahoo connectors configured for the security (intra, history, split, dividend)<br>
-   * 2. Previously stored UDF data for the security<br>
-   * 3. Symbol cache (if available and not recreating)<br>
-   * 4. Yahoo symbol search service (most resource-intensive option)<br>
-   * 
-   * The method optimizes performance by checking faster sources first and only falling back to the time-consuming Yahoo
-   * search when necessary. Results are cached and persisted to UDF storage for future use.
-   * 
-   * @param uDFDataJpaRepository     repository for accessing UDF data storage
-   * @param udfMDSYahooSymbol        metadata definition for the Yahoo symbol UDF field
-   * @param security                 the security for which to determine the Yahoo symbol
-   * @param micProviderMapRepository repository for market identifier code mappings
-   * @param recreate                 if true, forces fresh lookup even if cached or stored data exists
-   * @return the Yahoo Finance symbol for the security, or null if symbol starts with "^" or cannot be determined
+   * Evaluates and determines the Yahoo Finance symbol for a given security using multiple resolution strategies.
    */
   public String evaluateYahooSymbol(UDFDataJpaRepository uDFDataJpaRepository, UDFMetadataSecurity udfMDSYahooSymbol,
       Security security, MicProviderMapRepository micProviderMapRepository, boolean recreate) {
@@ -140,13 +123,7 @@ public class YahooUDFConnect {
   }
 
   /**
-   * Retrieves Yahoo symbol through symbol search service with special handling for US exchanges. For securities on
-   * NASDAQ and NYSE exchanges, the method assumes the ticker symbol corresponds directly to the Yahoo symbol. For other
-   * exchanges, it performs a comprehensive search using ISIN, ticker symbol, and security name.
-   * 
-   * @param security                 the security for which to search the Yahoo symbol
-   * @param micProviderMapRepository repository for market identifier code mappings
-   * @return the Yahoo symbol found through search, or null if not found
+   * Retrieves Yahoo symbol through symbol search service with special handling for US exchanges.
    */
   String getYahooSymbolThruSymbolSearch(Security security, MicProviderMapRepository micProviderMapRepository) {
     String yahooSymbol = null;
@@ -161,58 +138,114 @@ public class YahooUDFConnect {
     return yahooSymbol;
   }
 
-  /**
-   * Extracts the next earning date from the specified URL for a given security.
-   *
-   * <p>
-   * This method connects to the provided URL using Jsoup, parses the HTML content to find the earning dates table, and
-   * extracts the next earning date. The method ensures that the extracted date is in the future relative to the current
-   * date and time.
-   *
-   * @param url The URL to connect to and extract the earning date from.
-   * @return The next earning date as a {@link LocalDateTime}, or {@code null} if no future earning date is found.
-   * @throws IOException If an I/O error occurs while connecting to the URL or parsing the document.
-   */
-  LocalDateTime extractNextEarningDate(String url) throws IOException {
-    waitForTokenOrGo();
-    LocalDateTime now = LocalDateTime.now();
-    LocalDateTime nextEarningDate = null;
-
-    final Connection conn = Jsoup.connect(url).userAgent(FeedConnectorHelper.getHttpAgentAsString(true));
-
-    Connection.Response response = conn.execute();
-
-    if (response.statusCode() == HttpURLConnection.HTTP_OK) {
-      final Document doc = response.parse();
-      Elements tables = doc.select("table.bd");
-      if (!tables.isEmpty()) {
-        Elements rows = tables.get(0).select("tr");
-        for (Element row : rows) {
-          Elements cols = row.select("td");
-          if (cols.size() >= 6) {
-            LocalDateTime localDateTime = LocalDateTime.parse(cols.get(2).text(), formatter);
-            if (now.isAfter(localDateTime)) {
-              break;
-            }
-            nextEarningDate = localDateTime;
-          }
-        }
-      }
-    } else {
-      log.warn("Could not fetch URL: {} (Status: {})", url, response.statusCode());
-    }
-    return nextEarningDate;
-  }
-
   String getEarningURL(String yahooSymbol) {
     return YahooHelper.YAHOO_CALENDAR + "earnings?day=" + dateFormatEarnings.format(new Date()) + "&symbol="
         + yahooSymbol;
   }
 
   /**
-   * Implements rate limiting using token bucket algorithm to control access frequency. This method blocks execution
-   * until a token is available from the bucket, ensuring that API calls to Yahoo Finance comply with usage policies and
-   * prevent service overload. The method will wait and retry until a token becomes available.
+   * Extracts the next earnings announcement date for a given ticker symbol Uses the base class template method for
+   * standardized request handling
+   */
+  public LocalDateTime extractNextEarningDate(String ticker) throws IOException {
+    try {
+      EarningsRequestParams params = new EarningsRequestParams(ticker, LocalDateTime.now());
+      return executeYahooRequest(params);
+    } catch (Exception e) {
+      if (e instanceof IOException) {
+        throw (IOException) e;
+      }
+      throw new IOException("Error extracting next earning date for ticker " + ticker, e);
+    }
+  }
+
+  @Override
+  protected YahooFinanceDTO createRequest(Object requestParams) {
+    EarningsRequestParams params = (EarningsRequestParams) requestParams;
+
+    // Create base request with earnings-specific configuration
+    YahooFinanceDTO request = createBaseRequest("DESC", "sp_earnings", "startdatetime",
+        Arrays.asList("ticker", "companyshortname", "eventname", "startdatetime", "startdatetimetype", "epsestimate",
+            "epsactual", "epssurprisepct", "timeZoneShortName", "gmtOffsetMilliSeconds", "intradaymarketcap"),
+        25);
+    // Build query structure
+    QueryOperand tickerOperand = new QueryOperand();
+    tickerOperand.operator = "or";
+    tickerOperand.operands = Arrays.asList(createEqualsOperand("ticker", params.ticker));
+    QueryOperand eventTypeOperand = new QueryOperand();
+    eventTypeOperand.operator = "or";
+    eventTypeOperand.operands = Arrays.asList(createEqualsOperand("eventtype", "EAD"),
+        createEqualsOperand("eventtype", "ERA"));
+
+    QueryOperand mainQuery = new QueryOperand();
+    mainQuery.operator = "and";
+    mainQuery.operands = Arrays.asList(tickerOperand, eventTypeOperand);
+    request.query = mainQuery;
+    return request;
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  protected <T> T parseResponse(String responseBody, Object requestParams) throws IOException {
+    EarningsRequestParams params = (EarningsRequestParams) requestParams;
+    LocalDateTime now = params.now;
+
+    try {
+      VisualizationResponse response = objectMapper.readValue(responseBody, VisualizationResponse.class);
+
+      if (response.finance != null && response.finance.result != null && !response.finance.result.isEmpty()) {
+        VisualizationResult result = response.finance.result.get(0);
+
+        if (result.documents != null && !result.documents.isEmpty()) {
+          VisualizationDocument document = result.documents.get(0);
+          LocalDateTime nextEarningDate = null;
+
+          // Iterate through all rows to find the next future earnings date
+          for (List<Object> row : document.rows) {
+            if (row.size() > 10 && row.get(3) != null && row.get(9) != null) {
+              String dateTimeStr = row.get(3).toString();
+              Object gmtOffsetObj = row.get(9); // gmtOffsetMilliSeconds
+
+              try {
+                ZonedDateTime utcDateTime = ZonedDateTime.parse(dateTimeStr);
+
+                // Apply GMT offset to get local time
+                LocalDateTime localDateTime = applyGmtOffset(utcDateTime, gmtOffsetObj);
+
+                if (localDateTime != null) {
+                  // Similar logic to original: if current time is after earnings time, break
+                  if (now.isAfter(localDateTime)) {
+                    break;
+                  }
+
+                  // Set the next earnings date (data is sorted DESC, so first future date is the next one)
+                  if (nextEarningDate == null) {
+                    nextEarningDate = localDateTime;
+                  }
+                }
+              } catch (Exception e) {
+                log.warn("Error parsing date: {}", dateTimeStr, e);
+              }
+            }
+          }
+
+          return (T) nextEarningDate;
+        }
+      }
+    } catch (Exception e) {
+      throw new IOException("Error parsing earnings response", e);
+    }
+    return null;
+  }
+
+  protected LocalDateTime applyGmtOffset(ZonedDateTime utcDateTime, Object gmtOffsetObj) {
+    long gmtOffsetMillis = ((Number) gmtOffsetObj).longValue();
+    return utcDateTime.toInstant().plusMillis(gmtOffsetMillis) 
+        .atZone(ZoneOffset.UTC).toLocalDateTime();
+  }
+
+  /**
+   * Implements rate limiting using token bucket algorithm to control access frequency.
    */
   private void waitForTokenOrGo() {
     do {
@@ -230,4 +263,16 @@ public class YahooUDFConnect {
     } while (true);
   }
 
+  /**
+   * Parameter class to pass multiple values to the template method
+   */
+  private static class EarningsRequestParams {
+    final String ticker;
+    final LocalDateTime now;
+
+    EarningsRequestParams(String ticker, LocalDateTime now) {
+      this.ticker = ticker;
+      this.now = now;
+    }
+  }
 }

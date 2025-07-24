@@ -4,7 +4,7 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {Security} from '../../entities/security';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {AppSettings} from '../../shared/app.settings';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {SecurityCurrencypairDerivedLinks} from '../../securitycurrency/model/security.currencypair.derived.links';

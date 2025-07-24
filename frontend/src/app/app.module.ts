@@ -22,14 +22,14 @@ import {CashaccountService} from './cashaccount/service/cashaccount.service';
 import {TransactionService} from './transaction/service/transaction.service';
 import {CurrencypairService} from './securitycurrency/service/currencypair.service';
 import {ReplacePipe} from './shared/pipe/replace.pipe';
-import {SplitLayoutComponent} from './shared/layout/component/split.layout.component';
-import {LoginService} from './shared/login/service/log-in.service';
+import {SplitLayoutComponent} from './lib/layout/component/split.layout.component';
+import {LoginService} from './lib/login/service/log-in.service';
 import {MessageToastComponent} from './lib/message/message.toast.component';
 import {MessageToastService} from './lib/message/message.toast.service';
 import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
 import {UserSettingsService} from './shared/service/user.settings.service';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {DynamicFormModule} from './dynamic-form/dynamic-form.module';
+import {DynamicFormModule} from './lib/dynamic-form/dynamic-form.module';
 import {ActivePanelService} from './shared/mainmenubar/service/active.panel.service';
 import {TenantService} from './lib/tenant/service/tenant.service';
 import {SecurityaccountEmptyComponent} from './securityaccount/component/securityaccount.empty.component';
@@ -39,26 +39,26 @@ import {StockexchangeService} from './stockexchange/service/stockexchange.servic
 import {DataChangedService} from './shared/maintree/service/data.changed.service';
 import {AssetclassService} from './assetclass/service/assetclass.service';
 import {SecuritysplitService} from './securitycurrency/service/securitysplit.service';
-import {RegisterComponent} from './shared/login/component/register.component';
+import {RegisterComponent} from './lib/login/component/register.component';
 import {TenantEditFullPageComponent} from './lib/tenant/component/tenant.edit.full.page.component';
 import {MainDialogComponent} from './shared/mainmenubar/component/main.dialog.component';
 import {MainDialogService} from './shared/mainmenubar/service/main.dialog.service';
 import {TransactionSecurityEditComponent} from './transaction/component/transaction-security-edit.component';
 import {ParentChildRegisterService} from './shared/service/parent.child.register.service';
-import {FormButtonComponent} from './dynamic-form/components/form-button/form-button.component';
-import {FormPButtonComponent} from './dynamic-form/components/form-button/form-pbutton.component';
-import {FormCheckboxComponent} from './dynamic-form/components/form-input/form-checkbox.component';
-import {FormInputComponent} from './dynamic-form/components/form-input/form-input.component';
-import {FormPCalendarComponent} from './dynamic-form/components/form-input/form-pcalendar.component';
-import {FormPInputTextareaComponent} from './dynamic-form/components/form-input/form-pinputtextarea.component';
+import {FormButtonComponent} from './lib/dynamic-form/components/form-button/form-button.component';
+import {FormPButtonComponent} from './lib/dynamic-form/components/form-button/form-pbutton.component';
+import {FormCheckboxComponent} from './lib/dynamic-form/components/form-input/form-checkbox.component';
+import {FormInputComponent} from './lib/dynamic-form/components/form-input/form-input.component';
+import {FormPCalendarComponent} from './lib/dynamic-form/components/form-input/form-pcalendar.component';
+import {FormPInputTextareaComponent} from './lib/dynamic-form/components/form-input/form-pinputtextarea.component';
 import {HttpClient, HttpClientModule} from '@angular/common/http';
 import {WatchlistTabMenuComponent} from './watchlist/component/watchlist.tab.menu.component';
 import {WatchlistPerformanceComponent} from './watchlist/component/watchlist.performance.component';
 import {TimeSeriesChartComponent} from './historyquote/component/time.series.chart.component';
-import {ViewSizeChangedService} from './shared/layout/service/view.size.changed.service';
+import {ViewSizeChangedService} from './lib/layout/service/view.size.changed.service';
 import {ChartGeneralPurposeComponent} from './shared/chart/component/chart.general.purpose.component';
 import {ChartDataService} from './shared/chart/service/chart.data.service';
-import {RegistrationTokenVerifyComponent} from './shared/login/component/registration.token.verify.component';
+import {RegistrationTokenVerifyComponent} from './lib/login/component/registration.token.verify.component';
 import {TableModule} from 'primeng/table';
 import {TimeSeriesQuotesService} from './historyquote/service/time.series.quotes.service';
 import {CorrelationComponent} from './watchlist/component/correlation.component';
@@ -75,9 +75,9 @@ import {TenantTabMenuComponent} from './lib/tenant/component/tenant.tab.menu.com
 import {PortfolioTabMenuComponent} from './portfolio/component/portfolio.tab.menu.component';
 import {TenantTransactionTableComponent} from './lib/tenant/component/tenant.transaction.table.component';
 import {PortfolioTransactionTableComponent} from './portfolio/component/portfolio.transaction.table.component';
-import {FormInputSuggestionComponent} from './dynamic-form/components/form-input/form-input-suggestion.component';
-import {FormFileUploadComponent} from './dynamic-form/components/form-input-file/form-file-upload.component';
-import {FormInputSelectComponent} from './dynamic-form/components/form-input/form-input-select.component';
+import {FormInputSuggestionComponent} from './lib/dynamic-form/components/form-input/form-input-suggestion.component';
+import {FormFileUploadComponent} from './lib/dynamic-form/components/form-input-file/form-file-upload.component';
+import {FormInputSelectComponent} from './lib/dynamic-form/components/form-input/form-input-select.component';
 import {
   TransactionCashaccountEditDoubleComponent
 } from './transaction/component/transaction-cashaccount-editdouble.component';
@@ -108,8 +108,8 @@ import {PortfolioEditDynamicComponent} from './portfolio/component/portfolio.edi
 import {AssetclassEditComponent} from './assetclass/component/assetclass-edit.component';
 import {SecurityaccountTabMenuComponent} from './securityaccount/component/securityaccount.tab.menu.component';
 import {ImportTransactionHeadService} from './securityaccount/service/import.transaction.head.service';
-import {LoginComponent} from './shared/login/component/login.component';
-import {PasswordEditComponent} from './shared/login/component/password-edit.component';
+import {LoginComponent} from './lib/login/component/login.component';
+import {PasswordEditComponent} from './lib/login/component/password-edit.component';
 import {UploadFileDialogComponent} from './shared/generaldialog/upload-file-dialog.component';
 import {
   SecurityaccountImportTransactionEditHeadComponent
@@ -157,7 +157,7 @@ import {
 import {ToastrModule} from 'ngx-toastr';
 import {ProposeChangeTabMenuComponent} from './lib/proposechange/component/propose.change.tab.menu.component';
 import {YourProposalTableComponent} from './lib/proposechange/component/your.proposal.table.component';
-import {RequestForYouTableComponent} from './lib/proposechange/component/request.for.you.table.component';
+import {RequestForYouTableComponent} from './shared/changerequest/request.for.you.table.component';
 import {ProposeChangeEntityService} from './lib/proposechange/service/propose.change.entity.service';
 import {
   TransactionCashaccountConnectDebitCreditComponent
@@ -165,7 +165,7 @@ import {
 import {AlgoTopService} from './algo/service/algo.top.service';
 import {StrategyOverviewComponent} from './algo/component/strategy.overview.component';
 import {AlgoTopDataViewComponent} from './algo/component/algo.top.data.view.component';
-import {FormTriStateCheckboxComponent} from './dynamic-form/components/form-input/form-tri-state-checkbox.component';
+import {FormTriStateCheckboxComponent} from './lib/dynamic-form/components/form-input/form-tri-state-checkbox.component';
 import {AlgoRuleStrategyCreateWizardComponent} from './algo/component/algo-rule-strategy-create-wizard.component';
 import {StepComponent} from './shared/wizard/component/step.component';
 import {AlgoAssetclassService} from './algo/service/algo.assetclass.service';
@@ -187,7 +187,7 @@ import {UserAdminService} from './user/service/user.admin.service';
 import {UserTableComponent} from './user/component/user.table.component';
 import {UserEntityChangeLimitTableComponent} from './user/component/user-entity-change-limit-table.component';
 import {UserEditComponent} from './user/component/user-edit-component';
-import {NicknameLangEditComponent} from './shared/login/component/nickname-lang-edit.component';
+import {NicknameLangEditComponent} from './lib/login/component/nickname-lang-edit.component';
 import {UserEntityChangeLimitService} from './user/service/user.entity.change.limit.service';
 import {UserEntityChangeLimitEditComponent} from './user/component/user-entity-change-limit-edit.component';
 import {
@@ -200,7 +200,7 @@ import {
 } from './shared/dynamicdialog/component/logout.release.request.dynamic.component';
 import {ProposeUserTaskService} from './shared/dynamicdialog/service/propose.user.task.service';
 import {ActuatorService} from './shared/service/actuator.service';
-import {ApplicationInfoComponent} from './shared/login/component/application-info.component';
+import {ApplicationInfoComponent} from './lib/login/component/application-info.component';
 import {MultiTranslateHttpLoader} from './shared/translator/multi.translate.http.loader';
 import {
   SecurityaccountImportExtendedInfoFilenameComponent
@@ -255,7 +255,7 @@ import {
   TransactionSecurityMarginTreetableComponent
 } from './transaction/component/transaction-security-margin-treetable.component';
 import {SecurityDerivedEditComponent} from './securitycurrency/component/security-derived-edit.component';
-import {FormInputButtonComponent} from './dynamic-form/components/form-input/form-input-button.component';
+import {FormInputButtonComponent} from './lib/dynamic-form/components/form-input/form-input-button.component';
 import {AngularSvgIconModule} from 'angular-svg-icon';
 import {ProductIconService} from './securitycurrency/service/product.icon.service';
 import {
@@ -269,7 +269,7 @@ import {MailSendRecvService} from './lib/mail/service/mail.send.recv.service';
 import {ScrollPanelModule} from 'primeng/scrollpanel';
 import {CommonModule} from '@angular/common';
 import {InputNumberModule} from 'primeng/inputnumber';
-import {FormInputNumberComponent} from './dynamic-form/components/form-input/form-input-number.component';
+import {FormInputNumberComponent} from './lib/dynamic-form/components/form-input/form-input-number.component';
 import {WatchlistDividendSplitFeedComponent} from './watchlist/component/watchlist.dividend.split.feed.component';
 import {WatchlistPriceFeedComponent} from './watchlist/component/watchlist.price.feed.component';
 import {WatchlistSecuritysplitTableComponent} from './watchlist/component/watchlist-securitysplit-table.component';
@@ -349,6 +349,7 @@ import {SharedTabMenuComponent} from './lib/tabmenu/component/shared.tab.menu.co
 import {SelectModule} from 'primeng/select';
 import {StepperModule} from 'primeng/stepper';
 import {StepsComponent} from './shared/wizard/component/steps.component';
+import {ReleaseNoteService} from './lib/login/service/release.note.service';
 
 
 const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader(http, [
@@ -476,7 +477,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
   providers: [ActivePanelService, ActuatorService, AlarmSetupService, AlgoAssetclassService, AlgoSecurityService, AlgoStrategyService,
     AlgoTopService, AssetclassService, CashaccountService, ChartDataService, ConfirmationService, ConnectorApiKeyService,
     CorrelationSetService, CurrencypairService, DataChangedService, DividendService, GlobalparameterService,
-    GlobalparameterGTService, GTNetMessageService, TabMenuService,
+    GlobalparameterGTService, GTNetMessageService, TabMenuService, ReleaseNoteService,
     GTNetService, HistoryquotePeriodService, HistoryquoteService, HoldingService, ImportTransactionHeadService,
     ImportTransactionPlatformService, ImportTransactionPosService, ImportTransactionTemplateService, LoginService,
     MailSendRecvService, MailSendRecvService, MailSettingForwardService, MainDialogService, MessageToastService,

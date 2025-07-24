@@ -3,7 +3,7 @@ import {Cashaccount} from '../../entities/cashaccount';
 import {TranslateService} from '@ngx-translate/core';
 import {AppSettings} from '../../shared/app.settings';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {FieldConfig} from '../../dynamic-form/models/field.config';
+import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 import {Currencypair} from '../../entities/currencypair';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {MessageToastService} from '../../lib/message/message.toast.service';

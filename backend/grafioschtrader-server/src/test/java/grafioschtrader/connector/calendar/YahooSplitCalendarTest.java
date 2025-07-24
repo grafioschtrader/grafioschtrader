@@ -17,12 +17,12 @@ class YahooSplitCalendarTest {
     YahooSplitCalendar yahooCalendar = new YahooSplitCalendar();
     Map<String, TickerSecuritysplit> securitySplitMap = null;
     try {
-      securitySplitMap = yahooCalendar.getCalendarSplitForSingleDay(LocalDate.parse("2025-05-07"), new String[] {});
+      securitySplitMap = yahooCalendar.getCalendarSplitForSingleDay(LocalDate.parse("2025-07-21"), new String[] {});
     } catch (Exception e) {
       e.printStackTrace();
     }
     securitySplitMap.entrySet().forEach(System.out::println);
-    assertThat(securitySplitMap).hasSize(15);
+    assertThat(securitySplitMap).hasSize(16);
   }
 
 }

@@ -2,7 +2,7 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../../shared/service/user.settings.service';
-import {DataType} from '../../../dynamic-form/models/data.type';
+import {DataType} from '../../dynamic-form/models/data.type';
 import {AccountPositionGroupSummary} from '../../../entities/view/account.position.group.summary';
 import {AccountPositionGrandSummary} from '../../../entities/view/account.position.grand.summary';
 import {AccountPositionSummary} from '../../../entities/view/account.position.summary';

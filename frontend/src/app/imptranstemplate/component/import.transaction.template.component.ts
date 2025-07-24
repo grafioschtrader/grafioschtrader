@@ -8,7 +8,7 @@ import {ImportTransactionPlatformService} from '../service/import.transaction.pl
 import {IPlatformTransactionImport} from '../../portfolio/component/iplatform.transaction.import';
 import {ImportTransactionPlatform} from '../../entities/import.transaction.platform';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
-import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 import {ImportTransactionTemplate} from '../../entities/import.transaction.template';
 import {ImportTransactionTemplateTableComponent} from './import-transaction-template-table.component';
 import {ParentChildRowSelection} from '../../lib/datashowbase/parent.child.row.selection';

@@ -11,7 +11,7 @@ import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {AppSettings} from '../../shared/app.settings';
 import {HelpIds} from '../../shared/help/help.ids';
 import {ConnectorApiKeyService} from '../service/connector.api.key.service';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 

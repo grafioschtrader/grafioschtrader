@@ -10,7 +10,7 @@ import {
   PeriodWindowWithField
 } from '../model/performance.period';
 import {TreeNode} from 'primeng/api';
-import {DataType} from '../../../dynamic-form/models/data.type';
+import {DataType} from '../../../lib/dynamic-form/models/data.type';
 import {ColumnConfig, ColumnGroupConfig} from '../../../lib/datashowbase/column.config';
 import {WeekYear} from '../service/holding.service';
 import {Helper} from '../../../lib/helper/helper';

@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Stockexchange} from '../../entities/stockexchange';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
@@ -13,7 +13,7 @@ import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propo
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {StockexchangeCallParam} from './stockexchange.call.param';
-import {FormHelper} from '../../dynamic-form/components/FormHelper';
+import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
 import {AssetclassType} from '../../shared/types/assetclass.type';
@@ -24,7 +24,7 @@ import {Security} from '../../entities/security';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import moment from 'moment';
 import {AppSettings} from '../../shared/app.settings';
-import {GroupItem, ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {GroupItem, ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 import {StockexchangeMic} from '../model/stockexchange.base.data';
 import {StockexchangeHelper} from './stockexchange.helper';
 import {BaseSettings} from '../../lib/base.settings';

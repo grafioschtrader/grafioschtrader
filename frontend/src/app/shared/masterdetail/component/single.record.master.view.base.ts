@@ -1,11 +1,11 @@
 import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach';
 import {HelpIds} from '../../help/help.ids';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
-import {FieldConfig} from '../../../dynamic-form/models/field.config';
-import {FieldFormGroup} from '../../../dynamic-form/models/form.group.definition';
-import {FormConfig} from '../../../dynamic-form/models/form.config';
+import {FieldConfig} from '../../../lib/dynamic-form/models/field.config';
+import {FieldFormGroup} from '../../../lib/dynamic-form/models/form.group.definition';
+import {FormConfig} from '../../../lib/dynamic-form/models/form.config';
 import {Directive, ViewChild} from '@angular/core';
-import {DynamicFormComponent} from '../../../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import {DynamicFormComponent} from '../../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {Subscription} from 'rxjs';
 import {InfoLevelType} from '../../../lib/message/info.leve.type';
 import {AppHelper} from '../../../lib/helper/app.helper';

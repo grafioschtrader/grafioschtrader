@@ -56,12 +56,14 @@ public class YahooUDFConnectTest {
     try {
       // CrumbManager.setCookie();
 
-      List<String> symbols = Arrays.asList("ADSK", "NVDA", "GOOG", "BIDU");
+     // List<String> symbols = Arrays.asList("DOW");
+     List<String> symbols = Arrays.asList("ADSK", "NVDA",  "BIDU");
       LocalDateTime now = LocalDateTime.now();
 
       for (String symbol : symbols) {
-        LocalDateTime nextEarningDate = yahooUDFConnect.extractNextEarningDate(yahooUDFConnect.getEarningURL(symbol));
+        LocalDateTime nextEarningDate = yahooUDFConnect.extractNextEarningDate(symbol);
 
+        System.out.println("Symbol:" + symbol + " Next earning date:" + nextEarningDate);
         // must not be null
         assertNotNull("Next earning date should not be null for " + symbol, nextEarningDate);
 

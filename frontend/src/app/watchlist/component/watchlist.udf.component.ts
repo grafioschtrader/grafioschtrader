@@ -21,7 +21,7 @@ import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {UDFMetadataSecurityService} from '../../shared/udfmeta/service/udf.metadata.security.service';
 import {GlobalSessionNames} from '../../shared/global.session.names';
 import {FieldDescriptorInputAndShowExtendedSecurity} from '../../shared/udfmeta/model/udf.metadata';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {SvgIconRegistryService} from 'angular-svg-icon';
 import {ColumnConfig, OptionalParams} from '../../lib/datashowbase/column.config';
 import {HelpIds} from '../../shared/help/help.ids';

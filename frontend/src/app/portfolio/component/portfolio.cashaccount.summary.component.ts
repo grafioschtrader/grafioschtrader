@@ -21,7 +21,7 @@ import {DataChangedService} from '../../shared/maintree/service/data.changed.ser
 import {ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {ColumnConfig, ColumnGroupConfig} from '../../lib/datashowbase/column.config';
 import {HelpIds} from '../../shared/help/help.ids';

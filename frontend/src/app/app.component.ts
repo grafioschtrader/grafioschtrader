@@ -1,6 +1,6 @@
 import {Component, InjectionToken, OnDestroy} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
-import {LoginService} from './shared/login/service/log-in.service';
+import {LoginService} from './lib/login/service/log-in.service';
 import {PrimeNG} from 'primeng/config';
 import {AppSettings} from './shared/app.settings';
 import {Subscription} from 'rxjs';
@@ -12,7 +12,7 @@ import {Security} from './entities/security';
 import {AuditHelper} from './lib/helper/audit.helper';
 import {DynamicFieldHelper} from './lib/helper/dynamic.field.helper';
 import {validISIN} from './shared/validator/gt.validator';
-import {RuleEvent} from './dynamic-form/error/error.message.rules';
+import {RuleEvent} from './lib/dynamic-form/error/error.message.rules';
 
 export const TASK_EXTENDED_SERVICE = new InjectionToken<ITaskExtendService>('SecurityService');
 

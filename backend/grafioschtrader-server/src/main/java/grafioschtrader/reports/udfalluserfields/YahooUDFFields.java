@@ -187,11 +187,11 @@ public abstract class YahooUDFFields extends AllUserFieldsSecurity {
       putValueToJsonValue(securitycurrencyUDFGroup, udfMetaDataSecurity, security.getIdSecuritycurrency(), url, true);
     } else {
       try {
-        LocalDateTime nextEarningDate = yahooUDFConnect.extractNextEarningDate(url);
+        LocalDateTime nextEarningDate = yahooUDFConnect.extractNextEarningDate(yahooSymbol);
         putValueToJsonValue(securitycurrencyUDFGroup, udfMetaDataSecurity, security.getIdSecuritycurrency(),
             nextEarningDate, true);
       } catch (Exception e) {
-        log.error("Can not extract data from url {} for {} ", url, security.getName(), e);
+        log.error("Can not extract data from ticker {} for {} ", yahooSymbol, security.getName(), e);
       }
     }
   }

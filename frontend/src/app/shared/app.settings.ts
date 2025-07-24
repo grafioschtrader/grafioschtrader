@@ -22,8 +22,7 @@ export class AppSettings {
   public static readonly IMPORT_TRANSACTION_PLATFORM = 'ImportTransactionPlatform';
   public static readonly IMPORT_TRANSACTION_POS = 'ImportTransactionPos';
   public static readonly IMPORT_TRANSACTION_TEMPLATE = 'ImportTransactionTemplate';
-  public static readonly MAIL_SEND_RECV = 'MailSendRecv';
-  public static readonly MAIL_SETTING_FORWARD = 'MailSettingForward';
+
   public static readonly PORTFOLIO = 'Portfolio';
   public static readonly PROPOSE_CHANGE_ENTITY = 'ProposeChangeEntity';
   public static readonly PROPOSE_USER_TASK = 'ProposeUserTask';
@@ -46,7 +45,6 @@ export class AppSettings {
   public static readonly WATCHLIST = 'Watchlist';
 
   // Keywords
-  public static readonly API_ENDPOINT = '/api/';
   public static readonly GT_= 'gt_'
   public static readonly ACTUATOR = 'actuator';
   public static readonly ALGO_TOP_KEY = AppSettings.ALGO_TOP.toLowerCase();
@@ -63,8 +61,7 @@ export class AppSettings {
   public static readonly CONNECTOR_API_KEY_KEY = 'connectorapikey';
   public static readonly WATCHLIST_KEY = AppSettings.WATCHLIST.toLowerCase();
   public static readonly SECURITY_DIVIDEND_KEY = AppSettings.DIVIDEND.toLowerCase();
-  public static readonly MAIL_SEND_RECV_KEY = AppSettings.MAIL_SEND_RECV.toLowerCase();
-  public static readonly MAIL_SETTING_FORWARD_KEY = AppSettings.MAIL_SETTING_FORWARD.toLowerCase();
+
   public static readonly USER_MESSAGE_KEY = 'usermessage';
   public static readonly WATCHLIST_TAB_MENU_KEY = 'wachtlistTabMenu';
   public static readonly WATCHLIST_PERFORMANCE_KEY = 'watchlistperformance';
@@ -101,8 +98,7 @@ export class AppSettings {
   public static readonly CURRENCY_KEY = 'currency';
   public static readonly PORTFOLIO_KEY = AppSettings.PORTFOLIO.toLowerCase();
   public static readonly PROPOSE_CHANGE_ENTITY_KEY = AppSettings.PROPOSE_CHANGE_ENTITY.toLowerCase();
-  public static readonly PROPOSE_CHANGE_YOUR_PROPOSAL_KEY = 'proposeyourproposal';
-  public static readonly PROPOSE_CHANGE_REQUEST_FOR_YOU_KEY = 'proposerequestforyou';
+
   public static readonly DEPOT_KEY = 'depot';
   public static readonly PERFORMANCE_KEY = 'performance';
   public static readonly PERFORMANCE_TAB_KEY = 'performancetabmenu';
@@ -162,8 +158,6 @@ export class AppSettings {
   // HELP Support
   public static readonly HELP_DOMAIN = '//grafioschtrader.github.io/gt-user-manual/';
 
-
-
   public static readonly DEFAULT_LANGUAGE = 'en';
 
   // Name for Icons
@@ -211,10 +205,7 @@ export class AppSettings {
   // SVG file extension
   public static readonly SVG = '.svg';
 
-
-
   public static readonly INSTRUMENT_HEADER = 'I';
-
 
   public static FID_MAX_CURRENCY_EX_RATE_PRECISION = 20;
   public static FID_MAX_CURRENCY_EX_RATE_FRACTION = 10;

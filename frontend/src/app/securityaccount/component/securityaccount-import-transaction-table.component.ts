@@ -2,7 +2,7 @@ import {Component, OnDestroy} from '@angular/core';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ParentChildRowSelection} from '../../lib/datashowbase/parent.child.row.selection';
 import {ImportTransactionHead} from '../../entities/import.transaction.head';
 import {AppSettings} from '../../shared/app.settings';

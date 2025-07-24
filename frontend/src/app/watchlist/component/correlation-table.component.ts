@@ -12,7 +12,7 @@ import {
   MinMaxDateHistoryquote,
   SamplingPeriodType
 } from '../../entities/correlation.set';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {AppSettings} from '../../shared/app.settings';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {Securitycurrency} from '../../entities/securitycurrency';

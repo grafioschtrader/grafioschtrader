@@ -1,5 +1,5 @@
 import {Component, Input} from '@angular/core';
-import {ApplicationInfo} from '../../service/actuator.service';
+import {ApplicationInfo} from '../../../shared/service/actuator.service';
 import {TranslateService} from '@ngx-translate/core';
 
 @Component({

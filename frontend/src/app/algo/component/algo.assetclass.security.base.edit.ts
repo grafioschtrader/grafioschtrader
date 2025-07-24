@@ -6,9 +6,9 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
-import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
-import {FieldConfig} from '../../dynamic-form/models/field.config';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
+import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {Directive, Input} from '@angular/core';
 import {AlgoAssetclassSecurity} from '../model/algo.assetclass.security';
 import {AlgoCallParam} from '../model/algo.dialog.visible';

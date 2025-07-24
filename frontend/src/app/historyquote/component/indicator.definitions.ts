@@ -1,4 +1,4 @@
-import {FieldConfig} from '../../dynamic-form/models/field.config';
+import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 import {FieldDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
 import {MenuItem} from 'primeng/api';
 

@@ -4,7 +4,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../../shared/service/user.settings.service';
 import {Security} from '../../../entities/security';
-import {DataType} from '../../../dynamic-form/models/data.type';
+import {DataType} from '../../dynamic-form/models/data.type';
 import {ColumnConfig} from '../../datashowbase/column.config';
 import {SecurityService} from '../../../securitycurrency/service/security.service';
 import {IFeedConnector} from '../../../securitycurrency/component/ifeed.connector';

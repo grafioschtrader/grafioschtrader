@@ -1,15 +1,16 @@
 import {Injectable} from '@angular/core';
-import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
+import {AuthServiceWithLogout} from '../../lib/login/service/base.auth.service.with.logout';
 import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {User} from '../../lib/entities/user';
-import {LoginService} from '../../shared/login/service/log-in.service';
+import {LoginService} from '../../lib/login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Observable} from 'rxjs';
 import {AppSettings} from '../../shared/app.settings';
 import {catchError} from 'rxjs/operators';
 import {DeleteService} from '../../lib/datashowbase/delete.service';
-import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
+import {BaseSettings} from '../../lib/base.settings';
 
 @Injectable()
 export class UserAdminService extends AuthServiceWithLogout<User> implements DeleteService, ServiceEntityUpdate<User> {
@@ -19,18 +20,18 @@ export class UserAdminService extends AuthServiceWithLogout<User> implements Del
   }
 
   public getAllUsers(): Observable<User[]> {
-    return <Observable<User[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.USER_ADMIN_KEY}`,
+    return <Observable<User[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.USER_ADMIN_KEY}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   // public getUserByIdUser(idUser: number): Observable<User> {
-  //   return <Observable<User>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.USER_ADMIN_KEY}/${idUser}`,
+  //   return <Observable<User>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.USER_ADMIN_KEY}/${idUser}`,
   //     this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   // }
 
   public getIdUserAndNicknameExcludeMe(): Observable<ValueKeyHtmlSelectOptions[]> {
     return <Observable<ValueKeyHtmlSelectOptions[]>>this.httpClient.get(
-      `${AppSettings.API_ENDPOINT}${AppSettings.USER_ADMIN_KEY}/idnicknameexcludeme`,
+      `${BaseSettings.API_ENDPOINT}${AppSettings.USER_ADMIN_KEY}/idnicknameexcludeme`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -39,12 +40,12 @@ export class UserAdminService extends AuthServiceWithLogout<User> implements Del
   }
 
   public deleteEntity(idUser: number): Observable<any> {
-    return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.USER_ADMIN_KEY}/`
+    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.USER_ADMIN_KEY}/`
       + `${idUser}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   public moveCreatedByUserToOtherUser(fromIdUser: number, toIdUser: number): Observable<number> {
-    return this.httpClient.patch(`${AppSettings.API_ENDPOINT}${AppSettings.USER_ADMIN_KEY}/`
+    return this.httpClient.patch(`${BaseSettings.API_ENDPOINT}${AppSettings.USER_ADMIN_KEY}/`
       + `${fromIdUser}/${toIdUser}`, null,
       {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }

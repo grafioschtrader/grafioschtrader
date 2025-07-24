@@ -1,11 +1,11 @@
-import {CallParam} from '../../../shared/maintree/types/dialog.visible';
+import {CallParam} from '../maintree/types/dialog.visible';
 
 import {EntityMapping, PrepareCallParam} from './request.for.you.table.component';
-import {ImportTransactionPlatform} from '../../../entities/import.transaction.platform';
-import {ImportTransactionPlatformService} from '../../../imptranstemplate/service/import.transaction.platform.service';
-import {IPlatformTransactionImport} from '../../../portfolio/component/iplatform.transaction.import';
-import {SelectOptionsHelper} from '../../helper/select.options.helper';
-import {BasePrepareEdit} from './base.prepare.edit';
+import {ImportTransactionPlatform} from '../../entities/import.transaction.platform';
+import {ImportTransactionPlatformService} from '../../imptranstemplate/service/import.transaction.platform.service';
+import {IPlatformTransactionImport} from '../../portfolio/component/iplatform.transaction.import';
+import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
+import {BasePrepareEdit} from '../../lib/proposechange/component/base.prepare.edit';
 
 export class ImportTransactionPlatformPrepareEdit extends BasePrepareEdit implements PrepareCallParam {
 

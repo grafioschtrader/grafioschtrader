@@ -13,7 +13,7 @@ import {DynamicFieldModelHelper} from '../../../lib/helper/dynamic.field.model.h
 import {TranslateHelper} from '../../../lib/helper/translate.helper';
 import {FieldDescriptorInputAndShowExtended} from '../../dynamicfield/field.descriptor.input.and.show';
 import {Directive, Input} from '@angular/core';
-import {DataType} from '../../../dynamic-form/models/data.type';
+import {DataType} from '../../../lib/dynamic-form/models/data.type';
 import {Helper} from '../../../lib/helper/helper';
 import {BaseSettings} from '../../../lib/base.settings';
 

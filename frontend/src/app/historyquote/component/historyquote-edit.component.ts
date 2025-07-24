@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Historyquote} from '../../entities/historyquote';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {HistoryquoteService} from '../service/historyquote.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
@@ -11,7 +11,7 @@ import {HelpIds} from '../../shared/help/help.ids';
 import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
-import {FormHelper} from '../../dynamic-form/components/FormHelper';
+import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import moment from 'moment';

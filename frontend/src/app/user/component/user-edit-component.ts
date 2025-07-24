@@ -5,7 +5,7 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {UserAdminService} from '../service/user.admin.service';
 import {User} from '../../lib/entities/user';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';

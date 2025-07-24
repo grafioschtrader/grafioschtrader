@@ -1,11 +1,11 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {LoginService} from '../../login/service/log-in.service';
+import {LoginService} from '../../../lib/login/service/log-in.service';
 import {ActivePanelService} from '../service/active.panel.service';
 import {TopMenuTypes} from './top.menu.types';
 import {TranslateService} from '@ngx-translate/core';
 import {AppHelper} from '../../../lib/helper/app.helper';
 import {MainDialogService} from '../service/main.dialog.service';
-import {ViewSizeChangedService} from '../../layout/service/view.size.changed.service';
+import {ViewSizeChangedService} from '../../../lib/layout/service/view.size.changed.service';
 import {HelpIds} from '../../help/help.ids';
 import {Location} from '@angular/common';
 import {GlobalparameterService} from '../../service/globalparameter.service';

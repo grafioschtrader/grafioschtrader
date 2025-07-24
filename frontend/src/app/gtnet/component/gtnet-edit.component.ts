@@ -8,12 +8,12 @@ import {HelpIds} from '../../shared/help/help.ids';
 import {AppSettings} from '../../shared/app.settings';
 import {GTNetService} from '../service/gtnet.service';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {Subscription} from 'rxjs';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 
 /**
  * Add ar modify a GTNet entity.

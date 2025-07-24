@@ -1,5 +1,5 @@
 import {TransactionContextMenu} from './transaction.context.menu';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {TransactionSecurityOptionalParam} from '../model/transaction.security.optional.param';
 import {AppSettings} from '../../shared/app.settings';

@@ -1,4 +1,4 @@
-import {EntityMapping, PrepareCallParam, ProposeChangeable} from './request.for.you.table.component';
+import {EntityMapping, PrepareCallParam, ProposeChangeable} from '../../../shared/changerequest/request.for.you.table.component';
 import {BasePrepareEdit} from './base.prepare.edit';
 
 export class GeneralEntityPrepareEdit extends BasePrepareEdit implements PrepareCallParam {
@@ -6,7 +6,6 @@ export class GeneralEntityPrepareEdit extends BasePrepareEdit implements Prepare
   constructor(private type: new() => ProposeChangeable) {
     super();
   }
-
 
   prepareForEditEntity(entity: ProposeChangeable, entityMapping: EntityMapping): void {
     entityMapping.callParam = new this.type();

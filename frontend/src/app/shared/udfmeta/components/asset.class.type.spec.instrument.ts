@@ -7,9 +7,9 @@ import {ServiceEntityUpdate} from '../../../lib/edit/service.entity.update';
 import {AssetclassType} from '../../types/assetclass.type';
 import {SpecialInvestmentInstruments} from '../../types/special.investment.instruments';
 import {Subscription} from 'rxjs';
-import {ValueKeyHtmlSelectOptions} from '../../../dynamic-form/models/value.key.html.select.options';
+import {ValueKeyHtmlSelectOptions} from '../../../lib/dynamic-form/models/value.key.html.select.options';
 import {SelectOptionsHelper} from '../../../lib/helper/select.options.helper';
-import {InputType} from '../../../dynamic-form/models/input.type';
+import {InputType} from '../../../lib/dynamic-form/models/input.type';
 import {GlobalparameterGTService} from '../../../gtservice/globalparameter.gt.service';
 
 export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBase<T> {

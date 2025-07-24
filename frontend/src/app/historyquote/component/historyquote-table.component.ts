@@ -16,7 +16,7 @@ import {TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.me
 import {TranslateService} from '@ngx-translate/core';
 import {INameSecuritycurrency} from '../../entities/view/iname.securitycurrency';
 import {SecurityTransactionPosition} from '../../entities/view/security.transaction.position';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {HelpIds} from '../../shared/help/help.ids';

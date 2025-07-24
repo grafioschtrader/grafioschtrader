@@ -1,4 +1,4 @@
-import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
+import {AuthServiceWithLogout} from '../../lib/login/service/base.auth.service.with.logout';
 import {ImportTransactionPos} from '../../entities/import.transaction.pos';
 import {Injectable} from '@angular/core';
 import {MessageToastService} from '../../lib/message/message.toast.service';
@@ -9,7 +9,8 @@ import {DeleteService} from '../../lib/datashowbase/delete.service';
 import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {CombineTemplateAndImpTransPos} from '../component/combine.template.and.imp.trans.pos';
 import {catchError} from 'rxjs/operators';
-import {LoginService} from '../../shared/login/service/log-in.service';
+import {LoginService} from '../../lib/login/service/log-in.service';
+import {BaseSettings} from '../../lib/base.settings';
 
 @Injectable()
 export class ImportTransactionPosService extends AuthServiceWithLogout<ImportTransactionPos>
@@ -20,38 +21,38 @@ export class ImportTransactionPosService extends AuthServiceWithLogout<ImportTra
   }
 
   getCombineTemplateAndImpTransPosListByTransactionHead(idTransactionHead: number): Observable<CombineTemplateAndImpTransPos[]> {
-    return <Observable<CombineTemplateAndImpTransPos[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
+    return <Observable<CombineTemplateAndImpTransPos[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}`
       + `${AppSettings.IMPORT_TRANSACTION_POS_KEY}/${AppSettings.IMPORT_TRANSACTION_HEAD_KEY}/${idTransactionHead}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   public deleteEntity(idTransactionImportPos: number): Observable<any> {
-    return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.IMPORT_TRANSACTION_POS_KEY}/${idTransactionImportPos}`,
+    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.IMPORT_TRANSACTION_POS_KEY}/${idTransactionImportPos}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   public adjustQuotation(idTransactionPosList: number[]): Observable<any> {
-    return this.httpClient.post(`${AppSettings.API_ENDPOINT}${AppSettings.IMPORT_TRANSACTION_POS_KEY}/adjustquotation`,
+    return this.httpClient.post(`${BaseSettings.API_ENDPOINT}${AppSettings.IMPORT_TRANSACTION_POS_KEY}/adjustquotation`,
       idTransactionPosList, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   public adjustCurrencyExRateOrQuotation(idTransactionPosList: number[]): Observable<any> {
-    return this.httpClient.post(`${AppSettings.API_ENDPOINT}${AppSettings.IMPORT_TRANSACTION_POS_KEY}/adjustcurrencyexrateorquotation`,
+    return this.httpClient.post(`${BaseSettings.API_ENDPOINT}${AppSettings.IMPORT_TRANSACTION_POS_KEY}/adjustcurrencyexrateorquotation`,
       idTransactionPosList, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   public acceptTotalDiff(idTransactionPosList: number[]): Observable<any> {
-    return this.httpClient.post(`${AppSettings.API_ENDPOINT}${AppSettings.IMPORT_TRANSACTION_POS_KEY}/accepttotaldiff`,
+    return this.httpClient.post(`${BaseSettings.API_ENDPOINT}${AppSettings.IMPORT_TRANSACTION_POS_KEY}/accepttotaldiff`,
       idTransactionPosList, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   public deleteMultiple(idTransactionPosList: number[]): Observable<any> {
-    return this.httpClient.post(`${AppSettings.API_ENDPOINT}${AppSettings.IMPORT_TRANSACTION_POS_KEY}/deletes`,
+    return this.httpClient.post(`${BaseSettings.API_ENDPOINT}${AppSettings.IMPORT_TRANSACTION_POS_KEY}/deletes`,
       idTransactionPosList, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   public createAndSaveTransactions(idTransactionPosList: number[]): Observable<any> {
-    return this.httpClient.post(`${AppSettings.API_ENDPOINT}${AppSettings.IMPORT_TRANSACTION_POS_KEY}/createtransaction`,
+    return this.httpClient.post(`${BaseSettings.API_ENDPOINT}${AppSettings.IMPORT_TRANSACTION_POS_KEY}/createtransaction`,
       idTransactionPosList, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -61,21 +62,21 @@ export class ImportTransactionPosService extends AuthServiceWithLogout<ImportTra
   }
 
   setSecurity(idSecuritycurrency: number, idTransactionPosList: number[]): Observable<ImportTransactionPos[]> {
-    return <Observable<ImportTransactionPos[]>>this.httpClient.put(`${AppSettings.API_ENDPOINT}`
+    return <Observable<ImportTransactionPos[]>>this.httpClient.put(`${BaseSettings.API_ENDPOINT}`
       + `${AppSettings.IMPORT_TRANSACTION_POS_KEY}/setsecurity`,
       {idSecuritycurrency, idTransactionPosList},
       {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }
 
   setCashAccount(idSecuritycashAccount: number, idTransactionPosList: number[]): Observable<ImportTransactionPos[]> {
-    return <Observable<ImportTransactionPos[]>>this.httpClient.put(`${AppSettings.API_ENDPOINT}`
+    return <Observable<ImportTransactionPos[]>>this.httpClient.put(`${BaseSettings.API_ENDPOINT}`
       + `${AppSettings.IMPORT_TRANSACTION_POS_KEY}/setcashaccount`,
       {idSecuritycashAccount, idTransactionPosList},
       {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }
 
   setIdTransactionMayBe(idTransactionMayBe: number, idTransactionPosList: number[]): Observable<ImportTransactionPos[]> {
-    return <Observable<ImportTransactionPos[]>>this.httpClient.patch(`${AppSettings.API_ENDPOINT}`
+    return <Observable<ImportTransactionPos[]>>this.httpClient.patch(`${BaseSettings.API_ENDPOINT}`
       + `${AppSettings.IMPORT_TRANSACTION_POS_KEY}/setidtransactionmaybe`,
       {idTransactionMayBe, idTransactionPosList},
       {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));

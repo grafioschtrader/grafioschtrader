@@ -10,7 +10,7 @@ import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descr
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {Subscription} from 'rxjs';
-import {FieldConfig} from '../../dynamic-form/models/field.config';
+import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.helper';
 import {BaseParam} from '../../lib/entities/base.param';

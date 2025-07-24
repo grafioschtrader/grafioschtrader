@@ -9,7 +9,7 @@ import {TransactionService} from '../service/transaction.service';
 import {Directive} from '@angular/core';
 import {TransactionContextMenu} from './transaction.context.menu';
 import {FilterType} from '../../lib/datashowbase/filter.type';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {Transaction} from '../../entities/transaction';
 import {Currencypair} from '../../entities/currencypair';
 import {Security} from '../../entities/security';

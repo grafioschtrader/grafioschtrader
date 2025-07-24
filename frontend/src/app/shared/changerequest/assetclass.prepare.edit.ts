@@ -1,9 +1,9 @@
-import {AssetclassService} from '../../../assetclass/service/assetclass.service';
-import {Assetclass} from '../../../entities/assetclass';
+import {AssetclassService} from '../../assetclass/service/assetclass.service';
+import {Assetclass} from '../../entities/assetclass';
 import {EntityMapping, PrepareCallParam} from './request.for.you.table.component';
-import {AssetclassCallParam} from '../../../assetclass/component/assetclass.call.param';
+import {AssetclassCallParam} from '../../assetclass/component/assetclass.call.param';
 import {combineLatest} from 'rxjs';
-import {BasePrepareEdit} from './base.prepare.edit';
+import {BasePrepareEdit} from '../../lib/proposechange/component/base.prepare.edit';
 
 export class AssetclassPrepareEdit extends BasePrepareEdit implements PrepareCallParam {
   constructor(private assetclassService: AssetclassService) {

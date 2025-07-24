@@ -1,15 +1,16 @@
 import {Injectable} from '@angular/core';
-import {AuthServiceWithLogout} from '../../login/service/base.auth.service.with.logout';
+import {AuthServiceWithLogout} from '../../../lib/login/service/base.auth.service.with.logout';
 import {UDFMetadataGeneral} from '../model/udf.metadata';
 import {ServiceEntityUpdate} from '../../../lib/edit/service.entity.update';
 import {Observable} from 'rxjs';
 import {AppSettings} from '../../app.settings';
 import {catchError} from 'rxjs/operators';
-import {LoginService} from '../../login/service/log-in.service';
+import {LoginService} from '../../../lib/login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
 import {MessageToastService} from '../../../lib/message/message.toast.service';
 import {FieldDescriptorInputAndShowExtended} from '../../dynamicfield/field.descriptor.input.and.show';
 import {DeleteReadAllService} from '../components/udf.metadata.table';
+import {BaseSettings} from '../../../lib/base.settings';
 
 @Injectable()
 export class UDFMetadataGeneralService extends AuthServiceWithLogout<UDFMetadataGeneral> implements DeleteReadAllService<UDFMetadataGeneral>, ServiceEntityUpdate<UDFMetadataGeneral> {
@@ -19,14 +20,14 @@ export class UDFMetadataGeneralService extends AuthServiceWithLogout<UDFMetadata
   }
 
   public getAllByIdUser(): Observable<UDFMetadataGeneral[]> {
-    return <Observable<UDFMetadataGeneral[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_GENERAL_KEY}`,
+    return <Observable<UDFMetadataGeneral[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_GENERAL_KEY}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
 
   public getFieldDescriptorByIdUserAndEveryUserForEntity(entity: string): Observable<FieldDescriptorInputAndShowExtended[]> {
     return <Observable<FieldDescriptorInputAndShowExtended[]>>this.httpClient.get(
-      `${AppSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_GENERAL_KEY}/fielddescriptor/${entity}`,
+      `${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_GENERAL_KEY}/fielddescriptor/${entity}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -35,7 +36,7 @@ export class UDFMetadataGeneralService extends AuthServiceWithLogout<UDFMetadata
   }
 
   public deleteEntity(idUDFMetadata: number): Observable<any> {
-    return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_GENERAL_KEY}/${idUDFMetadata}`, this.getHeaders())
+    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_GENERAL_KEY}/${idUDFMetadata}`, this.getHeaders())
       .pipe(catchError(this.handleError.bind(this)));
   }
 }

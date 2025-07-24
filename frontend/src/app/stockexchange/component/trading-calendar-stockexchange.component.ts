@@ -19,7 +19,7 @@ import {DialogService} from 'primeng/dynamicdialog';
 import {MenuItem} from 'primeng/api';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {TradingCalendarOtherExchangeDynamicComponent} from './trading.calendar.other.exchange.dynamic.component';
-import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 import moment from 'moment';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {Stockexchange} from '../../entities/stockexchange';

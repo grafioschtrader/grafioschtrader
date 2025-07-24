@@ -5,11 +5,12 @@ import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Securityaccount} from '../../entities/securityaccount';
 import {Observable} from 'rxjs';
 import {HttpClient} from '@angular/common/http';
-import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
+import {AuthServiceWithLogout} from '../../lib/login/service/base.auth.service.with.logout';
 import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {catchError} from 'rxjs/operators';
-import {LoginService} from '../../shared/login/service/log-in.service';
+import {LoginService} from '../../lib/login/service/log-in.service';
 import {AppHelper} from '../../lib/helper/app.helper';
+import {BaseSettings} from '../../lib/base.settings';
 
 
 @Injectable()
@@ -21,7 +22,7 @@ export class SecurityaccountService extends AuthServiceWithLogout<Securityaccoun
 
   getSecurityPositionSummaryTenant(group: string, includeClosedPosition: boolean,
     untilDate: Date): Observable<SecurityPositionGrandSummary> {
-    return <Observable<SecurityPositionGrandSummary>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
+    return <Observable<SecurityPositionGrandSummary>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}`
       + `${AppSettings.SECURITYACCOUNT_KEY}/tenantsecurityaccountsummary/${group}`,
       AppHelper.getOptionsWithIncludeClosedPositionAndUntilDate(includeClosedPosition, untilDate, this.prepareHeaders()))
       .pipe(catchError(this.handleError.bind(this)));
@@ -29,7 +30,7 @@ export class SecurityaccountService extends AuthServiceWithLogout<Securityaccoun
 
   getSecurityPositionSummaryPortfolio(idPortfolio: number, group: string,
     includeClosedPosition: boolean, untilDate: Date): Observable<SecurityPositionGrandSummary> {
-    return <Observable<SecurityPositionGrandSummary>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.SECURITYACCOUNT_KEY}/`
+    return <Observable<SecurityPositionGrandSummary>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.SECURITYACCOUNT_KEY}/`
       + `${idPortfolio}/portfoliosecurityaccountsummary/${group}`,
       AppHelper.getOptionsWithIncludeClosedPositionAndUntilDate(includeClosedPosition, untilDate, this.prepareHeaders()))
       .pipe(catchError(this.handleError.bind(this)));
@@ -37,7 +38,7 @@ export class SecurityaccountService extends AuthServiceWithLogout<Securityaccoun
 
   getPositionSummarySecurityaccount(idSecurityaccount: number, group: string,
     includeClosedPosition: boolean, untilDate: Date): Observable<SecurityPositionGrandSummary> {
-    return <Observable<SecurityPositionGrandSummary>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
+    return <Observable<SecurityPositionGrandSummary>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}`
       + `${AppSettings.SECURITYACCOUNT_KEY}/${idSecurityaccount}/securityaccountsummary/${group}`,
       AppHelper.getOptionsWithIncludeClosedPositionAndUntilDate(includeClosedPosition, untilDate, this.prepareHeaders()))
       .pipe(catchError(this.handleError.bind(this)));
@@ -48,7 +49,7 @@ export class SecurityaccountService extends AuthServiceWithLogout<Securityaccoun
   }
 
   deleteSecurityaccount(idSecuritycashaccount: number) {
-    return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.SECURITYACCOUNT_KEY}/${idSecuritycashaccount}`,
+    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.SECURITYACCOUNT_KEY}/${idSecuritycashaccount}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 

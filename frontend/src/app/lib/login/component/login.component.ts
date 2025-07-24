@@ -2,22 +2,23 @@ import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {LoginService} from '../service/log-in.service';
 import {TranslateService} from '@ngx-translate/core';
-import {AppSettings} from '../../app.settings';
-import {DynamicFormComponent} from '../../../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {GlobalparameterService} from '../../service/globalparameter.service';
-import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../../lib/helper/translate.helper';
-import {FormBase} from '../../../lib/edit/form.base';
+import {AppSettings} from '../../../shared/app.settings';
+import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
+import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
+import {FormBase} from '../../edit/form.base';
 import {DialogService} from 'primeng/dynamicdialog';
-import {ActuatorService, ApplicationInfo} from '../../service/actuator.service';
-import {BusinessHelper} from '../../helper/business.helper';
-import {HelpIds} from '../../help/help.ids';
+import {ActuatorService, ApplicationInfo} from '../../../shared/service/actuator.service';
+import {BusinessHelper} from '../../../shared/helper/business.helper';
+import {HelpIds} from '../../../shared/help/help.ids';
 import {combineLatest} from 'rxjs';
-import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
-import {GlobalSessionNames} from '../../global.session.names';
-import {DynamicFieldModelHelper} from '../../../lib/helper/dynamic.field.model.helper';
-import {AppHelper} from '../../../lib/helper/app.helper';
-import {DynamicDialogs} from '../../dynamicdialog/component/dynamic.dialogs';
+import {FieldDescriptorInputAndShow} from '../../../shared/dynamicfield/field.descriptor.input.and.show';
+import {GlobalSessionNames} from '../../../shared/global.session.names';
+import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
+import {AppHelper} from '../../helper/app.helper';
+import {DynamicDialogs} from '../../../shared/dynamicdialog/component/dynamic.dialogs';
+import {ReleaseNote, ReleaseNoteService} from '../service/release.note.service';
 
 /**
  * Shows the login form
@@ -39,14 +40,23 @@ import {DynamicDialogs} from '../../dynamicdialog/component/dynamic.dialogs';
                         (submitBt)="submit($event)">
           </dynamic-form>
         }
-        <p-card header="{{'RELEASE_NOTE' | translate}}">
-          <h4>0.33.0</h4>
-          {{ 'V_0_33_0' | translate }}
-          <h4>0.32.0</h4>
-          {{ 'V_0_32_0' | translate }}
-          <h4>0.31.0</h4>
-          {{ 'V_0_31_0' | translate }}
-        </p-card>
+        @if (releaseNotes && releaseNotes.length > 0) {
+          <p-card header="{{'RELEASE_NOTE' | translate}}">
+            @for (note of releaseNotes; track note.idReleaseNote) {
+              <div class="mb-3">
+                <h4>{{ note.version }}</h4>
+                {{ note.note }}
+              </div>
+            }
+          </p-card>
+        } @else {
+          <p-card header="{{'RELEASE_NOTE' | translate}}">
+            <div class="text-center text-muted">
+              <i class="pi pi-info-circle me-2"></i>
+              {{ 'NO_RELEASE_NOTES_AVAILABLE' | translate }}
+            </div>
+          </p-card>
+        }
       </div>
     </div>
 
@@ -62,6 +72,7 @@ import {DynamicDialogs} from '../../dynamicdialog/component/dynamic.dialogs';
 export class LoginComponent extends FormBase implements OnInit, OnDestroy {
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
   applicationInfo: ApplicationInfo;
+  releaseNotes: ReleaseNote[] = [];
   queryParams: any;
   successLastRegistration: string;
   visiblePasswordDialog = false;
@@ -69,6 +80,7 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
 
   constructor(private router: Router,
     private activatedRoute: ActivatedRoute,
+    private releaseNoteService: ReleaseNoteService,
     private loginService: LoginService,
     private actuatorService: ActuatorService,
     public translateService: TranslateService,
@@ -78,11 +90,13 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    combineLatest([this.actuatorService.applicationInfo(), this.gps.getUserFormDefinitions()]).subscribe({
-        next: (data: [applicationInfo: ApplicationInfo, fdias: FieldDescriptorInputAndShow[]]) => {
+    combineLatest([this.actuatorService.applicationInfo(), this.gps.getUserFormDefinitions(),
+      this.releaseNoteService.getTopReleaseNotes()]).subscribe({
+        next: (data: [applicationInfo: ApplicationInfo, fdias: FieldDescriptorInputAndShow[], releaseNotes: ReleaseNote[]]) => {
           this.applicationInfo = data[0];
           sessionStorage.setItem(GlobalSessionNames.USER_FORM_DEFINITION, JSON.stringify(data[1]));
           this.loginFormDefinition(data[1]);
+          this.releaseNotes = data[2];
         }, error: err => this.applicationInfo = null
       }
     );

@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, Output, ViewChild} from '@angular/core';
-import {DataType} from '../../../dynamic-form/models/data.type';
+import {DataType} from '../../dynamic-form/models/data.type';
 import {Portfolio} from '../../../entities/portfolio';
 import {ProcessedActionData} from '../../types/processed.action.data';
 import {ProcessedAction} from '../../types/processed.action';

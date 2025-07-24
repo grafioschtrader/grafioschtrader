@@ -1,6 +1,6 @@
 import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
 import {DialogService} from 'primeng/dynamicdialog';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';

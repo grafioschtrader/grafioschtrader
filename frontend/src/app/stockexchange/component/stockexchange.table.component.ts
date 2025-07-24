@@ -2,7 +2,7 @@ import {Component, OnDestroy} from '@angular/core';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {StockexchangeService} from '../service/stockexchange.service';
 import {Stockexchange} from '../../entities/stockexchange';
 import {combineLatest} from 'rxjs';
@@ -11,7 +11,7 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {HelpIds} from '../../shared/help/help.ids';
 import {plainToInstance} from 'class-transformer';
 import {StockexchangeCallParam} from './stockexchange.call.param';
-import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';

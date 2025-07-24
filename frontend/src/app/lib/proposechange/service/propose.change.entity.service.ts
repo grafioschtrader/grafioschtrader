@@ -3,12 +3,13 @@ import {Observable} from 'rxjs/internal/Observable';
 import {ProposeChangeEntity} from '../../entities/propose.change.entity';
 import {AppSettings} from '../../../shared/app.settings';
 import {catchError} from 'rxjs/operators';
-import {AuthServiceWithLogout} from '../../../shared/login/service/base.auth.service.with.logout';
+import {AuthServiceWithLogout} from '../../login/service/base.auth.service.with.logout';
 import {MessageToastService} from '../../message/message.toast.service';
 import {HttpClient} from '@angular/common/http';
 import {ProposeChangeEntityWithEntity} from '../model/propose.change.entity.whit.entity';
 import {DeleteService} from '../../datashowbase/delete.service';
-import {LoginService} from '../../../shared/login/service/log-in.service';
+import {LoginService} from '../../login/service/log-in.service';
+import {BaseSettings} from '../../base.settings';
 
 
 @Injectable()
@@ -20,13 +21,13 @@ export class ProposeChangeEntityService extends AuthServiceWithLogout<ProposeCha
 
   getProposeChangeEntityListByCreatedBy(): Observable<ProposeChangeEntity[]> {
     return <Observable<ProposeChangeEntity[]>>
-      this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.PROPOSE_CHANGE_ENTITY_KEY}`,
+      this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.PROPOSE_CHANGE_ENTITY_KEY}`,
         this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   getProposeChangeEntityWithEntity(): Observable<ProposeChangeEntityWithEntity[]> {
     return <Observable<ProposeChangeEntityWithEntity[]>>
-      this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.PROPOSE_CHANGE_ENTITY_KEY}/withentity`,
+      this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.PROPOSE_CHANGE_ENTITY_KEY}/withentity`,
         this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -35,7 +36,7 @@ export class ProposeChangeEntityService extends AuthServiceWithLogout<ProposeCha
   }
 
   public deleteEntity(idProposeRequest: number): Observable<any> {
-    return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.PROPOSE_CHANGE_ENTITY_KEY}/${idProposeRequest}`,
+    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.PROPOSE_CHANGE_ENTITY_KEY}/${idProposeRequest}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 }

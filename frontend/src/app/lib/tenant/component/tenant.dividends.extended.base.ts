@@ -3,7 +3,7 @@ import {FilterService} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../../shared/service/user.settings.service';
-import {DataType} from '../../../dynamic-form/models/data.type';
+import {DataType} from '../../dynamic-form/models/data.type';
 
 export class TenantDividendsExtendedBase extends TableConfigBase {
   constructor(filterService: FilterService,

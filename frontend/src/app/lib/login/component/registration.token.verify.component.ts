@@ -1,9 +1,9 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
-import {GlobalparameterService} from '../../service/globalparameter.service';
+import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
 import {LoginService} from '../service/log-in.service';
 import {Subscription} from 'rxjs';
-import {AppSettings} from '../../app.settings';
+import {AppSettings} from '../../../shared/app.settings';
 
 @Component({
     template: `

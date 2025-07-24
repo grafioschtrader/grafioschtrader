@@ -3,7 +3,7 @@ import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core'
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../service/globalparameter.service';
 import {PeriodHoldingAndDiff} from '../model/performance.period';
-import {DataType} from '../../../dynamic-form/models/data.type';
+import {DataType} from '../../../lib/dynamic-form/models/data.type';
 import {AppHelper} from '../../../lib/helper/app.helper';
 
 @Component({

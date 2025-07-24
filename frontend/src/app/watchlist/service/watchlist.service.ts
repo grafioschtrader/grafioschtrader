@@ -10,15 +10,16 @@ import {Security} from '../../entities/security';
 import {Currencypair} from '../../entities/currencypair';
 import {Observable} from 'rxjs';
 import {HttpClient, HttpParams} from '@angular/common/http';
-import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
+import {AuthServiceWithLogout} from '../../lib/login/service/base.auth.service.with.logout';
 import {Securitycurrency} from '../../entities/securitycurrency';
 import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {catchError} from 'rxjs/operators';
-import {LoginService} from '../../shared/login/service/log-in.service';
+import {LoginService} from '../../lib/login/service/log-in.service';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {AddSearchToListService} from '../component/add-instrument-table.component';
 import {IntraHistoricalWatchlistProblem} from '../model/intra.historical.watchlist.problem';
+import {BaseSettings} from '../../lib/base.settings';
 
 
 @Injectable()
@@ -30,59 +31,59 @@ export class WatchlistService extends AuthServiceWithLogout<Watchlist> implement
   }
 
   getSecuritiesCurrenciesWatchlistLimits(idWatchlist: number): Observable<TenantLimit[]> {
-    return <Observable<TenantLimit[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/` +
+    return <Observable<TenantLimit[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/` +
       `${idWatchlist}/limitsecuritiescurrencies`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
 
   getWatchlistsByIdTenant(): Observable<Watchlist[]> {
-    return <Observable<Watchlist[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/` +
+    return <Observable<Watchlist[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/` +
       `${AppSettings.TENANT_KEY}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   getWatchlistsOfTenantHasSecurity(): Observable<{ idWatchlist: number, hasSecurity: number }[]> {
     return <Observable<{ idWatchlist: number, hasSecurity: number }[]>>this.httpClient.get(
-      `${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/hassecurity`,
+      `${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/hassecurity`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   getAllWatchlistsWithSecurityByIdSecuritycurrency(idSecuritycurrency: number): Observable<number[]> {
-    return <Observable<number[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}`
+    return <Observable<number[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}`
       + `/existssecurity/${idSecuritycurrency}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   getWatchlistWithoutUpdate(idWatchlist: number): Observable<SecuritycurrencyGroup> {
-    return <Observable<SecuritycurrencyGroup>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlist}`,
+    return <Observable<SecuritycurrencyGroup>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlist}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   getWatchlistWithUDFData(idWatchlist: number): Observable<SecuritycurrencyUDFGroup> {
-    return <Observable<SecuritycurrencyUDFGroup>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/`
+    return <Observable<SecuritycurrencyUDFGroup>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/`
       + `${idWatchlist}/udf`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   getWatchlistWithoutUpdateAndMaxHistoryquote(idWatchlist: number): Observable<SecuritycurrencyGroup> {
-    return <Observable<SecuritycurrencyGroup>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/`
+    return <Observable<SecuritycurrencyGroup>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/`
       + `${idWatchlist}/maxhistoryquote`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   getWatchlistWithPeriodPerformance(idWatchlist: number, daysTimeFrame: number): Observable<SecuritycurrencyGroup> {
-    return <Observable<SecuritycurrencyGroup>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/`
+    return <Observable<SecuritycurrencyGroup>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/`
       + `${idWatchlist}/quote`, this.getOptionsWithDaysTimeFrame(daysTimeFrame)).pipe(catchError(this.handleError.bind(this)));
   }
 
   getWatchlistForSplitAndDividend(idWatchlist: number): Observable<SecuritycurrencyGroup> {
-    return <Observable<SecuritycurrencyGroup>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/`
+    return <Observable<SecuritycurrencyGroup>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/`
       + `${idWatchlist}/dividendsplit`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   tryUpToDateHistoricalDataWhenRetryHistoryLoadGreaterThan0(idWatchlist: number): Observable<SecuritycurrencyLists> {
-    return <Observable<SecuritycurrencyLists>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/`
+    return <Observable<SecuritycurrencyLists>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/`
       + `${idWatchlist}/tryuptodatehistoricaldata`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   tryUpToIntradayDataWhenRetryIntraLoadGreaterThan0(idWatchlist: number): Observable<SecuritycurrencyLists> {
-    return <Observable<SecuritycurrencyLists>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/`
+    return <Observable<SecuritycurrencyLists>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/`
       + `${idWatchlist}/tryuptodateintradata`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -91,12 +92,12 @@ export class WatchlistService extends AuthServiceWithLogout<Watchlist> implement
   }
 
   delete(idWatchlist: number) {
-    return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlist}`, this.getHeaders())
+    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlist}`, this.getHeaders())
       .pipe(catchError(this.handleError.bind(this)));
   }
 
   searchByCriteria(idWatchlist: number, securitycurrencySearch: SecuritycurrencySearch): Observable<SecuritycurrencyLists> {
-    return <Observable<SecuritycurrencyLists>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}`
+    return <Observable<SecuritycurrencyLists>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}`
       + `/${idWatchlist}/search`, {
       headers: this.prepareHeaders(),
       params: AppHelper.getHttpParamsOfObjectAllowBooleanNullFields(securitycurrencySearch, ['onlyTenantPrivate'])
@@ -113,7 +114,7 @@ export class WatchlistService extends AuthServiceWithLogout<Watchlist> implement
     let httpParams = new HttpParams();
     httpParams = httpParams.append('isIntraday', isIntraday.toString());
     httpParams = httpParams.append('isSecurity', isSecurity.toString());
-    return <Observable<string>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}`
+    return <Observable<string>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}`
       + `/dataproviderlink/${idSecuritycurrency}`, {
         headers: this.prepareHeaders(), params: httpParams,
         responseType: 'text'
@@ -122,24 +123,24 @@ export class WatchlistService extends AuthServiceWithLogout<Watchlist> implement
   }
 
   addInstrumentsWithPriceDataProblems(idWatchlist: number, intraHistoricalWatchlistProblem: IntraHistoricalWatchlistProblem): Observable<Watchlist> {
-    return <Observable<Watchlist>>this.httpClient.patch(`${AppSettings.API_ENDPOINT}`
+    return <Observable<Watchlist>>this.httpClient.patch(`${BaseSettings.API_ENDPOINT}`
       + `${AppSettings.WATCHLIST_KEY}/${idWatchlist}/pricedataproblems`, intraHistoricalWatchlistProblem,
       {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }
 
   addSecuritycurrenciesToList(idWatchlist: number, securitycurrencyLists: SecuritycurrencyLists): Observable<Watchlist> {
-    return <Observable<Watchlist>>this.httpClient.put(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlist}`
+    return <Observable<Watchlist>>this.httpClient.put(`${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlist}`
       + `/addSecuritycurrency`, securitycurrencyLists, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   removeSecuritycurrencyFromWatchlistAndDelete(idWatchlist: number, securitycurrency: Securitycurrency) {
     const urlSecuritycurrency = securitycurrency instanceof Currencypair ? 'removeDeleteCurrencypair' : 'removeDeleteSecurity';
-    return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlist}/${urlSecuritycurrency}/`
+    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlist}/${urlSecuritycurrency}/`
       + `${securitycurrency.idSecuritycurrency}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   moveSecuritycurrency(idWatchlistSource: number, idWatchlistTarget: number, idSecuritycurrency: number): Observable<boolean> {
-    return this.httpClient.put(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlistSource}/moveto/`
+    return this.httpClient.put(`${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlistSource}/moveto/`
       + `${idWatchlistTarget}/securitycurrency/${idSecuritycurrency}`, null,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
@@ -147,7 +148,7 @@ export class WatchlistService extends AuthServiceWithLogout<Watchlist> implement
   removeMultipleFromWatchlist(idWatchlist: number, idsSecuritycurrencies: number[]) {
     let httpParams = new HttpParams();
     httpParams = httpParams.append('idsSecuritycurrencies', idsSecuritycurrencies.join(','));
-    return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlist}/removemultiple`,
+    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlist}/removemultiple`,
       {headers: this.prepareHeaders(), params: httpParams})
       .pipe(catchError(this.handleError.bind(this)));
   }
@@ -155,7 +156,7 @@ export class WatchlistService extends AuthServiceWithLogout<Watchlist> implement
   removeSecuritycurrenciesFromWatchlist(idWatchlist: number, securitycurrency: Security | Currencypair) {
     const target: string = securitycurrency instanceof CurrencypairWatchlist ? 'removeCurrencypair' : 'removeSecurity';
 
-    return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlist}/${target}/`
+    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlist}/${target}/`
       + `${securitycurrency.idSecuritycurrency}`, this.getHeaders())
       .pipe(catchError(this.handleError.bind(this)));
   }

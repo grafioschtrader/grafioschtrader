@@ -20,7 +20,7 @@ import {MessageToastService} from '../../lib/message/message.toast.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
 import {AppSettings} from '../../shared/app.settings';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {TransactionType} from '../../shared/types/transaction.type';
 import {Security} from '../../entities/security';
 import {ProcessedAction} from '../../lib/types/processed.action';

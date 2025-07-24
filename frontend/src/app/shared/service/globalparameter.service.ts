@@ -2,13 +2,13 @@ import {Injectable} from '@angular/core';
 import {AppSettings} from '../app.settings';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Globalparameters} from '../../lib/entities/globalparameters';
-import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 import {Observable} from 'rxjs';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {GlobalSessionNames} from '../global.session.names';
 import {catchError} from 'rxjs/operators';
 import {Auditable} from '../../lib/entities/auditable';
-import {BaseAuthService} from '../login/service/base.auth.service';
+import {BaseAuthService} from '../../lib/login/service/base.auth.service';
 import {TenantLimit, TenantLimitTypes} from '../../entities/backend/tenant.limit';
 import moment from 'moment';
 import 'moment/locale/de-ch.js';
@@ -19,8 +19,9 @@ import 'moment/locale/en-nz.js';
 import {NgxCurrencyConfig, NgxCurrencyInputMode} from 'ngx-currency';
 import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {FieldDescriptorInputAndShow} from '../dynamicfield/field.descriptor.input.and.show';
-import {FeatureType} from '../login/component/login.component';
+import {FeatureType} from '../../lib/login/component/login.component';
 import NumberFormat = Intl.NumberFormat;
+import {BaseSettings} from '../../lib/base.settings';
 
 @Injectable()
 export class GlobalparameterService extends BaseAuthService<Globalparameters> implements ServiceEntityUpdate<Globalparameters> {
@@ -48,7 +49,7 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
   }
 
   public getAllGlobalparameters(): Observable<Globalparameters[]> {
-    return <Observable<Globalparameters[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
+    return <Observable<Globalparameters[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}`
       + `${AppSettings.GLOBALPARAMETERS_P_KEY}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -246,18 +247,18 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
   }
 
   public getPasswordRegexProperties(): Observable<PasswordRegexProperties> {
-    return <Observable<PasswordRegexProperties>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
+    return <Observable<PasswordRegexProperties>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}`
       + `${AppSettings.GLOBALPARAMETERS_P_KEY}/passwordrequirements`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   public getCountriesForSelectBox(): Observable<ValueKeyHtmlSelectOptions[]> {
-    return <Observable<ValueKeyHtmlSelectOptions[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
+    return <Observable<ValueKeyHtmlSelectOptions[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}`
       + `${AppSettings.GLOBALPARAMETERS_P_KEY}/countries`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   public getTimezones(): Observable<ValueKeyHtmlSelectOptions[]> {
-    return <Observable<ValueKeyHtmlSelectOptions[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
+    return <Observable<ValueKeyHtmlSelectOptions[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}`
       + `${AppSettings.GLOBALPARAMETERS_P_KEY}/${AppSettings.TIMESZONES_P_KEY}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
@@ -266,25 +267,25 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
     let httpParams = new HttpParams();
     // const msgKeyAsString: string[] = [];
     httpParams = httpParams.append('msgKeys', msgKeys.join(','));
-    return <Observable<TenantLimit[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
+    return <Observable<TenantLimit[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}`
       + `${AppSettings.GLOBALPARAMETERS_P_KEY}/tenantlimits`,
       {headers: this.prepareHeaders(), params: httpParams}).pipe(catchError(this.handleError.bind(this)));
   }
 
   public getUserFormDefinitions(): Observable<FieldDescriptorInputAndShow[]> {
-    return <Observable<FieldDescriptorInputAndShow[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
+    return <Observable<FieldDescriptorInputAndShow[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}`
       + `${AppSettings.GLOBALPARAMETERS_P_KEY}/userformdefinition`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   public getSupportedLocales(): Observable<ValueKeyHtmlSelectOptions[]> {
-    return <Observable<ValueKeyHtmlSelectOptions[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
+    return <Observable<ValueKeyHtmlSelectOptions[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}`
       + `${AppSettings.GLOBALPARAMETERS_P_KEY}/${AppSettings.LOCALES_P_KEY}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   update(globalparameters: Globalparameters): Observable<Globalparameters> {
-    return <Observable<Globalparameters>>this.httpClient.put(`${AppSettings.API_ENDPOINT}`
+    return <Observable<Globalparameters>>this.httpClient.put(`${BaseSettings.API_ENDPOINT}`
       + `${AppSettings.GLOBALPARAMETERS_P_KEY}`, globalparameters,
       {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }

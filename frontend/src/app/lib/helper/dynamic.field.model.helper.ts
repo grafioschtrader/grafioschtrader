@@ -6,14 +6,14 @@ import {
   FieldDescriptorInputAndShowExtended,
   ReplaceFieldWithGroup
 } from '../../shared/dynamicfield/field.descriptor.input.and.show';
-import {FieldConfig} from '../../dynamic-form/models/field.config';
+import {FieldConfig} from '../dynamic-form/models/field.config';
 import {AppHelper} from './app.helper';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../dynamic-form/models/data.type';
 import {BaseParam} from '../entities/base.param';
 import {DynamicFieldHelper, FieldOptions, FieldOptionsCc, VALIDATION_SPECIAL} from './dynamic.field.helper';
 import {dateRange, gteDate} from '../validator/validator';
-import {ErrorMessageRules} from '../../dynamic-form/error/error.message.rules';
-import {FieldFormGroup} from '../../dynamic-form/models/form.group.definition';
+import {ErrorMessageRules} from '../dynamic-form/error/error.message.rules';
+import {FieldFormGroup} from '../dynamic-form/models/form.group.definition';
 
 /**
  * Utility class for automatically generating dynamic form fields from class descriptors.

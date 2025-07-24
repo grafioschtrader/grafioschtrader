@@ -7,7 +7,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../service/globalparameter.service';
 import {UserSettingsService} from '../../service/user.settings.service';
 import {DeleteService} from '../../../lib/datashowbase/delete.service';
-import {DataType} from '../../../dynamic-form/models/data.type';
+import {DataType} from '../../../lib/dynamic-form/models/data.type';
 import {ColumnConfig, TranslateValue} from '../../../lib/datashowbase/column.config';
 import {combineLatest, Observable} from 'rxjs';
 import {plainToInstance} from 'class-transformer';

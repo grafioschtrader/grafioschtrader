@@ -19,8 +19,9 @@ import {TranslateHelper} from '../../helper/translate.helper';
 import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
 import {Subscription} from 'rxjs';
 import {SelectOptionsHelper} from '../../helper/select.options.helper';
-import {FormHelper} from '../../../dynamic-form/components/FormHelper';
-import {ValueKeyHtmlSelectOptions} from '../../../dynamic-form/models/value.key.html.select.options';
+import {FormHelper} from '../../dynamic-form/components/FormHelper';
+import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {BaseSettings} from '../../base.settings';
 
 /**
  * This component contains a form with which the message settings can be edited.
@@ -48,7 +49,7 @@ export class MailForwardSettingEditComponent extends SimpleEntityEditBase<MailSe
               gps: GlobalparameterService,
               messageToastService: MessageToastService,
               mailSettingForwardService: MailSettingForwardService) {
-    super(HelpIds.HELP_MESSAGE_SYSTEM, AppHelper.toUpperCaseWithUnderscore(AppSettings.MAIL_SETTING_FORWARD),
+    super(HelpIds.HELP_MESSAGE_SYSTEM, AppHelper.toUpperCaseWithUnderscore(BaseSettings.MAIL_SETTING_FORWARD),
       translateService, gps, messageToastService, mailSettingForwardService);
   }
 

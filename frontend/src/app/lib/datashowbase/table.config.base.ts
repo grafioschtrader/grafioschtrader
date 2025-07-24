@@ -9,7 +9,7 @@ import {Table} from 'primeng/table';
 import moment from 'moment';
 import {FilterType} from './filter.type';
 import {ValueLabelHtmlSelectOptions} from './value.label.html.select.options';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../dynamic-form/models/data.type';
 import {TableTreetableTotalBase} from './table.treetable.total.base';
 import {BaseSettings} from '../base.settings';
 

@@ -1,4 +1,4 @@
-import {ProposeChangeable} from './request.for.you.table.component';
+import {ProposeChangeable} from '../../../shared/changerequest/request.for.you.table.component';
 
 
 export class BasePrepareEdit {

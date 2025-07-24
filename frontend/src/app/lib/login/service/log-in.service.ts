@@ -1,23 +1,23 @@
 import {Observable} from 'rxjs';
 import {Injectable} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../service/globalparameter.service';
-import {User} from '../../../lib/entities/user';
-import {AppSettings} from '../../app.settings';
-import {MessageToastService} from '../../../lib/message/message.toast.service';
+import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
+import {User} from '../../entities/user';
+import {AppSettings} from '../../../shared/app.settings';
+import {MessageToastService} from '../../message/message.toast.service';
 import {Router} from '@angular/router';
 import {ChangePasswordDTO} from '../model/change.password.dto';
-import {GlobalSessionNames} from '../../global.session.names';
+import {GlobalSessionNames} from '../../../shared/global.session.names';
 import {catchError} from 'rxjs/operators';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {BaseAuthService} from './base.auth.service';
 import moment from 'moment';
-import {UserOwnProjection} from '../../../lib/entities/projection/user.own.projection';
+import {UserOwnProjection} from '../../entities/projection/user.own.projection';
 import {SuccessfullyChanged} from '../../../entities/backend/successfully.changed';
 import {ConfigurationWithLoginGT} from '../component/login.component';
-import {AppHelper} from '../../../lib/helper/app.helper';
+import {AppHelper} from '../../helper/app.helper';
 import {PrimeNG} from 'primeng/config';
-import {BaseSettings} from '../../../lib/base.settings';
+import {BaseSettings} from '../../base.settings';
 
 
 @Injectable()
@@ -111,24 +111,24 @@ export class LoginService extends BaseAuthService<User> {
   }
 
   getOwnUser(): Observable<UserOwnProjection> {
-    return <Observable<UserOwnProjection>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.USER_KEY}/own`,
+    return <Observable<UserOwnProjection>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.USER_KEY}/own`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   updateNicknameLocale(userOwnProjection: UserOwnProjection): Observable<SuccessfullyChanged> {
-    return <Observable<SuccessfullyChanged>>this.httpClient.put(`${AppSettings.API_ENDPOINT}${AppSettings.USER_KEY}/nicknamelocale`,
+    return <Observable<SuccessfullyChanged>>this.httpClient.put(`${BaseSettings.API_ENDPOINT}${AppSettings.USER_KEY}/nicknamelocale`,
       userOwnProjection, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   updatePassword(changePasswordDTO: ChangePasswordDTO): Observable<SuccessfullyChanged> {
-    return <Observable<SuccessfullyChanged>>this.httpClient.put(`${AppSettings.API_ENDPOINT}${AppSettings.USER_KEY}/password`,
+    return <Observable<SuccessfullyChanged>>this.httpClient.put(`${BaseSettings.API_ENDPOINT}${AppSettings.USER_KEY}/password`,
       changePasswordDTO, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   getTokenVerified(token: string): Observable<string> {
     const options: any = this.getHeaders();
     options.responseType = 'text';
-    return <Observable<string>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.USER_KEY}/tokenverify/${token}`,
+    return <Observable<string>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.USER_KEY}/tokenverify/${token}`,
       options).pipe(catchError(this.handleError.bind(this)));
   }
 

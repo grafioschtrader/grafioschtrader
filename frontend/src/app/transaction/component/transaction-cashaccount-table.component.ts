@@ -14,7 +14,7 @@ import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.
 import {combineLatest, Observable} from 'rxjs';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {
   ChildPreservePage,
   PageFirstRowSelectedRow,

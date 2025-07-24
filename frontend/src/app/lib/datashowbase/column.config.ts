@@ -1,7 +1,7 @@
 import {FilterType} from './filter.type';
 import {ValueLabelHtmlSelectOptions} from './value.label.html.select.options';
-import {BaseFieldDefinition, PropertyEditShare} from '../../dynamic-form/models/base.field.definition';
-import {ValidationErrorRule} from '../../dynamic-form/models/base.field.fieldgroup.config';
+import {BaseFieldDefinition, PropertyEditShare} from '../dynamic-form/models/base.field.definition';
+import {ValidationErrorRule} from '../dynamic-form/models/base.field.fieldgroup.config';
 
 /**
  * Comprehensive configuration interface for defining table columns and single data field displays.

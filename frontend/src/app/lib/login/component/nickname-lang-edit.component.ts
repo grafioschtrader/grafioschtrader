@@ -1,20 +1,20 @@
 import {Component, OnInit} from '@angular/core';
-import {SimpleEditBase} from '../../../lib/edit/simple.edit.base';
+import {SimpleEditBase} from '../../edit/simple.edit.base';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../service/globalparameter.service';
-import {HelpIds} from '../../help/help.ids';
-import {AppHelper} from '../../../lib/helper/app.helper';
-import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
+import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
+import {HelpIds} from '../../../shared/help/help.ids';
+import {AppHelper} from '../../helper/app.helper';
+import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
 import {LoginService} from '../service/log-in.service';
-import {UserSettingsDialogs} from '../../mainmenubar/component/main.dialog.component';
-import {MainDialogService} from '../../mainmenubar/service/main.dialog.service';
+import {UserSettingsDialogs} from '../../../shared/mainmenubar/component/main.dialog.component';
+import {MainDialogService} from '../../../shared/mainmenubar/service/main.dialog.service';
 import {combineLatest} from 'rxjs';
-import {UserOwnProjection} from '../../../lib/entities/projection/user.own.projection';
+import {UserOwnProjection} from '../../entities/projection/user.own.projection';
 import {SuccessfullyChanged} from '../../../entities/backend/successfully.changed';
-import {InfoLevelType} from '../../../lib/message/info.leve.type';
-import {MessageToastService} from '../../../lib/message/message.toast.service';
-import {TranslateHelper} from '../../../lib/helper/translate.helper';
-import {ValueKeyHtmlSelectOptions} from '../../../dynamic-form/models/value.key.html.select.options';
+import {InfoLevelType} from '../../message/info.leve.type';
+import {MessageToastService} from '../../message/message.toast.service';
+import {TranslateHelper} from '../../helper/translate.helper';
+import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 
 /**
  * Change nickname and locale of a user

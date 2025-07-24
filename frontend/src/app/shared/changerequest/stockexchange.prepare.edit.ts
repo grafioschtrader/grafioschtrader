@@ -1,10 +1,10 @@
 import {EntityMapping, PrepareCallParam} from './request.for.you.table.component';
-import {StockexchangeService} from '../../../stockexchange/service/stockexchange.service';
-import {Stockexchange} from '../../../entities/stockexchange';
-import {StockexchangeCallParam} from '../../../stockexchange/component/stockexchange.call.param';
-import {BasePrepareEdit} from './base.prepare.edit';
-import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
-import {StockexchangeBaseData} from '../../../stockexchange/model/stockexchange.base.data';
+import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
+import {Stockexchange} from '../../entities/stockexchange';
+import {StockexchangeCallParam} from '../../stockexchange/component/stockexchange.call.param';
+import {BasePrepareEdit} from '../../lib/proposechange/component/base.prepare.edit';
+import {GlobalparameterService} from '../service/globalparameter.service';
+import {StockexchangeBaseData} from '../../stockexchange/model/stockexchange.base.data';
 
 export class StockexchangePrepareEdit extends BasePrepareEdit implements PrepareCallParam {
   constructor(private stockexchangeService: StockexchangeService,

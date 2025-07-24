@@ -1,13 +1,13 @@
 import {TransactionBaseOperations} from './transaction.base.operations';
-import {FieldConfig} from '../../dynamic-form/models/field.config';
+import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 import {Directive, EventEmitter, Input, Output, ViewChild} from '@angular/core';
-import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {TransactionCallParam} from './transaction.call.parm';
 import {TranslateService} from '@ngx-translate/core';
 import {Portfolio} from '../../entities/portfolio';
-import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {FieldFormGroup} from '../../dynamic-form/models/form.group.definition';
+import {FieldFormGroup} from '../../lib/dynamic-form/models/form.group.definition';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {Subscription} from 'rxjs';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';

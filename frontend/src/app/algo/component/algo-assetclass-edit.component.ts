@@ -11,7 +11,7 @@ import {combineLatest, Observable} from 'rxjs';
 import {Assetclass} from '../../entities/assetclass';
 import {Portfolio} from '../../entities/portfolio';
 import {AlgoTop} from '../model/algo.top';
-import {FormHelper} from '../../dynamic-form/components/FormHelper';
+import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
 import {AlgoAssetclassSecurityBaseEdit} from './algo.assetclass.security.base.edit';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';

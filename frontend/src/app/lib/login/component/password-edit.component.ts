@@ -1,19 +1,19 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {MainDialogService} from '../../mainmenubar/service/main.dialog.service';
+import {MainDialogService} from '../../../shared/mainmenubar/service/main.dialog.service';
 import {TranslateService} from '@ngx-translate/core';
 import {LoginService} from '../service/log-in.service';
 import {ChangePasswordDTO} from '../model/change.password.dto';
-import {InfoLevelType} from '../../../lib/message/info.leve.type';
-import {MessageToastService} from '../../../lib/message/message.toast.service';
+import {InfoLevelType} from '../../message/info.leve.type';
+import {MessageToastService} from '../../message/message.toast.service';
 import {PasswordBaseComponent} from './password.base.component';
-import {AppHelper} from '../../../lib/helper/app.helper';
-import {GlobalparameterService} from '../../service/globalparameter.service';
-import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
-import {UserSettingsDialogs} from '../../mainmenubar/component/main.dialog.component';
-import {TranslateHelper} from '../../../lib/helper/translate.helper';
-import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
-import {GlobalSessionNames} from '../../global.session.names';
-import {DynamicFieldModelHelper} from '../../../lib/helper/dynamic.field.model.helper';
+import {AppHelper} from '../../helper/app.helper';
+import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
+import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
+import {UserSettingsDialogs} from '../../../shared/mainmenubar/component/main.dialog.component';
+import {TranslateHelper} from '../../helper/translate.helper';
+import {FieldDescriptorInputAndShow} from '../../../shared/dynamicfield/field.descriptor.input.and.show';
+import {GlobalSessionNames} from '../../../shared/global.session.names';
+import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
 
 /**
  * Change the password with a dialog.

@@ -36,7 +36,7 @@ import {WatchlistSecurityExists} from '../../../entities/dnd/watchlist.security.
 import {ConfirmationService, MenuItem, TreeNode} from 'primeng/api';
 import {AlgoTop} from '../../../algo/model/algo.top';
 import {GlobalSessionNames} from '../../global.session.names';
-import {FeatureType} from '../../login/component/login.component';
+import {FeatureType} from '../../../lib/login/component/login.component';
 import {MainTreeDynamicDialogs} from '../../../dynamic-dialog/component/main.tree.dynamic.dialogs';
 import {DialogService} from 'primeng/dynamicdialog';
 import {PortfolioEditDynamicComponent} from '../../../portfolio/component/portfolio.edit.dynamic.component';

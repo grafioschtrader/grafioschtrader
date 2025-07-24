@@ -11,7 +11,7 @@ import {AppSettings} from '../../app.settings';
 import {UDFMetadataGeneralService} from '../service/udf.metadata.general.service';
 import {HelpIds} from '../../help/help.ids';
 import {UDFMetaTable} from './udf.metadata.table';
-import {DataType} from '../../../dynamic-form/models/data.type';
+import {DataType} from '../../../lib/dynamic-form/models/data.type';
 import {TranslateValue} from '../../../lib/datashowbase/column.config';
 import {GlobalSessionNames} from '../../global.session.names';
 import {UDFSpecialTypeDisableUserService} from '../service/udf.special.type.disable.user.service';

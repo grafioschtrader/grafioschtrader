@@ -6,7 +6,7 @@ import {SecurityDividendsYearGroup} from '../../../entities/view/securitydividen
 import {TableConfigBase} from '../../datashowbase/table.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../../shared/service/user.settings.service';
-import {DataType} from '../../../dynamic-form/models/data.type';
+import {DataType} from '../../dynamic-form/models/data.type';
 import {IGlobalMenuAttach} from '../../../shared/mainmenubar/component/iglobal.menu.attach';
 import {ActivePanelService} from '../../../shared/mainmenubar/service/active.panel.service';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
