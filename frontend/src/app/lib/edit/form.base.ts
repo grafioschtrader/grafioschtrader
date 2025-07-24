@@ -1,5 +1,5 @@
-import {FormConfig} from '../../dynamic-form/models/form.config';
-import {FieldConfig} from '../../dynamic-form/models/field.config';
+import {FormConfig} from '../dynamic-form/models/form.config';
+import {FieldConfig} from '../dynamic-form/models/field.config';
 
 /**
  * Abstract base class for form components providing common form structure and configuration.

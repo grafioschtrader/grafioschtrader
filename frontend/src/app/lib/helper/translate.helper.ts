@@ -1,7 +1,7 @@
 import {TranslateService} from '@ngx-translate/core';
-import {FieldFormGroup, FormGroupDefinition} from '../../dynamic-form/models/form.group.definition';
-import {FieldConfig} from '../../dynamic-form/models/field.config';
-import {FormHelper} from '../../dynamic-form/components/FormHelper';
+import {FieldFormGroup, FormGroupDefinition} from '../dynamic-form/models/form.group.definition';
+import {FieldConfig} from '../dynamic-form/models/field.config';
+import {FormHelper} from '../dynamic-form/components/FormHelper';
 import {MenuItem} from 'primeng/api';
 import {ColumnConfig, TranslateValue} from '../datashowbase/column.config';
 import {Helper} from './helper';

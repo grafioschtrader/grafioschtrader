@@ -3,7 +3,7 @@ import {SingleRecordConfigBase} from '../../lib/datashowbase/single.record.confi
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
 import {CombineTemplateAndImpTransPos} from './combine.template.and.imp.trans.pos';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ImportSettings} from './import.settings';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';

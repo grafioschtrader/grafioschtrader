@@ -7,7 +7,7 @@ import {PortfolioService} from '../../../portfolio/service/portfolio.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../../shared/service/user.settings.service';
-import {DataType} from '../../../dynamic-form/models/data.type';
+import {DataType} from '../../dynamic-form/models/data.type';
 import {Subscription} from 'rxjs';
 import {TransactionCostGrandSummary} from '../../../entities/view/transactioncost/transaction.cost.grand.summary';
 import {TransactionCostGroupSummary} from '../../../entities/view/transactioncost/transaction.cost.group.summary';

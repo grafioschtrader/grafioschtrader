@@ -1,16 +1,17 @@
-import {MessageToastService} from '../../../lib/message/message.toast.service';
+import {MessageToastService} from '../../message/message.toast.service';
 import {Observable, throwError} from 'rxjs';
-import {AppSettings} from '../../app.settings';
+import {AppSettings} from '../../../shared/app.settings';
 import {ValidationError} from './validation.error';
 import {SingleNativeMsgError} from './single.native.msg.error';
 import {HttpClient, HttpErrorResponse} from '@angular/common/http';
-import {InfoLevelType} from '../../../lib/message/info.leve.type';
+import {InfoLevelType} from '../../message/info.leve.type';
 import {catchError} from 'rxjs/operators';
 import {ErrorWrapper} from './error.wrapper';
 import {LimitEntityTransactionError} from './limit.entity.transaction.error';
 import {TransformedError} from './transformed.error';
 import {GetTransformedError} from './get.transformed.error';
 import {BaseService} from './base.service';
+import {BaseSettings} from '../../base.settings';
 
 
 export abstract class BaseAuthService<T> extends BaseService {
@@ -34,10 +35,10 @@ export abstract class BaseAuthService<T> extends BaseService {
    */
   updateEntity(entity: T, id: number | string, pathApi: string): Observable<T> {
     if (id != null) {
-      return <Observable<T>>this.httpClient.put(`${AppSettings.API_ENDPOINT}${pathApi}`, entity,
+      return <Observable<T>>this.httpClient.put(`${BaseSettings.API_ENDPOINT}${pathApi}`, entity,
         {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
     } else {
-      return <Observable<T>>this.httpClient.post(`${AppSettings.API_ENDPOINT}${pathApi}`, entity,
+      return <Observable<T>>this.httpClient.post(`${BaseSettings.API_ENDPOINT}${pathApi}`, entity,
         {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
     }
   }

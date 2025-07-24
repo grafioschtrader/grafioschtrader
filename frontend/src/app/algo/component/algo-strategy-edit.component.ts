@@ -12,7 +12,7 @@ import {AlgoStrategyImplementationType} from '../../shared/types/algo.strategy.i
 import {Subscription} from 'rxjs';
 import {FieldDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {FieldConfig} from '../../dynamic-form/models/field.config';
+import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 import {BaseParam} from '../../lib/entities/base.param';
 import {AppSettings} from '../../shared/app.settings';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';

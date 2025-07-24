@@ -1,4 +1,4 @@
-import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {ValueKeyHtmlSelectOptions} from '../dynamic-form/models/value.key.html.select.options';
 import {TranslateService} from '@ngx-translate/core';
 import {EnumI} from './enumI';
 import {SelectItem} from 'primeng/api';

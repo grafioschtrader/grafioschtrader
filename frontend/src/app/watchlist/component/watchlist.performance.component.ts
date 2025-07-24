@@ -9,7 +9,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import moment from 'moment';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {AppSettings} from '../../shared/app.settings';
 import {SecuritycurrencyGroup} from '../../entities/view/securitycurrency.group';
 import {HelpIds} from '../../shared/help/help.ids';
@@ -19,7 +19,7 @@ import {SecuritycurrencyPosition} from '../../entities/view/securitycurrency.pos
 import {Security} from '../../entities/security';
 import {Currencypair} from '../../entities/currencypair';
 import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
-import {ViewSizeChangedService} from '../../shared/layout/service/view.size.changed.service';
+import {ViewSizeChangedService} from '../../lib/layout/service/view.size.changed.service';
 import {combineLatest, Observable} from 'rxjs';
 import {TenantLimit} from '../../entities/backend/tenant.limit';
 import {TranslateHelper} from '../../lib/helper/translate.helper';

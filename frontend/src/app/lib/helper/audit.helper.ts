@@ -1,9 +1,9 @@
 import {Auditable} from '../entities/auditable';
-import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {FieldConfig} from '../../dynamic-form/models/field.config';
+import {DynamicFormComponent} from '../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import {FieldConfig} from '../dynamic-form/models/field.config';
 import {AppSettings} from '../../shared/app.settings';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {FormHelper} from '../../dynamic-form/components/FormHelper';
+import {FormHelper} from '../dynamic-form/components/FormHelper';
 import {TranslateService} from '@ngx-translate/core';
 import {ProcessedAction} from '../types/processed.action';
 import {ProcessedActionData} from '../types/processed.action.data';
@@ -14,7 +14,7 @@ import {ProposeTransientTransfer} from '../entities/propose.transient.transfer';
 import {DynamicFieldHelper} from './dynamic.field.helper';
 import {User} from '../entities/user';
 import {Helper} from './helper';
-import {InputType} from '../../dynamic-form/models/input.type';
+import {InputType} from '../dynamic-form/models/input.type';
 import {ProposeUserTask} from '../entities/propose.user.task';
 
 /**

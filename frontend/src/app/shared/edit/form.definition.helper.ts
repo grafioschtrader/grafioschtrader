@@ -1,5 +1,5 @@
-import {DataType} from '../../dynamic-form/models/data.type';
-import {FieldConfig} from '../../dynamic-form/models/field.config';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
+import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 
 export abstract class FormDefinitionHelper {

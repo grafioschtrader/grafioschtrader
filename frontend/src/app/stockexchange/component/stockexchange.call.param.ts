@@ -1,5 +1,5 @@
 import {Stockexchange} from '../../entities/stockexchange';
-import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 import {StockexchangeMic} from '../model/stockexchange.base.data';
 
 export class StockexchangeCallParam {

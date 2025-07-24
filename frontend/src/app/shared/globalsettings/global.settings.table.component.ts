@@ -8,7 +8,7 @@ import {UserSettingsService} from '../service/user.settings.service';
 import {IGlobalMenuAttach} from '../mainmenubar/component/iglobal.menu.attach';
 import {HelpIds} from '../help/help.ids';
 import {ActivePanelService} from '../mainmenubar/service/active.panel.service';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {AuditHelper} from '../../lib/helper/audit.helper';

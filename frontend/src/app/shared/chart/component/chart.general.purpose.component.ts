@@ -3,7 +3,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {ActivatedRoute} from '@angular/router';
 import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach';
-import {ViewSizeChangedService} from '../../layout/service/view.size.changed.service';
+import {ViewSizeChangedService} from '../../../lib/layout/service/view.size.changed.service';
 import {Subscription} from 'rxjs';
 import {ChartDataService} from '../service/chart.data.service';
 import {ChartData, PlotlyHelper} from '../plotly.helper';

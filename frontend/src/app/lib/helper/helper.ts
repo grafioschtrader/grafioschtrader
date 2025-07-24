@@ -1,8 +1,8 @@
-import {DataType} from '../../dynamic-form/models/data.type';
-import {InputType} from '../../dynamic-form/models/input.type';
-import {FieldConfig} from '../../dynamic-form/models/field.config';
+import {DataType} from '../dynamic-form/models/data.type';
+import {InputType} from '../dynamic-form/models/input.type';
+import {FieldConfig} from '../dynamic-form/models/field.config';
 import moment from 'moment';
-import {FormConfig} from '../../dynamic-form/models/form.config';
+import {FormConfig} from '../dynamic-form/models/form.config';
 import {BaseSettings} from '../base.settings';
 
 

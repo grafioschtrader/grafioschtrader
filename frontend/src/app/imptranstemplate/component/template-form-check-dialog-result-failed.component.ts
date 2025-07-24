@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {FailedParsedTemplateState} from './failed.parsed.template.state';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';

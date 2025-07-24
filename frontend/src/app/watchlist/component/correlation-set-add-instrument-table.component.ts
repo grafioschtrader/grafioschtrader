@@ -7,7 +7,7 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {CorrelationSetService} from '../service/correlation.set.service';
 import {CorrelationSet} from '../../entities/correlation.set';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 
 /**
  * Table component for selecting and displaying instruments in the correlation set search dialog.

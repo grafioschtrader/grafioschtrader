@@ -22,6 +22,9 @@ public class RequestMappings {
   public static final String PROPOSECHANGEENTITY = "proposechangeentity";
   public static final String PROPOSECHANGEENTITY_MAP = API + PROPOSECHANGEENTITY;
 
+  public static final String RELEASE_NOTE = "releasenote";
+  public static final String RELEASE_NOTE_MAP = API + RELEASE_NOTE;
+  
   public static final String TASK_DATA_CHANGE = "taskdatachange";
   public static final String TASK_DATA_CHANGE_MAP = API + TASK_DATA_CHANGE;
 

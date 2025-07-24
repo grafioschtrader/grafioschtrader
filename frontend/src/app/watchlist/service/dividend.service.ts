@@ -1,12 +1,13 @@
-import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
+import {AuthServiceWithLogout} from '../../lib/login/service/base.auth.service.with.logout';
 import {Injectable} from '@angular/core';
-import {LoginService} from '../../shared/login/service/log-in.service';
+import {LoginService} from '../../lib/login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Observable} from 'rxjs';
 import {AppSettings} from '../../shared/app.settings';
 import {catchError} from 'rxjs/operators';
 import {Dividend} from '../../entities/dividend.split';
+import {BaseSettings} from '../../lib/base.settings';
 
 @Injectable()
 export class DividendService extends AuthServiceWithLogout<Dividend> {
@@ -15,7 +16,7 @@ export class DividendService extends AuthServiceWithLogout<Dividend> {
   }
 
   getDividendsByIdSecuritycurrency(idSecuritycurrency: number): Observable<Dividend[]> {
-    return <Observable<Dividend[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.SECURITY_DIVIDEND_KEY}`
+    return <Observable<Dividend[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_DIVIDEND_KEY}`
       + `/${idSecuritycurrency}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 }

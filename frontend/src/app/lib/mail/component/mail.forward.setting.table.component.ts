@@ -13,13 +13,14 @@ import {
   MailSettingForwardVar,
   MessageComType
 } from '../model/mail.send.recv';
-import {DataType} from '../../../dynamic-form/models/data.type';
+import {DataType} from '../../dynamic-form/models/data.type';
 import {TranslateValue} from '../../datashowbase/column.config';
 import {AppSettings} from '../../../shared/app.settings';
 import {MessageToastService} from '../../message/message.toast.service';
 import {ProductIconService} from '../../../securitycurrency/service/product.icon.service';
 import {DialogService} from 'primeng/dynamicdialog';
 import {TableCrudSupportMenu} from '../../datashowbase/table.crud.support.menu';
+import {BaseSettings} from '../../base.settings';
 
 /**
  * This component shows the message settings in a table.
@@ -87,7 +88,7 @@ export class MailForwardSettingTableComponent extends TableCrudSupportMenu<MailS
     translateService: TranslateService,
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService) {
-    super(AppSettings.MAIL_SETTING_FORWARD, mailSettingForwardService, confirmationService, messageToastService,
+    super(BaseSettings.MAIL_SETTING_FORWARD, mailSettingForwardService, confirmationService, messageToastService,
       activePanelService, dialogService, filterService, translateService, gps, usersettingsService);
     this.addColumnFeqH(DataType.String, MailSettingForwardVar.MESSAGE_COM_TYPE, true, false,
       {translateValues: TranslateValue.NORMAL});

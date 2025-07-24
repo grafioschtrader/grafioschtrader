@@ -6,17 +6,17 @@ import {AppSettings} from '../../shared/app.settings';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Observable} from 'rxjs';
 import {DeleteService} from '../../lib/datashowbase/delete.service';
-import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
+import {AuthServiceWithLogout} from '../../lib/login/service/base.auth.service.with.logout';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {catchError} from 'rxjs/operators';
-import {LoginService} from '../../shared/login/service/log-in.service';
+import {LoginService} from '../../lib/login/service/log-in.service';
 import {TaFormDefinition, TaTraceIndicatorData} from '../component/indicator.definitions';
 import {HistoryquoteDateClose} from '../../entities/projection/historyquote.date.close';
 import {IHistoryquoteQuality} from '../../entities/view/ihistoryquote.quality';
 import {SupportedCSVFormats, UploadServiceFunction} from '../../shared/generaldialog/model/file.upload.param';
 import {ISecuritycurrencyIdDateClose} from '../../entities/projection/i.securitycurrency.id.date.close';
-
+import {BaseSettings} from '../../lib/base.settings';
 
 @Injectable()
 export class HistoryquoteService extends AuthServiceWithLogout<Historyquote> implements ServiceEntityUpdate<Historyquote>,
@@ -28,31 +28,31 @@ export class HistoryquoteService extends AuthServiceWithLogout<Historyquote> imp
 
   getHistoryqoutesByIdSecuritycurrencyWithMissing(idSecuritycurrency: number, isCurrency: boolean): Observable<IHistoryquoteQuality> {
     return <Observable<IHistoryquoteQuality>>this.httpClient.get(
-      `${AppSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/securitycurrency/${idSecuritycurrency}`,
+      `${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/securitycurrency/${idSecuritycurrency}`,
       {headers: this.prepareHeaders(), params: new HttpParams().set('isCurrencypair', isCurrency.toString())})
       .pipe(catchError(this.handleError.bind(this)));
   }
 
   getDateCloseByIdSecuritycurrency(idSecuritycurrency: number): Observable<HistoryquoteDateClose[]> {
     return <Observable<HistoryquoteDateClose[]>>this.httpClient.get(
-      `${AppSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/securitycurrency/${idSecuritycurrency}/dateclose`,
+      `${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/securitycurrency/${idSecuritycurrency}/dateclose`,
       {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }
 
   getCertainOrOlderDayInHistoryquoteByIdSecuritycurrency(idSecuritycurrency: number, dateString: string,
-                                                         asTraded: boolean): Observable<ISecuritycurrencyIdDateClose> {
-    return <Observable<ISecuritycurrencyIdDateClose>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/`
+    asTraded: boolean): Observable<ISecuritycurrencyIdDateClose> {
+    return <Observable<ISecuritycurrencyIdDateClose>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/`
       + `${idSecuritycurrency}/${dateString}/${asTraded}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   getAllTaForms(): Observable<{ [key: string]: TaFormDefinition }> {
-    return <Observable<{ [key: string]: TaFormDefinition }>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
+    return <Observable<{ [key: string]: TaFormDefinition }>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}`
       + `${AppSettings.HISTORYQUOTE_KEY}/alltaforms`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   getTaWithShortMediumLongInputPeriod(taIndicator: string, idSecuritycurrency:
-    number, dynamicDataModel: any): Observable<TaTraceIndicatorData[]> {
-    return <Observable<TaTraceIndicatorData[]>>this.httpClient.post(`${AppSettings.API_ENDPOINT}`
+  number, dynamicDataModel: any): Observable<TaTraceIndicatorData[]> {
+    return <Observable<TaTraceIndicatorData[]>>this.httpClient.post(`${BaseSettings.API_ENDPOINT}`
       + `${AppSettings.HISTORYQUOTE_KEY}/${idSecuritycurrency}/taindicator/${taIndicator}`, dynamicDataModel,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
@@ -63,24 +63,24 @@ export class HistoryquoteService extends AuthServiceWithLogout<Historyquote> imp
 
   uploadFiles(idSecuritycurrency: number, formData: FormData): Observable<any> {
     return this.httpClient
-      .post(`${AppSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/${idSecuritycurrency}/uploadhistoryquotes`,
+      .post(`${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/${idSecuritycurrency}/uploadhistoryquotes`,
         formData, this.getMultipartHeaders())
       .pipe(catchError(this.handleError.bind(this)));
   }
 
   public deleteEntity(idHistoryQuote: number): Observable<any> {
-    return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/${idHistoryQuote}`, this.getHeaders())
+    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/${idHistoryQuote}`, this.getHeaders())
       .pipe(catchError(this.handleError.bind(this)));
   }
 
   public getPossibleCSVFormats(): Observable<SupportedCSVFormats> {
-    return <Observable<SupportedCSVFormats>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
+    return <Observable<SupportedCSVFormats>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}`
       + `${AppSettings.HISTORYQUOTE_KEY}/supportedcsvformat`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   public deleteHistoryquotesByCreateTypes(idSecuritycurrency: number, hct: HistoryquoteCreateType[]) {
-    return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/delete/${idSecuritycurrency}`,
+    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/delete/${idSecuritycurrency}`,
       this.getOptionsCreateType(hct)).pipe(catchError(this.handleError.bind(this)));
   }
 

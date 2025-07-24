@@ -11,7 +11,7 @@ import {AssetclassCallParam} from './assetclass.call.param';
 import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {FormHelper} from '../../dynamic-form/components/FormHelper';
+import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
 import {AppSettings} from '../../shared/app.settings';
 import {AssetClassTypeSpecInstrument} from '../../shared/udfmeta/components/asset.class.type.spec.instrument';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';

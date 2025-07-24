@@ -1,6 +1,6 @@
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../dynamic-form/models/data.type';
 import {ColumnConfig, OptionalParams} from './column.config';
-import {BaseLocale} from '../../dynamic-form/models/base.locale';
+import {BaseLocale} from '../dynamic-form/models/base.locale';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
 import {AppHelper} from '../helper/app.helper';

@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {HelpIds} from '../../shared/help/help.ids';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';

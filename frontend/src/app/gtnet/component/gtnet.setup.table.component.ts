@@ -11,7 +11,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {AppSettings} from '../../shared/app.settings';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {HelpIds} from '../../shared/help/help.ids';
 import {GTNetMessageTreeTableComponent} from './gtnet-message-treetable.component';

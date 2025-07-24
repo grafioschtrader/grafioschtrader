@@ -1,6 +1,6 @@
 import {HelpIds} from '../../help/help.ids';
 import {Observable} from 'rxjs';
-import {FieldConfig} from '../../../dynamic-form/models/field.config';
+import {FieldConfig} from '../../../lib/dynamic-form/models/field.config';
 
 export class FileUploadParam {
 

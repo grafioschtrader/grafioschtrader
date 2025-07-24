@@ -3,13 +3,14 @@ import {GlobalSessionNames} from '../shared/global.session.names';
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {MessageToastService} from '../lib/message/message.toast.service';
-import {ValueKeyHtmlSelectOptions} from '../dynamic-form/models/value.key.html.select.options';
+import {ValueKeyHtmlSelectOptions} from '../lib/dynamic-form/models/value.key.html.select.options';
 import {AppSettings} from '../shared/app.settings';
 import {catchError, tap} from 'rxjs/operators';
-import {BaseAuthService} from '../shared/login/service/base.auth.service';
+import {BaseAuthService} from '../lib/login/service/base.auth.service';
 import {Globalparameters} from '../lib/entities/globalparameters';
 import {AssetclassType} from '../shared/types/assetclass.type';
 import {SpecialInvestmentInstruments} from '../shared/types/special.investment.instruments';
+import {BaseSettings} from '../lib/base.settings';
 
 @Injectable()
 export class GlobalparameterGTService extends BaseAuthService<Globalparameters> {
@@ -29,14 +30,14 @@ export class GlobalparameterGTService extends BaseAuthService<Globalparameters> 
   }
 
   public getCurrencies(): Observable<ValueKeyHtmlSelectOptions[]> {
-    return <Observable<ValueKeyHtmlSelectOptions[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
+    return <Observable<ValueKeyHtmlSelectOptions[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}`
       + `${AppSettings.GT_GLOBALPARAMETERS_P_KEY}/${AppSettings.CURRENCIES_P_KEY}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   public getPossibleAssetclassInstrumentMap(): Observable<{ [key in AssetclassType]: SpecialInvestmentInstruments[] }> {
     return <Observable<{ [key in AssetclassType]: SpecialInvestmentInstruments[] }>>
-      this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.GT_GLOBALPARAMETERS_P_KEY}/possibleassetclassspezinstrument`,
+      this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.GT_GLOBALPARAMETERS_P_KEY}/possibleassetclassspezinstrument`,
         this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -44,7 +45,7 @@ export class GlobalparameterGTService extends BaseAuthService<Globalparameters> 
     if (sessionStorage.getItem(globalSessionNames)) {
       return of(+sessionStorage.getItem(globalSessionNames));
     } else {
-      return <Observable<number>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
+      return <Observable<number>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}`
         + `${requestMapping}/${uriPart}`,
         this.getHeaders()).pipe(tap(value => sessionStorage.setItem(globalSessionNames, '' + value)),
         catchError(this.handleError.bind(this)));

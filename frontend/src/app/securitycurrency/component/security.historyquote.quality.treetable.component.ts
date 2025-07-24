@@ -10,7 +10,7 @@ import {
   HistoryquoteQualityIds
 } from '../model/historyquote.quality.group';
 import {MenuItem, SelectItem, TreeNode} from 'primeng/api';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ColumnGroupConfig} from '../../lib/datashowbase/column.config';
 import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
 import {HelpIds} from '../../shared/help/help.ids';

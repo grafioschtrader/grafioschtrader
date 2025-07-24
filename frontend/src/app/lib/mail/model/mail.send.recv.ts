@@ -1,6 +1,6 @@
 import {BaseID} from '../../entities/base.id';
 import {Exclude} from 'class-transformer';
-import {ValueKeyHtmlSelectOptions} from '../../../dynamic-form/models/value.key.html.select.options';
+import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 
 export class MailSettingForwardVar {
   public static readonly MESSAGE_COM_TYPE = 'messageComType';

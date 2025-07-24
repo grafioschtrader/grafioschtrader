@@ -1,8 +1,9 @@
 import {Observable} from 'rxjs';
 import {AppSettings} from '../app.settings';
-import {BaseService} from '../login/service/base.service';
+import {BaseService} from '../../lib/login/service/base.service';
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
+import {BaseSettings} from '../../lib/base.settings';
 
 
 @Injectable()
@@ -13,13 +14,13 @@ export class ActuatorService extends BaseService {
   }
 
   public applicationInfo(): Observable<ApplicationInfo> {
-    return <Observable<ApplicationInfo>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
+    return <Observable<ApplicationInfo>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}`
       + `${AppSettings.ACTUATOR}/info`,
       this.getHeaders());
   }
 
   public isServerRunning(): Observable<ActuatorHealth> {
-    return <Observable<ActuatorHealth>>this.httpClient.get(`${AppSettings.API_ENDPOINT}`
+    return <Observable<ActuatorHealth>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}`
       + `${AppSettings.ACTUATOR}/health`,
       this.getHeaders());
   }

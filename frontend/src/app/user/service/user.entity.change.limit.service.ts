@@ -1,15 +1,16 @@
 import {Injectable} from '@angular/core';
-import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
+import {AuthServiceWithLogout} from '../../lib/login/service/base.auth.service.with.logout';
 import {DeleteService} from '../../lib/datashowbase/delete.service';
 import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {UserEntityChangeLimit} from '../../lib/entities/user.entity.change.limit';
-import {LoginService} from '../../shared/login/service/log-in.service';
+import {LoginService} from '../../lib/login/service/log-in.service';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Observable} from 'rxjs';
 import {AppSettings} from '../../shared/app.settings';
 import {catchError} from 'rxjs/operators';
-import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
+import {BaseSettings} from '../../lib/base.settings';
 
 
 @Injectable()
@@ -23,7 +24,7 @@ export class UserEntityChangeLimitService extends AuthServiceWithLogout<UserEnti
   getPublicEntitiesAsHtmlSelectOptions(idUser: number,
                                        idUserEntityChangeLimit: number): Observable<ValueKeyHtmlSelectOptions[]> {
     return <Observable<ValueKeyHtmlSelectOptions[]>>this.httpClient.get(
-      `${AppSettings.API_ENDPOINT}${AppSettings.USER_ENTITY_LIMIT_KEY}/${idUser}/entities`,
+      `${BaseSettings.API_ENDPOINT}${AppSettings.USER_ENTITY_LIMIT_KEY}/${idUser}/entities`,
       {headers: this.prepareHeaders(), params: this.getHttpParams(idUserEntityChangeLimit)})
       .pipe(catchError(this.handleError.bind(this)));
   }
@@ -33,7 +34,7 @@ export class UserEntityChangeLimitService extends AuthServiceWithLogout<UserEnti
   }
 
   public deleteEntity(userEntityChangeLimit: number): Observable<any> {
-    return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.USER_ENTITY_LIMIT_KEY}/`
+    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.USER_ENTITY_LIMIT_KEY}/`
       + `${userEntityChangeLimit}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 

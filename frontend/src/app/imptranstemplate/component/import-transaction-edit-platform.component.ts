@@ -8,7 +8,7 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {HelpIds} from '../../shared/help/help.ids';
 import {ImportTransactionPlatformService} from '../service/import.transaction.platform.service';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
-import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {Auditable} from '../../lib/entities/auditable';
 import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';

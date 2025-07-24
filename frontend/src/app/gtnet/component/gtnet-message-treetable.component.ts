@@ -1,6 +1,6 @@
 import {Component, Input, OnInit, ViewChild} from '@angular/core';
 import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {GTNetMessage, MsgCallParam} from '../model/gtnet.message';
 import {MenuItem, TreeNode} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';

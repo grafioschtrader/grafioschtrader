@@ -6,13 +6,14 @@ import {MessageToastService} from '../../lib/message/message.toast.service';
 import {SecurityDividendsGrandTotal} from '../../entities/view/securitydividends/security.dividends.grand.total';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {AuthServiceWithLogout} from '../../shared/login/service/base.auth.service.with.logout';
+import {AuthServiceWithLogout} from '../../lib/login/service/base.auth.service.with.logout';
 import {TransactionCostGrandSummary} from '../../entities/view/transactioncost/transaction.cost.grand.summary';
 import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {catchError} from 'rxjs/operators';
-import {LoginService} from '../../shared/login/service/log-in.service';
+import {LoginService} from '../../lib/login/service/log-in.service';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {TenantPortfolioSummary} from '../../lib/tenant/model/tenant.portfolio.summary';
+import {BaseSettings} from '../../lib/base.settings';
 
 
 @Injectable()
@@ -24,18 +25,18 @@ export class PortfolioService extends AuthServiceWithLogout<Portfolio> implement
 
 
   getPortfolioByIdSecuritycashaccount(idSecuritycashaccount: number): Observable<Portfolio> {
-    return <Observable<Portfolio>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/`
+    return <Observable<Portfolio>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/`
       + `account/${idSecuritycashaccount}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   getPortfolioByIdPortfolio(idPortfolio: number): Observable<Portfolio> {
-    return <Observable<Portfolio>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/${idPortfolio}`,
+    return <Observable<Portfolio>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/${idPortfolio}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   getPortfoliosForTenantOrderByName(): Observable<Portfolio[]> {
-    return <Observable<Portfolio[]>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/`
+    return <Observable<Portfolio[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/`
       + `${AppSettings.TENANT_KEY}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -44,7 +45,7 @@ export class PortfolioService extends AuthServiceWithLogout<Portfolio> implement
     const urlPart = tenantPortfolioSummary === TenantPortfolioSummary.GROUP_BY_CURRENCY
       ? AppSettings.CURRENCY_KEY : AppSettings.PORTFOLIO_KEY;
     return <Observable<AccountPositionGrandSummary>>this.httpClient.get(
-      `${AppSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/securitycashaccountsummary/${urlPart}`,
+      `${BaseSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/securitycashaccountsummary/${urlPart}`,
       AppHelper.getOptionsWithUntilDate(untilDate, this.prepareHeaders()))
       .pipe(catchError(this.handleError.bind(this)));
   }
@@ -55,14 +56,14 @@ export class PortfolioService extends AuthServiceWithLogout<Portfolio> implement
     httpParams = httpParams.append('idsSecurityaccount', idsSecurityaccount.join(','));
     httpParams = httpParams.append('idsCashaccount', idsCashaccount.join(','));
     return <Observable<SecurityDividendsGrandTotal>>this.httpClient.get(
-      `${AppSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/dividends`,
+      `${BaseSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/dividends`,
       {headers: this.prepareHeaders(), params: httpParams})
       .pipe(catchError(this.handleError.bind(this)));
   }
 
   getTransactionCostGrandSummaryByTenant(): Observable<TransactionCostGrandSummary> {
     return <Observable<TransactionCostGrandSummary>>this.httpClient.get(
-      `${AppSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/transactioncost`, this.getHeaders())
+      `${BaseSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/transactioncost`, this.getHeaders())
       .pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -74,7 +75,7 @@ export class PortfolioService extends AuthServiceWithLogout<Portfolio> implement
   }
 
   deletePortfolio(idPortfolio: number) {
-    return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/${idPortfolio}`, this.getHeaders())
+    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/${idPortfolio}`, this.getHeaders())
       .pipe(catchError(this.handleError.bind(this)));
   }
 

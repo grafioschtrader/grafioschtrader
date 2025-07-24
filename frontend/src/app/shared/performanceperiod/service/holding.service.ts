@@ -1,15 +1,16 @@
 import {Injectable} from '@angular/core';
-import {AuthServiceWithLogout} from '../../login/service/base.auth.service.with.logout';
+import {AuthServiceWithLogout} from '../../../lib/login/service/base.auth.service.with.logout';
 import {Tenant} from '../../../entities/tenant';
 import {Observable} from 'rxjs';
 import {AppSettings} from '../../app.settings';
 import {catchError, map} from 'rxjs/operators';
 import {plainToClass, Type} from 'class-transformer';
-import {LoginService} from '../../login/service/log-in.service';
+import {LoginService} from '../../../lib/login/service/log-in.service';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {MessageToastService} from '../../../lib/message/message.toast.service';
 import {PerformancePeriod} from '../model/performance.period';
 import {MissingQuotesWithSecurities} from '../../../lib/tenant/model/missing.quotes.with.securities';
+import {BaseSettings} from '../../../lib/base.settings';
 
 @Injectable()
 export class HoldingService extends AuthServiceWithLogout<Tenant> {
@@ -20,21 +21,21 @@ export class HoldingService extends AuthServiceWithLogout<Tenant> {
 
   getFirstAndMissingTradingDays(idPortfolio: number): Observable<FirstAndMissingTradingDays> {
     return <Observable<FirstAndMissingTradingDays>>this.httpClient.get(
-      `${AppSettings.API_ENDPOINT}${AppSettings.HOLDING_KEY}/getdatesforform`,
+      `${BaseSettings.API_ENDPOINT}${AppSettings.HOLDING_KEY}/getdatesforform`,
       this.getOptionsWithIdPortfolio(idPortfolio)).pipe(map(response => plainToClass(FirstAndMissingTradingDays, response)),
       catchError(this.handleError.bind(this)));
   }
 
   getPeriodPerformance(performanceWindowDef: PerformanceWindowDef): Observable<PerformancePeriod> {
     return <Observable<PerformancePeriod>>this.httpClient.get(
-      `${AppSettings.API_ENDPOINT}${AppSettings.HOLDING_KEY}/${performanceWindowDef.dateFrom}/${performanceWindowDef.dateTo}`
+      `${BaseSettings.API_ENDPOINT}${AppSettings.HOLDING_KEY}/${performanceWindowDef.dateFrom}/${performanceWindowDef.dateTo}`
       + `/${performanceWindowDef.periodSplit}`,
       this.getOptionsWithIdPortfolio(performanceWindowDef.idPortfolio)).pipe(catchError(this.handleError.bind(this)));
   }
 
   getMissingQuotesWithSecurities(year: number): Observable<MissingQuotesWithSecurities> {
     return <Observable<MissingQuotesWithSecurities>>this.httpClient.get(
-      `${AppSettings.API_ENDPOINT}${AppSettings.HOLDING_KEY}/missingquotes/${year}`,
+      `${BaseSettings.API_ENDPOINT}${AppSettings.HOLDING_KEY}/missingquotes/${year}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 

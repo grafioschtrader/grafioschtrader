@@ -4,7 +4,7 @@ import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {ColumnConfig, OptionalParams} from './column.config';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../dynamic-form/models/data.type';
 import {AppHelper} from '../helper/app.helper';
 import {Validators} from '@angular/forms';
 import {DynamicFieldHelper} from '../helper/dynamic.field.helper';

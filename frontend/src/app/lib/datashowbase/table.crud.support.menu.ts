@@ -15,7 +15,7 @@ import {GlobalparameterService} from '../../shared/service/globalparameter.servi
 import {HelpIds} from '../../shared/help/help.ids';
 import {AuditHelper} from '../helper/audit.helper';
 import {TranslateHelper} from '../helper/translate.helper';
-import {LimitEntityTransactionError} from '../../shared/login/service/limit.entity.transaction.error';
+import {LimitEntityTransactionError} from '../login/service/limit.entity.transaction.error';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {DynamicDialogs} from '../../shared/dynamicdialog/component/dynamic.dialogs';

@@ -36,7 +36,7 @@ import {ProductIconService} from '../../securitycurrency/service/product.icon.se
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {WatchlistSecurityExists} from '../../entities/dnd/watchlist.security.exists';
 import {MailSendParam} from '../../shared/dynamicdialog/component/mail.send.dynamic.component';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {AppSettings} from '../../shared/app.settings';
 import {UDFGeneralCallParam} from '../../shared/udfmeta/model/udf.metadata';
 import {SecurityUDFHelper} from '../../securitycurrency/component/security.udf.helper';

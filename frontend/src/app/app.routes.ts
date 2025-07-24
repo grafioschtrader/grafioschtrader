@@ -4,17 +4,17 @@ import {AppSettings} from './shared/app.settings';
 import {PortfolioCashaccountSummaryComponent} from './portfolio/component/portfolio.cashaccount.summary.component';
 import {SecurityaccountSummariesComponent} from './securityaccount/component/securityaccount.summaries.component';
 import {SecurityaccountSummaryComponent} from './securityaccount/component/securityaccount.summary.component';
-import {SplitLayoutComponent} from './shared/layout/component/split.layout.component';
+import {SplitLayoutComponent} from './lib/layout/component/split.layout.component';
 import {SecurityaccountEmptyComponent} from './securityaccount/component/securityaccount.empty.component';
 import {AssetclassTableComponent} from './assetclass/component/assetclass.table.component';
 import {StockexchangeTableComponent} from './stockexchange/component/stockexchange.table.component';
-import {RegisterComponent} from './shared/login/component/register.component';
+import {RegisterComponent} from './lib/login/component/register.component';
 import {TenantEditFullPageComponent} from './lib/tenant/component/tenant.edit.full.page.component';
 import {WatchlistTabMenuComponent} from './watchlist/component/watchlist.tab.menu.component';
 import {WatchlistPerformanceComponent} from './watchlist/component/watchlist.performance.component';
 import {TimeSeriesChartComponent} from './historyquote/component/time.series.chart.component';
 import {ChartGeneralPurposeComponent} from './shared/chart/component/chart.general.purpose.component';
-import {RegistrationTokenVerifyComponent} from './shared/login/component/registration.token.verify.component';
+import {RegistrationTokenVerifyComponent} from './lib/login/component/registration.token.verify.component';
 import {CorrelationComponent} from './watchlist/component/correlation.component';
 import {TradingPlatformPlanTableComponent} from './tradingplatform/component/trading.platform.plan.table.component';
 import {TenantDividendsComponent} from './lib/tenant/component/tenant.dividends.component';
@@ -28,13 +28,13 @@ import {TenantTransactionTableComponent} from './lib/tenant/component/tenant.tra
 import {PortfolioTransactionTableComponent} from './portfolio/component/portfolio.transaction.table.component';
 import {CashaccountEditComponent} from './cashaccount/component/cashaccount-edit.component';
 import {SecurityaccountTabMenuComponent} from './securityaccount/component/securityaccount.tab.menu.component';
-import {LoginComponent} from './shared/login/component/login.component';
+import {LoginComponent} from './lib/login/component/login.component';
 import {
   SecurityaccountImportTransactionComponent
 } from './securityaccount/component/securityaccount.import.transaction.component';
 import {ImportTransactionTemplateComponent} from './imptranstemplate/component/import.transaction.template.component';
 import {ProposeChangeTabMenuComponent} from './lib/proposechange/component/propose.change.tab.menu.component';
-import {RequestForYouTableComponent} from './lib/proposechange/component/request.for.you.table.component';
+import {RequestForYouTableComponent} from './shared/changerequest/request.for.you.table.component';
 import {YourProposalTableComponent} from './lib/proposechange/component/your.proposal.table.component';
 import {StrategyOverviewComponent} from './algo/component/strategy.overview.component';
 import {AlgoTopDataViewComponent} from './algo/component/algo.top.data.view.component';
@@ -63,6 +63,7 @@ import {UDFMetadataSecurityTableComponent} from './shared/udfmeta/components/udf
 import {WatchlistUdfComponent} from './watchlist/component/watchlist.udf.component';
 import {UDFMetadataGeneralTableComponent} from './shared/udfmeta/components/udf.metadata.general.table.component';
 import {TenantAlertComponent} from './lib/tenant/component/tenant.alert.component';
+import {BaseSettings} from './lib/base.settings';
 
 
 const APP_ROUTES: Routes = [
@@ -156,12 +157,12 @@ const APP_ROUTES: Routes = [
         canActivate: [authGuard],
         children: [
           {
-            path: AppSettings.PROPOSE_CHANGE_REQUEST_FOR_YOU_KEY,
+            path: BaseSettings.PROPOSE_CHANGE_REQUEST_FOR_YOU_KEY,
             component: RequestForYouTableComponent,
             canActivate: [authGuard]
           },
           {
-            path: AppSettings.PROPOSE_CHANGE_YOUR_PROPOSAL_KEY,
+            path: BaseSettings.PROPOSE_CHANGE_YOUR_PROPOSAL_KEY,
             component: YourProposalTableComponent,
             canActivate: [authGuard]
           },
@@ -239,9 +240,9 @@ const APP_ROUTES: Routes = [
       {
         path: AppSettings.USER_MESSAGE_KEY, component: SendRecvForwardTabMenuComponent, canActivate: [authGuard],
         children: [
-          {path: AppSettings.MAIL_SEND_RECV_KEY, component: SendRecvTreetableComponent, canActivate: [authGuard]},
+          {path: BaseSettings.MAIL_SEND_RECV_KEY, component: SendRecvTreetableComponent, canActivate: [authGuard]},
           {
-            path: AppSettings.MAIL_SETTING_FORWARD_KEY,
+            path: BaseSettings.MAIL_SETTING_FORWARD_KEY,
             component: MailForwardSettingTableComponent,
             canActivate: [authGuard]
           }

@@ -1,10 +1,8 @@
 import {Component, EventEmitter, Input, OnChanges, OnInit, Output} from '@angular/core';
 import {AbstractControl, UntypedFormBuilder, UntypedFormGroup} from '@angular/forms';
-
-
 import {FieldConfig} from '../../models/field.config';
 import {InputType} from '../../models/input.type';
-import {Helper} from '../../../lib/helper/helper';
+import {Helper} from '../../../helper/helper';
 import {DataType} from '../../models/data.type';
 import {TranslateService} from '@ngx-translate/core';
 import {FormConfig} from '../../models/form.config';

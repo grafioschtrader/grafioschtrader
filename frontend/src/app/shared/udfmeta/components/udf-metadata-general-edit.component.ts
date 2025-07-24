@@ -12,10 +12,10 @@ import {AppHelper} from '../../../lib/helper/app.helper';
 import {UDFMetadataHelper} from './udf.metadata.helper';
 import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../../lib/helper/translate.helper';
-import {FieldConfig} from '../../../dynamic-form/models/field.config';
+import {FieldConfig} from '../../../lib/dynamic-form/models/field.config';
 import {Subscription} from 'rxjs';
 import {SelectOptionsHelper} from '../../../lib/helper/select.options.helper';
-import {UDFConfig} from '../../login/component/login.component';
+import {UDFConfig} from '../../../lib/login/component/login.component';
 
 /**
  * This can be used to edit the metadata of an information class that has no specific extensions.

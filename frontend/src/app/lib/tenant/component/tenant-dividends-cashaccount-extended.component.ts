@@ -4,7 +4,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../../shared/service/user.settings.service';
 import {CashAccountPosition} from '../../../entities/view/securitydividends/security.dividends.position';
-import {DataType} from '../../../dynamic-form/models/data.type';
+import {DataType} from '../../dynamic-form/models/data.type';
 import {SecurityDividendsGrandTotal} from '../../../entities/view/securitydividends/security.dividends.grand.total';
 import {ProcessedActionData} from '../../types/processed.action.data';
 import {CashAccountTableInputFilter} from '../../../transaction/component/transaction-cashaccount-table.component';

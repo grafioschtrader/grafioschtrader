@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {FieldConfig} from '../../dynamic-form/models/field.config';
+import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 import {TranslateService} from '@ngx-translate/core';
 import {CashAccountTransfer, TransactionService} from '../service/transaction.service';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
@@ -8,7 +8,7 @@ import {TransactionCashaccountBaseOperations} from './transaction.cashaccount.ba
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {Portfolio} from '../../entities/portfolio';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
-import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 import {Subscription} from 'rxjs';
 import {Cashaccount} from '../../entities/cashaccount';
 import {Transaction} from '../../entities/transaction';
@@ -18,7 +18,7 @@ import {Helper} from '../../lib/helper/helper';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {FormConfig} from '../../dynamic-form/models/form.config';
+import {FormConfig} from '../../lib/dynamic-form/models/form.config';
 import {HistoryquoteService} from '../../historyquote/service/historyquote.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {FormDefinitionHelper} from '../../shared/edit/form.definition.helper';

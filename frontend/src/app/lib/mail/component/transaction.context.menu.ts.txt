@@ -9,7 +9,7 @@ import {TabItem} from '../../shared/types/tab.item';
 @Component({
   template: `
     <div class="card">
-      <p-tabs [value]="AppSettings.MAIL_SEND_RECV_KEY">
+      <p-tabs [value]="BaseSettings.MAIL_SEND_RECV_KEY">
         <p-tablist>
           @for (tab of tabs; track tab.route) {
             <p-tab [value]="tab.route" [routerLink]="tab.route" >
@@ -26,18 +26,18 @@ import {TabItem} from '../../shared/types/tab.item';
 })
 export class SendRecvForwardTabMenuComponent implements OnInit {
   tabs: TabItem[];
-  protected readonly AppSettings = AppSettings;
+  protected readonly BaseSettings = BaseSettings;
 
   constructor(private router: Router, private activatedRoute: ActivatedRoute, public translateService: TranslateService) {
     this.tabs = [
       {
-        label: AppHelper.toUpperCaseWithUnderscore(AppSettings.MAIL_SEND_RECV),
-        route: AppSettings.MAIL_SEND_RECV_KEY,
+        label: AppHelper.toUpperCaseWithUnderscore(BaseSettings.MAIL_SEND_RECV),
+        route: BaseSettings.MAIL_SEND_RECV_KEY,
         icon: 'pi pi-inbox'
       },
       {
-        label: AppHelper.toUpperCaseWithUnderscore(AppSettings.MAIL_SETTING_FORWARD),
-        route: AppSettings.MAIL_SETTING_FORWARD_KEY,
+        label: AppHelper.toUpperCaseWithUnderscore(BaseSettings.MAIL_SETTING_FORWARD),
+        route: BaseSettings.MAIL_SETTING_FORWARD_KEY,
         icon: 'pi pi-share-alt'
       }
     ];

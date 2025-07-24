@@ -3,8 +3,7 @@ import {CrudMenuOptions, TableCrudSupportMenu} from '../../datashowbase/table.cr
 import {ProposeChangeEntity} from '../../entities/propose.change.entity';
 import {ActivePanelService} from '../../../shared/mainmenubar/service/active.panel.service';
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
-import {DataType} from '../../../dynamic-form/models/data.type';
-import {AssetclassService} from '../../../assetclass/service/assetclass.service';
+import {DataType} from '../../dynamic-form/models/data.type';
 import {MessageToastService} from '../../message/message.toast.service';
 import {UserSettingsService} from '../../../shared/service/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
@@ -26,13 +25,13 @@ import {AppSettings} from '../../../shared/app.settings';
       <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
                [dataKey]="entityKeyName" stripedRows showGridlines>
         <ng-template #caption>
-          <h4>{{'YOUR_CHANGE_REQUESTS' | translate}}</h4>
+          <h4>{{ 'YOUR_CHANGE_REQUESTS' | translate }}</h4>
         </ng-template>
         <ng-template #header let-fields>
           <tr>
             @for (field of fields; track field) {
               <th [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated">
-                {{field.headerTranslated}}
+                {{ field.headerTranslated }}
                 <p-sortIcon [field]="field.field"></p-sortIcon>
               </th>
             }
@@ -42,7 +41,7 @@ import {AppSettings} from '../../../shared/app.settings';
           <tr [pSelectableRow]="el">
             @for (field of fields; track field) {
               <td>
-                {{getValueByPath(el, field)}}
+                {{ getValueByPath(el, field) }}
               </td>
             }
           </tr>
@@ -53,21 +52,20 @@ import {AppSettings} from '../../../shared/app.settings';
       }
     </div>
   `,
-    providers: [DialogService],
-    standalone: false
+  providers: [DialogService],
+  standalone: false
 })
 export class YourProposalTableComponent extends TableCrudSupportMenu<ProposeChangeEntity> {
 
-  constructor(private assetclassService: AssetclassService,
-              private proposeChangeEntityService: ProposeChangeEntityService,
-              confirmationService: ConfirmationService,
-              messageToastService: MessageToastService,
-              activePanelService: ActivePanelService,
-              dialogService: DialogService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+  constructor(private proposeChangeEntityService: ProposeChangeEntityService,
+    confirmationService: ConfirmationService,
+    messageToastService: MessageToastService,
+    activePanelService: ActivePanelService,
+    dialogService: DialogService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService) {
     super(AppSettings.PROPOSE_CHANGE_ENTITY, proposeChangeEntityService, confirmationService, messageToastService, activePanelService,
       dialogService, filterService, translateService, gps, usersettingsService, [CrudMenuOptions.Allow_Delete]);
 

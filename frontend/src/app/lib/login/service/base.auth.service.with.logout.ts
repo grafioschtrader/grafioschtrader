@@ -1,4 +1,4 @@
-import {MessageToastService} from '../../../lib/message/message.toast.service';
+import {MessageToastService} from '../../message/message.toast.service';
 import {HttpClient} from '@angular/common/http';
 import {LoginService} from './log-in.service';
 import {BaseAuthService} from './base.auth.service';

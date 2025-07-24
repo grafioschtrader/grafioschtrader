@@ -7,7 +7,7 @@ import {
   DynamicFormPropertyHelps,
   FieldDescriptorInputAndShow
 } from '../../shared/dynamicfield/field.descriptor.input.and.show';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {OptionalParams, TranslateValue} from '../../lib/datashowbase/column.config';

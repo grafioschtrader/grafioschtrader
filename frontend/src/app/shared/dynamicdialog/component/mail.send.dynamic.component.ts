@@ -10,13 +10,13 @@ import {GlobalparameterService} from '../../service/globalparameter.service';
 import {MessageToastService} from '../../../lib/message/message.toast.service';
 import {MailSendRecvService} from '../../../lib/mail/service/mail.send.recv.service';
 import {TranslateHelper} from '../../../lib/helper/translate.helper';
-import {FieldConfig} from '../../../dynamic-form/models/field.config';
+import {FieldConfig} from '../../../lib/dynamic-form/models/field.config';
 import {SelectOptionsHelper} from '../../../lib/helper/select.options.helper';
 import {AppSettings} from '../../app.settings';
-import {DynamicFormComponent} from '../../../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import {DynamicFormComponent} from '../../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {DialogService, DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {MailSendRecv, ReplyToRolePrivateType} from '../../../lib/mail/model/mail.send.recv';
-import {ValueKeyHtmlSelectOptions} from '../../../dynamic-form/models/value.key.html.select.options';
+import {ValueKeyHtmlSelectOptions} from '../../../lib/dynamic-form/models/value.key.html.select.options';
 import {UserAdminService} from '../../../user/service/user.admin.service';
 
 /**

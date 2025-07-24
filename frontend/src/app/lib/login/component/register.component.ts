@@ -2,21 +2,21 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {LoginService} from '../service/log-in.service';
 import {TranslateService} from '@ngx-translate/core';
-import {MessageToastService} from '../../../lib/message/message.toast.service';
-import {GlobalparameterService, PasswordRegexProperties} from '../../service/globalparameter.service';
-import {AppSettings} from '../../app.settings';
-import {User} from '../../../lib/entities/user';
-import {InfoLevelType} from '../../../lib/message/info.leve.type';
+import {MessageToastService} from '../../message/message.toast.service';
+import {GlobalparameterService, PasswordRegexProperties} from '../../../shared/service/globalparameter.service';
+import {AppSettings} from '../../../shared/app.settings';
+import {User} from '../../entities/user';
+import {InfoLevelType} from '../../message/info.leve.type';
 import {PasswordBaseComponent} from './password.base.component';
-import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../../lib/helper/translate.helper';
-import {ActuatorService, ApplicationInfo} from '../../service/actuator.service';
-import {BusinessHelper} from '../../helper/business.helper';
-import {HelpIds} from '../../help/help.ids';
+import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
+import {ActuatorService, ApplicationInfo} from '../../../shared/service/actuator.service';
+import {BusinessHelper} from '../../../shared/helper/business.helper';
+import {HelpIds} from '../../../shared/help/help.ids';
 import {combineLatest} from 'rxjs';
-import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
-import {GlobalSessionNames} from '../../global.session.names';
-import {DynamicFieldModelHelper} from '../../../lib/helper/dynamic.field.model.helper';
+import {FieldDescriptorInputAndShow} from '../../../shared/dynamicfield/field.descriptor.input.and.show';
+import {GlobalSessionNames} from '../../../shared/global.session.names';
+import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
 
 /**
  * Shows the user register form.

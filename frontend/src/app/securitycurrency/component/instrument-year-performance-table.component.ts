@@ -5,7 +5,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {LastYears} from '../../entities/view/instrument.statistics.result';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 
 @Component({
     selector: 'instrument-year-performance-table',

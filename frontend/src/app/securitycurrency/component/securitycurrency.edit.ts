@@ -1,6 +1,6 @@
 import {Directive, EventEmitter, Input, Output, ViewChild} from '@angular/core';
-import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {FieldConfig} from '../../dynamic-form/models/field.config';
+import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
+import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 import {FeedIdentifier, FeedSupport, IFeedConnector} from './ifeed.connector';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
@@ -15,7 +15,7 @@ import {Security} from '../../entities/security';
 import {Securitycurrency} from '../../entities/securitycurrency';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {FormHelper} from '../../dynamic-form/components/FormHelper';
+import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
 import {AppHelper} from '../../lib/helper/app.helper';
 
 

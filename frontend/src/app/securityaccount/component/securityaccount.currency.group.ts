@@ -5,7 +5,7 @@ import {ColumnConfig, ColumnGroupConfig} from '../../lib/datashowbase/column.con
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {SecurityPositionGrandSummary} from '../../entities/view/security.position.grand.summary';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {SecurityaccountGroupBaseDynamic} from './securityaccount.group.base.dynamic';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 

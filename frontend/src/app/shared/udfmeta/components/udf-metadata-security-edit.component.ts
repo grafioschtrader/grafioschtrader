@@ -11,7 +11,7 @@ import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../../lib/helper/translate.helper';
 import {AssetClassTypeSpecInstrument} from './asset.class.type.spec.instrument';
 import {SelectOptionsHelper} from '../../../lib/helper/select.options.helper';
-import {FieldConfig} from '../../../dynamic-form/models/field.config';
+import {FieldConfig} from '../../../lib/dynamic-form/models/field.config';
 import {Subscription} from 'rxjs';
 import {UDFMetadataHelper} from './udf.metadata.helper';
 import {GlobalparameterGTService} from '../../../gtservice/globalparameter.gt.service';

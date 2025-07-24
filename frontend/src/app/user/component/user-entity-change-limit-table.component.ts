@@ -3,7 +3,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {UserEntityChangeLimit} from '../../lib/entities/user.entity.change.limit';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';

@@ -1,14 +1,14 @@
 import {Component, Input, OnInit, ViewChild} from '@angular/core';
-import {FieldConfig} from '../../dynamic-form/models/field.config';
-import {DataType} from '../../dynamic-form/models/data.type';
-import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
+import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 import {combineLatest, Observable, Subscription} from 'rxjs';
 import {Stockexchange} from '../../entities/stockexchange';
 import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
@@ -27,7 +27,7 @@ import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
-import {FormHelper} from '../../dynamic-form/components/FormHelper';
+import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
 import {CallbackValueChanged, SecurityDerived, SecurityEditSupport} from './security.edit.support';
 import {SaveSecuritySuccess} from './split.period.table.base';
 import {SecuritysplitEditTableComponent} from './securitysplit-edit-table.component';
@@ -37,7 +37,7 @@ import {HistoryquotePeriodService} from '../service/historyquote.period.service'
 import {Securitysplit} from '../../entities/dividend.split';
 import {Helper} from '../../lib/helper/helper';
 import {AppSettings} from '../../shared/app.settings';
-import {FormConfig} from '../../dynamic-form/models/form.config';
+import {FormConfig} from '../../lib/dynamic-form/models/form.config';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 
 /**

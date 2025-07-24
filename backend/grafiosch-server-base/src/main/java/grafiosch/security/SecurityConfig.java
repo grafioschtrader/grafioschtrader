@@ -34,6 +34,7 @@ public class SecurityConfig {
     try {
       http.authorizeHttpRequests(
           authz -> authz.requestMatchers(HttpMethod.GET, RequestMappings.GLOBALPARAMETERS_MAP + "/locales").permitAll()
+              .requestMatchers(HttpMethod.GET, RequestMappings.RELEASE_NOTE_MAP).permitAll()
               .requestMatchers(HttpMethod.GET, RequestMappings.GLOBALPARAMETERS_MAP + "/passwordrequirements")
               .permitAll().requestMatchers(HttpMethod.GET, RequestMappings.GLOBALPARAMETERS_MAP + "/userformdefinition")
               .permitAll().requestMatchers(HttpMethod.GET, RequestMappings.GLOBALPARAMETERS_MAP + "/properties/*")

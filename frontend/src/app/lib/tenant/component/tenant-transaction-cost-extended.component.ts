@@ -4,7 +4,7 @@ import {TransactionCostGrandSummary} from '../../../entities/view/transactioncos
 import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../../shared/service/user.settings.service';
-import {DataType} from '../../../dynamic-form/models/data.type';
+import {DataType} from '../../dynamic-form/models/data.type';
 import {TransactionContextMenu} from '../../../transaction/component/transaction.context.menu';
 import {MessageToastService} from '../../message/message.toast.service';
 import {TransactionService} from '../../../transaction/service/transaction.service';

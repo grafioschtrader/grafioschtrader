@@ -4,10 +4,11 @@ import {AppSettings} from '../../../shared/app.settings';
 import {Tenant} from '../../../entities/tenant';
 import {MessageToastService} from '../../message/message.toast.service';
 import {lastValueFrom, Observable} from 'rxjs';
-import {AuthServiceWithLogout} from '../../../shared/login/service/base.auth.service.with.logout';
+import {AuthServiceWithLogout} from '../../login/service/base.auth.service.with.logout';
 import {HttpClient} from '@angular/common/http';
 import {catchError} from 'rxjs/operators';
-import {LoginService} from '../../../shared/login/service/log-in.service';
+import {LoginService} from '../../login/service/log-in.service';
+import {BaseSettings} from '../../base.settings';
 
 
 @Injectable()
@@ -18,7 +19,7 @@ export class TenantService extends AuthServiceWithLogout<Tenant> {
   }
 
   getTenantAndPortfolio(): Observable<Tenant> {
-    return <Observable<Tenant>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.TENANT_KEY}`,
+    return <Observable<Tenant>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.TENANT_KEY}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -28,24 +29,24 @@ export class TenantService extends AuthServiceWithLogout<Tenant> {
 
   public setWatchlistForPerformance(idWatchlist: number): Observable<Tenant> {
     return this.httpClient.patch(
-      `${AppSettings.API_ENDPOINT}${AppSettings.TENANT_KEY}/watchlistforperformance/${idWatchlist}`, null,
+      `${BaseSettings.API_ENDPOINT}${AppSettings.TENANT_KEY}/watchlistforperformance/${idWatchlist}`, null,
       {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }
 
   public async getExportPersonalDataAsZip(): Promise<Blob> {
     const blob$ = this.httpClient.get<Blob>(
-      `${AppSettings.API_ENDPOINT}${AppSettings.TENANT_KEY}/exportpersonaldataaszip`,
+      `${BaseSettings.API_ENDPOINT}${AppSettings.TENANT_KEY}/exportpersonaldataaszip`,
       {headers: this.prepareHeaders('application/zip'), responseType: 'blob' as 'json'});
     return await lastValueFrom(blob$);
   }
 
   public deleteMyDataAndUserAccount() {
-    return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.TENANT_KEY}`, this.getHeaders())
+    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.TENANT_KEY}`, this.getHeaders())
       .pipe(catchError(this.handleError.bind(this)));
   }
 
   public changeCurrencyTenantAndPortfolios(currency: string): Observable<Tenant> {
-    return this.httpClient.patch(`${AppSettings.API_ENDPOINT}${AppSettings.TENANT_KEY}/${currency}`, null,
+    return this.httpClient.patch(`${BaseSettings.API_ENDPOINT}${AppSettings.TENANT_KEY}/${currency}`, null,
       {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }
 

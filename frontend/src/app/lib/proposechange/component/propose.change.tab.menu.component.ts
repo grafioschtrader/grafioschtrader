@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
-import { AppSettings } from '../../../shared/app.settings';
+import {Component} from '@angular/core';
 import {TabItem} from '../../../shared/types/tab.item';
+import {BaseSettings} from '../../base.settings';
 
 
 @Component({
@@ -17,15 +17,15 @@ export class ProposeChangeTabMenuComponent {
   tabs: TabItem[] = [
     {
       label: 'CHANGE_REQUESTS_FOR_YOU',
-      route: AppSettings.PROPOSE_CHANGE_REQUEST_FOR_YOU_KEY,
+      route: BaseSettings.PROPOSE_CHANGE_REQUEST_FOR_YOU_KEY,
       icon: ''
     },
     {
       label: 'YOUR_CHANGE_REQUESTS',
-      route: AppSettings.PROPOSE_CHANGE_YOUR_PROPOSAL_KEY,
+      route: BaseSettings.PROPOSE_CHANGE_YOUR_PROPOSAL_KEY,
       icon: ''
     }
   ];
 
-  defaultRoute = AppSettings.PROPOSE_CHANGE_REQUEST_FOR_YOU_KEY;
+  defaultRoute = BaseSettings.PROPOSE_CHANGE_REQUEST_FOR_YOU_KEY;
 }

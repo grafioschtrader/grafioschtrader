@@ -1,12 +1,13 @@
 import {Injectable} from '@angular/core';
-import {AuthServiceWithLogout} from '../../login/service/base.auth.service.with.logout';
+import {AuthServiceWithLogout} from '../../../lib/login/service/base.auth.service.with.logout';
 import {UDFData} from '../model/udf.metadata';
-import {LoginService} from '../../login/service/log-in.service';
+import {LoginService} from '../../../lib/login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
 import {MessageToastService} from '../../../lib/message/message.toast.service';
 import {Observable} from 'rxjs';
 import {AppSettings} from '../../app.settings';
 import {catchError} from 'rxjs/operators';
+import {BaseSettings} from '../../../lib/base.settings';
 
 @Injectable()
 export class UDFDataService extends AuthServiceWithLogout<UDFData> {
@@ -15,7 +16,7 @@ export class UDFDataService extends AuthServiceWithLogout<UDFData> {
   }
 
   public getUDFDataByEntityAndIdEntity(entity: string, idEntity: number): Observable<UDFData> {
-    return <Observable<UDFData>>this.httpClient.get(`${AppSettings.API_ENDPOINT}${AppSettings.UDF_DATA_KEY}`
+    return <Observable<UDFData>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.UDF_DATA_KEY}`
       + `/${entity}/${idEntity}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
@@ -25,7 +26,7 @@ export class UDFDataService extends AuthServiceWithLogout<UDFData> {
   }
 
   public deleteEntity(idUDFData: number): Observable<any> {
-    return this.httpClient.delete(`${AppSettings.API_ENDPOINT}${AppSettings.UDF_DATA_KEY}/${idUDFData}`, this.getHeaders())
+    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.UDF_DATA_KEY}/${idUDFData}`, this.getHeaders())
       .pipe(catchError(this.handleError.bind(this)));
   }
 }

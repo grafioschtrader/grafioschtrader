@@ -4,7 +4,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {ContentBase, SecuritycurrencyBaseInfoFields} from './securitycurrency.base.info.fields';
 import {Securitycurrency} from '../../entities/securitycurrency';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {SecurityUDFHelper} from '../../securitycurrency/component/security.udf.helper';
 import {Security} from '../../entities/security';
 import {FieldDescriptorInputAndShowExtendedSecurity} from '../../shared/udfmeta/model/udf.metadata';

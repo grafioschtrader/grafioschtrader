@@ -1,16 +1,16 @@
-import {FieldConfig} from '../../../dynamic-form/models/field.config';
-import {FormConfig} from '../../../dynamic-form/models/form.config';
+import {FieldConfig} from '../../dynamic-form/models/field.config';
+import {FormConfig} from '../../dynamic-form/models/form.config';
 import {TranslateService} from '@ngx-translate/core';
-import {ErrorMessageRules, RuleEvent} from '../../../dynamic-form/error/error.message.rules';
-import {FieldFormGroup} from '../../../dynamic-form/models/form.group.definition';
-import {DynamicFormComponent} from '../../../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import {ErrorMessageRules, RuleEvent} from '../../dynamic-form/error/error.message.rules';
+import {FieldFormGroup} from '../../dynamic-form/models/form.group.definition';
+import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {Directive, ViewChild} from '@angular/core';
-import {TranslateHelper} from '../../../lib/helper/translate.helper';
-import {equalTo} from '../../../lib/validator/validator';
-import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
-import {DynamicFieldModelHelper} from '../../../lib/helper/dynamic.field.model.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
+import {equalTo} from '../../validator/validator';
+import {FieldDescriptorInputAndShow} from '../../../shared/dynamicfield/field.descriptor.input.and.show';
+import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
 import {ValidatorFn, Validators} from '@angular/forms';
-import {GlobalparameterService, PasswordRegexProperties} from '../../service/globalparameter.service';
+import {GlobalparameterService, PasswordRegexProperties} from '../../../shared/service/globalparameter.service';
 
 /**
  * Certain forms such as registration or password change will involve entering a password twice.

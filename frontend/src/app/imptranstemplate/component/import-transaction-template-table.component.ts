@@ -1,6 +1,6 @@
 import {Component} from '@angular/core';
 import {ImportTransactionTemplate} from '../../entities/import.transaction.template';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {UserSettingsService} from '../../shared/service/user.settings.service';

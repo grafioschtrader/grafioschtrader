@@ -6,7 +6,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../service/globalparameter.service';
 import {UserSettingsService} from '../../service/user.settings.service';
 import {HelpIds} from '../../help/help.ids';
-import {DataType} from '../../../dynamic-form/models/data.type';
+import {DataType} from '../../../lib/dynamic-form/models/data.type';
 import {ColumnConfig, TranslateValue} from '../../../lib/datashowbase/column.config';
 import {TaskDataChangeService} from '../service/task.data.change.service';
 import {CrudMenuOptions, TableCrudSupportMenu} from '../../../lib/datashowbase/table.crud.support.menu';

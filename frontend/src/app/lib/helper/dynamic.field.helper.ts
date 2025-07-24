@@ -1,9 +1,9 @@
-import {DataType} from '../../dynamic-form/models/data.type';
-import {CalendarConfig, FieldConfig} from '../../dynamic-form/models/field.config';
-import {InputType} from '../../dynamic-form/models/input.type';
+import {DataType} from '../dynamic-form/models/data.type';
+import {CalendarConfig, FieldConfig} from '../dynamic-form/models/field.config';
+import {InputType} from '../dynamic-form/models/input.type';
 import {AppHelper} from './app.helper';
 import {ValidatorFn, Validators} from '@angular/forms';
-import {ErrorMessageRules, RuleEvent} from '../../dynamic-form/error/error.message.rules';
+import {ErrorMessageRules, RuleEvent} from '../dynamic-form/error/error.message.rules';
 
 import {
   email,
@@ -14,8 +14,8 @@ import {
   rangeLength,
   webUrl
 } from '../validator/validator';
-import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
-import {FileRequiredValidator} from '../../dynamic-form/components/form-input-file/file-input.validator';
+import {ValueKeyHtmlSelectOptions} from '../dynamic-form/models/value.key.html.select.options';
+import {FileRequiredValidator} from '../dynamic-form/components/form-input-file/file-input.validator';
 import {NgxCurrencyConfig} from 'ngx-currency';
 
 /**

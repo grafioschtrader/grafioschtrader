@@ -1,11 +1,11 @@
-import {FieldConfig} from '../../dynamic-form/models/field.config';
+import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {AppSettings} from '../../shared/app.settings';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {Subscription} from 'rxjs';
 import moment from 'moment';
 import {CorrelationLimit, SamplingPeriodType} from '../../entities/correlation.set';
-import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 import Base = moment.unitOfTime.Base;
 
 /**

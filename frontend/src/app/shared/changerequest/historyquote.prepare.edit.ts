@@ -1,12 +1,12 @@
 import {EntityMapping, PrepareCallParam} from './request.for.you.table.component';
-import {Historyquote} from '../../../entities/historyquote';
-import {SecurityService} from '../../../securitycurrency/service/security.service';
-import {CurrencypairService} from '../../../securitycurrency/service/currencypair.service';
+import {Historyquote} from '../../entities/historyquote';
+import {SecurityService} from '../../securitycurrency/service/security.service';
+import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 import {combineLatest} from 'rxjs';
-import {HistoryquoteSecurityCurrency} from '../../../historyquote/component/historyquote-table.component';
-import {Currencypair} from '../../../entities/currencypair';
-import {Security} from '../../../entities/security';
-import {BasePrepareEdit} from './base.prepare.edit';
+import {HistoryquoteSecurityCurrency} from '../../historyquote/component/historyquote-table.component';
+import {Currencypair} from '../../entities/currencypair';
+import {Security} from '../../entities/security';
+import {BasePrepareEdit} from '../../lib/proposechange/component/base.prepare.edit';
 
 export class HistoryquotePrepareEdit extends BasePrepareEdit implements PrepareCallParam {
 

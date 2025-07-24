@@ -7,7 +7,7 @@ import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {TranslateService} from '@ngx-translate/core';
-import {DataType} from '../../dynamic-form/models/data.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {UserSettingsService} from '../../shared/service/user.settings.service';
 import {HelpIds} from '../../shared/help/help.ids';
 import {User} from '../../lib/entities/user';
@@ -20,7 +20,7 @@ import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config
 import {UserTaskType} from '../../lib/types/user.task.type';
 import {SvgIconRegistryService} from 'angular-svg-icon';
 import {AppSettings} from '../../shared/app.settings';
-import {LimitEntityTransactionError} from '../../shared/login/service/limit.entity.transaction.error';
+import {LimitEntityTransactionError} from '../../lib/login/service/limit.entity.transaction.error';
 import {ProposeUserTaskService} from '../../shared/dynamicdialog/service/propose.user.task.service';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {DynamicDialogs} from '../../shared/dynamicdialog/component/dynamic.dialogs';

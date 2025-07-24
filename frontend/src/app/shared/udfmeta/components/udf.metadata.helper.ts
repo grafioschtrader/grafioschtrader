@@ -1,13 +1,13 @@
-import {FieldConfig} from '../../../dynamic-form/models/field.config';
+import {FieldConfig} from '../../../lib/dynamic-form/models/field.config';
 import {DynamicFieldHelper, VALIDATION_SPECIAL} from '../../../lib/helper/dynamic.field.helper';
 import {UDFDataType, UDFMetadata} from '../model/udf.metadata';
 import {Subscription} from 'rxjs';
 import {SelectOptionsHelper} from '../../../lib/helper/select.options.helper';
-import {FormHelper} from '../../../dynamic-form/components/FormHelper';
-import {DynamicFormComponent} from '../../../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import {FormHelper} from '../../../lib/dynamic-form/components/FormHelper';
+import {DynamicFormComponent} from '../../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {dataTypeFieldSizeGroup} from '../../../lib/validator/validator';
 import {TranslateService} from '@ngx-translate/core';
-import {FieldFormGroup} from '../../../dynamic-form/models/form.group.definition';
+import {FieldFormGroup} from '../../../lib/dynamic-form/models/form.group.definition';
 import {GlobalSessionNames} from '../../global.session.names';
 import {FieldDescriptorInputAndShowExtended} from '../../dynamicfield/field.descriptor.input.and.show';
 
