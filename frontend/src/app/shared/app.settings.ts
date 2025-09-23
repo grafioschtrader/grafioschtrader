@@ -1,5 +1,6 @@
 import {GlobalSessionNames} from './global.session.names';
 import {GTNetMessage} from '../gtnet/model/gtnet.message';
+import {GlobalGTSessionNames} from './global.gt.session.names';
 
 export class AppSettings {
 
@@ -226,7 +227,7 @@ export class AppSettings {
 
   public static resetInterFractionLimit(): void {
     const standardPrecisionMap: { [typename: string]: number } =
-      JSON.parse(sessionStorage.getItem(GlobalSessionNames.STANDARD_PRECISION));
+      JSON.parse(sessionStorage.getItem(GlobalGTSessionNames.STANDARD_CURRENCY_PRECISIONS_AND_LIMITS));
     if (standardPrecisionMap) {
       const keys = Object.keys(standardPrecisionMap);
       keys.forEach(key => {

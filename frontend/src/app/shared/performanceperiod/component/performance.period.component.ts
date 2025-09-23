@@ -24,6 +24,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {ChartDataService} from '../../chart/service/chart.data.service';
 import {ChartTrace, PlotlyHelper} from '../../chart/plotly.helper';
 import {FormHelper} from '../../../lib/dynamic-form/components/FormHelper';
+import {GlobalGTSessionNames} from '../../global.gt.session.names';
 
 /**
  * Performance over a certain period for a tenant or portfolio.
@@ -99,10 +100,9 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
       this.loading = false;
       if (famtd.firstEverTradingDay) {
         this.firstAndMissingTradingDays = famtd;
-
         const fromDate = famtd.firstEverTradingDay > famtd.lastTradingDayOfLastYear
           ? famtd.firstEverTradingDay : famtd.lastTradingDayOfLastYear;
-        this.configObject.dateFrom.formControl.setValue(BusinessHelper.getDateFromSessionStorage(GlobalSessionNames.PERFORMANCE_DATE_FROM,
+        this.configObject.dateFrom.formControl.setValue(BusinessHelper.getDateFromSessionStorage(GlobalGTSessionNames.PERFORMANCE_DATE_FROM,
           new Date(fromDate)));
         this.configObject.dateTo.formControl.setValue(new Date(famtd.latestTradingDay));
         this.configObject.dateFrom.calendarConfig = {
@@ -128,6 +128,7 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
   valueChangedOnDateFrom(): void {
     this.dateFromSubscribe = this.configObject.dateFrom.formControl.valueChanges.subscribe((dateFrom: Date) => {
       this.setMinDateForToDate(dateFrom);
+      BusinessHelper.saveDateToSessionStore(GlobalGTSessionNames.PERFORMANCE_DATE_FROM, dateFrom)
       this.setMonthWeekPeriod();
     });
   }

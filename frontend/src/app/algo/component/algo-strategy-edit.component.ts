@@ -10,7 +10,7 @@ import {AppHelper} from '../../lib/helper/app.helper';
 import {AlgoCallParam} from '../model/algo.dialog.visible';
 import {AlgoStrategyImplementationType} from '../../shared/types/algo.strategy.implementation.type';
 import {Subscription} from 'rxjs';
-import {FieldDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
+import {FieldDescriptorInputAndShow} from '../../lib/dynamicfield/field.descriptor.input.and.show';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 import {BaseParam} from '../../lib/entities/base.param';

@@ -1,4 +1,4 @@
-import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
+import {ClassDescriptorInputAndShow} from '../../lib/dynamicfield/field.descriptor.input.and.show';
 import {BaseParam} from '../../lib/entities/base.param';
 
 export class GTNetMessage {

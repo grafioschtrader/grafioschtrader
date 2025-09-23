@@ -9,7 +9,7 @@ import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../../lib/login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
 import {MessageToastService} from '../../../lib/message/message.toast.service';
-import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
+import {FieldDescriptorInputAndShow} from '../../../lib/dynamicfield/field.descriptor.input.and.show';
 import {UserTaskType} from '../../../lib/types/user.task.type';
 import {StringResponse} from '../../../entities/backend/string.response';
 import {BaseSettings} from '../../../lib/base.settings';

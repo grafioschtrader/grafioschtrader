@@ -1,4 +1,4 @@
-import {FieldDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
+import {FieldDescriptorInputAndShow} from '../../lib/dynamicfield/field.descriptor.input.and.show';
 
 export class InputAndShowDefinitionStrategy {
   topFormDefinitionList: FieldDescriptorInputAndShow[];

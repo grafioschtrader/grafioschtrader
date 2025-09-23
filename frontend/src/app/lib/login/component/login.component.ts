@@ -13,7 +13,7 @@ import {ActuatorService, ApplicationInfo} from '../../../shared/service/actuator
 import {BusinessHelper} from '../../../shared/helper/business.helper';
 import {HelpIds} from '../../../shared/help/help.ids';
 import {combineLatest} from 'rxjs';
-import {FieldDescriptorInputAndShow} from '../../../shared/dynamicfield/field.descriptor.input.and.show';
+import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
 import {GlobalSessionNames} from '../../../shared/global.session.names';
 import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
 import {AppHelper} from '../../helper/app.helper';

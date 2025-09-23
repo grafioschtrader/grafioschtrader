@@ -18,7 +18,7 @@ import 'moment/locale/en-au.js';
 import 'moment/locale/en-nz.js';
 import {NgxCurrencyConfig, NgxCurrencyInputMode} from 'ngx-currency';
 import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
-import {FieldDescriptorInputAndShow} from '../dynamicfield/field.descriptor.input.and.show';
+import {FieldDescriptorInputAndShow} from '../../lib/dynamicfield/field.descriptor.input.and.show';
 import {FeatureType} from '../../lib/login/component/login.component';
 import NumberFormat = Intl.NumberFormat;
 import {BaseSettings} from '../../lib/base.settings';

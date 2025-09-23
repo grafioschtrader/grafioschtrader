@@ -8,7 +8,7 @@ import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../../lib/login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
 import {MessageToastService} from '../../../lib/message/message.toast.service';
-import {FieldDescriptorInputAndShowExtended} from '../../dynamicfield/field.descriptor.input.and.show';
+import {FieldDescriptorInputAndShowExtended} from '../../../lib/dynamicfield/field.descriptor.input.and.show';
 import {DeleteReadAllService} from '../components/udf.metadata.table';
 import {BaseSettings} from '../../../lib/base.settings';
 

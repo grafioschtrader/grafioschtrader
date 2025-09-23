@@ -24,15 +24,49 @@ import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.SecurityDerivedLinkJpaRepository;
 import grafioschtrader.types.HistoryquoteCreateType;
 
-/*-
- *  A derived product always has one or more underlying instruments, and may also contain a calculation formula for the price data.
- *  Only through a derived instrument does a currency pair become tradable, in this case the instrument has no formula.
- *
+/**
+ * Helper class for calculating historical price data for derived financial instruments.
+ * 
+ * <p>
+ * A derived product's price is calculated from one or more underlying instruments, optionally using a mathematical
+ * formula. Only through a derived instrument does a currency pair become tradable; in this case the instrument has no
+ * formula.
+ * </p>
+ * 
+ * <p>
+ * <strong>Formula System:</strong>
+ * </p>
+ * <ul>
+ * <li>Primary linked security uses variable 'o' (defined in {@link SecurityDerivedLink#FIRST_VAR_NAME_LETTER})</li>
+ * <li>Additional securities use variables 'p', 'q', 'r', 's'</li>
+ * <li>Formulas evaluated using EvalEx expression library</li>
+ * <li>Example: "(o + p) / 2" averages two instruments</li>
+ * </ul>
+ * 
+ * <p>
+ * All linked instruments must have quotes for the same dates. Missing data from any linked instrument prevents
+ * calculation for that date.
+ * </p>
  */
 public abstract class ThruCalculationHelper {
 
   private static final Logger log = LoggerFactory.getLogger(ThruCalculationHelper.class);
 
+  /**
+   * Loads historical data for linked instruments and creates calculated history quotes.
+   * 
+   * <p>
+   * Retrieves historical quotes for all linked instruments and generates calculated quotes based on the security's
+   * formula (if present) or by copying prices directly.
+   * </p>
+   * 
+   * @param securityDerivedLinkJpaRepository repository for retrieving additional instrument links
+   * @param historyquoteJpaRepository        repository for loading historical quotes
+   * @param security                         the derived security for which to calculate quotes
+   * @param correctedFromDate                start date for historical data retrieval
+   * @param toDateCalc                       end date for historical data retrieval
+   * @return list of calculated {@link Historyquote} entities with {@link HistoryquoteCreateType#CALCULATED}
+   */
   public static List<Historyquote> loadDataAndCreateHistoryquotes(
       final SecurityDerivedLinkJpaRepository securityDerivedLinkJpaRepository,
       HistoryquoteJpaRepository historyquoteJpaRepository, IFormulaInSecurity security, Date correctedFromDate,
@@ -54,12 +88,42 @@ public abstract class ThruCalculationHelper {
       historyquotes = historyquoteJpaRepository.findByIdSecuritycurrencyAndDateBetweenOrderByDate(
           security.getIdLinkSecuritycurrency(), correctedFromDate, toDateCalc);
     }
-
-    return createHistoryquotes(security, historyquotes, securityDerivedLinks, correctedFromDate, toDateCalc);
+    return createHistoryquotes(security, historyquotes, securityDerivedLinks);
   }
 
+  /**
+   * Fills gaps in historical price data for a derived security by calculating missing end-of-day quotes.
+   * 
+   * <p>
+   * Identifies dates where all dependency securities have data but the derived security doesn't, then calculates and
+   * creates new historyquote entries using the security's formula and dependency data.
+   * </p>
+   * 
+   * @param securityDerivedLinkJpaRepository repository to fetch additional security dependencies
+   * @param historyquoteJpaRepository        repository to query missing historical quotes
+   * @param security                         the derived security that needs gap filling
+   * @param maxDate                          the maximum date to check for gaps (inclusive)
+   * @return list of newly created historyquote entries, ordered by date descending
+   */
+  public static List<Historyquote> fillGaps(final SecurityDerivedLinkJpaRepository securityDerivedLinkJpaRepository,
+      HistoryquoteJpaRepository historyquoteJpaRepository, IFormulaInSecurity security, Date maxDate) {
+    List<Historyquote> historyquotes = historyquoteJpaRepository
+        .getMissingDerivedSecurityEOD(security.getIdSecuritycurrency(), maxDate);
+    List<SecurityDerivedLink> securityDerivedLinks = securityDerivedLinkJpaRepository
+        .findByIdEmIdSecuritycurrencyOrderByIdEmIdSecuritycurrency(security.getIdSecuritycurrency());
+    return createHistoryquotes(security, historyquotes, securityDerivedLinks);
+  }
+
+  /**
+   * Creates calculated history quotes from loaded data and formula expression.
+   * 
+   * @param security             the derived security with optional formula
+   * @param historyquotes        source historical quotes from linked instruments
+   * @param securityDerivedLinks additional instrument links (empty for single-link securities)
+   * @return list of calculated history quotes, or null if evaluation fails
+   */
   private static List<Historyquote> createHistoryquotes(IFormulaInSecurity security, List<Historyquote> historyquotes,
-      List<SecurityDerivedLink> securityDerivedLinks, Date correctedFromDate, Date toDateCalc) {
+      List<SecurityDerivedLink> securityDerivedLinks) {
     Expression expression = null;
     List<Historyquote> createdHistoryquotes = null;
 
@@ -73,14 +137,26 @@ public abstract class ThruCalculationHelper {
         createdHistoryquotes = createHistoryquoteWitAddionalLinks(security, historyquotes, expression,
             securityDerivedLinks);
       }
-
     } catch (EvaluationException | ParseException e) {
       log.error("Failed to evalute expression for security with ID {}", security.getIdSecuritycurrency());
     }
     return createdHistoryquotes;
-
   }
 
+  /**
+   * Creates history quotes for derived security with single linked instrument.
+   * 
+   * <p>
+   * Applies formula evaluation if present, otherwise copies close price directly.
+   * </p>
+   * 
+   * @param security      the derived security
+   * @param historyquotes source quotes from the single linked instrument
+   * @param expression    optional formula expression for price calculation
+   * @return list of calculated history quotes
+   * @throws EvaluationException if formula evaluation fails
+   * @throws ParseException      if formula parsing fails
+   */
   private static List<Historyquote> createHistoryquoteWithoutAddionalLinks(IFormulaInSecurity security,
       List<Historyquote> historyquotes, Expression expression) throws EvaluationException, ParseException {
     List<Historyquote> createdHistoryquotes = new ArrayList<>();
@@ -98,6 +174,22 @@ public abstract class ThruCalculationHelper {
     return createdHistoryquotes;
   }
 
+  /**
+   * Creates history quotes for derived security with multiple linked instruments.
+   * 
+   * <p>
+   * Groups quotes by date, evaluates formula with all variables populated, and creates calculated quotes only for dates
+   * where all linked instruments have data.
+   * </p>
+   * 
+   * @param security             the derived security with formula
+   * @param historyquotes        combined quotes from all linked instruments
+   * @param expression           formula expression requiring all variables
+   * @param securityDerivedLinks additional instrument links providing variable mappings
+   * @return list of calculated history quotes
+   * @throws EvaluationException if formula evaluation fails
+   * @throws ParseException      if formula parsing fails
+   */
   private static List<Historyquote> createHistoryquoteWitAddionalLinks(IFormulaInSecurity security,
       List<Historyquote> historyquotes, Expression expression, List<SecurityDerivedLink> securityDerivedLinks)
       throws EvaluationException, ParseException {
@@ -110,15 +202,23 @@ public abstract class ThruCalculationHelper {
         addCreatedHistoryquote(createdHistoryquotes, groupDate, security, expression);
         groupDate = historyquote.getDate();
       }
-
       expression.with(idSecurityToVarNameMap.get(historyquote.getIdSecuritycurrency()),
           BigDecimal.valueOf(historyquote.getClose()));
     }
     addCreatedHistoryquote(createdHistoryquotes, groupDate, security, expression);
     return createdHistoryquotes;
-
   }
 
+  /**
+   * Adds calculated history quote for a specific date if valid.
+   * 
+   * @param createdHistoryquotes accumulator list for created quotes
+   * @param groupDate            date for the calculated quote (null if incomplete data)
+   * @param security             the derived security
+   * @param expression           formula with all variables populated
+   * @throws EvaluationException if formula evaluation fails
+   * @throws ParseException      if formula parsing fails
+   */
   private static void addCreatedHistoryquote(List<Historyquote> createdHistoryquotes, Date groupDate,
       IFormulaInSecurity security, Expression expression) throws EvaluationException, ParseException {
     if (groupDate != null) {
@@ -130,6 +230,18 @@ public abstract class ThruCalculationHelper {
     }
   }
 
+  /**
+   * Creates mapping from linked security IDs to formula variable names.
+   * 
+   * <p>
+   * Maps the primary linked security to variable 'o' and additional links to their configured variable names ('p', 'q',
+   * 'r', 's').
+   * </p>
+   * 
+   * @param security             derived security with primary link
+   * @param securityDerivedLinks additional linked securities with variable assignments
+   * @return map of security ID to variable name for formula evaluation
+   */
   public static Map<Integer, String> createIdSecurityToVarNameMap(IFormulaInSecurity security,
       List<SecurityDerivedLink> securityDerivedLinks) {
     Map<Integer, String> idSecurityToVarNameMap = new HashMap<>();
@@ -139,6 +251,25 @@ public abstract class ThruCalculationHelper {
     return idSecurityToVarNameMap;
   }
 
+  /**
+   * Validates that security's formula correctly references all linked instruments.
+   * 
+   * <p>
+   * Ensures formula contains required variables and all variables correspond to valid links:
+   * </p>
+   * <ul>
+   * <li>Formula must contain primary variable 'o'</li>
+   * <li>Formula must contain variable for each additional link</li>
+   * <li>All link variable names must be in allowed set ('p', 'q', 'r', 's')</li>
+   * <li>Formula must evaluate successfully with test values</li>
+   * </ul>
+   * 
+   * @param security  the security with formula and derived links
+   * @param localeStr locale for error message translation
+   * @throws ParseException         if formula syntax is invalid
+   * @throws EvaluationException    if formula cannot be evaluated
+   * @throws DataViolationException if formula missing required variables or using invalid variable names
+   */
   public static void checkFormulaAgainstInstrumetLinks(Security security, String localeStr)
       throws ParseException, EvaluationException {
     if (security.isCalculatedPrice()) {

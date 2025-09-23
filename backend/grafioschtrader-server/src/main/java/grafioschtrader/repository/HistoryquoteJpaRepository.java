@@ -510,6 +510,32 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   @Query(nativeQuery = true)
   List<Date> getMissingEODForSecurityByUpdCalendarIndex(Integer idSecuritycurrencyIndex, Integer idSecuritycurrency);
 
+  /**
+   * Retrieves missing end-of-day (EOD) historical quotes for a derived security up to a specified date.
+   * 
+   * <p>A derived security calculates its price based on one or more underlying securities
+   * (defined by {@link Security#idLinkSecuritycurrency} and {@link SecurityDerivedLink}).
+   * This method identifies trading days where all dependent securities have historical data,
+   * but the derived security itself is missing a history quote entry.</p>
+   * 
+   * <p>The query uses a CTE-based approach to:</p>
+   * <ol>
+   *   <li>Collect all security dependencies (main link + additional links from security_derived_link)</li>
+   *   <li>Find dates where ALL dependencies have complete data (up to maxDate)</li>
+   *   <li>Return historyquote records for those dates where the derived security has no entry</li>
+   * </ol>
+   * 
+   * <p>The returned historyquote objects contain the source data needed to calculate
+   * the derived security's price using its formula ({@link Security#formulaPrices}).</p>
+   * 
+   * @param idSecuritycurrency the ID of the derived security to check for missing data
+   * @param maxDate the maximum date to check (inclusive), typically yesterday or current date
+   * @return list of historyquote records from dependency securities for dates where 
+   *         the derived security is missing data, ordered by date (descending) and dependency ID
+   */
+  @Query(nativeQuery = true)
+  List<Historyquote> getMissingDerivedSecurityEOD(Integer idSecuritycurrency, Date maxDate);
+
   public interface SecurityCurrencyIdAndDate {
     Integer getIdSecuritycurrency();
 

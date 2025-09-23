@@ -2,7 +2,7 @@ import {AssetclassType} from '../../types/assetclass.type';
 import {SpecialInvestmentInstruments} from '../../types/special.investment.instruments';
 import {BaseID} from '../../../lib/entities/base.id';
 import {Exclude} from 'class-transformer';
-import {FieldDescriptorInputAndShowExtended} from '../../dynamicfield/field.descriptor.input.and.show';
+import {FieldDescriptorInputAndShowExtended} from '../../../lib/dynamicfield/field.descriptor.input.and.show';
 
 export abstract class UDFMetadata implements BaseID {
   idUDFMetadata: number = null;

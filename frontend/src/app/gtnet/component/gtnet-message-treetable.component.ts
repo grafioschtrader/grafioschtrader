@@ -9,7 +9,7 @@ import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu
 import {HelpIds} from '../../shared/help/help.ids';
 import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
-import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
+import {ClassDescriptorInputAndShow} from '../../lib/dynamicfield/field.descriptor.input.and.show';
 
 /**
  * It shows the messages in a tree table.

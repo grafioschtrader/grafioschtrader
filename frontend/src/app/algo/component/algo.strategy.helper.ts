@@ -1,4 +1,4 @@
-import {FieldDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
+import {FieldDescriptorInputAndShow} from '../../lib/dynamicfield/field.descriptor.input.and.show';
 import {AlgoTopAssetSecurity} from '../model/algo.top.asset.security';
 import {InputAndShowDefinitionStrategy} from '../model/input.and.show.definition.strategy';
 import {AlgoTop} from '../model/algo.top';

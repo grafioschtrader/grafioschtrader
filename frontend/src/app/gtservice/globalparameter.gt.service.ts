@@ -11,6 +11,7 @@ import {Globalparameters} from '../lib/entities/globalparameters';
 import {AssetclassType} from '../shared/types/assetclass.type';
 import {SpecialInvestmentInstruments} from '../shared/types/special.investment.instruments';
 import {BaseSettings} from '../lib/base.settings';
+import {GlobalGTSessionNames} from '../shared/global.gt.session.names';
 
 @Injectable()
 export class GlobalparameterGTService extends BaseAuthService<Globalparameters> {
@@ -20,12 +21,12 @@ export class GlobalparameterGTService extends BaseAuthService<Globalparameters> 
   }
 
   public getIntraUpdateTimeout(): Observable<number> {
-    return this.getGlobalparameterNumber(GlobalSessionNames.UPDATE_TIME,
+    return this.getGlobalparameterNumber(GlobalGTSessionNames.UPDATE_TIME_OUT,
       AppSettings.GT_GLOBALPARAMETERS_P_KEY, 'updatetimeout');
   }
 
   public getStartFeedDateAsTime(): Observable<number> {
-    return this.getGlobalparameterNumber(GlobalSessionNames.START_FEED_DATE,
+    return this.getGlobalparameterNumber(GlobalGTSessionNames.START_FEED_DATE,
       AppSettings.GT_GLOBALPARAMETERS_P_KEY, 'startfeeddate');
   }
 
@@ -41,14 +42,17 @@ export class GlobalparameterGTService extends BaseAuthService<Globalparameters> 
         this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-  private getGlobalparameterNumber(globalSessionNames: GlobalSessionNames, requestMapping: string, uriPart: string): Observable<number> {
+  private getGlobalparameterNumber<T extends string>(globalSessionNames: T, requestMapping: string, uriPart: string
+  ): Observable<number> {
     if (sessionStorage.getItem(globalSessionNames)) {
       return of(+sessionStorage.getItem(globalSessionNames));
     } else {
       return <Observable<number>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}`
         + `${requestMapping}/${uriPart}`,
-        this.getHeaders()).pipe(tap(value => sessionStorage.setItem(globalSessionNames, '' + value)),
-        catchError(this.handleError.bind(this)));
+        this.getHeaders()).pipe(
+        tap(value => sessionStorage.setItem(globalSessionNames, '' + value)),
+        catchError(this.handleError.bind(this))
+      );
     }
   }
 

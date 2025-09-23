@@ -1,5 +1,5 @@
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {FieldFormGroup} from '../../lib/dynamic-form/models/form.group.definition';
+import {DataType} from '../dynamic-form/models/data.type';
+import {FieldFormGroup} from '../dynamic-form/models/form.group.definition';
 
 
 export enum DynamicFormPropertyHelps {

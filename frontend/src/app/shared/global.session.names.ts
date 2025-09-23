@@ -1,6 +1,7 @@
 export enum GlobalSessionNames {
-  UPDATE_TIME = 'updateTimeout',
-  START_FEED_DATE = 'startFeedDate',
+
+
+
   ID_TENANT = 'idTenant',
   ID_USER = 'idUser',
   LOCALE = 'locale',
@@ -15,14 +16,13 @@ export enum GlobalSessionNames {
   REPORT_UNTIL_DATE = 'untilDate',
   ENTITY_KEY_MAPPING = 'entityKeyMapping',
   USE_FEATURES = 'useFeatures',
-  CRYPTOS = 'crypotcurrencies',
-  TAB_MENU_TENANT = 'tabMenuTenant',
-  TAB_MENU_PORTFOLIO = 'tabMenuPortfolio',
-  PERFORMANCE_DATE_FROM = 'performanceDateFrom',
-  STANDARD_PRECISION = 'standardPrecision',
 
   /** All members with the prefix “FIELD_SIZE” from the BaseConstants class and its derived classes. */
   FIELD_SIZE = 'fieldSize',
+
+  /**
+   * Some currencies will not have two decimal places. These will be stored under this key.
+   */
   CURRENCY_PRECISION = 'currencyPrecision',
 
   /** Should an entity's ownership of shared data be visible. For example, a bold font in the table view. */
@@ -35,3 +35,5 @@ export enum GlobalSessionNames {
   UDF_FORM_DESCRIPTOR_GENERAL = 'udfFormDescriptorGeneral',
   UDF_CONFIG = 'udfConfig'
 }
+
+

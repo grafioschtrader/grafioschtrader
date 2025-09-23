@@ -7,7 +7,7 @@ import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/d
 import {Directive, ViewChild} from '@angular/core';
 import {TranslateHelper} from '../../helper/translate.helper';
 import {equalTo} from '../../validator/validator';
-import {FieldDescriptorInputAndShow} from '../../../shared/dynamicfield/field.descriptor.input.and.show';
+import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
 import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
 import {ValidatorFn, Validators} from '@angular/forms';
 import {GlobalparameterService, PasswordRegexProperties} from '../../../shared/service/globalparameter.service';
