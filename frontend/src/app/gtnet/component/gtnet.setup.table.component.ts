@@ -17,7 +17,7 @@ import {HelpIds} from '../../shared/help/help.ids';
 import {GTNetMessageTreeTableComponent} from './gtnet-message-treetable.component';
 import {combineLatest} from 'rxjs';
 import {GTNetMessageService} from '../service/gtnet.message.service';
-import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
+import {ClassDescriptorInputAndShow} from '../../lib/dynamicfield/field.descriptor.input.and.show';
 
 @Component({
   template: `

@@ -8,7 +8,7 @@ import {Observable} from 'rxjs/internal/Observable';
 import {AppSettings} from '../../shared/app.settings';
 import {catchError} from 'rxjs/operators';
 import {Injectable} from '@angular/core';
-import {ClassDescriptorInputAndShow} from '../../shared/dynamicfield/field.descriptor.input.and.show';
+import {ClassDescriptorInputAndShow} from '../../lib/dynamicfield/field.descriptor.input.and.show';
 import {BaseSettings} from '../../lib/base.settings';
 
 @Injectable()

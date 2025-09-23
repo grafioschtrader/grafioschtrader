@@ -395,7 +395,7 @@ export class BusinessHelper {
    * @param property Session storage key for the date
    * @param date Date object to store
    */
-  private static saveDateToSessionStore(property: string, date: Date) {
+  public static saveDateToSessionStore(property: string, date: Date) {
     sessionStorage.setItem(property, moment(date).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE));
   }
 

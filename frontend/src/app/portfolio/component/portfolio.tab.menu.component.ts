@@ -6,6 +6,7 @@ import {Portfolio} from '../../entities/portfolio';
 import {Subscription} from 'rxjs';
 import {TabItem} from '../../shared/types/tab.item';
 import {SessionStorageTabHelper} from '../../lib/tabmenu/component/session.storage.tab.helper';
+import {GlobalGTSessionNames} from '../../shared/global.gt.session.names';
 
 /**
  * Component for the tab menu of a single portfolio.
@@ -44,7 +45,7 @@ export class PortfolioTabMenuComponent implements OnInit, OnDestroy {
   ];
 
   defaultRoute: string = AppSettings.PORTFOLIO_SUMMARY_KEY;
-  sessionStorageKey: string = GlobalSessionNames.TAB_MENU_PORTFOLIO;
+  sessionStorageKey: string = GlobalGTSessionNames.TAB_MENU_PORTFOLIO;
 
   private routeSubscribe: Subscription;
   private portfolio: Portfolio;

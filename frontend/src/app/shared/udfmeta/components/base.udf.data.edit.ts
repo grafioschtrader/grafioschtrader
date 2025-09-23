@@ -11,7 +11,7 @@ import {ProcessedActionData} from '../../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../../lib/types/processed.action';
 import {DynamicFieldModelHelper} from '../../../lib/helper/dynamic.field.model.helper';
 import {TranslateHelper} from '../../../lib/helper/translate.helper';
-import {FieldDescriptorInputAndShowExtended} from '../../dynamicfield/field.descriptor.input.and.show';
+import {FieldDescriptorInputAndShowExtended} from '../../../lib/dynamicfield/field.descriptor.input.and.show';
 import {Directive, Input} from '@angular/core';
 import {DataType} from '../../../lib/dynamic-form/models/data.type';
 import {Helper} from '../../../lib/helper/helper';

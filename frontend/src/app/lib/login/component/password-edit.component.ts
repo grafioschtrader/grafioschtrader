@@ -11,7 +11,7 @@ import {GlobalparameterService} from '../../../shared/service/globalparameter.se
 import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
 import {UserSettingsDialogs} from '../../../shared/mainmenubar/component/main.dialog.component';
 import {TranslateHelper} from '../../helper/translate.helper';
-import {FieldDescriptorInputAndShow} from '../../../shared/dynamicfield/field.descriptor.input.and.show';
+import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
 import {GlobalSessionNames} from '../../../shared/global.session.names';
 import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
 

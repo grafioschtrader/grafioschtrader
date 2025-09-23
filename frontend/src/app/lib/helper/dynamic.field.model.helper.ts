@@ -5,7 +5,7 @@ import {
   FieldDescriptorInputAndShow,
   FieldDescriptorInputAndShowExtended,
   ReplaceFieldWithGroup
-} from '../../shared/dynamicfield/field.descriptor.input.and.show';
+} from '../dynamicfield/field.descriptor.input.and.show';
 import {FieldConfig} from '../dynamic-form/models/field.config';
 import {AppHelper} from './app.helper';
 import {DataType} from '../dynamic-form/models/data.type';

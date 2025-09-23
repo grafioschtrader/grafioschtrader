@@ -103,12 +103,10 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
       restryHistoryLoad++;
       log.error(ex.getMessage() + " " + securitycurrency, ex);
     }
-
     securitycurrency.setRetryHistoryLoad(restryHistoryLoad);
     if (fromDate == null && toDate == null) {
       securitycurrency.setFullLoadTimestamp(new Date(System.currentTimeMillis()));
     }
-
     return securitycurrencyService.getJpaRepository().save(securitycurrency);
   }
 
@@ -264,7 +262,6 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
           ifeedConnector = ConnectorHelper.getConnectorByConnectorId(this.feedConnectorbeans,
               historyquoteQualityFlat.getIdConnectorHistory(), IFeedConnector.FeedSupport.FS_INTRA);
           readableNamePrefix = "† - ";
-
         }
         readableName = ifeedConnector == null ? "†" : readableNamePrefix + ifeedConnector.getReadableName();
 
@@ -278,7 +275,6 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
                 .getSpecialInvestmentInstrumentsByValue(historyquoteQualityFlat.getSpecialInvestmentInstrument())
                 .name(), null, userLocale);
         historyquoteQualityHead.addHistoryquoteQualityFlat(historyquoteQualityFlat, groupValues, 0, isConnectGroup);
-
       });
     }
     return historyquoteQualityHead;

@@ -18,6 +18,7 @@ import {ConfigurationWithLoginGT} from '../component/login.component';
 import {AppHelper} from '../../helper/app.helper';
 import {PrimeNG} from 'primeng/config';
 import {BaseSettings} from '../../base.settings';
+import {GlobalGTSessionNames} from '../../../shared/global.gt.session.names';
 
 
 @Injectable()
@@ -65,15 +66,10 @@ export class LoginService extends BaseAuthService<User> {
     sessionStorage.setItem(GlobalSessionNames.ROLES, responseClaim.roles);
     sessionStorage.setItem(GlobalSessionNames.LANGUAGE, responseClaim.localeStr.slice(0, 2));
     sessionStorage.setItem(GlobalSessionNames.JWT, token);
-
-
-
     sessionStorage.setItem(GlobalSessionNames.REPORT_UNTIL_DATE, moment().format(BaseSettings.FORMAT_DATE_SHORT_NATIVE));
-
     sessionStorage.setItem(GlobalSessionNames.USE_FEATURES, JSON.stringify(configurationWithLogin.useFeatures));
-    sessionStorage.setItem(GlobalSessionNames.CRYPTOS, JSON.stringify(configurationWithLogin.cryptocurrencies));
-
-    sessionStorage.setItem(GlobalSessionNames.STANDARD_PRECISION, JSON.stringify(configurationWithLogin.standardPrecision));
+    sessionStorage.setItem(GlobalGTSessionNames.CRYPTOS, JSON.stringify(configurationWithLogin.cryptocurrencies));
+    sessionStorage.setItem(GlobalGTSessionNames.STANDARD_CURRENCY_PRECISIONS_AND_LIMITS, JSON.stringify(configurationWithLogin.standardPrecision));
     sessionStorage.setItem(GlobalSessionNames.FIELD_SIZE, JSON.stringify(configurationWithLogin.fieldSize));
     AppSettings.resetInterFractionLimit();
 

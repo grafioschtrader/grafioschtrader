@@ -3,6 +3,7 @@ import { AppSettings } from '../../../shared/app.settings';
 import { GlobalSessionNames } from '../../../shared/global.session.names';
 import { GlobalparameterService } from '../../../shared/service/globalparameter.service';
 import {TabItem} from '../../../shared/types/tab.item';
+import {GlobalGTSessionNames} from '../../../shared/global.gt.session.names';
 
 
 
@@ -21,7 +22,7 @@ import {TabItem} from '../../../shared/types/tab.item';
 export class TenantTabMenuComponent implements OnInit {
   tabs: TabItem[] = [];
   defaultRoute: string = AppSettings.PORTFOLIO_KEY;
-  sessionStorageKey: string = GlobalSessionNames.TAB_MENU_TENANT;
+  sessionStorageKey: string = GlobalGTSessionNames.TAB_MENU_TENANT;
 
   constructor(private gps: GlobalparameterService) {}
 

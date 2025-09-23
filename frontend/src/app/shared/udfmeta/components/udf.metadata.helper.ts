@@ -9,7 +9,7 @@ import {dataTypeFieldSizeGroup} from '../../../lib/validator/validator';
 import {TranslateService} from '@ngx-translate/core';
 import {FieldFormGroup} from '../../../lib/dynamic-form/models/form.group.definition';
 import {GlobalSessionNames} from '../../global.session.names';
-import {FieldDescriptorInputAndShowExtended} from '../../dynamicfield/field.descriptor.input.and.show';
+import {FieldDescriptorInputAndShowExtended} from '../../../lib/dynamicfield/field.descriptor.input.and.show';
 
 /**
  * Contains static methods of the definitions for entering the metadata of the user-defined input fields.
