@@ -107,8 +107,8 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
         if (securitycurrency instanceof Security security) {
           security.setSVolume(m.regularMarketVolume);
         }
-        securitycurrency
-            .setSChangePercentage((m.regularMarketPrice - m.chartPreviousClose) / m.chartPreviousClose * 100);
+        securitycurrency.setSChangePercentage(
+            m.chartPreviousClose != 0 ? (m.regularMarketPrice - m.chartPreviousClose) / m.chartPreviousClose * 100 : 0);
         securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds()));
       }
 

@@ -476,24 +476,54 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     return trace;
   }
 
+  // Helper method to interpolate missing Y values
+  private getInterpolatedYValue(historicalLine: any, foundIndex: number): number {
+    const absoluteIndex = Math.abs(foundIndex);
+    // If value exists, return it directly
+    if (historicalLine.y[absoluteIndex] != null) {
+      return historicalLine.y[absoluteIndex];
+    }
+    // Search for the next valid previous value
+    let prevIndex = absoluteIndex - 1;
+    while (prevIndex >= 0 && historicalLine.y[prevIndex] == null) {
+      prevIndex--;
+    }
+
+    // Search for the next valid following value
+    let nextIndex = absoluteIndex + 1;
+    while (nextIndex < historicalLine.y.length && historicalLine.y[nextIndex] == null) {
+      nextIndex++;
+    }
+    // Calculate the average value
+    if (prevIndex >= 0 && nextIndex < historicalLine.y.length) {
+      // Both values found - calculate average
+      return (historicalLine.y[prevIndex] + historicalLine.y[nextIndex]) / 2;
+    } else if (prevIndex >= 0) {
+      // Only previous value found
+      return historicalLine.y[prevIndex];
+    } else if (nextIndex < historicalLine.y.length) {
+      // Only following value found
+      return historicalLine.y[nextIndex];
+    }
+    // Fallback: return 0 if no values were found
+    return 0;
+  }
+
   private getBuySellDivMarkForSecurity(traces: Traces, loadedData: LoadedData, securityTransactionSummary: SecurityTransactionSummary): Traces {
     securityTransactionSummary.transactionPositionList.filter(stp => stp.transaction.transactionTime >= this.fromDate.getTime())
       .forEach(securityTransactionPosition => {
-
         const transaction = securityTransactionPosition.transaction;
         const transactionTypeStr = transaction.transactionType;
         const transactionType: TransactionType = TransactionType[transactionTypeStr];
-
         if (transactionType === TransactionType.ACCUMULATE || transactionType === TransactionType.REDUCE
           || transactionType === TransactionType.DIVIDEND) {
           if (!traces[transactionTypeStr]) {
             traces[transactionTypeStr] = this.initializeBuySellTrace(transactionTypeStr, transactionType);
           }
-
           const transactionDateStr = this.getDateTimeAsStringPutAsX(transaction, traces[transactionTypeStr].x);
           if (transactionType === TransactionType.DIVIDEND || this.loadedData.length > 1 || this.usePercentage) {
             const foundIndex = AppHelper.binarySearch(loadedData.historicalLine.x, transactionDateStr, this.compareXaxisFN);
-            traces[transactionTypeStr].y.push(loadedData.historicalLine.y[Math.abs(foundIndex)]);
+            traces[transactionTypeStr].y.push(this.getInterpolatedYValue(loadedData.historicalLine, foundIndex));
           } else {
             // Y represent the normalized sell or buy price
             let normalizeFactor = 1;

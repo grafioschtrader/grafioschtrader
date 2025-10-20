@@ -83,7 +83,7 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
 
         if (hdc.removeFromDate != null) {
           historyquoteEntityAccess.getHistoryquoteJpaRepository().deleteByIdSecuritycurrencyAndDateGreaterThanEqual(
-              securitycurrency.getIdSecuritycurrency(), hdc.historyquotes.get(0).getDate());
+              securitycurrency.getIdSecuritycurrency(), hdc.historyquotes.getFirst().getDate());
           securitycurrency = securitycurrencyService.getJpaRepository()
               .findByIdSecuritycurrency(securitycurrency.getIdSecuritycurrency());
         }

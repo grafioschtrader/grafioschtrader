@@ -378,11 +378,10 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   private getEditMenu(securityPositionSummary: SecurityPositionSummary): MenuItem[] {
     let menuItems: MenuItem[] = null;
 
-    if (securityPositionSummary
-      && (AssetclassType[securityPositionSummary.security.assetClass.categoryType] < AssetclassType.CURRENCY_PAIR
+    if (securityPositionSummary && (AssetclassType[securityPositionSummary.security.assetClass.categoryType] < AssetclassType.CURRENCY_PAIR
         || (AssetclassType[securityPositionSummary.security.assetClass.categoryType] === AssetclassType.CURRENCY_PAIR
-          && SpecialInvestmentInstruments[securityPositionSummary.security.assetClass.specialInvestmentInstrument]
-          === SpecialInvestmentInstruments.FOREX))) {
+          && [SpecialInvestmentInstruments.FOREX, SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT
+          ].includes(SpecialInvestmentInstruments[securityPositionSummary.security.assetClass.specialInvestmentInstrument])))) {
       menuItems = [];
       menuItems.push({
         label: 'ACCUMULATE',

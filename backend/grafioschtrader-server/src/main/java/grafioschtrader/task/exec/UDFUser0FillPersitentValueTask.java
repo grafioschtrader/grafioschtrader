@@ -46,7 +46,7 @@ public class UDFUser0FillPersitentValueTask implements ITask {
   }
 
   @Override
-  public boolean removeAllOtherJobsOfSameTask() {
+  public boolean removeAllOtherPendingJobsOfSameTask() {
     return true;
   }
 
