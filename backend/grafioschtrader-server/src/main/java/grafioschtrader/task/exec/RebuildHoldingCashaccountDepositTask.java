@@ -21,7 +21,7 @@ public class RebuildHoldingCashaccountDepositTask implements ITask {
   }
 
   @Override
-  public boolean removeAllOtherJobsOfSameTask() {
+  public boolean removeAllOtherPendingJobsOfSameTask() {
     return true;
   }
 

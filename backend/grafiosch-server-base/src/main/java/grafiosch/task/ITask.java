@@ -36,7 +36,7 @@ public interface ITask {
    * 
    * @return true if other jobs should be removed, false otherwise
    */
-  default boolean removeAllOtherJobsOfSameTask() {
+  default boolean removeAllOtherPendingJobsOfSameTask() {
     return false;
   }
 

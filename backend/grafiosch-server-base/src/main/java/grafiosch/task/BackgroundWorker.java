@@ -152,7 +152,7 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
       taskDataChange = startJob(taskDataChange, startTime);
       task.doWork(cloneTaskDataChange(taskDataChange));
       finishedJob(taskDataChange, startTime, ProgressStateType.PROG_PROCESSED);
-      removeOtherSameJobs(task);
+      removeOtherSamePendingJobs(task);
     } catch (TaskInterruptException tie) {
       finishedJob(taskDataChange, startTime,
           timeout ? ProgressStateType.PROG_TIMEOUT : ProgressStateType.PROG_INTERRUPTED);
@@ -225,8 +225,8 @@ public class BackgroundWorker implements DisposableBean, Runnable, ApplicationLi
    * 
    * @param task the task that was executed
    */
-  public void removeOtherSameJobs(final ITask task) {
-    if (task.removeAllOtherJobsOfSameTask()) {
+  public void removeOtherSamePendingJobs(final ITask task) {
+    if (task.removeAllOtherPendingJobsOfSameTask()) {
       taskDataChangeRepository.removeByIdTaskAndProgressStateType(task.getTaskType().getValue(),
           ProgressStateType.PROG_WAITING.getValue());
     }
