@@ -91,6 +91,7 @@ export abstract class SecurityaccountTable extends SecurityaccountBaseTable {
   }
 
   protected override getTitleChart(): string {
+    console.log("hugo");
     return this.groupOptions.find(item => item.value === this.selectedGroup).label;
   }
 

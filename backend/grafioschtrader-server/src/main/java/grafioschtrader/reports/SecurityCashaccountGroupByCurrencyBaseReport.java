@@ -58,9 +58,6 @@ import grafioschtrader.repository.TradingDaysPlusJpaRepository;
  * aggregated position summaries organized by currency. The class is thread-safe with lazy-loaded repository
  * dependencies.
  * </p>
- * 
- * @author GrafioschTrader Team
- * @since 1.0
  */
 public class SecurityCashaccountGroupByCurrencyBaseReport {
 

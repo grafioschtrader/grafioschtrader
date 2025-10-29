@@ -17,6 +17,7 @@ import {OptionalParameters, TimeSeriesQuotesService} from '../../../historyquote
 import {ProductIconService} from '../../../securitycurrency/service/product.icon.service';
 import {FilterService} from 'primeng/api';
 import {AlarmSetupService} from '../../../algo/service/alarm.setup.service';
+import {HelpIds} from '../../../shared/help/help.ids';
 
 /**
  * It groups asset classes of securities and includes balance of cash accounts as an asset class.
@@ -66,6 +67,10 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
 
   ngOnDestroy(): void {
     super.destroy();
+  }
+
+  public override getHelpContextId(): HelpIds {
+    return HelpIds.HELP_PORTFOLIOS_SECURITY_CASH_ACCOUNT_REPORT;
   }
 
   protected override getTitleChart(): string {

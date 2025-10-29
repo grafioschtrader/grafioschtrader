@@ -75,7 +75,6 @@ public class SecurityGroupByBaseReport<T> extends SecurityPositionSummaryReport 
       securityPositionSummary.calcMainCurrency(currencyExchangeRate);
       securityPositionDynamicGroupSummary.addToGroupSummaryAndCalcGroupTotals(securityPositionSummary);
     }
-
     return createAndCalcGrandTotal(groupMap, dateCurrencyMap);
   }
 
