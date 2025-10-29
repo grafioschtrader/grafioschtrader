@@ -566,6 +566,10 @@ table th .p-inputtext {
   align-items: center;
   display: block;
 }
+.p-inputtext {
+  width: 100%;
+
+}
 
 
 /**

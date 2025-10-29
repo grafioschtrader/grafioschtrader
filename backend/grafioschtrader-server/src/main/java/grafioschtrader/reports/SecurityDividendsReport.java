@@ -31,6 +31,7 @@ import grafioschtrader.reportviews.securitydividends.CashAccountPosition;
 import grafioschtrader.reportviews.securitydividends.SecurityDividendsGrandTotal;
 import grafioschtrader.reportviews.securitydividends.SecurityDividendsPosition;
 import grafioschtrader.reportviews.securitydividends.SecurityDividendsYearGroup;
+import grafioschtrader.reportviews.securitydividends.SecurityDividendsYearGroup.MarginTracker;
 import grafioschtrader.reportviews.securitydividends.UnitsCounter;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
@@ -92,9 +93,9 @@ public class SecurityDividendsReport {
    * Generates a comprehensive dividend and interest report for a tenant across specified accounts.
    * 
    * <p>
-   * This method creates a complete financial report summarizing dividend income, interest earnings, fees,
-   * and portfolio valuations organized by calendar year. The report processes all relevant transactions
-   * and applies currency conversions to present data in the tenant's main currency.
+   * This method creates a complete financial report summarizing dividend income, interest earnings, fees, and portfolio
+   * valuations organized by calendar year. The report processes all relevant transactions and applies currency
+   * conversions to present data in the tenant's main currency.
    * </p>
    * 
    * <p>
@@ -106,22 +107,22 @@ public class SecurityDividendsReport {
    * </ul>
    * 
    * <p>
-   * The report includes transactions of types: ACCUMULATE, REDUCE, DIVIDEND, INTEREST_CASHACCOUNT, FEE,
-   * and all transactions with type value ≤ FINANCE_COST. Year-end valuations use the latest available
-   * historical quotes with split adjustments applied.
+   * The report includes transactions of types: ACCUMULATE, REDUCE, DIVIDEND, INTEREST_CASHACCOUNT, FEE, and all
+   * transactions with type value ≤ FINANCE_COST. Year-end valuations use the latest available historical quotes with
+   * split adjustments applied.
    * </p>
    * 
-   * @param idTenant the unique identifier of the tenant for whom to generate the report
-   * @param idsSecurityaccount list of security account IDs to include in the report.
-   *                          Pass Arrays.asList(-1) to include all security accounts
-   * @param idsCashaccount list of cash account IDs to include in the report.
-   *                      Pass Arrays.asList(-1) to include all cash accounts
+   * @param idTenant           the unique identifier of the tenant for whom to generate the report
+   * @param idsSecurityaccount list of security account IDs to include in the report. Pass Arrays.asList(-1) to include
+   *                           all security accounts
+   * @param idsCashaccount     list of cash account IDs to include in the report. Pass Arrays.asList(-1) to include all
+   *                           cash accounts
    * 
-   * @return a SecurityDividendsGrandTotal containing the complete dividend and interest report
-   *         with annual breakdowns, position details, and grand totals across all years
+   * @return a SecurityDividendsGrandTotal containing the complete dividend and interest report with annual breakdowns,
+   *         position details, and grand totals across all years
    * 
    * @throws IllegalArgumentException if the tenant ID is null or invalid
-   * @throws SecurityException if the current user lacks access rights to the specified tenant
+   * @throws SecurityException        if the current user lacks access rights to the specified tenant
    */
   public SecurityDividendsGrandTotal getSecurityDividendsGrandTotalByTenant(final Integer idTenant,
       final List<Integer> idsSecurityaccount, final List<Integer> idsCashaccount) {
@@ -152,9 +153,9 @@ public class SecurityDividendsReport {
    * Retrieves and prepares currency conversion data and historical quotes needed for the report.
    * 
    * <p>
-   * This method concurrently loads currency pairs and historical quotes for transactions involving
-   * different currencies than the tenant's main currency. The data is used for accurate currency
-   * conversions throughout the report generation process.
+   * This method concurrently loads currency pairs and historical quotes for transactions involving different currencies
+   * than the tenant's main currency. The data is used for accurate currency conversions throughout the report
+   * generation process.
    * </p>
    * 
    * @param tenant the tenant entity containing currency and portfolio information
@@ -175,16 +176,16 @@ public class SecurityDividendsReport {
    * Processes transaction data and calculates position information for the dividend report.
    * 
    * <p>
-   * This method handles the core transaction processing logic, including security split adjustments,
-   * currency conversions, and position calculations. It processes transactions chronologically and
-   * groups them by year for the report structure.
+   * This method handles the core transaction processing logic, including security split adjustments, currency
+   * conversions, and position calculations. It processes transactions chronologically and groups them by year for the
+   * report structure.
    * </p>
    * 
-   * @param tenant the tenant entity
-   * @param cashAccountsMap map of cash accounts included in the report
-   * @param transactions list of transactions to process
+   * @param tenant                      the tenant entity
+   * @param cashAccountsMap             map of cash accounts included in the report
+   * @param transactions                list of transactions to process
    * @param securityDividendsGrandTotal the grand total object to populate
-   * @param dateCurrencyMap currency conversion data for multi-currency transactions
+   * @param dateCurrencyMap             currency conversion data for multi-currency transactions
    * @return the updated SecurityDividendsGrandTotal with processed transaction data
    */
   private SecurityDividendsGrandTotal collectDataForPosition(final Tenant tenant,
@@ -204,12 +205,12 @@ public class SecurityDividendsReport {
    * Creates a map of cash accounts based on the tenant's portfolios and specified account filter.
    * 
    * <p>
-   * This method filters cash accounts from the tenant's portfolios based on the provided account IDs.
-   * If the list contains only -1, all cash accounts are included. Otherwise, only accounts with
-   * matching IDs are included in the map.
+   * This method filters cash accounts from the tenant's portfolios based on the provided account IDs. If the list
+   * contains only -1, all cash accounts are included. Otherwise, only accounts with matching IDs are included in the
+   * map.
    * </p>
    * 
-   * @param tenant the tenant entity containing portfolio information
+   * @param tenant         the tenant entity containing portfolio information
    * @param idsCashaccount list of cash account IDs to include, or Arrays.asList(-1) for all accounts
    * @return a map with cash account IDs as keys and Cashaccount entities as values
    */
@@ -229,7 +230,7 @@ public class SecurityDividendsReport {
    * security-account ID is in the provided list, and whose type is at most FINANCE_COST. The results are sorted in
    * ascending order by transaction date.
    *
-   * @param cashAccounts the cash accounts to scan (must not be null)
+   * @param cashAccounts       the cash accounts to scan (must not be null)
    * @param idsSecurityaccount the security-account IDs to include (if empty, all IDs are allowed)
    * @return a list of matching transactions, sorted by date (oldest first)
    */
@@ -253,20 +254,20 @@ public class SecurityDividendsReport {
    * Processes transactions chronologically and calculates position data for the dividend report.
    * 
    * <p>
-   * This method iterates through transactions in chronological order, grouping them by calendar year
-   * and calculating dividend, interest, and fee amounts. It handles year transitions, maintains
-   * running position totals, and applies security split adjustments where necessary.
+   * This method iterates through transactions in chronological order, grouping them by calendar year and calculating
+   * dividend, interest, and fee amounts. It handles year transitions, maintains running position totals, and applies
+   * security split adjustments where necessary.
    * </p>
    * 
    * <p>
-   * The method tracks cash account balances across years and creates year groups for securities
-   * with open positions even when no transactions occurred in specific years.
+   * The method tracks cash account balances across years and creates year groups for securities with open positions
+   * even when no transactions occurred in specific years.
    * </p>
    * 
-   * @param cashAccountsMap map of cash accounts included in the report
-   * @param dateCurrencyMap currency conversion data for multi-currency calculations
-   * @param securitysplitMap map of security splits for position adjustments
-   * @param transactions list of transactions sorted by date
+   * @param cashAccountsMap             map of cash accounts included in the report
+   * @param dateCurrencyMap             currency conversion data for multi-currency calculations
+   * @param securitysplitMap            map of security splits for position adjustments
+   * @param transactions                list of transactions sorted by date
    * @param securityDividendsGrandTotal the grand total object to populate with calculated data
    * @return the updated SecurityDividendsGrandTotal with processed position data
    */
@@ -278,6 +279,8 @@ public class SecurityDividendsReport {
     int yearChangeWatcher = 0;
     final Map<Integer, UnitsCounter> unitsCounterBySecurityMap = new HashMap<>();
     final Map<Integer, Double> cashAccountsAmountMap = new HashMap<>();
+    final Map<Integer, Map<Integer, MarginTracker>> marginOpenTransaction = new HashMap<>();
+
     final Calendar calendar = new GregorianCalendar();
     SecurityDividendsYearGroup securityDividendsYearGroup = null;
     for (final Transaction transaction : transactions) {
@@ -291,7 +294,7 @@ public class SecurityDividendsReport {
         if (yearChangeWatcher != 0) {
           for (; yearChangeWatcher < year; yearChangeWatcher++) {
             createFillYearWithOpenPositions(securityDividendsGrandTotal, yearChangeWatcher, unitsCounterBySecurityMap,
-                securitysplitMap);
+                securitysplitMap, marginOpenTransaction);
           }
           transferCashaccountAmountToNewYear(securityDividendsYearGroup, cashAccountsAmountMap, cashAccountsMap);
         }
@@ -305,14 +308,14 @@ public class SecurityDividendsReport {
       cashAccountsAmountMap.put(transaction.getCashaccount().getIdSecuritycashAccount(), amount);
       if (transaction.getSecurity() != null) {
         dateCurrencyMap.setUntilDate(new GregorianCalendar(year, 11, 31).getTime());
-        calcSecurityTransaction(dateCurrencyMap, securityDividendsYearGroup, transaction, security, securitysplitMap,
-            unitsCounterBySecurityMap);
+        calcSecurityTransaction(dateCurrencyMap, marginOpenTransaction, securityDividendsYearGroup, transaction,
+            security, securitysplitMap, unitsCounterBySecurityMap);
       } else {
         calcAccountTransactions(dateCurrencyMap, securityDividendsYearGroup, transaction);
       }
     }
     if (year != 0) {
-      createFillYearWithOpenPositions(securityDividendsGrandTotal, year, unitsCounterBySecurityMap, securitysplitMap);
+      createFillYearWithOpenPositions(securityDividendsGrandTotal, year, unitsCounterBySecurityMap, securitysplitMap, marginOpenTransaction);
       transferCashaccountAmountToNewYear(securityDividendsYearGroup, cashAccountsAmountMap, cashAccountsMap);
     }
     return securityDividendsGrandTotal;
@@ -322,16 +325,16 @@ public class SecurityDividendsReport {
    * Fills in missing year groups for cash accounts when no transactions occurred in certain years.
    * 
    * <p>
-   * This method ensures that cash accounts appear in the report for every year between the first
-   * and last transaction years, even when no transactions occurred. This provides continuity
-   * in the year-over-year analysis and maintains accurate cash balance tracking.
+   * This method ensures that cash accounts appear in the report for every year between the first and last transaction
+   * years, even when no transactions occurred. This provides continuity in the year-over-year analysis and maintains
+   * accurate cash balance tracking.
    * </p>
    * 
-   * @param cashAccountsMap map of cash accounts to process
+   * @param cashAccountsMap             map of cash accounts to process
    * @param securityDividendsGrandTotal the grand total object to update
-   * @param yearChangeWatcher the previous year being processed
-   * @param year the current year being processed
-   * @param cashAccountsAmountMap map tracking cash account balances
+   * @param yearChangeWatcher           the previous year being processed
+   * @param year                        the current year being processed
+   * @param cashAccountsAmountMap       map tracking cash account balances
    */
   private void fillEmptyAccountYears(Map<Integer, Cashaccount> cashAccountsMap,
       final SecurityDividendsGrandTotal securityDividendsGrandTotal, int yearChangeWatcher, int year,
@@ -348,14 +351,14 @@ public class SecurityDividendsReport {
    * Transfers cash account balances and fee calculations to a new year group.
    * 
    * <p>
-   * This method updates the year group with current cash account balances and calculates
-   * the total interest and fees for the year. It ensures that cash balances are properly
-   * carried forward between years and that annual totals are accurately maintained.
+   * This method updates the year group with current cash account balances and calculates the total interest and fees
+   * for the year. It ensures that cash balances are properly carried forward between years and that annual totals are
+   * accurately maintained.
    * </p>
    * 
    * @param securityDividendsYearGroup the year group to update
-   * @param cashAccountsAmountMap map of current cash account balances
-   * @param cashAccountsMap map of cash account entities
+   * @param cashAccountsAmountMap      map of current cash account balances
+   * @param cashAccountsMap            map of cash account entities
    */
   private void transferCashaccountAmountToNewYear(SecurityDividendsYearGroup securityDividendsYearGroup,
       final Map<Integer, Double> cashAccountsAmountMap, Map<Integer, Cashaccount> cashAccountsMap) {
@@ -374,20 +377,20 @@ public class SecurityDividendsReport {
    * Processes a security transaction and updates the corresponding position data.
    * 
    * <p>
-   * This method handles buy/sell transactions (ACCUMULATE/REDUCE) and dividend payments for securities.
-   * It applies security split adjustments to maintain accurate unit counts and calculates currency
-   * conversions for multi-currency portfolios. The method also validates that dividend payments
-   * only occur when units are held.
+   * This method handles buy/sell transactions (ACCUMULATE/REDUCE) and dividend payments for securities. It applies
+   * security split adjustments to maintain accurate unit counts and calculates currency conversions for multi-currency
+   * portfolios. The method also validates that dividend payments only occur when units are held.
    * </p>
    * 
-   * @param dateCurrencyMap currency conversion data for the transaction
+   * @param dateCurrencyMap            currency conversion data for the transaction
    * @param securityDividendsYearGroup the year group to update
-   * @param transaction the security transaction to process
-   * @param security the security entity (may be null, will be set from transaction)
-   * @param securitysplitMap map of security splits for position adjustments
-   * @param unitsCounterBySecurityMap map tracking unit holdings by security
+   * @param transaction                the security transaction to process
+   * @param security                   the security entity (may be null, will be set from transaction)
+   * @param securitysplitMap           map of security splits for position adjustments
+   * @param unitsCounterBySecurityMap  map tracking unit holdings by security
    */
   private void calcSecurityTransaction(DateTransactionCurrencypairMap dateCurrencyMap,
+      Map<Integer, Map<Integer, MarginTracker>> marginOpenTransaction,
       SecurityDividendsYearGroup securityDividendsYearGroup, Transaction transaction, Security security,
       final Map<Integer, List<Securitysplit>> securitysplitMap, Map<Integer, UnitsCounter> unitsCounterBySecurityMap) {
     if (!transaction.getSecurity().equals(security)) {
@@ -407,10 +410,12 @@ public class SecurityDividendsReport {
     switch (transaction.getTransactionType()) {
     case ACCUMULATE:
       createOrGetUnitsCounter(transaction.getSecurity(), unitsSplited, unitsCounterBySecurityMap);
+      trackMarginSecurityUnits(marginOpenTransaction, transaction, securityDividendsPosition, unitsSplited);
       securityDividendsPosition.updateAccumulateReduce(transaction, securityDividendsYearGroup, dateCurrencyMap);
       break;
     case REDUCE:
       createOrGetUnitsCounter(transaction.getSecurity(), unitsSplited * -1, unitsCounterBySecurityMap);
+      trackMarginSecurityUnits(marginOpenTransaction, transaction, securityDividendsPosition, unitsSplited * -1);
       securityDividendsPosition.updateAccumulateReduce(transaction, securityDividendsYearGroup, dateCurrencyMap);
       break;
     case DIVIDEND:
@@ -430,14 +435,14 @@ public class SecurityDividendsReport {
    * Processes cash account transactions such as interest payments and fees.
    * 
    * <p>
-   * This method handles transactions that affect cash accounts directly, including interest
-   * earned on cash deposits and various fees charged to the account. It updates the appropriate
-   * cash account position within the year group and applies currency conversions as needed.
+   * This method handles transactions that affect cash accounts directly, including interest earned on cash deposits and
+   * various fees charged to the account. It updates the appropriate cash account position within the year group and
+   * applies currency conversions as needed.
    * </p>
    * 
-   * @param dateCurrencyMap currency conversion data for the transaction
+   * @param dateCurrencyMap            currency conversion data for the transaction
    * @param securityDividendsYearGroup the year group to update
-   * @param transaction the cash account transaction to process
+   * @param transaction                the cash account transaction to process
    */
   private void calcAccountTransactions(DateTransactionCurrencypairMap dateCurrencyMap,
       SecurityDividendsYearGroup securityDividendsYearGroup, Transaction transaction) {
@@ -454,16 +459,15 @@ public class SecurityDividendsReport {
    * Calculates and finalizes grand total values across all years in the report.
    * 
    * <p>
-   * This method performs the final calculations for the dividend report, including attaching
-   * year-end historical quotes for portfolio valuations and computing overall dividend and
-   * interest totals. It ensures all currency conversions are applied and that the report
-   * totals are accurate and complete.
+   * This method performs the final calculations for the dividend report, including attaching year-end historical quotes
+   * for portfolio valuations and computing overall dividend and interest totals. It ensures all currency conversions
+   * are applied and that the report totals are accurate and complete.
    * </p>
    * 
-   * @param idTenant the tenant ID for the report
+   * @param idTenant                    the tenant ID for the report
    * @param securityDividendsGrandTotal the grand total object to finalize
-   * @param historyquoteYearIdMap map of historical quotes by year for portfolio valuations
-   * @param dateCurrencyMap currency conversion data for final calculations
+   * @param historyquoteYearIdMap       map of historical quotes by year for portfolio valuations
+   * @param dateCurrencyMap             currency conversion data for final calculations
    */
   private void createGrandTotal(final Integer idTenant, final SecurityDividendsGrandTotal securityDividendsGrandTotal,
       final Map<Integer, Map<Integer, Historyquote>> historyquoteYearIdMap,
@@ -488,10 +492,10 @@ public class SecurityDividendsReport {
    */
   private void createFillYearWithOpenPositions(final SecurityDividendsGrandTotal securityDividendsGrandTotal,
       final Integer year, final Map<Integer, UnitsCounter> unitsCounterBySecurityMap,
-      final Map<Integer, List<Securitysplit>> securitysplitMap) {
+      final Map<Integer, List<Securitysplit>> securitysplitMap, final Map<Integer, Map<Integer, MarginTracker>> marginOpenTransaction) {
     final SecurityDividendsYearGroup securityDividendsYearGroupLast = securityDividendsGrandTotal
         .getOrCreateGroup(year);
-    securityDividendsYearGroupLast.fillYearWithOpenPositions(unitsCounterBySecurityMap, securitysplitMap);
+    securityDividendsYearGroupLast.fillYearWithOpenPositions(unitsCounterBySecurityMap, securitysplitMap, marginOpenTransaction);
   }
 
   /**
@@ -517,6 +521,25 @@ public class SecurityDividendsReport {
     }
   }
 
+  private void trackMarginSecurityUnits(Map<Integer, Map<Integer, MarginTracker>> marginOpenTransaction,
+      Transaction transaction, SecurityDividendsPosition securityDividendsPosition, double unitsSplited) {
+    if (securityDividendsPosition.security.isMarginInstrument()) {
+      final int idSecurity = securityDividendsPosition.security.getId();
+      Map<Integer, MarginTracker> securityMarginOpenTransaction = marginOpenTransaction
+          .get(securityDividendsPosition.security.getId());
+      if (transaction.isMarginOpenPosition()) {
+        marginOpenTransaction.computeIfAbsent(idSecurity, k -> new HashMap<>()).put(transaction.getIdTransaction(),
+            new MarginTracker(transaction, unitsSplited));
+      } else if (transaction.isMarginClosePosition()) {
+        MarginTracker marginTracker = securityMarginOpenTransaction.get(transaction.getConnectedIdTransaction());
+        marginTracker.openUnits += unitsSplited;
+        if (marginTracker.openUnits == 0.0) {
+          securityMarginOpenTransaction.remove(transaction.getConnectedIdTransaction());
+        }
+      }
+    }
+  }
+
   /**
    * Retrieves end-of-year history quotes for foreign currencies and securities for a tenant, grouped first by year and
    * then by security-currency ID.
@@ -538,4 +561,5 @@ public class SecurityDividendsReport {
             Collectors.toMap(Historyquote::getIdSecuritycurrency, Function.identity())));
   }
 
+  
 }

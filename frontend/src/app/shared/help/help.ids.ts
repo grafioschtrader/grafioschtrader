@@ -18,6 +18,7 @@ export enum HelpIds {
   HELP_PORTFOLIOS_PORTFOLIOS = 'reportportfolio/portfolios',
   HELP_PORTFOLIOS_PERIODPERFORMANCE = 'reportportfolio/periodperformance',
   HELP_PORTFOLIOS_SECURITY_ACCOUNT_REPORT = 'reportportfolio/securityaccountreport',
+  HELP_PORTFOLIOS_SECURITY_CASH_ACCOUNT_REPORT = 'reportportfolio/securitycashaccountreport',
   HELP_PORTFOLIOS_DIVIDENDS = 'reportportfolio/dividends',
   HELP_PORTFOLIOS_TRANSACTIONCOSTS = 'reportportfolio/transactioncosts',
   HELP_PORTFOLIOS_TRANSACTIONLIST = 'reportportfolio/transactionlist',

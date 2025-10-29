@@ -12,8 +12,8 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
+import grafioschtrader.reportviews.TransactionsMarginOpenUnits;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
-import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary.TransactionsMarginOpenUnits;
 import grafioschtrader.reportviews.transaction.SecurityTransactionSummary;
 import grafioschtrader.types.TransactionType;
 

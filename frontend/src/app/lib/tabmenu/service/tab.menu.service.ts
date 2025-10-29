@@ -63,12 +63,18 @@ export class TabMenuService {
 
   /**
    * Update active route based on current URL by finding matching tab.
+   * Uses longest match to avoid false matches with substring routes.
    *
    * @param tabs Array of available tabs to match against current URL
    */
   private updateActiveRoute(tabs: TabItem[]): void {
     const currentUrl = this.router.url;
-    const matchingTab = tabs.find(tab => currentUrl.includes(tab.route));
+
+    // Find the tab with the longest matching route (most specific match)
+    const matchingTab = tabs
+      .filter(tab => currentUrl.includes(tab.route))
+      .sort((a, b) => b.route.length - a.route.length)[0];
+
     if (matchingTab) {
       this.activeRouteSubject.next(matchingTab.route);
     }

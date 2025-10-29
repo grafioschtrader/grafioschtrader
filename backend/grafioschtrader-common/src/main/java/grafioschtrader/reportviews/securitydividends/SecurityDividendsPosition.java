@@ -1,5 +1,6 @@
 package grafioschtrader.reportviews.securitydividends;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -65,6 +66,8 @@ public class SecurityDividendsPosition extends AccountDividendPosition {
   @JsonIgnore
   public Double splitFactorAfter;
 
+
+  
   /**
    * Creates a new security dividend position for the specified precision settings.
    * 
@@ -75,6 +78,9 @@ public class SecurityDividendsPosition extends AccountDividendPosition {
     super(precisionMC, currencyPrecisionMap);
   }
 
+ 
+  
+  
   /**
    * Updates the position with accumulate (buy) or reduce (sell) transaction data.
    * 
@@ -165,4 +171,6 @@ public class SecurityDividendsPosition extends AccountDividendPosition {
     return security.getCurrency();
   }
 
+  
+  
 }

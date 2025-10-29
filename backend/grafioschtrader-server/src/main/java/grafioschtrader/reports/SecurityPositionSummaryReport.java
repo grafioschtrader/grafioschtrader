@@ -137,7 +137,7 @@ public abstract class SecurityPositionSummaryReport {
 
     final DateTransactionCurrencypairMap dateCurrencyMap = new DateTransactionCurrencypairMap(tenant.getCurrency(),
         untilDate, dateTransactionCurrencyFuture.join(), currencypairsFuture.join(),
-        tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(DateHelper.getLocalDate(untilDate)));
+        false);
 
     final List<Securityaccount> securityaccountList = tenant.getPortfolioList().stream()
         .map(portfolio -> portfolio.getSecurityaccountList()).flatMap(Collection::stream).collect(Collectors.toList());
