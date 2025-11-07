@@ -15,11 +15,14 @@
 
 <p-confirmDialog #cd header="Confirmation" icon="fa fa-question-circle" width="425">
   <p-footer>
-    <button (click)="cd.accept()" pButton  pButtonIcon="pi pi-check">
+    <button pButton (click)="cd.accept()">
+      <i class="pi pi-check" pButtonIcon></i>
       {{'YES' | translate}}
     </button>
-    <button (click)="cd.reject()" pButton pButtonIcon="pi pi-times">
+    <button pButton (click)="cd.reject()">
+      <i class="pi pi-times" pButtonIcon></i>
       {{'NO' | translate}}
     </button>
   </p-footer>
 </p-confirmDialog>
+

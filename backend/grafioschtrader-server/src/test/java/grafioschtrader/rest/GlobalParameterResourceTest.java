@@ -23,7 +23,7 @@ import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.test.start.GTforTest;
 
 @SpringBootTest(classes = GTforTest.class, webEnvironment = WebEnvironment.RANDOM_PORT)
-class GlobalParameterResourceTest {
+class GlobalParameterResourceTest extends BaseIntegrationTest  {
 
   @Autowired
   TestRestTemplate restTemplate = new TestRestTemplate();

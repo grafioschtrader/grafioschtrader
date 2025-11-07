@@ -10,6 +10,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.IFeedConnector;
@@ -20,6 +21,7 @@ import grafioschtrader.test.start.GTforTest;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 @SpringBootTest(classes = GTforTest.class)
+@ActiveProfiles("test")
 public class EodHistoricalDataConnectorTest extends BaseFeedConnectorCheck {
 
   private final EodHistoricalDataConnector eodHistoricalDataConnector;

@@ -17,10 +17,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -30,26 +26,16 @@ import org.springframework.http.ResponseEntity;
 import grafiosch.entities.BaseID;
 import grafiosch.repository.UserEntityChangeCountJpaRepository;
 import grafiosch.repository.UserEntityChangeLimitJpaRepository;
-import grafiosch.security.JwtTokenHandler;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.repository.SecurityJpaRepository;
-import grafioschtrader.test.start.GTforTest;
 
 @TestMethodOrder(OrderAnnotation.class)
-@SpringBootTest(classes = GTforTest.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 @TestInstance(Lifecycle.PER_CLASS)
-class DeleteALLDataTest {
+class DeleteALLDataTest extends BaseIntegrationTest {
 
-  @Autowired
-  private TestRestTemplate restTemplate = new TestRestTemplate();
-
-  @LocalServerPort
-  private int port;
-
-  @Autowired
-  private JwtTokenHandler jwtTokenHandler;
+ 
 
   @Autowired
   private UserEntityChangeCountJpaRepository userEntityChangeCountJpaRepository;
@@ -63,7 +49,6 @@ class DeleteALLDataTest {
   @BeforeAll
   void setUpUserToken() {
     RestTestHelper.inizializeUserTokens(restTemplate, port, jwtTokenHandler);
-    System.out.println("**********************");
   }
 
   @Test
@@ -71,7 +56,7 @@ class DeleteALLDataTest {
   @DisplayName("Delete user entity change counter for all users")
   void deleteUserEntityChangeCounter() {
     userEntityChangeCountJpaRepository.deleteAll();
-    assertThat(userEntityChangeCountJpaRepository.count()).isEqualTo(0);
+    assertThat(userEntityChangeCountJpaRepository.count()).isZero();
   }
 
   @Test
@@ -79,46 +64,45 @@ class DeleteALLDataTest {
   @DisplayName("Delete user entity change limit for all users")
   void deleteUserEntityChangeLimit() {
     userEntityChangeLimitJpaRepository.deleteAll();
-    assertThat(userEntityChangeLimitJpaRepository.count()).isEqualTo(0);
+    assertThat(userEntityChangeLimitJpaRepository.count()).isZero();
   }
 
   @ParameterizedTest
   @MethodSource("resoureClass")
   @Order(3)
   @DisplayName("Admin user deletes all data of most entities")
-  <T extends BaseID<Integer>> void deleteAllEntities(String resourceMap, final Class<T> clazz,
+  <T extends BaseID<Integer>> void deleteAllEntities(String resourceMap, Class<T> clazz,
       JpaRepository<?, ?> jpaRepository) {
 
     if (jpaRepository == null) {
-      // Get all entities
       ResponseEntity<List<T>> response = restTemplate.exchange(
           RestTestHelper.createURLWithPort(resourceMap + "/", port), HttpMethod.GET,
           RestTestHelper.getHttpEntity(RestTestHelper.ADMIN, null),
           ParameterizedTypeReference.forType(ResolvableType.forClassWithGenerics(List.class, clazz).getType()));
-      // Delete every single entity
+
       for (T baseID : response.getBody()) {
         String entityUrl = RestTestHelper.createURLWithPort(resourceMap + "/", port) + baseID.getId();
-        restTemplate.exchange(entityUrl, HttpMethod.DELETE, RestTestHelper.getHttpEntity(RestTestHelper.ADMIN, null),
-            BaseID.class);
+        restTemplate.exchange(entityUrl, HttpMethod.DELETE,
+            RestTestHelper.getHttpEntity(RestTestHelper.ADMIN, null), BaseID.class);
       }
 
-      response = restTemplate.exchange(RestTestHelper.createURLWithPort(resourceMap + "/", port), HttpMethod.GET,
+      response = restTemplate.exchange(
+          RestTestHelper.createURLWithPort(resourceMap + "/", port), HttpMethod.GET,
           RestTestHelper.getHttpEntity(RestTestHelper.ADMIN, null),
           ParameterizedTypeReference.forType(ResolvableType.forClassWithGenerics(List.class, clazz).getType()));
-      assertThat(response.getBody().size()).isEqualByComparingTo(0);
+
+      assertThat(response.getBody()).isEmpty();
     } else {
       jpaRepository.deleteAll();
-      long count = jpaRepository.count();
-      assertThat(count).isEqualByComparingTo(0L);
-
+      assertThat(jpaRepository.count()).isZero();
     }
-
   }
 
   private Stream<Arguments> resoureClass() {
-    return Stream.of(Arguments.of(RequestGTMappings.SECURITY_MAP, Security.class, securityJpaRepository),
-        Arguments.of(RequestGTMappings.STOCKEXCHANGE_MAP, Stockexchange.class, null),
-        Arguments.of(RequestGTMappings.ASSETCLASS_MAP, Assetclass.class, null));
+    return Stream.of(
+      Arguments.of(RequestGTMappings.SECURITY_MAP, Security.class, securityJpaRepository),
+      Arguments.of(RequestGTMappings.STOCKEXCHANGE_MAP, Stockexchange.class, null),
+      Arguments.of(RequestGTMappings.ASSETCLASS_MAP, Assetclass.class, null)
+    );
   }
-
 }

@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, Type, ViewChild} from '@angular/core';
+import {ChangeDetectorRef, Component, OnDestroy, OnInit, Type, ViewChild} from '@angular/core';
 import {TreeNodeType} from '../types/tree.node.type';
 import {AppSettings} from '../../app.settings';
 import {Router} from '@angular/router';
@@ -157,6 +157,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
       this.addRefreshAlgoToTree();
       this.addAndRefreshWatchlistToTree();
       this.addBaseData();
+
     });
   }
 

@@ -15,17 +15,9 @@ import grafiosch.security.JwtTokenHandler;
 import grafioschtrader.test.start.GTforTest;
 
 @TestMethodOrder(OrderAnnotation.class)
-@SpringBootTest(classes = GTforTest.class, webEnvironment = WebEnvironment.RANDOM_PORT)
-class HistoryquoteResourceTest {
 
-  @Autowired
-  TestRestTemplate restTemplate = new TestRestTemplate();
-
-  @LocalServerPort
-  private int port;
-
-  @Autowired
-  private JwtTokenHandler jwtTokenHandler;
+class HistoryquoteResourceTest extends BaseIntegrationTest {
+  
 
   @BeforeAll
   void setUpUserToken() {

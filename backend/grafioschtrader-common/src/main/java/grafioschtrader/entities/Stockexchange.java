@@ -142,16 +142,25 @@ public class Stockexchange extends Auditable implements Serializable {
 
   public Stockexchange() {
   }
+ 
 
-  public Stockexchange(String name, String mic, LocalTime timeClose, String timeZone, boolean noMarketValue,
-      boolean secondaryMarket) {
-    this.name = name;
+  public Stockexchange(@Size(min = 4, max = 4) String mic,
+      @NotBlank @Size(min = 2, max = 32) String name, @NotBlank String countryCode, boolean noMarketValue,
+      boolean secondaryMarket, @NotNull LocalTime timeOpen, @NotNull LocalTime timeClose,
+      @NotNull @Size(min = 1, max = 50) String timeZone, @Size(max = 128) String website) {
+    super();
     this.mic = mic;
-    this.timeClose = timeClose;
-    this.timeZone = timeZone;
+    this.name = name;
+    this.countryCode = countryCode;
     this.noMarketValue = noMarketValue;
     this.secondaryMarket = secondaryMarket;
+    this.timeOpen = timeOpen;
+    this.timeClose = timeClose;
+    this.timeZone = timeZone;
+    this.website = website;
   }
+
+
 
   public String getMic() {
     return mic;

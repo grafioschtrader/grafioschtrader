@@ -712,7 +712,7 @@
   "UNITS": "Open units",
   "UNITS_AT_END_OF_YEAR": "Units  at end of year",
   "UNITS_TOOLTIP": "Number of units held in this position - for bonds * 100 for nominal value",
-  "UNTIL_DATE": "Reporting date",
+  "UNTIL_DATE": "To date",
   "UNTIL_DATE_TOOLTIP": "Evaluation until this day",
   "UPDATE_INTRADAY": "Intraday price update",
   "UPDATE_INTRADAY_TITLE": "Intraday price update - Time interval cannot be overridden with this",

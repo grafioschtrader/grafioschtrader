@@ -31,18 +31,8 @@ import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 @TestMethodOrder(OrderAnnotation.class)
-@SpringBootTest(classes = GTforTest.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 @TestInstance(Lifecycle.PER_CLASS)
-class AssetclassResourceTest {
-
-  @Autowired
-  private TestRestTemplate restTemplate = new TestRestTemplate();
-
-  @LocalServerPort
-  private int port;
-
-  @Autowired
-  private JwtTokenHandler jwtTokenHandler;
+class AssetclassResourceTest extends BaseIntegrationTest  {
 
   @BeforeAll
   void setUpUserToken() {
@@ -51,7 +41,7 @@ class AssetclassResourceTest {
 
   @Order(4)
   @ParameterizedTest
-  @CsvFileSource(resources = "/assetclasses.csv", encoding = "UTF-8")
+  @CsvFileSource(resources = "/testdata/assetclasses.csv", encoding = "UTF-8")
   @DisplayName("Users create some Assetclasses")
   void createTest(Byte assetClassType, Byte specialInvestmentInstrument, String subCategoryDE, String subCategoryEN)
       throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
@@ -59,7 +49,7 @@ class AssetclassResourceTest {
         SpecialInvestmentInstruments.getSpecialInvestmentInstrumentsByValue(specialInvestmentInstrument), subCategoryDE,
         subCategoryEN);
     ResponseEntity<Assetclass> response = restTemplate.exchange(
-        RestTestHelper.createURLWithPort(RequestGTMappings.ASSETCLASS_MAP + "/", port), HttpMethod.POST,
+        RestTestHelper.createURLWithPort(RequestGTMappings.ASSETCLASS_MAP, port), HttpMethod.POST,
         RestTestHelper.getHttpEntity(RestTestHelper.getRadomUser(), a), Assetclass.class);
     assertNotNull(response);
     Assetclass aNew = response.getBody();
