@@ -347,7 +347,7 @@ CREATE TABLE `dividend` (
   PRIMARY KEY (`id_dividend`),
   KEY `FK_Dividend_Security` (`id_securitycurrency`),
   CONSTRAINT `FK_Dividend_Security` FOREIGN KEY (`id_securitycurrency`) REFERENCES `security` (`id_securitycurrency`)
-) ENGINE=InnoDB AUTO_INCREMENT=1029013 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1028504 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -646,7 +646,7 @@ CREATE TABLE `historyquote` (
   UNIQUE KEY `IHistoryQuote_id_Date` (`id_securitycurrency`,`date`),
   KEY `FK_HistoryQuote_SecurityCurrency` (`id_securitycurrency`) USING BTREE,
   CONSTRAINT `FK_HistoryQuote_SecurityCurrency` FOREIGN KEY (`id_securitycurrency`) REFERENCES `securitycurrency` (`id_securitycurrency`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=9114798 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9114186 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1405,7 +1405,7 @@ CREATE TABLE `stockexchange` (
   PRIMARY KEY (`id_stockexchange`),
   UNIQUE KEY `name` (`name`),
   UNIQUE KEY `stockexchange_mic` (`mic`)
-) ENGINE=InnoDB AUTO_INCREMENT=277 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=276 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1449,7 +1449,7 @@ CREATE TABLE `task_data_change` (
   `failed_message_code` varchar(40) DEFAULT NULL,
   `failed_stack_trace` varchar(4096) DEFAULT NULL,
   PRIMARY KEY (`id_task_data_change`)
-) ENGINE=InnoDB AUTO_INCREMENT=16496 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16487 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2065,4 +2065,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-11-05 22:16:14
+-- Dump completed on 2025-11-04  9:39:16

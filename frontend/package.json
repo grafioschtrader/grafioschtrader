@@ -40,7 +40,7 @@
     "plotly.js-locales": "^3.0.0",
     "primeflex": "^4.0.0",
     "primeicons": "^7.0.0",
-    "primeng": "^20.0.0",
+    "primeng": "20.2.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.5.0",
     "split.js": "^1.6.2",

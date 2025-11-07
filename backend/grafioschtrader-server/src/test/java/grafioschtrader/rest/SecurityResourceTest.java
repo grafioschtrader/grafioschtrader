@@ -49,22 +49,13 @@ import grafioschtrader.types.DistributionFrequency;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 @TestMethodOrder(OrderAnnotation.class)
-@SpringBootTest(classes = GTforTest.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 @TestInstance(Lifecycle.PER_CLASS)
-class SecurityResourceTest {
+class SecurityResourceTest extends BaseIntegrationTest  {
 
   private static List<Assetclass> assetclasses;
   private static List<Stockexchange> stockexchanges;
   private static Comparator<Stockexchange> comparatorSE = (s1, s2) -> s1.getName().compareTo(s2.getName());
-
-  @Autowired
-  TestRestTemplate restTemplate = new TestRestTemplate();
-
-  @LocalServerPort
-  private int port;
-
-  @Autowired
-  private JwtTokenHandler jwtTokenHandler;
+  
   private Assetclass assetclass;
   private Stockexchange stockexchange;
   private Security security;
@@ -149,12 +140,12 @@ class SecurityResourceTest {
 
   @Order(10)
   @ParameterizedTest
-  @CsvFileSource(resources = "/securities.csv", encoding = "UTF-8")
+  @CsvFileSource(resources = "/testdata/securities.csv", encoding = "UTF-8")
   @DisplayName("Create many securites from csv")
   void createAllSecuritiesTest(@AggregateWith(SecurityAggregator.class) Security security) {
     HttpEntity<Security> request = RestTestHelper.getHttpEntity(RestTestHelper.getRadomUser(), security);
     ResponseEntity<Security> response = restTemplate.exchange(
-        RestTestHelper.createURLWithPort(RequestGTMappings.SECURITY_MAP + "/", port), HttpMethod.POST, request,
+        RestTestHelper.createURLWithPort(RequestGTMappings.SECURITY_MAP, port), HttpMethod.POST, request,
         Security.class);
     assertNotNull(response);
     security = response.getBody();
@@ -169,7 +160,6 @@ class SecurityResourceTest {
     public Security aggregateArguments(ArgumentsAccessor accessor, ParameterContext context)
         throws ArgumentsAggregationException {
       Security s = new Security();
-
       s.setName(accessor.getString(0));
       s.setIsin(accessor.getString(1));
       s.setTickerSymbol(accessor.getString(2));

@@ -17,6 +17,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.map.PassiveExpiringMap;
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -345,6 +346,7 @@ public class PerformanceReport {
    */
   public PerformancePeriod getPeriodPerformanceByTenant(LocalDate dateFrom, LocalDate dateTo, WeekYear periodSplit)
       throws Exception {
+    
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     FirstAndMissingTradingDays firstAndMissingTradingDays = this
         .getFirstAndMissingTradingDaysByTenant(user.getIdTenant());

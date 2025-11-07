@@ -712,7 +712,7 @@
   "UNITS": "Anzahl Position",
   "UNITS_AT_END_OF_YEAR": "Menge Jahresende",
   "UNITS_TOOLTIP": "Anzahl gehaltener Einheiten dieser Position - bei Anleihen * 100 für Nennwert",
-  "UNTIL_DATE": "Stichdatum",
+  "UNTIL_DATE": "Bis Datum",
   "UNTIL_DATE_TOOLTIP": "Auswertung bis zu diesem Tag",
   "UPDATE_INTRADAY": "Innertag Kursaktualisierung",
   "UPDATE_INTRADAY_TITLE": "Innertag Kursaktualisierung - Zeitabstand kann hiermit nicht übersteuert werden",
