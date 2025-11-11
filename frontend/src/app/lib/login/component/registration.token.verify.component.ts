@@ -1,9 +1,9 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
-import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../services/globalparameter.service';
 import {LoginService} from '../service/log-in.service';
 import {Subscription} from 'rxjs';
-import {AppSettings} from '../../../shared/app.settings';
+import {BaseSettings} from '../../base.settings';
 
 @Component({
     template: `
@@ -29,10 +29,10 @@ export class RegistrationTokenVerifyComponent implements OnInit, OnDestroy {
         switch (redirect) {
           case 'TOKEN_INVALID':
           case 'TOKEN_EXPIRED':
-            this.router.navigate([AppSettings.REGISTER_KEY, {failure: redirect}]);
+            this.router.navigate([BaseSettings.REGISTER_KEY, {failure: redirect}]);
             break;
           case 'TOKEN_SUCCESS':
-            this.router.navigate([AppSettings.LOGIN_KEY, {success: redirect}]);
+            this.router.navigate([BaseSettings.LOGIN_KEY, {success: redirect}]);
             break;
         }
       });

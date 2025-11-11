@@ -1,4 +1,4 @@
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
 import {Assetclass} from '../../entities/assetclass';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';

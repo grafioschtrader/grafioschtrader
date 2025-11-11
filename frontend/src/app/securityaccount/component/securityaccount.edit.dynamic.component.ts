@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, OnInit} from '@angular/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
 import {AppHelper, Comparison} from '../../lib/helper/app.helper';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
@@ -7,7 +7,7 @@ import {Portfolio} from '../../entities/portfolio';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {SecurityaccountService} from '../service/securityaccount.service';
 import {Securityaccount} from '../../entities/securityaccount';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {TradingPlatformPlan} from '../../entities/tradingplatformplan';
 import {TradingPlatformPlanService} from '../../tradingplatform/service/trading.platform.plan.service';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
@@ -16,10 +16,10 @@ import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
-import {AppSettings} from '../../shared/app.settings';
 import {SimpleDynamicEditBase} from '../../lib/edit/simple.dynamic.edit.base';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * Edit security account
@@ -72,7 +72,7 @@ export class SecurityaccountEditDynamicComponent extends SimpleDynamicEditBase<S
           ...this.gps.getNumberCurrencyMask(),
           prefix: AppHelper.addSpaceToCurrency((<Portfolio>this.callParam.parentObject).currency)
         }, true, {inputWidth: 10}),
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false),
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', BaseSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);

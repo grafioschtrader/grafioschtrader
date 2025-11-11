@@ -15,25 +15,26 @@ import {RuleEvent} from '../../lib/dynamic-form/error/error.message.rules';
 import {TransactionCashaccountBaseOperations} from './transaction.cashaccount.base.operations';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {FormConfig} from '../../lib/dynamic-form/models/form.config';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {FormDefinitionHelper} from '../../shared/edit/form.definition.helper';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * Component for editing single cash account transactions where only one cash account is involved.
  * Supports deposit, withdrawal, fee, and interest transactions with dynamic form validation.
  */
 @Component({
-    selector: 'transaction-cashaccount-editsingle',
-    template: `
+  selector: 'transaction-cashaccount-editsingle',
+  template: `
     <p-dialog header="{{'SINGLE_ACCOUNT_TRANSACTION' | translate}}"
               [(visible)]="visibleCashaccountTransactionSingleDialog"
               [style]="{width: '400px'}"
@@ -45,7 +46,7 @@ import {AppSettings} from '../../shared/app.settings';
       </dynamic-form>
     </p-dialog>
   `,
-    standalone: false
+  standalone: false
 })
 export class TransactionCashaccountEditSingleComponent extends TransactionCashaccountBaseOperations implements OnInit {
 
@@ -79,10 +80,10 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    * @param gps Global parameter service for application settings
    */
   constructor(private portfolioService: PortfolioService,
-              private transactionService: TransactionService,
-              messageToastService: MessageToastService,
-              translateService: TranslateService,
-              gps: GlobalparameterService) {
+    private transactionService: TransactionService,
+    messageToastService: MessageToastService,
+    translateService: TranslateService,
+    gps: GlobalparameterService) {
     super(messageToastService, null, null, translateService, gps);
   }
 
@@ -95,11 +96,11 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     const calcGroupConfig: FieldConfig[] = [
       // Validator for amount is set dynamically
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('cashaccountAmount', true,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE, AppSettings.FID_MAX_FRACTION_DIGITS, true, {
+        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), true, {
           ...this.gps.getNumberCurrencyMask(),
           allowZero: false
         }, true),
-      this.getTransactionCostFieldDefinition()
+      this.getTransactionCostFieldDefinition(this.gps)
     ];
     this.config = [
       DynamicFieldHelper.createFieldSelectStringHeqF('transactionType', true),
@@ -110,12 +111,12 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
         {invisible: true}),
 
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('taxCost', false,
-        AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_STANDARD_FRACTION_DIGITS, false,
+        AppSettings.FID_STANDARD_INTEGER_DIGITS, this.gps.getStandardFractionDigits(), false,
         {...this.gps.getNumberCurrencyMask(), allowNegative: false}, true,
         {invisible: true}),
       {formGroupName: 'calcGroup', fieldConfig: calcGroupConfig},
-      this.getDebitAmountFieldDefinition(),
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false),
+      this.getDebitAmountFieldDefinition(this.gps),
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', BaseSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -158,7 +159,10 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
       case TransactionType.FEE:
         AppHelper.enableAndVisibleInput(this.configObject.idSecurityaccount);
         if (this.configObject.idCashaccount.formControl.value) {
-          const cp: { cashaccount: Cashaccount; portfolio: Portfolio } = this.getCashaccountByIdCashaccountFromPortfolios(
+          const cp: {
+            cashaccount: Cashaccount;
+            portfolio: Portfolio
+          } = this.getCashaccountByIdCashaccountFromPortfolios(
             this.portfolios, +this.configObject.idCashaccount.formControl.value);
           this.prepareSecurityaccount(cp.portfolio);
         }
@@ -239,16 +243,18 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     if (TransactionType[transaction.transactionType] === TransactionType.WITHDRAWAL) {
       transaction.cashaccountAmount = transaction.cashaccountAmount + transaction.transactionCost;
     }
-    this.transactionService.updateCreateSingleCashTrans(transaction).subscribe({next: newTransaction => {
-      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED',
-        {i18nRecord: AppSettings.TRANSACTION.toUpperCase()});
-      this.closeDialog.emit(new ProcessedActionData(transaction.idTransaction ? ProcessedAction.UPDATED
-        : ProcessedAction.CREATED, newTransaction));
-    }, error: () => this.configObject.submit.disabled = false});
+    this.transactionService.updateCreateSingleCashTrans(transaction).subscribe({
+      next: newTransaction => {
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED',
+          {i18nRecord: AppSettings.TRANSACTION.toUpperCase()});
+        this.closeDialog.emit(new ProcessedActionData(transaction.idTransaction ? ProcessedAction.UPDATED
+          : ProcessedAction.CREATED, newTransaction));
+      }, error: () => this.configObject.submit.disabled = false
+    });
   }
 
   helpLink(): void {
-    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_TRANSACTION_ACCOUNT);
+    this.gps.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_TRANSACTION_ACCOUNT);
   }
 
   /**

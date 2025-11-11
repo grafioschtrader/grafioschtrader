@@ -1,12 +1,12 @@
 import {Component, OnInit} from '@angular/core';
 import {FormBase} from '../../lib/edit/form.base';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {CopyTradingDaysFromSourceToTarget, TradingDaysMinusService} from '../service/trading.days.minus.service';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {MessageToastService} from '../../lib/message/message.toast.service';
@@ -66,6 +66,6 @@ export class TradingCalendarOtherExchangeDynamicComponent extends FormBase imple
   }
 
   helpLink(): void {
-    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_BASEDATA_STOCKEXCHANGE);
+    this.gps.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_BASEDATA_STOCKEXCHANGE);
   }
 }

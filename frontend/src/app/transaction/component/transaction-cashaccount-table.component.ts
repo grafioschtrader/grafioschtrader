@@ -10,10 +10,10 @@ import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Security} from '../../entities/security';
 import {Portfolio} from '../../entities/portfolio';
 import {TransactionCallParam} from './transaction.call.parm';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {combineLatest, Observable} from 'rxjs';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {
   ChildPreservePage,

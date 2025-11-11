@@ -1,6 +1,6 @@
 import {SingleRecordConfigBase} from '../../lib/datashowbase/single.record.config.base';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {Security} from '../../entities/security';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';

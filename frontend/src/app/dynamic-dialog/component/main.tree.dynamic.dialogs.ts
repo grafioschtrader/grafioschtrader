@@ -1,7 +1,7 @@
 import {TranslateService} from '@ngx-translate/core';
 import {DialogService, DynamicDialogRef} from 'primeng/dynamicdialog';
-import {DynamicDialogHelper} from '../../shared/dynamicdialog/component/dynamicDialogHelper';
-import {TenantEditDynamicComponent} from '../../lib/tenant/component/tenant.edit.dynamic.component';
+import {DynamicDialogHelper} from '../../lib/dynamicdialog/component/dynamicDialogHelper';
+import {TenantEditDynamicComponent} from '../../tenant/component/tenant.edit.dynamic.component';
 import {Tenant} from '../../entities/tenant';
 import {Type} from '@angular/core';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';

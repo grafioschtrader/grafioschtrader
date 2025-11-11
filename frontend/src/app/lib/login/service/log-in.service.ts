@@ -1,33 +1,33 @@
 import {Observable} from 'rxjs';
-import {Injectable} from '@angular/core';
+import {Injectable, Optional} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../services/globalparameter.service';
 import {User} from '../../entities/user';
-import {AppSettings} from '../../../shared/app.settings';
 import {MessageToastService} from '../../message/message.toast.service';
 import {Router} from '@angular/router';
 import {ChangePasswordDTO} from '../model/change.password.dto';
-import {GlobalSessionNames} from '../../../shared/global.session.names';
+import {GlobalSessionNames} from '../../global.session.names';
 import {catchError} from 'rxjs/operators';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {BaseAuthService} from './base.auth.service';
-import moment from 'moment';
 import {UserOwnProjection} from '../../entities/projection/user.own.projection';
-import {SuccessfullyChanged} from '../../../entities/backend/successfully.changed';
+import {SuccessfullyChanged} from '../model/successfully.changed';
 import {ConfigurationWithLoginGT} from '../component/login.component';
 import {AppHelper} from '../../helper/app.helper';
 import {PrimeNG} from 'primeng/config';
 import {BaseSettings} from '../../base.settings';
-import {GlobalGTSessionNames} from '../../../shared/global.gt.session.names';
+import {AfterLoginHandler} from './after-login.handler';
 
 
 @Injectable()
 export class LoginService extends BaseAuthService<User> {
 
   constructor(private router: Router,
-              public translateService: TranslateService,
-              private gps: GlobalparameterService,
-              httpClient: HttpClient, messageToastService: MessageToastService) {
+    public translateService: TranslateService,
+    private gps: GlobalparameterService,
+    httpClient: HttpClient,
+    messageToastService: MessageToastService,
+    @Optional() private afterLoginHandler?: AfterLoginHandler) {
     super(httpClient, messageToastService);
   }
 
@@ -66,19 +66,21 @@ export class LoginService extends BaseAuthService<User> {
     sessionStorage.setItem(GlobalSessionNames.ROLES, responseClaim.roles);
     sessionStorage.setItem(GlobalSessionNames.LANGUAGE, responseClaim.localeStr.slice(0, 2));
     sessionStorage.setItem(GlobalSessionNames.JWT, token);
-    sessionStorage.setItem(GlobalSessionNames.REPORT_UNTIL_DATE, moment().format(BaseSettings.FORMAT_DATE_SHORT_NATIVE));
     sessionStorage.setItem(GlobalSessionNames.USE_FEATURES, JSON.stringify(configurationWithLogin.useFeatures));
-    sessionStorage.setItem(GlobalGTSessionNames.CRYPTOS, JSON.stringify(configurationWithLogin.cryptocurrencies));
-    sessionStorage.setItem(GlobalGTSessionNames.STANDARD_CURRENCY_PRECISIONS_AND_LIMITS, JSON.stringify(configurationWithLogin.standardPrecision));
+    sessionStorage.setItem(GlobalSessionNames.STANDARD_CURRENCY_PRECISIONS_AND_LIMITS, JSON.stringify(configurationWithLogin.standardPrecision));
     sessionStorage.setItem(GlobalSessionNames.FIELD_SIZE, JSON.stringify(configurationWithLogin.fieldSize));
-    AppSettings.resetInterFractionLimit();
-
     sessionStorage.setItem(GlobalSessionNames.CURRENCY_PRECISION, JSON.stringify(configurationWithLogin.currencyPrecision));
     const entityNameWithKeyNameMap = configurationWithLogin.entityNameWithKeyNameList.reduce(
       (ac, eNK) => ({...ac, [eNK.entityName]: eNK.keyName}), {});
     sessionStorage.setItem(GlobalSessionNames.ENTITY_KEY_MAPPING, JSON.stringify(entityNameWithKeyNameMap));
     sessionStorage.setItem(GlobalSessionNames.MOST_PRIVILEGED_ROLE, configurationWithLogin.mostPrivilegedRole);
     sessionStorage.setItem(GlobalSessionNames.UDF_CONFIG, JSON.stringify(configurationWithLogin.udfConfig));
+
+    // Call application-specific handler if provided
+    if (this.afterLoginHandler) {
+      this.afterLoginHandler.handleAfterLogin(configurationWithLogin);
+    }
+
     return configurationWithLogin.passwordRegexOk;
   }
 
@@ -89,7 +91,7 @@ export class LoginService extends BaseAuthService<User> {
 
   logoutWithLoginView() {
     this.logout();
-    this.router.navigate(['/' + AppSettings.LOGIN_KEY]);
+    this.router.navigate(['/' + BaseSettings.LOGIN_KEY]);
   }
 
   isSignedIn(): boolean {
@@ -103,28 +105,28 @@ export class LoginService extends BaseAuthService<User> {
   }
 
   update(user: User): Observable<User> {
-    return this.updateEntity(user, user.idUser, AppSettings.USER_KEY);
+    return this.updateEntity(user, user.idUser, BaseSettings.USER_KEY);
   }
 
   getOwnUser(): Observable<UserOwnProjection> {
-    return <Observable<UserOwnProjection>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.USER_KEY}/own`,
+    return <Observable<UserOwnProjection>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${BaseSettings.USER_KEY}/own`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   updateNicknameLocale(userOwnProjection: UserOwnProjection): Observable<SuccessfullyChanged> {
-    return <Observable<SuccessfullyChanged>>this.httpClient.put(`${BaseSettings.API_ENDPOINT}${AppSettings.USER_KEY}/nicknamelocale`,
+    return <Observable<SuccessfullyChanged>>this.httpClient.put(`${BaseSettings.API_ENDPOINT}${BaseSettings.USER_KEY}/nicknamelocale`,
       userOwnProjection, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   updatePassword(changePasswordDTO: ChangePasswordDTO): Observable<SuccessfullyChanged> {
-    return <Observable<SuccessfullyChanged>>this.httpClient.put(`${BaseSettings.API_ENDPOINT}${AppSettings.USER_KEY}/password`,
+    return <Observable<SuccessfullyChanged>>this.httpClient.put(`${BaseSettings.API_ENDPOINT}${BaseSettings.USER_KEY}/password`,
       changePasswordDTO, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   getTokenVerified(token: string): Observable<string> {
     const options: any = this.getHeaders();
     options.responseType = 'text';
-    return <Observable<string>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.USER_KEY}/tokenverify/${token}`,
+    return <Observable<string>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${BaseSettings.USER_KEY}/tokenverify/${token}`,
       options).pipe(catchError(this.handleError.bind(this)));
   }
 

@@ -1,17 +1,36 @@
-import {EntityMapping, PrepareCallParam} from './request.for.you.table.component';
 import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
 import {Stockexchange} from '../../entities/stockexchange';
 import {StockexchangeCallParam} from '../../stockexchange/component/stockexchange.call.param';
 import {BasePrepareEdit} from '../../lib/proposechange/component/base.prepare.edit';
-import {GlobalparameterService} from '../service/globalparameter.service';
 import {StockexchangeBaseData} from '../../stockexchange/model/stockexchange.base.data';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {EntityMapping, PrepareCallParam} from '../../lib/proposechange/component/general.entity.prepare.edit';
 
-export class StockexchangePrepareEdit extends BasePrepareEdit implements PrepareCallParam {
+/**
+ * Preparation handler for Stockexchange entities in the propose change workflow.
+ * Loads stock exchange base data including country lists, existing MIC codes, and security associations
+ * needed for the stock exchange edit dialog.
+ */
+export class StockexchangePrepareEdit extends BasePrepareEdit<Stockexchange> implements PrepareCallParam<Stockexchange> {
+  /**
+   * Creates a stock exchange preparation handler.
+   *
+   * @param stockexchangeService - Service for loading stock exchange data
+   * @param gps - Global parameter service for system configuration
+   */
   constructor(private stockexchangeService: StockexchangeService,
-              private gps: GlobalparameterService) {
+    private gps: GlobalparameterService) {
     super();
   }
 
+  /**
+   * Prepares a stock exchange for editing by loading base data asynchronously.
+   * Fetches all stock exchanges, countries, MIC codes, and security associations
+   * to populate the edit dialog with validation data.
+   *
+   * @param entity - The stock exchange to prepare for editing
+   * @param entityMapping - Container for dialog state and parameters to be populated
+   */
   prepareForEditEntity(entity: Stockexchange, entityMapping: EntityMapping): void {
     this.stockexchangeService.getAllStockexchangesBaseData().subscribe((sbd: StockexchangeBaseData) => {
       entityMapping.callParam = new StockexchangeCallParam();

@@ -5,13 +5,13 @@ import {FormBase} from '../../../lib/edit/form.base';
 import {TranslateHelper} from '../../../lib/helper/translate.helper';
 import {TranslateService} from '@ngx-translate/core';
 import {FirstAndMissingTradingDays, HoldingService, PerformanceWindowDef, WeekYear} from '../service/holding.service';
-import {GlobalSessionNames} from '../../global.session.names';
+import {GlobalSessionNames} from '../../../lib/global.session.names';
 import {AppHelper} from '../../../lib/helper/app.helper';
-import {GlobalparameterService} from '../../service/globalparameter.service';
+import {GlobalparameterService} from '../../../lib/services/globalparameter.service';
 import {BusinessHelper} from '../../helper/business.helper';
-import {HelpIds} from '../../help/help.ids';
-import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach';
-import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
+import {HelpIds} from '../../../lib/help/help.ids';
+import {IGlobalMenuAttach} from '../../../lib/mainmenubar/component/iglobal.menu.attach';
+import {ActivePanelService} from '../../../lib/mainmenubar/service/active.panel.service';
 import {MenuItem} from 'primeng/api';
 import {Subscription} from 'rxjs';
 import moment from 'moment';
@@ -25,6 +25,7 @@ import {ChartDataService} from '../../chart/service/chart.data.service';
 import {ChartTrace, PlotlyHelper} from '../../chart/plotly.helper';
 import {FormHelper} from '../../../lib/dynamic-form/components/FormHelper';
 import {GlobalGTSessionNames} from '../../global.gt.session.names';
+import {BaseSettings} from '../../../lib/base.settings';
 
 /**
  * Performance over a certain period for a tenant or portfolio.
@@ -141,7 +142,7 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
 
   helpLink(): void {
     // Used in a dialog
-    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_PORTFOLIOS_PERIODPERFORMANCE);
+    this.gps.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_PORTFOLIOS_PERIODPERFORMANCE);
   }
 
   isActivated(): boolean {
@@ -158,7 +159,7 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
   callMeDeactivate(): void {
   }
 
-  getHelpContextId(): HelpIds {
+  getHelpContextId(): string {
     return HelpIds.HELP_PORTFOLIOS_PERIODPERFORMANCE;
   }
 
@@ -246,7 +247,7 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
 
   private navigateToChartRoute(): void {
     !this.subscriptionRequestFromChart && this.prepareChartDataWithRequest();
-    this.router.navigate([AppSettings.MAINVIEW_KEY + '/', {
+    this.router.navigate([BaseSettings.MAINVIEW_KEY + '/', {
       outlets: {
         mainbottom: [AppSettings.CHART_GENERAL_PURPOSE, AppSettings.PERFORMANCE_KEY]
       }

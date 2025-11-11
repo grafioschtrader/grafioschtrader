@@ -1,7 +1,7 @@
 import {Component, Input} from '@angular/core';
 import {Security} from '../../entities/security';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
 import {SecurityService} from '../service/security.service';

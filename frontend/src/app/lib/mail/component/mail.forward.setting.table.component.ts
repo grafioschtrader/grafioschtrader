@@ -1,10 +1,9 @@
 import {Component, OnDestroy} from '@angular/core';
-import {ActivePanelService} from '../../../shared/mainmenubar/service/active.panel.service';
+import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
-import {UserSettingsService} from '../../../shared/service/user.settings.service';
-import {HelpIds} from '../../../shared/help/help.ids';
+import {GlobalparameterService} from '../../services/globalparameter.service';
+import {UserSettingsService} from '../../services/user.settings.service';
 import {MailSettingForwardService} from '../service/mail.setting.forward.service';
 import {
   MailSendForwardDefault,
@@ -15,12 +14,11 @@ import {
 } from '../model/mail.send.recv';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {TranslateValue} from '../../datashowbase/column.config';
-import {AppSettings} from '../../../shared/app.settings';
 import {MessageToastService} from '../../message/message.toast.service';
-import {ProductIconService} from '../../../securitycurrency/service/product.icon.service';
 import {DialogService} from 'primeng/dynamicdialog';
 import {TableCrudSupportMenu} from '../../datashowbase/table.crud.support.menu';
 import {BaseSettings} from '../../base.settings';
+import {HelpIds} from '../../help/help.ids';
 
 /**
  * This component shows the message settings in a table.
@@ -79,7 +77,6 @@ export class MailForwardSettingTableComponent extends TableCrudSupportMenu<MailS
   private mailSendForwardDefault: MailSendForwardDefault;
 
   constructor(private mailSettingForwardService: MailSettingForwardService,
-    private productIconService: ProductIconService,
     confirmationService: ConfirmationService,
     messageToastService: MessageToastService,
     activePanelService: ActivePanelService,
@@ -130,7 +127,7 @@ export class MailForwardSettingTableComponent extends TableCrudSupportMenu<MailS
     this.activePanelService.destroyPanel(this);
   }
 
-  override getHelpContextId(): HelpIds {
+  override getHelpContextId(): string {
     return HelpIds.HELP_MESSAGE_SYSTEM;
   }
 

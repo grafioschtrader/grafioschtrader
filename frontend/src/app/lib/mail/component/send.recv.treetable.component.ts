@@ -1,24 +1,24 @@
 import {TreeTableConfigBase} from '../../datashowbase/tree.table.config.base';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../services/globalparameter.service';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {ColumnConfig, TranslateValue} from '../../datashowbase/column.config';
 import {Component, OnInit, ViewChild} from '@angular/core';
-import {IGlobalMenuAttach} from '../../../shared/mainmenubar/component/iglobal.menu.attach';
-import {HelpIds} from '../../../shared/help/help.ids';
-import {ActivePanelService} from '../../../shared/mainmenubar/service/active.panel.service';
+import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach';
+import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {ConfirmationService, MenuItem, TreeNode} from 'primeng/api';
 import {MailSendRecvService} from '../service/mail.send.recv.service';
 import {MailInboxWithSend, MailSendRecv, SendRecvType} from '../model/mail.send.recv';
-import {AppSettings} from '../../../shared/app.settings';
 import {SvgIconRegistryService} from 'angular-svg-icon';
 import {DialogService} from 'primeng/dynamicdialog';
 import {TranslateHelper} from '../../helper/translate.helper';
-import {MailSendParam} from '../../../shared/dynamicdialog/component/mail.send.dynamic.component';
+import {MailSendParam} from '../../dynamicdialog/component/mail.send.dynamic.component';
 import {AppHelper} from '../../helper/app.helper';
 import {InfoLevelType} from '../../message/info.leve.type';
 import {MessageToastService} from '../../message/message.toast.service';
-import {DynamicDialogs} from '../../../shared/dynamicdialog/component/dynamic.dialogs';
+import {DynamicDialogs} from '../../dynamicdialog/component/dynamic.dialogs';
+import {BaseSettings} from '../../base.settings';
+import {HelpIds} from '../../help/help.ids';
 
 /**
  * This component contains a tree structure for displaying sent and received messages. The message text is displayed in a text area.
@@ -126,14 +126,14 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
     this.addColumnFeqH(DataType.Boolean, 'hasBeenRead', true, false,
       {templateName: 'check', width: 60});
     TranslateHelper.translateMenuItems([this.replyMenuItem, this.sendToUserRoleMenuItem, this.deleteMenuItem,
-      this.deleteGroupMenuItem].concat(this.gps.hasRole(AppSettings.ROLE_ADMIN) ? [this.sendToUserMenuItem] : []), translateService);
+      this.deleteGroupMenuItem].concat(this.gps.hasRole(BaseSettings.ROLE_ADMIN) ? [this.sendToUserMenuItem] : []), translateService);
     this.translateHeadersAndColumns();
   }
 
   private static registerIcons(iconReg: SvgIconRegistryService): void {
     if (!SendRecvTreetableComponent.iconLoadDone) {
       for (const [key, iconName] of Object.entries(SendRecvTreetableComponent.createSendRecvIconMap)) {
-        iconReg.loadSvg(AppSettings.PATH_ASSET_ICONS + iconName + AppSettings.SVG, iconName);
+        iconReg.loadSvg(BaseSettings.PATH_ASSET_ICONS + iconName + BaseSettings.SVG, iconName);
       }
       SendRecvTreetableComponent.iconLoadDone = false;
     }
@@ -247,7 +247,7 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
   }
 
   private prepareEditMenu(): MenuItem[] {
-    const menuItems: MenuItem[] = [this.sendToUserRoleMenuItem].concat(this.gps.hasRole(AppSettings.ROLE_ADMIN) ?
+    const menuItems: MenuItem[] = [this.sendToUserRoleMenuItem].concat(this.gps.hasRole(BaseSettings.ROLE_ADMIN) ?
       [this.sendToUserMenuItem] : []);
     if (this.selectedNode) {
       if (this.selectedNode.data.sendRecv === SendRecvType.RECEIVE) {
@@ -266,7 +266,7 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
   callMeDeactivate(): void {
   }
 
-  getHelpContextId(): HelpIds {
+  getHelpContextId(): string {
     return HelpIds.HELP_MESSAGE_SYSTEM;
   }
 

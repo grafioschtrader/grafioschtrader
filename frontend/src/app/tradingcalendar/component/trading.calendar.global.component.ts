@@ -1,10 +1,10 @@
 import {Component, OnInit} from '@angular/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {AddRemoveDay, SaveTradingDays, TradingDaysPlusService} from '../service/trading.days.plus.service';
 import {MenuItem} from 'primeng/api';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {TranslateService} from '@ngx-translate/core';
 import {TradingCalendarBase} from './trading.calendar.base';

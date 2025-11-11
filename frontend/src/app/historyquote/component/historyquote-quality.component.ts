@@ -1,7 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {SingleRecordConfigBase} from '../../lib/datashowbase/single.record.config.base';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {IHistoryquoteQuality} from '../../entities/view/ihistoryquote.quality';
 import {Securitycurrency} from '../../entities/securitycurrency';

@@ -7,7 +7,7 @@ import {AppHelper} from '../../lib/helper/app.helper';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
 import {ProcessedAction} from '../../lib/types/processed.action';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 import {combineLatest, Observable, Subscription} from 'rxjs';
 import {Stockexchange} from '../../entities/stockexchange';
@@ -20,13 +20,12 @@ import {Security} from '../../entities/security';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {SecuritycurrencyEdit} from './securitycurrency.edit';
 import {SecuritysplitService} from '../service/securitysplit.service';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {DistributionFrequency} from '../../shared/types/distribution.frequency';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {BusinessHelper} from '../../shared/helper/business.helper';
 import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
 import {CallbackValueChanged, SecurityDerived, SecurityEditSupport} from './security.edit.support';
 import {SaveSecuritySuccess} from './split.period.table.base';
@@ -263,11 +262,11 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   }
 
   helpLink(): void {
-    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST_SECURITY);
+    this.gps.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST_SECURITY);
   }
 
   helpLinkPeriod(): void {
-    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST_WITHOUT_PRICE_DATA);
+    this.gps.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST_WITHOUT_PRICE_DATA);
   }
 
   protected override loadHelperData(): void {

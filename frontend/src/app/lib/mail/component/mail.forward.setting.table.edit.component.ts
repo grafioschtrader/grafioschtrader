@@ -1,11 +1,10 @@
 import {Component, OnInit} from '@angular/core';
-import {IGlobalMenuAttach} from '../../../shared/mainmenubar/component/iglobal.menu.attach';
-import {ActivePanelService} from '../../../shared/mainmenubar/service/active.panel.service';
+import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach';
+import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
-import {UserSettingsService} from '../../../shared/service/user.settings.service';
-import {HelpIds} from '../../../shared/help/help.ids';
+import {GlobalparameterService} from '../../services/globalparameter.service';
+import {UserSettingsService} from '../../services/user.settings.service';
 import {MailSettingForwardService} from '../service/mail.setting.forward.service';
 import {
   MailSendForwardDefault,
@@ -23,6 +22,7 @@ import {TranslateHelper} from '../../helper/translate.helper';
 import {AppHelper} from '../../helper/app.helper';
 import {InfoLevelType} from '../../message/info.leve.type';
 import {MessageToastService} from '../../message/message.toast.service';
+import {HelpIds} from '../../help/help.ids';
 
 /**
  * Editing this information class is very simple. Therefore
@@ -168,7 +168,7 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
   callMeDeactivate(): void {
   }
 
-  getHelpContextId(): HelpIds {
+  getHelpContextId(): string {
     return HelpIds.HELP_MESSAGE_SYSTEM;
   }
 

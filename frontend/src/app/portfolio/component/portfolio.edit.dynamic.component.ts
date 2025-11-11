@@ -1,12 +1,12 @@
 import {AfterViewInit, Component, OnInit} from '@angular/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {PortfolioService} from '../service/portfolio.service';
 import {TranslateService} from '@ngx-translate/core';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {Portfolio} from '../../entities/portfolio';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {Tenant} from '../../entities/tenant';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';

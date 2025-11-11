@@ -1,8 +1,8 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {IHistoryquoteQuality} from '../../entities/view/ihistoryquote.quality';
 import {Securitycurrency} from '../../entities/securitycurrency';

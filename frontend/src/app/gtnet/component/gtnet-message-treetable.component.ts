@@ -4,10 +4,10 @@ import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {GTNetMessage, MsgCallParam} from '../model/gtnet.message';
 import {MenuItem, TreeNode} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
-import {HelpIds} from '../../shared/help/help.ids';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import {HelpIds} from '../../lib/help/help.ids';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {ClassDescriptorInputAndShow} from '../../lib/dynamicfield/field.descriptor.input.and.show';
 
@@ -144,7 +144,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     this.contextMenuItems = this.getMenuItems();
   }
 
-  public getHelpContextId(): HelpIds {
+  public getHelpContextId(): string {
     return HelpIds.HELP_GT_NET;
   }
 

@@ -3,20 +3,19 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {LoginService} from '../service/log-in.service';
 import {TranslateService} from '@ngx-translate/core';
 import {MessageToastService} from '../../message/message.toast.service';
-import {GlobalparameterService, PasswordRegexProperties} from '../../../shared/service/globalparameter.service';
-import {AppSettings} from '../../../shared/app.settings';
+import {GlobalparameterService, PasswordRegexProperties} from '../../services/globalparameter.service';
 import {User} from '../../entities/user';
 import {InfoLevelType} from '../../message/info.leve.type';
 import {PasswordBaseComponent} from './password.base.component';
 import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
 import {TranslateHelper} from '../../helper/translate.helper';
-import {ActuatorService, ApplicationInfo} from '../../../shared/service/actuator.service';
-import {BusinessHelper} from '../../../shared/helper/business.helper';
-import {HelpIds} from '../../../shared/help/help.ids';
+import {ActuatorService, ApplicationInfo} from '../../services/actuator.service';
 import {combineLatest} from 'rxjs';
 import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
-import {GlobalSessionNames} from '../../../shared/global.session.names';
+import {GlobalSessionNames} from '../../global.session.names';
 import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
+import {HelpIds} from '../../help/help.ids';
+import {BaseSettings} from '../../base.settings';
 
 /**
  * Shows the user register form.
@@ -28,14 +27,14 @@ import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
 
         @if (errorLastRegistration) {
           <div class="alert alert-danger" role="alert">
-            {{errorLastRegistration | translate}}
+            {{ errorLastRegistration | translate }}
           </div>
         }
 
         <application-info [applicationInfo]="applicationInfo"></application-info>
 
         @if (applicationInfo) {
-          <h2>{{'REGISTRATION' | translate}}</h2>
+          <h2>{{ 'REGISTRATION' | translate }}</h2>
           <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                         #form="dynamicForm"
                         (submitBt)="submit($event)">
@@ -43,21 +42,21 @@ import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
 
           @if (progressValue) {
             <div>
-              <h4>{{'REGISTER_WAIT' | translate}}</h4>
+              <h4>{{ 'REGISTER_WAIT' | translate }}</h4>
               <p-progressBar [value]="progressValue"></p-progressBar>
             </div>
           }
 
           @if (confirmEmail) {
             <div class="alert alert-info" role="alert">
-              {{'REGISTRATION_EMAIL' | translate}}
+              {{ 'REGISTRATION_EMAIL' | translate }}
             </div>
           }
         }
       </div>
     </div>
   `,
-    standalone: false
+  standalone: false
 })
 export class RegisterComponent extends PasswordBaseComponent implements OnInit, OnDestroy {
   progressValue: number;
@@ -67,12 +66,12 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
   applicationInfo: ApplicationInfo;
 
   constructor(private messageToastService: MessageToastService,
-              private actuatorService: ActuatorService,
-              private activatedRoute: ActivatedRoute,
-              private router: Router,
-              private loginService: LoginService,
-              gps: GlobalparameterService,
-              translateService: TranslateService) {
+    private actuatorService: ActuatorService,
+    private activatedRoute: ActivatedRoute,
+    private router: Router,
+    private loginService: LoginService,
+    gps: GlobalparameterService,
+    translateService: TranslateService) {
     super(gps, translateService);
   }
 
@@ -80,7 +79,7 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
     combineLatest([this.actuatorService.applicationInfo(), this.gps.getUserFormDefinitions(),
       this.gps.getPasswordRegexProperties()]).subscribe({
         next: (data: [applicationInfo: ApplicationInfo, fdias: FieldDescriptorInputAndShow[],
-        prp: PasswordRegexProperties]) => {
+          prp: PasswordRegexProperties]) => {
           this.applicationInfo = data[0];
           sessionStorage.setItem(GlobalSessionNames.USER_FORM_DEFINITION, JSON.stringify(data[1]));
           this.loginFormDefinition(data[1]);
@@ -99,16 +98,18 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
     this.loginService.logout();
     this.form.setDisableAll(true);
     this.showProgressIndicator();
-    this.loginService.update(user).subscribe( { next: newUser => {
-      this.progressValue = 100;
-      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'USER_NEW_SAVED');
-      this.progressValue = undefined;
-      this.confirmEmail = true;
-    }, error: () => {
-      this.progressValue = undefined;
-      this.form.setDisableAll(false);
-      this.configObject.submit.disabled = false;
-    }});
+    this.loginService.update(user).subscribe({
+      next: newUser => {
+        this.progressValue = 100;
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'USER_NEW_SAVED');
+        this.progressValue = undefined;
+        this.confirmEmail = true;
+      }, error: () => {
+        this.progressValue = undefined;
+        this.form.setDisableAll(false);
+        this.configObject.submit.disabled = false;
+      }
+    });
   }
 
   showProgressIndicator() {
@@ -127,7 +128,7 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
   }
 
   helpLink(): void {
-    BusinessHelper.toExternalHelpWebpage(this.translateService.currentLang, HelpIds.HELP_INTRO_REGISTER);
+    this.gps.toExternalHelpWebpage(this.translateService.currentLang, HelpIds.HELP_INTRO_REGISTER);
   }
 
   private loginFormDefinition(fdias: FieldDescriptorInputAndShow[]): void {
@@ -143,7 +144,7 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
       {formGroupName: 'passwordGroup', fieldConfig: this.configPassword},
       DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF('localeStr', fdias),
       DynamicFieldHelper.createFunctionButton('SIGN_IN', (e) =>
-        this.router.navigate([`/${AppSettings.LOGIN_KEY}`])),
+        this.router.navigate([`/${BaseSettings.LOGIN_KEY}`])),
       DynamicFieldHelper.createSubmitButton('REGISTRATION')
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);

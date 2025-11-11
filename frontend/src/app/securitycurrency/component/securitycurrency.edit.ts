@@ -10,7 +10,7 @@ import {Validators} from '@angular/forms';
 import {FormBase} from '../../lib/edit/form.base';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {Security} from '../../entities/security';
 import {Securitycurrency} from '../../entities/securitycurrency';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';

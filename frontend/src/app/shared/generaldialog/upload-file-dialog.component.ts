@@ -2,7 +2,7 @@ import {Component, Input, OnInit} from '@angular/core';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
@@ -13,7 +13,7 @@ import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {Subscription} from 'rxjs';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {UserSettingsService} from '../service/user.settings.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {AppSettings} from '../app.settings';
 import {FileUploadParam, SupportedCSVFormat, UploadHistoryquotesSuccess} from './model/file.upload.param';
 

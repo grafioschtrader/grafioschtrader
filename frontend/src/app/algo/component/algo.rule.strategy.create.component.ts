@@ -1,4 +1,4 @@
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
 import {AfterViewInit, Component, OnDestroy, OnInit} from '@angular/core';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
@@ -11,7 +11,7 @@ import {AssetclassService} from '../../assetclass/service/assetclass.service';
 import {Assetclass} from '../../entities/assetclass';
 import {AlgoTopCreate, AssetclassPercentage} from '../../entities/backend/algo.top.create';
 import {RuleStrategyType} from '../../shared/types/rule.strategy.type';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {AlgoTopService} from '../service/algo.top.service';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {ProcessedAction} from '../../lib/types/processed.action';

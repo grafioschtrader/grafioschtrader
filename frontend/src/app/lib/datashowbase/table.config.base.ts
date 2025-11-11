@@ -1,9 +1,7 @@
 import {TranslateService} from '@ngx-translate/core';
-import {AppSettings} from '../../shared/app.settings';
 import {FilterService, MenuItem, SelectItem, SortEvent, SortMeta} from 'primeng/api';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {UserSettingsService} from '../services/user.settings.service';
 import {Helper} from '../helper/helper';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {ColumnConfig} from './column.config';
 import {Table} from 'primeng/table';
 import moment from 'moment';
@@ -12,6 +10,7 @@ import {ValueLabelHtmlSelectOptions} from './value.label.html.select.options';
 import {DataType} from '../dynamic-form/models/data.type';
 import {TableTreetableTotalBase} from './table.treetable.total.base';
 import {BaseSettings} from '../base.settings';
+import {GlobalparameterService} from '../services/globalparameter.service';
 
 /**
  * Abstract base class for displaying data in PrimeNG table format with comprehensive
@@ -72,7 +71,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    * @param filterService - PrimeNG service for registering custom filters
    * @param usersettingsService - Service for persisting user table preferences
    * @param translateService - Angular translation service
-   * @param gps - Global parameter service for locale and formatting
+   * @param gps - Global parameter base service for locale and formatting
    */
   protected constructor(protected filterService: FilterService,
     protected usersettingsService: UserSettingsService,
@@ -431,7 +430,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
       if (field.changeVisibility) {
         columnsMenuItems.push({
           label: field.headerKey,
-          icon: (field.visible) ? AppSettings.ICONNAME_SQUARE_CHECK : AppSettings.ICONNAME_SQUARE_EMTPY,
+          icon: (field.visible) ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY,
           command: (event) => this.handleHideShowColumn(event, field)
         });
       }
@@ -458,7 +457,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    */
   handleHideShowColumn(event, field: ColumnConfig) {
     field.visible = !field.visible;
-    event.item.icon = (field.visible) ? AppSettings.ICONNAME_SQUARE_CHECK : AppSettings.ICONNAME_SQUARE_EMTPY;
+    event.item.icon = (field.visible) ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY;
     //  this.changeDetectionStrategy.markForCheck();
   }
 

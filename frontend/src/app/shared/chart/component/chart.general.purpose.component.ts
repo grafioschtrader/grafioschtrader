@@ -1,15 +1,15 @@
 import {ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
-import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
+import {ActivePanelService} from '../../../lib/mainmenubar/service/active.panel.service';
 import {ActivatedRoute} from '@angular/router';
-import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach';
+import {IGlobalMenuAttach} from '../../../lib/mainmenubar/component/iglobal.menu.attach';
 import {ViewSizeChangedService} from '../../../lib/layout/service/view.size.changed.service';
 import {Subscription} from 'rxjs';
 import {ChartDataService} from '../service/chart.data.service';
 import {ChartData, PlotlyHelper} from '../plotly.helper';
-import {HelpIds} from '../../help/help.ids';
+import {HelpIds} from '../../../lib/help/help.ids';
 import {PlotlyLocales} from '../../plotlylocale/plotly.locales';
-import {GlobalparameterService} from '../../service/globalparameter.service';
+import {GlobalparameterService} from '../../../lib/services/globalparameter.service';
 declare let Plotly: any;
 
 
@@ -81,7 +81,7 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
     this.activePanelService.activatePanel(this);
   }
 
-  public getHelpContextId(): HelpIds {
+  public getHelpContextId(): string {
     // TODO return ID depending on the chart
     return null;
   }

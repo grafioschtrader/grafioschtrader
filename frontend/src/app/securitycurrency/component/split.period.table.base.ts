@@ -1,8 +1,8 @@
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {Directive, EventEmitter, Input, Output} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import moment from 'moment';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {MessageToastService} from '../../lib/message/message.toast.service';

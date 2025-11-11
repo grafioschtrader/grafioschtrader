@@ -1,10 +1,9 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {GTNetMessageCodeType, MsgCallParam} from '../model/gtnet.message';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {HelpIds} from '../../shared/help/help.ids';
-import {AppSettings} from '../../shared/app.settings';
+import {HelpIds} from '../../lib/help/help.ids';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {ClassDescriptorInputAndShow} from '../../lib/dynamicfield/field.descriptor.input.and.show';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
@@ -21,6 +20,7 @@ import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {GTNetService} from '../service/gtnet.service';
 import {GTNetWithMessages, MsgRequest} from '../model/gtnet';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * Crate a new GTNet message. A message can not be changed.
@@ -58,7 +58,7 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       4, this.helpLink.bind(this));
     this.config = [
       DynamicFieldHelper.createFieldSelectStringHeqF(this.MESSAGE_CODE, true),
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF('message', AppSettings.FID_MAX_LETTERS, false),
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF('message', BaseSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton('SEND')
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);

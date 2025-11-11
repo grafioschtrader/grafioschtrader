@@ -2,8 +2,8 @@ import {Component, Input, OnDestroy} from '@angular/core';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {FilterService, MenuItem} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {
   CorrelationInstrument,
   CorrelationResult,
@@ -21,8 +21,8 @@ import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {CorrelationSetService} from '../service/correlation.set.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {DataChangedService} from '../../shared/maintree/service/data.changed.service';
-import {TenantLimit} from '../../entities/backend/tenant.limit';
+import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
+import {TenantLimit} from '../../shared/types/tenant.limit';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {Subscription} from 'rxjs';
 import {ChartDataService} from '../../shared/chart/service/chart.data.service';
@@ -498,7 +498,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
       this.getAndSetRollingCorrelation();
     } else {
       this.prepareChartDataWithRequest();
-      this.router.navigate([AppSettings.MAINVIEW_KEY + '/', {
+      this.router.navigate([BaseSettings.MAINVIEW_KEY + '/', {
         outlets: {
           mainbottom: [AppSettings.CHART_GENERAL_PURPOSE, AppSettings.CORRELATION_CHART]
         }

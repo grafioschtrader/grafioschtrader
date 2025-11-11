@@ -1,14 +1,13 @@
 import {Component, OnDestroy} from '@angular/core';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {TranslateService} from '@ngx-translate/core';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {combineLatest, Subscription} from 'rxjs';
 import {AssetclassService} from '../service/assetclass.service';
 import {Assetclass} from '../../entities/assetclass';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {HelpIds} from '../../shared/help/help.ids';
 import {AssetclassCallParam} from './assetclass.call.param';
 import {plainToClass} from 'class-transformer';
 import {ConfirmationService, FilterService} from 'primeng/api';
@@ -17,6 +16,7 @@ import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config
 import {AppSettings} from '../../shared/app.settings';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {TableCrudSupportMenuSecurity} from '../../lib/datashowbase/table.crud.support.menu.security';
+import {HelpIds} from '../../lib/help/help.ids';
 
 /**
  * Shows the asset class as a table.
@@ -138,7 +138,7 @@ export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Asset
     return this.productIconService.getIconForAssetclass(assetclass, null);
   }
 
-  public override getHelpContextId(): HelpIds {
+  public override getHelpContextId(): string {
     return HelpIds.HELP_BASEDATA_ASSETCLASS;
   }
 

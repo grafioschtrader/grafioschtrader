@@ -8,7 +8,7 @@ import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../lib/login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {ApplicationInfo} from '../../shared/service/actuator.service';
+import {ApplicationInfo} from '../../lib/services/actuator.service';
 import {BaseSettings} from '../../lib/base.settings';
 
 @Injectable()

@@ -1,7 +1,8 @@
-import {GlobalSessionNames} from '../global.session.names';
+import {GlobalSessionNames} from '../../lib/global.session.names';
 import {AppSettings} from '../app.settings';
 import {CanActivateFn, Router} from '@angular/router';
 import {inject} from '@angular/core';
+import {BaseSettings} from '../../lib/base.settings';
 
 
 export const authGuard: CanActivateFn = () => {
@@ -9,17 +10,17 @@ export const authGuard: CanActivateFn = () => {
   const roles: string = sessionStorage.getItem(GlobalSessionNames.ROLES);
   if (roles) {
     const roleSplit = roles.split(',');
-    if (roles.indexOf(AppSettings.ROLE_LIMIT_EDIT) >= 0 || roles.indexOf(AppSettings.ROLE_USER) >= 0) {
+    if (roles.indexOf(BaseSettings.ROLE_LIMIT_EDIT) >= 0 || roles.indexOf(BaseSettings.ROLE_USER) >= 0) {
       return true;
     }
   }
-  router.navigate(['/' + AppSettings.LOGIN_KEY]);
+  router.navigate(['/' + BaseSettings.LOGIN_KEY]);
   return false;
 };
 
 export const allEditGuard: CanActivateFn = () => {
   const roles: string = sessionStorage.getItem(GlobalSessionNames.ROLES);
-  if (roles && roles.split(',').indexOf(AppSettings.ROLE_ALL_EDIT) >= 0) {
+  if (roles && roles.split(',').indexOf(BaseSettings.ROLE_ALL_EDIT) >= 0) {
     return true;
   }
   return false;
@@ -27,7 +28,7 @@ export const allEditGuard: CanActivateFn = () => {
 
 export const adminGuard: CanActivateFn = () => {
   const roles: string = sessionStorage.getItem(GlobalSessionNames.ROLES);
-  if (roles && roles.split(',').indexOf(AppSettings.ROLE_ADMIN) >= 0) {
+  if (roles && roles.split(',').indexOf(BaseSettings.ROLE_ADMIN) >= 0) {
     return true;
   }
   return false;

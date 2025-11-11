@@ -16,7 +16,7 @@ import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../lib/login/service/log-in.service';
-import {TenantLimit} from '../../entities/backend/tenant.limit';
+import {TenantLimit} from '../../shared/types/tenant.limit';
 import {AddSearchToListService} from '../component/add-instrument-table.component';
 import {IntraHistoricalWatchlistProblem} from '../model/intra.historical.watchlist.problem';
 import {BaseSettings} from '../../lib/base.settings';
@@ -38,7 +38,7 @@ export class WatchlistService extends AuthServiceWithLogout<Watchlist> implement
 
   getWatchlistsByIdTenant(): Observable<Watchlist[]> {
     return <Observable<Watchlist[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/` +
-      `${AppSettings.TENANT_KEY}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+      `${BaseSettings.TENANT_KEY}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   getWatchlistsOfTenantHasSecurity(): Observable<{ idWatchlist: number, hasSecurity: number }[]> {

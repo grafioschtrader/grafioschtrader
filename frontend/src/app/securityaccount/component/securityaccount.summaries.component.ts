@@ -6,9 +6,9 @@ import {TransactionCallParam} from '../../transaction/component/transaction.call
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {SecurityaccountService} from '../service/securityaccount.service';
 import {TranslateService} from '@ngx-translate/core';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {Subscription} from 'rxjs';
 import {ChartDataService} from '../../shared/chart/service/chart.data.service';
 import {OptionalParameters, TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';

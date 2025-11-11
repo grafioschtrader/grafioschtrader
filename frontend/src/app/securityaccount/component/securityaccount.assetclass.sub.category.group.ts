@@ -2,7 +2,7 @@ import {SecurityaccountGroupBaseDynamic} from './securityaccount.group.base.dyna
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {Security} from '../../entities/security';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 
 /**
  * Group by sub category of asset class

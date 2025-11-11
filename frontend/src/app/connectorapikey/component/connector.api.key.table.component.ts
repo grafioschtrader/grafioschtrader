@@ -4,12 +4,12 @@ import {TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.me
 import {ConnectorApiKey, SubscriptionTypeReadableName} from '../../entities/connector.api.key';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {AppSettings} from '../../shared/app.settings';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {ConnectorApiKeyService} from '../service/connector.api.key.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
@@ -125,7 +125,7 @@ export class ConnectorApiKeyTableComponent extends TableCrudSupportMenu<Connecto
     this.activePanelService.destroyPanel(this);
   }
 
-  override getHelpContextId(): HelpIds {
+  override getHelpContextId(): string {
     return HelpIds.HELP_CONNECTOR_API_KEY;
   }
 }

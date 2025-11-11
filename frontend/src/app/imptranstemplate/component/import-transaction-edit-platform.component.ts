@@ -4,8 +4,8 @@ import {ImportTransactionPlatform} from '../../entities/import.transaction.platf
 import {AppHelper} from '../../lib/helper/app.helper';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {HelpIds} from '../../shared/help/help.ids';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {HelpIds} from '../../lib/help/help.ids';
 import {ImportTransactionPlatformService} from '../service/import.transaction.platform.service';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';

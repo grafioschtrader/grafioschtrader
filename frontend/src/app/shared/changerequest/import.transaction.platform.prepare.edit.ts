@@ -1,18 +1,35 @@
 import {CallParam} from '../maintree/types/dialog.visible';
-
-import {EntityMapping, PrepareCallParam} from './request.for.you.table.component';
 import {ImportTransactionPlatform} from '../../entities/import.transaction.platform';
 import {ImportTransactionPlatformService} from '../../imptranstemplate/service/import.transaction.platform.service';
 import {IPlatformTransactionImport} from '../../portfolio/component/iplatform.transaction.import';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {BasePrepareEdit} from '../../lib/proposechange/component/base.prepare.edit';
+import {EntityMapping, PrepareCallParam} from '../../lib/proposechange/component/general.entity.prepare.edit';
 
-export class ImportTransactionPlatformPrepareEdit extends BasePrepareEdit implements PrepareCallParam {
+/**
+ * Preparation handler for ImportTransactionPlatform entities in the propose change workflow.
+ * Loads available platform transaction import types to populate selection options
+ * in the edit dialog.
+ */
+export class ImportTransactionPlatformPrepareEdit extends BasePrepareEdit<ImportTransactionPlatform> implements PrepareCallParam<ImportTransactionPlatform> {
 
+  /**
+   * Creates an import transaction platform preparation handler.
+   *
+   * @param importTransactionPlatformService - Service for loading platform import data
+   */
   constructor(private importTransactionPlatformService: ImportTransactionPlatformService) {
     super();
   }
 
+  /**
+   * Prepares an import transaction platform for editing by loading available platform types.
+   * Fetches the list of registered transaction import platform implementations and creates
+   * dropdown options for platform selection.
+   *
+   * @param entity - The import transaction platform to prepare for editing
+   * @param entityMapping - Container for dialog state and parameters to be populated
+   */
   prepareForEditEntity(entity: ImportTransactionPlatform, entityMapping: EntityMapping): void {
     this.importTransactionPlatformService.getPlatformTransactionImport().subscribe(
       (platformTransactionImports: IPlatformTransactionImport[]) => {
@@ -22,5 +39,4 @@ export class ImportTransactionPlatformPrepareEdit extends BasePrepareEdit implem
         entityMapping.visibleDialog = true;
       });
   }
-
 }

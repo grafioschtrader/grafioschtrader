@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {HelpIds} from '../../shared/help/help.ids';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {HelpIds} from '../../lib/help/help.ids';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ImportTransactionHeadService} from '../service/import.transaction.head.service';
@@ -11,30 +11,31 @@ import {Securityaccount} from '../../entities/securityaccount';
 import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {AppSettings} from '../../shared/app.settings';
+import {BaseSettings} from '../../lib/base.settings';
 
 
 @Component({
-    selector: 'securityaccount-import-transaction-edit-head',
-    template: `
+  selector: 'securityaccount-import-transaction-edit-head',
+  template: `
     <p-dialog header="{{'IMPORT_SET' | translate}}" [(visible)]="visibleDialog"
               [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
+      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
+                    #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`,
-    standalone: false
+  standalone: false
 })
 export class SecurityaccountImportTransactionEditHeadComponent extends SimpleEntityEditBase<ImportTransactionHead> implements OnInit {
 
   @Input() callParam: CallParam;
 
   constructor(translateService: TranslateService,
-              gps: GlobalparameterService,
-              messageToastService: MessageToastService,
-              importTransactionHeadService: ImportTransactionHeadService) {
+    gps: GlobalparameterService,
+    messageToastService: MessageToastService,
+    importTransactionHeadService: ImportTransactionHeadService) {
     super(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT, 'IMPORT_SET', translateService, gps,
       messageToastService, importTransactionHeadService);
   }
@@ -45,7 +46,7 @@ export class SecurityaccountImportTransactionEditHeadComponent extends SimpleEnt
 
     this.config = [
       DynamicFieldHelper.createFieldInputString('name', 'IMPORT_TRANSACTION_NAME', 40, true),
-      DynamicFieldHelper.createFieldTextareaInputString('note', 'NOTE', AppSettings.FID_MAX_LETTERS, false),
+      DynamicFieldHelper.createFieldTextareaInputString('note', 'NOTE', BaseSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);

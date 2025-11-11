@@ -2,7 +2,7 @@ import {Component, Input, OnInit} from '@angular/core';
 import {StatisticsSummary} from '../../entities/view/instrument.statistics.result';
 import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {TreeNode} from 'primeng/api';

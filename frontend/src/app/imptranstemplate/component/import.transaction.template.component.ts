@@ -1,9 +1,9 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {ActivatedRoute} from '@angular/router';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {SingleRecordMasterViewBase} from '../../shared/masterdetail/component/single.record.master.view.base';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {ImportTransactionPlatformService} from '../service/import.transaction.platform.service';
 import {IPlatformTransactionImport} from '../../portfolio/component/iplatform.transaction.import';
 import {ImportTransactionPlatform} from '../../entities/import.transaction.platform';
@@ -14,7 +14,7 @@ import {ImportTransactionTemplateTableComponent} from './import-transaction-temp
 import {ParentChildRowSelection} from '../../lib/datashowbase/parent.child.row.selection';
 import {ConfirmationService, MenuItem} from 'primeng/api';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {plainToInstance} from 'class-transformer';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';

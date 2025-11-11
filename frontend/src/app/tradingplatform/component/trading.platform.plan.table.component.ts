@@ -1,14 +1,14 @@
 import {Component, OnDestroy} from '@angular/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
 import {TradingPlatformPlan} from '../../entities/tradingplatformplan';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {TradingPlatformPlanService} from '../service/trading.platform.plan.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {ImportTransactionPlatformService} from '../../imptranstemplate/service/import.transaction.platform.service';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService} from 'primeng/api';
@@ -103,7 +103,7 @@ export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<Trad
     this.activePanelService.destroyPanel(this);
   }
 
-  override getHelpContextId(): HelpIds {
+  override getHelpContextId(): string {
     return HelpIds.HELP_BASEDATA_TRADING_PLATFORM_PLAN;
   }
 

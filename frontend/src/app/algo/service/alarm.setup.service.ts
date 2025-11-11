@@ -7,7 +7,7 @@ import {AlgoSecurity, AlgoSecurityStrategyImplType} from '../model/algo.security
 import {Security} from '../../entities/security';
 import {AlgoSecurityService} from './algo.security.service';
 import {ProcessedAction} from '../../lib/types/processed.action';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {BaseSettings} from '../../lib/base.settings';
 
 

@@ -7,9 +7,9 @@ import {SecuritycurrencyPosition} from '../../entities/view/securitycurrency.pos
 import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {Watchlist} from '../../entities/watchlist';
@@ -18,33 +18,33 @@ import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {TransactionCallParam} from '../../transaction/component/transaction.call.parm';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
-import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
+import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {Currencypair} from '../../entities/currencypair';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
-import {DataChangedService} from '../../shared/maintree/service/data.changed.service';
+import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
 import {Securitycurrency} from '../../entities/securitycurrency';
 import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
 import {Subscription} from 'rxjs';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
 import {AuditHelper} from '../../lib/helper/audit.helper';
-import {TenantLimit} from '../../entities/backend/tenant.limit';
+import {TenantLimit} from '../../shared/types/tenant.limit';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {WatchlistSecurityExists} from '../../entities/dnd/watchlist.security.exists';
-import {MailSendParam} from '../../shared/dynamicdialog/component/mail.send.dynamic.component';
+import {MailSendParam} from '../../lib/dynamicdialog/component/mail.send.dynamic.component';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {AppSettings} from '../../shared/app.settings';
-import {UDFGeneralCallParam} from '../../shared/udfmeta/model/udf.metadata';
+import {UDFGeneralCallParam} from '../../lib/udfmeta/model/udf.metadata';
 import {SecurityUDFHelper} from '../../securitycurrency/component/security.udf.helper';
-import {UDFMetadataHelper} from '../../shared/udfmeta/components/udf.metadata.helper';
+import {UDFMetadataHelper} from '../../lib/udfmeta/components/udf.metadata.helper';
 import {WatchlistHelper} from './watchlist.helper';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
-import {DynamicDialogs} from '../../shared/dynamicdialog/component/dynamic.dialogs';
+import {DynamicDialogs} from '../../lib/dynamicdialog/component/dynamic.dialogs';
 import {BaseSettings} from '../../lib/base.settings';
 
 /**
@@ -458,7 +458,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   }
 
   /** Returns the help context ID for this component. */
-  public getHelpContextId(): HelpIds {
+  public getHelpContextId(): string {
     return HelpIds.HELP_WATCHLIST;
   }
 

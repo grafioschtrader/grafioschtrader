@@ -12,7 +12,7 @@ import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../lib/login/service/log-in.service';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {TenantPortfolioSummary} from '../../lib/tenant/model/tenant.portfolio.summary';
+import {TenantPortfolioSummary} from '../../tenant/model/tenant.portfolio.summary';
 import {BaseSettings} from '../../lib/base.settings';
 
 
@@ -37,7 +37,7 @@ export class PortfolioService extends AuthServiceWithLogout<Portfolio> implement
 
   getPortfoliosForTenantOrderByName(): Observable<Portfolio[]> {
     return <Observable<Portfolio[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/`
-      + `${AppSettings.TENANT_KEY}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+      + `${BaseSettings.TENANT_KEY}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   getGroupedAccountsSecuritiesTenantSummary(untilDate: Date, tenantPortfolioSummary: TenantPortfolioSummary):

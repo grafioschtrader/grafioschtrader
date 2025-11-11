@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
 import {AssetclassService} from '../../assetclass/service/assetclass.service';
 import {TranslateService} from '@ngx-translate/core';
@@ -14,16 +14,16 @@ import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {CurrencypairService} from '../service/currencypair.service';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {BusinessHelper} from '../../shared/helper/business.helper';
 import {SecurityDerived, SecurityEditSupport} from './security.edit.support';
 import {AppSettings} from '../../shared/app.settings';
-import {UDFMetadataHelper} from '../../shared/udfmeta/components/udf.metadata.helper';
+import {UDFMetadataHelper} from '../../lib/udfmeta/components/udf.metadata.helper';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
+import {BaseSettings} from '../../lib/base.settings';
 
 
 /**
@@ -74,7 +74,7 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
         {fieldsetName: 'CURRENCY_BASE_DATA'}),
       DynamicFieldHelper.createFieldSelectString('toCurrency', 'CURRENCY_TO', true,
         {fieldsetName: 'CURRENCY_BASE_DATA'}),
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false,
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', BaseSettings.FID_MAX_LETTERS, false,
         {fieldsetName: 'CURRENCY_BASE_DATA'}),
       DynamicFieldHelper.createFieldInputStringHeqF('stockexchangeLink', 254, false,
         {fieldsetName: 'CURRENCY_BASE_DATA'}),
@@ -117,7 +117,7 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
   }
 
   helpLink(): void {
-    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST_CURRENCYPAIR);
+    this.gps.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST_CURRENCYPAIR);
   }
 
   protected loadHelperData(): void {

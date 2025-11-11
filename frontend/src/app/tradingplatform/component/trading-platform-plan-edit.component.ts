@@ -1,11 +1,11 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
 import {TradingPlatformPlanService} from '../service/trading.platform.plan.service';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {TradingPlatformPlan} from '../../entities/tradingplatformplan';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {TradingPlatformFeePlan} from '../../shared/types/trading.platform.fee.plan';
 import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
 import {ImportTransactionPlatform} from '../../entities/import.transaction.platform';

@@ -20,7 +20,7 @@ export class AlgoTopService extends AuthServiceWithLogout<AlgoTop> implements De
   }
 
   getAlgoTopByIdTenantOrderByName(): Observable<AlgoTop[]> {
-    return <Observable<AlgoTop[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_TOP_KEY}/${AppSettings.TENANT_KEY}`,
+    return <Observable<AlgoTop[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_TOP_KEY}/${BaseSettings.TENANT_KEY}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 

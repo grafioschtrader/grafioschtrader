@@ -9,16 +9,16 @@ import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Directive, EventEmitter, Output, ViewChild} from '@angular/core';
 import {Security} from '../../entities/security';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {PageFirstRowSelectedRow, ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 
 
 /**
@@ -184,7 +184,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
     this.setMenuItemsToActivePanel();
   }
 
-  public getHelpContextId(): HelpIds {
+  public getHelpContextId(): string {
     return null;
   }
 

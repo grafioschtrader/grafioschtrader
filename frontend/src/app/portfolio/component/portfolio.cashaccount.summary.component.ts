@@ -11,21 +11,22 @@ import {Portfolio} from '../../entities/portfolio';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
-import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
+import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Subscription} from 'rxjs';
-import {DataChangedService} from '../../shared/maintree/service/data.changed.service';
+import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
 import {ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {TenantService} from '../../tenant/service/tenant.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {ColumnConfig, ColumnGroupConfig} from '../../lib/datashowbase/column.config';
-import {HelpIds} from '../../shared/help/help.ids';
-import {TenantLimit, TenantLimitTypes} from '../../entities/backend/tenant.limit';
+import {HelpIds} from '../../lib/help/help.ids';
+import {TenantLimit, TenantLimitTypes} from '../../shared/types/tenant.limit';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
@@ -75,6 +76,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
               private messageToastService: MessageToastService,
               private activatedRoute: ActivatedRoute,
               private dataChangedService: DataChangedService,
+              private tenantService: TenantService,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
@@ -86,7 +88,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
     this.addColumnFeqH(DataType.String, 'cashaccount.currency', true, false,
       {width: 40});
     this.addColumn(DataType.Numeric, 'closePrice', 'CURRENCY_RATE', true,
-      false, {width: 60, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
+      false, {width: 60, maxFractionDigits: this.gps.getMaxFractionDigits()});
 
     this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'externalCashTransferMC', true, false,
       {templateName: 'greenRed', columnGroupConfigs: [new ColumnGroupConfig('groupExternalCashTransferMC')]}));
@@ -291,7 +293,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
     this.contextMenu.hide();
   }
 
-  public getHelpContextId(): HelpIds {
+  public getHelpContextId(): string {
     return HelpIds.HELP_PORTFOLIOS_PORTFOLIOS;
   }
 
@@ -305,7 +307,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
     if (this.tenantLimit) {
       this.handleEditAccount(portfolio, null, null);
     } else {
-      this.gps.getMaxTenantLimitsByMsgKey([TenantLimitTypes.MAX_CASH_ACCOUNT]).subscribe(tenantLimits => {
+      this.tenantService.getMaxTenantLimitsByMsgKey([TenantLimitTypes.MAX_CASH_ACCOUNT]).subscribe(tenantLimits => {
         this.tenantLimit = tenantLimits[0];
         if (BusinessHelper.isLimitCheckOk(tenantLimits[0], this.messageToastService)) {
           this.handleEditAccount(portfolio, null, null);

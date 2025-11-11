@@ -4,12 +4,12 @@ import {TransactionContextMenu} from './transaction.context.menu';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {TransactionService} from '../service/transaction.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {Transaction} from '../../entities/transaction';
 import {Security} from '../../entities/security';
 import {SecurityTransactionSummary} from '../../entities/view/security.transaction.summary';
@@ -21,7 +21,7 @@ import {TransactionType} from '../../shared/types/transaction.type';
 import {ProposedMarginFinanceCost} from '../model/proposed.margin.finance.cost';
 import {TransactionSecurityFieldDefinition} from './transaction.security.field.definition';
 import {TransactionSecurityOptionalParam} from '../model/transaction.security.optional.param';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 
 /**
  * Angular component that displays margin-based security transactions in a hierarchical tree table format.
@@ -161,7 +161,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    */
   ngOnInit(): void {
     this.currencyColumnConfigMC = TransactionSecurityFieldDefinition.getFieldDefinition(this, this.idTenant, true,
-      this.transactionSecurityOptionalParam);
+      this.transactionSecurityOptionalParam, this.gps);
     this.initialize();
   }
 
@@ -195,7 +195,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
     super.onRowUnselect(event);
   }
 
-  public override getHelpContextId(): HelpIds {
+  public override getHelpContextId(): string {
     return HelpIds.HELP_TRANSACTION_MARGIN_BASED;
   }
 

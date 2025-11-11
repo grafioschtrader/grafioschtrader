@@ -1,7 +1,6 @@
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs/internal/Observable';
 import {ProposeChangeEntity} from '../../entities/propose.change.entity';
-import {AppSettings} from '../../../shared/app.settings';
 import {catchError} from 'rxjs/operators';
 import {AuthServiceWithLogout} from '../../login/service/base.auth.service.with.logout';
 import {MessageToastService} from '../../message/message.toast.service';
@@ -21,22 +20,22 @@ export class ProposeChangeEntityService extends AuthServiceWithLogout<ProposeCha
 
   getProposeChangeEntityListByCreatedBy(): Observable<ProposeChangeEntity[]> {
     return <Observable<ProposeChangeEntity[]>>
-      this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.PROPOSE_CHANGE_ENTITY_KEY}`,
+      this.httpClient.get(`${BaseSettings.API_ENDPOINT}${BaseSettings.PROPOSE_CHANGE_ENTITY_KEY}`,
         this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   getProposeChangeEntityWithEntity(): Observable<ProposeChangeEntityWithEntity[]> {
     return <Observable<ProposeChangeEntityWithEntity[]>>
-      this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.PROPOSE_CHANGE_ENTITY_KEY}/withentity`,
+      this.httpClient.get(`${BaseSettings.API_ENDPOINT}${BaseSettings.PROPOSE_CHANGE_ENTITY_KEY}/withentity`,
         this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   public update(proposeChangeEntity: ProposeChangeEntity): Observable<ProposeChangeEntity> {
-    return this.updateEntity(proposeChangeEntity, proposeChangeEntity.idProposeRequest, AppSettings.PROPOSE_CHANGE_ENTITY_KEY);
+    return this.updateEntity(proposeChangeEntity, proposeChangeEntity.idProposeRequest, BaseSettings.PROPOSE_CHANGE_ENTITY_KEY);
   }
 
   public deleteEntity(idProposeRequest: number): Observable<any> {
-    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.PROPOSE_CHANGE_ENTITY_KEY}/${idProposeRequest}`,
+    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${BaseSettings.PROPOSE_CHANGE_ENTITY_KEY}/${idProposeRequest}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 }

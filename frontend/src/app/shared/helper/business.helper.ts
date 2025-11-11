@@ -10,20 +10,20 @@ import {Observable} from 'rxjs';
 import {SecurityTransactionSummary} from '../../entities/view/security.transaction.summary';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {HistoryquoteService} from '../../historyquote/service/historyquote.service';
-import {GlobalparameterService} from '../service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {Securitycurrency} from '../../entities/securitycurrency';
 import {MenuItem} from 'primeng/api';
 import {Security} from '../../entities/security';
-import {HelpIds} from '../help/help.ids';
 import {AppSettings} from '../app.settings';
-import {TenantLimit} from '../../entities/backend/tenant.limit';
+import {TenantLimit} from '../../shared/types/tenant.limit';
 import {AssetclassType} from '../types/assetclass.type';
 import {SpecialInvestmentInstruments} from '../types/special.investment.instruments';
 import {Assetclass} from '../../entities/assetclass';
 import {ISecuritycurrencyIdDateClose} from '../../entities/projection/i.securitycurrency.id.date.close';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
-import {GlobalSessionNames} from '../global.session.names';
+import {GlobalSessionNames} from '../../lib/global.session.names';
+import {GlobalGTSessionNames} from '../global.gt.session.names';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {BaseSettings} from '../../lib/base.settings';
 
@@ -271,22 +271,8 @@ export class BusinessHelper {
     return menuItems;
   }
 
-  /**
-   * Opens an external help webpage in a new window/tab using the application's
-   * help domain and specified language and help section.
-   *
-   * @param language ISO language code for the help documentation (e.g., 'en', 'de')
-   * @param helpIds Enum value specifying which help section to display
-   *
-   * @example
-   * ```typescript
-   * BusinessHelper.toExternalHelpWebpage('en', HelpIds.HELP_PORTFOLIO);
-   * // Opens: //grafioschtrader.github.io/gt-user-manual/en/HELP_PORTFOLIO
-   * ```
-   */
-  public static toExternalHelpWebpage(language: string, helpIds: HelpIds) {
-    AppHelper.toExternalWebpage(AppSettings.HELP_DOMAIN + '/' + language + '/' + helpIds, 'help');
-  }
+
+
 
   /**
    * Determines if a security should display denomination values based on its asset class
@@ -307,7 +293,6 @@ export class BusinessHelper {
       return true;
     }
   }
-
 
 
   /**
@@ -362,7 +347,7 @@ export class BusinessHelper {
    * @returns Date object representing the until date for reports
    */
   static getUntilDateBySessionStorage(): Date {
-    return BusinessHelper.getDateFromSessionStorage(GlobalSessionNames.REPORT_UNTIL_DATE, new Date());
+    return BusinessHelper.getDateFromSessionStorage(GlobalGTSessionNames.REPORT_UNTIL_DATE, new Date());
   }
 
   /**
@@ -385,7 +370,7 @@ export class BusinessHelper {
    * @param untilDate Date to store in session storage
    */
   static saveUntilDateInSessionStorage(untilDate: Date): void {
-    BusinessHelper.saveDateToSessionStore(GlobalSessionNames.REPORT_UNTIL_DATE, untilDate);
+    BusinessHelper.saveDateToSessionStore(GlobalGTSessionNames.REPORT_UNTIL_DATE, untilDate);
   }
 
   /**

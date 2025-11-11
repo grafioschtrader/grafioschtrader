@@ -1,8 +1,9 @@
 import {Assetclass} from '../../entities/assetclass';
-import {FieldDescriptorInputAndShowExtendedSecurity} from '../../shared/udfmeta/model/udf.metadata';
-import {GlobalSessionNames} from '../../shared/global.session.names';
+
+import {GlobalSessionNames} from '../../lib/global.session.names';
 import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
 import {AssetclassType} from '../../shared/types/assetclass.type';
+import {FieldDescriptorInputAndShowExtendedSecurity} from '../../udfmetasecurity/model/udf.metadata.security';
 
 export class SecurityUDFHelper {
   /**

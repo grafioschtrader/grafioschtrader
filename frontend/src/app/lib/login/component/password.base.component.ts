@@ -10,7 +10,7 @@ import {equalTo} from '../../validator/validator';
 import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
 import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
 import {ValidatorFn, Validators} from '@angular/forms';
-import {GlobalparameterService, PasswordRegexProperties} from '../../../shared/service/globalparameter.service';
+import {GlobalparameterService, PasswordRegexProperties} from '../../services/globalparameter.service';
 
 /**
  * Certain forms such as registration or password change will involve entering a password twice.

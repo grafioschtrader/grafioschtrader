@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {Portfolio} from '../../entities/portfolio';
 import {Cashaccount} from '../../entities/cashaccount';
 import {Securityaccount} from '../../entities/securityaccount';
@@ -40,7 +40,7 @@ import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {FieldFormGroup} from '../../lib/dynamic-form/models/form.group.definition';
 import {TransactionBaseOperations} from './transaction.base.operations';
 import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {map} from 'rxjs/operators';
 import {FormDefinitionHelper} from '../../shared/edit/form.definition.helper';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
@@ -52,6 +52,7 @@ import {ClosedMarginPosition} from '../model/closed.margin.position';
 import {AbstractControl} from '@angular/forms';
 import {AppSettings} from '../../shared/app.settings';
 import {BusinessSelectOptionsHelper} from '../../securitycurrency/component/business.select.options.helper';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * Edit transaction for an investment product, also margin product. The transaction type (buy, dividend, sell,
@@ -164,33 +165,33 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       ...this.createExRateButtons(),
       this.createQuotationField(),
       DynamicFieldHelper.createFieldCurrencyNumber('quotation', 'QUOTATION_DIV', true,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE, AppSettings.FID_MAX_FRACTION_DIGITS,
+        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(),
         this.transactionCallParam.transactionType === TransactionType.DIVIDEND
         || this.transactionCallParam.transactionType === TransactionType.FINANCE_COST,
         this.gps.getNumberCurrencyMask(), true, {userDefinedValue: 'S', usedLayoutColumns: 8}),
       DynamicFieldHelper.createFieldCurrencyNumber('quotationCA', '_CA', false,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE, AppSettings.FID_MAX_FRACTION_DIGITS,
+        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(),
         true, this.gps.getNumberCurrencyMask(), true, {userDefinedValue: 'C', usedLayoutColumns: 4}),
 
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('taxCost', false,
-        AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_STANDARD_FRACTION_DIGITS, false,
+        AppSettings.FID_STANDARD_INTEGER_DIGITS, this.gps.getStandardFractionDigits(), false,
         this.gps.getNumberCurrencyMask(), true, {userDefinedValue: 'S', usedLayoutColumns: 8}),
 
       DynamicFieldHelper.createFieldCurrencyNumber('taxCostCA', '_CA', false,
-        AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_STANDARD_FRACTION_DIGITS, false,
+        AppSettings.FID_STANDARD_INTEGER_DIGITS, this.gps.getStandardFractionDigits(), false,
         this.gps.getNumberCurrencyMask(), true, {userDefinedValue: 'C', usedLayoutColumns: 4}),
 
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('transactionCost', false,
-        AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_STANDARD_FRACTION_DIGITS, false,
+        AppSettings.FID_STANDARD_INTEGER_DIGITS, this.gps.getStandardFractionDigits(), false,
         this.gps.getNumberCurrencyMask(), true, {userDefinedValue: 'S', usedLayoutColumns: 8}),
 
       DynamicFieldHelper.createFieldCurrencyNumber('transactionCostCA', '_CA', false,
-        AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_STANDARD_FRACTION_DIGITS, false,
+        AppSettings.FID_STANDARD_INTEGER_DIGITS, this.gps.getStandardFractionDigits(), false,
         this.gps.getNumberCurrencyMask(), true, {userDefinedValue: 'C', usedLayoutColumns: 4}),
 
       // Used for accrued interest and daily finance cost for margin instrument
       DynamicFieldHelper.createFieldCurrencyNumber('assetInvestmentValue1', 'ACCRUED_INTEREST',
-        false, AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_MAX_FRACTION_DIGITS - 3,
+        false, AppSettings.FID_STANDARD_INTEGER_DIGITS, this.gps.getMaxFractionDigits() - 3,
         true,
         this.gps.getNumberCurrencyMask(), true, {userDefinedValue: 'S'}),
 
@@ -213,19 +214,19 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       {formGroupName: 'calcGroup', fieldConfig: calcGroupConfig},
 
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('securityRisk', false,
-        AppSettings.FID_MAX_DIGITS - AppSettings.FID_MAX_FRACTION_DIGITS,
-        AppSettings.FID_MAX_FRACTION_DIGITS, true, this.gps.getNumberCurrencyMask(),
+        AppSettings.FID_MAX_DIGITS - this.gps.getMaxFractionDigits(),
+        this.gps.getMaxFractionDigits(), true, this.gps.getNumberCurrencyMask(),
         true, {readonly: true, userDefinedValue: 'C'}),
 
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('cashaccountAmount', false,
-        AppSettings.FID_MAX_DIGITS - AppSettings.FID_MAX_FRACTION_DIGITS,
-        AppSettings.FID_MAX_FRACTION_DIGITS, true, this.gps.getNumberCurrencyMask(),
+        AppSettings.FID_MAX_DIGITS - this.gps.getMaxFractionDigits(),
+        this.gps.getMaxFractionDigits(), true, this.gps.getNumberCurrencyMask(),
         true, {readonly: true, userDefinedValue: 'C', usedLayoutColumns: 8}),
       /*
        DynamicFieldHelper.createFieldInputString('cashaccountAmountExact', '_exact',
          15, false, { dataproperty: 'cashaccountAmount', readonly: true,  usedLayoutColumns: 4}),
  */
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false),
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', BaseSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];
 
@@ -405,7 +406,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   }
 
   helpLink(): void {
-    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(),
+    this.gps.toExternalHelpWebpage(this.gps.getUserLang(),
       this.isMarginInstrument ? HelpIds.HELP_TRANSACTION_MARGIN_BASED : HelpIds.HELP_TRANSACTION_CASH_BASED);
   }
 
@@ -493,7 +494,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
         : 'ACCRUED_INTEREST';
       this.configObject.assetInvestmentValue1.currencyMaskConfig.allowNegative = this.isOpenMarginInstrument;
       this.configObject.assetInvestmentValue1.currencyMaskConfig.precision = this.isOpenMarginInstrument
-        ? AppSettings.FID_MAX_FRACTION_DIGITS : AppSettings.FID_STANDARD_FRACTION_DIGITS;
+        ? this.gps.getMaxFractionDigits() : this.gps.getStandardFractionDigits();
     }
     AppHelper.invisibleAndHide(this.configObject.exDate, this.transactionCallParam.transactionType !== TransactionType.DIVIDEND
       || this.isBondOrConvertibleBondAndDirectInvestment());

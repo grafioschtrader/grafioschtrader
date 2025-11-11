@@ -1,8 +1,8 @@
 import {TableConfigBase} from './table.config.base';
 import {FilterService} from 'primeng/api';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {UserSettingsService} from '../services/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../services/globalparameter.service';
 import {ColumnConfig, OptionalParams} from './column.config';
 import {DataType} from '../dynamic-form/models/data.type';
 import {AppHelper} from '../helper/app.helper';

@@ -1,6 +1,6 @@
 import {DataType} from '../dynamic-form/models/data.type';
 import {ColumnConfig, OptionalParams} from './column.config';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../services/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
 import {ShowRecordConfigBase} from './show.record.config.base';
 

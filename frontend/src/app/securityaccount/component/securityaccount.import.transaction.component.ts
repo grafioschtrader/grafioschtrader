@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
-import {HelpIds} from '../../shared/help/help.ids';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
+import {HelpIds} from '../../lib/help/help.ids';
 import {ImportTransactionHead} from '../../entities/import.transaction.head';
 import {
   ImportTransactionHeadService,
@@ -21,7 +21,7 @@ import {ImportTransactionTemplate} from '../../entities/import.transaction.templ
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {CombineTemplateAndImpTransPos} from './combine.template.and.imp.trans.pos';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {plainToInstance} from 'class-transformer';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
@@ -110,7 +110,7 @@ export class SecurityaccountImportTransactionComponent
     this.config = [
       DynamicFieldHelper.createFieldSelectNumber(SecurityaccountImportTransactionComponent.MAIN_FIELD,
         'IMPORT_TRANSACTION_NAME', false, {usedLayoutColumns: 6}),
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false,
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', BaseSettings.FID_MAX_LETTERS, false,
         {usedLayoutColumns: 6, disabled: true}),
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);

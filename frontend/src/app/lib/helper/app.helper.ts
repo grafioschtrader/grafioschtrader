@@ -1,7 +1,6 @@
 import moment from 'moment';
 import {combineLatest} from 'rxjs';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {DataType} from '../dynamic-form/models/data.type';
 import {Helper} from './helper';
 import {ColumnConfig} from '../datashowbase/column.config';
@@ -14,6 +13,7 @@ import {InfoLevelType} from '../message/info.leve.type';
 import {MessageToastService} from '../message/message.toast.service';
 import {FieldConfig} from '../dynamic-form/models/field.config';
 import {BaseSettings} from '../base.settings';
+import {GlobalparameterService} from '../services/globalparameter.service';
 
 export const enum Comparison { GT, LT, EQ }
 

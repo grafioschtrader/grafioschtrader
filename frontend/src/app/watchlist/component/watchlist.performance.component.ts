@@ -1,18 +1,18 @@
 import {TimeFrame, WatchlistTable, WatchListType} from './watchlist.table';
 import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
-import {DataChangedService} from '../../shared/maintree/service/data.changed.service';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {WatchlistService} from '../service/watchlist.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import moment from 'moment';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {AppSettings} from '../../shared/app.settings';
 import {SecuritycurrencyGroup} from '../../entities/view/securitycurrency.group';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {SecuritycurrencyPosition} from '../../entities/view/securitycurrency.position';
@@ -21,7 +21,7 @@ import {Currencypair} from '../../entities/currencypair';
 import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
 import {ViewSizeChangedService} from '../../lib/layout/service/view.size.changed.service';
 import {combineLatest, Observable} from 'rxjs';
-import {TenantLimit} from '../../entities/backend/tenant.limit';
+import {TenantLimit} from '../../shared/types/tenant.limit';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
@@ -98,7 +98,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
 
     this.addColumn(DataType.DateTimeNumeric, 'securitycurrency.sTimestamp', 'TIMEDATE', true, true, {width: 80});
     this.addColumn(DataType.Numeric, 'securitycurrency.sLast', 'LAST', true, true,
-      {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
+      {maxFractionDigits: gps.getMaxFractionDigits()});
     this.addColumn(DataType.Numeric, 'securitycurrency.sChangePercentage', 'DAILY_CHANGE', true, true, {
       headerSuffix: '%', templateName: 'greenRed'
     });
@@ -120,11 +120,11 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     });
     this.addColumnFeqH(DataType.Numeric, 'valueSecurity', true, true);
     this.addColumn(DataType.Numeric, 'securitycurrency.sPrevClose', 'DAY_BEFORE_CLOSE',
-      true, true, {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
+      true, true, {maxFractionDigits: gps.getMaxFractionDigits()});
     this.addColumn(DataType.Numeric, 'securitycurrency.sHigh', 'HIGH', true, true,
-      {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
+      {maxFractionDigits: gps.getMaxFractionDigits()});
     this.addColumn(DataType.Numeric, 'securitycurrency.sLow', 'LOW', true, true,
-      {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
+      {maxFractionDigits: gps.getMaxFractionDigits()});
 
     this.prepareTableAndTranslate();
     this.watchlistHasModifiedFromOutside();
@@ -135,7 +135,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.getWatchlistWithoutUpdate();
   }
 
-  public override getHelpContextId(): HelpIds {
+  public override getHelpContextId(): string {
     return HelpIds.HELP_WATCHLIST_PERFORMANCE;
   }
 

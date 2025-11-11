@@ -4,9 +4,9 @@ import {FormConfig} from '../../lib/dynamic-form/models/form.config';
 import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 import {AssetclassType} from '../../shared/types/assetclass.type';
 import {atLeastOneFieldValidator} from '../../lib/validator/validator';
@@ -16,7 +16,6 @@ import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.sea
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {BusinessHelper} from '../../shared/helper/business.helper';
 import {SupplementCriteria} from '../model/supplement.criteria';
 import {AppSettings} from '../../shared/app.settings';
 import {
@@ -108,7 +107,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
   }
 
   helpLink(): void {
-    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST_SEARCHDIALOG);
+    this.gps.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST_SEARCHDIALOG);
   }
 
   protected initialize(): void {

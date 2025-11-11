@@ -2,7 +2,7 @@ import {BaseID} from '../lib/entities/base.id';
 import {Currencypair} from './currencypair';
 import {Security} from './security';
 import {Securitycurrency} from './securitycurrency';
-import {TenantLimit} from './backend/tenant.limit';
+import {TenantLimit} from '../shared/types/tenant.limit';
 
 export class CorrelationSet implements BaseID {
   idCorrelationSet: number = null;

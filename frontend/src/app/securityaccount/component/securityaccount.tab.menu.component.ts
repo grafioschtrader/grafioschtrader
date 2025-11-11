@@ -5,7 +5,8 @@ import { AppSettings } from '../../shared/app.settings';
 import { Securityaccount } from '../../entities/securityaccount';
 import { Subscription } from 'rxjs';
 import {BaseTabMenuComponent} from '../../lib/tabmenu/component/base.tab.menu.component';
-import {TabItem} from '../../shared/types/tab.item';
+import {TabItem} from '../../lib/types/tab.item';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * Tab menu for security account.
@@ -151,7 +152,7 @@ export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implem
     }
     // Navigate with complex route structure
     this.router.navigate([
-      `${AppSettings.MAINVIEW_KEY}/${AppSettings.SECURITYACCOUNT_TAB_MENU_KEY}/${this.securityaccount.idSecuritycashAccount}/${route}`,
+      `${BaseSettings.MAINVIEW_KEY}/${AppSettings.SECURITYACCOUNT_TAB_MENU_KEY}/${this.securityaccount.idSecuritycashAccount}/${route}`,
       this.securityaccount.idSecuritycashAccount,
       data
     ]);

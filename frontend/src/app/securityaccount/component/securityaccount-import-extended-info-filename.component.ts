@@ -1,7 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {CombineTemplateAndImpTransPos} from './combine.template.and.imp.trans.pos';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {SingleRecordConfigBase} from '../../lib/datashowbase/single.record.config.base';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ImportSettings} from './import.settings';

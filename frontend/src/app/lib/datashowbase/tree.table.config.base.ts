@@ -1,5 +1,5 @@
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../services/globalparameter.service';
 import {TableTreetableTotalBase} from './table.treetable.total.base';
 import {TreeNode} from 'primeng/api';
 import {TranslateHelper} from '../helper/translate.helper';

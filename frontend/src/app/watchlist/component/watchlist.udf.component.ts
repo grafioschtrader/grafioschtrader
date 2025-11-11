@@ -4,30 +4,31 @@ import {WatchlistTable, WatchListType} from './watchlist.table';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
-import {DataChangedService} from '../../shared/maintree/service/data.changed.service';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {WatchlistService} from '../service/watchlist.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {AppSettings} from '../../shared/app.settings';
 import {combineLatest, Observable} from 'rxjs';
 import {SecuritycurrencyUDFGroup} from '../../entities/view/securitycurrency.group';
-import {TenantLimit} from '../../entities/backend/tenant.limit';
-import {UDFMetadataSecurityService} from '../../shared/udfmeta/service/udf.metadata.security.service';
-import {GlobalSessionNames} from '../../shared/global.session.names';
-import {FieldDescriptorInputAndShowExtendedSecurity} from '../../shared/udfmeta/model/udf.metadata';
+import {TenantLimit} from '../../shared/types/tenant.limit';
+import {UDFMetadataSecurityService} from '../../udfmetasecurity/service/udf.metadata.security.service';
+import {GlobalSessionNames} from '../../lib/global.session.names';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {SvgIconRegistryService} from 'angular-svg-icon';
 import {ColumnConfig, OptionalParams} from '../../lib/datashowbase/column.config';
-import {HelpIds} from '../../shared/help/help.ids';
 import {WatchlistHelper} from './watchlist.helper';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
+import {HelpIds} from '../../lib/help/help.ids';
+import {BaseSettings} from '../../lib/base.settings';
+import {FieldDescriptorInputAndShowExtendedSecurity} from '../../udfmetasecurity/model/udf.metadata.security';
 
 /**
  * Angular component that displays a watchlist with user-defined additional fields (UDF).
@@ -125,7 +126,7 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
    */
   private static registerIcons(iconReg: SvgIconRegistryService): void {
     for (let i = 0; i < 4; i++) {
-      iconReg.loadSvg(AppSettings.PATH_ASSET_ICONS + WatchlistUdfComponent.LINK_ICON + i + AppSettings.SVG, WatchlistUdfComponent.LINK_ICON + i);
+      iconReg.loadSvg(BaseSettings.PATH_ASSET_ICONS + WatchlistUdfComponent.LINK_ICON + i + BaseSettings.SVG, WatchlistUdfComponent.LINK_ICON + i);
     }
   }
 
@@ -177,7 +178,7 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
     this.getWatchlistWithoutUpdate();
   }
 
-  public override getHelpContextId(): HelpIds {
+  public override getHelpContextId(): string {
     return HelpIds.HELP_WATCHLIST_UDF;
   }
 
