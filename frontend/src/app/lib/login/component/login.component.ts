@@ -2,23 +2,22 @@ import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {LoginService} from '../service/log-in.service';
 import {TranslateService} from '@ngx-translate/core';
-import {AppSettings} from '../../../shared/app.settings';
 import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../services/globalparameter.service';
 import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
 import {TranslateHelper} from '../../helper/translate.helper';
 import {FormBase} from '../../edit/form.base';
 import {DialogService} from 'primeng/dynamicdialog';
-import {ActuatorService, ApplicationInfo} from '../../../shared/service/actuator.service';
-import {BusinessHelper} from '../../../shared/helper/business.helper';
-import {HelpIds} from '../../../shared/help/help.ids';
+import {ActuatorService, ApplicationInfo} from '../../services/actuator.service';
 import {combineLatest} from 'rxjs';
 import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
-import {GlobalSessionNames} from '../../../shared/global.session.names';
+import {GlobalSessionNames} from '../../global.session.names';
 import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
 import {AppHelper} from '../../helper/app.helper';
-import {DynamicDialogs} from '../../../shared/dynamicdialog/component/dynamic.dialogs';
+import {DynamicDialogs} from '../../dynamicdialog/component/dynamic.dialogs';
 import {ReleaseNote, ReleaseNoteService} from '../service/release.note.service';
+import {HelpIds} from '../../help/help.ids';
+import {BaseSettings} from '../../base.settings';
 
 /**
  * Shows the login form
@@ -112,7 +111,7 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
             this.navigateToMainView(passwordRegexOk);
           } else {
             // It is a new tenant -> setup is required
-            this.router.navigate([`/${AppSettings.TENANT_KEY}`]);
+            this.router.navigate([`/${BaseSettings.TENANT_KEY}`]);
           }
         }, error: (errorBackend) => {
           this.configObject.submit.disabled = false;
@@ -131,7 +130,7 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
       this.configObject.submit.disabled = false;
       this.configObject.password.formControl.setValue('');
     } else {
-      this.router.navigate([`/${AppSettings.MAINVIEW_KEY}`]);
+      this.router.navigate([`/${BaseSettings.MAINVIEW_KEY}`]);
     }
   }
 
@@ -140,7 +139,7 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
   }
 
   helpLink(): void {
-    BusinessHelper.toExternalHelpWebpage(this.translateService.currentLang, HelpIds.HELP_INTRO);
+    this.gps.toExternalHelpWebpage(this.translateService.currentLang, HelpIds.HELP_INTRO);
   }
 
   private loginFormDefinition(fdias: FieldDescriptorInputAndShow[]): void {
@@ -155,7 +154,7 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
 
     if (this.applicationInfo.users.active < this.applicationInfo.users.allowed) {
       this.config.push(DynamicFieldHelper.createFunctionButton('REGISTRATION',
-        (e) => this.router.navigate([`/${AppSettings.REGISTER_KEY}`])));
+        (e) => this.router.navigate([`/${BaseSettings.REGISTER_KEY}`])));
     }
     this.config.push(DynamicFieldHelper.createSubmitButton('SIGN_IN'));
     this.queryParams = this.activatedRoute.params.subscribe(params => this.successLastRegistration = params['success']);

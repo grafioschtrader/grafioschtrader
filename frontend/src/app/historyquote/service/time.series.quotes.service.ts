@@ -3,6 +3,7 @@ import {AppSettings} from '../../shared/app.settings';
 import {MenuItem} from 'primeng/api';
 import {Router} from '@angular/router';
 import {TimeSeriesParam} from '../component/time.series.chart.component';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * Menu and function to show a history quotes as chart or table. It is shown in additional area.
@@ -67,7 +68,7 @@ export class TimeSeriesQuotesService {
     }
     this.timeSeriesParams.push(new TimeSeriesParam(this.idSecuritycurrency, this.currencySecurity,
       this.optionalParameters.idPortfolio, this.optionalParameters.idSecurityaccount));
-    this.router.navigate([AppSettings.MAINVIEW_KEY + '/', {
+    this.router.navigate([BaseSettings.MAINVIEW_KEY + '/', {
       outlets: {
         mainbottom: [routeKey, {
           allParam: JSON.stringify(this.timeSeriesParams)

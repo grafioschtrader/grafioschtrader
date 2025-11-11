@@ -1,10 +1,10 @@
-import {HelpIds} from '../../help/help.ids';
+import {HelpIds} from '../../../lib/help/help.ids';
 import {Observable} from 'rxjs';
 import {FieldConfig} from '../../../lib/dynamic-form/models/field.config';
 
 export class FileUploadParam {
 
-  public constructor(public helpId: HelpIds,
+  public constructor(public helpId: string,
                      public additionalFieldConfig: AdditionalFieldConfig,
                      public acceptFileType: string,
                      public title: string,

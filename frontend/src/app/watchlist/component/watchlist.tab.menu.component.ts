@@ -3,12 +3,12 @@ import {ActivatedRoute, Params, Router} from '@angular/router';
 import {TranslateService} from '@ngx-translate/core';
 import {combineLatest, Observable, Subscription} from 'rxjs';
 import {Watchlist} from '../../entities/watchlist';
-import {UDFMetadataSecurityService} from '../../shared/udfmeta/service/udf.metadata.security.service';
-import {GlobalSessionNames} from '../../shared/global.session.names';
-import {UDFMetadataGeneralService} from '../../shared/udfmeta/service/udf.metadata.general.service';
+import {UDFMetadataSecurityService} from '../../udfmetasecurity/service/udf.metadata.security.service';
+import {GlobalSessionNames} from '../../lib/global.session.names';
+import {UDFMetadataGeneralService} from '../../lib/udfmeta/service/udf.metadata.general.service';
 import {BaseTabMenuComponent} from '../../lib/tabmenu/component/base.tab.menu.component';
 import {AppSettings} from '../../shared/app.settings';
-import {TabItem} from '../../shared/types/tab.item';
+import {TabItem} from '../../lib/types/tab.item';
 
 /**
  * Watchlist Tab Menu Component extending BaseTabMenuComponent.

@@ -3,13 +3,13 @@ import {NgModule} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {HistoryquoteTableComponent} from './historyquote/component/historyquote-table.component';
 import {HistoryquoteService} from './historyquote/service/historyquote.service';
-import {MenubarComponent} from './shared/mainmenubar/component/menubar.component';
+import {MenubarComponent} from './lib/mainmenubar/component/menubar.component';
 import {MenuModule} from 'primeng/menu';
 import {MenubarModule} from 'primeng/menubar';
 import {routing} from './app.routes';
 import {AppComponent, TASK_EXTENDED_SERVICE} from './app.component';
 import {PortfolioService} from './portfolio/service/portfolio.service';
-import {MainTreeComponent} from './shared/maintree/component/main-tree.component';
+import {MainTreeComponent} from './lib/maintree/component/main-tree.component';
 import {TreeModule} from 'primeng/tree';
 import {WatchlistService} from './watchlist/service/watchlist.service';
 import {ContextMenuModule} from 'primeng/contextmenu';
@@ -27,22 +27,23 @@ import {LoginService} from './lib/login/service/log-in.service';
 import {MessageToastComponent} from './lib/message/message.toast.component';
 import {MessageToastService} from './lib/message/message.toast.service';
 import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
-import {UserSettingsService} from './shared/service/user.settings.service';
+import {UserSettingsService} from './lib/services/user.settings.service';
+import {UserDataService} from './lib/mainmenubar/service/user.data.service';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {DynamicFormModule} from './lib/dynamic-form/dynamic-form.module';
-import {ActivePanelService} from './shared/mainmenubar/service/active.panel.service';
-import {TenantService} from './lib/tenant/service/tenant.service';
+import {ActivePanelService} from './lib/mainmenubar/service/active.panel.service';
+import {TenantService} from './tenant/service/tenant.service';
 import {SecurityaccountEmptyComponent} from './securityaccount/component/securityaccount.empty.component';
 import {AssetclassTableComponent} from './assetclass/component/assetclass.table.component';
 import {StockexchangeTableComponent} from './stockexchange/component/stockexchange.table.component';
 import {StockexchangeService} from './stockexchange/service/stockexchange.service';
-import {DataChangedService} from './shared/maintree/service/data.changed.service';
+import {DataChangedService} from './lib/maintree/service/data.changed.service';
 import {AssetclassService} from './assetclass/service/assetclass.service';
 import {SecuritysplitService} from './securitycurrency/service/securitysplit.service';
 import {RegisterComponent} from './lib/login/component/register.component';
-import {TenantEditFullPageComponent} from './lib/tenant/component/tenant.edit.full.page.component';
-import {MainDialogComponent} from './shared/mainmenubar/component/main.dialog.component';
-import {MainDialogService} from './shared/mainmenubar/service/main.dialog.service';
+import {TenantEditFullPageComponent} from './tenant/component/tenant.edit.full.page.component';
+import {MainDialogComponent} from './lib/mainmenubar/component/main.dialog.component';
+import {MainDialogService} from './lib/mainmenubar/service/main.dialog.service';
 import {TransactionSecurityEditComponent} from './transaction/component/transaction-security-edit.component';
 import {ParentChildRegisterService} from './shared/service/parent.child.register.service';
 import {FormButtonComponent} from './lib/dynamic-form/components/form-button/form-button.component';
@@ -64,16 +65,16 @@ import {TimeSeriesQuotesService} from './historyquote/service/time.series.quotes
 import {CorrelationComponent} from './watchlist/component/correlation.component';
 import {TradingPlatformPlanTableComponent} from './tradingplatform/component/trading.platform.plan.table.component';
 import {TradingPlatformPlanService} from './tradingplatform/service/trading.platform.plan.service';
-import {TenantDividendsComponent} from './lib/tenant/component/tenant.dividends.component';
-import {TenantTransactionCostComponent} from './lib/tenant/component/tenant.transaction.cost.component';
-import {TenantSummariesAssetclassComponent} from './lib/tenant/component/tenant.summaries.assetclass.component';
-import {TenantSummariesCashaccountComponent} from './lib/tenant/component/tenant.summaries.cashaccount.component';
+import {TenantDividendsComponent} from './tenant/component/tenant.dividends.component';
+import {TenantTransactionCostComponent} from './tenant/component/tenant.transaction.cost.component';
+import {TenantSummariesAssetclassComponent} from './tenant/component/tenant.summaries.assetclass.component';
+import {TenantSummariesCashaccountComponent} from './tenant/component/tenant.summaries.cashaccount.component';
 import {
   TenantSummariesSecurityaccountComponent
-} from './lib/tenant/component/tenant.summaries.securityaccount.component';
-import {TenantTabMenuComponent} from './lib/tenant/component/tenant.tab.menu.component';
+} from './tenant/component/tenant.summaries.securityaccount.component';
+import {TenantTabMenuComponent} from './tenant/component/tenant.tab.menu.component';
 import {PortfolioTabMenuComponent} from './portfolio/component/portfolio.tab.menu.component';
-import {TenantTransactionTableComponent} from './lib/tenant/component/tenant.transaction.table.component';
+import {TenantTransactionTableComponent} from './tenant/component/tenant.transaction.table.component';
 import {PortfolioTransactionTableComponent} from './portfolio/component/portfolio.transaction.table.component';
 import {FormInputSuggestionComponent} from './lib/dynamic-form/components/form-input/form-input-suggestion.component';
 import {FormFileUploadComponent} from './lib/dynamic-form/components/form-input-file/form-file-upload.component';
@@ -95,14 +96,14 @@ import {CashaccountEditComponent} from './cashaccount/component/cashaccount-edit
 import {HistoryquoteEditComponent} from './historyquote/component/historyquote-edit.component';
 import {TransactionCashaccountTableComponent} from './transaction/component/transaction-cashaccount-table.component';
 import {TransactionSecurityTableComponent} from './transaction/component/transaction-security-table.component';
-import {TenantEditDynamicComponent} from './lib/tenant/component/tenant.edit.dynamic.component';
+import {TenantEditDynamicComponent} from './tenant/component/tenant.edit.dynamic.component';
 import {
   TenantDividendsSecurityExtendedComponent
-} from './lib/tenant/component/tenant-dividends-security-extended.component';
+} from './tenant/component/tenant-dividends-security-extended.component';
 import {SecuritycurrencyExtendedInfoComponent} from './watchlist/component/securitycurrency-extended-info.component';
 import {
   TenantTransactionCostExtendedComponent
-} from './lib/tenant/component/tenant-transaction-cost-extended.component';
+} from './tenant/component/tenant-transaction-cost-extended.component';
 import {SecuritysplitEditTableComponent} from './securitycurrency/component/securitysplit-edit-table.component';
 import {PortfolioEditDynamicComponent} from './portfolio/component/portfolio.edit.dynamic.component';
 import {AssetclassEditComponent} from './assetclass/component/assetclass-edit.component';
@@ -179,27 +180,27 @@ import {IndicatorEditComponent} from './historyquote/component/indicator-edit.co
 import {AlgoRuleStrategyCreateDynamicComponent} from './algo/component/algo.rule.strategy.create.component';
 import {
   TenantDividendSecurityAccountSelectionDialogComponent
-} from './lib/tenant/component/tenant-dividend-security-account-selection-dialog.component';
+} from './tenant/component/tenant-dividend-security-account-selection-dialog.component';
 import {
   TenantDividendAccountSelectionComponent
-} from './lib/tenant/component/tenant-dividend-account-selection.component';
-import {UserAdminService} from './user/service/user.admin.service';
-import {UserTableComponent} from './user/component/user.table.component';
-import {UserEntityChangeLimitTableComponent} from './user/component/user-entity-change-limit-table.component';
-import {UserEditComponent} from './user/component/user-edit-component';
+} from './tenant/component/tenant-dividend-account-selection.component';
+import {UserAdminService} from './lib/user/service/user.admin.service';
+import {UserTableComponent} from './lib/user/component/user.table.component';
+import {UserEntityChangeLimitTableComponent} from './lib/user/component/user-entity-change-limit-table.component';
+import {UserEditComponent} from './lib/user/component/user-edit-component';
 import {NicknameLangEditComponent} from './lib/login/component/nickname-lang-edit.component';
-import {UserEntityChangeLimitService} from './user/service/user.entity.change.limit.service';
-import {UserEntityChangeLimitEditComponent} from './user/component/user-entity-change-limit-edit.component';
+import {UserEntityChangeLimitService} from './lib/user/service/user.entity.change.limit.service';
+import {UserEntityChangeLimitEditComponent} from './lib/user/component/user-entity-change-limit-edit.component';
 import {
   LimitTransactionRequestDynamicComponent
-} from './shared/dynamicdialog/component/limit.transaction.request.dynamic.component';
+} from './lib/dynamicdialog/component/limit.transaction.request.dynamic.component';
 
 
 import {
   LogoutReleaseRequestDynamicComponent
-} from './shared/dynamicdialog/component/logout.release.request.dynamic.component';
-import {ProposeUserTaskService} from './shared/dynamicdialog/service/propose.user.task.service';
-import {ActuatorService} from './shared/service/actuator.service';
+} from './lib/dynamicdialog/component/logout.release.request.dynamic.component';
+import {ProposeUserTaskService} from './lib/dynamicdialog/service/propose.user.task.service';
+import {ActuatorService} from './lib/services/actuator.service';
 import {ApplicationInfoComponent} from './lib/login/component/application-info.component';
 import {MultiTranslateHttpLoader} from './shared/translator/multi.translate.http.loader';
 import {
@@ -212,9 +213,9 @@ import {TradingDaysMinusService} from './stockexchange/service/trading.days.minu
 import {
   TradingCalendarStockexchangeComponent
 } from './stockexchange/component/trading-calendar-stockexchange.component';
-import {TenantPerformanceTabMenuComponent} from './lib/tenant/component/tenant.performance.tab.menu.component';
+import {TenantPerformanceTabMenuComponent} from './tenant/component/tenant.performance.tab.menu.component';
 import {PerformancePeriodComponent} from './shared/performanceperiod/component/performance.period.component';
-import {TenantPerformanceEodMissingComponent} from './lib/tenant/component/tenant.performance.eod.missing.component';
+import {TenantPerformanceEodMissingComponent} from './tenant/component/tenant.performance.eod.missing.component';
 import {HoldingService} from './shared/performanceperiod/service/holding.service';
 import {
   TenantPerformanceTreetableComponent
@@ -224,7 +225,7 @@ import {
 } from './stockexchange/component/trading.calendar.other.exchange.dynamic.component';
 import {
   TenantPerformanceEodMissingTableComponent
-} from './lib/tenant/component/tenant-performance-eod-missing-table.component';
+} from './tenant/component/tenant-performance-eod-missing-table.component';
 import {HistoryquoteQualityComponent} from './historyquote/component/historyquote-quality.component';
 // eslint-disable-next-line max-len
 import {
@@ -264,7 +265,7 @@ import {
 import {HistoryquotePeriodService} from './securitycurrency/service/historyquote.period.service';
 import {HistoryquoteDeleteDialogComponent} from './historyquote/component/historyquote-delete-dialog.component';
 import {DragDropModule} from 'primeng/dragdrop';
-import {MailSendDynamicComponent} from './shared/dynamicdialog/component/mail.send.dynamic.component';
+import {MailSendDynamicComponent} from './lib/dynamicdialog/component/mail.send.dynamic.component';
 import {MailSendRecvService} from './lib/mail/service/mail.send.recv.service';
 import {ScrollPanelModule} from 'primeng/scrollpanel';
 import {CommonModule} from '@angular/common';
@@ -276,9 +277,9 @@ import {WatchlistSecuritysplitTableComponent} from './watchlist/component/watchl
 import {WatchlistDividendTableComponent} from './watchlist/component/watchlist-dividend-table.component';
 import {DividendService} from './watchlist/service/dividend.service';
 import {CardModule} from 'primeng/card';
-import {GlobalSettingsTableComponent} from './shared/globalsettings/global.settings.table.component';
-import {GlobalSettingsEditComponent} from './shared/globalsettings/global.settings-edit.component';
-import {UserChangeOwnerEntitiesComponent} from './user/component/user-change-owner-entities.component';
+import {GlobalSettingsTableComponent} from './lib/globalsettings/global.settings.table.component';
+import {GlobalSettingsEditComponent} from './lib/globalsettings/global.settings-edit.component';
+import {UserChangeOwnerEntitiesComponent} from './lib/user/component/user-change-owner-entities.component';
 import {MultipleRequestToOneService} from './shared/service/multiple.request.to.one.service';
 import {TaskDataChangeService} from './shared/taskdatamonitor/service/task.data.change.service';
 import {TaskDataChangeTableComponent} from './shared/taskdatamonitor/component/task.data.change.table.component';
@@ -321,28 +322,28 @@ import {
   WatchlistAddEditPriceProblemInstrumentComponent
 } from './watchlist/component/watchlist-add-edit-price-problem-instrument.component';
 import {NgxCurrencyDirective} from 'ngx-currency';
-import {UDFMetadataSecurityService} from './shared/udfmeta/service/udf.metadata.security.service';
-import {UDFMetadataSecurityTableComponent} from './shared/udfmeta/components/udf.metadata.security.table.component';
-import {UDFMetadataSecurityEditComponent} from './shared/udfmeta/components/udf-metadata-security-edit.component';
+import {UDFMetadataSecurityService} from './udfmetasecurity/service/udf.metadata.security.service';
+import {UDFMetadataSecurityTableComponent} from './udfmetasecurity/components/udf.metadata.security.table.component';
+import {UDFMetadataSecurityEditComponent} from './udfmetasecurity/components/udf-metadata-security-edit.component';
 import {
   TenantDividendsCashaccountExtendedComponent
-} from './lib/tenant/component/tenant-dividends-cashaccount-extended.component';
+} from './tenant/component/tenant-dividends-cashaccount-extended.component';
 import {WatchlistUdfComponent} from './watchlist/component/watchlist.udf.component';
 import {SecurityUDFEditComponent} from './securitycurrency/component/security-udf-edit.component';
-import {UDFDataService} from './shared/udfmeta/service/udf.data.service';
+import {UDFDataService} from './lib/udfmeta/service/udf.data.service';
 import {SecuritycurrencyUdfComponent} from './watchlist/component/securitycurrency-udf.component';
-import {UDFMetadataGeneralTableComponent} from './shared/udfmeta/components/udf.metadata.general.table.component';
-import {UDFMetadataGeneralService} from './shared/udfmeta/service/udf.metadata.general.service';
-import {UDFMetadataGeneralEditComponent} from './shared/udfmeta/components/udf-metadata-general-edit.component';
-import {UDFGeneralEditComponent} from './shared/udfmeta/components/udf-general-edit.component';
-import {UDFSpecialTypeDisableUserService} from './shared/udfmeta/service/udf.special.type.disable.user.service';
+import {UDFMetadataGeneralTableComponent} from './lib/udfmeta/components/udf.metadata.general.table.component';
+import {UDFMetadataGeneralService} from './lib/udfmeta/service/udf.metadata.general.service';
+import {UDFMetadataGeneralEditComponent} from './lib/udfmeta/components/udf-metadata-general-edit.component';
+import {UDFGeneralEditComponent} from './lib/udfmeta/components/udf-general-edit.component';
+import {UDFSpecialTypeDisableUserService} from './lib/udfmeta/service/udf.special.type.disable.user.service';
 import {AlarmSetupService} from './algo/service/alarm.setup.service';
-import {TenantAlertComponent} from './lib/tenant/component/tenant.alert.component';
+import {TenantAlertComponent} from './tenant/component/tenant.alert.component';
 import {DatePicker} from 'primeng/datepicker';
-import {DynamicDialogModule} from 'primeng/dynamicdialog';
+import {DynamicDialogModule, DialogService} from 'primeng/dynamicdialog';
 import {SecurityService} from './securitycurrency/service/security.service';
 import {GlobalparameterGTService} from './gtservice/globalparameter.gt.service';
-import {GlobalparameterService} from './shared/service/globalparameter.service';
+import {GlobalparameterService} from './lib/services/globalparameter.service';
 import {TabsModule} from 'primeng/tabs';
 import {TabMenuService} from './lib/tabmenu/service/tab.menu.service';
 import {SharedTabMenuComponent} from './lib/tabmenu/component/shared.tab.menu.component';
@@ -350,6 +351,20 @@ import {SelectModule} from 'primeng/select';
 import {StepperModule} from 'primeng/stepper';
 import {StepsComponent} from './shared/wizard/component/steps.component';
 import {ReleaseNoteService} from './lib/login/service/release.note.service';
+import {MainTreeContributorManager} from './lib/maintree/contributor/main-tree-contributor.manager';
+import {MAIN_TREE_CONTRIBUTOR} from './lib/maintree/contributor/main-tree-contributor.interface';
+import {MainTreeService} from './lib/maintree/service/main-tree.service';
+import {PortfolioMainTreeContributor} from './portfolio/contributor/portfolio-main-tree.contributor';
+import {WatchlistMainTreeContributor} from './watchlist/contributor/watchlist-main-tree.contributor';
+import {AlgoMainTreeContributor} from './algo/contributor/algo-main-tree.contributor';
+import {BaseDataMainTreeContributor} from './shared/contributor/basedata-main-tree.contributor';
+import {AdminDataMainTreeContributor} from './shared/contributor/admindata-main-tree.contributor';
+import {DIALOG_HANDLER} from './lib/maintree/handler/dialog-handler.interface';
+import {AppDialogHandler} from './shared/maintree/handler/app-dialog.handler';
+import {AfterLoginHandler} from './lib/login/service/after-login.handler';
+import {GtAfterLoginHandler} from './shared/login/gt-after-login.handler';
+import {registerHelpIds} from './lib/help/help.ids';
+import {AppHelpIds} from './shared/help/help.ids';
 
 
 const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader(http, [
@@ -476,7 +491,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
   ],
   providers: [ActivePanelService, ActuatorService, AlarmSetupService, AlgoAssetclassService, AlgoSecurityService, AlgoStrategyService,
     AlgoTopService, AssetclassService, CashaccountService, ChartDataService, ConfirmationService, ConnectorApiKeyService,
-    CorrelationSetService, CurrencypairService, DataChangedService, DividendService, GlobalparameterService,
+    CorrelationSetService, CurrencypairService, DataChangedService, DialogService, DividendService, GlobalparameterService,
     GlobalparameterGTService, GTNetMessageService, TabMenuService, ReleaseNoteService,
     GTNetService, HistoryquotePeriodService, HistoryquoteService, HoldingService, ImportTransactionHeadService,
     ImportTransactionPlatformService, ImportTransactionPosService, ImportTransactionTemplateService, LoginService,
@@ -485,9 +500,25 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     ProposeUserTaskService, SecurityaccountService, SecurityService, SecuritysplitService, StockexchangeService,
     TaskDataChangeService, TenantService, TimeSeriesQuotesService, TradingDaysMinusService, TradingDaysPlusService,
     TradingPlatformPlanService, TransactionService, UDFDataService, UDFMetadataGeneralService, UDFMetadataSecurityService,
-    UDFSpecialTypeDisableUserService, UserAdminService, UserEntityChangeLimitService, UserSettingsService,
-    ViewSizeChangedService, WatchlistService, {provide: TASK_EXTENDED_SERVICE, useClass: SecurityService}],
+    UDFSpecialTypeDisableUserService, UserAdminService, UserDataService, UserEntityChangeLimitService, UserSettingsService,
+    ViewSizeChangedService, WatchlistService, {provide: TASK_EXTENDED_SERVICE, useClass: SecurityService},
+    // Main Tree Dialog Handler
+    {provide: DIALOG_HANDLER, useClass: AppDialogHandler},
+    // After Login Handler for GT-specific initialization
+    {provide: AfterLoginHandler, useClass: GtAfterLoginHandler},
+    // Main Tree Contributors
+    MainTreeContributorManager,
+    MainTreeService,
+    {provide: MAIN_TREE_CONTRIBUTOR, useClass: PortfolioMainTreeContributor, multi: true},
+    {provide: MAIN_TREE_CONTRIBUTOR, useClass: AlgoMainTreeContributor, multi: true},
+    {provide: MAIN_TREE_CONTRIBUTOR, useClass: WatchlistMainTreeContributor, multi: true},
+    {provide: MAIN_TREE_CONTRIBUTOR, useClass: BaseDataMainTreeContributor, multi: true},
+    {provide: MAIN_TREE_CONTRIBUTOR, useClass: AdminDataMainTreeContributor, multi: true}],
   bootstrap: [AppComponent]
 })
 export class AppModule {
+  constructor() {
+    // Register application-specific help IDs at startup
+    registerHelpIds(AppHelpIds);
+  }
 }

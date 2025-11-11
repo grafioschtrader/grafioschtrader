@@ -1,9 +1,9 @@
 import {ShowRecordConfigBase} from './show.record.config.base';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {ColumnConfig, ColumnGroupConfig} from './column.config';
 import {AppHelper} from '../helper/app.helper';
 import {Auditable} from '../entities/auditable';
+import {GlobalparameterService} from '../services/globalparameter.service';
 
 /**
  * Abstract base class extending ShowRecordConfigBase with functionality for handling
@@ -14,16 +14,16 @@ import {Auditable} from '../entities/auditable';
  * or grouped data at various levels, commonly used in financial reports,
  * data summaries, and hierarchical data displays.
  */
- export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
+export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
 
   /**
    * Creates a new table/tree table total base configuration.
    *
    * @param translateService - Angular translation service for internationalization
-   * @param gps - Global parameter service for locale and formatting settings
+   * @param gps - Global parameter base service for locale and formatting settings
    */
   protected constructor(translateService: TranslateService,
-                        gps: GlobalparameterService) {
+    gps: GlobalparameterService) {
     super(translateService, gps);
   }
 
@@ -159,7 +159,7 @@ import {Auditable} from '../entities/auditable';
    * @param field - Specific field path to access
    * @returns Formatted field value ready for display
    */
-   getFieldValueForFieldColumnTotal(columnConfig: ColumnConfig, arrIndex: number, data: any, mapKey: any, field: string) {
+  getFieldValueForFieldColumnTotal(columnConfig: ColumnConfig, arrIndex: number, data: any, mapKey: any, field: string) {
     if (mapKey !== null) {
       data = data.get(mapKey);
     }

@@ -14,7 +14,7 @@ import {AppSettings} from '../../shared/app.settings';
 import {DeleteService} from '../../lib/datashowbase/delete.service';
 import {Observable} from 'rxjs';
 import {catchError} from 'rxjs/operators';
-import {TenantLimit} from '../../entities/backend/tenant.limit';
+import {TenantLimit} from '../../shared/types/tenant.limit';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
 import {SecuritycurrencyLists} from '../../entities/view/securitycurrency.lists';
 import {AppHelper} from '../../lib/helper/app.helper';

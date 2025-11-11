@@ -7,12 +7,12 @@ import {SecurityaccountTable} from './securityaccountTable';
 import {TransactionCallParam} from '../../transaction/component/transaction.call.parm';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {Subscription} from 'rxjs';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {ChartDataService} from '../../shared/chart/service/chart.data.service';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {OptionalParameters, TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
 import {
   ImportTransactionHeadService,
@@ -26,6 +26,7 @@ import {ProductIconService} from '../../securitycurrency/service/product.icon.se
 import {FilterService} from 'primeng/api';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * It is the summary for a single security account with its securities.
@@ -78,7 +79,7 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
       );
   }
 
-  public override getHelpContextId(): HelpIds {
+  public override getHelpContextId(): string {
     return HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT;
   }
 
@@ -105,7 +106,7 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
         const data = {object: JSON.stringify(this.securityAccount)};
         data[AppSettings.SUCCESS_FAILED_IMP_TRANS] = JSON.stringify(sfdit);
         if (sfdit.failed) {
-          this.ngZone.run(() => this.router.navigate([`${AppSettings.MAINVIEW_KEY}/${AppSettings.SECURITYACCOUNT_TAB_MENU_KEY}`,
+          this.ngZone.run(() => this.router.navigate([`${BaseSettings.MAINVIEW_KEY}/${AppSettings.SECURITYACCOUNT_TAB_MENU_KEY}`,
             this.idSecurityaccount, data])).then();
         } else {
           // Success created transactions

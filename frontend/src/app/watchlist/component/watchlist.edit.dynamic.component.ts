@@ -3,7 +3,7 @@ import {SimpleDynamicEditBase} from '../../lib/edit/simple.dynamic.edit.base';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {WatchlistService} from '../service/watchlist.service';
@@ -11,7 +11,7 @@ import {AppHelper} from '../../lib/helper/app.helper';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {Watchlist} from '../../entities/watchlist';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 
 /**
  * Angular component for creating or modifying watchlists in a dynamic dialog.

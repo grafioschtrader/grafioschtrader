@@ -20,22 +20,22 @@ export class ConnectorApiKeyService extends AuthServiceWithLogout<ConnectorApiKe
   }
 
   public getAllConnectorApiKeys(): Observable<ConnectorApiKey[]> {
-    return <Observable<ConnectorApiKey[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.CONNECTOR_API_KEY_KEY}`,
+    return <Observable<ConnectorApiKey[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${BaseSettings.CONNECTOR_API_KEY_KEY}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   public getFeedSubscriptionType(): Observable<{ [id: string]: SubscriptionTypeReadableName }> {
     return <Observable<{ [id: string]: SubscriptionTypeReadableName }>>this.httpClient.get(
-      `${BaseSettings.API_ENDPOINT}${AppSettings.CONNECTOR_API_KEY_KEY}/subscriptiontypeconnector`,
+      `${BaseSettings.API_ENDPOINT}${BaseSettings.CONNECTOR_API_KEY_KEY}/subscriptiontypeconnector`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   public deleteEntity(idProvider: string): Observable<any> {
-    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.CONNECTOR_API_KEY_KEY}/${idProvider}`,
+    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${BaseSettings.CONNECTOR_API_KEY_KEY}/${idProvider}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   update(connectorApiKey: ConnectorApiKey): Observable<ConnectorApiKey> {
-    return this.updateEntity(connectorApiKey, connectorApiKey.idProvider, AppSettings.CONNECTOR_API_KEY_KEY);
+    return this.updateEntity(connectorApiKey, connectorApiKey.idProvider, BaseSettings.CONNECTOR_API_KEY_KEY);
   }
 }

@@ -1,4 +1,4 @@
-import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
+import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {SecurityPositionDynamicGroupSummary} from '../../entities/view/security.position.dynamic.group.summary';
 import {Directive, ElementRef, ViewChild} from '@angular/core';
@@ -12,12 +12,12 @@ import {FilterService, MenuItem} from 'primeng/api';
 import {Portfolio} from '../../entities/portfolio';
 import {SecurityPositionGrandSummary} from '../../entities/view/security.position.grand.summary';
 import {SecurityaccountService} from '../service/securityaccount.service';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {ActivatedRoute, Router} from '@angular/router';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {ChartDataService} from '../../shared/chart/service/chart.data.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
 import {AppSettings} from '../../shared/app.settings';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
@@ -25,7 +25,7 @@ import {TransactionType} from '../../shared/types/transaction.type';
 import {Security} from '../../entities/security';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {OptionalParameters, TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
 import {AssetclassType} from '../../shared/types/assetclass.type';
 import {Securitycurrency} from '../../entities/securitycurrency';
@@ -134,7 +134,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     menuItems.push({
       label: 'SHOW_CLOSE_POSITION',
       command: (event) => this.handleOpenClosePosition(event),
-      icon: this.includeClosedPosition ? AppSettings.ICONNAME_SQUARE_CHECK : AppSettings.ICONNAME_SQUARE_EMTPY
+      icon: this.includeClosedPosition ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY
     });
 
     if (securitycurrencySelected && securitycurrencySelected.idSecuritycurrency >= 0) {
@@ -170,11 +170,11 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   }
 
   handleOpenClosePosition(event) {
-    if (event.item.icon === AppSettings.ICONNAME_SQUARE_EMTPY) {
-      event.item.icon = AppSettings.ICONNAME_SQUARE_CHECK;
+    if (event.item.icon === BaseSettings.ICONNAME_SQUARE_EMTPY) {
+      event.item.icon = BaseSettings.ICONNAME_SQUARE_CHECK;
       this.includeClosedPosition = true;
     } else {
-      event.item.icon = AppSettings.ICONNAME_SQUARE_EMTPY;
+      event.item.icon = BaseSettings.ICONNAME_SQUARE_EMTPY;
       this.includeClosedPosition = false;
     }
     this.readData();
@@ -219,7 +219,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     this.expandedIdSecuritycurrency.splice(index, 1);
   }
 
-  public getHelpContextId(): HelpIds {
+  public getHelpContextId(): string {
     return HelpIds.HELP_PORTFOLIOS_SECURITY_ACCOUNT_REPORT;
   }
 
@@ -345,7 +345,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
 
   private navigateToChartRoute() {
     !this.subscriptionRequestFromChart && this.prepareChartDataWithRequest();
-    this.router.navigate([AppSettings.MAINVIEW_KEY + '/', {
+    this.router.navigate([BaseSettings.MAINVIEW_KEY + '/', {
       outlets: {
         mainbottom: [AppSettings.CHART_GENERAL_PURPOSE, this.getComponentId()]
       }

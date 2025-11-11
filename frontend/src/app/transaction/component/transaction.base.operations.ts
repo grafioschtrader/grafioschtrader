@@ -2,7 +2,7 @@ import {Portfolio} from '../../entities/portfolio';
 import {Cashaccount} from '../../entities/cashaccount';
 import {TranslateService} from '@ngx-translate/core';
 import {AppSettings} from '../../shared/app.settings';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 import {Currencypair} from '../../entities/currencypair';
 import {BusinessHelper} from '../../shared/helper/business.helper';
@@ -10,6 +10,7 @@ import {MessageToastService} from '../../lib/message/message.toast.service';
 import {HistoryquoteService} from '../../historyquote/service/historyquote.service';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * Abstract base class providing common operations for transaction handling, including cash account lookups,
@@ -137,7 +138,7 @@ export abstract class TransactionBaseOperations {
         }),
       DynamicFieldHelper.createFunctionButtonFieldName('exRateButton', 'TIME_DEPENDING_EXCHANGE_RATE_',
         (e) => this.getTimeDependingExchangeRate(e), {
-          icon: AppSettings.PATH_ASSET_ICONS + 'refresh.svg',
+          icon: BaseSettings.PATH_ASSET_ICONS + 'refresh.svg',
           buttonInForm: true, usedLayoutColumns: 1
         })
     ];

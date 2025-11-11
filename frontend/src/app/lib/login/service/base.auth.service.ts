@@ -1,6 +1,5 @@
 import {MessageToastService} from '../../message/message.toast.service';
 import {Observable, throwError} from 'rxjs';
-import {AppSettings} from '../../../shared/app.settings';
 import {ValidationError} from './validation.error';
 import {SingleNativeMsgError} from './single.native.msg.error';
 import {HttpClient, HttpErrorResponse} from '@angular/common/http';

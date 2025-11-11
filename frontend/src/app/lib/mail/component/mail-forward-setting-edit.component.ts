@@ -9,10 +9,8 @@ import {
   MessageTargetType
 } from '../model/mail.send.recv';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../services/globalparameter.service';
 import {MessageToastService} from '../../message/message.toast.service';
-import {HelpIds} from '../../../shared/help/help.ids';
-import {AppSettings} from '../../../shared/app.settings';
 import {MailSettingForwardService} from '../service/mail.setting.forward.service';
 import {AppHelper} from '../../helper/app.helper';
 import {TranslateHelper} from '../../helper/translate.helper';
@@ -22,13 +20,14 @@ import {SelectOptionsHelper} from '../../helper/select.options.helper';
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {BaseSettings} from '../../base.settings';
+import {HelpIds} from '../../help/help.ids';
 
 /**
  * This component contains a form with which the message settings can be edited.
  */
 @Component({
-    selector: 'mail-forward-setting-edit',
-    template: `
+  selector: 'mail-forward-setting-edit',
+  template: `
     <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
               [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -39,16 +38,16 @@ import {BaseSettings} from '../../base.settings';
       </dynamic-form>
     </p-dialog>
   `,
-    standalone: false
+  standalone: false
 })
 export class MailForwardSettingEditComponent extends SimpleEntityEditBase<MailSettingForward> implements OnInit {
   @Input() callParam: MailSettingForwardParam;
   private messageComTypeSubscribe: Subscription;
 
   constructor(translateService: TranslateService,
-              gps: GlobalparameterService,
-              messageToastService: MessageToastService,
-              mailSettingForwardService: MailSettingForwardService) {
+    gps: GlobalparameterService,
+    messageToastService: MessageToastService,
+    mailSettingForwardService: MailSettingForwardService) {
     super(HelpIds.HELP_MESSAGE_SYSTEM, AppHelper.toUpperCaseWithUnderscore(BaseSettings.MAIL_SETTING_FORWARD),
       translateService, gps, messageToastService, mailSettingForwardService);
   }
@@ -59,7 +58,7 @@ export class MailForwardSettingEditComponent extends SimpleEntityEditBase<MailSe
       this.configObject[MailSettingForwardVar.MESSAGE_TARGET_TYPE].valueKeyHtmlOptions =
         SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, MessageTargetType, msfdc.mttPossibleTypeSet, false);
 
-      if(!this.configObject[MailSettingForwardVar.ID_USER_DIRECT].invisible) {
+      if (!this.configObject[MailSettingForwardVar.ID_USER_DIRECT].invisible) {
         const disableIdUserRedirect = !(this.callParam.mailSendForwardDefault.canRedirectToUsers && msfdc.canRedirect);
         FormHelper.disableEnableFieldConfigs(disableIdUserRedirect, [this.configObject[MailSettingForwardVar.ID_USER_DIRECT]]);
         if (!disableIdUserRedirect) {
@@ -78,7 +77,7 @@ export class MailForwardSettingEditComponent extends SimpleEntityEditBase<MailSe
       DynamicFieldHelper.createFieldSelectStringHeqF(MailSettingForwardVar.MESSAGE_COM_TYPE, true),
       DynamicFieldHelper.createFieldSelectStringHeqF(MailSettingForwardVar.MESSAGE_TARGET_TYPE, true),
       DynamicFieldHelper.createFieldSelectStringHeqF(MailSettingForwardVar.ID_USER_DIRECT, false,
-        {invisible: !this.gps.hasRole(AppSettings.ROLE_ALL_EDIT)}),
+        {invisible: !this.gps.hasRole(BaseSettings.ROLE_ALL_EDIT)}),
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);

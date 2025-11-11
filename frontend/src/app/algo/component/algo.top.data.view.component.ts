@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ConfirmationService, MenuItem, TreeNode} from 'primeng/api';
 import {Subscription} from 'rxjs';
@@ -14,9 +14,9 @@ import {plainToClass} from 'class-transformer';
 import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {AlgoTopAssetSecurity} from '../model/algo.top.asset.security';
 import {AlgoStrategy} from '../model/algo.strategy';
-import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
-import {HelpIds} from '../../shared/help/help.ids';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import {HelpIds} from '../../lib/help/help.ids';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {AlgoTreeName} from '../../entities/view/algo.tree.name';
 import {AlgoSecurity} from '../model/algo.security';
@@ -39,7 +39,7 @@ import {RuleStrategyType} from '../../shared/types/rule.strategy.type';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AlgoStrategyHelper} from './algo.strategy.helper';
 import {AlgoTopService} from '../service/algo.top.service';
-import {DataChangedService} from '../../shared/maintree/service/data.changed.service';
+import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
 import {TreeAlgoAssetclass, TreeAlgoSecurity, TreeAlgoStrategy, TreeAlgoTop} from '../model/tree.algo.base';
 
 /**
@@ -270,7 +270,7 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
   callMeDeactivate(): void {
   }
 
-  getHelpContextId(): HelpIds {
+  getHelpContextId(): string {
     return HelpIds.HELP_ALGO;
   }
 

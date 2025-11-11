@@ -2,7 +2,7 @@ import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {TranslateService} from '@ngx-translate/core';
 import {TranslateHelper} from '../../helper/translate.helper';
-import {TabItem} from '../../../shared/types/tab.item';
+import {TabItem} from '../../types/tab.item';
 import {Subscription} from 'rxjs';
 import {TabMenuService} from '../service/tab.menu.service';
 import {SessionStorageTabHelper} from './session.storage.tab.helper';

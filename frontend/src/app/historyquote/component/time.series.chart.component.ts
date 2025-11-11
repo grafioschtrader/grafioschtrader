@@ -1,19 +1,19 @@
 import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
+import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {
   CrossRateRequest,
   CrossRateResponse,
   CurrenciesAndClosePrice,
   CurrencypairService
 } from '../../securitycurrency/service/currencypair.service';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {HistoryquoteService} from '../service/historyquote.service';
 import {ActivatedRoute} from '@angular/router';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {ViewSizeChangedService} from '../../lib/layout/service/view.size.changed.service';
 import {TranslateService} from '@ngx-translate/core';
 import {SecurityService} from '../../securitycurrency/service/security.service';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {CurrencypairWithTransaction} from '../../entities/view/currencypair.with.transaction';
 import {SecurityTransactionSummary} from '../../entities/view/security.transaction.summary';
 import {PlotlyLocales} from '../../shared/plotlylocale/plotly.locales';
@@ -36,7 +36,7 @@ import {
 } from './indicator.definitions';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {BusinessHelper} from '../../shared/helper/business.helper';
@@ -46,6 +46,7 @@ import {TwoKeyMap} from '../../lib/helper/two.key.map';
 import {Transaction} from '../../entities/transaction';
 import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.helper';
 import {BaseSettings} from '../../lib/base.settings';
+import {Base} from 'primeng/base';
 
 declare let Plotly: any;
 
@@ -602,7 +603,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   callMeDeactivate(): void {
   }
 
-  public getHelpContextId(): HelpIds {
+  public getHelpContextId(): string {
     return HelpIds.HELP_WATCHLIST_HISTORYQUOTES_CHART;
   }
 
@@ -647,7 +648,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     this.indicatorDefinitions.defMap.forEach((iDef: IndicatorDefinition, taIndicators: TaIndicators) => {
       iDef.menuItem = {
         label: TaIndicators[taIndicators],
-        icon: (iDef.shown) ? AppSettings.ICONNAME_SQUARE_CHECK : AppSettings.ICONNAME_SQUARE_EMTPY,
+        icon: (iDef.shown) ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY,
         command: (event) => this.onOffIndicatorEvent(event, TaIndicators[taIndicators], iDef),
         disabled: !this.possibleShowingTaIndicator(),
         items: [{
@@ -671,7 +672,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private onOffIndicator(menuItem: MenuItem, taIndicators: string, iDef: IndicatorDefinition): void {
-    if (menuItem.icon === AppSettings.ICONNAME_SQUARE_EMTPY) {
+    if (menuItem.icon === BaseSettings.ICONNAME_SQUARE_EMTPY) {
       this.loadAndShowIndicatorDataWithMenu(taIndicators, iDef);
     } else {
       this.deleteTaIndicator(iDef);
@@ -688,7 +689,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private loadAndShowIndicatorDataWithMenu(taIndicators: string, iDef: IndicatorDefinition): void {
-    iDef.menuItem.icon = AppSettings.ICONNAME_SQUARE_CHECK;
+    iDef.menuItem.icon = BaseSettings.ICONNAME_SQUARE_CHECK;
     iDef.shown = true;
     this.loadAndShowIndicatorData(taIndicators, iDef);
   }
@@ -717,7 +718,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
   private deleteTaIndicator(iDef: IndicatorDefinition) {
     if (iDef.shown) {
-      iDef.menuItem.icon = AppSettings.ICONNAME_SQUARE_EMTPY;
+      iDef.menuItem.icon = BaseSettings.ICONNAME_SQUARE_EMTPY;
       iDef.shown = false;
       const traceIndices: number[] = iDef.taTraceIndicatorDataList.map(taT => taT.traceIndex).reverse();
       Plotly.deleteTraces(this.chartElement.nativeElement, traceIndices);

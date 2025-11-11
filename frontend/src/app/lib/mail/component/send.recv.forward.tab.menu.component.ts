@@ -1,7 +1,6 @@
-import { Component } from '@angular/core';
-import { AppSettings } from '../../../shared/app.settings';
-import { AppHelper } from '../../helper/app.helper';
-import {TabItem} from '../../../shared/types/tab.item';
+import {Component} from '@angular/core';
+import {AppHelper} from '../../helper/app.helper';
+import {TabItem} from '../../types/tab.item';
 import {BaseSettings} from '../../base.settings';
 
 /**

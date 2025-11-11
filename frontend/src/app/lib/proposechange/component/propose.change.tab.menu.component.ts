@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {TabItem} from '../../../shared/types/tab.item';
+import {TabItem} from '../../types/tab.item';
 import {BaseSettings} from '../../base.settings';
 
 

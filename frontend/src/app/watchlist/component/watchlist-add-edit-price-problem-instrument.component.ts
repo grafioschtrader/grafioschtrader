@@ -1,7 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {HelpIds} from '../../shared/help/help.ids';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {HelpIds} from '../../lib/help/help.ids';
 import {WatchlistService} from '../service/watchlist.service';
 import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
 import {AppHelper} from '../../lib/helper/app.helper';

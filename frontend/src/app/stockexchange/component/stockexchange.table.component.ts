@@ -1,14 +1,14 @@
 import {Component, OnDestroy} from '@angular/core';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {TranslateService} from '@ngx-translate/core';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {StockexchangeService} from '../service/stockexchange.service';
 import {Stockexchange} from '../../entities/stockexchange';
 import {combineLatest} from 'rxjs';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {HelpIds} from '../../shared/help/help.ids';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {HelpIds} from '../../lib/help/help.ids';
 import {plainToInstance} from 'class-transformer';
 import {StockexchangeCallParam} from './stockexchange.call.param';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
@@ -145,7 +145,7 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
     this.prepareTableAndTranslate();
   }
 
-  public override getHelpContextId(): HelpIds {
+  public override getHelpContextId(): string {
     return HelpIds.HELP_BASEDATA_STOCKEXCHANGE;
   }
 

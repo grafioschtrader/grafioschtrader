@@ -9,7 +9,7 @@ import {SecurityaccountEmptyComponent} from './securityaccount/component/securit
 import {AssetclassTableComponent} from './assetclass/component/assetclass.table.component';
 import {StockexchangeTableComponent} from './stockexchange/component/stockexchange.table.component';
 import {RegisterComponent} from './lib/login/component/register.component';
-import {TenantEditFullPageComponent} from './lib/tenant/component/tenant.edit.full.page.component';
+import {TenantEditFullPageComponent} from './tenant/component/tenant.edit.full.page.component';
 import {WatchlistTabMenuComponent} from './watchlist/component/watchlist.tab.menu.component';
 import {WatchlistPerformanceComponent} from './watchlist/component/watchlist.performance.component';
 import {TimeSeriesChartComponent} from './historyquote/component/time.series.chart.component';
@@ -17,14 +17,14 @@ import {ChartGeneralPurposeComponent} from './shared/chart/component/chart.gener
 import {RegistrationTokenVerifyComponent} from './lib/login/component/registration.token.verify.component';
 import {CorrelationComponent} from './watchlist/component/correlation.component';
 import {TradingPlatformPlanTableComponent} from './tradingplatform/component/trading.platform.plan.table.component';
-import {TenantDividendsComponent} from './lib/tenant/component/tenant.dividends.component';
-import {TenantTransactionCostComponent} from './lib/tenant/component/tenant.transaction.cost.component';
-import {TenantSummariesAssetclassComponent} from './lib/tenant/component/tenant.summaries.assetclass.component';
-import {TenantSummariesCashaccountComponent} from './lib/tenant/component/tenant.summaries.cashaccount.component';
-import {TenantSummariesSecurityaccountComponent} from './lib/tenant/component/tenant.summaries.securityaccount.component';
-import {TenantTabMenuComponent} from './lib/tenant/component/tenant.tab.menu.component';
+import {TenantDividendsComponent} from './tenant/component/tenant.dividends.component';
+import {TenantTransactionCostComponent} from './tenant/component/tenant.transaction.cost.component';
+import {TenantSummariesAssetclassComponent} from './tenant/component/tenant.summaries.assetclass.component';
+import {TenantSummariesCashaccountComponent} from './tenant/component/tenant.summaries.cashaccount.component';
+import {TenantSummariesSecurityaccountComponent} from './tenant/component/tenant.summaries.securityaccount.component';
+import {TenantTabMenuComponent} from './tenant/component/tenant.tab.menu.component';
 import {PortfolioTabMenuComponent} from './portfolio/component/portfolio.tab.menu.component';
-import {TenantTransactionTableComponent} from './lib/tenant/component/tenant.transaction.table.component';
+import {TenantTransactionTableComponent} from './tenant/component/tenant.transaction.table.component';
 import {PortfolioTransactionTableComponent} from './portfolio/component/portfolio.transaction.table.component';
 import {CashaccountEditComponent} from './cashaccount/component/cashaccount-edit.component';
 import {SecurityaccountTabMenuComponent} from './securityaccount/component/securityaccount.tab.menu.component';
@@ -38,17 +38,17 @@ import {RequestForYouTableComponent} from './shared/changerequest/request.for.yo
 import {YourProposalTableComponent} from './lib/proposechange/component/your.proposal.table.component';
 import {StrategyOverviewComponent} from './algo/component/strategy.overview.component';
 import {AlgoTopDataViewComponent} from './algo/component/algo.top.data.view.component';
-import {UserTableComponent} from './user/component/user.table.component';
+import {UserTableComponent} from './lib/user/component/user.table.component';
 import {TradingCalendarGlobalComponent} from './tradingcalendar/component/trading.calendar.global.component';
-import {TenantPerformanceTabMenuComponent} from './lib/tenant/component/tenant.performance.tab.menu.component';
+import {TenantPerformanceTabMenuComponent} from './tenant/component/tenant.performance.tab.menu.component';
 import {PerformancePeriodComponent} from './shared/performanceperiod/component/performance.period.component';
-import {TenantPerformanceEodMissingComponent} from './lib/tenant/component/tenant.performance.eod.missing.component';
+import {TenantPerformanceEodMissingComponent} from './tenant/component/tenant.performance.eod.missing.component';
 import {
   SecurityHistoryquoteQualityTreetableComponent
 } from './securitycurrency/component/security.historyquote.quality.treetable.component';
 import {WatchlistPriceFeedComponent} from './watchlist/component/watchlist.price.feed.component';
 import {WatchlistDividendSplitFeedComponent} from './watchlist/component/watchlist.dividend.split.feed.component';
-import {GlobalSettingsTableComponent} from './shared/globalsettings/global.settings.table.component';
+import {GlobalSettingsTableComponent} from './lib/globalsettings/global.settings.table.component';
 import {TaskDataChangeTableComponent} from './shared/taskdatamonitor/component/task.data.change.table.component';
 import {ConnectorApiKeyTableComponent} from './connectorapikey/component/connector.api.key.table.component';
 import {GTNetConsumerMonitorComponent} from './gtnet/component/gtnet.consumer.monitor.component';
@@ -59,21 +59,21 @@ import {SendRecvTreetableComponent} from './lib/mail/component/send.recv.treetab
 import {adminGuard, authGuard} from './shared/service/guards.definition';
 import {SendRecvForwardTabMenuComponent} from './lib/mail/component/send.recv.forward.tab.menu.component';
 import {MailForwardSettingTableComponent} from './lib/mail/component/mail.forward.setting.table.component';
-import {UDFMetadataSecurityTableComponent} from './shared/udfmeta/components/udf.metadata.security.table.component';
+import {UDFMetadataSecurityTableComponent} from './udfmetasecurity/components/udf.metadata.security.table.component';
 import {WatchlistUdfComponent} from './watchlist/component/watchlist.udf.component';
-import {UDFMetadataGeneralTableComponent} from './shared/udfmeta/components/udf.metadata.general.table.component';
-import {TenantAlertComponent} from './lib/tenant/component/tenant.alert.component';
+import {UDFMetadataGeneralTableComponent} from './lib/udfmeta/components/udf.metadata.general.table.component';
+import {TenantAlertComponent} from './tenant/component/tenant.alert.component';
 import {BaseSettings} from './lib/base.settings';
 
 
 const APP_ROUTES: Routes = [
-  {path: '', redirectTo: '/' + AppSettings.LOGIN_KEY, pathMatch: 'full'},
-  {path: AppSettings.LOGIN_KEY, component: LoginComponent},
-  {path: AppSettings.REGISTER_KEY, component: RegisterComponent},
+  {path: '', redirectTo: '/' + BaseSettings.LOGIN_KEY, pathMatch: 'full'},
+  {path: BaseSettings.LOGIN_KEY, component: LoginComponent},
+  {path: BaseSettings.REGISTER_KEY, component: RegisterComponent},
   {path: AppSettings.TOKEN_VERIFY_KEY, component: RegistrationTokenVerifyComponent},
-  {path: AppSettings.TENANT_KEY, component: TenantEditFullPageComponent, canActivate: [authGuard]},
+  {path: BaseSettings.TENANT_KEY, component: TenantEditFullPageComponent, canActivate: [authGuard]},
   {
-    path: AppSettings.MAINVIEW_KEY, component: SplitLayoutComponent, canActivate: [authGuard],
+    path: BaseSettings.MAINVIEW_KEY, component: SplitLayoutComponent, canActivate: [authGuard],
     children: [
       {
         //   path: AppSettings.TENANT_TAB_MENU_KEY + '/:id', component: TenantTabMenuComponent, canActivate: [authGuard],
@@ -224,7 +224,7 @@ const APP_ROUTES: Routes = [
         canActivate: [authGuard]
       },
       {
-        path:  AppSettings.UDF_METADATA_GENERAL_KEY,
+        path:  BaseSettings.UDF_METADATA_GENERAL_KEY,
         component: UDFMetadataGeneralTableComponent,
         canActivate: [authGuard]
       },
@@ -259,7 +259,7 @@ const APP_ROUTES: Routes = [
         canActivate: [authGuard]
       },
       {
-        path: AppSettings.GLOBAL_SETTINGS_KEY,
+        path: BaseSettings.GLOBAL_SETTINGS_KEY,
         component: GlobalSettingsTableComponent,
         canActivate: [authGuard]
       },
@@ -284,13 +284,13 @@ const APP_ROUTES: Routes = [
         canActivate: [authGuard]
       },
       {
-        path: AppSettings.TASK_DATA_CHANGE_MONITOR_KEY,
+        path: BaseSettings.TASK_DATA_CHANGE_MONITOR_KEY,
         component: TaskDataChangeTableComponent,
         canActivate: [authGuard]
       },
 
-      {path: AppSettings.CONNECTOR_API_KEY_KEY, component: ConnectorApiKeyTableComponent, canActivate: [adminGuard]},
-      {path: AppSettings.USER_ENTITY_LIMIT_KEY, component: UserTableComponent, canActivate: [adminGuard]}
+      {path: BaseSettings.CONNECTOR_API_KEY_KEY, component: ConnectorApiKeyTableComponent, canActivate: [adminGuard]},
+      {path: BaseSettings.USER_ENTITY_LIMIT_KEY, component: UserTableComponent, canActivate: [adminGuard]}
     ]
   },
 

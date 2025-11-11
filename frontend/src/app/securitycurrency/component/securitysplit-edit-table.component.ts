@@ -1,10 +1,10 @@
 import {Component} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {SecuritysplitService} from '../service/securitysplit.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {SplitPeriodTableBase} from './split.period.table.base';
 import {CreateType, Securitysplit} from '../../entities/dividend.split';
 import {SvgIconRegistryService} from 'angular-svg-icon';

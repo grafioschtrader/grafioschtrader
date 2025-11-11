@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {AlgoAssetclass} from '../model/algo.assetclass';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {AlgoAssetclassService} from '../service/algo.assetclass.service';
 import {AppHelper} from '../../lib/helper/app.helper';

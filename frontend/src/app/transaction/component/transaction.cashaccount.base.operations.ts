@@ -6,7 +6,7 @@ import {TransactionCallParam} from './transaction.call.parm';
 import {TranslateService} from '@ngx-translate/core';
 import {Portfolio} from '../../entities/portfolio';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {FieldFormGroup} from '../../lib/dynamic-form/models/form.group.definition';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {Subscription} from 'rxjs';
@@ -114,9 +114,9 @@ export abstract class TransactionCashaccountBaseOperations extends TransactionBa
    * Sets up a currency number field with appropriate limits and number formatting mask.
    * @returns FieldConfig object configured for transaction cost input
    */
-  protected getTransactionCostFieldDefinition(): FieldConfig {
+  protected getTransactionCostFieldDefinition(gps: GlobalparameterService): FieldConfig {
     return DynamicFieldHelper.createFieldCurrencyNumberHeqF('transactionCost', false,
-      AppSettings.FID_SMALL_INTEGER_LIMIT, AppSettings.FID_STANDARD_FRACTION_DIGITS, false,
+      AppSettings.FID_SMALL_INTEGER_LIMIT, gps.getStandardFractionDigits(), false,
       this.gps.getNumberCurrencyMask(), true);
 
   }
@@ -126,9 +126,9 @@ export abstract class TransactionCashaccountBaseOperations extends TransactionBa
    * Sets up a read-only currency number field for displaying calculated debit amounts.
    * @returns FieldConfig object configured for debit amount display
    */
-  protected getDebitAmountFieldDefinition(): FieldConfig {
+  protected getDebitAmountFieldDefinition(gps: GlobalparameterService): FieldConfig {
    return DynamicFieldHelper.createFieldCurrencyNumberHeqF('debitAmount', false,
-      AppSettings.FID_MAX_INT_REAL_DOUBLE, AppSettings.FID_STANDARD_FRACTION_DIGITS,
+      AppSettings.FID_MAX_INT_REAL_DOUBLE, gps.getStandardFractionDigits(),
       false, this.gps.getNumberCurrencyMask(), true, {readonly: true});
   }
 

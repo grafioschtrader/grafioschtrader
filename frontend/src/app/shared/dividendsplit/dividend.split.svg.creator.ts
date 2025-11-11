@@ -1,6 +1,7 @@
 import {CreateType} from '../../entities/dividend.split';
 import {SvgIconRegistryService} from 'angular-svg-icon';
 import {AppSettings} from '../app.settings';
+import {BaseSettings} from '../../lib/base.settings';
 
 export class DividendSplitSvgCreator {
   public static createTypeIconMap: { [key: number]: string } = {
@@ -12,7 +13,7 @@ export class DividendSplitSvgCreator {
   public static registerIcons(iconReg: SvgIconRegistryService): void {
     if (!DividendSplitSvgCreator.iconLoadDone) {
       for (const [key, iconName] of Object.entries(DividendSplitSvgCreator.createTypeIconMap)) {
-        iconReg.loadSvg(AppSettings.PATH_ASSET_ICONS + iconName + AppSettings.SVG, iconName);
+        iconReg.loadSvg(BaseSettings.PATH_ASSET_ICONS + iconName + BaseSettings.SVG, iconName);
       }
       DividendSplitSvgCreator.iconLoadDone = true;
     }

@@ -1,10 +1,10 @@
 import {AddRemoveDay} from '../service/trading.days.plus.service';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {RangeSelectDays} from '../../fullyearcalendar/Interface/range.select.days';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import moment from 'moment';
 import {CalendarNavigation} from './calendar.navigation';
 import {TradingDaysWithDateBoundaries} from '../model/trading.days.with.date.boundaries';
@@ -28,7 +28,7 @@ export abstract class TradingCalendarBase extends CalendarNavigation {
 
   abstract saveData(convertedAddRemoveDays: AddRemoveDay[]): void;
 
-  getHelpContextId(): HelpIds {
+  getHelpContextId(): string {
     return HelpIds.HELP_TRADING_CALENDAR;
   }
 

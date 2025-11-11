@@ -2,8 +2,8 @@ import {Component, Input, OnInit} from '@angular/core';
 import {AnnualisedYears} from '../../entities/view/instrument.statistics.result';
 import {FilterService} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 

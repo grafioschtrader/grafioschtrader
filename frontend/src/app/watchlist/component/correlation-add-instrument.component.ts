@@ -1,8 +1,8 @@
 import {SecuritycurrencySearchBase} from '../../securitycurrency/component/securitycurrency.search.base';
 import {Component, EventEmitter, Input, Output, ViewChild} from '@angular/core';
-import {TenantLimit} from '../../entities/backend/tenant.limit';
+import {TenantLimit} from '../../shared/types/tenant.limit';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MultipleRequestToOneService} from '../../shared/service/multiple.request.to.one.service';
 import {TranslateService} from '@ngx-translate/core';
 import {ProcessedAction} from '../../lib/types/processed.action';

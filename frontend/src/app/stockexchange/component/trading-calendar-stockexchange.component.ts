@@ -5,10 +5,10 @@ import {
   SaveTradingDays,
   TradingDaysPlusService
 } from '../../tradingcalendar/service/trading.days.plus.service';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {CopyTradingDaysFromSourceToTarget, TradingDaysMinusService} from '../service/trading.days.minus.service';
 import {combineLatest, Observable} from 'rxjs';
 import {RangeSelectDays} from '../../fullyearcalendar/Interface/range.select.days';

@@ -1,7 +1,5 @@
 import {FormBase} from './form.base';
-import {BusinessHelper} from '../../shared/helper/business.helper';
-import {HelpIds} from '../../shared/help/help.ids';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../services/globalparameter.service';
 import {EditHelper} from './edit.helper';
 import {ProposeTransientTransfer} from '../entities/propose.transient.transfer';
 import {ProposeChangeEntityWithEntity} from '../proposechange/model/propose.change.entity.whit.entity';
@@ -51,7 +49,7 @@ export abstract class SimpleDynamicEditBase<T> extends FormBase {
   protected constructor(
     protected dynamicDialogConfig: DynamicDialogConfig,
     protected dynamicDialogRef: DynamicDialogRef,
-    protected helpId: HelpIds,
+    protected helpId: string,
     protected translateService: TranslateService,
     public gps: GlobalparameterService,
     public messageToastService: MessageToastService,
@@ -114,7 +112,7 @@ export abstract class SimpleDynamicEditBase<T> extends FormBase {
    * Opens external help webpage using the current user's language and help identifier.
    */
   helpLink(): void {
-    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), this.helpId);
+    this.gps.toExternalHelpWebpage(this.gps.getUserLang(), this.helpId);
   }
 
   /**

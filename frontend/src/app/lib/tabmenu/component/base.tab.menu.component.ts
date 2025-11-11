@@ -4,7 +4,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {TranslateHelper} from '../../helper/translate.helper';
 import {Subscription} from 'rxjs';
 import {filter} from 'rxjs/operators';
-import {TabItem} from '../../../shared/types/tab.item';
+import {TabItem} from '../../types/tab.item';
 
 
 /**

@@ -1,13 +1,13 @@
 import {WatchlistTable, WatchListType} from './watchlist.table';
 import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
-import {DataChangedService} from '../../shared/maintree/service/data.changed.service';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {WatchlistService} from '../service/watchlist.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {AppSettings} from '../../shared/app.settings';
 import {SecurityService} from '../../securitycurrency/service/security.service';
@@ -15,7 +15,7 @@ import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 import {SecuritycurrencyGroup} from '../../entities/view/securitycurrency.group';
 import {SecuritycurrencyPosition} from '../../entities/view/securitycurrency.position';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
 import {combineLatest, Observable} from 'rxjs';
 import {Security} from '../../entities/security';
@@ -24,7 +24,7 @@ import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
 import {AuditHelper} from '../../lib/helper/audit.helper';
-import {TenantLimit} from '../../entities/backend/tenant.limit';
+import {TenantLimit} from '../../shared/types/tenant.limit';
 import {SecurityCurrencyHelper} from '../../securitycurrency/service/security.currency.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
@@ -170,7 +170,7 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
   }
 
   /** Returns the help context identifier for this component. Used by the help system to display relevant documentation. */
-  public override getHelpContextId(): HelpIds {
+  public override getHelpContextId(): string {
     return HelpIds.HELP_WATCHLIST_PRICE_FEED;
   }
 

@@ -1,11 +1,11 @@
 import {Component, Inject} from '@angular/core';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {ProgressStateType, TaskDataChange, TaskDataChangeFormConstraints} from '../../../entities/task.data.change';
-import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
+import {ActivePanelService} from '../../../lib/mainmenubar/service/active.panel.service';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../service/globalparameter.service';
-import {UserSettingsService} from '../../service/user.settings.service';
-import {HelpIds} from '../../help/help.ids';
+import {GlobalparameterService} from '../../../lib/services/globalparameter.service';
+import {UserSettingsService} from '../../../lib/services/user.settings.service';
+import {HelpIds} from '../../../lib/help/help.ids';
 import {DataType} from '../../../lib/dynamic-form/models/data.type';
 import {ColumnConfig, TranslateValue} from '../../../lib/datashowbase/column.config';
 import {TaskDataChangeService} from '../service/task.data.change.service';
@@ -18,6 +18,7 @@ import {combineLatest, of} from 'rxjs';
 import {InfoLevelType} from '../../../lib/message/info.leve.type';
 import {ITaskExtendService} from './itask.extend.service';
 import {TASK_EXTENDED_SERVICE} from '../../../app.component';
+import {BaseSettings} from '../../../lib/base.settings';
 
 /**
  * Shows the batch Jobs in a table.
@@ -167,7 +168,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
     usersettingsService: UserSettingsService) {
     super(AppSettings.TASK_DATE_CHANGE, taskDataChangeService, confirmationService, messageToastService, activePanelService,
       dialogService, filterService, translateService, gps, usersettingsService,
-      gps.hasRole(AppSettings.ROLE_ADMIN) ? [CrudMenuOptions.Allow_Create,
+      gps.hasRole(BaseSettings.ROLE_ADMIN) ? [CrudMenuOptions.Allow_Create,
         CrudMenuOptions.Allow_Delete] : []);
 
     this.addColumnFeqH(DataType.NumericInteger, 'idTaskDataChange', true, false,
@@ -205,7 +206,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
     this.callParam = entity;
   }
 
-  override getHelpContextId(): HelpIds {
+  override getHelpContextId(): string {
     return HelpIds.HELP_TASK_DATA_CHANGE_MONITOR;
   }
 
@@ -231,7 +232,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
   }
 
   protected override addCustomMenusToSelectedEntity(taskDataChange: TaskDataChange, menuItems: MenuItem[]): void {
-    if (this.gps.hasRole(AppSettings.ROLE_ADMIN)) {
+    if (this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
       menuItems.push({
         label: 'COPY_RECORD|' + this.entityNameUpper,
         command: (event) => this.copyTaskDataChange(taskDataChange),

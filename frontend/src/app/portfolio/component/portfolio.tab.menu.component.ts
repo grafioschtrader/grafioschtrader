@@ -1,10 +1,10 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {AppSettings} from '../../shared/app.settings';
-import {GlobalSessionNames} from '../../shared/global.session.names';
+import {GlobalSessionNames} from '../../lib/global.session.names';
 import {ActivatedRoute, Params, Router} from '@angular/router';
 import {Portfolio} from '../../entities/portfolio';
 import {Subscription} from 'rxjs';
-import {TabItem} from '../../shared/types/tab.item';
+import {TabItem} from '../../lib/types/tab.item';
 import {SessionStorageTabHelper} from '../../lib/tabmenu/component/session.storage.tab.helper';
 import {GlobalGTSessionNames} from '../../shared/global.gt.session.names';
 

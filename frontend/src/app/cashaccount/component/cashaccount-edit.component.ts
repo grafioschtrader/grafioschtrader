@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {CashaccountService} from '../service/cashaccount.service';
@@ -8,20 +8,21 @@ import {Cashaccount} from '../../entities/cashaccount';
 import {Portfolio} from '../../entities/portfolio';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * Edit a cash account the currency of a cash account can only be changed when there is no transaction for it.
  */
 @Component({
-    selector: 'cashaccount-edit',
-    template: `
+  selector: 'cashaccount-edit',
+  template: `
     <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
               [style]="{width: '400px', minWidth: '350px', minHeight:'180px' }"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -31,7 +32,7 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`,
-    standalone: false
+  standalone: false
 })
 export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> implements OnInit {
 
@@ -40,11 +41,11 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
   portfolio: Portfolio;
 
   constructor(private portfolioService: PortfolioService,
-              private gpsGT: GlobalparameterGTService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              messageToastService: MessageToastService,
-              cashaccountSercice: CashaccountService) {
+    private gpsGT: GlobalparameterGTService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    messageToastService: MessageToastService,
+    cashaccountSercice: CashaccountService) {
     super(HelpIds.HELP_PORTFOLIO_ACCOUNT, AppSettings.CASHACCOUNT.toUpperCase(), translateService, gps,
       messageToastService, cashaccountSercice);
   }
@@ -58,7 +59,7 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
       DynamicFieldHelper.createFieldSelectStringHeqF('currency', true,
         {inputWidth: 5, disabled: this.callParam.optParam && this.callParam.optParam.hasTransaction}),
       DynamicFieldHelper.createFieldSelectNumber('connectIdSecurityaccount', 'SECURITYACCOUNT_ASSIGNMENT', false),
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false),
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', BaseSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);

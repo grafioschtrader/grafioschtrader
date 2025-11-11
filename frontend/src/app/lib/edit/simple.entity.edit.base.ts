@@ -1,5 +1,4 @@
-import {HelpIds} from '../../shared/help/help.ids';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../services/globalparameter.service';
 import {MessageToastService} from '../message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
 import {ProcessedActionData} from '../types/processed.action.data';
@@ -35,7 +34,7 @@ export abstract class SimpleEntityEditBase<T> extends SimpleEditBase {
    * @param {MessageToastService} messageToastService - Service for displaying toast messages
    * @param {ServiceEntityUpdate<T>} serviceEntityUpdate - Service for updating entities
    */
-  protected constructor(helpId: HelpIds,
+  protected constructor(helpId: string,
     public i18nRecord: string,
     public translateService: TranslateService,
     gps: GlobalparameterService,

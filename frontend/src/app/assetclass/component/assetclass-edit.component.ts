@@ -1,11 +1,11 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Assetclass} from '../../entities/assetclass';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {AssetclassService} from '../service/assetclass.service';
 import {TranslateService} from '@ngx-translate/core';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {AssetclassCallParam} from './assetclass.call.param';
 import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
@@ -13,7 +13,7 @@ import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
 import {AppSettings} from '../../shared/app.settings';
-import {AssetClassTypeSpecInstrument} from '../../shared/udfmeta/components/asset.class.type.spec.instrument';
+import {AssetClassTypeSpecInstrument} from '../../udfmetasecurity/components/asset.class.type.spec.instrument';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 
 /**

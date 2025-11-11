@@ -6,8 +6,8 @@ import {HistoryquoteService} from '../service/historyquote.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
 import {HistoryquoteSecurityCurrency} from './historyquote-table.component';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {HelpIds} from '../../shared/help/help.ids';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {HelpIds} from '../../lib/help/help.ids';
 import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
@@ -62,16 +62,16 @@ export class HistoryquoteEditComponent extends SimpleEntityEditBase<Historyquote
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('volume', false,
         AppSettings.FID_MAX_INTEGER_DIGITS, 0, false, this.gps.getNumberCurrencyMask(), false),
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('open', false,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE, AppSettings.FID_MAX_FRACTION_DIGITS, false,
+        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), false,
         this.gps.getNumberCurrencyMask(), false),
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('high', false,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE, AppSettings.FID_MAX_FRACTION_DIGITS, false,
+        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), false,
         this.gps.getNumberCurrencyMask(), false),
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('low', false,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE, AppSettings.FID_MAX_FRACTION_DIGITS, false,
+        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), false,
         this.gps.getNumberCurrencyMask(), false),
       DynamicFieldHelper.createFieldCurrencyNumberHeqF('close', true,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE, AppSettings.FID_MAX_FRACTION_DIGITS, false,
+        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), false,
         this.gps.getNumberCurrencyMask(), false),
       ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
     ];

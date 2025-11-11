@@ -13,6 +13,10 @@ import {AuditHelper} from './lib/helper/audit.helper';
 import {DynamicFieldHelper} from './lib/helper/dynamic.field.helper';
 import {validISIN} from './shared/validator/gt.validator';
 import {RuleEvent} from './lib/dynamic-form/error/error.message.rules';
+import {BaseSettings} from './lib/base.settings';
+import {GlobalSessionNames} from './lib/global.session.names';
+import {UDFSpecialTypeRegistry} from './lib/udfmeta/model/udf.special.type.registry';
+import {UDFSpecialType} from './udfmetasecurity/model/udf.metadata.security';
 
 export const TASK_EXTENDED_SERVICE = new InjectionToken<ITaskExtendService>('SecurityService');
 
@@ -123,10 +127,13 @@ export class AppComponent implements OnDestroy {
          errorConfig: {name: 'validISIN', keyi18n: 'validISIN', rules: [RuleEvent.TOUCHED, RuleEvent.DIRTY]}
        });
 
+    // Initialize UDF special type registry with application-specific special types
+    UDFSpecialTypeRegistry.register(Object.values(UDFSpecialType));
+
     this.subscription = router.events.subscribe((event) => {
       if (event instanceof NavigationStart) {
         if (!router.navigated) {
-          AppSettings.resetInterFractionLimit();
+          BaseSettings.resetInterFractionLimit(AppSettings, GlobalSessionNames.STANDARD_CURRENCY_PRECISIONS_AND_LIMITS);
         }
       }
     });

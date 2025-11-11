@@ -1,4 +1,4 @@
-import { GlobalparameterService } from '../service/globalparameter.service';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 
 export class PlotlyLocales {
 

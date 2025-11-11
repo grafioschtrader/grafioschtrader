@@ -5,6 +5,7 @@ import {AssetclassType} from '../../shared/types/assetclass.type';
 import {Security} from '../../entities/security';
 import {AppSettings} from '../../shared/app.settings';
 import {Assetclass} from '../../entities/assetclass';
+import {BaseSettings} from '../../lib/base.settings';
 
 @Injectable()
 export class ProductIconService {
@@ -13,7 +14,7 @@ export class ProductIconService {
     'f', 'fr', 'fx', 'i', 'ir', 'm'];
 
   constructor(private iconReg: SvgIconRegistryService) {
-    this.icons.forEach(icon => this.iconReg.loadSvg(AppSettings.PATH_ASSET_ICONS + icon + '.svg', icon));
+    this.icons.forEach(icon => this.iconReg.loadSvg(BaseSettings.PATH_ASSET_ICONS + icon + '.svg', icon));
   }
 
   getIconForInstrument(security: Security, isCryptocurrency: boolean): string {

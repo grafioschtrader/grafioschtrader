@@ -5,7 +5,7 @@ import {CashAccountTransfer, TransactionService} from '../service/transaction.se
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {TransactionCashaccountBaseOperations} from './transaction.cashaccount.base.operations';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {Portfolio} from '../../entities/portfolio';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
@@ -20,12 +20,13 @@ import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {FormConfig} from '../../lib/dynamic-form/models/form.config';
 import {HistoryquoteService} from '../../historyquote/service/historyquote.service';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {FormDefinitionHelper} from '../../shared/edit/form.definition.helper';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * Cash transfer between two cash accounts which are managed by this application.
@@ -87,23 +88,23 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     // When the input on the following group changes, some calculations must be executed
     const calcGroupConfig: FieldConfig[] = [
       DynamicFieldHelper.createFieldCurrencyNumberVSParam('currencyExRate', 'EXCHANGE_RATE',
-        true, AppSettings.FID_MAX_FRACTION_DIGITS - 2,
-        AppSettings.FID_MAX_FRACTION_DIGITS, false, this.gps.getNumberCurrencyMask(),
+        true, this.gps.getMaxFractionDigits() - 2,
+        this.gps.getMaxFractionDigits(), false, this.gps.getNumberCurrencyMask(),
         null, null, false, {usedLayoutColumns: 8}),
 
       ...this.createExRateButtons(),
       /*
-            DynamicFieldHelper.createFieldCurrencyNumberVSParamHeqF('creditAmount', true, AppSettings.FID_MAX_INT_REAL_DOUBLE, AppSettings.FID_MAX_FRACTION_DIGITS false, {
+            DynamicFieldHelper.createFieldCurrencyNumberVSParamHeqF('creditAmount', true, AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits() false, {
                 ...this.gps.getNumberCurrencyMask(),
                 allowZero: false
               }, VALIDATION_SPECIAL.GT_With_Mask_Param, 0.01),
       */
       DynamicFieldHelper.createFieldCurrencyNumberVSParamHeqF('creditAmount', true,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE, AppSettings.FID_MAX_FRACTION_DIGITS, false, {
+        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), false, {
           ...this.gps.getNumberCurrencyMask(), allowZero: false
         }, null, null, true),
 
-      this.getTransactionCostFieldDefinition(),
+      this.getTransactionCostFieldDefinition(this.gps),
     ];
 
     this.config = [
@@ -111,8 +112,8 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
       DynamicFieldHelper.createFieldSelectNumber('idDebitCashaccount', 'DEBIT_ACCOUNT', true),
       DynamicFieldHelper.createFieldSelectNumber('idCreditCashaccount', 'CREDIT_ACCOUNT', true),
       {formGroupName: 'calcGroup', fieldConfig: calcGroupConfig},
-      this.getDebitAmountFieldDefinition(),
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false),
+      this.getDebitAmountFieldDefinition(this.gps),
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', BaseSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -193,7 +194,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   }
 
   helpLink(): void {
-    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_TRANSACTION_ACCOUNT);
+    this.gps.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_TRANSACTION_ACCOUNT);
   }
 
   submit(value: { [name: string]: any }) {

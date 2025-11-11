@@ -1,6 +1,6 @@
-import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach';
-import {HelpIds} from '../../help/help.ids';
-import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
+import {IGlobalMenuAttach} from '../../../lib/mainmenubar/component/iglobal.menu.attach';
+import {HelpIds} from '../../../lib/help/help.ids';
+import {ActivePanelService} from '../../../lib/mainmenubar/service/active.panel.service';
 import {FieldConfig} from '../../../lib/dynamic-form/models/field.config';
 import {FieldFormGroup} from '../../../lib/dynamic-form/models/form.group.definition';
 import {FormConfig} from '../../../lib/dynamic-form/models/form.config';
@@ -18,7 +18,7 @@ import {CallParam} from '../../maintree/types/dialog.visible';
 import {ProcessedActionData} from '../../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../../lib/types/processed.action';
 import {AuditHelper} from '../../../lib/helper/audit.helper';
-import {GlobalparameterService} from '../../service/globalparameter.service';
+import {GlobalparameterService} from '../../../lib/services/globalparameter.service';
 import {BaseSettings} from '../../../lib/base.settings';
 
 @Directive()
@@ -67,7 +67,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
    * @param translateService Service for translation
    */
   protected constructor(protected gps: GlobalparameterService,
-    private helpId: HelpIds,
+    private helpId: string,
     private mainFieldId: string,
     private entityName: string,
     protected deleteService: DeleteService,
@@ -165,7 +165,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
     this.activePanelService.activatePanel(this, {editMenu: this.contextMenuItems, showMenu: this.prepareShowMenu()});
   }
 
-  public getHelpContextId(): HelpIds {
+  public getHelpContextId(): string {
     return this.helpId;
   }
 

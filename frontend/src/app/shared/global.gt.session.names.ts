@@ -20,9 +20,11 @@ export enum GlobalGTSessionNames {
    */
   PERFORMANCE_DATE_FROM = 'performanceDateFrom',
 
-  /**
-   * This string stores the limits and definitions of decimal numbers and
-   * also the maximum length for entering comments.
+  /** In certain reports there is a "to date", this can be set by the user. It is stored in the session storage so that
+   *  it works across all reports.
    */
-  STANDARD_CURRENCY_PRECISIONS_AND_LIMITS = 'standardPrecision'
+  REPORT_UNTIL_DATE = 'untilDate',
+
+  /** Base URL for external help documentation (e.g., "//grafioschtrader.github.io/gt-user-manual"). */
+  EXTERNAL_HELP_URL = 'externalHelpUrl'
 }

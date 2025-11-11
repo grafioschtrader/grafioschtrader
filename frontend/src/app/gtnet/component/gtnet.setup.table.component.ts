@@ -5,19 +5,20 @@ import {GTNetMessage, MsgCallParam} from '../model/gtnet.message';
 import {GTNetService} from '../service/gtnet.service';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {DialogService} from 'primeng/dynamicdialog';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {AppSettings} from '../../shared/app.settings';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {GTNetMessageTreeTableComponent} from './gtnet-message-treetable.component';
 import {combineLatest} from 'rxjs';
 import {GTNetMessageService} from '../service/gtnet.message.service';
 import {ClassDescriptorInputAndShow} from '../../lib/dynamicfield/field.descriptor.input.and.show';
+import {BaseSettings} from '../../lib/base.settings';
 
 @Component({
   template: `
@@ -29,9 +30,9 @@ import {ClassDescriptorInputAndShow} from '../../lib/dynamicfield/field.descript
                (sortFunction)="customSort($event)" [customSort]="true"
                stripedRows showGridlines>
         <ng-template #caption>
-          <h4>{{'GT_NET_NET_AND_MESSAGE' | translate}}</h4>
+          <h4>{{ 'GT_NET_NET_AND_MESSAGE' | translate }}</h4>
           @if (!gtNetMyEntryId) {
-            <h5 style="color:red;">{{'GT_NET_COMM_REQUIREMENT' | translate}}</h5>
+            <h5 style="color:red;">{{ 'GT_NET_COMM_REQUIREMENT' | translate }}</h5>
           }
         </ng-template>
         <ng-template #header let-fields>
@@ -41,7 +42,7 @@ import {ClassDescriptorInputAndShow} from '../../lib/dynamicfield/field.descript
               <th [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated"
                   [style.max-width.px]="field.width"
                   [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-                {{field.headerTranslated}}
+                {{ field.headerTranslated }}
                 <p-sortIcon [field]="field.field"></p-sortIcon>
               </th>
             }
@@ -94,14 +95,14 @@ import {ClassDescriptorInputAndShow} from '../../lib/dynamicfield/field.descript
                 @switch (field.templateName) {
                   @case ('myEntry') {
                     <span [style]='el.idGtNet === gtNetMyEntryId ? "font-weight:500": null'>
-                     {{getValueByPath(el, field)}}</span>
+                     {{ getValueByPath(el, field) }}</span>
                   }
                   @case ('check') {
                     <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>
                   }
                   @default {
                     <span [pTooltip]="getValueByPath(el, field)"
-                          tooltipPosition="top">{{getValueByPath(el, field)}}</span>
+                          tooltipPosition="top">{{ getValueByPath(el, field) }}</span>
                   }
                 }
               </td>
@@ -164,7 +165,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
 
     super(AppSettings.GT_NET, gtNetService, confirmationService, messageToastService, activePanelService,
       dialogService, filterService, translateService, gps, usersettingsService,
-      gps.hasRole(AppSettings.ROLE_ADMIN) ? [CrudMenuOptions.Allow_Create,
+      gps.hasRole(BaseSettings.ROLE_ADMIN) ? [CrudMenuOptions.Allow_Create,
         CrudMenuOptions.Allow_Delete] : []);
 
     this.addColumnFeqH(DataType.String, this.domainRemoteName, true, false,
@@ -219,7 +220,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     return menuItems;
   }
 
-  public override getHelpContextId(): HelpIds {
+  public override getHelpContextId(): string {
     return HelpIds.HELP_GT_NET;
   }
 

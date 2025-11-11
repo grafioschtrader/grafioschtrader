@@ -1,12 +1,12 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Stockexchange} from '../../entities/stockexchange';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
 import {StockexchangeService} from '../service/stockexchange.service';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';

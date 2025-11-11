@@ -1,19 +1,18 @@
 import {Component, OnInit} from '@angular/core';
-import {UserSettingsService} from '../service/user.settings.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {TranslateService} from '@ngx-translate/core';
-import {ActivePanelService} from '../mainmenubar/service/active.panel.service';
-import {GlobalparameterService} from '../service/globalparameter.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {IGlobalMenuAttach} from '../mainmenubar/component/iglobal.menu.attach';
-import {HelpIds} from '../help/help.ids';
+import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {Assetclass} from '../../entities/assetclass';
 import {Stockexchange} from '../../entities/stockexchange';
 import {AssetclassService} from '../../assetclass/service/assetclass.service';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {AssetclassPrepareEdit} from './assetclass.prepare.edit';
-import {GeneralEntityPrepareEdit} from '../../lib/proposechange/component/general.entity.prepare.edit';
+import {EntityMapping, GeneralEntityPrepareEdit} from '../../lib/proposechange/component/general.entity.prepare.edit';
 import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import {ProposeChangeEntityService} from '../../lib/proposechange/service/propose.change.entity.service';
 import {ProposeDataChangeState} from '../../lib/types/propose.data.change.state';
@@ -39,6 +38,7 @@ import {ImportTransactionTemplate} from '../../entities/import.transaction.templ
 import {ProposeChangeEntity} from '../../lib/entities/propose.change.entity';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../app.settings';
+import {HelpIds} from '../../lib/help/help.ids';
 
 /**
  * Shows the requested changes on entities in a table.
@@ -52,13 +52,13 @@ import {AppSettings} from '../app.settings';
                dataKey="proposeChangeEntity.idProposeRequest"
                stripedRows showGridlines>
         <ng-template #caption>
-          <h4>{{'PROPOSE_CHANGE_ENTITY_FOR_USER' | translate}} {{gps.getIdUser()}}</h4>
+          <h4>{{ 'PROPOSE_CHANGE_ENTITY_FOR_USER' | translate }} {{ gps.getIdUser() }}</h4>
         </ng-template>
         <ng-template #header let-fields>
           <tr>
             @for (field of fields; track field) {
               <th [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated">
-                {{field.headerTranslated}}
+                {{ field.headerTranslated }}
                 <p-sortIcon [field]="field.field"></p-sortIcon>
               </th>
             }
@@ -68,7 +68,7 @@ import {AppSettings} from '../app.settings';
           <tr [pSelectableRow]="el">
             @for (field of fields; track field) {
               <td>
-                {{getValueByPath(el, field)}}
+                {{ getValueByPath(el, field) }}
               </td>
             }
           </tr>
@@ -146,7 +146,7 @@ import {AppSettings} from '../app.settings';
       </historyquote-edit>
     }
   `,
-    standalone: false
+  standalone: false
 })
 export class RequestForYouTableComponent extends TableConfigBase implements OnInit, IGlobalMenuAttach {
 
@@ -168,17 +168,17 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
   selectedEntity: ProposeChangeEntityWithEntity;
 
   constructor(private assetclassService: AssetclassService,
-              private stockexchangeService: StockexchangeService,
-              private importTransactionPlatformService: ImportTransactionPlatformService,
-              private securityService: SecurityService,
-              private currencypairService: CurrencypairService,
-              private proposeChangeEntityService: ProposeChangeEntityService,
-              private activePanelService: ActivePanelService,
-              private messageToastService: MessageToastService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+    private stockexchangeService: StockexchangeService,
+    private importTransactionPlatformService: ImportTransactionPlatformService,
+    private securityService: SecurityService,
+    private currencypairService: CurrencypairService,
+    private proposeChangeEntityService: ProposeChangeEntityService,
+    private activePanelService: ActivePanelService,
+    private messageToastService: MessageToastService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService) {
     super(filterService, usersettingsService, translateService, gps);
 
     this.entityMappingArr[this.ASSETCLASS] = new EntityMapping(new AssetclassPrepareEdit(assetclassService));
@@ -266,7 +266,7 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
   callMeDeactivate(): void {
   }
 
-  getHelpContextId(): HelpIds {
+  getHelpContextId(): string {
     return HelpIds.HELP_INTRO_PROPOSE_CHANGE_ENTITY;
   }
 
@@ -277,21 +277,6 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
     return entityMappingRedirect || entityMapping;
   }
 
-}
-
-export class EntityMapping {
-  visibleDialog: boolean;
-  callParam: any = {};
-  option: any = {};
-
-  constructor(public prepareCallParam: PrepareCallParam) {
-  }
-}
-
-export interface PrepareCallParam {
-  redirectEntityMapping(proposeEntity: ProposeChangeable): string;
-
-  prepareForEditEntity(entity: ProposeTransientTransfer, entityMapping: EntityMapping): void;
 }
 
 export type ProposeChangeable =

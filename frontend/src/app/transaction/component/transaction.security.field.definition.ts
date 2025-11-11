@@ -3,6 +3,7 @@ import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {TransactionSecurityOptionalParam} from '../model/transaction.security.optional.param';
 import {AppSettings} from '../../shared/app.settings';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 
 /**
  * Utility class that provides standardized field definitions for transaction security tables and tree views.
@@ -24,7 +25,7 @@ export class TransactionSecurityFieldDefinition {
    * @returns Array of currency-related column configurations for main currency display
    */
   static getFieldDefinition(tcm: TransactionContextMenu, idTenant: number, isMarginInstrument: boolean,
-                            tsop: TransactionSecurityOptionalParam[]): ColumnConfig[] {
+                            tsop: TransactionSecurityOptionalParam[], gps: GlobalparameterService): ColumnConfig[] {
     const currencyColumnConfigMC: ColumnConfig[] = [];
     tcm.addColumn(DataType.DateString, 'transaction.transactionTime', 'DATE', true, false, {width: 100});
     if (idTenant) {
@@ -37,7 +38,7 @@ export class TransactionSecurityFieldDefinition {
       tcm.addColumn(DataType.Numeric, 'transaction.assetInvestmentValue2', 'VALUE_PER_POINT', true, false);
     }
     tcm.addColumn(DataType.Numeric, 'transaction.quotation', 'QUOTATION_DIV', true, false,
-      {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
+      {maxFractionDigits: gps.getMaxFractionDigits()});
     tcm.addColumnFeqH(DataType.Numeric, 'transaction.taxCost', true, false);
 
     if (tsop && tsop.indexOf(TransactionSecurityOptionalParam.SHOW_TAXABLE_COLUMN) >= 0) {
@@ -49,7 +50,7 @@ export class TransactionSecurityFieldDefinition {
     tcm.addColumn(DataType.Numeric, 'transactionGainLoss', 'GAIN', true, false);
     tcm.addColumn(DataType.Numeric, 'transactionGainLossPercentage', 'GAIN_PERCENTAGE', true, false);
     tcm.addColumn(DataType.Numeric, 'transactionExchangeRate', 'EXCHANGE_RATE', true, false,
-      {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
+      {maxFractionDigits: gps.getMaxFractionDigits()});
     currencyColumnConfigMC.push(tcm.addColumn(DataType.Numeric, 'transactionGainLossMC', 'GAIN', true, false));
     currencyColumnConfigMC.push(tcm.addColumn(DataType.Numeric, 'transactionCurrencyGainLossMC', 'GAIN_LOSS_CURRENCY', true, false));
     tcm.fields.filter(cc => cc.dataType === DataType.Numeric).map(cc => cc.templateName = 'greenRed');

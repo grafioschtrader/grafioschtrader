@@ -1,7 +1,7 @@
 import {Component, OnDestroy} from '@angular/core';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ParentChildRowSelection} from '../../lib/datashowbase/parent.child.row.selection';
 import {ImportTransactionHead} from '../../entities/import.transaction.head';
@@ -198,7 +198,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'currencyAccount', 'ACCOUNT_CURRENCY', true, false);
     this.addColumn(DataType.Numeric, ImportSettings.IMPORT_TRANSACTION_POS + 'units', 'QUANTITY', true, false);
     this.addColumn(DataType.Numeric, ImportSettings.IMPORT_TRANSACTION_POS + 'quotation', 'QUOTATION_DIV', true,
-      false, {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
+      false, {maxFractionDigits: this.gps.getMaxFractionDigits()});
     this.addColumnFeqH(DataType.Numeric, ImportSettings.IMPORT_TRANSACTION_POS + 'diffCashaccountAmount', true, false);
     this.addColumn(DataType.Boolean, ImportSettings.IMPORT_TRANSACTION_POS + 'readyForTransaction', 'IMPORT_TRANSACTIONAL', true, true, {
       templateName: 'check'
@@ -228,7 +228,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
   private static registerIcons(iconReg: SvgIconRegistryService): void {
     if (!SecurityaccountImportTransactionTableComponent.iconLoadDone) {
       for (const [key, iconName] of Object.entries(SecurityaccountImportTransactionTableComponent.createTypeIconMap)) {
-        iconReg.loadSvg(AppSettings.PATH_ASSET_ICONS + iconName + AppSettings.SVG, iconName);
+        iconReg.loadSvg(BaseSettings.PATH_ASSET_ICONS + iconName + BaseSettings.SVG, iconName);
       }
       SecurityaccountImportTransactionTableComponent.iconLoadDone = false;
     }

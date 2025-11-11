@@ -1,9 +1,9 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {CorrelationSetService} from '../service/correlation.set.service';
 import {CorrelationLimit, CorrelationSet, SamplingPeriodType} from '../../entities/correlation.set';
 import {AppHelper} from '../../lib/helper/app.helper';

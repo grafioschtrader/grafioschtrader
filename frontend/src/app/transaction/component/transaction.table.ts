@@ -1,10 +1,10 @@
 import {ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {TranslateService} from '@ngx-translate/core';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {TransactionService} from '../service/transaction.service';
 import {Directive} from '@angular/core';
 import {TransactionContextMenu} from './transaction.context.menu';
@@ -17,7 +17,7 @@ import {ProcessedAction} from '../../lib/types/processed.action';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {TransactionCallParam} from './transaction.call.parm';
 import {ConfirmationService, FilterService} from 'primeng/api';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 
@@ -75,20 +75,20 @@ export abstract class TransactionTable extends TransactionContextMenu {
     this.addColumn(DataType.Numeric, 'units', 'QUANTITY', true, false,
       {filterType: FilterType.likeDataType});
     this.addColumn(DataType.Numeric, 'quotation', 'QUOTATION_DIV', true, false,
-      {filterType: FilterType.likeDataType, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
+      {filterType: FilterType.likeDataType, maxFractionDigits: gps.getMaxFractionDigits()});
     this.addColumn(DataType.String, 'currencypair.fromCurrency', 'CURRENCY', true, false,
       {filterType: FilterType.withOptions});
     this.addColumn(DataType.Numeric, 'currencyExRate', 'EXCHANGE_RATE', true, false,
-      {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS, filterType: FilterType.likeDataType});
+      {maxFractionDigits: gps.getMaxFractionDigits(), filterType: FilterType.likeDataType});
 
     this.addColumnFeqH(DataType.Numeric, 'taxCost', true, false,
-      {filterType: FilterType.likeDataType, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
+      {filterType: FilterType.likeDataType, maxFractionDigits: gps.getMaxFractionDigits()});
     this.addColumnFeqH(DataType.Numeric, 'transactionCost', true, false,
-      {width: 60, filterType: FilterType.likeDataType, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
+      {width: 60, filterType: FilterType.likeDataType, maxFractionDigits: gps.getMaxFractionDigits()});
     this.addColumnFeqH(DataType.Numeric, 'cashaccountAmount', true, false,
       {
         width: 70, filterType: FilterType.likeDataType, templateName: 'greenRed',
-        maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS
+        maxFractionDigits: gps.getMaxFractionDigits()
       });
   }
 
@@ -142,7 +142,7 @@ export abstract class TransactionTable extends TransactionContextMenu {
     this.initialize();
   }
 
-  public override getHelpContextId(): HelpIds {
+  public override getHelpContextId(): string {
     return HelpIds.HELP_PORTFOLIOS_TRANSACTIONLIST;
   }
 

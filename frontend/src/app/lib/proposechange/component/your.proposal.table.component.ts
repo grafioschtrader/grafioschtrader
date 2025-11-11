@@ -1,18 +1,18 @@
 import {Component} from '@angular/core';
 import {CrudMenuOptions, TableCrudSupportMenu} from '../../datashowbase/table.crud.support.menu';
 import {ProposeChangeEntity} from '../../entities/propose.change.entity';
-import {ActivePanelService} from '../../../shared/mainmenubar/service/active.panel.service';
-import {GlobalparameterService} from '../../../shared/service/globalparameter.service';
+import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
+import {GlobalparameterService} from '../../services/globalparameter.service';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {MessageToastService} from '../../message/message.toast.service';
-import {UserSettingsService} from '../../../shared/service/user.settings.service';
+import {UserSettingsService} from '../../services/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
 import {ProposeChangeEntityService} from '../service/propose.change.entity.service';
 import {plainToInstance} from 'class-transformer';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {TranslateValue} from '../../datashowbase/column.config';
-import {AppSettings} from '../../../shared/app.settings';
+import {BaseSettings} from '../../base.settings';
 
 
 /**
@@ -66,7 +66,7 @@ export class YourProposalTableComponent extends TableCrudSupportMenu<ProposeChan
     translateService: TranslateService,
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService) {
-    super(AppSettings.PROPOSE_CHANGE_ENTITY, proposeChangeEntityService, confirmationService, messageToastService, activePanelService,
+    super(BaseSettings.PROPOSE_CHANGE_ENTITY, proposeChangeEntityService, confirmationService, messageToastService, activePanelService,
       dialogService, filterService, translateService, gps, usersettingsService, [CrudMenuOptions.Allow_Delete]);
 
     this.addColumnFeqH(DataType.String, 'entity', true, false,

@@ -1,19 +1,19 @@
 import {Component, OnInit} from '@angular/core';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {ContentBase, SecuritycurrencyBaseInfoFields} from './securitycurrency.base.info.fields';
 import {Securitycurrency} from '../../entities/securitycurrency';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {SecurityUDFHelper} from '../../securitycurrency/component/security.udf.helper';
 import {Security} from '../../entities/security';
-import {FieldDescriptorInputAndShowExtendedSecurity} from '../../shared/udfmeta/model/udf.metadata';
-import {GlobalSessionNames} from '../../shared/global.session.names';
+import {GlobalSessionNames} from '../../lib/global.session.names';
 import {AppSettings} from '../../shared/app.settings';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
 import {OptionalParams} from '../../lib/datashowbase/column.config';
 import {WatchlistService} from '../service/watchlist.service';
 import {AppHelper} from '../../lib/helper/app.helper';
+import {FieldDescriptorInputAndShowExtendedSecurity} from '../../udfmetasecurity/model/udf.metadata.security';
 
 
 /**

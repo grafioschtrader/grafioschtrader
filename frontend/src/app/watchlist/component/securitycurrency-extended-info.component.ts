@@ -1,7 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {Securitycurrency} from '../../entities/securitycurrency';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {AppSettings} from '../../shared/app.settings';
@@ -72,19 +72,19 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
     this.addFieldProperty(DataType.DateTimeNumeric, this.SECURITYCURRENCY + 'sTimestamp', 'TIMEDATE',
       {fieldsetName: this.QUOTATION_DATA});
     this.addFieldProperty(DataType.Numeric, this.SECURITYCURRENCY + 'sLast', 'LAST', {
-      fieldsetName: this.QUOTATION_DATA, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS
+      fieldsetName: this.QUOTATION_DATA, maxFractionDigits: this.gps.getMaxFractionDigits()
     });
     this.addFieldProperty(DataType.Numeric, this.SECURITYCURRENCY + 'sChangePercentage', 'DAILY_CHANGE', {
       fieldsetName: this.QUOTATION_DATA, headerSuffix: '%', templateName: 'greenRed'
     });
     this.addFieldProperty(DataType.Numeric, this.SECURITYCURRENCY + 'sPrevClose', 'DAY_BEFORE_CLOSE', {
-      fieldsetName: this.QUOTATION_DATA, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS
+      fieldsetName: this.QUOTATION_DATA, maxFractionDigits: this.gps.getMaxFractionDigits()
     });
     this.addFieldProperty(DataType.Numeric, this.SECURITYCURRENCY + 'sHigh', 'HIGH', {
-      fieldsetName: this.QUOTATION_DATA, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS
+      fieldsetName: this.QUOTATION_DATA, maxFractionDigits: this.gps.getMaxFractionDigits()
     });
     this.addFieldProperty(DataType.Numeric, this.SECURITYCURRENCY + 'sLow', 'LOW', {
-      fieldsetName: this.QUOTATION_DATA, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS
+      fieldsetName: this.QUOTATION_DATA, maxFractionDigits: this.gps.getMaxFractionDigits()
     });
     this.addFieldProperty(DataType.NumericInteger, this.SECURITYCURRENCY + 'sVolume', 'VOLUME',
       {fieldsetName: this.QUOTATION_DATA});

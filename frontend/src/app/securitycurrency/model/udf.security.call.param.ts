@@ -1,4 +1,4 @@
-import {UDFData} from '../../shared/udfmeta/model/udf.metadata';
+import {UDFData} from '../../lib/udfmeta/model/udf.metadata';
 import {Security} from '../../entities/security';
 
 export class UDFSecurityCallParam {

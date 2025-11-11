@@ -1,8 +1,6 @@
 import {Auditable} from '../entities/auditable';
 import {DynamicFormComponent} from '../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {FieldConfig} from '../dynamic-form/models/field.config';
-import {AppSettings} from '../../shared/app.settings';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
 import {FormHelper} from '../dynamic-form/components/FormHelper';
 import {TranslateService} from '@ngx-translate/core';
 import {ProcessedAction} from '../types/processed.action';
@@ -16,6 +14,8 @@ import {User} from '../entities/user';
 import {Helper} from './helper';
 import {InputType} from '../dynamic-form/models/input.type';
 import {ProposeUserTask} from '../entities/propose.user.task';
+import {BaseSettings} from '../base.settings';
+import {GlobalparameterService} from '../services/globalparameter.service';
 
 /**
  * Utility class for handling audit trails and proposal workflows in dynamic forms.
@@ -177,7 +177,7 @@ export class AuditHelper {
     return [
       this.getNoteRequestInputDefinition(),
       DynamicFieldHelper.createFieldTextareaInputString(AuditHelper.NOTE_ACCEPT_REJECT_INPUT, 'PROPOSEACCEPTREJECT',
-        AppSettings.FID_MAX_LETTERS, acceptRejectRequired),
+        BaseSettings.FID_MAX_LETTERS, acceptRejectRequired),
       DynamicFieldHelper.createSubmitButtonFieldName(AuditHelper.SUBMIT_FIELD_BUTTON),
       DynamicFieldHelper.createFunctionButtonFieldName(AuditHelper.REJECT_FIELD_BUTTON, 'REJECT_DATA_CHANGE',
         (e) => closed.emit(new ProcessedActionData(ProcessedAction.REJECT_DATA_CHANGE,
@@ -194,7 +194,7 @@ export class AuditHelper {
    */
   public static getNoteRequestInputDefinition(required = false): FieldConfig {
     return DynamicFieldHelper.createFieldTextareaInputString(AuditHelper.NOTE_REQUEST_INPUT, 'NOTE_REQUEST',
-      AppSettings.FID_MAX_LETTERS, required);
+      BaseSettings.FID_MAX_LETTERS, required);
   }
 
   /**
@@ -308,8 +308,8 @@ export class AuditHelper {
    * @returns True if user has ADMIN or ALL_EDIT role
    */
   public static hasHigherPrivileges(gps: GlobalparameterService): boolean {
-    return gps.hasRole(AppSettings.ROLE_ADMIN)
-      || gps.hasRole(AppSettings.ROLE_ALL_EDIT);
+    return gps.hasRole(BaseSettings.ROLE_ADMIN)
+      || gps.hasRole(BaseSettings.ROLE_ALL_EDIT);
   }
 
   /**
@@ -320,7 +320,7 @@ export class AuditHelper {
    * @returns True if user has ADMIN role
    */
   public static hasAdminRole(gps: GlobalparameterService): boolean {
-    return gps.hasRole(AppSettings.ROLE_ADMIN);
+    return gps.hasRole(BaseSettings.ROLE_ADMIN);
   }
 
   /**
@@ -331,7 +331,7 @@ export class AuditHelper {
    * @returns True if user's most privileged role is LIMIT_EDIT
    */
   public static isLimitedEditUser(user: User): boolean {
-    return user.mostPrivilegedRole === AppSettings.ROLE_LIMIT_EDIT;
+    return user.mostPrivilegedRole === BaseSettings.ROLE_LIMIT_EDIT;
   }
 
   /**

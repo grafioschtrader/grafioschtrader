@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {SecurityService} from '../service/security.service';
 import {
   HistoryquoteQualityGroup,
@@ -12,9 +12,9 @@ import {
 import {MenuItem, SelectItem, TreeNode} from 'primeng/api';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ColumnGroupConfig} from '../../lib/datashowbase/column.config';
-import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
-import {HelpIds} from '../../shared/help/help.ids';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import {HelpIds} from '../../lib/help/help.ids';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {plainToInstance} from 'class-transformer';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
@@ -164,7 +164,7 @@ export class SecurityHistoryquoteQualityTreetableComponent extends TreeTableConf
   callMeDeactivate(): void {
   }
 
-  getHelpContextId(): HelpIds {
+  getHelpContextId(): string {
     return HelpIds.HELP_HISTORYQUOTE_QUALITY;
   }
 

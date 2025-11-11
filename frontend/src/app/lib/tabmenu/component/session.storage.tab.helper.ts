@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { TabItem } from '../../../shared/types/tab.item';
+import { TabItem } from '../../types/tab.item';
 
 /**
  * Helper service for managing tab-related session storage operations

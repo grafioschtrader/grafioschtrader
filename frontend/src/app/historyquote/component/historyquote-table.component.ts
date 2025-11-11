@@ -3,12 +3,12 @@ import {Component, OnDestroy} from '@angular/core';
 import {Historyquote, HistoryquoteCreateType} from '../../entities/historyquote';
 import {HistoryquoteService} from '../service/historyquote.service';
 import {ActivatedRoute} from '@angular/router';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {AppSettings} from '../../shared/app.settings';
 import {combineLatest, Subscription} from 'rxjs';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {SecurityTransactionSummary} from '../../entities/view/security.transaction.summary';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 import {CurrencypairWithTransaction} from '../../entities/view/currencypair.with.transaction';
@@ -19,7 +19,7 @@ import {SecurityTransactionPosition} from '../../entities/view/security.transact
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {SecurityService} from '../../securitycurrency/service/security.service';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {TimeSeriesParam} from './time.series.chart.component';
 import {FilterType} from '../../lib/datashowbase/filter.type';
 import {AuditHelper} from '../../lib/helper/audit.helper';
@@ -32,7 +32,7 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {HistoryquotesWithMissings} from '../model/historyquotes.with.missings';
-import {DataChangedService} from '../../shared/maintree/service/data.changed.service';
+import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {FileUploadParam} from '../../shared/generaldialog/model/file.upload.param';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
@@ -238,16 +238,16 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     this.addColumnFeqH(DataType.Numeric, 'volume', true, false, {export: true});
     this.addColumnFeqH(DataType.Numeric, 'open', true, false, {
       minFractionDigits: 5,
-      maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS,
+      maxFractionDigits: this.gps.getMaxFractionDigits(),
       export: true
     });
     this.addColumnFeqH(DataType.Numeric, 'high', true, false,
-      {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS, export: true});
+      {maxFractionDigits: this.gps.getMaxFractionDigits(), export: true});
     this.addColumnFeqH(DataType.Numeric, 'low', true, false,
-      {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS, export: true});
+      {maxFractionDigits: this.gps.getMaxFractionDigits(), export: true});
     this.addColumnFeqH(DataType.Numeric, 'close', true, false, {
       minFractionDigits: 5,
-      maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS, filterType: FilterType.likeDataType, export: true
+      maxFractionDigits: this.gps.getMaxFractionDigits(), filterType: FilterType.likeDataType, export: true
     });
     this.multiSortMeta.push({field: 'date', order: -1});
     this.prepareTableAndTranslate();
@@ -256,7 +256,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
   private static registerIcons(iconReg: SvgIconRegistryService): void {
     if (!HistoryquoteTableComponent.iconLoadDone) {
       for (const [key, iconName] of Object.entries(HistoryquoteTableComponent.createTypeIconMap)) {
-        iconReg.loadSvg(AppSettings.PATH_ASSET_ICONS + iconName + AppSettings.SVG, iconName);
+        iconReg.loadSvg(BaseSettings.PATH_ASSET_ICONS + iconName + BaseSettings.SVG, iconName);
       }
       HistoryquoteTableComponent.iconLoadDone = false;
     }
@@ -268,7 +268,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.UPDATED, new Historyquote()));
   }
 
-  public override getHelpContextId(): HelpIds {
+  public override getHelpContextId(): string {
     return HelpIds.HELP_WATCHLIST_HISTORYQUOTES;
   }
 

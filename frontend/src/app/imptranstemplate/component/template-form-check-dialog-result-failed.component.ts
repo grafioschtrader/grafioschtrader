@@ -2,9 +2,9 @@ import {Component, Input, OnInit} from '@angular/core';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {FailedParsedTemplateState} from './failed.parsed.template.state';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {FilterService} from 'primeng/api';
 
 /**

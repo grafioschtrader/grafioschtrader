@@ -1,7 +1,7 @@
 import {Component, Input, OnChanges, OnInit} from '@angular/core';
 import {FormTemplateCheck} from './form.template.check';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
 import {SingleRecordConfigBase} from '../../lib/datashowbase/single.record.config.base';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
@@ -48,10 +48,10 @@ export class TemplateFormCheckDialogResultSuccessComponent extends SingleRecordC
     this.addFieldProperty(DataType.String, 'currencyAccount', 'ACCOUNT_CURRENCY');
     this.addFieldPropertyFeqH(DataType.String, 'isin');
     this.addFieldProperty(DataType.String, 'currencySecurity', 'SECURITY_CURRENCY');
-    this.addFieldProperty(DataType.NumericRaw, 'currencyExRate', 'EXCHANGE_RATE', {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
+    this.addFieldProperty(DataType.NumericRaw, 'currencyExRate', 'EXCHANGE_RATE', {maxFractionDigits: this.gps.getMaxFractionDigits()});
     this.addFieldProperty(DataType.NumericRaw, 'units', 'QUANTITY');
     this.addFieldProperty(DataType.NumericRaw, 'quotation', 'QUOTATION_DIV',
-      {maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
+      {maxFractionDigits: this.gps.getMaxFractionDigits()});
     this.addFieldPropertyFeqH(DataType.Numeric, 'accruedInterest');
     this.addFieldPropertyFeqH(DataType.Numeric, 'taxCost');
     this.addFieldPropertyFeqH(DataType.Numeric, 'transactionCost');

@@ -9,9 +9,9 @@ import {TransactionService} from '../service/transaction.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TransactionPosition} from '../../entities/view/transaction.position';
 import {TransactionContextMenu} from './transaction.context.menu';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
@@ -19,7 +19,7 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {TransactionSecurityFieldDefinition} from './transaction.security.field.definition';
 import {TransactionSecurityOptionalParam} from '../model/transaction.security.optional.param';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 
 /**
  * Component that displays transaction data for a single security instrument in a tabular format. This component serves as a
@@ -91,7 +91,7 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
   ngOnInit(): void {
     this.multiSortMeta.push({field: 'transaction.transactionTime', order: 1});
     this.currencyColumnConfigMC = TransactionSecurityFieldDefinition.getFieldDefinition(this, this.idTenant, false,
-      this.transactionSecurityOptionalParam);
+      this.transactionSecurityOptionalParam, this.gps);
     this.initialize();
   }
 
@@ -121,7 +121,7 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
     super.destroy();
   }
 
-  public override getHelpContextId(): HelpIds {
+  public override getHelpContextId(): string {
     return HelpIds.HELP_TRANSACTION_CASH_BASED;
   }
 

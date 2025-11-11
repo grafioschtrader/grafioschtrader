@@ -1,11 +1,9 @@
 import {ProcessedActionData} from '../types/processed.action.data';
 import {ProcessedAction} from '../types/processed.action';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../services/globalparameter.service';
 import {Directive, EventEmitter, Input, Output, ViewChild} from '@angular/core';
 import {DynamicFormComponent} from '../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {HelpIds} from '../../shared/help/help.ids';
 import {FormBase} from './form.base';
-import {BusinessHelper} from '../../shared/helper/business.helper';
 
 /**
  * Base class for simple editing fields of object in a dialog.
@@ -22,8 +20,8 @@ export abstract class SimpleEditBase extends FormBase {
   // Access child components
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
 
-  constructor(protected helpId: HelpIds,
-              public gps: GlobalparameterService) {
+  constructor(protected helpId: string,
+    public gps: GlobalparameterService) {
     super();
   }
 
@@ -33,7 +31,7 @@ export abstract class SimpleEditBase extends FormBase {
 
 
   helpLink(): void {
-    BusinessHelper.toExternalHelpWebpage(this.gps.getUserLang(), this.helpId);
+    this.gps.toExternalHelpWebpage(this.gps.getUserLang(), this.helpId);
   }
 
   onHide(event): void {

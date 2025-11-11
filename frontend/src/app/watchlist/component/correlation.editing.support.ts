@@ -1,11 +1,11 @@
 import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {AppSettings} from '../../shared/app.settings';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {Subscription} from 'rxjs';
 import moment from 'moment';
 import {CorrelationLimit, SamplingPeriodType} from '../../entities/correlation.set';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
+import {BaseSettings} from '../../lib/base.settings';
 import Base = moment.unitOfTime.Base;
 
 /**
@@ -46,7 +46,7 @@ export class CorrelationEditingSupport {
   getCorrelationFieldDefinition(mainField: string, usedLayoutColumns: number, submitTextKey: string = null): FieldConfig[] {
     const fieldConfig: FieldConfig[] = [
       DynamicFieldHelper.createFieldInputString('name', 'CORRELATION_SET_NAME', 25, true),
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false),
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', BaseSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'dateFrom', false),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'dateTo', false),
       DynamicFieldHelper.createFieldSelectStringHeqF(this.samplingPeriod, true),

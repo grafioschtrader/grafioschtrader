@@ -4,24 +4,24 @@ import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
-import {DataChangedService} from '../../shared/maintree/service/data.changed.service';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {WatchlistService} from '../service/watchlist.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {AppSettings} from '../../shared/app.settings';
 import {WatchlistTable, WatchListType} from './watchlist.table';
 import {combineLatest, Observable} from 'rxjs';
 import {SecuritycurrencyGroup} from '../../entities/view/securitycurrency.group';
-import {TenantLimit} from '../../entities/backend/tenant.limit';
+import {TenantLimit} from '../../shared/types/tenant.limit';
 import {SecurityCurrencyHelper} from '../../securitycurrency/service/security.currency.helper';
 import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 
@@ -144,7 +144,7 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
     });
   }
 
-  public override getHelpContextId(): HelpIds {
+  public override getHelpContextId(): string {
     return HelpIds.HELP_WATCHLIST_DIVIDEND_SPLIT_FEED;
   }
 

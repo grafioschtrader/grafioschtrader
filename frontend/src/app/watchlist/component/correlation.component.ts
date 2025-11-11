@@ -3,11 +3,11 @@ import {SingleRecordMasterViewBase} from '../../shared/masterdetail/component/si
 import {CorrelationLimit, CorrelationResult, CorrelationSet, SamplingPeriodType} from '../../entities/correlation.set';
 import {ConfirmationService, MenuItem} from 'primeng/api';
 import {ActivatedRoute} from '@angular/router';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {TranslateService} from '@ngx-translate/core';
-import {HelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {CorrelationSetService} from '../service/correlation.set.service';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';

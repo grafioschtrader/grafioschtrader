@@ -1,7 +1,7 @@
 import {Component, Input, OnChanges, OnInit} from '@angular/core';
 import {TreeTableConfigBase} from '../../../lib/datashowbase/tree.table.config.base';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../service/globalparameter.service';
+import {GlobalparameterService} from '../../../lib/services/globalparameter.service';
 import {
   HolidayMissing,
   PerformancePeriod,

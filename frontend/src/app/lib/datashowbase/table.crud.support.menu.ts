@@ -1,24 +1,23 @@
 import {TableConfigBase} from './table.config.base';
 import {Directive, OnInit} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {UserSettingsService} from '../services/user.settings.service';
 import {AppHelper} from '../helper/app.helper';
 import {InfoLevelType} from '../message/info.leve.type';
 import {MessageToastService} from '../message/message.toast.service';
 import {BaseID} from '../entities/base.id';
 import {ProcessedAction} from '../types/processed.action';
 import {ProcessedActionData} from '../types/processed.action.data';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
-import {IGlobalMenuAttach} from '../../shared/mainmenubar/component/iglobal.menu.attach';
+import {ActivePanelService} from '../mainmenubar/service/active.panel.service';
+import {IGlobalMenuAttach} from '../mainmenubar/component/iglobal.menu.attach';
 import {DeleteService} from './delete.service';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {HelpIds} from '../../shared/help/help.ids';
+import {GlobalparameterService} from '../services/globalparameter.service';
 import {AuditHelper} from '../helper/audit.helper';
 import {TranslateHelper} from '../helper/translate.helper';
 import {LimitEntityTransactionError} from '../login/service/limit.entity.transaction.error';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
-import {DynamicDialogs} from '../../shared/dynamicdialog/component/dynamic.dialogs';
+import {DynamicDialogs} from '../dynamicdialog/component/dynamic.dialogs';
 import saveAs from '../filesaver/filesaver';
 import {BaseSettings} from '../base.settings';
 
@@ -200,7 +199,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
    *
    * @returns Help context identifier or null if no help available
    */
-  public getHelpContextId(): HelpIds {
+  public getHelpContextId(): string {
     return null;
   }
 

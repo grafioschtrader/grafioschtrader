@@ -3,10 +3,10 @@ import {SecurityPositionCurrenyGroupSummary} from '../../entities/view/security.
 import {SecurityaccountService} from '../service/securityaccount.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
-import {ActivePanelService} from '../../shared/mainmenubar/service/active.panel.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {Securityaccount} from '../../entities/securityaccount';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
-import {UserSettingsService} from '../../shared/service/user.settings.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {ChartDataService} from '../../shared/chart/service/chart.data.service';
 import {SecurityaccountGroupBase} from './securityaccount.group.base';
 import {SecurityaccountCurrencyGroup} from './securityaccount.currency.group';

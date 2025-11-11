@@ -11,7 +11,7 @@ import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 import {Stockexchange} from '../../entities/stockexchange';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {Security} from '../../entities/security';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {FormBase} from '../../lib/edit/form.base';
@@ -22,8 +22,9 @@ import {ValidatorFn} from '@angular/forms';
 import {ErrorMessageRules} from '../../lib/dynamic-form/error/error.message.rules';
 import {AppSettings} from '../../shared/app.settings';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {UDFMetadataHelper} from '../../shared/udfmeta/components/udf.metadata.helper';
+import {UDFMetadataHelper} from '../../lib/udfmeta/components/udf.metadata.helper';
 import {BusinessSelectOptionsHelper} from './business.select.options.helper';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * Some definition of fields are shared between the different edit components of instruments. Those aee
@@ -98,7 +99,7 @@ export class SecurityEditSupport {
 
     fc.push(DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'leverageFactor', false,
         -9.99, 9.99, {fieldsetName: 'BASE_DATA', defaultValue: 1}),
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', AppSettings.FID_MAX_LETTERS, false,
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', BaseSettings.FID_MAX_LETTERS, false,
         {fieldsetName: 'BASE_DATA'}));
     if (securityDerived === SecurityDerived.Security) {
       fc.push(DynamicFieldHelper.createFieldInputWebUrlHeqF('stockexchangeLink',

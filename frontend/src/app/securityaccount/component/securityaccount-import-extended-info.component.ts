@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {SingleRecordConfigBase} from '../../lib/datashowbase/single.record.config.base';
-import {GlobalparameterService} from '../../shared/service/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
 import {CombineTemplateAndImpTransPos} from './combine.template.and.imp.trans.pos';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
@@ -49,11 +49,11 @@ export class SecurityaccountImportExtendedInfoComponent extends SingleRecordConf
     this.addFieldProperty(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'currencySecurity', 'SECURITY_CURRENCY',
       {fieldsetName: this.IMPORT_VALUE});
     this.addFieldProperty(DataType.NumericRaw, ImportSettings.IMPORT_TRANSACTION_POS + 'currencyExRate', 'EXCHANGE_RATE',
-      {fieldsetName: this.IMPORT_VALUE, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
+      {fieldsetName: this.IMPORT_VALUE, maxFractionDigits: this.gps.getMaxFractionDigits()});
     this.addFieldProperty(DataType.NumericRaw, ImportSettings.IMPORT_TRANSACTION_POS + 'units', 'QUANTITY',
       {fieldsetName: this.IMPORT_VALUE});
     this.addFieldProperty(DataType.NumericRaw, ImportSettings.IMPORT_TRANSACTION_POS + 'quotation', 'QUOTATION_DIV',
-      {fieldsetName: this.IMPORT_VALUE, maxFractionDigits: AppSettings.FID_MAX_FRACTION_DIGITS});
+      {fieldsetName: this.IMPORT_VALUE, maxFractionDigits: this.gps.getMaxFractionDigits()});
     this.addFieldPropertyFeqH(DataType.Numeric, ImportSettings.IMPORT_TRANSACTION_POS + 'accruedInterest',
       {fieldsetName: this.IMPORT_VALUE});
     this.addFieldPropertyFeqH(DataType.Numeric, ImportSettings.IMPORT_TRANSACTION_POS + 'taxCost',

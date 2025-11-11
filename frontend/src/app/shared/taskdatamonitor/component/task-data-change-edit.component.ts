@@ -1,9 +1,9 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {SimpleEntityEditBase} from '../../../lib/edit/simple.entity.edit.base';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../service/globalparameter.service';
+import {GlobalparameterService} from '../../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../../lib/message/message.toast.service';
-import {HelpIds} from '../../help/help.ids';
+import {HelpIds} from '../../../lib/help/help.ids';
 import {AppSettings} from '../../app.settings';
 import {TaskDataChangeService} from '../service/task.data.change.service';
 import {TaskDataChange, TaskDataChangeFormConstraints, TaskType} from '../../../entities/task.data.change';
