@@ -1,20 +1,18 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
-import {ConnectorApiKey, SubscriptionTypeReadableName} from '../../entities/connector.api.key';
-import {ImportTransactionPlatformService} from '../../imptranstemplate/service/import.transaction.platform.service';
+import {SimpleEntityEditBase} from '../../edit/simple.entity.edit.base';
+import {ConnectorApiKey, SubscriptionTypeReadableName} from '../types/connector.api.key';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {HelpIds} from '../../lib/help/help.ids';
-import {AppSettings} from '../../shared/app.settings';
+import {GlobalparameterService} from '../../services/globalparameter.service';
+import {MessageToastService} from '../../message/message.toast.service';
+import {HelpIds} from '../../help/help.ids';
 import {ConnectorApiKeyService} from '../service/connector.api.key.service';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
+import {AppHelper} from '../../helper/app.helper';
+import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
+import {SelectOptionsHelper} from '../../helper/select.options.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {Subscription} from 'rxjs';
-import {CallParam} from '../../shared/maintree/types/dialog.visible';
-import {SubscriptionType} from '../../shared/types/subscription.type';
+import {BaseSettings} from '../../base.settings';
+import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 
 /**
  * Create or edit a key for the connectors API. It is intended for the admin only.
@@ -34,18 +32,18 @@ import {SubscriptionType} from '../../shared/types/subscription.type';
     standalone: false
 })
 export class ConnectorApiKeyEditComponent extends SimpleEntityEditBase<ConnectorApiKey> implements OnInit {
-  @Input() callParam: CallParam;
+  @Input() connectorApiKey: ConnectorApiKey;
   @Input() strn: { [id: string]: SubscriptionTypeReadableName };
   @Input() existingProviders: string[];
+  @Input() subscriptionTypeOptionsMap: { [providerId: string]: ValueKeyHtmlSelectOptions[] };
 
   private idProviderChangedSub: Subscription;
 
-  constructor(private importTransactionPlatformService: ImportTransactionPlatformService,
-    translateService: TranslateService,
+  constructor( translateService: TranslateService,
     gps: GlobalparameterService,
     messageToastService: MessageToastService,
     connectorApiKeyService: ConnectorApiKeyService) {
-    super(HelpIds.HELP_CONNECTOR_API_KEY, AppSettings.CONNECTOR_API_KEY.toUpperCase(), translateService, gps,
+    super(HelpIds.HELP_CONNECTOR_API_KEY, BaseSettings.CONNECTOR_API_KEY.toUpperCase(), translateService, gps,
       messageToastService, connectorApiKeyService);
   }
 
@@ -63,24 +61,22 @@ export class ConnectorApiKeyEditComponent extends SimpleEntityEditBase<Connector
 
   protected override initialize(): void {
     this.configObject.idProvider.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromObject
-    ('readableName', this.strn, false, this.callParam.thisObject? []: this.existingProviders);
+    ('readableName', this.strn, false, this.connectorApiKey? []: this.existingProviders);
     this.valueChangedOnIdProvider();
-    if (this.callParam.thisObject) {
-      this.form.transferBusinessObjectToForm(this.callParam.thisObject);
+    if (this.connectorApiKey) {
+      this.form.transferBusinessObjectToForm(this.connectorApiKey);
       this.configObject.idProvider.formControl.disable();
     }
   }
 
   valueChangedOnIdProvider(): void {
     this.idProviderChangedSub = this.configObject.idProvider.formControl.valueChanges.subscribe(selection => {
-      const subscriptionTypes = this.strn[selection].subscriptionTypes.map((st: string) => SubscriptionType[st]);
-      this.configObject.subscriptionType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
-        this.translateService, SubscriptionType, subscriptionTypes, false);
+      this.configObject.subscriptionType.valueKeyHtmlOptions = this.subscriptionTypeOptionsMap[selection];
     });
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): ConnectorApiKey {
-    return this.copyFormToPrivateBusinessObject(new ConnectorApiKey(), <ConnectorApiKey>this.callParam.thisObject);
+    return this.copyFormToPrivateBusinessObject(new ConnectorApiKey(), this.connectorApiKey);
   }
 
   override onHide(event): void {

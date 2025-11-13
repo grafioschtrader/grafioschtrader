@@ -1,24 +1,24 @@
 import {Component, Inject} from '@angular/core';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
-import {ProgressStateType, TaskDataChange, TaskDataChangeFormConstraints} from '../../../entities/task.data.change';
-import {ActivePanelService} from '../../../lib/mainmenubar/service/active.panel.service';
+import {ProgressStateType, TaskDataChange, TaskDataChangeFormConstraints} from '../types/task.data.change';
+import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../../lib/services/user.settings.service';
-import {HelpIds} from '../../../lib/help/help.ids';
-import {DataType} from '../../../lib/dynamic-form/models/data.type';
-import {ColumnConfig, TranslateValue} from '../../../lib/datashowbase/column.config';
+import {GlobalparameterService} from '../../services/globalparameter.service';
+import {UserSettingsService} from '../../services/user.settings.service';
+import {HelpIds} from '../../help/help.ids';
+import {DataType} from '../../dynamic-form/models/data.type';
+import {ColumnConfig, TranslateValue} from '../../datashowbase/column.config';
 import {TaskDataChangeService} from '../service/task.data.change.service';
-import {CrudMenuOptions, TableCrudSupportMenu} from '../../../lib/datashowbase/table.crud.support.menu';
-import {MessageToastService} from '../../../lib/message/message.toast.service';
+import {CrudMenuOptions, TableCrudSupportMenu} from '../../datashowbase/table.crud.support.menu';
+import {MessageToastService} from '../../message/message.toast.service';
 import {DialogService} from 'primeng/dynamicdialog';
-import {AppSettings} from '../../app.settings';
-import {FilterType} from '../../../lib/datashowbase/filter.type';
+import {FilterType} from '../../datashowbase/filter.type';
 import {combineLatest, of} from 'rxjs';
-import {InfoLevelType} from '../../../lib/message/info.leve.type';
+import {InfoLevelType} from '../../message/info.leve.type';
 import {ITaskExtendService} from './itask.extend.service';
-import {TASK_EXTENDED_SERVICE} from '../../../app.component';
-import {BaseSettings} from '../../../lib/base.settings';
+import {TASK_EXTENDED_SERVICE} from '../service/task.extend.service.token';
+import {TASK_TYPE_ENUM} from '../service/task.type.enum.token';
+import {BaseSettings} from '../../base.settings';
 
 /**
  * Shows the batch Jobs in a table.
@@ -136,6 +136,7 @@ import {BaseSettings} from '../../../lib/base.settings';
       <task-data-change-edit [visibleDialog]="visibleDialog"
                              [callParam]="callParam"
                              [tdcFormConstraints]="tdcFormConstraints"
+                             [taskTypeEnum]="taskTypeEnum"
                              (closeDialog)="handleCloseDialog($event)">
       </task-data-change-edit>
     }
@@ -158,6 +159,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
 
   constructor(private taskDataChangeService: TaskDataChangeService,
     @Inject(TASK_EXTENDED_SERVICE) private taskExtendService: ITaskExtendService,
+    @Inject(TASK_TYPE_ENUM) private taskTypeEnum: any,
     confirmationService: ConfirmationService,
     messageToastService: MessageToastService,
     activePanelService: ActivePanelService,
@@ -166,7 +168,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
     translateService: TranslateService,
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService) {
-    super(AppSettings.TASK_DATE_CHANGE, taskDataChangeService, confirmationService, messageToastService, activePanelService,
+    super(BaseSettings.TASK_DATE_CHANGE, taskDataChangeService, confirmationService, messageToastService, activePanelService,
       dialogService, filterService, translateService, gps, usersettingsService,
       gps.hasRole(BaseSettings.ROLE_ADMIN) ? [CrudMenuOptions.Allow_Create,
         CrudMenuOptions.Allow_Delete] : []);

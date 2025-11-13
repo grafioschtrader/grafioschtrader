@@ -7,6 +7,7 @@ import org.apache.catalina.connector.Connector;
 import org.apache.coyote.ProtocolHandler;
 import org.apache.coyote.ajp.AbstractAjpProtocol;
 import org.apache.coyote.ajp.AjpNioProtocol;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -33,6 +34,18 @@ import grafioschtrader.test.start.GTforTest;
     @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = GTforTest.class) })
 public class GrafioschtraderApplication {
 
+  @Value("${gt.connector.ajp.enabled:true}")
+  private boolean ajpEnabled;
+
+  @Value("${gt.connector.ajp.port:9090}")
+  private int ajpPort;
+
+  @Value("${gt.connector.http.enabled:false}")
+  private boolean httpEnabled;
+
+  @Value("${gt.connector.http.port:8080}")
+  private int httpPort;
+
   public static void main(final String[] args) {
     // ApplicationContext context =
     SpringApplication.run(GrafioschtraderApplication.class, args);
@@ -41,12 +54,22 @@ public class GrafioschtraderApplication {
   @Bean
   TomcatServletWebServerFactory servletContainer() throws UnknownHostException {
     final TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory();
-    tomcat.addAdditionalTomcatConnectors(this.addTomcatConnector(9090));
+
+    // Add AJP connector if enabled (default for Apache2)
+    if (ajpEnabled) {
+      tomcat.addAdditionalTomcatConnectors(this.addAjpConnector(ajpPort));
+    }
+
+    // Add HTTP connector if enabled (for nginx)
+    if (httpEnabled) {
+      tomcat.setPort(httpPort);
+    }
+
     return tomcat;
   }
 
   @SuppressWarnings("rawtypes")
-  private Connector addTomcatConnector(Integer port) throws UnknownHostException {
+  private Connector addAjpConnector(Integer port) throws UnknownHostException {
     final Connector ajpConnector = new Connector("AJP/1.3");
     ajpConnector.setPort(port);
     ajpConnector.setSecure(false);

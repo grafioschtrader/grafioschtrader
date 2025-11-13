@@ -49,8 +49,8 @@ import {
 import {WatchlistPriceFeedComponent} from './watchlist/component/watchlist.price.feed.component';
 import {WatchlistDividendSplitFeedComponent} from './watchlist/component/watchlist.dividend.split.feed.component';
 import {GlobalSettingsTableComponent} from './lib/globalsettings/global.settings.table.component';
-import {TaskDataChangeTableComponent} from './shared/taskdatamonitor/component/task.data.change.table.component';
-import {ConnectorApiKeyTableComponent} from './connectorapikey/component/connector.api.key.table.component';
+import {TaskDataChangeTableComponent} from './lib/taskdatamonitor/component/task.data.change.table.component';
+import {ConnectorApiKeyTableComponent} from './lib/connectorapikey/component/connector.api.key.table.component';
 import {GTNetConsumerMonitorComponent} from './gtnet/component/gtnet.consumer.monitor.component';
 import {GTNetSetupTableComponent} from './gtnet/component/gtnet.setup.table.component';
 import {GTNetProviderMonitorComponent} from './gtnet/component/gtnet.provider.monitor.component';

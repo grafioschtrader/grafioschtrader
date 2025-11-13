@@ -21,7 +21,7 @@ import {SecurityCurrencypairDerivedLinks} from '../model/security.currencypair.d
 import {SecurityCurrencyService} from './security.currency.service';
 import {InstrumentStatisticsResult} from '../../entities/view/instrument.statistics.result';
 import moment from 'moment';
-import {ITaskExtendService} from '../../shared/taskdatamonitor/component/itask.extend.service';
+import {ITaskExtendService} from '../../lib/taskdatamonitor/component/itask.extend.service';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {BaseSettings} from '../../lib/base.settings';
 
