@@ -7,7 +7,10 @@ import {MenubarComponent} from './lib/mainmenubar/component/menubar.component';
 import {MenuModule} from 'primeng/menu';
 import {MenubarModule} from 'primeng/menubar';
 import {routing} from './app.routes';
-import {AppComponent, TASK_EXTENDED_SERVICE} from './app.component';
+import {AppComponent} from './app.component';
+import {TASK_EXTENDED_SERVICE} from './lib/taskdatamonitor/service/task.extend.service.token';
+import {TASK_TYPE_ENUM} from './lib/taskdatamonitor/service/task.type.enum.token';
+import {TaskType} from './shared/types/task.type';
 import {PortfolioService} from './portfolio/service/portfolio.service';
 import {MainTreeComponent} from './lib/maintree/component/main-tree.component';
 import {TreeModule} from 'primeng/tree';
@@ -281,9 +284,9 @@ import {GlobalSettingsTableComponent} from './lib/globalsettings/global.settings
 import {GlobalSettingsEditComponent} from './lib/globalsettings/global.settings-edit.component';
 import {UserChangeOwnerEntitiesComponent} from './lib/user/component/user-change-owner-entities.component';
 import {MultipleRequestToOneService} from './shared/service/multiple.request.to.one.service';
-import {TaskDataChangeService} from './shared/taskdatamonitor/service/task.data.change.service';
-import {TaskDataChangeTableComponent} from './shared/taskdatamonitor/component/task.data.change.table.component';
-import {TaskDataChangeEditComponent} from './shared/taskdatamonitor/component/task-data-change-edit.component';
+import {TaskDataChangeService} from './lib/taskdatamonitor/service/task.data.change.service';
+import {TaskDataChangeTableComponent} from './lib/taskdatamonitor/component/task.data.change.table.component';
+import {TaskDataChangeEditComponent} from './lib/taskdatamonitor/component/task-data-change-edit.component';
 import {CorrelationSetService} from './watchlist/service/correlation.set.service';
 import {CorrelationTableComponent} from './watchlist/component/correlation-table.component';
 import {CorrelationSetEditComponent} from './watchlist/component/correlation-set-edit.component';
@@ -300,9 +303,9 @@ import {
 import {
   InstrumentStatisticsSummaryComponent
 } from './securitycurrency/component/instrument-statistics-summary.component';
-import {ConnectorApiKeyTableComponent} from './connectorapikey/component/connector.api.key.table.component';
-import {ConnectorApiKeyEditComponent} from './connectorapikey/component/connector.api.key.edit.component';
-import {ConnectorApiKeyService} from './connectorapikey/service/connector.api.key.service';
+import {ConnectorApiKeyTableComponent} from './lib/connectorapikey/component/connector.api.key.table.component';
+import {ConnectorApiKeyEditComponent} from './lib/connectorapikey/component/connector.api.key.edit.component';
+import {ConnectorApiKeyService} from './lib/connectorapikey/service/connector.api.key.service';
 import {GTNetConsumerMonitorComponent} from './gtnet/component/gtnet.consumer.monitor.component';
 import {GTNetSetupTableComponent} from './gtnet/component/gtnet.setup.table.component';
 import {GTNetProviderMonitorComponent} from './gtnet/component/gtnet.provider.monitor.component';
@@ -502,6 +505,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     TradingPlatformPlanService, TransactionService, UDFDataService, UDFMetadataGeneralService, UDFMetadataSecurityService,
     UDFSpecialTypeDisableUserService, UserAdminService, UserDataService, UserEntityChangeLimitService, UserSettingsService,
     ViewSizeChangedService, WatchlistService, {provide: TASK_EXTENDED_SERVICE, useClass: SecurityService},
+    {provide: TASK_TYPE_ENUM, useValue: TaskType},
     // Main Tree Dialog Handler
     {provide: DIALOG_HANDLER, useClass: AppDialogHandler},
     // After Login Handler for GT-specific initialization

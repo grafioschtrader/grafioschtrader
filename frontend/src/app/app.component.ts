@@ -1,4 +1,4 @@
-import {Component, InjectionToken, OnDestroy} from '@angular/core';
+import {Component, OnDestroy} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {LoginService} from './lib/login/service/log-in.service';
 import {PrimeNG} from 'primeng/config';
@@ -7,7 +7,6 @@ import {Subscription} from 'rxjs';
 import {NavigationStart, Router} from '@angular/router';
 import Aura from '@primeng/themes/aura';
 import {definePreset} from '@primeng/themes';
-import {ITaskExtendService} from './shared/taskdatamonitor/component/itask.extend.service';
 import {Security} from './entities/security';
 import {AuditHelper} from './lib/helper/audit.helper';
 import {DynamicFieldHelper} from './lib/helper/dynamic.field.helper';
@@ -17,8 +16,7 @@ import {BaseSettings} from './lib/base.settings';
 import {GlobalSessionNames} from './lib/global.session.names';
 import {UDFSpecialTypeRegistry} from './lib/udfmeta/model/udf.special.type.registry';
 import {UDFSpecialType} from './udfmetasecurity/model/udf.metadata.security';
-
-export const TASK_EXTENDED_SERVICE = new InjectionToken<ITaskExtendService>('SecurityService');
+import {TASK_EXTENDED_SERVICE} from './lib/taskdatamonitor/service/task.extend.service.token';
 
 const MyPreset = definePreset(Aura, {
   semantic: {

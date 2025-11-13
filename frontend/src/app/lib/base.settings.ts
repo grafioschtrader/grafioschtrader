@@ -42,6 +42,8 @@ export class BaseSettings {
   public static readonly USER_KEY = BaseSettings.USER.toLowerCase();
   public static readonly USER_ADMIN_KEY = 'useradmin';
 
+  public static readonly CONNECTOR_API_KEY = 'ConnectorApiKey';
+
   public static readonly CONNECTOR_API_KEY_KEY = 'connectorapikey';
 
   public static readonly GLOBALPARAMETERS = 'Globalparameters';
@@ -69,6 +71,9 @@ export class BaseSettings {
 
   public static readonly USER_ENTITY_LIMIT = 'UserEntityChangeLimit';
   public static readonly USER_ENTITY_LIMIT_KEY = BaseSettings.USER_ENTITY_LIMIT.toLowerCase();
+
+  public static readonly TASK_DATE_CHANGE = 'TaskDataChange';
+  public static readonly TASK_DATA_CHANGE_KEY = 'taskdatachange';
 
   public static readonly TENANT = 'Tenant';
   public static readonly TENANT_KEY = BaseSettings.TENANT.toLowerCase();

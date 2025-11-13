@@ -12,7 +12,7 @@ export class AppSettings {
   public static readonly ALGO_STRATEGY = 'AlgoStrategy';
   public static readonly ASSETCLASS = 'Assetclass';
   public static readonly CASHACCOUNT = 'Cashaccount';
-  public static readonly CONNECTOR_API_KEY = 'ConnectorApiKey';
+
   public static readonly CURRENCYPAIR = 'Currencypair';
   public static readonly DIVIDEND = 'Dividend';
 
@@ -32,7 +32,7 @@ export class AppSettings {
   public static readonly SECURITY_SPLIT = 'Securitysplit';
   public static readonly SECURITYACCOUNT = 'Securityaccount';
   public static readonly STOCKEXCHANGE = 'Stockexchange';
-  public static readonly TASK_DATE_CHANGE = 'TaskDataChange';
+
 
   public static readonly TRANSACTION = 'Transaction';
   public static readonly TRADING_DAYS_MINUS = 'TradingDaysMinus';
@@ -80,8 +80,6 @@ export class AppSettings {
   public static readonly SECURITYACCOUNT_KEY = AppSettings.SECURITYACCOUNT.toLowerCase();
   public static readonly TRADING_CALENDAR_GLOBAL_KEY = 'tradingcalendarglobal';
   public static readonly SECURITY_HISTORY_QUALITY_KEY = 'historyquotequality';
-
-  public static readonly TASK_DATA_CHANGE_KEY = 'taskdatachange';
 
   public static readonly GT_NET_CONSUME_MONITOR_KEY = 'gtnetconsumemonitor';
   public static readonly GT_NET_KEY = 'gtnet';

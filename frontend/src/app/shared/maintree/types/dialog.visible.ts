@@ -10,17 +10,14 @@ import {AlgoTop} from '../../../algo/model/algo.top';
 import {AlgoAssetclass} from '../../../algo/model/algo.assetclass';
 import {AlgoSecurity} from '../../../algo/model/algo.security';
 import {AlgoTopCreate} from '../../../entities/backend/algo.top.create';
-import {User} from '../../../lib/entities/user';
-import {Globalparameters} from '../../../lib/entities/globalparameters';
 import {CorrelationSet} from '../../../entities/correlation.set';
-import {ConnectorApiKey} from '../../../entities/connector.api.key';
 
 
 export class CallParam {
-  constructor(public parentObject: Tenant | Portfolio | Securityaccount | ImportTransactionPlatform | AlgoTop | AlgoAssetclass | User,
-              public thisObject: Tenant | Portfolio | Cashaccount | Securityaccount | Watchlist | ImportTransactionHead | Globalparameters
+  constructor(public parentObject: Tenant | Portfolio | Securityaccount | ImportTransactionPlatform | AlgoTop | AlgoAssetclass,
+              public thisObject: Tenant | Portfolio | Cashaccount | Securityaccount | Watchlist | ImportTransactionHead
                 | CorrelationSet | ImportTransactionPlatform | ImportTransactionTemplate | AlgoAssetclass | AlgoSecurity
-                | AlgoTopCreate | User | ConnectorApiKey,
+                | AlgoTopCreate,
               public optParam?: { [key: string]: any }) {
   }
 }

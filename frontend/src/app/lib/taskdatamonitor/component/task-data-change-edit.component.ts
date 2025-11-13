@@ -1,21 +1,22 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {SimpleEntityEditBase} from '../../../lib/edit/simple.entity.edit.base';
+import {SimpleEntityEditBase} from '../../edit/simple.entity.edit.base';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../../lib/message/message.toast.service';
-import {HelpIds} from '../../../lib/help/help.ids';
-import {AppSettings} from '../../app.settings';
+import {GlobalparameterService} from '../../services/globalparameter.service';
+import {MessageToastService} from '../../message/message.toast.service';
+import {HelpIds} from '../../help/help.ids';
 import {TaskDataChangeService} from '../service/task.data.change.service';
-import {TaskDataChange, TaskDataChangeFormConstraints, TaskType} from '../../../entities/task.data.change';
-import {AppHelper} from '../../../lib/helper/app.helper';
-import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../../lib/helper/translate.helper';
-import {SelectOptionsHelper} from '../../../lib/helper/select.options.helper';
+import {TaskDataChange, TaskDataChangeFormConstraints} from '../types/task.data.change';
+import {AppHelper} from '../../helper/app.helper';
+import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
+import {SelectOptionsHelper} from '../../helper/select.options.helper';
 import {Subscription} from 'rxjs';
-import {FormHelper} from '../../../lib/dynamic-form/components/FormHelper';
-import {DataType} from '../../../lib/dynamic-form/models/data.type';
+import {FormHelper} from '../../dynamic-form/components/FormHelper';
+import {DataType} from '../../dynamic-form/models/data.type';
 import moment from 'moment';
 import {Validators} from '@angular/forms';
+import {BaseSettings} from '../../base.settings';
+import {TaskTypeBase} from '../types/task.type.base';
 
 @Component({
     selector: 'task-data-change-edit',
@@ -34,6 +35,7 @@ import {Validators} from '@angular/forms';
 export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataChange> implements OnInit {
   @Input() callParam: TaskDataChange;
   @Input() tdcFormConstraints: TaskDataChangeFormConstraints;
+  @Input() taskTypeEnum: any = TaskTypeBase; // Application can provide extended enum
 
   private idTaskSubscribe: Subscription;
   private entitySubscribe: Subscription;
@@ -42,7 +44,7 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
               gps: GlobalparameterService,
               messageToastService: MessageToastService,
               private taskDataChangeService: TaskDataChangeService) {
-    super(HelpIds.HELP_TASK_DATA_CHANGE_MONITOR, AppHelper.toUpperCaseWithUnderscore(AppSettings.TASK_DATE_CHANGE),
+    super(HelpIds.HELP_TASK_DATA_CHANGE_MONITOR, AppHelper.toUpperCaseWithUnderscore(BaseSettings.TASK_DATE_CHANGE),
       translateService, gps, messageToastService, taskDataChangeService);
   }
 
@@ -97,8 +99,8 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
     this.valueChangedOnIdTask();
     this.valueChangedOnEntity();
     this.configObject.idTask.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
-      this.translateService, TaskType, Object.keys(TaskType).filter(
-        key => TaskType[key] <= this.tdcFormConstraints.maxUserCreateTask).map(key => TaskType[key]));
+      this.translateService, this.taskTypeEnum, Object.keys(this.taskTypeEnum).filter(
+        key => this.taskTypeEnum[key] <= this.tdcFormConstraints.maxUserCreateTask).map(key => this.taskTypeEnum[key]));
     if (this.callParam) {
       this.form.transferBusinessObjectToForm(this.callParam);
     }

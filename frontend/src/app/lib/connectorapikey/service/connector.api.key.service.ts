@@ -1,15 +1,14 @@
-import {AuthServiceWithLogout} from '../../lib/login/service/base.auth.service.with.logout';
-import {ConnectorApiKey, SubscriptionTypeReadableName} from '../../entities/connector.api.key';
-import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
-import {DeleteService} from '../../lib/datashowbase/delete.service';
+import {AuthServiceWithLogout} from '../../login/service/base.auth.service.with.logout';
+import {ConnectorApiKey, SubscriptionTypeReadableName} from '../types/connector.api.key';
+import {ServiceEntityUpdate} from '../../edit/service.entity.update';
+import {DeleteService} from '../../datashowbase/delete.service';
 import {Injectable} from '@angular/core';
-import {LoginService} from '../../lib/login/service/log-in.service';
+import {LoginService} from '../../login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
-import {MessageToastService} from '../../lib/message/message.toast.service';
+import {MessageToastService} from '../../message/message.toast.service';
 import {Observable} from 'rxjs';
-import {AppSettings} from '../../shared/app.settings';
 import {catchError} from 'rxjs/operators';
-import {BaseSettings} from '../../lib/base.settings';
+import {BaseSettings} from '../../base.settings';
 
 @Injectable()
 export class ConnectorApiKeyService extends AuthServiceWithLogout<ConnectorApiKey>

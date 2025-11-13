@@ -1,4 +1,4 @@
-import {BaseID} from '../lib/entities/base.id';
+import {BaseID} from '../../entities/base.id';
 
 export class ConnectorApiKey implements BaseID {
   idProvider: string = null;

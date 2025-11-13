@@ -116,7 +116,7 @@ export class UDFMetadataHelper {
    * @static
    */
   public static removeUDFPropertiesFromObject(objectUDF: any): void {
-    const regex = new RegExp(`^${UDFMetadataHelper.UDF_FIELD_PREFIX}\d+$`);
+    const regex = new RegExp(`^${UDFMetadataHelper.UDF_FIELD_PREFIX}\\d+$`);
     for (const key in objectUDF) {
       if (regex.test(key)) {
         delete objectUDF[key];
