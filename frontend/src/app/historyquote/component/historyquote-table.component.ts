@@ -60,81 +60,38 @@ import {BaseSettings} from '../../lib/base.settings';
         </historyquote-quality>
       </p-panel>
       <div class="datatable">
-        <p-table #table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
-                 [first]="firstRow" (onPage)="onPage($event)" sortMode="multiple" [multiSortMeta]="multiSortMeta"
-                 [paginator]="true" [rows]="20" [dataKey]="entityKeyName" stripedRows showGridlines>
-          <ng-template #header let-fields>
-            <tr>
-              @for (field of fields; track field) {
-                <th [pSortableColumn]="field.field"
-                    [style.width.px]="field.width" [pTooltip]="field.headerTooltipTranslated">
-                  {{ field.headerTranslated }}
-                  <p-sortIcon [field]="field.field"></p-sortIcon>
-                </th>
-              }
-            </tr>
-            @if (hasFilter) {
-              <tr>
-                @for (field of fields; track field) {
-                  <th style="overflow:visible;">
-                    @switch (field.filterType) {
-                      @case (FilterType.likeDataType) {
-                        @switch (field.dataType) {
-                          @case (field.dataType === DataType.DateString || field.dataType === DataType.DateNumeric ? field.dataType : '') {
-                            <p-columnFilter [field]="field.field" display="menu" [showOperator]="true"
-                                            [matchModeOptions]="customMatchModeOptions" [matchMode]="'gtNoFilter'">
-                              <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                <p-datepicker #cal [ngModel]="value" [dateFormat]="baseLocale.dateFormat"
-                                              (onSelect)="filter($event)"
-                                              [minDate]="minDate" [maxDate]="maxDate"
-                                              (onInput)="filter(cal.value)">
-                                </p-datepicker>
-                              </ng-template>
-                            </p-columnFilter>
-                          }
-                          @case (DataType.Numeric) {
-                            <p-columnFilter type="numeric" [field]="field.field"
-                                            [locale]="formLocale"
-                                            minFractionDigits="2" display="menu"></p-columnFilter>
-                          }
-                        }
-                      }
-                      @case (FilterType.withOptions) {
-                        <p-select [options]="field.filterValues" [style]="{'width':'100%'}"
-                                  (onChange)="table.filter($event.value, field.field, 'equals')"></p-select>
-                      }
-                    }
-                  </th>
-                }
-              </tr>
-            }
+        <configurable-table
+          [data]="entityList"
+          [fields]="fields"
+          [dataKey]="entityKeyName"
+          [selectionMode]="'single'"
+          [(selection)]="selectedEntity"
+          [multiSortMeta]="multiSortMeta"
+          [customSortFn]="customSort.bind(this)"
+          [paginator]="true"
+          [rows]="20"
+          [firstRowIndex]="firstRow"
+          (pageChange)="onPage($event)"
+          [stripedRows]="true"
+          [showGridlines]="true"
+          [hasFilter]="hasFilter"
+          [customMatchModeOptions]="customMatchModeOptions"
+          [minDate]="minDate"
+          [maxDate]="maxDate"
+          [baseLocale]="baseLocale"
+          [formLocale]="formLocale"
+          [containerClass]="''"
+          [contextMenuEnabled]="!!contextMenuItems"
+          [showContextMenu]="!!contextMenuItems"
+          [contextMenuItems]="contextMenuItems"
+          [valueGetterFn]="getValueByPath.bind(this)">
+
+          <!-- Custom icon cell template for svg-icon rendering -->
+          <ng-template #iconCell let-row let-field="field" let-value="value">
+            <svg-icon [name]="value" [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
           </ng-template>
 
-          <ng-template #body let-el let-columns="fields">
-            <tr [pSelectableRow]="el">
-              @for (field of fields; track field) {
-                @if (field.visible) {
-                  <td [style.width.px]="field.width"
-                      [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''">
-                    @switch (field.templateName) {
-                      @case ('icon') {
-                        <svg-icon [name]="getValueByPath(el, field)"
-                                  [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
-                      }
-                      @default {
-                        {{ getValueByPath(el, field) }}
-                      }
-                    }
-                  </td>
-                }
-              }
-            </tr>
-          </ng-template>
-        </p-table>
-        @if (contextMenuItems) {
-          <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
-        }
+        </configurable-table>
       </div>
     </div>
     @if (visibleDialog) {

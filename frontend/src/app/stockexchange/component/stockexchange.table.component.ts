@@ -27,69 +27,38 @@ import {AppHelper} from '../../lib/helper/app.helper';
  */
 @Component({
   template: `
-    <div class="data-container-full" (click)="onComponentClick($event)" #cmDiv
-         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
-      <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
-               (sortFunction)="customSort($event)" [customSort]="true" sortMode="multiple"
-               scrollHeight="flex" [scrollable]="true"
-               [multiSortMeta]="multiSortMeta" [dataKey]="entityKeyName"
-               stripedRows showGridlines>
-        <ng-template #caption>
-          <h4>{{ entityNameUpper | translate }}</h4>
-        </ng-template>
-        <ng-template #header let-fields>
-          <tr>
-            <th style="max-width:24px"></th>
-            @for (field of fields; track field) {
-              <th [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated"
-                  [style.min-width.px]="field.width">
-                {{ field.headerTranslated }}
-                <p-sortIcon [field]="field.field"></p-sortIcon>
-              </th>
-            }
-          </tr>
-        </ng-template>
-        <ng-template #body let-expanded="expanded" let-el let-columns="fields">
-          <tr [pSelectableRow]="el">
-            <td style="max-width:24px">
-              @if (!el.noMarketValue) {
-                <a href="#" [pRowToggler]="el">
-                  <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
-                </a>
-              }
-            </td>
-            @for (field of fields; track field) {
-              <td [style.min-width.px]="field.width">
-                @switch (field.templateName) {
-                  @case ('owner') {
-                    <span [style]='isNotSingleModeAndOwner(field, el)? "font-weight:500": null'>
-                   {{ getValueByPath(el, field) }}</span>
-                  }
-                  @case ('check') {
-                    <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>
-                  }
-                  @default {
-                    {{ getValueByPath(el, field) }}
-                  }
-                }
-              </td>
-            }
-          </tr>
-        </ng-template>
-        <ng-template #expandedrow let-stockexchange let-columns="fields">
-          <tr>
-            <td [attr.colspan]="numberOfVisibleColumns + 1" style="overflow:visible;">
-              <trading-calendar-stockexchange [stockexchange]="stockexchange"
-                                              [sourceCopyStockexchanges]="getCopySourceStockexchanges(stockexchange.idStockexchange)">
-              </trading-calendar-stockexchange>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
-      @if (isActivated()) {
-        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
-      }
-    </div>
+    <configurable-table
+      [data]="entityList"
+      [fields]="fields"
+      [dataKey]="entityKeyName"
+      [selectionMode]="'single'"
+      [(selection)]="selectedEntity"
+      [multiSortMeta]="multiSortMeta"
+      [customSortFn]="customSort.bind(this)"
+      [scrollHeight]="'flex'"
+      [scrollable]="true"
+      [stripedRows]="true"
+      [showGridlines]="true"
+      [expandable]="true"
+      [canExpandFn]="canExpandRow.bind(this)"
+      [expandedRowTemplate]="expandedContent"
+      [containerClass]="{'data-container-full': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+      [showContextMenu]="isActivated()"
+      [contextMenuItems]="contextMenuItems"
+      [ownerHighlightFn]="isNotSingleModeAndOwner.bind(this)"
+      [valueGetterFn]="getValueByPath.bind(this)"
+      (componentClick)="onComponentClick($event)">
+
+      <h4 caption>{{entityNameUpper | translate}}</h4>
+
+    </configurable-table>
+
+    <!-- Expanded row content template -->
+    <ng-template #expandedContent let-stockexchange>
+      <trading-calendar-stockexchange [stockexchange]="stockexchange"
+                                      [sourceCopyStockexchanges]="getCopySourceStockexchanges(stockexchange.idStockexchange)">
+      </trading-calendar-stockexchange>
+    </ng-template>
 
     @if (visibleDialog) {
       <stockexchange-edit [visibleDialog]="visibleDialog"
@@ -98,8 +67,8 @@ import {AppHelper} from '../../lib/helper/app.helper';
       </stockexchange-edit>
     }
   `,
-    providers: [DialogService],
-    standalone: false
+  providers: [DialogService],
+  standalone: false
 })
 export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<Stockexchange> implements OnDestroy {
 
@@ -161,6 +130,10 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
 
   ngOnDestroy(): void {
     this.activePanelService.destroyPanel(this);
+  }
+
+  canExpandRow(stockexchange: Stockexchange): boolean {
+    return !stockexchange.noMarketValue;
   }
 
   getCopySourceStockexchanges(targetIdStockexchange: number): ValueKeyHtmlSelectOptions[] {

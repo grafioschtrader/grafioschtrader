@@ -1,160 +1,109 @@
 <!--
-   For frozen columns modify header and body:
-   Modify this to <th style="width:24px"  pFrozenColumn></th>
-   Modify this to <th <th *ngIf="selectMultiMode ... pFrozenColumn></th>
-   Add this to <th> and <td> of header and body
-   pFrozenColumn  [frozen]="field.frozenColumn"
-   Add the moment is very slow!!!
+   Watchlist data table view using configurable-table component.
+   This template is shared across multiple watchlist types: PERFORMANCE, PRICE_FEED, UDF, and DIVIDEND_SPLIT_FEED.
+   Each type displays different columns and expanded row content.
 -->
 
-<div #cmDiv (click)="onComponentClick($event)" (contextmenu)="onRightClick($event)"
-     [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}" class="data-container">
-  <p-table (onColResize)="onColResize($event)" (sortFunction)="customSort($event)" [(selection)]="singleMultiSelection"
-           [columns]="fields"
-           [customSort]="true" [loading]="loading"
-           [multiSortMeta]="multiSortMeta" [selectionMode]="selectMultiMode" [value]="securityPositionList"
-           dataKey="securitycurrency.idSecuritycurrency" loadingIcon="fa fa-circle-o-notch fa-5x" sortMode="multiple"
-           scrollHeight="flex" [scrollable]="true"
-           stripedRows showGridlines>
-    <ng-template #caption>
-      <h4>{{ 'WATCHLIST' | translate }}: "{{ watchlist.name }}" {{
-          securitycurrencyGroup?.lastTimestamp
-            | date: 'HH:mm dd.MM.yy'
-        }}</h4>
-    </ng-template>
+<configurable-table
+  [data]="securityPositionList"
+  [fields]="fields"
+  [dataKey]="'securitycurrency.idSecuritycurrency'"
+  [selectionMode]="selectMultiMode"
+  [(selection)]="singleMultiSelection"
+  [multiSortMeta]="multiSortMeta"
+  [customSortFn]="customSort.bind(this)"
+  [scrollHeight]="'flex'"
+  [scrollable]="true"
+  [stripedRows]="true"
+  [showGridlines]="true"
+  [loading]="loading"
+  [containerClass]="{'data-container': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+  [expandable]="true"
+  [expandedRowTemplate]="expandedContent"
+  [canExpandFn]="canExpandRow.bind(this)"
+  [showContextMenu]="contextMenuItems && isActivated()"
+  [contextMenuItems]="contextMenuItems"
+  [ownerHighlightFn]="ownerHighlightFn.bind(this)"
+  [negativeValueFn]="isValueByPathMinus.bind(this)"
+  [valueGetterFn]="getValueByPath.bind(this)"
+  (componentClick)="onComponentClick($event)"
+  (colResize)="onColResize($event)">
 
-    <ng-template #header let-fields>
-      <tr>
-        <th style="width:24px"></th>
-        @if (selectMultiMode === 'multiple') {
-          <th style="width: 2.25em">
-            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
-          </th>
-        }
-        @for (field of fields; track field.field) {
-          @if (field.visible) {
-            <th [pSortableColumn]="field.field"
-                [pTooltip]="field.headerTooltipTranslated"
-                [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-              {{ field.headerTranslated }}
-              <p-sortIcon [field]="field.field"></p-sortIcon>
-            </th>
-          }
-        }
-      </tr>
-    </ng-template>
+  <!-- Caption -->
+  <h4 caption>{{ 'WATCHLIST' | translate }}: "{{ watchlist.name }}" {{
+    securitycurrencyGroup?.lastTimestamp | date: 'HH:mm dd.MM.yy'
+  }}</h4>
 
-    <ng-template #body let-columns="fields" let-expanded="expanded" let-spl>
-      <tr [pSelectableRow]="spl">
-        <td style="width:24px">
-          @if (spl.watchlistSecurityHasEver || watchlistType === WatchListType.PRICE_FEED || watchlistType === WatchListType.UDF) {
-            <a [pRowToggler]="spl" href="#">
-              <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
-            </a>
-          }
-        </td>
-        @if (selectMultiMode === 'multiple') {
-          <td pFrozenColumn>
-            <p-tableCheckbox [value]="spl"></p-tableCheckbox>
-          </td>
-        }
+  <!-- Custom icon cell template for svg-icon rendering with drag-and-drop -->
+  <ng-template #iconCell let-row let-field="field" let-value="value">
+    <svg-icon
+      [name]="value"
+      [svgStyle]="{ 'width.px':14, 'height.px':14 }"
+      [pTooltip]="row.securitycurrency.idSecuritycurrency"
+      class="cell-move"
+      draggable="true"
+      (dragstart)="dragStart($event, row)"
+      (dragend)="dragEnd($event, row)">
+    </svg-icon>
+  </ng-template>
 
-        @for (field of fields; track field.field) {
-          @if (field.visible) {
-            <td [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                [style.max-width.px]="field.width"
-                [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''">
-              @switch (field.templateName) {
-                @case ('owner') {
-                  <span [pTooltip]="getValueByPath(spl, field)"
-                        [style]='isNotSingleModeAndOwner(field, spl.securitycurrency)? "font-weight:500": null'
-                        tooltipPosition="top">{{ getValueByPath(spl, field) }}</span>
-                }
-                @case ('greenRed') {
-                  <span [style.color]='isValueByPathMinus(spl, field)? "red": "green"'>{{ getValueByPath(spl, field) }}</span>
-                }
-                @case ('check') {
-                  <span><i [ngClass]="{'fa fa-check': getValueByPath(spl, field)}" aria-hidden="true"></i></span>
-                }
-                @case ('icon') {
-                  <svg-icon (dragend)="dragEnd($event, spl)" (dragstart)="dragStart($event, spl)"
-                            [name]="getValueByPath(spl, field)" [svgStyle]="{ 'width.px':14, 'height.px':14 }"
-                            [pTooltip]="spl.securitycurrency.idSecuritycurrency"
-                            class="cell-move" draggable="true"></svg-icon>
-                }
-                @case ('linkIcon') {
-                  @if (getValueByPath(spl, field)) {
-                    <a [href]="getValueByPath(spl, field)" target=_blank>
-                      <svg-icon [name]="'link' + (field.field.match(fieldNumberRegex) % 4)"
-                                [svgStyle]="{ 'width.px':24, 'height.px':14 }"></svg-icon>
-                    </a>
-                  }
-                }
-                @default {
-                  <span [pTooltip]="getValueByPath(spl, field)"
-                        tooltipPosition="top">{{ getValueByPath(spl, field)}}</span>
-                }
-              }
-            </td>
-          }
-        }
-      </tr>
-    </ng-template>
+  <!-- Custom link icon cell template -->
+  <ng-template #linkIconCell let-row let-field="field">
+    <svg-icon
+      [name]="'link' + (field.field.match(fieldNumberRegex) % 4)"
+      [svgStyle]="{ 'width.px':24, 'height.px':14 }">
+    </svg-icon>
+  </ng-template>
 
-    <ng-template #expandedrow let-columns="fields" let-spl>
-      @if (spl.watchlistSecurityHasEver || watchlistType !== WatchListType.PERFORMANCE) {
-        <tr>
-          <td [attr.colspan]="numberOfVisibleColumns + 1">
-            @if (watchlistType === WatchListType.PERFORMANCE && !isMarginProduct(spl)) {
-              <transaction-security-table (dateChanged)="handleCloseTransactionDialog($event)"
-                                          [idSecuritycurrency]="spl.securitycurrency.idSecuritycurrency"
-                                          [idTenant]="idTenant">
-              </transaction-security-table>
-            }
+</configurable-table>
 
-            @if (watchlistType === WatchListType.PERFORMANCE && isMarginProduct(spl)) {
-              <transaction-security-margin-treetable (dateChanged)="handleCloseTransactionDialog($event)"
-                                                     [idSecuritycurrency]="spl.securitycurrency.idSecuritycurrency"
-                                                     [idTenant]="idTenant">
-              </transaction-security-margin-treetable>
-            }
+<!-- Expanded row content template -->
+<ng-template #expandedContent let-row>
+  @if (row.watchlistSecurityHasEver || watchlistType !== WatchListType.PERFORMANCE) {
+    @if (watchlistType === WatchListType.PERFORMANCE && !isMarginProduct(row)) {
+      <transaction-security-table
+        (dateChanged)="handleCloseTransactionDialog($event)"
+        [idSecuritycurrency]="row.securitycurrency.idSecuritycurrency"
+        [idTenant]="idTenant">
+      </transaction-security-table>
+    }
 
-            @if (watchlistType === WatchListType.UDF) {
-              <securitycurrency-udf [securitycurrency]="spl.securitycurrency">
-              </securitycurrency-udf>
-            }
+    @if (watchlistType === WatchListType.PERFORMANCE && isMarginProduct(row)) {
+      <transaction-security-margin-treetable
+        (dateChanged)="handleCloseTransactionDialog($event)"
+        [idSecuritycurrency]="row.securitycurrency.idSecuritycurrency"
+        [idTenant]="idTenant">
+      </transaction-security-margin-treetable>
+    }
 
-            @if (watchlistType === WatchListType.PRICE_FEED) {
-              <securitycurrency-extended-info [dividendUrl]="spl.dividendUrl"
-                                              [splitUrl]="spl.splitUrl"
-                                              [historicalUrl]="spl.historicalUrl"
-                                              [intradayUrl]="spl.intradayUrl"
-                                              [feedConnectorsKV]="feedConnectorsKV"
-                                              [securitycurrency]="spl.securitycurrency">
-              </securitycurrency-extended-info>
-            }
+    @if (watchlistType === WatchListType.UDF) {
+      <securitycurrency-udf [securitycurrency]="row.securitycurrency">
+      </securitycurrency-udf>
+    }
 
-            @if (watchlistType === WatchListType.DIVIDEND_SPLIT_FEED) {
-              <div>
-                <watchlist-dividend-table [idSecuritycurrency]="spl.securitycurrency.idSecuritycurrency">
-                </watchlist-dividend-table>
-                <watchlist-securitysplit-table [idSecuritycurrency]="spl.securitycurrency.idSecuritycurrency">
-                </watchlist-securitysplit-table>
-              </div>
-            }
-          </td>
-        </tr>
-      }
-    </ng-template>
-  </p-table>
+    @if (watchlistType === WatchListType.PRICE_FEED) {
+      <securitycurrency-extended-info
+        [dividendUrl]="row.dividendUrl"
+        [splitUrl]="row.splitUrl"
+        [historicalUrl]="row.historicalUrl"
+        [intradayUrl]="row.intradayUrl"
+        [feedConnectorsKV]="feedConnectorsKV"
+        [securitycurrency]="row.securitycurrency">
+      </securitycurrency-extended-info>
+    }
 
-  @if (contextMenuItems && isActivated()) {
-    <p-contextMenu #contextMenu [model]="contextMenuItems"
-                   [target]="cmDiv"></p-contextMenu>
+    @if (watchlistType === WatchListType.DIVIDEND_SPLIT_FEED) {
+      <div>
+        <watchlist-dividend-table [idSecuritycurrency]="row.securitycurrency.idSecuritycurrency">
+        </watchlist-dividend-table>
+        <watchlist-securitysplit-table [idSecuritycurrency]="row.securitycurrency.idSecuritycurrency">
+        </watchlist-securitysplit-table>
+      </div>
+    }
   }
-</div>
+</ng-template>
 
+<!-- Dialog Components (unchanged) -->
 @if (visibleSecurityTransactionDialog) {
   <transaction-security-edit (closeDialog)="handleCloseTransactionDialog($event)"
                              [transactionCallParam]="transactionCallParam"

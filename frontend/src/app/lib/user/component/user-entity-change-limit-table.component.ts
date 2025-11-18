@@ -29,52 +29,34 @@ import {BaseSettings} from '../../base.settings';
 @Component({
   selector: 'user-entity-change-limit-table',
   template: `
-    <div class="data-container" (click)="onComponentClick($event)"
-         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
-      <div class="datatable nestedtable">
-        <p-table [columns]="fields" [value]="user.userEntityChangeLimitList" selectionMode="single"
-                 (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)"
-                 (onPage)="onPage($event)" dataKey="idUserEntityChangeLimit" [paginator]="true" [rows]="20"
-                 (sortFunction)="customSort($event)" [customSort]="true"
-                 sortMode="multiple" [multiSortMeta]="multiSortMeta" [contextMenu]="cm"
-                 stripedRows showGridlines>
-          <ng-template #header let-fields>
-            <tr>
-              @for (field of fields; track field) {
-                <th [pSortableColumn]="field.field" [style.max-width.px]="field.width"
-                    [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                    [pTooltip]="field.headerTooltipTranslated">
-                  {{ field.headerTranslated }}
-                  <p-sortIcon [field]="field.field"></p-sortIcon>
-                </th>
-              }
-            </tr>
-          </ng-template>
-          <ng-template #body let-el let-columns="fields">
-            <tr [pContextMenuRow] [pSelectableRow]="el">
-              @for (field of fields; track field) {
-                @if (field.visible) {
-                  <td [style.max-width.px]="field.width"
-                      [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                      [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)?
-                                      'text-right': ''">
-                    @switch (field.templateName) {
-                      @case ('icon') {
-                        <svg-icon [name]="getValueByPath(el, field)"
-                                  [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
-                      }
-                      @default {
-                        {{ getValueByPath(el, field) }}
-                      }
-                    }
-                  </td>
-                }
-              }
-            </tr>
-          </ng-template>
-        </p-table>
-        <p-contextMenu #cm [model]="contextMenuItems" appendTo="body"></p-contextMenu>
-      </div>
+    <div class="datatable nestedtable">
+      <configurable-table
+        [data]="user.userEntityChangeLimitList"
+        [fields]="fields"
+        [dataKey]="'idUserEntityChangeLimit'"
+        [selectionMode]="'single'"
+        [(selection)]="selectedUserEntityChangeLimit"
+        [multiSortMeta]="multiSortMeta"
+        [customSortFn]="customSort.bind(this)"
+        [paginator]="true"
+        [rows]="20"
+        (pageChange)="onPage($event)"
+        [stripedRows]="true"
+        [showGridlines]="true"
+        [containerClass]="{'data-container': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+        [showContextMenu]="!!contextMenuItems"
+        [contextMenuItems]="contextMenuItems"
+        [valueGetterFn]="getValueByPath.bind(this)"
+        (rowSelect)="onRowSelect($event)"
+        (rowUnselect)="onRowUnselect($event)"
+        (componentClick)="onComponentClick($event)">
+
+        <!-- Custom icon cell template for svg-icon rendering -->
+        <ng-template #iconCell let-row let-field="field" let-value="value">
+          <svg-icon [name]="value" [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
+        </ng-template>
+
+      </configurable-table>
     </div>
 
     @if (visibleDialog) {
@@ -92,8 +74,6 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
   public static readonly USER_ENTITY_CHANGE_LIMIT = 'USER_ENTITY_CHANGE_LIMIT';
   public readonly UPPER_CASE_ENTITY_NAME = 'entityNameUpperCase';
 
-  // @ViewChild('cm', { static: false }) contextMenu: ContextMenu;
-  @ViewChild('cm') contextMenu: any;
   @Input() user: User;
   // Master table must be informed about changes thru editing
   @Output() dateChanged = new EventEmitter<ProcessedActionData>();
@@ -151,7 +131,6 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
 
   onComponentClick(event): void {
     event[this.consumedGT] = true;
-    this.contextMenu && this.contextMenu.hide();
     this.setMenuItemsToActivePanel();
   }
 
@@ -215,14 +194,12 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
   }
 
   hideContextMenu(): void {
-    this.contextMenu && this.contextMenu.hide();
   }
 
   callMeDeactivate(): void {
   }
 
   ngOnDestroy(): void {
-    this.contextMenu && this.contextMenu.hide();
   }
 
   public getHelpContextId(): string {

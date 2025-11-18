@@ -42,6 +42,7 @@ import {StockexchangeTableComponent} from './stockexchange/component/stockexchan
 import {StockexchangeService} from './stockexchange/service/stockexchange.service';
 import {DataChangedService} from './lib/maintree/service/data.changed.service';
 import {AssetclassService} from './assetclass/service/assetclass.service';
+import {ConfigurableTableComponent} from './lib/datashowbase/configurable-table.component';
 import {SecuritysplitService} from './securitycurrency/service/securitysplit.service';
 import {RegisterComponent} from './lib/login/component/register.component';
 import {TenantEditFullPageComponent} from './tenant/component/tenant.edit.full.page.component';
@@ -434,6 +435,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     CardModule,
     ConfirmDialogModule,
     CheckboxModule,
+    ConfigurableTableComponent,
     ContextMenuModule,
     TableModule,
     TreeTableModule,

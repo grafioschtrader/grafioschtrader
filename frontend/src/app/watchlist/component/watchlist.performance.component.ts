@@ -39,9 +39,7 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
       cursor: move !important;
     }
   `],
-  providers: [DialogService]
-  // changeDetection: ChangeDetectionStrategy.OnPush
-  ,
+  providers: [DialogService],
   standalone: false
 })
 export class WatchlistPerformanceComponent extends WatchlistTable implements OnInit, OnDestroy {

@@ -23,68 +23,36 @@ import {HelpIds} from '../help/help.ids';
  */
 @Component({
   template: `
-    <div class="data-container" (click)="onComponentClick($event)" #cmDiv
-         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
+    <configurable-table
+      [data]="globalparametersList"
+      [fields]="fields"
+      [dataKey]="'propertyName'"
+      [selectionMode]="'single'"
+      [(selection)]="selectedEntity"
+      [multiSortMeta]="multiSortMeta"
+      [customSortFn]="customSort.bind(this)"
+      [scrollable]="false"
+      [stripedRows]="true"
+      [showGridlines]="true"
+      [expandable]="true"
+      [canExpandFn]="canExpandRow.bind(this)"
+      [expandedRowTemplate]="expandedContent"
+      [containerClass]="{'data-container': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+      [showContextMenu]="!!contextMenuItems && contextMenuItems.length > 0"
+      [contextMenuItems]="contextMenuItems"
+      [valueGetterFn]="getValueByPath.bind(this)"
+      (componentClick)="onComponentClick($event)">
 
-      <p-table [columns]="fields" [value]="globalparametersList" selectionMode="single"
-               [(selection)]="selectedEntity" dataKey="propertyName"
-               (sortFunction)="customSort($event)" [customSort]="true"
-               stripedRows showGridlines>
-        <ng-template #caption>
-          <h4>{{ 'GLOBAL_SETTINGS' | translate }}</h4>
-        </ng-template>
-        <ng-template #header let-fields>
-          <tr>
-            <th style="max-width:24px"></th>
-            @for (field of fields; track field) {
-              <th [pSortableColumn]="field.field"
-                  [pTooltip]="field.headerTooltipTranslated"
-                  [style.max-width.px]="field.width"
-                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-                {{ field.headerTranslated }}
-                <p-sortIcon [field]="field.field"></p-sortIcon>
-              </th>
-            }
-          </tr>
-        </ng-template>
-        <ng-template #body let-expanded="expanded" let-el let-columns="fields">
-          <tr [pSelectableRow]="el">
-            <td style="max-width:24px">
-              @if (el.propertyBlobAsText) {
-                <a href="#" [pRowToggler]="el">
-                  <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
-                </a>
-              }
-            </td>
-            @for (field of fields; track field) {
-              <td [style.max-width.px]="field.width"
-                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-                @switch (field.templateName) {
-                  @case ('check') {
-                    <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}"
-                             aria-hidden="true"></i></span>
-                  }
-                  @default {
-                    <span [pTooltip]="getValueByPath(el, field)">{{ getValueByPath(el, field) }}</span>
-                  }
-                }
-              </td>
-            }
-          </tr>
-        </ng-template>
-        <ng-template #expandedrow let-gp let-columns="fields">
-          <tr>
-            <td [attr.colspan]="numberOfVisibleColumns + 1" style="overflow:visible;">
-          <textarea [rows]="10" pTextarea style="width: 100%;"
-                    readonly="true">{{ gp.propertyBlobAsText }}</textarea>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
-      @if (contextMenuItems) {
-        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
-      }
-    </div>
+      <h4 caption>{{ 'GLOBAL_SETTINGS' | translate }}</h4>
+
+    </configurable-table>
+
+    <!-- Expanded row content template for property blob text -->
+    <ng-template #expandedContent let-gp>
+      <textarea [rows]="10" pTextarea style="width: 100%;"
+                readonly="true">{{ gp.propertyBlobAsText }}</textarea>
+    </ng-template>
+
     @if (visibleDialog) {
       <globalsettings-edit [visibleDialog]="visibleDialog"
                            [globalparameters]="selectedEntity"
@@ -150,6 +118,10 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
 
   isActivated(): boolean {
     return this.activePanelService.isActivated(this);
+  }
+
+  canExpandRow(gp: Globalparameters): boolean {
+    return !!gp.propertyBlobAsText;
   }
 
   onComponentClick(event): void {

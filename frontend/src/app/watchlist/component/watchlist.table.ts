@@ -515,10 +515,35 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     this.changeDetectionStrategy.reattach();
   }
 
+  /**
+   * Determines if a row can be expanded based on watchlist type and row data.
+   * Used by configurable-table component to control expansion toggle visibility.
+   *
+   * @param {SecuritycurrencyPosition<Security | Currencypair>} row - Security position to check for expansion eligibility
+   * @returns {boolean} True if the row can be expanded
+   */
+  canExpandRow(row: SecuritycurrencyPosition<Security | Currencypair>): boolean {
+    return row.watchlistSecurityHasEver
+      || this.watchlistType === WatchListType.PRICE_FEED
+      || this.watchlistType === WatchListType.UDF;
+  }
+
+  /**
+   * Determines if owner field should be highlighted (bold font weight).
+   * Used as callback for configurable-table component's owner template rendering.
+   *
+   * @param {SecuritycurrencyPosition<Security | Currencypair>} row - Row data containing security/currency information
+   * @param {ColumnConfig} field - Column configuration for the owner field
+   * @returns {boolean} True if owner should be highlighted with bold font
+   */
+  ownerHighlightFn(row: SecuritycurrencyPosition<Security | Currencypair>, field: ColumnConfig): boolean {
+    return this.isNotSingleModeAndOwner(field, row.securitycurrency);
+  }
+
   /** Adds the base columns common to all watchlist table types. */
   protected addBaseColumns(): void {
     this.addColumn(DataType.String, this.SECURITYCURRENCY_NAME, 'NAME', true, false,
-      {width: 200, frozenColumn: true, templateName: AppSettings.OWNER_TEMPLATE});
+      {width: 200, frozenColumn: false, templateName: AppSettings.OWNER_TEMPLATE});
     this.addColumn(DataType.String, 'securitycurrency', AppSettings.INSTRUMENT_HEADER, true, false,
       {fieldValueFN: this.getInstrumentIcon.bind(this), templateName: 'icon', width: 20});
     this.addColumnFeqH(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.isin', true, true, {width: 90});
