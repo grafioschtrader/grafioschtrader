@@ -22,7 +22,6 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import grafiosch.entities.ProposeChangeField;
 import grafiosch.error.SecurityBreachError;
@@ -42,7 +41,34 @@ class StockexchangeResourceTest extends BaseIntegrationTest {
   @Order(4)
   @ParameterizedTest
   @CsvFileSource(resources = "/testdata/stockexchanges.csv", encoding = "UTF-8", nullValues = { "\\N" })
-  @DisplayName("Users create some Stockexchanges")
+  @DisplayName("Users create some Stockexchanges - WebTestClient version")
+  void createTestWithWebTestClient(String mic, String name, String countryCode, boolean noMarketValue,
+      boolean secondaryMarket, LocalTime timeOpen, LocalTime timeClose, String timeZone, String website)
+      throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+    Stockexchange s = new Stockexchange(mic, name, countryCode, noMarketValue, secondaryMarket, timeOpen, timeClose,
+        timeZone, website);
+
+    // Using WebTestClient with fluent API
+    Stockexchange sNew = authenticatedClient(RestTestHelper.getRadomUser())
+        .post()
+        .uri(RequestGTMappings.STOCKEXCHANGE_MAP)
+        .bodyValue(s)
+        .exchange()
+        .expectStatus().isOk()
+        .expectBody(Stockexchange.class)
+        .returnResult()
+        .getResponseBody();
+
+    assertNotNull(sNew);
+    assertThat(sNew.getIdStockexchange()).isGreaterThan(0);
+    List<ProposeChangeField> pcf = RestTestHelper.getDiffPropertiesOfTwoObjects(s, sNew);
+    assertThat(pcf).isEmpty();
+  }
+
+  @Order(4)
+  @ParameterizedTest
+  @CsvFileSource(resources = "/testdata/stockexchanges.csv", encoding = "UTF-8", nullValues = { "\\N" })
+  @DisplayName("Users create some Stockexchanges - TestRestTemplate version (legacy)")
   void createTest(String mic, String name, String countryCode, boolean noMarketValue, boolean secondaryMarket,
       LocalTime timeOpen, LocalTime timeClose, String timeZone, String website)
       throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
@@ -60,7 +86,37 @@ class StockexchangeResourceTest extends BaseIntegrationTest {
 
   @Test
   @Order(5)
-  @DisplayName("Limited user can not delete Stockexchange from other user")
+  @DisplayName("Limited user can not delete Stockexchange from other user - WebTestClient version")
+  void deleteByIdTestWithWebTestClient() {
+    // First, fetch all stockexchanges
+    Stockexchange[] stockexchanges = authenticatedClient(RestTestHelper.LIMIT1)
+        .get()
+        .uri(uriBuilder -> uriBuilder
+            .path(RequestGTMappings.STOCKEXCHANGE_MAP)
+            .queryParam("includeNameOfCalendarIndex", false)
+            .build())
+        .exchange()
+        .expectStatus().isOk()
+        .expectBody(Stockexchange[].class)
+        .returnResult()
+        .getResponseBody();
+
+    assertThat(stockexchanges.length).isGreaterThan(0);
+    Stockexchange s = stockexchanges[0];
+
+    // Try to delete a stockexchange - should fail with UNAUTHORIZED
+    authenticatedClient(RestTestHelper.LIMIT1)
+        .delete()
+        .uri(RequestGTMappings.STOCKEXCHANGE_MAP + "/" + s.getIdStockexchange())
+        .exchange()
+        .expectStatus().isUnauthorized()
+        .expectBody(String.class)
+        .value(body -> assertThat(body).contains(SecurityBreachError.class.getSimpleName()));
+  }
+
+  @Test
+  @Order(5)
+  @DisplayName("Limited user can not delete Stockexchange from other user - TestRestTemplate version (legacy)")
   void deleteByIdTest() {
     String url = RestTestHelper.createURLWithPort(RequestGTMappings.STOCKEXCHANGE_MAP, port)
         + "?includeNameOfCalendarIndex=false";

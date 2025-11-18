@@ -25,113 +25,61 @@ import {BaseSettings} from '../../base.settings';
  */
 @Component({
   template: `
-    <div class="data-container" (click)="onComponentClick($event)" #cmDiv
-         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
-      <p-table #table [columns]="fields" [value]="taskDataChangeList"
-               selectionMode="single" [(selection)]="selectedEntity" dataKey="idTaskDataChange"
-               sortMode="multiple" [multiSortMeta]="multiSortMeta"
-               (sortFunction)="customSort($event)" [customSort]="true"
-               stripedRows showGridlines>
-        <ng-template #caption>
-          <h4>{{ 'TASK_DATA_MONITOR' | translate }}</h4>
-          <p>{{ 'NO_DATA_REFRESH' | translate }}</p>
-        </ng-template>
-        <ng-template #header let-fields>
-          <tr>
-            <th style="width:24px"></th>
-            @for (field of fields; track field) {
-              <th [pSortableColumn]="field.field"
-                  [pTooltip]="field.headerTooltipTranslated"
-                  [style.max-width.px]="field.width"
-                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-                {{ field.headerTranslated }}
-                <p-sortIcon [field]="field.field"></p-sortIcon>
-              </th>
-            }
-          </tr>
-          @if (hasFilter) {
-            <tr>
-              <th style="width:24px"></th>
-              @for (field of fields; track field) {
-                <th style="overflow:visible;">
-                  @switch (field.filterType) {
-                    @case (FilterType.likeDataType) {
-                      @switch (field.dataType) {
-                        @case (field.dataType === DataType.DateString || field.dataType === DataType.DateNumeric ? field.dataType : '') {
-                          <p-columnFilter [field]="field.field" display="menu" [showOperator]="true"
-                                          [matchModeOptions]="customMatchModeOptions"
-                                          [matchMode]="'gtNoFilter'">
-                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                              <p-datepicker #cal [ngModel]="value" [dateFormat]="baseLocale.dateFormat"
-                                            (onSelect)="filter($event)"
-                                            [minDate]="minDate" [maxDate]="maxDate"
-                                            (onInput)="filter(cal.value)">
-                              </p-datepicker>
-                            </ng-template>
-                          </p-columnFilter>
-                        }
-                        @case (DataType.NumericShowZero) {
-                          <p-columnFilter type="numeric"
-                                          [field]="field.field"
-                                          [locale]="formLocale"
-                                          minFractionDigits="0" display="menu"></p-columnFilter>
-                        }
-                      }
-                    }
-                    @case (FilterType.withOptions) {
-                      <p-select [options]="field.filterValues" [style]="{'width':'100%'}"
-                                (onChange)="table.filter($event.value, field.field, 'equals')"></p-select>
-                    }
-                  }
-                </th>
-              }
-            </tr>
+    <configurable-table
+      [data]="taskDataChangeList"
+      [fields]="fields"
+      [dataKey]="'idTaskDataChange'"
+      [selectionMode]="'single'"
+      [(selection)]="selectedEntity"
+      [multiSortMeta]="multiSortMeta"
+      [customSortFn]="customSort.bind(this)"
+      [scrollable]="false"
+      [stripedRows]="true"
+      [showGridlines]="true"
+      [expandable]="true"
+      [canExpandFn]="canExpandRow.bind(this)"
+      [expandedRowTemplate]="expandedContent"
+      [hasFilter]="hasFilter"
+      [customMatchModeOptions]="customMatchModeOptions"
+      [minDate]="minDate"
+      [maxDate]="maxDate"
+      [baseLocale]="baseLocale"
+      [formLocale]="formLocale"
+      [containerClass]="{'data-container': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+      [showContextMenu]="!!contextMenuItems"
+      [contextMenuItems]="contextMenuItems"
+      [valueGetterFn]="getValueByPath.bind(this)"
+      (componentClick)="onComponentClick($event)">
+
+      <div caption>
+        <h4>{{ 'TASK_DATA_MONITOR' | translate }}</h4>
+        <p>{{ 'NO_DATA_REFRESH' | translate }}</p>
+      </div>
+
+      <!-- Custom cell template with tooltip support -->
+      <ng-template #customCell let-row let-field="field">
+        @switch (field.templateName) {
+          @case ('check') {
+            <span><i [ngClass]="{'fa fa-check': getValueByPath(row, field)}" aria-hidden="true"></i></span>
           }
-        </ng-template>
-        <ng-template #body let-expanded="expanded" let-el let-columns="fields">
-          <tr [pSelectableRow]="el">
-            <td>
-              @if (ProgressStateType[el.progressStateType] === ProgressStateType.PROG_FAILED) {
-                <a href="#" [pRowToggler]="el">
-                  <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
-                </a>
-              }
-            </td>
-            @for (field of fields; track field) {
-              <td [ngClass]="(field.dataType===DataType.NumericShowZero || field.dataType===DataType.DateTimeNumeric
-                  || field.dataType===DataType.NumericInteger)? 'text-right': ''" [style.max-width.px]="field.width"
-                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-                @switch (field.templateName) {
-                  @case ('check') {
-                    <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}"
-                             aria-hidden="true"></i></span>
-                  }
-                  @default {
-                    <span [pTooltip]="getTooltipValueByPath(el, field)"
-                          tooltipPosition="top">{{ getValueByPath(el, field) }}</span>
-                  }
-                }
-              </td>
-            }
-          </tr>
-        </ng-template>
-        <ng-template #expandedrow let-tdc let-columns="fields">
-          <tr>
-            <td [attr.colspan]="numberOfVisibleColumns + 1" style="overflow:visible;">
-              <h4>{{ tdc.failedMessageCode | translate }}</h4>
-              @if (tdc.failedStackTrace) {
-                <textarea [rows]="getShowLines(tdc.failedStackTrace)">
-                {{tdc.failedStackTrace}}
-                </textarea>
-              }
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
-      @if (contextMenuItems) {
-        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+          @default {
+            <span [pTooltip]="getTooltipValueByPath(row, field)" tooltipPosition="top">
+              {{ getValueByPath(row, field) }}
+            </span>
+          }
+        }
+      </ng-template>
+
+    </configurable-table>
+
+    <!-- Expanded row content template for error details -->
+    <ng-template #expandedContent let-tdc>
+      <h4>{{ tdc.failedMessageCode | translate }}</h4>
+      @if (tdc.failedStackTrace) {
+        <textarea [rows]="getShowLines(tdc.failedStackTrace)" style="width:100%;">{{tdc.failedStackTrace}}</textarea>
       }
-    </div>
+    </ng-template>
+
     @if (visibleDialog) {
       <task-data-change-edit [visibleDialog]="visibleDialog"
                              [callParam]="callParam"
@@ -141,7 +89,6 @@ import {BaseSettings} from '../../base.settings';
       </task-data-change-edit>
     }
   `,
-  styles: ['textarea { width:100%; }'],
   providers: [DialogService],
   standalone: false
 })
@@ -198,6 +145,11 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
     this.fields.filter(f => f.dataType === DataType.DateTimeSecondString).map(f => f.width = 100);
     this.multiSortMeta.push({field: 'creationTime', order: -1});
     this.multiSortMeta.push({field: 'taskAsId', order: 1});
+  }
+
+  canExpandRow(taskDataChange: TaskDataChange): boolean {
+    return ProgressStateType[taskDataChange.progressStateType]
+      === ProgressStateType[ProgressStateType[ProgressStateType.PROG_FAILED]];
   }
 
   getShowLines(text: string): number {

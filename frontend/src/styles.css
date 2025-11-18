@@ -17,6 +17,16 @@ html {
   color: #000;
 }
 
+/* Ensure table headers stay below dropdown menus and overlays */
+.p-datatable-scrollable .p-datatable-thead > tr > th {
+  z-index: 0;
+}
+
+/* Ensure menubar dropdown overlays appear above sticky table headers */
+.p-menubar-submenu {
+  z-index: 3 !important;
+}
+
 .word-break-header {
   hyphens: auto;
   white-space: normal;
@@ -104,6 +114,7 @@ input[type=checkbox], input[type=radio] {
   position: -webkit-sticky;
   position: sticky !important;
   top: 0px;
+  z-index: 0;
 }
 
 .sticky-table.p-datatable-resizable > .p-datatable-wrapper {

@@ -17,45 +17,28 @@ import {AppSettings} from '../../shared/app.settings';
 
 @Component({
   template: `
-    <div class="data-container" (click)="onComponentClick($event)" #cmDiv
-         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
-      <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
-               [dataKey]="entityKeyName" stripedRows showGridlines>
-        <ng-template #caption>
-          <h4>{{entityNameUpper | translate}}</h4>
-        </ng-template>
-        <ng-template #header let-fields>
-          <tr>
-            @for (field of fields; track field) {
-              <th [pSortableColumn]="field.field">
-                {{field.headerTranslated}}
-                <p-sortIcon [field]="field.field"></p-sortIcon>
-              </th>
-            }
-          </tr>
-        </ng-template>
-        <ng-template #body let-el let-columns="fields">
-          <tr [pSelectableRow]="el">
-            @for (field of fields; track field) {
-              <td>
-                @switch (field.templateName) {
-                  @case ('owner') {
-                    <span [style]='isNotSingleModeAndOwner(field, el)? "font-weight:500": null'>
-                   {{getValueByPath(el, field)}}</span>
-                  }
-                  @default {
-                    {{getValueByPath(el, field)}}
-                  }
-                }
-              </td>
-            }
-          </tr>
-        </ng-template>
-      </p-table>
-      @if (isActivated()) {
-        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
-      }
-    </div>
+    <configurable-table
+      [data]="entityList"
+      [fields]="fields"
+      [dataKey]="entityKeyName"
+      [selectionMode]="'single'"
+      [(selection)]="selectedEntity"
+      [multiSortMeta]="multiSortMeta"
+      [customSortFn]="customSort.bind(this)"
+      [scrollable]="false"
+      [stripedRows]="true"
+      [showGridlines]="true"
+      [containerClass]="{'data-container': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+      [showContextMenu]="isActivated()"
+      [contextMenuItems]="contextMenuItems"
+      [ownerHighlightFn]="isNotSingleModeAndOwner.bind(this)"
+      [valueGetterFn]="getValueByPath.bind(this)"
+      (componentClick)="onComponentClick($event)">
+
+      <h4 caption>{{entityNameUpper | translate}}</h4>
+
+    </configurable-table>
+
     @if (visibleDialog) {
       <trading-platform-plan-edit [visibleDialog]="visibleDialog"
                                   [callParam]="callParam"
@@ -63,8 +46,8 @@ import {AppSettings} from '../../shared/app.settings';
       </trading-platform-plan-edit>
     }
   `,
-    providers: [DialogService],
-    standalone: false
+  providers: [DialogService],
+  standalone: false
 })
 export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<TradingPlatformPlan> implements OnDestroy {
 

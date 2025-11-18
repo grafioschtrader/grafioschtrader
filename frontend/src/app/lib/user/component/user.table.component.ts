@@ -30,72 +30,41 @@ import {BaseSettings} from '../../base.settings';
  */
 @Component({
   template: `
-    <div class="data-container" (click)="onComponentClick($event)"
-         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
-      <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
-               sortField="nickname" [dataKey]="entityKeyName" [contextMenu]="cmDiv"
-               stripedRows showGridlines>
-        <ng-template #caption>
-          <h4>{{ entityNameUpper | translate }}</h4>
-        </ng-template>
-        <ng-template #header let-fields>
-          <tr>
-            <th style="width:24px"></th>
-            @for (field of fields; track field) {
-              <th [pSortableColumn]="field.field" [style.max-width.px]="field.width"
-                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                  [pTooltip]="field.headerTooltipTranslated">
-                {{ field.headerTranslated }}
-                <p-sortIcon [field]="field.field"></p-sortIcon>
-              </th>
-            }
-          </tr>
-        </ng-template>
-        <ng-template #body let-el let-expanded="expanded" let-columns="fields">
-          <tr [pContextMenuRow] [pSelectableRow]="el">
-            <td>
-              @if (el.userEntityChangeLimitList.length + el.userChangeLimitProposeList.length > 0) {
-                <a href="#" [pRowToggler]="el">
-                  <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
-                </a>
-              }
-            </td>
+    <configurable-table
+      [data]="entityList"
+      [fields]="fields"
+      [dataKey]="entityKeyName"
+      [selectionMode]="'single'"
+      [(selection)]="selectedEntity"
+      [multiSortMeta]="multiSortMeta"
+      [customSortFn]="customSort.bind(this)"
+      [scrollable]="false"
+      [stripedRows]="true"
+      [showGridlines]="true"
+      [expandable]="true"
+      [canExpandFn]="canExpandRow.bind(this)"
+      [expandedRowTemplate]="expandedContent"
+      [containerClass]="{'data-container': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+      [showContextMenu]="!!contextMenuItems"
+      [contextMenuItems]="contextMenuItems"
+      [valueGetterFn]="getValueByPath.bind(this)"
+      (componentClick)="onComponentClick($event)">
 
-            @for (field of fields; track field) {
-              <td [style.max-width.px]="field.width"
-                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                  [ngClass]="(field.dataType===DataType.NumericShowZero || field.dataType === DataType.DateTimeNumeric
-              || field.dataType===DataType.NumericInteger)? 'text-right': ''">
-                @switch (field.templateName) {
-                  @case ('check') {
-                    <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>
-                  }
-                  @case ('icon') {
-                    <svg-icon [name]="getValueByPath(el, field)"
-                              [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
-                  }
-                  @default {
-                    {{ getValueByPath(el, field) }}
-                  }
-                }
-              </td>
-            }
-          </tr>
-        </ng-template>
-        <ng-template #expandedrow let-user let-columns="fields">
-          @if (user.userEntityChangeLimitList.length + user.userChangeLimitProposeList.length > 0) {
-            <tr>
-              <td [attr.colspan]="numberOfVisibleColumns + 1">
-                <user-entity-change-limit-table [user]="user"
-                                                (dateChanged)="handleChangesOnLimitTable($event)">
-                </user-entity-change-limit-table>
-              </td>
-            </tr>
-          }
-        </ng-template>
-      </p-table>
-      <p-contextMenu #cmDiv appendTo="body" [model]="contextMenuItems"></p-contextMenu>
-    </div>
+      <h4 caption>{{ entityNameUpper | translate }}</h4>
+
+      <!-- Custom icon cell template for svg-icon rendering -->
+      <ng-template #iconCell let-row let-field="field" let-value="value">
+        <svg-icon [name]="value" [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
+      </ng-template>
+
+    </configurable-table>
+
+    <!-- Expanded row content template for user entity change limits -->
+    <ng-template #expandedContent let-user>
+      <user-entity-change-limit-table [user]="user"
+                                      (dateChanged)="handleChangesOnLimitTable($event)">
+      </user-entity-change-limit-table>
+    </ng-template>
     @if (visibleDialog) {
       <user-edit [visibleDialog]="visibleDialog"
                  [callParam]="callParam"
@@ -195,6 +164,10 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
 
   public override getHelpContextId(): string {
     return HelpIds.HELP_USER;
+  }
+
+  canExpandRow(user: User): boolean {
+    return user.userEntityChangeLimitList.length + user.userChangeLimitProposeList.length > 0;
   }
 
   ngOnDestroy(): void {

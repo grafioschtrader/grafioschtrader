@@ -23,55 +23,34 @@ import {HelpIds} from '../../lib/help/help.ids';
  */
 @Component({
   template: `
-    <div class="data-container-full" (click)="onComponentClick($event)" #cmDiv
-         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
-      <p-table [columns]="fields" [value]="entityList" selectionMode="single" [(selection)]="selectedEntity"
-               scrollHeight="flex" [scrollable]="true"
-               [dataKey]="entityKeyName" sortMode="multiple" [multiSortMeta]="multiSortMeta"
-               (sortFunction)="customSort($event)" [customSort]="true"
-               stripedRows showGridlines>
-        <ng-template #caption>
-          <h4>{{entityNameUpper | translate}}</h4>
-        </ng-template>
-        <ng-template #header let-fields>
-          <tr>
-            @for (field of fields; track field) {
-              <th [pSortableColumn]="field.field"
-                  [style.max-width.px]="field.width"
-                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-                {{field.headerTranslated}}
-                <p-sortIcon [field]="field.field"></p-sortIcon>
-              </th>
-            }
-          </tr>
-        </ng-template>
-        <ng-template #body let-el let-columns="fields">
-          <tr [pSelectableRow]="el">
-            @for (field of fields; track field) {
-              <td [style.max-width.px]="field.width"
-                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-                @switch (field.templateName) {
-                  @case ('owner') {
-                    <span [style]='isNotSingleModeAndOwner(field, el)? "font-weight:500": null'>
-                   {{getValueByPath(el, field)}}</span>
-                  }
-                  @case ('icon') {
-                    <svg-icon [name]="getValueByPath(el, field)"
-                              [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
-                  }
-                  @default {
-                    {{getValueByPath(el, field)}}
-                  }
-                }
-              </td>
-            }
-          </tr>
-        </ng-template>
-      </p-table>
-      @if (isActivated()) {
-        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
-      }
-    </div>
+    <configurable-table
+      [data]="entityList"
+      [fields]="fields"
+      [dataKey]="entityKeyName"
+      [selectionMode]="'single'"
+      [(selection)]="selectedEntity"
+      [multiSortMeta]="multiSortMeta"
+      [customSortFn]="customSort.bind(this)"
+      [scrollHeight]="'flex'"
+      [scrollable]="true"
+      [stripedRows]="true"
+      [showGridlines]="true"
+      [containerClass]="{'data-container-full': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+      [showContextMenu]="isActivated()"
+      [contextMenuItems]="contextMenuItems"
+      [ownerHighlightFn]="isNotSingleModeAndOwner.bind(this)"
+      [valueGetterFn]="getValueByPath.bind(this)"
+      (componentClick)="onComponentClick($event)">
+
+      <h4 caption>{{entityNameUpper | translate}}</h4>
+
+      <!-- Custom icon cell template for svg-icon rendering -->
+      <ng-template #iconCell let-row let-field="field" let-value="value">
+        <svg-icon [name]="value" [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
+      </ng-template>
+
+    </configurable-table>
+
     @if (visibleDialog) {
       <assetclass-edit [visibleDialog]="visibleDialog"
                        [callParam]="callParam"

@@ -39,7 +39,10 @@ public abstract class FinanzenConnetorBase extends BaseFeedConnector {
     this.client = HttpClient.newBuilder().followRedirects(Redirect.NORMAL).cookieHandler(this.cookieManager).build();
     try {
       HttpRequest request = getRequest(domain);
-      client.send(request, BodyHandlers.ofString());
+      HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+      log.info("Response received - Status code: {}", response.statusCode());
+      log.info("Response headers: {}", response.headers().map());
+      log.info("Response body length: {} characters", response.body().length());
     } catch (IOException | InterruptedException e) {
       log.error("A connection to {} is not possible.", domain, e);
     }
@@ -55,6 +58,11 @@ public abstract class FinanzenConnetorBase extends BaseFeedConnector {
   @Override
   protected HttpRequest getRequest(String url) {
     return HttpRequest.newBuilder().header("Accept", "*/*").header("Accept-Encoding", "deflate, br")
+        .header("Accept-Language", "de-CH,de;q=0.9,en;q=0.8")
+        .header("Upgrade-Insecure-Requests", "1")
+        .header("Sec-Fetch-Dest", "document")
+        .header("Sec-Fetch-Mode", "navigate")
+        .header("Sec-Fetch-Site", "none")
         .header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT).uri(URI.create(url)).build();
   }
 
