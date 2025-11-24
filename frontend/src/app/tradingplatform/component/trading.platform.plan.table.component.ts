@@ -14,6 +14,7 @@ import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
+import {BaseSettings} from '../../lib/base.settings';
 
 @Component({
   template: `
@@ -68,7 +69,7 @@ export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<Trad
       activePanelService, dialogService, filterService, translateService, gps, usersettingsService);
 
     this.addColumn(DataType.String, 'platformPlanNameNLS.map.en', 'PLATFORM_PLAN_NAME', true, false,
-      {headerSuffix: 'EN', templateName: AppSettings.OWNER_TEMPLATE});
+      {headerSuffix: 'EN', templateName: BaseSettings.OWNER_TEMPLATE});
     this.addColumn(DataType.String, 'platformPlanNameNLS.map.de', 'PLATFORM_PLAN_NAME', true, false,
       {headerSuffix: 'DE'});
     this.addColumnFeqH(DataType.String, 'transactionFeePlan', true, false,

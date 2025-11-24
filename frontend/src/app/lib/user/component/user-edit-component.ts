@@ -1,6 +1,9 @@
 import {Component, Input, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {SimpleEntityEditBase} from '../../edit/simple.entity.edit.base';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {MessageToastService} from '../../message/message.toast.service';
 import {HelpIds} from '../../help/help.ids';
@@ -30,7 +33,8 @@ import {BaseSettings} from '../../base.settings';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`,
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, DialogModule, DynamicFormModule, TranslateModule]
 })
 export class UserEditComponent extends SimpleEntityEditBase<User> implements OnInit {
   @Input() callParam: User;

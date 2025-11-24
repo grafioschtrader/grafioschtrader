@@ -2,10 +2,13 @@
  * Component for editing the portfolio.
  */
 import {Component, Input, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {SimpleEntityEditBase} from '../edit/simple.entity.edit.base';
 import {Globalparameters} from '../entities/globalparameters';
 import {FieldConfig} from '../dynamic-form/models/field.config';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../dynamic-form/dynamic-form.module';
 import {GlobalparameterService} from '../services/globalparameter.service';
 import {MessageToastService} from '../message/message.toast.service';
 import {DynamicFieldHelper} from '../helper/dynamic.field.helper';
@@ -28,7 +31,8 @@ import {BaseSettings} from '../base.settings';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`,
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, DialogModule, DynamicFormModule, TranslateModule]
 })
 export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalparameters> implements OnInit {
 

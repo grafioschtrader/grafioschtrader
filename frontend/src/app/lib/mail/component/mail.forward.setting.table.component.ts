@@ -1,7 +1,12 @@
 import {Component, OnDestroy} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {ConfirmationService, FilterService} from 'primeng/api';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
+import {TableModule} from 'primeng/table';
+import {ContextMenuModule} from 'primeng/contextmenu';
+import {TooltipModule} from 'primeng/tooltip';
+import {MailForwardSettingEditComponent} from './mail-forward-setting-edit.component';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {UserSettingsService} from '../../services/user.settings.service';
 import {MailSettingForwardService} from '../service/mail.setting.forward.service';
@@ -68,7 +73,8 @@ import {HelpIds} from '../../help/help.ids';
     }
   `,
   providers: [DialogService],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, TableModule, ContextMenuModule, TooltipModule, TranslateModule, MailForwardSettingEditComponent]
 })
 export class MailForwardSettingTableComponent extends TableCrudSupportMenu<MailSettingForward> implements OnDestroy {
   callParam: MailSettingForwardParam;

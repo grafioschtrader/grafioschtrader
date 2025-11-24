@@ -1,16 +1,16 @@
 import {Injectable} from '@angular/core';
-import {AuthServiceWithLogout} from '../../../lib/login/service/base.auth.service.with.logout';
-import {Tenant} from '../../../entities/tenant';
+import {AuthServiceWithLogout} from '../../lib/login/service/base.auth.service.with.logout';
+import {Tenant} from '../../entities/tenant';
 import {Observable} from 'rxjs';
-import {AppSettings} from '../../app.settings';
+import {AppSettings} from '../../shared/app.settings';
 import {catchError, map} from 'rxjs/operators';
 import {plainToClass, Type} from 'class-transformer';
-import {LoginService} from '../../../lib/login/service/log-in.service';
+import {LoginService} from '../../lib/login/service/log-in.service';
 import {HttpClient, HttpParams} from '@angular/common/http';
-import {MessageToastService} from '../../../lib/message/message.toast.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
 import {PerformancePeriod} from '../model/performance.period';
-import {MissingQuotesWithSecurities} from '../../../tenant/model/missing.quotes.with.securities';
-import {BaseSettings} from '../../../lib/base.settings';
+import {MissingQuotesWithSecurities} from '../../tenant/model/missing.quotes.with.securities';
+import {BaseSettings} from '../../lib/base.settings';
 
 @Injectable()
 export class HoldingService extends AuthServiceWithLogout<Tenant> {

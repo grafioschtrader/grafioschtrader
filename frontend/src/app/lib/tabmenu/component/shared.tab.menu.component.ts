@@ -1,11 +1,13 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {TranslateHelper} from '../../helper/translate.helper';
 import {TabItem} from '../../types/tab.item';
 import {Subscription} from 'rxjs';
 import {TabMenuService} from '../service/tab.menu.service';
 import {SessionStorageTabHelper} from './session.storage.tab.helper';
+import {CommonModule} from '@angular/common';
+import {TabsModule} from 'primeng/tabs';
 
 /**
  * Shared Tab Menu Component providing a consistent tab menu interface using PrimeNG p-tabs.
@@ -34,7 +36,8 @@ import {SessionStorageTabHelper} from './session.storage.tab.helper';
       <ng-content></ng-content>
     </div>
   `,
-  standalone: false,
+  standalone: true,
+  imports: [CommonModule, TabsModule, TranslateModule],
   providers: [TabMenuService]
 })
 export class SharedTabMenuComponent implements OnInit, OnDestroy {

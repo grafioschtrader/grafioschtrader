@@ -2,6 +2,10 @@ import {TableConfigBase} from '../../datashowbase/table.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.component';
+import {AngularSvgIconModule} from 'angular-svg-icon';
+import {UserEntityChangeLimitEditComponent} from './user-entity-change-limit-edit.component';
 import {UserSettingsService} from '../../services/user.settings.service';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
@@ -46,6 +50,7 @@ import {BaseSettings} from '../../base.settings';
         [containerClass]="{'data-container': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
         [showContextMenu]="!!contextMenuItems"
         [contextMenuItems]="contextMenuItems"
+        [contextMenuAppendTo]="'body'"
         [valueGetterFn]="getValueByPath.bind(this)"
         (rowSelect)="onRowSelect($event)"
         (rowUnselect)="onRowUnselect($event)"
@@ -67,7 +72,8 @@ import {BaseSettings} from '../../base.settings';
                                      (closeDialog)="handleCloseDialog($event)">
       </user-entity-change-limit-edit>
     }`,
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, ConfigurableTableComponent, AngularSvgIconModule, UserEntityChangeLimitEditComponent]
 })
 export class UserEntityChangeLimitTableComponent extends TableConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
 

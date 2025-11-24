@@ -34,14 +34,14 @@ import {
 } from './securityaccount/component/securityaccount.import.transaction.component';
 import {ImportTransactionTemplateComponent} from './imptranstemplate/component/import.transaction.template.component';
 import {ProposeChangeTabMenuComponent} from './lib/proposechange/component/propose.change.tab.menu.component';
-import {RequestForYouTableComponent} from './shared/changerequest/request.for.you.table.component';
+import {RequestForYouTableComponent} from './lib/proposechange/component/request.for.you.table.component';
 import {YourProposalTableComponent} from './lib/proposechange/component/your.proposal.table.component';
 import {StrategyOverviewComponent} from './algo/component/strategy.overview.component';
 import {AlgoTopDataViewComponent} from './algo/component/algo.top.data.view.component';
 import {UserTableComponent} from './lib/user/component/user.table.component';
 import {TradingCalendarGlobalComponent} from './tradingcalendar/component/trading.calendar.global.component';
 import {TenantPerformanceTabMenuComponent} from './tenant/component/tenant.performance.tab.menu.component';
-import {PerformancePeriodComponent} from './shared/performanceperiod/component/performance.period.component';
+import {PerformancePeriodComponent} from './performanceperiod/component/performance.period.component';
 import {TenantPerformanceEodMissingComponent} from './tenant/component/tenant.performance.eod.missing.component';
 import {
   SecurityHistoryquoteQualityTreetableComponent

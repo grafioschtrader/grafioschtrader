@@ -1,10 +1,12 @@
 import {Component, DoCheck, EventEmitter, Input, OnDestroy, Output} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {Year} from './model/year';
 import {Range} from './model/range';
 import {YearCalendarData} from './Interface/year.calendar.data';
 import {LocaleSettings} from './Interface/locale.settings';
 import {DisabledDate} from './Interface/disabled.date';
 import {DayOfWeek} from './model/day.of.week';
+import {MonthlyCalendarComponent} from './month-calendar/monthly-calendar.component';
 
 @Component({
     selector: 'ng-fullyearcalendar-lib',
@@ -21,7 +23,8 @@ import {DayOfWeek} from './model/day.of.week';
     }
   `,
     styleUrls: ['./fullyearcalendar-lib.scss'],
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, MonthlyCalendarComponent]
 })
 export class FullyearcalendarLibComponent implements OnDestroy, DoCheck {
 

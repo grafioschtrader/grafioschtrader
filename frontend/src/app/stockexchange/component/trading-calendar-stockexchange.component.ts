@@ -11,7 +11,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {CopyTradingDaysFromSourceToTarget, TradingDaysMinusService} from '../service/trading.days.minus.service';
 import {combineLatest, Observable} from 'rxjs';
-import {RangeSelectDays} from '../../fullyearcalendar/Interface/range.select.days';
+import {RangeSelectDays} from '../../lib/fullyearcalendar/Interface/range.select.days';
 import {TradingCalendarGlobalComponent} from '../../tradingcalendar/component/trading.calendar.global.component';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {TradingDaysWithDateBoundaries} from '../../tradingcalendar/model/trading.days.with.date.boundaries';

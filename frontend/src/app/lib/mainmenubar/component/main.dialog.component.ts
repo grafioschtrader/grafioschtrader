@@ -1,5 +1,8 @@
 import {Component} from '@angular/core';
 import {MainDialogService} from '../service/main.dialog.service';
+import {PasswordEditComponent} from '../../login/component/password-edit.component';
+import {NicknameLangEditComponent} from '../../login/component/nickname-lang-edit.component';
+import {UserSettingsDialogs} from './user-settings-dialogs';
 
 /**
  * This component references global dialogs that are normally accessed via the Global Menu Bar.
@@ -17,7 +20,8 @@ import {MainDialogService} from '../service/main.dialog.service';
       </nickname-lang-edit>
     }
   `,
-    standalone: false
+    standalone: true,
+    imports: [PasswordEditComponent, NicknameLangEditComponent]
 })
 export class MainDialogComponent {
   // Otherwise enum DialogVisible can't be used in a html template
@@ -25,9 +29,4 @@ export class MainDialogComponent {
 
   constructor(public mainDialogService: MainDialogService) {
   }
-}
-
-export enum UserSettingsDialogs {
-  Password = 0,
-  NicknameLocale = 1
 }

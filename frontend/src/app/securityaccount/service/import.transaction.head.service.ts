@@ -10,7 +10,7 @@ import {IPlatformTransactionImport} from '../../portfolio/component/iplatform.tr
 import {DeleteService} from '../../lib/datashowbase/delete.service';
 import {catchError, map} from 'rxjs/operators';
 import {LoginService} from '../../lib/login/service/log-in.service';
-import {UploadServiceFunction} from '../../shared/generaldialog/model/file.upload.param';
+import {UploadServiceFunction} from '../../lib/generaldialog/model/file.upload.param';
 import {BaseSettings} from '../../lib/base.settings';
 
 

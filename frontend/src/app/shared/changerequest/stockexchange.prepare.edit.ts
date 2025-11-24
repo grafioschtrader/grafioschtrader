@@ -1,6 +1,8 @@
 import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
 import {Stockexchange} from '../../entities/stockexchange';
 import {StockexchangeCallParam} from '../../stockexchange/component/stockexchange.call.param';
+import {Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
 import {BasePrepareEdit} from '../../lib/proposechange/component/base.prepare.edit';
 import {StockexchangeBaseData} from '../../stockexchange/model/stockexchange.base.data';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
@@ -30,18 +32,21 @@ export class StockexchangePrepareEdit extends BasePrepareEdit<Stockexchange> imp
    *
    * @param entity - The stock exchange to prepare for editing
    * @param entityMapping - Container for dialog state and parameters to be populated
+   * @returns Observable that completes when base data is loaded
    */
-  prepareForEditEntity(entity: Stockexchange, entityMapping: EntityMapping): void {
-    this.stockexchangeService.getAllStockexchangesBaseData().subscribe((sbd: StockexchangeBaseData) => {
-      entityMapping.callParam = new StockexchangeCallParam();
-      entityMapping.callParam.stockexchange = new Stockexchange();
-      Object.assign(entityMapping.callParam.stockexchange, entity);
-      entityMapping.callParam.hasSecurity = sbd.hasSecurity;
-      entityMapping.callParam.countriesAsHtmlOptions = sbd.countries;
-      entityMapping.callParam.stockexchangeMics = sbd.stockexchangeMics;
-      entityMapping.callParam.existingMic = new Set(sbd.stockexchanges.map(se => se.mic));
-      entityMapping.callParam.proposeChange = true;
-      entityMapping.visibleDialog = true;
-    });
+  prepareForEditEntity(entity: Stockexchange, entityMapping: EntityMapping): Observable<void> {
+    return this.stockexchangeService.getAllStockexchangesBaseData().pipe(
+      map((sbd: StockexchangeBaseData) => {
+        entityMapping.callParam = new StockexchangeCallParam();
+        entityMapping.callParam.stockexchange = new Stockexchange();
+        Object.assign(entityMapping.callParam.stockexchange, entity);
+        entityMapping.callParam.hasSecurity = sbd.hasSecurity;
+        entityMapping.callParam.countriesAsHtmlOptions = sbd.countries;
+        entityMapping.callParam.stockexchangeMics = sbd.stockexchangeMics;
+        entityMapping.callParam.existingMic = new Set(sbd.stockexchanges.map(se => se.mic));
+        entityMapping.callParam.proposeChange = true;
+        entityMapping.visibleDialog = true;
+      })
+    );
   }
 }

@@ -3,7 +3,7 @@ import {Historyquote} from '../../entities/historyquote';
 import {Currencypair} from '../../entities/currencypair';
 
 import {IHistoryquoteQuality} from '../../entities/view/ihistoryquote.quality';
-import {SupportedCSVFormats} from '../../shared/generaldialog/model/file.upload.param';
+import {SupportedCSVFormats} from '../../lib/generaldialog/model/file.upload.param';
 
 export interface HistoryquotesWithMissings {
   historyquoteList: Historyquote[];

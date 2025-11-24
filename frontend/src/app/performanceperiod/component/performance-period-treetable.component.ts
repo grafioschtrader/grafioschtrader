@@ -1,7 +1,7 @@
 import {Component, Input, OnChanges, OnInit} from '@angular/core';
-import {TreeTableConfigBase} from '../../../lib/datashowbase/tree.table.config.base';
+import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
 import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../../lib/services/globalparameter.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {
   HolidayMissing,
   PerformancePeriod,
@@ -10,13 +10,13 @@ import {
   PeriodWindowWithField
 } from '../model/performance.period';
 import {TreeNode} from 'primeng/api';
-import {DataType} from '../../../lib/dynamic-form/models/data.type';
-import {ColumnConfig, ColumnGroupConfig} from '../../../lib/datashowbase/column.config';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
+import {ColumnConfig, ColumnGroupConfig} from '../../lib/datashowbase/column.config';
 import {WeekYear} from '../service/holding.service';
-import {Helper} from '../../../lib/helper/helper';
+import {Helper} from '../../lib/helper/helper';
 import moment from 'moment';
-import {AppHelper} from '../../../lib/helper/app.helper';
-import {AppSettings} from '../../app.settings';
+import {AppHelper} from '../../lib/helper/app.helper';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
  * Shows a tree table with periodic windows on the first column, which can be week or year.

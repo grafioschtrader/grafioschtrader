@@ -14,12 +14,21 @@ export class BaseSettings {
   /** Some menu items reference a dialog. If this is the case, the menu item should end with "...". */
   public static readonly DIALOG_MENU_SUFFIX = '...';
 
+  /**
+   * Shared data may have been created by different users. The own entities should be recognizable in tables.
+   * For example, a particular property of one of the entities is displayed in bold.
+   */
+  public static readonly OWNER_TEMPLATE = 'owner';
+
+
   public static FID_MAX_LETTERS = 1000;
 
   public static readonly FIELD_SUFFIX = '$';
 
   public static FID_MAX_FRACTION_DIGITS = 8;
   public static FID_STANDARD_FRACTION_DIGITS = 2;
+
+  public static readonly CSV_EXPORT_FORMAT = 'csv_export_format';
 
   // User Rights
   public static readonly ROLE_ADMIN = 'ROLE_ADMIN';

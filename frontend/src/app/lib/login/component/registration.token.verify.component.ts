@@ -4,6 +4,7 @@ import {GlobalparameterService} from '../../services/globalparameter.service';
 import {LoginService} from '../service/log-in.service';
 import {Subscription} from 'rxjs';
 import {BaseSettings} from '../../base.settings';
+import {TranslateModule} from '@ngx-translate/core';
 
 @Component({
     template: `
@@ -11,7 +12,8 @@ import {BaseSettings} from '../../base.settings';
       <h1>{{'VERIFYING_TOKEN' | translate}}</h1>
     </div>
   `,
-    standalone: false
+    standalone: true,
+    imports: [TranslateModule]
 })
 export class RegistrationTokenVerifyComponent implements OnInit, OnDestroy {
   token: string;

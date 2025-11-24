@@ -1,4 +1,7 @@
 import {Component, OnDestroy} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {TranslateModule} from '@ngx-translate/core';
+import {AngularSvgIconModule} from 'angular-svg-icon';
 import {UDFMetadataSecurityService} from '../service/udf.metadata.security.service';
 import {AppSettings} from '../../shared/app.settings';
 import {ConfirmationService, FilterService} from 'primeng/api';
@@ -15,6 +18,8 @@ import {UDFMetaTable} from '../../lib/udfmeta/components/udf.metadata.table';
 import {GlobalSessionNames} from '../../lib/global.session.names';
 import {UDFSpecialTypeDisableUserService} from '../../lib/udfmeta/service/udf.special.type.disable.user.service';
 import {UDFMetadataSecurity, UDFMetadataSecurityParam} from '../model/udf.metadata.security';
+import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
+import {UDFMetadataSecurityEditComponent} from './udf-metadata-security-edit.component';
 
 /**
  * Table component for managing security-specific UDF metadata definitions.
@@ -24,9 +29,49 @@ import {UDFMetadataSecurity, UDFMetadataSecurityParam} from '../model/udf.metada
  * Supports CRUD operations, sorting, filtering, and special type toggling.
  */
 @Component({
-    templateUrl: '../../lib/udfmeta/view/udf.metadata.table.html',
+    template: `
+      <div class="data-container-full" (click)="onComponentClick($event)" #cmDiv
+           [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
+
+        <configurable-table
+          [data]="entityList"
+          [fields]="fields"
+          [dataKey]="entityKeyName"
+          [(selection)]="selectedEntity"
+          [selectionMode]="'single'"
+          [multiSortMeta]="multiSortMeta"
+          [sortMode]="'multiple'"
+          [customSortFn]="customSort.bind(this)"
+          [valueGetterFn]="getValueByPath.bind(this)"
+          [scrollable]="true"
+          [scrollHeight]="'flex'"
+          [stripedRows]="true"
+          [showGridlines]="true"
+          [contextMenuEnabled]="true"
+          [contextMenuItems]="contextMenuItems"
+          [showContextMenu]="isActivated()"
+          [containerClass]="''"
+          (componentClick)="onComponentClick($event)">
+
+          <h4 caption>{{ entityNameUpper | translate }}</h4>
+
+          <ng-template #iconCell let-row let-field="field" let-value="value">
+            <svg-icon [name]="value"
+                      [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
+          </ng-template>
+        </configurable-table>
+      </div>
+      @if (visibleDialog) {
+        <udf-metadata-security-edit [visibleDialog]="visibleDialog"
+                                    [callParam]="callParam"
+                                    (closeDialog)="handleCloseDialog($event)">
+        </udf-metadata-security-edit>
+      }
+    `,
     providers: [DialogService],
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, TranslateModule, AngularSvgIconModule, ConfigurableTableComponent,
+      UDFMetadataSecurityEditComponent]
 })
 export class UDFMetadataSecurityTableComponent extends UDFMetaTable<UDFMetadataSecurity> implements OnDestroy {
 

@@ -1,8 +1,15 @@
 import {Component, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
 import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
+import {TableModule} from 'primeng/table';
+import {ContextMenuModule} from 'primeng/contextmenu';
+import {TooltipModule} from 'primeng/tooltip';
+import {InputTextModule} from 'primeng/inputtext';
+import {ButtonModule} from 'primeng/button';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {UserSettingsService} from '../../services/user.settings.service';
 import {MailSettingForwardService} from '../service/mail.setting.forward.service';
@@ -124,7 +131,8 @@ import {HelpIds} from '../../help/help.ids';
       }
     </div>
   `,
-    standalone: false
+  standalone: true,
+  imports: [CommonModule, FormsModule, TableModule, ContextMenuModule, TooltipModule, InputTextModule, ButtonModule]
 })
 export class MailForwardSettingTableEditComponent extends TableEditConfigBase implements OnInit, IGlobalMenuAttach {
   contextMenuItems: MenuItem[] = [];

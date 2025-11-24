@@ -389,11 +389,22 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    * @param sortMeta - Array of sort metadata defining sort columns and directions
    */
   customSortMultiple(data: any, sortMeta: SortMeta[]): void {
+    // Guard against invalid or empty sort metadata
+    if (!sortMeta || sortMeta.length === 0) {
+      return;
+    }
+
+    // Filter out any undefined or null entries from sortMeta
+    const validSortMeta = sortMeta.filter(meta => meta != null && meta.field != null);
+    if (validSortMeta.length === 0) {
+      return;
+    }
+
     data.sort((data1, data2) => {
       let i = 0;
       let result = null;
       do {
-        const columnConfig = this.getColumnConfigByField(sortMeta[i].field);
+        const columnConfig = this.getColumnConfigByField(validSortMeta[i].field);
         const isDirectAccess = columnConfig.translateValues || columnConfig.fieldValueFN;
         const value1 = isDirectAccess ? this.getValueByPath(data1, columnConfig)
           : Helper.getValueByPath(data1, columnConfig.field);
@@ -412,9 +423,9 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
           result = (value1 < value2) ? -1 : (value1 > value2) ? 1 : 0;
         }
         i++;
-      } while (i < sortMeta.length && result === 0);
+      } while (i < validSortMeta.length && result === 0);
 
-      return (sortMeta[i - 1].order * result);
+      return (validSortMeta[i - 1].order * result);
     });
   }
 

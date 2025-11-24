@@ -11,13 +11,14 @@ import {GlobalparameterService} from '../../services/globalparameter.service';
 import {UserDataService} from '../service/user.data.service';
 import {InfoLevelType} from '../../message/info.leve.type';
 import {MessageToastService} from '../../message/message.toast.service';
-import {UserSettingsDialogs} from './main.dialog.component';
+import {UserSettingsDialogs} from './user-settings-dialogs';
 import {Subscription} from 'rxjs';
 import {TranslateHelper} from '../../helper/translate.helper';
 import {ConfirmationService, MenuItem} from 'primeng/api';
 import saveAs from '../../filesaver/filesaver';
 import {BaseSettings} from '../../base.settings';
 import {HelpIds} from '../../help/help.ids';
+import {MenubarModule} from 'primeng/menubar';
 
 
 /**
@@ -28,7 +29,8 @@ import {HelpIds} from '../../help/help.ids';
   template: `
     <p-menubar [model]="this.activePanelService.topMenuItems"></p-menubar>
   `,
-  standalone: false
+  standalone: true,
+  imports: [MenubarModule]
 })
 export class MenubarComponent implements OnInit, OnDestroy {
   menuItems: MenuItem[] = new Array<MenuItem>(4);
@@ -127,4 +129,3 @@ export class MenubarComponent implements OnInit, OnDestroy {
     }
   }
 }
-

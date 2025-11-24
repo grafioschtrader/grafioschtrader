@@ -9,7 +9,9 @@ import {
   QueryList,
   SimpleChanges
 } from '@angular/core';
-
+import {CommonModule} from '@angular/common';
+import {StepperModule} from 'primeng/stepper';
+import {ButtonModule} from 'primeng/button';
 import { StepComponent } from './step.component';
 
 @Component({
@@ -53,7 +55,8 @@ import { StepComponent } from './step.component';
       }
     </div>
   `,
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, StepperModule, ButtonModule]
 })
 export class StepsComponent implements AfterContentInit, OnChanges {
   @Input() activeIndex = 0;

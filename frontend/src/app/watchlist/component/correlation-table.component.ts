@@ -411,7 +411,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
     this.removeAllColumns();
     this.correlationResult = correlationResult;
     this.addColumnFeqH(DataType.String, this.nameHeader, true, false,
-      {width: 250, templateName: AppSettings.OWNER_TEMPLATE});
+      {width: 250, templateName: BaseSettings.OWNER_TEMPLATE});
     this.addColumnFeqH(DataType.String, 'currency', true, false);
     if (correlationSet) {
       if (correlationResult) {

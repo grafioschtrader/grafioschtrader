@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {LoginService} from '../service/log-in.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
@@ -18,6 +18,11 @@ import {DynamicDialogs} from '../../dynamicdialog/component/dynamic.dialogs';
 import {ReleaseNote, ReleaseNoteService} from '../service/release.note.service';
 import {HelpIds} from '../../help/help.ids';
 import {BaseSettings} from '../../base.settings';
+import {CommonModule} from '@angular/common';
+import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
+import {CardModule} from 'primeng/card';
+import {ApplicationInfoComponent} from './application-info.component';
+import {PasswordEditComponent} from './password-edit.component';
 
 /**
  * Shows the login form
@@ -66,7 +71,8 @@ import {BaseSettings} from '../../base.settings';
     }
   `,
   providers: [DialogService],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, DynamicFormModule, TranslateModule, CardModule, ApplicationInfoComponent, PasswordEditComponent]
 })
 export class LoginComponent extends FormBase implements OnInit, OnDestroy {
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;

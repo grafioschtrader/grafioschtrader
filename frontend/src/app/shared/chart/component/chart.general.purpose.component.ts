@@ -7,11 +7,10 @@ import {ViewSizeChangedService} from '../../../lib/layout/service/view.size.chan
 import {Subscription} from 'rxjs';
 import {ChartDataService} from '../service/chart.data.service';
 import {ChartData, PlotlyHelper} from '../plotly.helper';
-import {HelpIds} from '../../../lib/help/help.ids';
 import {PlotlyLocales} from '../../plotlylocale/plotly.locales';
 import {GlobalparameterService} from '../../../lib/services/globalparameter.service';
-declare let Plotly: any;
 
+declare let Plotly: any;
 
 
 /**
@@ -20,15 +19,15 @@ declare let Plotly: any;
  * receive its data over subscription.
  */
 @Component({
-    template: `
+  template: `
     <div class="fullChart" [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
          (click)="onComponentClick($event)">
       <div #chart class="plot-container">
       </div>
     </div>
   `,
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false
 })
 export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   @ViewChild('chart', {static: true}) chartElement: ElementRef;
@@ -39,12 +38,12 @@ export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalM
   private chartData: ChartData;
 
   constructor(private gps: GlobalparameterService,
-              private translateService: TranslateService,
-              private chartDataService: ChartDataService,
-              private viewSizeChangedService: ViewSizeChangedService,
-              private activePanelService: ActivePanelService,
-              private activatedRoute: ActivatedRoute) {
-   }
+    private translateService: TranslateService,
+    private chartDataService: ChartDataService,
+    private viewSizeChangedService: ViewSizeChangedService,
+    private activePanelService: ActivePanelService,
+    private activatedRoute: ActivatedRoute) {
+  }
 
   ngOnInit(): void {
     this.activePanelService.registerPanel(this);

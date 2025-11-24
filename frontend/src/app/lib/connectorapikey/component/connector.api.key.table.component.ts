@@ -1,11 +1,14 @@
 import {Component, OnDestroy} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {DialogService} from 'primeng/dynamicdialog';
 import {TableCrudSupportMenu} from '../../datashowbase/table.crud.support.menu';
 import {ConnectorApiKey, SubscriptionTypeReadableName} from '../types/connector.api.key';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {MessageToastService} from '../../message/message.toast.service';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
+import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.component';
+import {ConnectorApiKeyEditComponent} from './connector.api.key.edit.component';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {UserSettingsService} from '../../services/user.settings.service';
 import {HelpIds} from '../../help/help.ids';
@@ -51,7 +54,8 @@ import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.htm
     }
   `,
   providers: [DialogService],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, ConfigurableTableComponent, TranslateModule, ConnectorApiKeyEditComponent]
 })
 export class ConnectorApiKeyTableComponent extends TableCrudSupportMenu<ConnectorApiKey> implements OnDestroy {
   connectorApiKey: ConnectorApiKey;

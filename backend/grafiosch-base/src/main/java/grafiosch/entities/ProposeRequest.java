@@ -2,9 +2,11 @@ package grafiosch.entities;
 
 import static jakarta.persistence.InheritanceType.JOINED;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.BaseConstants;
@@ -122,6 +124,13 @@ public abstract class ProposeRequest extends Auditable {
   public void setProposeChangeFieldList(List<ProposeChangeField> proposeChangeFieldList) {
     this.proposeChangeFieldList = proposeChangeFieldList;
   }
+  
+  
+  @JsonFormat(pattern = BaseConstants.STANDARD_LOCAL_DATE_TIME_SECOND)
+  public Date getCreationTime() {
+    return creationTime;
+  }
+  
 
   @Override
   public boolean equals(Object o) {

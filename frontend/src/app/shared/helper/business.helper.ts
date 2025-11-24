@@ -15,14 +15,12 @@ import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {Securitycurrency} from '../../entities/securitycurrency';
 import {MenuItem} from 'primeng/api';
 import {Security} from '../../entities/security';
-import {AppSettings} from '../app.settings';
 import {TenantLimit} from '../../shared/types/tenant.limit';
 import {AssetclassType} from '../types/assetclass.type';
 import {SpecialInvestmentInstruments} from '../types/special.investment.instruments';
 import {Assetclass} from '../../entities/assetclass';
 import {ISecuritycurrencyIdDateClose} from '../../entities/projection/i.securitycurrency.id.date.close';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
-import {GlobalSessionNames} from '../../lib/global.session.names';
 import {GlobalGTSessionNames} from '../global.gt.session.names';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {BaseSettings} from '../../lib/base.settings';
@@ -270,8 +268,6 @@ export class BusinessHelper {
     }
     return menuItems;
   }
-
-
 
 
   /**

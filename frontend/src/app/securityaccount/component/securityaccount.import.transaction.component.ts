@@ -12,7 +12,7 @@ import {Securityaccount} from '../../entities/securityaccount';
 import {Subscription} from 'rxjs';
 import {SecurityaccountImportTransactionTableComponent} from './securityaccount-import-transaction-table.component';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
-import {SingleRecordMasterViewBase} from '../../shared/masterdetail/component/single.record.master.view.base';
+import {SingleRecordMasterViewBase} from '../../lib/masterdetail/component/single.record.master.view.base';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ConfirmationService, MenuItem} from 'primeng/api';
 import {ParentChildRowSelection} from '../../lib/datashowbase/parent.child.row.selection';
@@ -28,7 +28,7 @@ import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {AdditionalFieldConfig, FileUploadParam} from '../../shared/generaldialog/model/file.upload.param';
+import {AdditionalFieldConfig, FileUploadParam} from '../../lib/generaldialog/model/file.upload.param';
 import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 import {BaseSettings} from '../../lib/base.settings';
 
@@ -71,7 +71,7 @@ import {BaseSettings} from '../../lib/base.settings';
   standalone: false
 })
 export class SecurityaccountImportTransactionComponent
-  extends SingleRecordMasterViewBase<ImportTransactionHead, CombineTemplateAndImpTransPos>
+  extends SingleRecordMasterViewBase<ImportTransactionHead, CombineTemplateAndImpTransPos, CallParam>
   implements OnInit, OnDestroy, ParentChildRowSelection<CombineTemplateAndImpTransPos> {
 
   private static readonly MAIN_FIELD = 'idTransactionHead';

@@ -1,11 +1,14 @@
 import {Component, Input, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {SimpleEditBase} from '../../edit/simple.edit.base';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 import {MessageToastService} from '../../message/message.toast.service';
 import {MainDialogService} from '../../mainmenubar/service/main.dialog.service';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {HelpIds} from '../../help/help.ids';
-import {UserSettingsDialogs} from '../../mainmenubar/component/main.dialog.component';
+import {UserSettingsDialogs} from '../../mainmenubar/component/user-settings-dialogs';
 import {AppHelper} from '../../helper/app.helper';
 import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
 import {TranslateHelper} from '../../helper/translate.helper';
@@ -31,7 +34,8 @@ import {ProcessedAction} from '../../types/processed.action';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`,
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, DialogModule, DynamicFormModule, TranslateModule]
 })
 
 export class UserChangeOwnerEntitiesComponent extends SimpleEditBase implements OnInit {
@@ -77,4 +81,3 @@ export class UserChangeOwnerEntitiesComponent extends SimpleEditBase implements 
       this.allUsers.filter(u => u.nickname !== this.fromUser.nickname && u.enabled), false);
   }
 }
-

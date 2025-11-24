@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {UserSettingsDialogs} from '../component/main.dialog.component';
+import {UserSettingsDialogs} from '../component/user-settings-dialogs';
 
 /**
  * The referencing of dialogs and their usage is implemented in different components, therefore this service exists.

@@ -1,6 +1,7 @@
 import {Component, Input} from '@angular/core';
 import {ApplicationInfo} from '../../services/actuator.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
+import {CommonModule} from '@angular/common';
 
 @Component({
   selector: 'application-info',
@@ -16,7 +17,8 @@ import {TranslateService} from '@ngx-translate/core';
       </div>
     }
   `,
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, TranslateModule]
 })
 export class ApplicationInfoComponent {
   @Input() applicationInfo: ApplicationInfo;

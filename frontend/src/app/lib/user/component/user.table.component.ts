@@ -1,17 +1,23 @@
 import {CrudMenuOptions, TableCrudSupportMenu} from '../../datashowbase/table.crud.support.menu';
 import {Component, OnDestroy} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.component';
+import {AngularSvgIconModule} from 'angular-svg-icon';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {UserAdminService} from '../service/user.admin.service';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {DialogService} from 'primeng/dynamicdialog';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {MessageToastService} from '../../message/message.toast.service';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
-import {TranslateService} from '@ngx-translate/core';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {UserSettingsService} from '../../services/user.settings.service';
 import {HelpIds} from '../../help/help.ids';
 import {User} from '../../entities/user';
 import {UserEntityChangeLimitTableComponent} from './user-entity-change-limit-table.component';
+import {UserEditComponent} from './user-edit-component';
+import {UserEntityChangeLimitEditComponent} from './user-entity-change-limit-edit.component';
+import {UserChangeOwnerEntitiesComponent} from './user-change-owner-entities.component';
 import {ProcessedActionData} from '../../types/processed.action.data';
 import {ProcessedAction} from '../../types/processed.action';
 import {AuditHelper} from '../../helper/audit.helper';
@@ -87,7 +93,10 @@ import {BaseSettings} from '../../base.settings';
     }
   `,
   providers: [DialogService],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, ConfigurableTableComponent, AngularSvgIconModule, TranslateModule,
+    UserEntityChangeLimitTableComponent, UserEditComponent, UserEntityChangeLimitEditComponent,
+    UserChangeOwnerEntitiesComponent]
 })
 export class UserTableComponent extends TableCrudSupportMenu<User> implements OnDestroy {
 

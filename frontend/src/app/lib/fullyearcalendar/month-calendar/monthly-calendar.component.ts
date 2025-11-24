@@ -1,4 +1,5 @@
 import {Component, EventEmitter, Input, OnDestroy, Output} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {Month} from '../model/month';
 import {Day} from '../model/day';
 
@@ -63,7 +64,8 @@ import {Day} from '../model/day';
     }
   `,
   styleUrls: ['./monthly-calendar.scss'],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule]
 })
 export class MonthlyCalendarComponent implements OnDestroy {
 

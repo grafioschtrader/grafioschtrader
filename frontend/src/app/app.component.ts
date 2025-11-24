@@ -35,15 +35,33 @@ const MyPreset = definePreset(Aura, {
     }
   },
   components: {
+    button: {
+      root: {
+        paddingX: "0.25rem",
+        paddingY: "0.25rem",
+      }
+    },
     datatable: {
       row: {
         selectedBackground: "{blue.600}",
         selectedColor: "#ffffff",
       }
     },
+    inputtext: {
+      root: {
+        paddingX: "0rem",
+        paddingY: "0rem",
+      }
+    },
     menubar: {
       root: {
         padding: "0rem 0rem",
+      }
+    },
+    multiselect: {
+      root: {
+        paddingX: "0rem",
+        paddingY: "0rem",
       }
     },
     tabs: {
@@ -74,18 +92,6 @@ const MyPreset = definePreset(Aura, {
         size: "1rem"
       }
     },
-    button: {
-      root: {
-        paddingX: "0.25rem",
-        paddingY: "0.25rem",
-      }
-    },
-    inputtext: {
-       root: {
-         paddingX: "0rem",
-         paddingY: "0rem",
-       }
-    }
   }
 });
 /**

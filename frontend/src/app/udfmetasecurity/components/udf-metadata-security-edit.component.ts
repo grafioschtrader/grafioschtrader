@@ -1,7 +1,7 @@
 import {UDFDataType} from '../../lib/udfmeta/model/udf.metadata';
 import {HelpIds} from '../../lib/help/help.ids';
 import {AppSettings} from '../../shared/app.settings';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {UDFMetadataSecurityService} from '../service/udf.metadata.security.service';
@@ -16,6 +16,9 @@ import {Subscription} from 'rxjs';
 import {UDFMetadataHelper} from '../../lib/udfmeta/components/udf.metadata.helper';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 import {UDFMetadataSecurity, UDFMetadataSecurityParam} from '../model/udf.metadata.security';
+import {CommonModule} from '@angular/common';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 /**
  * Component for editing UDF metadata definitions specific to securities.
@@ -35,7 +38,8 @@ import {UDFMetadataSecurity, UDFMetadataSecurityParam} from '../model/udf.metada
       </dynamic-form>
     </p-dialog>
   `,
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, DialogModule, DynamicFormModule, TranslateModule]
 })
 export class UDFMetadataSecurityEditComponent extends AssetClassTypeSpecInstrument<UDFMetadataSecurity> implements OnInit {
   /** Parameters containing security UDF metadata to edit and validation exclusion lists */

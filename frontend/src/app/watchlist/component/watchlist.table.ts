@@ -537,13 +537,13 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
    * @returns {boolean} True if owner should be highlighted with bold font
    */
   ownerHighlightFn(row: SecuritycurrencyPosition<Security | Currencypair>, field: ColumnConfig): boolean {
-    return this.isNotSingleModeAndOwner(field, row.securitycurrency);
+    return this.isNotSingleModeAndOwner(row.securitycurrency, field);
   }
 
   /** Adds the base columns common to all watchlist table types. */
   protected addBaseColumns(): void {
     this.addColumn(DataType.String, this.SECURITYCURRENCY_NAME, 'NAME', true, false,
-      {width: 200, frozenColumn: false, templateName: AppSettings.OWNER_TEMPLATE});
+      {width: 200, frozenColumn: false, templateName: BaseSettings.OWNER_TEMPLATE});
     this.addColumn(DataType.String, 'securitycurrency', AppSettings.INSTRUMENT_HEADER, true, false,
       {fieldValueFN: this.getInstrumentIcon.bind(this), templateName: 'icon', width: 20});
     this.addColumnFeqH(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.isin', true, true, {width: 90});

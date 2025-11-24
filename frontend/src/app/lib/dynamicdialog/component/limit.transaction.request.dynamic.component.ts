@@ -17,7 +17,7 @@ import {DialogService, DynamicDialogConfig, DynamicDialogRef} from 'primeng/dyna
 import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
 import {BaseSettings} from '../../base.settings';
 import {GlobalparameterService} from '../../services/globalparameter.service';
-
+import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 
 /**
  * The daily limit of changing public data was passed. The user can apply for a different daily limit.
@@ -28,7 +28,8 @@ import {GlobalparameterService} from '../../services/globalparameter.service';
     <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
                   (submitBt)="submit($event)">
     </dynamic-form>`,
-  standalone: false
+  standalone: true,
+  imports: [DynamicFormModule]
 })
 export class LimitTransactionRequestDynamicComponent extends FormBase implements OnInit {
   dialogTitle: string;
