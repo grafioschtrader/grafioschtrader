@@ -6,10 +6,20 @@ import {MessageContainer} from './message.container';
 import {combineLatest, Subscription} from 'rxjs';
 import {ToastrService} from 'ngx-toastr';
 
+/**
+ * Component that acts as a bridge between MessageToastService and ngx-toastr ToastrService.
+ * Subscribes to message events from MessageToastService and displays them using ToastrService.
+ * Has an empty template as it only manages toast notifications programmatically.
+ *
+ * Usage: Include once in the root component template (app.component.ts):
+ * ```html
+ * <toast-message></toast-message>
+ * ```
+ */
 @Component({
     selector: 'toast-message',
     template: ``,
-    standalone: false
+    standalone: true
 })
 export class MessageToastComponent implements OnDestroy {
 

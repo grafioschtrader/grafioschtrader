@@ -1,7 +1,7 @@
 package grafioschtrader.reports.udfalluserfields;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -65,11 +65,10 @@ public class YahooUDFConnectTest {
 
         System.out.println("Symbol:" + symbol + " Next earning date:" + nextEarningDate);
         // must not be null
-        assertNotNull("Next earning date should not be null for " + symbol, nextEarningDate);
+        assertNotNull(nextEarningDate, "Next earning date should not be null for " + symbol);
 
         // must be today or in the future
-        assertTrue("Next earning date for " + symbol + " should be today or in the future, but was " + nextEarningDate,
-            !nextEarningDate.isBefore(now));
+        assertTrue(!nextEarningDate.isBefore(now), "Next earning date for " + symbol + " should be today or in the future, but was " + nextEarningDate);
       }
     } catch (IOException e) {
       e.printStackTrace();

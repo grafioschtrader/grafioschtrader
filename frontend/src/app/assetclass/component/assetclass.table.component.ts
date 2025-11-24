@@ -17,6 +17,7 @@ import {AppSettings} from '../../shared/app.settings';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {TableCrudSupportMenuSecurity} from '../../lib/datashowbase/table.crud.support.menu.security';
 import {HelpIds} from '../../lib/help/help.ids';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * Shows the asset class as a table.
@@ -82,7 +83,7 @@ export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Asset
       activePanelService, dialogService, filterService, translateService, gps, usersettingsService);
 
     this.addColumn(DataType.String, AppSettings.CATEGORY_TYPE, AppSettings.ASSETCLASS.toUpperCase(), true, false,
-      {translateValues: TranslateValue.NORMAL, templateName: AppSettings.OWNER_TEMPLATE});
+      {translateValues: TranslateValue.NORMAL, templateName: BaseSettings.OWNER_TEMPLATE});
     this.addColumn(DataType.String, 'assetclassIcon', AppSettings.INSTRUMENT_HEADER, true, false,
       {fieldValueFN: this.getAssetclassIcon.bind(this), templateName: 'icon', width: 25});
     this.addColumn(DataType.String, 'subCategoryNLS.map.en', 'SUB_ASSETCLASS', true, false, {headerSuffix: 'EN'});

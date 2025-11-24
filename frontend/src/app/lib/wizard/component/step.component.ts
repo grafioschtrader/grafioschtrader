@@ -1,4 +1,5 @@
 import {Component, Input} from '@angular/core';
+import {CommonModule} from '@angular/common';
 
 @Component({
   selector: 'pe-step',
@@ -10,7 +11,8 @@ import {Component, Input} from '@angular/core';
       </div>
     }
   `,
-  standalone: false
+  standalone: true,
+  imports: [CommonModule]
 })
 export class StepComponent {
   @Input() styleClass: string;

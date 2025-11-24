@@ -38,91 +38,45 @@ import {BaseSettings} from '../../lib/base.settings';
 @Component({
   selector: 'securityaccount-import-transaction-table',
   template: `
-    <div class="datatable">
-      <p-table [columns]="fields" [value]="entityList" [(selection)]="selectedEntities"
-               dataKey="importTransactionPos.idTransactionPos" [paginator]="true" [rows]="50"
-               [rowsPerPageOptions]="[20,30,50,80]" [multiSortMeta]="multiSortMeta"
-               selectionMode="multiple" (onRowExpand)="onRowExpand($event)" sortMode="multiple"
-               stripedRows showGridlines>
-        <ng-template #header let-fields>
-          <tr>
-            <th style="width:24px"></th>
-            <th style="width: 2.25em">
-              <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
-            </th>
-            @for (field of fields; track field) {
-              @if (field.visible) {
-                <th [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated"
-                    [style.max-width.px]="field.width"
-                    [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-                  {{ field.headerTranslated }}
-                  <p-sortIcon [field]="field.field"></p-sortIcon>
-                </th>
-              }
-            }
-          </tr>
-        </ng-template>
+    <configurable-table
+      [data]="entityList"
+      [fields]="fields"
+      [dataKey]="'importTransactionPos.idTransactionPos'"
+      [(selection)]="selectedEntities"
+      [selectionMode]="'multiple'"
+      [paginator]="true"
+      [rows]="50"
+      [multiSortMeta]="multiSortMeta"
+      [sortMode]="'multiple'"
+      [stripedRows]="true"
+      [showGridlines]="true"
+      [expandable]="true"
+      [expandedRowTemplate]="expandedRowContent"
+      [customSortFn]="customSort.bind(this)"
+      [containerClass]="'datatable'">
 
-        <ng-template #body let-expanded="expanded" let-el let-columns="fields">
-          <tr [pSelectableRow]="el">
-            <td>
-              <a href="#" [pRowToggler]="el">
-                <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
-              </a>
-            </td>
-            <td>
-              <p-tableCheckbox [value]="el"></p-tableCheckbox>
-            </td>
-            @for (field of fields; track field) {
-              @if (field.visible) {
-                <td [style.max-width.px]="field.width"
-                    [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                    [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''">
-                  @switch (field.templateName) {
-                    @case ('check') {
-                      <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}"
-                               aria-hidden="true"></i></span>
-                    }
-                    @case ('icon') {
-                      <svg-icon [name]="getValueByPath(el, field)"
-                                [svgStyle]="{ 'width.px':16, 'height.px':16 }"></svg-icon>
-                    }
-                    @default {
-                      {{ getValueByPath(el, field) }}
-                    }
-                  }
-                </td>
-              }
-            }
-          </tr>
-        </ng-template>
+      <ng-template #iconCell let-row let-field="field" let-value="value">
+        <svg-icon [name]="value"
+                  [svgStyle]="{ 'width.px':16, 'height.px':16 }"></svg-icon>
+      </ng-template>
+    </configurable-table>
 
-        <ng-template #expandedrow let-el let-columns="fields">
-          <tr>
-            <td [attr.colspan]="numberOfVisibleColumns + 2">
-              @if (failedParsedTemplateStateList.length > 0) {
-                <template-form-check-dialog-result-failed
-                  [failedParsedTemplateStateList]="failedParsedTemplateStateList">
-                </template-form-check-dialog-result-failed>
-              }
-              @if (failedParsedTemplateStateList.length > 0) {
-                <securityaccount-import-extended-info-filename [combineTemplateAndImpTransPos]="el">
-                </securityaccount-import-extended-info-filename>
-              }
-              @if (failedParsedTemplateStateList.length === 0) {
-                <securityaccount-import-extended-info [combineTemplateAndImpTransPos]="el">
-                </securityaccount-import-extended-info>
-              }
-            </td>
-          </tr>
-        </ng-template>
+    <ng-template #expandedRowContent let-row>
+      @if (getFailedParsedTemplateStateList(row).length > 0) {
+        <template-form-check-dialog-result-failed
+          [failedParsedTemplateStateList]="getFailedParsedTemplateStateList(row)">
+        </template-form-check-dialog-result-failed>
+      }
+      @if (getFailedParsedTemplateStateList(row).length > 0) {
+        <securityaccount-import-extended-info-filename [combineTemplateAndImpTransPos]="row">
+        </securityaccount-import-extended-info-filename>
+      }
+      @if (getFailedParsedTemplateStateList(row).length === 0) {
+        <securityaccount-import-extended-info [combineTemplateAndImpTransPos]="row">
+        </securityaccount-import-extended-info>
+      }
+    </ng-template>
 
-        <ng-template pTemplate="paginatorleft" let-state>
-          {{ selectedEntities.length }} {{ 'SELECTED_FROM' | translate }} {{ entityList.length }}
-        </ng-template>
-      </p-table>
-    </div>
     @if (visibleSetSecurityDialog) {
       <securitycurrency-search-and-set [visibleDialog]="visibleSetSecurityDialog"
                                        [callBackSetSecurityWithAfter]="this"
@@ -162,7 +116,6 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
   selectedEntities: CombineTemplateAndImpTransPos[] = [];
   selectImportTransactionHead: ImportTransactionHead;
   importTransactionTemplates: ImportTransactionTemplate[];
-  failedParsedTemplateStateList: FailedParsedTemplateState[];
   visibleSetSecurityDialog = false;
   visibleSetCashaccountDialog = false;
   parentChildRowSelection: ParentChildRowSelection<CombineTemplateAndImpTransPos>;
@@ -258,19 +211,31 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     }
   }
 
-  onRowExpand(event): void {
-    const ctaitp: CombineTemplateAndImpTransPos = event.data;
-    this.failedParsedTemplateStateList = [];
-    if (ctaitp.importTransactionPos.importTransactionPosFailedList) {
+  /**
+   * Builds the failed parsed template state list for a given row.
+   * This is called when a row is expanded to show error details.
+   *
+   * @param ctaitp - The combined template and import transaction position data
+   * @returns Array of failed parsed template states
+   */
+  getFailedParsedTemplateStateList(ctaitp: CombineTemplateAndImpTransPos): FailedParsedTemplateState[] {
+    const failedStates: FailedParsedTemplateState[] = [];
+    if (ctaitp?.importTransactionPos?.importTransactionPosFailedList) {
       ctaitp.importTransactionPos.importTransactionPosFailedList.forEach(importTransactionPosFailed => {
         const importTransactionTemplate = this.importTransactionTemplates.find(itt =>
           itt.idTransactionImportTemplate === importTransactionPosFailed.idTransactionImportTemplate);
-        this.failedParsedTemplateStateList.push(new FailedParsedTemplateState(importTransactionPosFailed.lastMatchingProperty,
-          importTransactionPosFailed.errorMessage,
-          importTransactionTemplate.templatePurpose, importTransactionTemplate.validSince,
-          importTransactionTemplate.templateLanguage));
+        if (importTransactionTemplate) {
+          failedStates.push(new FailedParsedTemplateState(
+            importTransactionPosFailed.lastMatchingProperty,
+            importTransactionPosFailed.errorMessage,
+            importTransactionTemplate.templatePurpose,
+            importTransactionTemplate.validSince,
+            importTransactionTemplate.templateLanguage
+          ));
+        }
       });
     }
+    return failedStates;
   }
 
   public prepareShowMenu(): MenuItem[] {

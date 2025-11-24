@@ -64,7 +64,7 @@ import {AppSettings} from '../../shared/app.settings';
             </tr>
           </ng-template>
         </p-table>
-        <p-contextMenu #cm [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+        <p-contextMenu #cm [target]="cmDiv" [model]="contextMenuItems" appendTo="body"></p-contextMenu>
       </div>
     </div>
     @if (visibleSecurityTransactionDialog) {

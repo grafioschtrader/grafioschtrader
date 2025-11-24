@@ -2,7 +2,7 @@ import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {ActivatedRoute} from '@angular/router';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {SingleRecordMasterViewBase} from '../../shared/masterdetail/component/single.record.master.view.base';
+import {SingleRecordMasterViewBase} from '../../lib/masterdetail/component/single.record.master.view.base';
 import {HelpIds} from '../../lib/help/help.ids';
 import {ImportTransactionPlatformService} from '../service/import.transaction.platform.service';
 import {IPlatformTransactionImport} from '../../portfolio/component/iplatform.transaction.import';
@@ -78,7 +78,7 @@ import {BaseSettings} from '../../lib/base.settings';
   `,
   standalone: false
 })
-export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBase<ImportTransactionPlatform, ImportTransactionTemplate>
+export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBase<ImportTransactionPlatform, ImportTransactionTemplate, CallParam>
   implements OnInit, OnDestroy, ParentChildRowSelection<ImportTransactionTemplate> {
 
   private static readonly MAIN_FIELD = 'idTransactionImportPlatform';

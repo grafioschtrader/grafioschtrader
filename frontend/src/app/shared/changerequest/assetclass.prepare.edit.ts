@@ -1,7 +1,8 @@
 import {AssetclassService} from '../../assetclass/service/assetclass.service';
 import {Assetclass} from '../../entities/assetclass';
 import {AssetclassCallParam} from '../../assetclass/component/assetclass.call.param';
-import {combineLatest} from 'rxjs';
+import {combineLatest, Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
 import {BasePrepareEdit} from '../../lib/proposechange/component/base.prepare.edit';
 import {EntityMapping, PrepareCallParam} from '../../lib/proposechange/component/general.entity.prepare.edit';
 
@@ -27,19 +28,21 @@ export class AssetclassPrepareEdit extends BasePrepareEdit<Assetclass> implement
    *
    * @param entity - The asset class to prepare for editing
    * @param entityMapping - Container for dialog state and parameters to be populated
+   * @returns Observable that completes when all data is loaded
    */
-  prepareForEditEntity(entity: Assetclass, entityMapping: EntityMapping): void {
+  prepareForEditEntity(entity: Assetclass, entityMapping: EntityMapping): Observable<void> {
     const observableAllAssetclasses = this.assetclassService.getAllAssetclass();
     const observableAssetclassHasSecurity = this.assetclassService.assetclassHasSecurity(entity.idAssetClass);
 
-    combineLatest([observableAllAssetclasses, observableAssetclassHasSecurity]).subscribe(data => {
+    return combineLatest([observableAllAssetclasses, observableAssetclassHasSecurity]).pipe(
+      map(data => {
         entityMapping.callParam = new AssetclassCallParam();
         entityMapping.callParam.assetclass = new Assetclass();
         Object.assign(entityMapping.callParam.assetclass, entity);
         entityMapping.callParam.setSuggestionsArrayOfAssetclassList(data[0]);
         entityMapping.callParam.hasSecurity = data[1];
         entityMapping.visibleDialog = true;
-      }
+      })
     );
   }
 }

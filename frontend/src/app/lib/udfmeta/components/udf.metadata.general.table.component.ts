@@ -4,7 +4,7 @@ import {UDFMetadataGeneral, UDFMetadataGeneralParam} from '../model/udf.metadata
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {MessageToastService} from '../../message/message.toast.service';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {UserSettingsService} from '../../services/user.settings.service';
 import {UDFMetadataGeneralService} from '../service/udf.metadata.general.service';
@@ -15,6 +15,10 @@ import {TranslateValue} from '../../datashowbase/column.config';
 import {GlobalSessionNames} from '../../global.session.names';
 import {UDFSpecialTypeDisableUserService} from '../service/udf.special.type.disable.user.service';
 import {BaseSettings} from '../../base.settings';
+import {CommonModule} from '@angular/common';
+import {AngularSvgIconModule} from 'angular-svg-icon';
+import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.component';
+import {UDFMetadataGeneralEditComponent} from './udf-metadata-general-edit.component';
 
 /**
  * Table component for managing UDF metadata definitions across multiple entity types.
@@ -25,16 +29,53 @@ import {BaseSettings} from '../../base.settings';
 @Component({
     // Selector is not used
     selector: 'udf-metadata-general-table',
-    templateUrl: '../view/udf.metadata.table.html',
+    template: `
+      <div class="data-container-full" (click)="onComponentClick($event)" #cmDiv
+           [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
+
+        <configurable-table
+          [data]="entityList"
+          [fields]="fields"
+          [dataKey]="entityKeyName"
+          [(selection)]="selectedEntity"
+          [selectionMode]="'single'"
+          [multiSortMeta]="multiSortMeta"
+          [sortMode]="'multiple'"
+          [customSortFn]="customSort.bind(this)"
+          [valueGetterFn]="getValueByPath.bind(this)"
+          [scrollable]="true"
+          [scrollHeight]="'flex'"
+          [stripedRows]="true"
+          [showGridlines]="true"
+          [contextMenuEnabled]="true"
+          [contextMenuItems]="contextMenuItems"
+          [showContextMenu]="isActivated()"
+          [containerClass]="''"
+          (componentClick)="onComponentClick($event)">
+
+          <h4 caption>{{ entityNameUpper | translate }}</h4>
+
+          <ng-template #iconCell let-row let-field="field" let-value="value">
+            <svg-icon [name]="value"
+                      [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
+          </ng-template>
+        </configurable-table>
+      </div>
+      @if (visibleDialog) {
+        <udf-metadata-general-edit [visibleDialog]="visibleDialog"
+                                   [callParam]="callParam"
+                                   (closeDialog)="handleCloseDialog($event)">
+        </udf-metadata-general-edit>
+      }
+    `,
     providers: [DialogService],
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, TranslateModule, AngularSvgIconModule, ConfigurableTableComponent,
+      UDFMetadataGeneralEditComponent]
 })
 export class UDFMetadataGeneralTableComponent extends UDFMetaTable<UDFMetadataGeneral> implements OnDestroy {
   /** Parameters for metadata editing operations including validation exclusions */
   callParam: UDFMetadataGeneralParam = new UDFMetadataGeneralParam();
-
-  /** Flag indicating this is general (not security-specific) metadata editing */
-  isSecurityEdit = false;
 
   /**
    * Creates the UDF metadata general table component.

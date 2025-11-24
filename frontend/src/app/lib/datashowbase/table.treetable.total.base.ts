@@ -4,6 +4,7 @@ import {ColumnConfig, ColumnGroupConfig} from './column.config';
 import {AppHelper} from '../helper/app.helper';
 import {Auditable} from '../entities/auditable';
 import {GlobalparameterService} from '../services/globalparameter.service';
+import {BaseSettings} from '../base.settings';
 
 /**
  * Abstract base class extending ShowRecordConfigBase with functionality for handling
@@ -126,12 +127,12 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    * Determines if an entity should be displayed with owner highlighting.
    * Used for visually distinguishing user-owned entities in shared data scenarios.
    *
-   * @param columnConfig - Column configuration with template settings
    * @param entity - Auditable entity to check for ownership
+   * @param columnConfig - Column configuration with template settings
    * @returns True if entity should be highlighted as user-owned
    */
-  public isNotSingleModeAndOwner(columnConfig: ColumnConfig, entity: Auditable): boolean {
-    return this.gps.isUiShowMyProperty() && columnConfig.templateName === 'owner' && this.gps.isEntityCreatedByUser(entity);
+  public isNotSingleModeAndOwner(entity: Auditable, columnConfig: ColumnConfig): boolean {
+    return this.gps.isUiShowMyProperty() && columnConfig.templateName === BaseSettings.OWNER_TEMPLATE && this.gps.isEntityCreatedByUser(entity);
   }
 
   /**

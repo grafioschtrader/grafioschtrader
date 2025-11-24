@@ -17,6 +17,7 @@ import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {combineLatest} from 'rxjs';
 import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * Component for import transaction template, one row one template. This table is controlled by a master data selection view.
@@ -51,7 +52,7 @@ import {AppSettings} from '../../shared/app.settings';
               || field.dataType===DataType.NumericInteger)? 'text-right': ''">
                 @switch (field.templateName) {
                   @case ('owner') {
-                    <span [style]='isNotSingleModeAndOwner(field, el)? "font-weight:500": null'>
+                    <span [style]='isNotSingleModeAndOwner(el, field)? "font-weight:500": null'>
                    {{ getValueByPath(el, field) }}</span>
                   }
                   @default {
@@ -96,7 +97,7 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
       messageToastService, activePanelService, dialogService, filterService, translateService, gps,
       usersettingsService, [CrudMenuOptions.ParentControl, ...TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS]);
 
-    this.addColumnFeqH(DataType.String, 'templatePurpose', true, false, {templateName: AppSettings.OWNER_TEMPLATE});
+    this.addColumnFeqH(DataType.String, 'templatePurpose', true, false, {templateName: BaseSettings.OWNER_TEMPLATE});
     this.addColumnFeqH(DataType.String, 'templateCategory', true, false, {translateValues: TranslateValue.NORMAL});
 
     this.addColumnFeqH(DataType.String, 'templateFormatType', true, false, {translateValues: TranslateValue.NORMAL});

@@ -1,28 +1,37 @@
-import {IGlobalMenuAttach} from '../../../lib/mainmenubar/component/iglobal.menu.attach';
-import {HelpIds} from '../../../lib/help/help.ids';
-import {ActivePanelService} from '../../../lib/mainmenubar/service/active.panel.service';
-import {FieldConfig} from '../../../lib/dynamic-form/models/field.config';
-import {FieldFormGroup} from '../../../lib/dynamic-form/models/form.group.definition';
-import {FormConfig} from '../../../lib/dynamic-form/models/form.config';
+import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach';
+import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
+import {FieldConfig} from '../../dynamic-form/models/field.config';
+import {FieldFormGroup} from '../../dynamic-form/models/form.group.definition';
+import {FormConfig} from '../../dynamic-form/models/form.config';
 import {Directive, ViewChild} from '@angular/core';
-import {DynamicFormComponent} from '../../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
+import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {Subscription} from 'rxjs';
-import {InfoLevelType} from '../../../lib/message/info.leve.type';
-import {AppHelper} from '../../../lib/helper/app.helper';
+import {InfoLevelType} from '../../message/info.leve.type';
+import {AppHelper} from '../../helper/app.helper';
 import {TranslateService} from '@ngx-translate/core';
 import {ConfirmationService, MenuItem} from 'primeng/api';
-import {MessageToastService} from '../../../lib/message/message.toast.service';
-import {DeleteService} from '../../../lib/datashowbase/delete.service';
-import {BaseID} from '../../../lib/entities/base.id';
-import {CallParam} from '../../maintree/types/dialog.visible';
-import {ProcessedActionData} from '../../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../../lib/types/processed.action';
-import {AuditHelper} from '../../../lib/helper/audit.helper';
-import {GlobalparameterService} from '../../../lib/services/globalparameter.service';
-import {BaseSettings} from '../../../lib/base.settings';
+import {MessageToastService} from '../../message/message.toast.service';
+import {DeleteService} from '../../datashowbase/delete.service';
+import {BaseID} from '../../entities/base.id';
+import {ProcessedActionData} from '../../types/processed.action.data';
+import {ProcessedAction} from '../../types/processed.action';
+import {AuditHelper} from '../../helper/audit.helper';
+import {GlobalparameterService} from '../../services/globalparameter.service';
+import {BaseSettings} from '../../base.settings';
 
+/**
+ * Abstract base class for components that display and edit a single record from a master list with associated
+ * child data. This class provides foundational functionality for master-detail views where users can select a
+ * record from a list, view its details, and perform CRUD operations.
+ *
+ * This class is designed to be framework-independent and can be reused across different applications.
+ *
+ * @template T - The type of the main entity (must extend BaseID)
+ * @template S - The type of child entities associated with the main entity
+ * @template CP - The type of call parameters passed to edit dialogs (defaults to any for maximum flexibility)
+ */
 @Directive()
-export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements IGlobalMenuAttach {
+export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> implements IGlobalMenuAttach {
 
   // Access child components
   @ViewChild(DynamicFormComponent, {static: true}) form: DynamicFormComponent;
@@ -33,23 +42,18 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S> implements
   configObject: { [name: string]: FieldConfig };
 
   childEntityList: S[];
-  /**
-   * Visibility of edit dialog
-   */
+  /** Visibility of edit dialog  */
   visibleEditDialog: boolean;
   // Data to shown
   entityList: T[];
   changeOnMainFieldSub: Subscription;
-  callParam: CallParam;
+  /** Parameter object passed to edit dialog components. Type is defined by the consuming application. */
+  callParam: CP;
   // For the component Edit-Menu, it shows the same menu items as the context menu
   contextMenuItems: MenuItem[];
-  /**
-   * The selected entity
-   */
+  /** The selected entity  */
   selectedEntity: T;
-  /**
-   * Avoid looking for changes on the main select box
-   */
+  /** Avoid looking for changes on the main select box  */
   protected ignoreChangeOnMonitorField: boolean;
 
   /**

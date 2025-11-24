@@ -138,11 +138,7 @@ export class AppSettings {
   // Special keywords
   public static readonly PREFIX_ALGO_FIELD = 'ALGO_F_';
 
-  /**
-   * Shared data may have been created by different users. The own entities should be recognizable in tables.
-   * For example, a particular property of one of the entities is displayed in bold.
-   */
-  public static readonly OWNER_TEMPLATE = 'owner';
+
   public static readonly CATEGORY_TYPE = 'categoryType';
 
   public static readonly DEFAULT_LANGUAGE = 'en';
@@ -170,7 +166,7 @@ export class AppSettings {
   public static readonly TA_INDICATORS_STORE = 'ta_indicator_';
   public static readonly DIV_SECURITYACCOUNTS = 'div_securityaccounts';
   public static readonly DIV_CASHACCOUNTS = 'div_cashaccounts';
-  public static readonly HIST_SUPPORTED_CSV_FORMAT = 'hist_supported_csv_format';
+
 
 
 

@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {CalendarNavigation} from '../../tradingcalendar/component/calendar.navigation';
-import {RangeSelectDays} from '../../fullyearcalendar/Interface/range.select.days';
+import {RangeSelectDays} from '../../lib/fullyearcalendar/Interface/range.select.days';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
@@ -8,7 +8,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {MenuItem} from 'primeng/api';
 import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {HelpIds} from '../../lib/help/help.ids';
-import {HoldingService} from '../../shared/performanceperiod/service/holding.service';
+import {HoldingService} from '../../performanceperiod/service/holding.service';
 import {MissingQuotesWithSecurities} from '../model/missing.quotes.with.securities';
 import {Security} from '../../entities/security';
 import moment from 'moment';

@@ -1,7 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {SimpleEntityEditBase} from '../../edit/simple.entity.edit.base';
 import {UDFDataType, UDFMetadataGeneral, UDFMetadataGeneralParam} from '../model/udf.metadata';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {MessageToastService} from '../../message/message.toast.service';
 import {HelpIds} from '../../help/help.ids';
@@ -16,6 +16,9 @@ import {Subscription} from 'rxjs';
 import {SelectOptionsHelper} from '../../helper/select.options.helper';
 import {UDFConfig} from '../../login/component/login.component';
 import {BaseSettings} from '../../base.settings';
+import {CommonModule} from '@angular/common';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 
 /**
  * Component for editing UDF metadata definitions for general entity types.
@@ -35,7 +38,8 @@ import {BaseSettings} from '../../base.settings';
       </dynamic-form>
     </p-dialog>
   `,
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, DialogModule, DynamicFormModule, TranslateModule]
 })
 export class UDFMetadataGeneralEditComponent extends SimpleEntityEditBase<UDFMetadataGeneral> implements OnInit {
   /** Parameters containing UDF metadata to edit and validation exclusion lists */

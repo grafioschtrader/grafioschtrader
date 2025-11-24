@@ -14,7 +14,7 @@ import {LoginService} from '../../lib/login/service/log-in.service';
 import {TaFormDefinition, TaTraceIndicatorData} from '../component/indicator.definitions';
 import {HistoryquoteDateClose} from '../../entities/projection/historyquote.date.close';
 import {IHistoryquoteQuality} from '../../entities/view/ihistoryquote.quality';
-import {SupportedCSVFormats, UploadServiceFunction} from '../../shared/generaldialog/model/file.upload.param';
+import {SupportedCSVFormats, UploadServiceFunction} from '../../lib/generaldialog/model/file.upload.param';
 import {ISecuritycurrencyIdDateClose} from '../../entities/projection/i.securitycurrency.id.date.close';
 import {BaseSettings} from '../../lib/base.settings';
 

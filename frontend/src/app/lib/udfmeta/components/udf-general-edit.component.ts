@@ -2,11 +2,14 @@ import {BaseUDFDataEdit} from './base.udf.data.edit';
 import {Component, OnInit} from '@angular/core';
 import {MessageToastService} from '../../message/message.toast.service';
 import {UDFDataService} from '../service/udf.data.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {HelpIds} from '../../help/help.ids';
 import {AppHelper} from '../../helper/app.helper';
 import {UDFMetadataHelper} from './udf.metadata.helper';
+import {CommonModule} from '@angular/common';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 
 /**
  * Component for editing user-defined field data values for general entities.
@@ -17,7 +20,8 @@ import {UDFMetadataHelper} from './udf.metadata.helper';
 @Component({
     selector: 'udf-general-edit',
     templateUrl: '../view/general.udf.data.edit.html',
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, DialogModule, DynamicFormModule, TranslateModule]
 })
 export class UDFGeneralEditComponent extends BaseUDFDataEdit implements OnInit {
 

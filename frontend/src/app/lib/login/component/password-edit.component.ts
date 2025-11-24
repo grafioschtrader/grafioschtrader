@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {MainDialogService} from '../../mainmenubar/service/main.dialog.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {LoginService} from '../service/log-in.service';
 import {ChangePasswordDTO} from '../model/change.password.dto';
 import {InfoLevelType} from '../../message/info.leve.type';
@@ -9,11 +9,14 @@ import {PasswordBaseComponent} from './password.base.component';
 import {AppHelper} from '../../helper/app.helper';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
-import {UserSettingsDialogs} from '../../mainmenubar/component/main.dialog.component';
+import {UserSettingsDialogs} from '../../mainmenubar/component/user-settings-dialogs';
 import {TranslateHelper} from '../../helper/translate.helper';
 import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
 import {GlobalSessionNames} from '../../global.session.names';
 import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
+import {CommonModule} from '@angular/common';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 
 /**
  * Change the password with a dialog.
@@ -30,7 +33,8 @@ import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`,
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, DialogModule, DynamicFormModule, TranslateModule]
 })
 export class PasswordEditComponent extends PasswordBaseComponent implements OnInit {
   @Input() forcePasswordChange: boolean;

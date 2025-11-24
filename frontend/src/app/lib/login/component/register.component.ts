@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {LoginService} from '../service/log-in.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {MessageToastService} from '../../message/message.toast.service';
 import {GlobalparameterService, PasswordRegexProperties} from '../../services/globalparameter.service';
 import {User} from '../../entities/user';
@@ -16,6 +16,10 @@ import {GlobalSessionNames} from '../../global.session.names';
 import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
 import {HelpIds} from '../../help/help.ids';
 import {BaseSettings} from '../../base.settings';
+import {CommonModule} from '@angular/common';
+import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
+import {ProgressBarModule} from 'primeng/progressbar';
+import {ApplicationInfoComponent} from './application-info.component';
 
 /**
  * Shows the user register form.
@@ -56,7 +60,8 @@ import {BaseSettings} from '../../base.settings';
       </div>
     </div>
   `,
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, DynamicFormModule, TranslateModule, ProgressBarModule, ApplicationInfoComponent]
 })
 export class RegisterComponent extends PasswordBaseComponent implements OnInit, OnDestroy {
   progressValue: number;

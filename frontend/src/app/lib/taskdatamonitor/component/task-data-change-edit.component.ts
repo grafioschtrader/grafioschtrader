@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {SimpleEntityEditBase} from '../../edit/simple.entity.edit.base';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {MessageToastService} from '../../message/message.toast.service';
 import {HelpIds} from '../../help/help.ids';
@@ -17,6 +17,9 @@ import moment from 'moment';
 import {Validators} from '@angular/forms';
 import {BaseSettings} from '../../base.settings';
 import {TaskTypeBase} from '../types/task.type.base';
+import {CommonModule} from '@angular/common';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 
 @Component({
     selector: 'task-data-change-edit',
@@ -30,7 +33,8 @@ import {TaskTypeBase} from '../types/task.type.base';
       </dynamic-form>
     </p-dialog>
   `,
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, DialogModule, DynamicFormModule, TranslateModule]
 })
 export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataChange> implements OnInit {
   @Input() callParam: TaskDataChange;

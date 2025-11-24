@@ -3,7 +3,7 @@ import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.ser
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {RangeSelectDays} from '../../fullyearcalendar/Interface/range.select.days';
+import {RangeSelectDays} from '../../lib/fullyearcalendar/Interface/range.select.days';
 import {HelpIds} from '../../lib/help/help.ids';
 import moment from 'moment';
 import {CalendarNavigation} from './calendar.navigation';

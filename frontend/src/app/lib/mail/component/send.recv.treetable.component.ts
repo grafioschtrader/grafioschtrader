@@ -1,9 +1,15 @@
 import {TreeTableConfigBase} from '../../datashowbase/tree.table.config.base';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {ColumnConfig, TranslateValue} from '../../datashowbase/column.config';
 import {Component, OnInit, ViewChild} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {TreeTableModule} from 'primeng/treetable';
+import {ContextMenuModule} from 'primeng/contextmenu';
+import {TooltipModule} from 'primeng/tooltip';
+import {Textarea} from 'primeng/textarea';
+import {AngularSvgIconModule} from 'angular-svg-icon';
 import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {ConfirmationService, MenuItem, TreeNode} from 'primeng/api';
@@ -81,7 +87,8 @@ import {HelpIds} from '../../help/help.ids';
   `,
   styles: ['textarea { width:100%; }'],
   providers: [DialogService],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, TreeTableModule, ContextMenuModule, TooltipModule, Textarea, AngularSvgIconModule, TranslateModule]
 })
 export class SendRecvTreetableComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {
   @ViewChild('cm') contextMenu: any;

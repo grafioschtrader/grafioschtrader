@@ -60,7 +60,7 @@ import {ClassDescriptorInputAndShow} from '../../lib/dynamicfield/field.descript
             </tr>
           </ng-template>
         </p-treeTable>
-        <p-contextMenu #cm [target]="cmDiv" [model]="contextMenuItems">
+        <p-contextMenu #cm [target]="cmDiv" [model]="contextMenuItems" appendTo="body">
         </p-contextMenu>
       </div>
     </div>

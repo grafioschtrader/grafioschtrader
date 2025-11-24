@@ -3,6 +3,8 @@ import {ImportTransactionPlatform} from '../../entities/import.transaction.platf
 import {ImportTransactionPlatformService} from '../../imptranstemplate/service/import.transaction.platform.service';
 import {IPlatformTransactionImport} from '../../portfolio/component/iplatform.transaction.import';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
+import {Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
 import {BasePrepareEdit} from '../../lib/proposechange/component/base.prepare.edit';
 import {EntityMapping, PrepareCallParam} from '../../lib/proposechange/component/general.entity.prepare.edit';
 
@@ -29,14 +31,16 @@ export class ImportTransactionPlatformPrepareEdit extends BasePrepareEdit<Import
    *
    * @param entity - The import transaction platform to prepare for editing
    * @param entityMapping - Container for dialog state and parameters to be populated
+   * @returns Observable that completes when platform types are loaded
    */
-  prepareForEditEntity(entity: ImportTransactionPlatform, entityMapping: EntityMapping): void {
-    this.importTransactionPlatformService.getPlatformTransactionImport().subscribe(
-      (platformTransactionImports: IPlatformTransactionImport[]) => {
+  prepareForEditEntity(entity: ImportTransactionPlatform, entityMapping: EntityMapping): Observable<void> {
+    return this.importTransactionPlatformService.getPlatformTransactionImport().pipe(
+      map((platformTransactionImports: IPlatformTransactionImport[]) => {
         entityMapping.option =
           SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('id', 'readableName', platformTransactionImports, true);
         entityMapping.callParam = new CallParam(null, entity);
         entityMapping.visibleDialog = true;
-      });
+      })
+    );
   }
 }

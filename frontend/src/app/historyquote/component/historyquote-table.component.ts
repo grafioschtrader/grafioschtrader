@@ -34,7 +34,7 @@ import {ProcessedAction} from '../../lib/types/processed.action';
 import {HistoryquotesWithMissings} from '../model/historyquotes.with.missings';
 import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
-import {FileUploadParam} from '../../shared/generaldialog/model/file.upload.param';
+import {FileUploadParam} from '../../lib/generaldialog/model/file.upload.param';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {SvgIconRegistryService} from 'angular-svg-icon';
 import {DialogService} from 'primeng/dynamicdialog';
@@ -255,7 +255,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     this.fileUploadParam = new FileUploadParam(HelpIds.HELP_WATCHLIST_HISTORYQUOTES, null,
       'csv', 'IMPORT_QUOTES', false, this.historyquoteService,
       this.nameSecuritycurrency.getSecuritycurrency().idSecuritycurrency, this.historyquotesWithMissings.supportedCSVFormats,
-      AppSettings.HIST_SUPPORTED_CSV_FORMAT);
+      BaseSettings.CSV_EXPORT_FORMAT);
 
     this.visibleUploadFileDialog = true;
   }

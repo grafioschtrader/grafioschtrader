@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, OnDestroy, ViewChild} from '@angular/core';
-import {SingleRecordMasterViewBase} from '../../shared/masterdetail/component/single.record.master.view.base';
+import {SingleRecordMasterViewBase} from '../../lib/masterdetail/component/single.record.master.view.base';
 import {CorrelationLimit, CorrelationResult, CorrelationSet, SamplingPeriodType} from '../../entities/correlation.set';
 import {ConfirmationService, MenuItem} from 'primeng/api';
 import {ActivatedRoute} from '@angular/router';
@@ -55,7 +55,7 @@ import {CorrelationEditingSupport} from './correlation.editing.support';
   `,
   standalone: false
 })
-export class CorrelationComponent extends SingleRecordMasterViewBase<CorrelationSet, Securitycurrency>
+export class CorrelationComponent extends SingleRecordMasterViewBase<CorrelationSet, Securitycurrency, CallParam>
   implements AfterViewInit, OnDestroy, ChildToParent {
 
   /** Primary key field name for correlation set selection */

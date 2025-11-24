@@ -4,13 +4,14 @@ import {AppHelper} from '../../helper/app.helper';
 import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
 import {TranslateHelper} from '../../helper/translate.helper';
 import {HelpIds} from '../../help/help.ids';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {LoginService} from '../../login/service/log-in.service';
 import {InfoLevelType} from '../../message/info.leve.type';
 import {MessageToastService} from '../../message/message.toast.service';
 import {DialogService, DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {BaseSettings} from '../../base.settings';
+import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 
 /**
  * Apply for admin to release security breaches or the too often to many serve requests.
@@ -21,7 +22,8 @@ import {BaseSettings} from '../../base.settings';
     <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
                   (submitBt)="submit($event)">
     </dynamic-form>`,
-  standalone: false
+  standalone: true,
+  imports: [DynamicFormModule, TranslateModule]
 })
 export class LogoutReleaseRequestDynamicComponent extends FormBase implements OnInit {
   readonly NOTE = 'note';

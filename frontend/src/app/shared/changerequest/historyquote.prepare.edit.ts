@@ -1,7 +1,8 @@
 import {Historyquote} from '../../entities/historyquote';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
-import {combineLatest} from 'rxjs';
+import {combineLatest, Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
 import {HistoryquoteSecurityCurrency} from '../../historyquote/component/historyquote-table.component';
 import {Currencypair} from '../../entities/currencypair';
 import {Security} from '../../entities/security';
@@ -32,17 +33,20 @@ export class HistoryquotePrepareEdit extends BasePrepareEdit<Historyquote> imple
    *
    * @param entity - The history quote to prepare for editing
    * @param entityMapping - Container for dialog state and parameters to be populated
+   * @returns Observable that completes when the associated entity is loaded
    */
-  prepareForEditEntity(entity: Historyquote, entityMapping: EntityMapping): void {
+  prepareForEditEntity(entity: Historyquote, entityMapping: EntityMapping): Observable<void> {
     const cpObservable = this.currencypairService.getCurrencypairByIdSecuritycurrency(entity.idSecuritycurrency);
     const securityObservable = this.securityService.getSecurityByIdSecuritycurrency(entity.idSecuritycurrency);
 
-    combineLatest([cpObservable, securityObservable]).subscribe((data: any[]) => {
-      const historyquote = new Historyquote();
-      Object.assign(historyquote, entity);
-      entityMapping.callParam = data[0] ? new HistoryquoteSecurityCurrency(historyquote, Object.assign(new Currencypair(), data[0])) :
-        new HistoryquoteSecurityCurrency(historyquote, Object.assign(new Security(), data[1]));
-      entityMapping.visibleDialog = true;
-    });
+    return combineLatest([cpObservable, securityObservable]).pipe(
+      map((data: any[]) => {
+        const historyquote = new Historyquote();
+        Object.assign(historyquote, entity);
+        entityMapping.callParam = data[0] ? new HistoryquoteSecurityCurrency(historyquote, Object.assign(new Currencypair(), data[0])) :
+          new HistoryquoteSecurityCurrency(historyquote, Object.assign(new Security(), data[1]));
+        entityMapping.visibleDialog = true;
+      })
+    );
   }
 }

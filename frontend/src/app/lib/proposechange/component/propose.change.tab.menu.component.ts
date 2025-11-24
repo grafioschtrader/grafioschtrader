@@ -1,6 +1,9 @@
 import {Component} from '@angular/core';
 import {TabItem} from '../../types/tab.item';
 import {BaseSettings} from '../../base.settings';
+import {CommonModule} from '@angular/common';
+import {RouterModule} from '@angular/router';
+import {SharedTabMenuComponent} from '../../tabmenu/component/shared.tab.menu.component';
 
 
 @Component({
@@ -11,7 +14,8 @@ import {BaseSettings} from '../../base.settings';
       <router-outlet></router-outlet>
     </app-shared-tab-menu>
   `,
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, RouterModule, SharedTabMenuComponent]
 })
 export class ProposeChangeTabMenuComponent {
   tabs: TabItem[] = [

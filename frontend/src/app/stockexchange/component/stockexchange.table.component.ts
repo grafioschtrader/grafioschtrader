@@ -21,6 +21,7 @@ import {StockexchangeBaseData, StockexchangeMic} from '../model/stockexchange.ba
 import {StockexchangeHasSecurity} from '../model/stockexchange.has.security';
 import {StockexchangeHelper} from './stockexchange.helper';
 import {AppHelper} from '../../lib/helper/app.helper';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * Shows stock exchanges in a table
@@ -91,7 +92,7 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
 
     this.addColumnFeqH(DataType.String, 'mic', true, false, {
       width: 40,
-      templateName: AppSettings.OWNER_TEMPLATE
+      templateName: BaseSettings.OWNER_TEMPLATE
     });
     this.addColumnFeqH(DataType.String, 'name', true, false, {
       width: 180,

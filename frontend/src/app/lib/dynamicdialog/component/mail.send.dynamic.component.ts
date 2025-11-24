@@ -17,6 +17,7 @@ import {MailSendRecv, ReplyToRolePrivateType} from '../../mail/model/mail.send.r
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {UserAdminService} from '../../user/service/user.admin.service';
 import {BaseSettings} from '../../base.settings';
+import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 
 /**
  * This input form can be used to compose and send a message. It is a dynamic dialog, as it can be used in different places in the GUI.
@@ -26,7 +27,8 @@ import {BaseSettings} from '../../base.settings';
     <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
                   (submitBt)="submit($event)">
     </dynamic-form>`,
-  standalone: false
+  standalone: true,
+  imports: [DynamicFormModule]
 })
 export class MailSendDynamicComponent extends FormBase implements OnInit {
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;

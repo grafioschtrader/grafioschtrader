@@ -1,12 +1,12 @@
 import {Component, OnInit} from '@angular/core';
 import {SimpleEditBase} from '../../edit/simple.edit.base';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {HelpIds} from '../../help/help.ids';
 import {AppHelper} from '../../helper/app.helper';
 import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
 import {LoginService} from '../service/log-in.service';
-import {UserSettingsDialogs} from '../../mainmenubar/component/main.dialog.component';
+import {UserSettingsDialogs} from '../../mainmenubar/component/user-settings-dialogs';
 import {MainDialogService} from '../../mainmenubar/service/main.dialog.service';
 import {combineLatest} from 'rxjs';
 import {UserOwnProjection} from '../../entities/projection/user.own.projection';
@@ -15,6 +15,9 @@ import {InfoLevelType} from '../../message/info.leve.type';
 import {MessageToastService} from '../../message/message.toast.service';
 import {TranslateHelper} from '../../helper/translate.helper';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {CommonModule} from '@angular/common';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 
 /**
  * Change nickname and locale of a user
@@ -29,7 +32,8 @@ import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.htm
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`,
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, DialogModule, DynamicFormModule, TranslateModule]
 })
 export class NicknameLangEditComponent extends SimpleEditBase implements OnInit {
 

@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit, ViewChild, Type, Inject} from '@angular/core';
 import {Router} from '@angular/router';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {MenuItem, TreeNode} from 'primeng/api';
 import {Subscription} from 'rxjs';
 import {MainTreeService} from '../service/main-tree.service';
@@ -12,6 +12,12 @@ import {ProcessedAction} from '../../types/processed.action';
 import {DataChangedService} from '../service/data.changed.service';
 import {DialogHandler, DIALOG_HANDLER} from '../handler/dialog-handler.interface';
 import {HelpIds} from '../../help/help.ids';
+import {CommonModule} from '@angular/common';
+import {TreeModule} from 'primeng/tree';
+import {ContextMenuModule} from 'primeng/contextmenu';
+import {ConfirmDialogModule} from 'primeng/confirmdialog';
+import {ButtonModule} from 'primeng/button';
+import {SharedModule} from 'primeng/api';
 
 /**
  * This is the component for displaying the navigation tree. It is used to control the indicators of the main area.
@@ -19,7 +25,8 @@ import {HelpIds} from '../../help/help.ids';
 @Component({
   selector: 'main-tree',
   templateUrl: '../view/maintree.html',
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, TreeModule, ContextMenuModule, ConfirmDialogModule, ButtonModule, SharedModule, TranslateModule]
 })
 export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   @ViewChild('cm', {static: true}) contextMenu: any;

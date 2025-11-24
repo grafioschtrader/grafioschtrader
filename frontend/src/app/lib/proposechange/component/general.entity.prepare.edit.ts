@@ -1,6 +1,8 @@
 import {BasePrepareEdit} from './base.prepare.edit';
 import {ProposeTransientTransfer} from '../../entities/propose.transient.transfer';
 import {BaseID} from '../../entities/base.id';
+import {Type} from '@angular/core';
+import {Observable, of} from 'rxjs';
 
 /**
  * Generic implementation of entity preparation for edit dialogs in the propose change workflow.
@@ -29,17 +31,19 @@ export class GeneralEntityPrepareEdit<T extends BaseID> extends BasePrepareEdit<
    *
    * @param entity - The entity to prepare for editing
    * @param entityMapping - Container for edit dialog state and parameters
+   * @returns Observable that completes when preparation is done
    */
-  prepareForEditEntity(entity: T, entityMapping: EntityMapping): void {
+  prepareForEditEntity(entity: T, entityMapping: EntityMapping): Observable<void> {
     entityMapping.callParam = new this.type();
     Object.assign(entityMapping.callParam, entity);
     entityMapping.visibleDialog = true;
+    return of(undefined);
   }
 }
 
 /**
  * Container class for managing entity edit dialog state and parameters.
- * Holds the dialog visibility state, entity-specific call parameters, and additional options.
+ * Holds the dialog visibility state, entity-specific call parameters, edit component type, and additional options.
  */
 export class EntityMapping {
   /** Whether the edit dialog should be visible */
@@ -50,6 +54,9 @@ export class EntityMapping {
 
   /** Additional options for customizing edit dialog behavior */
   option: any = {};
+
+  /** Component type to use for editing this entity (dynamically loaded) */
+  editComponentType?: Type<any>;
 
   /**
    * Creates an entity mapping.
@@ -82,6 +89,7 @@ export interface PrepareCallParam<T extends BaseID> {
    *
    * @param entity - The entity to prepare (can be the entity type T or ProposeTransientTransfer containing entity data)
    * @param entityMapping - Container for dialog state and parameters to be populated
+   * @returns Observable that completes when preparation is done (allows for async data loading)
    */
-  prepareForEditEntity(entity: T | ProposeTransientTransfer, entityMapping: EntityMapping): void;
+  prepareForEditEntity(entity: T | ProposeTransientTransfer, entityMapping: EntityMapping): Observable<void>;
 }

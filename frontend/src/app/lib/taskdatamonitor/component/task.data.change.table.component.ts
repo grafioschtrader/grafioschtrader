@@ -2,7 +2,7 @@ import {Component, Inject} from '@angular/core';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {ProgressStateType, TaskDataChange, TaskDataChangeFormConstraints} from '../types/task.data.change';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {UserSettingsService} from '../../services/user.settings.service';
 import {HelpIds} from '../../help/help.ids';
@@ -19,6 +19,10 @@ import {ITaskExtendService} from './itask.extend.service';
 import {TASK_EXTENDED_SERVICE} from '../service/task.extend.service.token';
 import {TASK_TYPE_ENUM} from '../service/task.type.enum.token';
 import {BaseSettings} from '../../base.settings';
+import {CommonModule} from '@angular/common';
+import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.component';
+import {TooltipModule} from 'primeng/tooltip';
+import {TaskDataChangeEditComponent} from './task-data-change-edit.component';
 
 /**
  * Shows the batch Jobs in a table.
@@ -90,7 +94,8 @@ import {BaseSettings} from '../../base.settings';
     }
   `,
   providers: [DialogService],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, ConfigurableTableComponent, TooltipModule, TranslateModule, TaskDataChangeEditComponent]
 })
 export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataChange> {
 
@@ -120,10 +125,8 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
       gps.hasRole(BaseSettings.ROLE_ADMIN) ? [CrudMenuOptions.Allow_Create,
         CrudMenuOptions.Allow_Delete] : []);
 
-    this.addColumnFeqH(DataType.NumericInteger, 'idTaskDataChange', true, false,
-      {});
-    this.addColumnFeqH(DataType.DateTimeSecondString, 'creationTime', true, false,
-      {});
+    this.addColumnFeqH(DataType.NumericInteger, 'idTaskDataChange', true, false);
+    this.addColumnFeqH(DataType.DateTimeSecondString, 'creationTime', true, false);
     this.addColumnFeqH(DataType.NumericShowZero, 'taskAsId', true, false,
       {width: 40, maxFractionDigits: 0, filterType: FilterType.likeDataType});
 
