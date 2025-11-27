@@ -14,7 +14,7 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
 @Component({
   template: `
     <div class="container">
-      <div class="jumbotron center-block">
+      <div class="jumbotron-replacement mx-auto">
         <h2>{{ 'CLIENT' | translate }}</h2>
         <h4>{{ 'CLIENT_REGISTER' | translate }}</h4>
         <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"

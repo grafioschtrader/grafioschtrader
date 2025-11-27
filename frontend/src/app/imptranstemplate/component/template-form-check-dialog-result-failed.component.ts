@@ -38,7 +38,7 @@ import {FilterService} from 'primeng/api';
               <td [style.max-width.px]="field.width"
                   [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
                   [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''">
+                || field.dataType===DataType.NumericInteger)? 'text-end': ''">
                 {{getValueByPath(el, field)}}
               </td>
             }

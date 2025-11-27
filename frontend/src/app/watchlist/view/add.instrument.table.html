@@ -27,7 +27,7 @@
         @for (field of fields; track field.field) {
           @if (field.visible) {
             <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                  || field.dataType===DataType.NumericInteger)? 'text-right': ''"
+                  || field.dataType===DataType.NumericInteger)? 'text-end': ''"
                 [style.max-width.px]="field.width"
                 [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
               {{getValueByPath(el, field)}}
@@ -49,7 +49,7 @@
 
 <div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix">
   <button (click)="onClickAdd()" [disabled]="selectedSecuritycurrencies.length === 0 || reachedListLimits()"
-          class="btn pull-right" pButton type="button">
+          class="btn float-end" pButton type="button">
     {{'ADD' | translate}}
   </button>
 </div>

@@ -17,7 +17,7 @@ declare function Split(ids, options);
     selector: 'split-layout',
     template: `
     <menubar></menubar>
-    <div class="row fullheight" #split (window:resize)="onResize($event)">
+    <div class="fullheight" #split (window:resize)="onResize($event)">
       <div id="tree" class="split split-horizontal">
         <main-tree></main-tree>
       </div>

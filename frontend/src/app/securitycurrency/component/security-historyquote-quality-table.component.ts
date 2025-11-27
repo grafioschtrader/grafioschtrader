@@ -37,7 +37,7 @@ import {FilterService} from 'primeng/api';
         <tr [pSelectableRow]="el">
           @for (field of fields; track field) {
             <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.NumericInteger
-              || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''">
+              || field.dataType===DataType.DateTimeNumeric)? 'text-end': ''">
               {{getValueByPath(el, field)}}
             </td>
           }

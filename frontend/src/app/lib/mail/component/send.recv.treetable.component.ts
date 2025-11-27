@@ -57,7 +57,7 @@ import {HelpIds} from '../../help/help.ids';
           <tr [ngClass]="rowNode.level === 0 && rowNode.node?.children.length > 0 ? 'row-total' : null"
               [ttSelectableRow]="rowNode">
             @for (field of fields; track field.field; let i = $index) {
-              <td [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
+              <td [ngClass]="{'text-end': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
             || field.dataType===DataType.DateTimeNumeric)}">
                 @if (i === 0) {
                   <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>

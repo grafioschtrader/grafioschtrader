@@ -14,7 +14,7 @@ import {FormConfig} from '../../models/form.config';
   selector: 'form-pbutton',
   template: `
     @if (!config.buttonFN) {
-      <button pButton class="btn ml-1" [loading]="config.groupItemUseOrLoading"
+      <button pButton class="btn btn-primary ms-1" [loading]="config.groupItemUseOrLoading"
               type="submit" [label]="config.labelKey | translate" [disabled]="!group.valid || config.disabled"
               pTooltip="{{config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP' }}">
         @if (config.icon) {
@@ -23,7 +23,7 @@ import {FormConfig} from '../../models/form.config';
       </button>
     }
     @if (config.buttonFN && !config.labelKey.endsWith('_')) {
-      <button pButton class="btn ml-1"
+      <button pButton class="btn btn-primary ms-1"
               [disabled]="config.disabled"
               pTooltip="{{config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP' }}"
               type="button" [label]="config.labelKey | translate" (click)="config.buttonFN($event)">
@@ -34,7 +34,7 @@ import {FormConfig} from '../../models/form.config';
     }
     @if (config.buttonFN && config.labelKey.endsWith('_')) {
       <button pButton
-              class="btn ml-1 button-no-label"
+              class="btn btn-primary ms-1 button-no-label"
               pTooltip="{{config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP'}}"
               [disabled]="config.disabled" type="button" (click)="config.buttonFN($event)">
         @if (config.icon) {
@@ -51,4 +51,3 @@ export class FormPButtonComponent implements FieldFormFormGroupConfig {
   formConfig: FormConfig;
   group: UntypedFormGroup;
 }
-

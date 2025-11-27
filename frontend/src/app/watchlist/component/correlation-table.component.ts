@@ -94,7 +94,7 @@ import {BaseSettings} from '../../lib/base.settings';
           </td>
           @for (field of fields; track field.field) {
             <td [style.background-color]="getBackgroundColor(el, field)"
-                [ngClass]="field.dataType===DataType.NumericShowZero ? 'text-right': ''"
+                [ngClass]="field.dataType===DataType.NumericShowZero ? 'text-end': ''"
                 (click)="cellClick(field)"
                 [style.max-width.px]="field.width"
                 [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">

@@ -27,7 +27,7 @@ import {ApplicationInfoComponent} from './application-info.component';
 @Component({
   template: `
     <div class="container">
-      <div class="login jumbotron center-block">
+      <div class="login jumbotron-replacement mx-auto">
 
         @if (errorLastRegistration) {
           <div class="alert alert-danger" role="alert">

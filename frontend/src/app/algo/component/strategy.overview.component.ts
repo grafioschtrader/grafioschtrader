@@ -12,10 +12,10 @@ import {NgxCurrencyInputMode} from 'ngx-currency';
     <input type="number" id="tentacles21" name="tentacles">
     <input type="number" id="tentacles32" name="tentacles">
     <p-inputNumber [(ngModel)]="price1" mode="currency" [currency]="curreny1" locale="de-CH" onfocus="this.select()"
-                   currencyDisplay="code" inputStyleClass="text-right"></p-inputNumber>
+                   currencyDisplay="code" inputStyleClass="text-end"></p-inputNumber>
 
     <p-inputNumber [(ngModel)]="price2" mode="currency" [currency]="curreny2" locale="de-CH" onfocus="this.select()"
-                   currencyDisplay="code" inputStyleClass="text-right"></p-inputNumber>
+                   currencyDisplay="code" inputStyleClass="text-end"></p-inputNumber>
 
 
     <p-button (click)="showBasicDialog()" icon="pi pi-external-link" label="Show"></p-button>
@@ -24,10 +24,10 @@ import {NgxCurrencyInputMode} from 'ngx-currency';
               focusTrap="false">
 
       <p-inputNumber [(ngModel)]="price1" mode="currency" [currency]="curreny1" locale="de-CH" onfocus="this.select()"
-                     currencyDisplay="code" inputStyleClass="text-right"></p-inputNumber>
+                     currencyDisplay="code" inputStyleClass="text-end"></p-inputNumber>
 
       <p-inputNumber [(ngModel)]="price2" mode="currency" [currency]="curreny2" locale="en-US" onfocus="this.select()"
-                     currencyDisplay="code" inputStyleClass="text-right"></p-inputNumber>
+                     currencyDisplay="code" inputStyleClass="text-end"></p-inputNumber>
 
       <input currencyMask [options]="optionsInput01" onfocus="this.select()"/>
       <input currencyMask [options]="optionsInput02" onfocus="this.select()"/>

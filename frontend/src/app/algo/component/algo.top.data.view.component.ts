@@ -72,7 +72,7 @@ import {TreeAlgoAssetclass, TreeAlgoSecurity, TreeAlgoStrategy, TreeAlgoTop} fro
           <tr [ttContextMenuRow]="rowNode" [ttSelectableRow]="rowNode"
               [ngClass]="{'kb-row': rowData.constructor.name  === 'AlgoAssetclass'}">
             @for (field of fields; track field; let i = $index) {
-              <td [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
+              <td [ngClass]="{'text-end': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
               || field.dataType===DataType.DateTimeNumeric) || field.dataType===DataType.NumericShowZero}">
                 @if (i === 0) {
                   <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>

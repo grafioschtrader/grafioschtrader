@@ -90,7 +90,7 @@ import {BaseSettings} from '../../lib/base.settings';
             </td>
             @for (field of fields; track field) {
               <td [ngClass]="(field.dataType===DataType.NumericShowZero || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''" [style.max-width.px]="field.width"
+                || field.dataType===DataType.NumericInteger)? 'text-end': ''" [style.max-width.px]="field.width"
                   [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
                 @switch (field.templateName) {
                   @case ('myEntry') {

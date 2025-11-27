@@ -30,7 +30,7 @@ import {PasswordEditComponent} from './password-edit.component';
 @Component({
   template: `
     <div class="container">
-      <div class="login jumbotron center-block">
+      <div class="login jumbotron-replacement mx-auto">
         @if (successLastRegistration) {
           <div class="alert alert-success" role="alert">
             {{ successLastRegistration | translate }}

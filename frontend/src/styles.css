@@ -38,9 +38,13 @@ body {
 }
 
 
-.row {
-  margin-left: 0;
-  margin-right: 0;
+/* Bootstrap 5 form styling adjustments */
+.mb-3.row {
+  align-items: center;
+}
+
+.mb-3 {
+  margin-bottom: 4px !important;
 }
 
 
@@ -76,10 +80,6 @@ label {
 .p-calendar .p-button {
   position: relative;
   height: 22px;
-}
-
-input[type=checkbox], input[type=radio] {
-  margin: 0 0 0;
 }
 
 .p-inputgroup .p-button {
@@ -187,6 +187,15 @@ button.p-button.button-no-label > span.p-button-label {
   display: none;
 }
 
+button.p-button.button-no-label {
+  padding: 0.25rem;
+  height: 32px;
+  min-width: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .progress-bar-box {
   margin: 5px 50px;
 }
@@ -200,6 +209,10 @@ button.p-button.button-no-label > span.p-button-label {
   box-sizing: border-box;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+legend {
+  float: none;
 }
 
 .out-border-legend {
@@ -325,6 +338,7 @@ button.p-button.button-no-label > span.p-button-label {
 
 .form-control {
   font-size: 0.75rem;
+  padding: 1px 1px;
 }
 
 .form-control-file-input {
@@ -584,42 +598,40 @@ table th .p-inputtext {
   align-items: center;
   display: block;
 }
+
+.drop-import-template {
+  margin-top: 10px;
+  font-size: 12px;
+}
+
 .p-inputtext {
   width: 100%;
-
 }
 
 
 /**
-Classes that Bootstrap 4 hat but Hootstrap 3
+ * Jumbotron replacement for Bootstrap 5
  */
-.float-right {
-  float: right;
+.jumbotron-replacement {
+  background-color: #EEEEEE;
+  padding: 3rem 2rem;
+  border-radius: 0.5rem;
 }
 
-.text-right {
-  text-align: right !important;
-  justify-content: end;
+/**
+ * Alert components (replacement for Bootstrap alerts)
+ */
+.alert {
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.25rem;
 }
 
-.ml-1 {
-  margin-left: 0.25rem !important;
-}
-
-.ml-2 {
-  margin-left: 0.5rem !important;
-}
-
-.ml-3 {
-  margin-left: 1rem !important;
-}
-
-.ml-4 {
-  margin-left: 1.5rem !important;
-}
-
-.ml-5 {
-  margin-left: 3rem !important;
+.alert-danger {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
 }
 
 .select-item {

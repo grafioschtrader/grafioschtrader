@@ -40,7 +40,7 @@ import {BaseSettings} from '../../lib/base.settings';
       <div class="flex-two-columns">
         <h4 class="ui-widget-header singleRowTableHeader">{{ 'IMPORT_TRANSACTION_PLATFORM' | translate }}</h4>
         @if (selectedEntity) {
-          <div class="right-half">
+          <div class="right-half drop-import-template">
             <ngx-file-drop dropZoneLabel="{{'DROP_TEMPLATE_HERE' | translate}}" (onFileDrop)="dropped($event)"
                            dropZoneClassName="drop-zone-trans-long"
                            contentClassName="content-trans">

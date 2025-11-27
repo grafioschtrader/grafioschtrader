@@ -25,6 +25,5 @@ export enum GlobalGTSessionNames {
    */
   REPORT_UNTIL_DATE = 'untilDate',
 
-  /** Base URL for external help documentation (e.g., "//grafioschtrader.github.io/gt-user-manual"). */
-  EXTERNAL_HELP_URL = 'externalHelpUrl'
+
 }

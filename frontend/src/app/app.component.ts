@@ -67,6 +67,9 @@ const MyPreset = definePreset(Aura, {
     tabs: {
       tab: {
         borderWidth: "1px 1px 1px 1px"
+      },
+      tabpanel: {
+        padding: "0.rem 0rem 0rem 0rem"
       }
     },
     tree: {
@@ -117,6 +120,7 @@ export class AppComponent implements OnDestroy {
     translateService.addLangs(['en', 'de']);
     // this language will be used as a fallback when a translation isn't found in the current language
     translateService.setDefaultLang(AppSettings.DEFAULT_LANGUAGE);
+    sessionStorage.setItem(GlobalSessionNames.EXTERNAL_HELP_URL, AppSettings.HELP_URL_BASE);
     LoginService.setGlobalLang(translateService, primeNGConfig);
     this.initializePrimeNGStyles(primeNGConfig);
     AuditHelper.setCustomOwnershipCheck((entity: any, userId: number) => {

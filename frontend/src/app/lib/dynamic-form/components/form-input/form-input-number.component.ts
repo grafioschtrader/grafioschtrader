@@ -10,7 +10,7 @@ import {BaseInputComponent} from '../base.input.component';
     <ng-container [formGroup]="group">
       <p-inputNumber
         [class.required-input]="isRequired && !config.readonly"
-        inputStyleClass="text-right"
+        inputStyleClass="text-end"
         [readonly]="config.readonly"
         [ngStyle]="{'width': config.inputWidth+'em'}"
         [class.negativ-number]="input.value < 0"

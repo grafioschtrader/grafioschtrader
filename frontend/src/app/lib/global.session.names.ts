@@ -64,7 +64,10 @@ export enum GlobalSessionNames {
    * Stores the limits and definitions of decimal numbers and the maximum length for entering comments.
    * Contains FID constants from backend (e.g., FID_MAX_FRACTION_DIGITS, FID_MAX_DIGITS).
    */
-  STANDARD_CURRENCY_PRECISIONS_AND_LIMITS = 'standardPrecision'
+  STANDARD_CURRENCY_PRECISIONS_AND_LIMITS = 'standardPrecision',
+
+  /** Base URL for external help documentation (e.g., "//APP.github.io/gt-user-manual"). */
+  EXTERNAL_HELP_URL = 'externalHelpUrl'
 }
 
 

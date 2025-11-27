@@ -4,12 +4,12 @@
       <legend class="out-border-legend">{{fieldSetName | translate}}</legend>
       @for (field of getFieldsForFieldSet(fieldSetName); track field.field) {
         <div class="row">
-          <div [ngClass]="field.templateName !== 'long' ? 'fieldcol-lg-6 col-md-6 col-sm-6 col-xs-6 showlabel text-right'
-              : 'fieldcol-lg-12 col-md-12 col-sm-12 col-xs-12 showlabel'"  [pTooltip]="field.headerTooltipTranslated">
+          <div [ngClass]="field.templateName !== 'long' ? 'fieldcol-lg-6 col-md-6 showlabel text-end'
+              : 'fieldcol-lg-12 col-md-12 showlabel'"  [pTooltip]="field.headerTooltipTranslated">
             {{field.headerTranslated}}:
           </div>
-          <div [ngClass]="field.templateName !== 'long' ? 'col-lg-6 col-md-6 col-sm-6 col-xs-6 nopadding wrap'
-              : 'col-lg-12 col-md-12 col-sm-12 col-xs-12 nopadding wrap'">
+          <div [ngClass]="field.templateName !== 'long' ? 'col-md-6 nopadding wrap'
+              : 'col-md-12 nopadding wrap'">
             @switch (field.templateName) {
               @case ('greenRed') {
                 <span [style.color]='isValueByPathMinus(content, field)? "red": "green"'>

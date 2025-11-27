@@ -41,7 +41,7 @@ import {FilterService} from 'primeng/api';
             [ngClass]="selectedDayIdSecurities.indexOf(el.idSecuritycurrency)>= 0 ? 'rowgroup-total' : null">
           @for (field of fields; track field) {
             <td
-              [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
+              [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-end': ''"
               [style.max-width.px]="field.width"
               [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
               <span [pTooltip]="getValueByPath(el, field)" tooltipPosition="top">{{ getValueByPath(el, field) }}</span>

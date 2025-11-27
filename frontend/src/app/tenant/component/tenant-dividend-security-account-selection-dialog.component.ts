@@ -20,9 +20,9 @@ import {ShowRecordConfigBase} from '../../lib/datashowbase/show.record.config.ba
               [contentStyle]="{'max-height':'800px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
-      <div class="nopadding container-fluid">
+      <div class="nopadding row">
         <div class="row">
-          <div class="col-sm-5">
+          <div class="col-md-5">
             <tenant-dividend-account-selection #securityaccountTree
                                                [columnConfig]="saColumnConfig"
                                                [portfolios]="portfolios"
@@ -31,7 +31,7 @@ import {ShowRecordConfigBase} from '../../lib/datashowbase/show.record.config.ba
                                                listAttributeName="securityaccountList" title="SECURITYACCOUNTS">
             </tenant-dividend-account-selection>
           </div>
-          <div class="col-sm-7">
+          <div class="col-md-7">
             <tenant-dividend-account-selection #cashaccountTree
                                                [columnConfig]="caColumnConfig"
                                                [portfolios]="portfolios"
@@ -41,7 +41,7 @@ import {ShowRecordConfigBase} from '../../lib/datashowbase/show.record.config.ba
             </tenant-dividend-account-selection>
           </div>
         </div>
-        <div style="float: right;" class="ui-dialog-buttonpane  ui-helper-clearfix">
+        <div class="float-end ui-dialog-buttonpane  ui-helper-clearfix">
           <button pButton class="btn" type="submit"
                   [disabled]="disableButton"
                   label="{{'APPLY' | translate}}" (click)="submit($event)">

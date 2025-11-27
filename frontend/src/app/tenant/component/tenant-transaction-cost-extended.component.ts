@@ -55,7 +55,7 @@ import {AppSettings} from '../../shared/app.settings';
                 @if (field.visible) {
                   <td [style.max-width.px]="field.width"
                       [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                      [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''">
+                      [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-end': ''">
                   <span [pTooltip]="getValueByPath(el, field)"
                         tooltipPosition="top">{{ getValueByPath(el, field) }}</span>
                   </td>

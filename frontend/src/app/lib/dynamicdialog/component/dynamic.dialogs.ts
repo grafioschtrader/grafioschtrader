@@ -7,7 +7,6 @@ import {DynamicDialogHelper} from './dynamicDialogHelper';
 
 export class DynamicDialogs extends DynamicDialogHelper {
 
-
   public static getOpenedLimitTransactionRequestDynamicComponent(translateService: TranslateService,
     dialogService: DialogService,
     entityName: string): DynamicDialogHelper {

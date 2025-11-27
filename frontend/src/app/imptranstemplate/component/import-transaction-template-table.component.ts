@@ -49,7 +49,7 @@ import {BaseSettings} from '../../lib/base.settings';
               <td [style.max-width.px]="field.width"
                   [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
                   [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-              || field.dataType===DataType.NumericInteger)? 'text-right': ''">
+              || field.dataType===DataType.NumericInteger)? 'text-end': ''">
                 @switch (field.templateName) {
                   @case ('owner') {
                     <span [style]='isNotSingleModeAndOwner(el, field)? "font-weight:500": null'>
