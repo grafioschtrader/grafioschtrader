@@ -65,7 +65,7 @@
           </td>
           @for (field of fields; track field) {
             @if (field.visible) {
-              <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
+              <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-end': ''"
                   [style.max-width.px]="field.width"
                   [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
                 @switch (field.templateName) {
@@ -99,7 +99,7 @@
             @for (field of groupFields; track field) {
               @if (field.visible) {
                 <td [class]="(field.dataType===DataType.Numeric || field.dataType===DataType.NumericInteger
-                || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
+                || field.dataType===DataType.DateTimeNumeric)? 'text-end': ''"
                     [colSpan]="field.columnGroupConfigs && field.columnGroupConfigs[0].colspan ? field.columnGroupConfigs[0].colspan: null">
                   @switch (field.templateName) {
                     @case ('greenRed') {
@@ -128,7 +128,7 @@
           @for (field of fields; track field) {
             @if (field.visible) {
               <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''" [style.width.px]="field.width"
+                || field.dataType===DataType.NumericInteger)? 'text-end': ''" [style.width.px]="field.width"
                   class="row-total">
                 @switch (field.templateName) {
                   @case ('greenRed') {

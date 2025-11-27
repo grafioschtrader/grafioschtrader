@@ -27,7 +27,8 @@
   [negativeValueFn]="isValueByPathMinus.bind(this)"
   [valueGetterFn]="getValueByPath.bind(this)"
   (componentClick)="onComponentClick($event)"
-  (colResize)="onColResize($event)">
+  (colResize)="onColResize($event)"
+  [contextMenuAppendTo]="'body'">
 
   <!-- Caption -->
   <h4 caption>{{ 'WATCHLIST' | translate }}: "{{ watchlist.name }}" {{

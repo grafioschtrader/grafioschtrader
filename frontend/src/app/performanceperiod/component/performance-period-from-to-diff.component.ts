@@ -14,10 +14,10 @@ import {AppHelper} from '../../lib/helper/app.helper';
         <fieldset class="out-border fbox">
           <legend class="out-border-legend">{{titles[i]}}</legend>
           @for (field of fields; track field) {
-            <div class="col-lg-9 col-md-9 col-sm-9 col-xs-9 text-end" [pTooltip]="field.headerTooltipTranslated">
+            <div class="col-md-9 text-end" [pTooltip]="field.headerTooltipTranslated">
               {{field.headerTranslated}}
             </div>
-            <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3 nopadding wrap text-end">
+            <div class="col-md-3 nopadding wrap text-end">
             <span [style.color]='isValueByPathMinus(phad, field)? "red": "inherit"'>
             {{getValueByPath(phad, field)}}
             </span>

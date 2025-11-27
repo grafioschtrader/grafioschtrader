@@ -21,9 +21,6 @@ export class GtAfterLoginHandler extends AfterLoginHandler {
     // Store supported cryptocurrencies
     sessionStorage.setItem(GlobalGTSessionNames.CRYPTOS, JSON.stringify(configurationWithLogin.cryptocurrencies));
 
-    // Set external help documentation URL
-    sessionStorage.setItem(GlobalGTSessionNames.EXTERNAL_HELP_URL, AppSettings.HELP_URL_BASE);
-
     BaseSettings.resetInterFractionLimit(AppSettings, GlobalSessionNames.STANDARD_CURRENCY_PRECISIONS_AND_LIMITS);
   }
 }

@@ -24,10 +24,10 @@ import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.help
   template: `
     @for (field of fields; track field) {
       <div class="row">
-        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 showlabel text-end">
+        <div class="col-md-6 showlabel text-end">
           {{field.headerTranslated}}:
         </div>
-        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 nopadding wrap">
+        <div class="col-md-6 nopadding wrap">
           {{getValueByPath(dynamicModel, field)}}{{field.headerSuffix}}
         </div>
       </div>

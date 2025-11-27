@@ -37,7 +37,7 @@ import {ClassDescriptorInputAndShow} from '../../lib/dynamicfield/field.descript
               @for (field of fields; track field; let i = $index) {
                 @if (field.visible) {
                   <td
-                    [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
+                    [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-end': ''"
                     [style.width.px]="field.width">
                     @if (i === 0) {
                       <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>

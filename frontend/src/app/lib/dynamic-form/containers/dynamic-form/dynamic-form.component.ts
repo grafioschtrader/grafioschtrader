@@ -17,7 +17,7 @@ import {ValueKeyHtmlSelectOptions} from '../../models/value.key.html.select.opti
   exportAs: 'dynamicForm',
   selector: 'dynamic-form',
   template: `
-    <div class="nopadding container-fluid #actualTarget">
+    <div #actualTarget class="container-fluid dynamic-form-container">
       <form [formGroup]="form" (ngSubmit)="handleSubmit($event)">
         @if (showWithFieldset) {
           @for (fieldsetConfig of fieldsetConfigs; track fieldsetConfig) {
@@ -43,13 +43,15 @@ import {ValueKeyHtmlSelectOptions} from '../../models/value.key.html.select.opti
                                      [group]="form">
                 </dynamic-form-layout>
               } @else {
-                <div [formGroupName]="field['formGroupName']">
+                <ng-container [formGroupName]="field['formGroupName']">
                   @for (childField of field['fieldConfig']; track childField) {
                     <dynamic-form-layout [config]="childField"
                                          [formConfig]="formConfig"
                                          [group]="field.formControl">
                     </dynamic-form-layout>
                   }
+                </ng-container>
+                <div class="col-12">
                   <error-message [baseFieldFieldgroupConfig]="field"></error-message>
                 </div>
               }
@@ -63,7 +65,7 @@ import {ValueKeyHtmlSelectOptions} from '../../models/value.key.html.select.opti
             <button pButton pRipple type="button" icon="pi pi-question"
                     (click)="helpLink($event)" class="p-button-rounded"></button>
           }
-          <div class="float-right">
+          <div class="float-end">
             @for (field of buttons; track field) {
               @if (!field.invisible) {
                 <dynamicField [config]="field"
@@ -302,5 +304,3 @@ class FieldsetConfig {
   constructor(public fieldsetName: string) {
   }
 }
-
-

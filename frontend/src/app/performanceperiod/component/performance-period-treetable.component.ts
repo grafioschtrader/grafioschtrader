@@ -39,7 +39,7 @@ import {AppSettings} from '../../shared/app.settings';
       <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
         <tr>
           @for (field of fields; track field; let i = $index) {
-            <td [ngClass]="{'text-right': (field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric),
+            <td [ngClass]="{'text-end': (field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric),
             'cell-holiday': getHolidayMissing(rowData, field) === HolidayMissing[HolidayMissing.HM_HOLIDAY],
             'cell-data-missing': getHolidayMissing(rowData, field) === HolidayMissing[HolidayMissing.HM_HISTORY_DATA_MISSING]}"
                 [style.width.px]="field.width">
@@ -65,7 +65,7 @@ import {AppSettings} from '../../shared/app.settings';
           @for (field of fields; track field) {
             @if (field.visible) {
               <td class="row-total" [style.width.px]="field.width"
-                  [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
+                  [ngClass]="{'text-end': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
             || field.dataType===DataType.DateTimeNumeric)}">
                 @switch (field.templateName) {
                   @case ('greenRed') {

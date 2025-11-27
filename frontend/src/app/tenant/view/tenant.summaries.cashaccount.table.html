@@ -41,7 +41,7 @@
           @for (field of fields; track field) {
             @if (field.visible) {
               <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''">
+                || field.dataType===DataType.NumericInteger)? 'text-end': ''">
                 @switch (field.templateName) {
                   @case ('greenRed') {
                     <span [pTooltip]="getValueByPath(el, field)" [style.color]='isValueByPathMinus(el, field)? "red": "inherit"'
@@ -61,7 +61,7 @@
           <tr class="rowgroup-total">
             @for (columnConfig of fields; track columnConfig) {
               <td [class]="(columnConfig.dataType===DataType.Numeric || columnConfig.dataType===DataType.NumericInteger
-                || columnConfig.dataType===DataType.DateTimeNumeric)? 'text-right': ''">
+                || columnConfig.dataType===DataType.DateTimeNumeric)? 'text-end': ''">
                 @switch (columnConfig.templateName) {
                   @case ('greenRed') {
                     <span
@@ -87,7 +87,7 @@
           @for (field of fields; track field) {
             @if (field.visible) {
               <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''" [style.width.px]="field.width"
+                || field.dataType===DataType.NumericInteger)? 'text-end': ''" [style.width.px]="field.width"
                   class="row-total">
                 @switch (field.templateName) {
                   @case ('greenRed') {

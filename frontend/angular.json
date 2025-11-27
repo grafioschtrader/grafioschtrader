@@ -27,12 +27,11 @@
               "src/favicon.ico"
             ],
             "styles": [
-              "node_modules/normalize.css/normalize.css",
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
+              "node_modules/normalize.css/normalize.css",
               "node_modules/primeicons/primeicons.css",
               "node_modules/font-awesome/css/font-awesome.min.css",
               "node_modules/ngx-toastr/toastr.css",
-              "node_modules/primeflex/primeflex.css",
               "node_modules/flag-icons/css/flag-icons.min.css",
               "src/assets/theme.css",
               "src/styles.css"
@@ -122,8 +121,8 @@
               "node_modules/split.js/split.js"
             ],
             "styles": [
-              "node_modules/primeng/resources/themes/omega/theme.css",
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
+              "node_modules/primeng/resources/themes/omega/theme.css",
               "node_modules/font-awesome/css/font-awesome.min.css",
               "src/styles.css"
             ],

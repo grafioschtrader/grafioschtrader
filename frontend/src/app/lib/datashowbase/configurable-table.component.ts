@@ -722,7 +722,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
       || field.dataType === DataType.NumericShowZero
       || field.dataType === DataType.NumericInteger
       || field.dataType === DataType.DateTimeNumeric)
-      ? 'text-right'
+      ? 'text-end'
       : '';
   }
 

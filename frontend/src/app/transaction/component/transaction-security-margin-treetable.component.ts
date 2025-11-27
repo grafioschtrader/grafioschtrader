@@ -54,7 +54,7 @@ import {HelpIds} from '../../lib/help/help.ids';
             <tr [ttSelectableRow]="rowNode" [ttSelectableRowDisabled]="rowData.transaction.idTransaction < 0"
                 [ngClass]="{'rowgroup-total': rowData.transaction.idTransaction < 0}">
               @for (field of fields; track field.field; let i = $index) {
-                <td [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
+                <td [ngClass]="{'text-end': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
             || field.dataType===DataType.DateTimeNumeric)}" [style.width.px]="field.width">
                   @if (i === 0) {
                     <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>

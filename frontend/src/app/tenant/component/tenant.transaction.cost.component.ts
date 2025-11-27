@@ -61,7 +61,7 @@ import {BaseSettings} from '../../lib/base.settings';
                   <td [style.max-width.px]="field.width"
                       [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
                       [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                     || field.dataType===DataType.NumericInteger)? 'text-right': ''">
+                     || field.dataType===DataType.NumericInteger)? 'text-end': ''">
                     {{getValueByPath(el, field)}}
                   </td>
                 }
@@ -76,7 +76,7 @@ import {BaseSettings} from '../../lib/base.settings';
                 @if (field.visible) {
                   <td class="row-total" [style.width.px]="field.width"
                       [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''">
+                || field.dataType===DataType.NumericInteger)? 'text-end': ''">
                     {{getValueColumnTotal(field, 0, transactionCostGrandSummary, null)}}
                   </td>
                 }

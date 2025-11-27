@@ -49,7 +49,7 @@ import {TenantDividendsExtendedBase} from './tenant.dividends.extended.base';
               <td [style.max-width.px]="field.width"
                   [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
                   [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''">
+                || field.dataType===DataType.NumericInteger)? 'text-end': ''">
                 <span [pTooltip]="getValueByPath(el, field)" tooltipPosition="top">{{ getValueByPath(el, field) }}</span>
               </td>
             }

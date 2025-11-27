@@ -5,11 +5,11 @@
       @for (field of fieldSetGroups[fieldSetName]; track field) {
         <div class="row">
           @if (field.headerTranslated !=='null') {
-            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5 showlabel text-end">
+            <div class="col-md-5 showlabel text-end">
               {{field.headerTranslated}}:
             </div>
           }
-          <div class="col-lg-7 col-md-7 col-sm-7 col-xs-7 nopadding wrap">
+          <div class="col-md-7 nopadding wrap">
             @switch (field.templateName) {
               @case ('check') {
                 <span><i [ngClass]="{'fa fa-check': getValueByPath(combineTemplateAndImpTransPos, field)}"

@@ -42,7 +42,7 @@ import {FilterService} from 'primeng/api';
                 <td [style.max-width.px]="field.width"
                     [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
                     [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-right': ''">
+                || field.dataType===DataType.NumericInteger)? 'text-end': ''">
                   {{getValueByPath(el, field)}}
                 </td>
               }
@@ -54,7 +54,7 @@ import {FilterService} from 'primeng/api';
 
     <div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix">
       <button pButton [disabled]="!selectedSecurity"
-              class="btn pull-right"
+              class="btn float-end"
               (click)="chooseSecurity()" type="button">
         {{'ASSIGN_SELECTED' | translate}}
       </button>

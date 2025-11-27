@@ -34,7 +34,7 @@ import {TranslateValue} from '../../lib/datashowbase/column.config';
           <tr>
             @for (field of fields; track field.headerTranslated; let i = $index) {
               @if (field.visible) {
-                <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
+                <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-end': ''"
                     [style.width.px]="field.width">
                   @if (i === 0) {
                     <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>

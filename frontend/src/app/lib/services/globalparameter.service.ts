@@ -239,7 +239,7 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
    * @param helpIds The specific help page identifier
    */
   public toExternalHelpWebpage(language: string, helpIds: string) {
-    const helpUrlBase = sessionStorage.getItem('externalHelpUrl');
+    const helpUrlBase = sessionStorage.getItem(GlobalSessionNames.EXTERNAL_HELP_URL);
     if (helpUrlBase) {
       AppHelper.toExternalWebpage(helpUrlBase + '/' + language + '/' + helpIds, 'help');
     }

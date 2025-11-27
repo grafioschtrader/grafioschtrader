@@ -15,7 +15,7 @@ import {BaseInputComponent} from '../base.input.component';
         [class.required-input]="isRequired && !config.readonly"
         [ngClass]="{'form-control-fluid input-sm': config.fieldSuffix,
                 'form-control input-sm': !config.fieldSuffix,
-                 'text-right': config.dataType === DataType.Numeric || config.dataType === DataType.NumericInteger }"
+                 'text-end': config.dataType === DataType.Numeric || config.dataType === DataType.NumericInteger }"
         [type]="(config.dataType === DataType.TimeString)? 'time':
         (config.dataType === DataType.Numeric  || config.dataType === DataType.NumericInteger)?
         'number': (config.dataType === DataType.Password)? 'password': (config.dataType === DataType.Email)? 'email' : 'text'"

@@ -53,7 +53,7 @@ import {SecurityIdWithCurrency} from './security-historyquote-quality-table.comp
         <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
           <tr [ttSelectableRow]="rowNode">
             @for (field of fields; track field; let i = $index) {
-              <td [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
+              <td [ngClass]="{'text-end': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
                 || field.dataType===DataType.DateTimeNumeric)}">
                 @if (i === 0) {
                   <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
@@ -68,7 +68,7 @@ import {SecurityIdWithCurrency} from './security-historyquote-quality-table.comp
             @for (field of fields; track field) {
               @if (field.visible) {
                 <td class="row-total" [style.width.px]="field.width"
-                    [ngClass]="{'text-right': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
+                    [ngClass]="{'text-end': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
                 || field.dataType===DataType.DateTimeNumeric)}">
                   {{ getValueColumnTotal(field, 0, historyquoteQualityHead, null) }}
                 </td>

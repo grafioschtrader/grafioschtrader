@@ -25,7 +25,7 @@
         <tr [pContextMenuRow] [pSelectableRow]="el">
           @for (field of fields; track field.field) {
             @if (field.visible) {
-              <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-right': ''"
+              <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-end': ''"
                   [style.max-width.px]="field.width"
                   [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
                 @switch (field.templateName) {

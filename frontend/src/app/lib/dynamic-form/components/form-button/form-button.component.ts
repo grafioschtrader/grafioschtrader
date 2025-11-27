@@ -9,12 +9,12 @@ import {FormConfig} from '../../models/form.config';
     selector: 'form-button',
   template: `
     @if (!config.buttonFN) {
-      <button class="btn ml-1"
+      <button class="btn btn-primary ms-1"
               type="submit" [disabled]="!group.valid || config.disabled">
         {{config.labelKey | translate}}
       </button>
     } @else {
-      <button class="btn ml-1"
+      <button class="btn btn-primary ms-1"
               [disabled]="config.disabled" type="button" (click)="config.buttonFN($event)">
         {{config.labelKey | translate}}
       </button>

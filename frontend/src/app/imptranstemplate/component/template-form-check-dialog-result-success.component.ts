@@ -16,10 +16,10 @@ import {AppSettings} from '../../shared/app.settings';
     <h4>{{'IMPORT_POS_CHECK_SUCCESS' | translate}}</h4>
     @for (field of fields; track field) {
       <div class="row">
-        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 showlabel text-end">
+        <div class="col-md-6 showlabel text-end">
           {{field.headerTranslated}}:
         </div>
-        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 nopadding wrap">
+        <div class="col-md-6 nopadding wrap">
           {{getValueByPath(formTemplateCheck.importTransactionPos, field)}}
         </div>
       </div>

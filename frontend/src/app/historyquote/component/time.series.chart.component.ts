@@ -46,7 +46,6 @@ import {TwoKeyMap} from '../../lib/helper/two.key.map';
 import {Transaction} from '../../entities/transaction';
 import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.helper';
 import {BaseSettings} from '../../lib/base.settings';
-import {Base} from 'primeng/base';
 
 declare let Plotly: any;
 
