@@ -4,14 +4,6 @@ html {
 }
 
 
-.p-button-label {
-  font-size: 75%;
-}
-
-.p-datatable-tbody > tr.p-datatable-row-selected {
-  background: #2563eb !important;
-}
-
 .p-datatable-scrollable td.p-datatable-frozen-column {
   background: #fff;
   color: #000;
@@ -35,16 +27,6 @@ html {
 
 body {
   line-height: 1.3;
-}
-
-
-/* Bootstrap 5 form styling adjustments */
-.mb-3.row {
-  align-items: center;
-}
-
-.mb-3 {
-  margin-bottom: 4px !important;
 }
 
 
@@ -80,29 +62,6 @@ label {
 .p-calendar .p-button {
   position: relative;
   height: 22px;
-}
-
-.p-inputgroup .p-button {
-  position: relative;
-  height: 22px;
-}
-
-/**
-/* Correct matching boxes of elements with two inputs
- */
-.p-datepicker {
-  width: 160px !important;
-}
-
-
-.p-autocomplete {
-  width: 100%;
-}
-
-
-
-.data-container-full {
-  height: 100%;
 }
 
 
@@ -153,93 +112,8 @@ label {
   display: table;
 }
 
-/* UNUSED - NOT FOUND IN CODEBASE - OLD PRIMENG WIDGET STYLING - CAN BE DELETED */
-/*.p-widget-content {
-  border-left: none;
-  border-right: none;
-  border-top-width: 1px;
-  border-bottom-width: 1px;
-  border-color: #D5D5D5;
-}*/
-
-.gutter {
-  background-color: #eee;
-  background-repeat: no-repeat;
-  background-position: 50%;
-}
-
-.gutter.gutter-horizontal {
-  background-image: url('assets/vertical.png');
-  cursor: ew-resize;
-}
-
-.gutter.gutter-vertical {
-  background-image: url('assets/horizontal.png');
-  cursor: ns-resize;
-}
-
-.split.split-horizontal, .gutter.gutter-horizontal {
-  height: 100%;
-  float: left;
-}
-
-button.p-button.button-no-label > span.p-button-label {
-  display: none;
-}
-
-button.p-button.button-no-label {
-  padding: 0.25rem;
-  height: 32px;
-  min-width: 32px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .progress-bar-box {
   margin: 5px 50px;
-}
-
-/**
- * Set overflow-y to hidden, if table supports responsive in y direction
- */
-.split {
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  box-sizing: border-box;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-legend {
-  float: none;
-}
-
-.out-border-legend {
-  font-size: 100%;
-  font-weight: bold;
-  width: inherit; /* Or auto */
-  padding: 0 10px !important; /* To give a bit of padding on the left and right */
-  border: 1px groove #ddd !important;
-  margin-bottom: 2px;
-}
-
-.out-border {
-  border: 1px groove #ddd !important;
-  padding: 0 .25em .25em .25em !important;
-  margin: 1em 1em 1em 0 !important;
-  -webkit-box-shadow: 0px 0px 0px 0px #000;
-  box-shadow: 0px 0px 0px 0px #000;
-}
-
-/* UNUSED - NOT FOUND IN CODEBASE - DUPLICATE OF .text-right (line 593) - CAN BE DELETED */
-/*.ftext-right {
-  text-align: right !important;
-  padding-right: initial !important;
-}*/
-
-.row-total {
-  background: lightskyblue !important;
 }
 
 .rowgroup-total {
@@ -251,22 +125,6 @@ legend {
 .blank_row {
   height: 12px !important; /* overwrites any other rules */
   background-color: #FFFFFF;
-}
-
-.active-border {
-  border-style: solid;
-  border-width: 2px;
-  border-color: blue;
-}
-
-.passiv-border {
-  border-style: solid;
-  border-width: 2px;
-  border-color: transparent;
-}
-
-.bg-info a:link {
-  text-decoration: underline;
 }
 
 
@@ -288,21 +146,6 @@ legend {
   box-sizing: content-box;
 }
 
-/**
-* scrollHeight not dynamically on new Turbo Table #4884
-* It would be great to have a frozen header
- *[scrollable]="true" scrollHeight="100%"
- */
-/* UNUSED - NOT FOUND IN CODEBASE - CAN BE DELETED */
-/*.fullScrollTable {
-  height: calc(100% - 50px);
-}*/
-
-.fullheight {
-  height: calc(100vh - 36px);
-  border-radius: 4px;
-}
-
 .big-dialog {
   overflow-y: auto;
   max-height: calc(100vh - 20px);
@@ -315,72 +158,13 @@ legend {
   margin-top: 3px;
 }
 
-/**
- * See: Enable row expansion based on row data #1586 github,Primeng
- */
-/* UNUSED - NOT FOUND IN CODEBASE - CAN BE DELETED */
-/*.noExpander span.p-row-toggler {
-  display: none;
-}*/
-
-/**
-* Bootstrap Form-Control
- */
-.form-group-sm .form-control, .form-group-sm select.form-control {
-  height: 22px;
-  padding: 1px 1px;
-}
-
 .form-group {
   margin-top: 3px;
   margin-bottom: 2px;
 }
 
-.form-control {
-  font-size: 0.75rem;
-  padding: 1px 1px;
-}
-
-.form-control-file-input {
-  font-size: 0.75rem;
-  height: auto;
-}
-
 .big-size {
   font-size: 1rem;
-}
-
-.form-control-fluid {
-  height: 22px;
-  padding: 1px 1px;
-  line-height: 1.42857143;
-  color: #555;
-  background-color: #fff;
-  background-image: none;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
-  -webkit-transition: border-color ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;
-  -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
-  transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
-}
-
-.negativ-number {
-  color: indianred;
-}
-
-.small-padding {
-  padding-right: 4px !important;
-  padding-left: 4px !important;
-}
-
-.required-input {
-  border-left: 5px solid #42A948 !important; /* green */
-}
-
-.required-input:disabled {
-  border-left: inherit;
 }
 
 /* UNUSED - NOT FOUND IN CODEBASE - CAN BE DELETED */
@@ -467,17 +251,7 @@ select option:disabled {
   text-align: left;
 }
 
-th {
-  font-weight: normal;
-  overflow-x: hidden;
-  white-space: normal !important;
-}
 
-td {
-  text-overflow: ellipsis;
-  overflow-x: hidden;
-  white-space: nowrap !important;
-}
 
 .p-datatable .p-datatable-tbody > tr:nth-child(even).p-contextmenu-selected {
   background: transparent;
@@ -489,21 +263,12 @@ td {
   color: #222222;
 }
 
-.nestedtable th {
-  white-space: normal;
-}
-
 /**
  Makes filter input in table header not bigger then the cell
  */
 table th input {
   width: 100%;
   margin: 0;
-}
-
-table th .p-inputtext {
-  padding: 0.1em;
-
 }
 
 .singleRowTableHeader {
@@ -603,42 +368,6 @@ table th .p-inputtext {
   margin-top: 10px;
   font-size: 12px;
 }
-
-.p-inputtext {
-  width: 100%;
-}
-
-
-/**
- * Jumbotron replacement for Bootstrap 5
- */
-.jumbotron-replacement {
-  background-color: #EEEEEE;
-  padding: 3rem 2rem;
-  border-radius: 0.5rem;
-}
-
-/**
- * Alert components (replacement for Bootstrap alerts)
- */
-.alert {
-  padding: 0.75rem 1.25rem;
-  margin-bottom: 1rem;
-  border: 1px solid transparent;
-  border-radius: 0.25rem;
-}
-
-.alert-danger {
-  color: #721c24;
-  background-color: #f8d7da;
-  border-color: #f5c6cb;
-}
-
-.select-item {
-  display: flex;
-  align-items: center;
-}
-
 
 
 

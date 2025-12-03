@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
 import {HelpIds} from '../../lib/help/help.ids';
@@ -14,6 +14,8 @@ import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 /**
  * Dialog to fill gaps of history quotes.
@@ -30,7 +32,8 @@ import {ProcessedAction} from '../../lib/types/processed.action';
       </dynamic-form>
     </p-dialog>
   `,
-    standalone: false
+    standalone: true,
+    imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class HistoryquoteQualityFillGapsComponent extends SimpleEditBase implements OnInit {
   @Input() historyquoteQuality: IHistoryquoteQuality;

@@ -1,7 +1,7 @@
 import {AbstractControl, FormGroup, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
 import {UDFDataType} from '../udfmeta/model/udf.metadata';
 import {GlobalSessionNames} from '../global.session.names';
-import {UDFConfig} from '../login/component/login.component';
+import {UDFConfig} from '../login/model/configuration-with-login';
 
 export const isPresent = (obj: any): boolean => obj !== undefined && obj !== null;
 

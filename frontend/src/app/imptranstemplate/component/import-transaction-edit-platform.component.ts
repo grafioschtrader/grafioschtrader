@@ -3,7 +3,7 @@ import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
 import {ImportTransactionPlatform} from '../../entities/import.transaction.platform';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {HelpIds} from '../../lib/help/help.ids';
 import {ImportTransactionPlatformService} from '../service/import.transaction.platform.service';
@@ -14,6 +14,8 @@ import {Auditable} from '../../lib/entities/auditable';
 import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 /**
  * Dialog for editing the transaction import template group
@@ -29,7 +31,8 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`,
-    standalone: false
+    standalone: true,
+    imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class ImportTransactionEditPlatformComponent extends SimpleEntityEditBase<ImportTransactionPlatform> implements OnInit {
 

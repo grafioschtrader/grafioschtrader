@@ -168,37 +168,3 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
   }
 }
 
-export interface ConfigurationWithLoginGT {
-  useFeatures: FeatureType[];
-  entityNameWithKeyNameList: EntityNameWithKeyName[];
-  cryptocurrencies: string[];
-  standardPrecision: { [typename: string]: number };
-  currencyPrecision: { [currency: string]: number };
-  fieldSize: { [fieldSize: string]: number };
-  uiShowMyProperty: boolean;
-  mostPrivilegedRole: string;
-  passwordRegexOk: boolean;
-  udfConfig: UDFConfig
-}
-
-export interface EntityNameWithKeyName {
-  entityName: string;
-  keyName: string;
-}
-
-export interface UDFConfig {
-  udfGeneralSupportedEntities: string[];
-  uDFPrefixSuffixMap: { [udfDatatype: string]: UDFPrefixSuffix };
-}
-
-export interface UDFPrefixSuffix {
-  prefix: number;
-  suffix: number;
-  together: number;
-}
-
-export enum FeatureType {
-  WEBSOCKET,
-  ALGO,
-  ALERT
-}

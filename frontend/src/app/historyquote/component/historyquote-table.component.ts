@@ -1,5 +1,5 @@
 import {Component, OnDestroy} from '@angular/core';
-
+import {CommonModule} from '@angular/common';
 import {Historyquote, HistoryquoteCreateType} from '../../entities/historyquote';
 import {HistoryquoteService} from '../service/historyquote.service';
 import {ActivatedRoute} from '@angular/router';
@@ -13,7 +13,7 @@ import {SecurityTransactionSummary} from '../../entities/view/security.transacti
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 import {CurrencypairWithTransaction} from '../../entities/view/currencypair.with.transaction';
 import {TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {INameSecuritycurrency} from '../../entities/view/iname.securitycurrency';
 import {SecurityTransactionPosition} from '../../entities/view/security.transaction.position';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
@@ -36,9 +36,16 @@ import {DataChangedService} from '../../lib/maintree/service/data.changed.servic
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {FileUploadParam} from '../../lib/generaldialog/model/file.upload.param';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
-import {SvgIconRegistryService} from 'angular-svg-icon';
+import {AngularSvgIconModule, SvgIconRegistryService} from 'angular-svg-icon';
 import {DialogService} from 'primeng/dynamicdialog';
 import {BaseSettings} from '../../lib/base.settings';
+import {PanelModule} from 'primeng/panel';
+import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
+import {HistoryquoteQualityComponent} from './historyquote-quality.component';
+import {HistoryquoteEditComponent} from './historyquote-edit.component';
+import {UploadFileDialogComponent} from '../../lib/generaldialog/component/upload-file-dialog.component';
+import {HistoryquoteQualityFillGapsComponent} from './historyquote-quality-fill-gaps.component';
+import {HistoryquoteDeleteDialogComponent} from './historyquote-delete-dialog.component';
 
 /**
  * Shows the history quotes in a table
@@ -125,7 +132,19 @@ import {BaseSettings} from '../../lib/base.settings';
     }
   `,
   providers: [DialogService],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    TranslateModule,
+    PanelModule,
+    ConfigurableTableComponent,
+    AngularSvgIconModule,
+    HistoryquoteQualityComponent,
+    HistoryquoteEditComponent,
+    UploadFileDialogComponent,
+    HistoryquoteQualityFillGapsComponent,
+    HistoryquoteDeleteDialogComponent
+  ]
 })
 export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquote> implements OnDestroy {
   minDate: Date = new Date('2000-01-01');

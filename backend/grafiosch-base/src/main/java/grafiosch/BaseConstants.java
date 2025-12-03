@@ -137,6 +137,9 @@ public abstract class BaseConstants {
   /** Default regular expression for password strength validation. Requires at least 8 characters with letter and digit. */
   public static final String STANDARD_PASSWORD_REGEX = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$";
 
+  /** Normal precision for decimal numbers with currency */
+  public static final int FID_STANDARD_FRACTION_DIGITS = 2;
+  
   /** Maximum total digits allowed in numeric fields. */
   public static final int FID_MAX_DIGITS = 16;
 
@@ -206,6 +209,8 @@ public abstract class BaseConstants {
    * pair which has no context to the tenant data.
    */
   public static final String STEAL_DATA_SECURITY_BREACH = "steal.data.security.breach";
+
+ 
 
  
 }

@@ -1,7 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {HelpIds} from '../../lib/help/help.ids';
@@ -17,13 +17,15 @@ import {Auditable} from '../../lib/entities/auditable';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 /**
  * Edit import transaction template in a dialog
  */
 @Component({
-    selector: 'import-transaction-edit-template',
-    template: `
+  selector: 'import-transaction-edit-template',
+  template: `
     <p-dialog header="{{'IMPORT_TRANSACTION_TEMPLATE' | translate}}" [(visible)]="visibleDialog"
               [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -33,7 +35,8 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`,
-    standalone: false
+  standalone: true,
+  imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class ImportTransactionEditTemplateComponent extends SimpleEntityEditBase<ImportTransactionTemplate> implements OnInit {
 

@@ -66,26 +66,48 @@ public class ConfigurationWithLogin {
   public final UDFConfig udfConfig = new UDFConfig();
 
   /**
+   * Set of enabled features for controlling partially implemented functionality.
+   *
+   * <p>
+   * Certain functionality is only partially implemented. Therefore, this should not be visible in the frontend. This
+   * can be switched on or off through feature configuration to control user access to incomplete features.
+   * </p>
+   */
+  public Set<? extends FeatureType> useFeatures;
+
+  /**
+   * Standard precision configuration for numeric field formatting.
+   *
+   * <p>
+   * Filled with the standard decimal places of numbers, see definition of "FID_*" constants.
+   * This mapping provides formatting precision for various numeric fields throughout the application.
+   * </p>
+   */
+  public final Map<String, Integer> standardPrecision;
+
+  /**
    * Creates a configuration object with essential login and system information.
-   * 
+   *
    * <p>
    * Constructs the configuration DTO with all necessary data for frontend operation including entity metadata, field
-   * constraints, user preferences, authorization context, and password policy status.
+   * constraints, user preferences, authorization context, password policy status, and numeric formatting precision.
    * </p>
-   * 
+   *
    * @param entityNameWithKeyNameList list of entity names and their primary key fields
    * @param fieldSize                 map of field size constraints from application constants
    * @param uiShowMyProperty          flag for showing entity ownership in UI
    * @param mostPrivilegedRole        user's highest privilege role for authorization
    * @param passwordRegexOk           current password policy compliance status
+   * @param standardPrecision         standard precision constants for field formatting
    */
   public ConfigurationWithLogin(List<EntityNameWithKeyName> entityNameWithKeyNameList, Map<String, Integer> fieldSize,
-      boolean uiShowMyProperty, String mostPrivilegedRole, boolean passwordRegexOk) {
+      boolean uiShowMyProperty, String mostPrivilegedRole, boolean passwordRegexOk, Map<String, Integer> standardPrecision) {
     this.entityNameWithKeyNameList = entityNameWithKeyNameList;
     this.fieldSize = fieldSize;
     this.uiShowMyProperty = uiShowMyProperty;
     this.mostPrivilegedRole = mostPrivilegedRole;
     this.passwordRegexOk = passwordRegexOk;
+    this.standardPrecision = standardPrecision;
   }
 
   public static class EntityNameWithKeyName {
@@ -123,5 +145,9 @@ public class ConfigurationWithLogin {
 
     /** Mapping of UDF data types to their formatting prefix and suffix rules. */
     public Map<UDFDataType, UDFPrefixSuffix> uDFPrefixSuffixMap = BaseConstants.uDFPrefixSuffixMap;
+  }
+  
+  public static interface FeatureType {
+    
   }
 }

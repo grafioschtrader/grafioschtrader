@@ -37,9 +37,6 @@ public class GlobalConstants extends BaseConstants {
   public static final String MC_AUD = "AUD";
   public static final String CC_BTC = "BTC";
 
-  /** Normal precision for decimal numbers */
-  public static final int FID_STANDARD_FRACTION_DIGITS = 2;
-
   /** Maximum precision digits for currency exchange rates. */
   public static final int FID_MAX_CURRENCY_EX_RATE_PRECISION = 20;
   

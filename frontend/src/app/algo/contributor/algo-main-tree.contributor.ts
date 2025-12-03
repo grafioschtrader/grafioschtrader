@@ -18,7 +18,7 @@ import {BaseSettings} from '../../lib/base.settings';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {GlobalSessionNames} from '../../lib/global.session.names';
-import {FeatureType} from '../../lib/login/component/login.component';
+import {FeatureType} from '../../lib/login/model/configuration-with-login';
 import {AlgoRuleStrategyCreateDynamicComponent} from '../component/algo.rule.strategy.create.component';
 
 /**

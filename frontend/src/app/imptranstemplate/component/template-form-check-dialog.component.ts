@@ -2,7 +2,7 @@ import {Component, Input, OnInit} from '@angular/core';
 import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {HelpIds} from '../../lib/help/help.ids';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
@@ -11,6 +11,10 @@ import {FormTemplateCheck} from './form.template.check';
 import {ImportTransactionPlatform} from '../../entities/import.transaction.platform';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
+import {TemplateFormCheckDialogResultSuccessComponent} from './template-form-check-dialog-result-success.component';
+import {TemplateFormCheckDialogResultFailedComponent} from './template-form-check-dialog-result-failed.component';
 
 @Component({
     selector: 'template-form-check-dialog',
@@ -37,7 +41,8 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
         }
       }
     </p-dialog>`,
-    standalone: false
+    standalone: true,
+    imports: [DialogModule, DynamicFormModule, TranslateModule, TemplateFormCheckDialogResultSuccessComponent, TemplateFormCheckDialogResultFailedComponent]
 })
 export class TemplateFormCheckDialogComponent extends SimpleEditBase implements OnInit {
   @Input() importTransactionPlatform: ImportTransactionPlatform;

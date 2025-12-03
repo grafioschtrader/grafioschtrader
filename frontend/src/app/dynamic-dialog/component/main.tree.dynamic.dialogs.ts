@@ -12,7 +12,7 @@ export class MainTreeDynamicDialogs {
     dialogService: DialogService,
     tenant: Tenant, onlyCurrency: boolean): DynamicDialogRef {
     const dynamicDialogHelper = new DynamicDialogHelper(translateService, dialogService,
-      TenantEditDynamicComponent, onlyCurrency ? 'CLIENT_CHANGE_CURRENCY' : 'CLIENT');
+      TenantEditDynamicComponent, onlyCurrency ? 'TENANT_CHANGE_CURRENCY' : 'TENANT');
     return dynamicDialogHelper.openDynamicDialog(400, {tenant: tenant, onlyCurrency: onlyCurrency});
   }
 

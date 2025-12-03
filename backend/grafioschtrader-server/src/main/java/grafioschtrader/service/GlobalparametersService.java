@@ -14,6 +14,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import grafiosch.BaseConstants;
 import grafiosch.common.DateHelper;
 import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafiosch.entities.Globalparameters;
@@ -73,10 +74,10 @@ public class GlobalparametersService {
    * @param currency the ISO currency code (e.g., "USD", "EUR", "BTC")
    * @return the number of decimal places to use for the specified currency
    * @see #getCurrencyPrecision()
-   * @see GlobalConstants#FID_STANDARD_FRACTION_DIGITS
+   * @see BaseConstants#FID_STANDARD_FRACTION_DIGITS
    */
   public int getPrecisionForCurrency(String currency) {
-    return getCurrencyPrecision().getOrDefault(currency, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
+    return getCurrencyPrecision().getOrDefault(currency, BaseConstants.FID_STANDARD_FRACTION_DIGITS);
   }
 
   /**

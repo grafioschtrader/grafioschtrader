@@ -1,5 +1,6 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
+import {CommonModule} from '@angular/common';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {ActivatedRoute} from '@angular/router';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {SingleRecordMasterViewBase} from '../../lib/masterdetail/component/single.record.master.view.base';
@@ -25,9 +26,14 @@ import {
   SuccessFailedImportTransactionTemplate
 } from '../service/import.transaction.template.service';
 import {saveAs} from '../../lib/filesaver/filesaver';
-import {NgxFileDropEntry} from 'ngx-file-drop';
+import {NgxFileDropEntry, NgxFileDropModule} from 'ngx-file-drop';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {BaseSettings} from '../../lib/base.settings';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
+import {ContextMenuModule} from 'primeng/contextmenu';
+import {ImportTransactionEditPlatformComponent} from './import-transaction-edit-platform.component';
+import {TransformPdfToTxtDialogComponent} from './transform-pdf-to-txt-dialog.component';
+import {TemplateFormCheckDialogComponent} from './template-form-check-dialog.component';
 
 /**
  * Main component of import transaction template. It combines other components like a table.
@@ -76,7 +82,18 @@ import {BaseSettings} from '../../lib/base.settings';
       </template-form-check-dialog>
     }
   `,
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    TranslateModule,
+    NgxFileDropModule,
+    DynamicFormModule,
+    ContextMenuModule,
+    ImportTransactionTemplateTableComponent,
+    ImportTransactionEditPlatformComponent,
+    TransformPdfToTxtDialogComponent,
+    TemplateFormCheckDialogComponent
+  ]
 })
 export class ImportTransactionTemplateComponent extends SingleRecordMasterViewBase<ImportTransactionPlatform, ImportTransactionTemplate, CallParam>
   implements OnInit, OnDestroy, ParentChildRowSelection<ImportTransactionTemplate> {

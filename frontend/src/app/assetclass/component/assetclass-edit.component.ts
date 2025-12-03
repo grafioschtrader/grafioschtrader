@@ -4,7 +4,7 @@ import {AppHelper} from '../../lib/helper/app.helper';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {AssetclassService} from '../service/assetclass.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {HelpIds} from '../../lib/help/help.ids';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {AssetclassCallParam} from './assetclass.call.param';
@@ -15,6 +15,8 @@ import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
 import {AppSettings} from '../../shared/app.settings';
 import {AssetClassTypeSpecInstrument} from '../../udfmetasecurity/components/asset.class.type.spec.instrument';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 /**
  * Edit asset classes in a dialog
@@ -31,7 +33,8 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
       </dynamic-form>
     </p-dialog>
   `,
-    standalone: false
+    standalone: true,
+    imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class AssetclassEditComponent extends AssetClassTypeSpecInstrument<Assetclass> implements OnInit {
 
@@ -94,7 +97,6 @@ export class AssetclassEditComponent extends AssetClassTypeSpecInstrument<Assetc
     if (!this.callParam.assetclass) {
       setTimeout(() => this.configObject.categoryType.elementRef.nativeElement.focus());
     }
-
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Assetclass {

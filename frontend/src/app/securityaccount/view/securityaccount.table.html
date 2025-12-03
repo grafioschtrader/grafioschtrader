@@ -179,7 +179,7 @@
       </ng-template>
     </p-table>
     @if (isActivated() && contextMenuItems) {
-      <p-contextMenu [model]="contextMenuItems" [target]="cmDiv"></p-contextMenu>
+      <p-contextMenu [model]="contextMenuItems" [target]="cmDiv" appendTo="body"></p-contextMenu>
     }
   </div>
 </div>

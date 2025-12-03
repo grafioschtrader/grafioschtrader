@@ -25,5 +25,10 @@ export enum GlobalGTSessionNames {
    */
   REPORT_UNTIL_DATE = 'untilDate',
 
+  /**
+   * Some currencies will not have two decimal places. These will be stored under this key.
+   */
+  CURRENCY_PRECISION = 'currencyPrecision',
+
 
 }

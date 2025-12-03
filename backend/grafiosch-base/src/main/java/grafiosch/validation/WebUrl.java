@@ -13,7 +13,7 @@ import jakarta.validation.Payload;
 @Constraint(validatedBy = WebUrlValidator.class)
 public @interface WebUrl {
 
-  String message() default "{gt.webUrl}";
+  String message() default "{webUrl}";
 
   Class<?>[] groups() default {};
 

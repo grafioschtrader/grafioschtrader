@@ -449,7 +449,7 @@ public class PerformanceReport {
       throw new DataViolationException(DATE_TO_FIELD_MSG, "gt.not.valid.trading.day", dateTo, localeStr);
     }
     if (!dateTo.isAfter(dateFrom)) {
-      throw new DataViolationException("date.from.to", "gt.not.date.period", null, localeStr);
+      throw new DataViolationException("date.from.to", "not.date.period", null, localeStr);
     }
     long weeks = ChronoUnit.WEEKS.between(dateFrom, dateTo);
     long months = ChronoUnit.MONTHS.between(dateFrom, dateTo);

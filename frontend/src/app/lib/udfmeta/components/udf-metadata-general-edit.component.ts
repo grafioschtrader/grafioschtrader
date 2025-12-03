@@ -14,7 +14,7 @@ import {TranslateHelper} from '../../helper/translate.helper';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {Subscription} from 'rxjs';
 import {SelectOptionsHelper} from '../../helper/select.options.helper';
-import {UDFConfig} from '../../login/component/login.component';
+import {UDFConfig} from '../../login/model/configuration-with-login';
 import {BaseSettings} from '../../base.settings';
 import {CommonModule} from '@angular/common';
 import {DialogModule} from 'primeng/dialog';

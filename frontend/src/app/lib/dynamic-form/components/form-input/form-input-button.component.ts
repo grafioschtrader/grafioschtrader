@@ -24,9 +24,12 @@ import {BaseInputComponent} from '../base.input.component';
           [min]="config.min"
           [max]="config.max"
           [upperCase]="config.upperCase">
-        <span *ngIf="config.fieldSuffix" class="p-inputgroup-addon">{{config.fieldSuffix|translate}}</span>
-        <button pButton type="button" icon="pi pi-search" [attr.disabled]="config.disabled"
+        @if (config.fieldSuffix) {
+          <span class="p-inputgroup-addon">{{config.fieldSuffix|translate}}</span>
+        }
+        <button pButton type="button" [attr.disabled]="config.disabled"
                 (click)="config.buttonFN(config)">
+          <i [class]="config.icon || 'pi pi-search'" pButtonIcon></i>
         </button>
       </div>
     </ng-container>

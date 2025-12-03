@@ -15,7 +15,6 @@ import grafiosch.security.UserAuthentication;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.config.FeatureConfig;
 import grafioschtrader.service.GlobalparametersService;
-import grafioschtrader.types.FeatureType;
 import jakarta.transaction.Transactional;
 
 /**
@@ -100,16 +99,6 @@ public class TokenAuthenticationService extends TokenAuthentication {
    */
   static class ConfigurationWithLoginGT extends ConfigurationWithLogin {
     /**
-     * Set of enabled features for controlling partially implemented functionality.
-     * 
-     * <p>
-     * Certain functionality is only partially implemented. Therefore, this should not be visible in the frontend. This
-     * can be switched on or off through feature configuration to control user access to incomplete features.
-     * </p>
-     */
-    public Set<FeatureType> useFeatures;
-    
-    /**
      * List of supported cryptocurrencies for trading operations.
      * 
      * <p>Contains the cryptocurrencies that the application supports for trading,
@@ -118,18 +107,17 @@ public class TokenAuthenticationService extends TokenAuthentication {
      */
     public static final List<String> cryptocurrencies = GlobalConstants.CRYPTO_CURRENCY_SUPPORTED;
     /**
-     * Certain currencies have a deviation of two decimal places. This should be made known here.
+     * Certain currencies have a deviation different of two decimal places. This should be made known here.
      */
     public final Map<String, Integer> currencyPrecision;
-    public final Map<String, Integer> standardPrecision;
 
     /**
      * Creates a comprehensive GrafioschTrader configuration object.
-     * 
+     *
      * <p>Constructs the complete configuration with all necessary data for the
      * trading application frontend, including entity metadata, field constraints,
      * user preferences, financial precision settings, and feature toggles.</p>
-     * 
+     *
      * @param entityNameWithKeyNameList JPA entity metadata for frontend integration
      * @param fieldSize field size constraints from application constants
      * @param uiShowMyProperty user's UI property display preference
@@ -141,11 +129,10 @@ public class TokenAuthenticationService extends TokenAuthentication {
      */
     public ConfigurationWithLoginGT(List<EntityNameWithKeyName> entityNameWithKeyNameList,
         Map<String, Integer> fieldSize, boolean uiShowMyProperty, String mostPrivilegedRole, boolean passwordRegexOk,
-        Map<String, Integer> currencyPrecision, Map<String, Integer> standardPrecision, Set<FeatureType> useFeatures) {
-      super(entityNameWithKeyNameList, fieldSize, uiShowMyProperty, mostPrivilegedRole, passwordRegexOk);
+        Map<String, Integer> currencyPrecision, Map<String, Integer> standardPrecision, Set<? extends FeatureType> useFeatures) {
+      super(entityNameWithKeyNameList, fieldSize, uiShowMyProperty, mostPrivilegedRole, passwordRegexOk, standardPrecision);
       this.useFeatures = useFeatures;
       this.currencyPrecision = currencyPrecision;
-      this.standardPrecision = standardPrecision;
     }
   }
 

@@ -1,0 +1,247 @@
+/* Bootstrap 5 form styling adjustments */
+.mb-3.row {
+  align-items: center;
+}
+
+.mb-3 {
+  margin-bottom: 4px !important;
+}
+
+/**
+* PrimeNg Table
+*/
+
+/* Background color of the selected row in a table */
+.p-datatable-tbody > tr.p-datatable-row-selected {
+  background: #2563eb !important;
+}
+
+
+.p-inputgroup .p-button {
+  position: relative;
+  height: 22px;
+}
+
+th {
+  font-weight: normal;
+  overflow-x: hidden;
+  white-space: normal !important;
+}
+
+td {
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+  white-space: nowrap !important;
+}
+
+
+/**
+/* Correct matching boxes of elements with two inputs
+ */
+.p-datepicker {
+  width: 160px !important;
+}
+
+
+.p-autocomplete {
+  width: 100%;
+}
+
+
+
+.data-container-full {
+  height: 100%;
+}
+
+.gutter {
+  background-color: #eee;
+  background-repeat: no-repeat;
+  background-position: 50%;
+}
+
+.gutter.gutter-horizontal {
+  background-image: url('../../assets/vertical.png');
+  cursor: ew-resize;
+}
+
+.gutter.gutter-vertical {
+  background-image: url('../../assets/horizontal.png');
+  cursor: ns-resize;
+}
+
+.split.split-horizontal, .gutter.gutter-horizontal {
+  height: 100%;
+  float: left;
+}
+
+button.p-button.button-no-label > span.p-button-label {
+  display: none;
+}
+
+button.p-button.button-no-label {
+  padding: 0.25rem;
+  height: 32px;
+  min-width: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/**
+ * Set overflow-y to hidden, if table supports responsive in y direction
+ */
+.split {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+legend {
+  float: none;
+}
+
+.out-border-legend {
+  font-size: 100%;
+  font-weight: bold;
+  width: inherit; /* Or auto */
+  padding: 0 10px !important; /* To give a bit of padding on the left and right */
+  border: 1px groove #ddd !important;
+  margin-bottom: 2px;
+}
+
+.out-border {
+  border: 1px groove #ddd !important;
+  padding: 0 .25em .25em .25em !important;
+  margin: 1em 1em 1em 0 !important;
+  -webkit-box-shadow: 0px 0px 0px 0px #000;
+  box-shadow: 0px 0px 0px 0px #000;
+}
+
+
+.row-total {
+  background: lightskyblue !important;
+}
+
+.active-border {
+  border-style: solid;
+  border-width: 2px;
+  border-color: blue;
+}
+
+.passiv-border {
+  border-style: solid;
+  border-width: 2px;
+  border-color: transparent;
+}
+
+.bg-info a:link {
+  text-decoration: underline;
+}
+
+
+.fullheight {
+  height: calc(100vh - 36px);
+  border-radius: 4px;
+}
+
+/**
+* Bootstrap Form-Control
+ */
+.form-group-sm .form-control, .form-group-sm select.form-control {
+  height: 22px;
+  padding: 1px 1px;
+}
+
+.form-control {
+  font-size: 0.75rem;
+  padding: 1px 1px;
+}
+
+.form-control-file-input {
+  font-size: 0.75rem;
+  height: auto;
+}
+
+.form-control-fluid {
+  height: 22px;
+  padding: 1px 1px;
+  line-height: 1.42857143;
+  color: #555;
+  background-color: #fff;
+  background-image: none;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+  -webkit-transition: border-color ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;
+  -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+  transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+}
+
+.negativ-number {
+  color: indianred;
+}
+
+.small-padding {
+  padding-right: 4px !important;
+  padding-left: 4px !important;
+}
+
+.required-input {
+  border-left: 5px solid #42A948 !important; /* green */
+}
+
+.required-input:disabled {
+  border-left: inherit;
+}
+
+.nestedtable th {
+  white-space: normal;
+}
+
+table th .p-inputtext {
+  padding: 0.1em;
+
+}
+
+.p-inputtext {
+  width: 100%;
+}
+
+
+/**
+ * Jumbotron replacement for Bootstrap 5
+ */
+.jumbotron-replacement {
+  background-color: #EEEEEE;
+  padding: 3rem 2rem;
+  border-radius: 0.5rem;
+}
+
+/**
+ * Alert components (replacement for Bootstrap alerts)
+ */
+.alert {
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.25rem;
+}
+
+.alert-danger {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+}
+
+.select-item {
+  display: flex;
+  align-items: center;
+}
+
+
+.p-button-label {
+  font-size: 75%;
+}

@@ -1,10 +1,12 @@
 package grafioschtrader.types;
 
+import grafiosch.dto.ConfigurationWithLogin.FeatureType;
+
 /**
  * Certain functionality is only partially implemented. Therefore, this should not be visible in the frontend. This can
  * be switched on or off.
  */
-public enum FeatureType {
+public enum FeatureTypeGT implements FeatureType {
   /** Real-time data transmission. For example, the transmission of stock prices */
   WEBSOCKET,
   /** Algorithm for trading. For example, the automatic execution of a trading */

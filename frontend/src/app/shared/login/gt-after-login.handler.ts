@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {AfterLoginHandler} from '../../lib/login/service/after-login.handler';
-import {ConfigurationWithLoginGT} from '../../lib/login/component/login.component';
+import {ConfigurationWithLoginGT} from './configuration-with-login-gt';
 import {GlobalGTSessionNames} from '../global.gt.session.names';
 import {BaseSettings} from '../../lib/base.settings';
 import moment from 'moment';
@@ -20,6 +20,8 @@ export class GtAfterLoginHandler extends AfterLoginHandler {
 
     // Store supported cryptocurrencies
     sessionStorage.setItem(GlobalGTSessionNames.CRYPTOS, JSON.stringify(configurationWithLogin.cryptocurrencies));
+
+    sessionStorage.setItem(GlobalGTSessionNames.CURRENCY_PRECISION, JSON.stringify(configurationWithLogin.currencyPrecision));
 
     BaseSettings.resetInterFractionLimit(AppSettings, GlobalSessionNames.STANDARD_CURRENCY_PRECISIONS_AND_LIMITS);
   }

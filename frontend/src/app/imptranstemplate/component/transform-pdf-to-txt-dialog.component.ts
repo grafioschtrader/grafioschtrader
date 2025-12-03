@@ -4,12 +4,14 @@ import {AppHelper} from '../../lib/helper/app.helper';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {HelpIds} from '../../lib/help/help.ids';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {ImportTransactionPlatformService} from '../service/import.transaction.platform.service';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 
 @Component({
@@ -23,7 +25,8 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`,
-    standalone: false
+    standalone: true,
+    imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class TransformPdfToTxtDialogComponent extends SimpleEditBase implements OnInit {
 

@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
@@ -73,7 +73,7 @@ public class SecurityDividendsGrandTotal extends SecurityCostGrand<Integer, Secu
   @Override
   protected SecurityDividendsYearGroup createInstance(Integer key) {
     return new SecurityDividendsYearGroup(key,
-        currencyPrecisionMap.getOrDefault(mainCurrency, GlobalConstants.FID_STANDARD_FRACTION_DIGITS),
+        currencyPrecisionMap.getOrDefault(mainCurrency, BaseConstants.FID_STANDARD_FRACTION_DIGITS),
         currencyPrecisionMap);
   }
 
