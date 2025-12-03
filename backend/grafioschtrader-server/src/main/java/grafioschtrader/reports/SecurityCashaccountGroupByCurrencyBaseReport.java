@@ -11,9 +11,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
+import grafiosch.BaseConstants;
 import grafiosch.common.DateHelper;
 import grafiosch.exceptions.DataViolationException;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionCurrenyGroupSummary;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
@@ -143,14 +143,14 @@ public class SecurityCashaccountGroupByCurrencyBaseReport {
       if (securityPositionCurrenyGroupSummary == null
           && seperateSecurityaccountCurrencySet.contains(seperateSecurityaccountCurrency)) {
         securityPositionCurrenyGroupSummary = new SecurityPositionCurrenyGroupSummary(currency, currencyExchangeRate,
-            currencyPrecisionMap.getOrDefault(currency, GlobalConstants.FID_STANDARD_FRACTION_DIGITS));
+            currencyPrecisionMap.getOrDefault(currency, BaseConstants.FID_STANDARD_FRACTION_DIGITS));
         cscr.securityaccountCurrencyTotalMap.put(
             new SeperateSecurityaccountCurrency(currency, seperateSecurityaccountCurrency.idSecuritycashAccount),
             securityPositionCurrenyGroupSummary);
       } else {
         securityPositionCurrenyGroupSummary = cscr.currencyTotalMap.computeIfAbsent(currency,
             c -> new SecurityPositionCurrenyGroupSummary(c, currencyExchangeRate,
-                currencyPrecisionMap.getOrDefault(currency, GlobalConstants.FID_STANDARD_FRACTION_DIGITS)));
+                currencyPrecisionMap.getOrDefault(currency, BaseConstants.FID_STANDARD_FRACTION_DIGITS)));
       }
       securityPositionSummary.calcMainCurrency(currencyExchangeRate);
       securityPositionCurrenyGroupSummary.addToGroupSummaryAndCalcGroupTotals(securityPositionSummary);

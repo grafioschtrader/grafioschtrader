@@ -39,6 +39,10 @@ import {HelpIds} from '../../help/help.ids';
  * - Multiple rows can be edited at a given time.
  * - The activation and termination of editing are controlled by the template. A programmatic control would be desirable.
  *   See https://stackoverflow.com/questions/74102652/primeng-table-programmatically-handle-row-editing-psaveeditablerow.
+ *
+ * Note: This component uses PrimeNG's p-table directly instead of the configurable-table wrapper because it relies on
+ * specialized inline row editing features (pEditableRow, p-cellEditor, pSaveEditableRow, pCancelEditableRow) that would
+ * be too complex to abstract into a generic table component without losing flexibility.
  */
 @Component({
   template: `
@@ -107,17 +111,17 @@ import {HelpIds} from '../../help/help.ids';
               <div class="flex align-items-center justify-content-center gap-2">
                 @if (!editing) {
                   <button pButton pRipple type="button" pInitEditableRow
-                          icon="pi pi-pencil"
+                          pButtonIcon="pi pi-pencil"
                           (click)="onRowEditInit(elEdit)" class="p-button-rounded p-button-text"></button>
                 }
                 @if (editing) {
-                  <button pButton pRipple type="button" pSaveEditableRow icon="pi pi-check"
+                  <button pButton pRipple type="button" pSaveEditableRow pButtonIcon="pi pi-check"
                           (click)="onRowEditSave(elEdit)"
                           class="p-button-rounded p-button-text p-button-success mr-2"></button>
                 }
                 @if (editing) {
                   <button pButton pRipple type="button" pCancelEditableRow
-                          icon="pi pi-times"
+                          pButtonIcon="pi pi-times"
                           (click)="onRowEditCancel(elEdit, ri)"
                           class="p-button-rounded p-button-text p-button-danger"></button>
                 }

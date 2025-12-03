@@ -1,6 +1,6 @@
 package grafioschtrader.reportviews.securityaccount;
 
-import grafioschtrader.GlobalConstants;
+import grafiosch.BaseConstants;
 
 public class SecurityPositionDynamicGroupSummary<T> extends SecurityPositionGroupSummary {
 
@@ -8,7 +8,7 @@ public class SecurityPositionDynamicGroupSummary<T> extends SecurityPositionGrou
 
   public SecurityPositionDynamicGroupSummary(T groupField) {
     // TODO GlobalConstants.FID_STANDARD_FRACTION_DIGITS maybe wrong
-    super(GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
+    super(BaseConstants.FID_STANDARD_FRACTION_DIGITS);
     this.groupField = groupField;
   }
 

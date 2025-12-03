@@ -34,7 +34,8 @@
               "node_modules/ngx-toastr/toastr.css",
               "node_modules/flag-icons/css/flag-icons.min.css",
               "src/assets/theme.css",
-              "src/styles.css"
+              "src/styles.css",
+              "src/app/lib/styles.css"
             ],
             "scripts": [
               "node_modules/moment/min/moment.min.js",
@@ -124,7 +125,8 @@
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "node_modules/primeng/resources/themes/omega/theme.css",
               "node_modules/font-awesome/css/font-awesome.min.css",
-              "src/styles.css"
+              "src/styles.css",
+              "src/app/lib/styles.css"
             ],
             "assets": [
               "src/assets",

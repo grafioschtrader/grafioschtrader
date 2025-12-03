@@ -6,7 +6,8 @@ import java.util.Set;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-import grafioschtrader.types.FeatureType;
+import grafiosch.dto.ConfigurationWithLogin.FeatureType;
+import grafioschtrader.types.FeatureTypeGT;
 
 @Component
 @ConfigurationProperties(prefix = "gt.use")
@@ -16,16 +17,16 @@ public class FeatureConfig {
   private boolean algo;
   private boolean alert;
 
-  public Set<FeatureType> getEnabledFeatures() {
-    EnumSet<FeatureType> features = EnumSet.noneOf(FeatureType.class);
+  public Set<FeatureTypeGT> getEnabledFeatures() {
+    EnumSet<FeatureTypeGT> features = EnumSet.noneOf(FeatureTypeGT.class);
     if (websocket) {
-      features.add(FeatureType.WEBSOCKET);
+      features.add(FeatureTypeGT.WEBSOCKET);
     }
     if (algo) {
-      features.add(FeatureType.ALGO);
+      features.add(FeatureTypeGT.ALGO);
     }
     if (alert) {
-      features.add(FeatureType.ALERT);
+      features.add(FeatureTypeGT.ALERT);
     }
     return features;
   }

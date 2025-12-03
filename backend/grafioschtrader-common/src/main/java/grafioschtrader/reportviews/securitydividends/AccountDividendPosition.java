@@ -2,8 +2,8 @@ package grafioschtrader.reportviews.securitydividends;
 
 import java.util.Map;
 
+import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Transaction;
@@ -69,12 +69,12 @@ public abstract class AccountDividendPosition {
 
   public double getAutoPaidTaxMC() {
     return DataHelper.round(autoPaidTaxMC,
-        currencyPrecisionMap.getOrDefault(getPositionCurrency(), GlobalConstants.FID_STANDARD_FRACTION_DIGITS));
+        currencyPrecisionMap.getOrDefault(getPositionCurrency(), BaseConstants.FID_STANDARD_FRACTION_DIGITS));
   }
 
   public double getTaxableAmount() {
     return DataHelper.round(taxableAmount,
-        currencyPrecisionMap.getOrDefault(getPositionCurrency(), GlobalConstants.FID_STANDARD_FRACTION_DIGITS));
+        currencyPrecisionMap.getOrDefault(getPositionCurrency(), BaseConstants.FID_STANDARD_FRACTION_DIGITS));
   }
 
   public double getTaxableAmountMC() {

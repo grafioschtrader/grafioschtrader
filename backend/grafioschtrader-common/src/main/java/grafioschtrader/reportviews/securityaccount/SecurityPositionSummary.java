@@ -8,8 +8,8 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.entities.Security;
 import grafioschtrader.reportviews.SecuritycurrencyPositionSummary;
@@ -142,10 +142,10 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   }
 
   public SecurityPositionSummary(String mainCurrency, Security security, Map<String, Integer> currencyPrecisionMap) {
-    this(mainCurrency, currencyPrecisionMap.getOrDefault(mainCurrency, GlobalConstants.FID_STANDARD_FRACTION_DIGITS));
+    this(mainCurrency, currencyPrecisionMap.getOrDefault(mainCurrency, BaseConstants.FID_STANDARD_FRACTION_DIGITS));
     this.securitycurrency = security;
     this.precision = currencyPrecisionMap.getOrDefault(security.getCurrency(),
-        GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
+        BaseConstants.FID_STANDARD_FRACTION_DIGITS);
   }
 
   public void roundUnits() {

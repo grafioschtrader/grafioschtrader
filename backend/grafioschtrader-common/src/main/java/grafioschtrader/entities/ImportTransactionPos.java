@@ -9,9 +9,9 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
 import grafiosch.entities.TenantBaseID;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.platformimport.ImportProperties;
 import grafioschtrader.platformimport.ImportTransactionHelper;
@@ -757,7 +757,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
           cashaccountAmount = cashaccountAmount != null ? Math.abs(cashaccountAmount) : null;
         }
         calcCashaccountAmount *= (currencyExRate != null ? this.currencyExRate : 1.0);
-        calcCashaccountAmount = DataHelper.round(calcCashaccountAmount, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
+        calcCashaccountAmount = DataHelper.round(calcCashaccountAmount, BaseConstants.FID_STANDARD_FRACTION_DIGITS);
       }
       break;
     default:
@@ -796,7 +796,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   private double calcDiffCashaccountAmount() {
     calcCashaccountAmount();
     diffCashaccountAmount = calcCashaccountAmount
-        - DataHelper.round(cashaccountAmount, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
+        - DataHelper.round(cashaccountAmount, BaseConstants.FID_STANDARD_FRACTION_DIGITS);
     return diffCashaccountAmount;
   }
 

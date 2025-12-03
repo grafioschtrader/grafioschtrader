@@ -27,6 +27,7 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {BaseSettings} from '../../lib/base.settings';
+import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 
 /**
  * Cash transfer between two cash accounts which are managed by this application.
@@ -73,6 +74,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
 
   constructor(private portfolioService: PortfolioService,
     private transactionService: TransactionService,
+    private gpsGT: GlobalparameterGTService,
     messageToastService: MessageToastService,
     currencypairService: CurrencypairService,
     historyquoteService: HistoryquoteService,
@@ -230,9 +232,9 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   }
 
   private adjustNumberInputFractions(): void {
-    const fromCurrencyFraction = this.gps.getCurrencyPrecision(this.currencypair ?
+    const fromCurrencyFraction = this.gpsGT.getCurrencyPrecision(this.currencypair ?
       this.currencypair.fromCurrency : this.creditCashaccount.currency);
-    const toCurrencyFraction = this.gps.getCurrencyPrecision(this.currencypair ? this.currencypair.toCurrency :
+    const toCurrencyFraction = this.gpsGT.getCurrencyPrecision(this.currencypair ? this.currencypair.toCurrency :
       this.debitCashaccount.currency);
     DynamicFieldHelper.adjustNumberFraction(this.configObject.creditAmount, AppSettings.FID_MAX_INT_REAL_DOUBLE,
       toCurrencyFraction);

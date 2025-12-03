@@ -12,11 +12,11 @@ import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {BaseAuthService} from './base.auth.service';
 import {UserOwnProjection} from '../../entities/projection/user.own.projection';
 import {SuccessfullyChanged} from '../model/successfully.changed';
-import {ConfigurationWithLoginGT} from '../component/login.component';
 import {AppHelper} from '../../helper/app.helper';
 import {PrimeNG} from 'primeng/config';
 import {BaseSettings} from '../../base.settings';
 import {AfterLoginHandler} from './after-login.handler';
+import {ConfigurationWithLogin} from '../model';
 
 
 @Injectable()
@@ -50,7 +50,7 @@ export class LoginService extends BaseAuthService<User> {
   }
 
 
-  afterSuccessfulLogin(token: string, configurationWithLogin: ConfigurationWithLoginGT): boolean {
+  afterSuccessfulLogin(token: string, configurationWithLogin: ConfigurationWithLogin): boolean {
     this.gps.clearValues();
     const number = 1000.45;
 
@@ -69,7 +69,6 @@ export class LoginService extends BaseAuthService<User> {
     sessionStorage.setItem(GlobalSessionNames.USE_FEATURES, JSON.stringify(configurationWithLogin.useFeatures));
     sessionStorage.setItem(GlobalSessionNames.STANDARD_CURRENCY_PRECISIONS_AND_LIMITS, JSON.stringify(configurationWithLogin.standardPrecision));
     sessionStorage.setItem(GlobalSessionNames.FIELD_SIZE, JSON.stringify(configurationWithLogin.fieldSize));
-    sessionStorage.setItem(GlobalSessionNames.CURRENCY_PRECISION, JSON.stringify(configurationWithLogin.currencyPrecision));
     const entityNameWithKeyNameMap = configurationWithLogin.entityNameWithKeyNameList.reduce(
       (ac, eNK) => ({...ac, [eNK.entityName]: eNK.keyName}), {});
     sessionStorage.setItem(GlobalSessionNames.ENTITY_KEY_MAPPING, JSON.stringify(entityNameWithKeyNameMap));

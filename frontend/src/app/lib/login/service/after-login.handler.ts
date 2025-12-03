@@ -1,4 +1,4 @@
-import {ConfigurationWithLoginGT} from '../component/login.component';
+import {ConfigurationWithLogin} from '../model/configuration-with-login';
 
 /**
  * Abstract handler for application-specific post-login actions.
@@ -10,5 +10,5 @@ export abstract class AfterLoginHandler {
    * Called after successful login and session initialization.
    * @param configurationWithLogin The login configuration from the backend
    */
-  abstract handleAfterLogin(configurationWithLogin: ConfigurationWithLoginGT): void;
+  abstract handleAfterLogin(configurationWithLogin: ConfigurationWithLogin): void;
 }

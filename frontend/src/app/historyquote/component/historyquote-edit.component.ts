@@ -4,7 +4,7 @@ import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {HistoryquoteService} from '../service/historyquote.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {HistoryquoteSecurityCurrency} from './historyquote-table.component';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {HelpIds} from '../../lib/help/help.ids';
@@ -16,6 +16,8 @@ import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import moment from 'moment';
 import {AppSettings} from '../../shared/app.settings';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 /**
  * Edit historical quotes.
@@ -32,7 +34,8 @@ import {AppSettings} from '../../shared/app.settings';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`,
-    standalone: false
+    standalone: true,
+    imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class HistoryquoteEditComponent extends SimpleEntityEditBase<Historyquote> implements OnInit {
 

@@ -1,7 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {HelpIds} from '../../lib/help/help.ids';
@@ -14,6 +14,8 @@ import {DeleteHistoryquotesSuccess} from '../../securitycurrency/model/historyqu
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 @Component({
     selector: 'historyquote-delete-dialog',
@@ -27,7 +29,8 @@ import {ProcessedAction} from '../../lib/types/processed.action';
           </dynamic-form>
       </p-dialog>
   `,
-    standalone: false
+    standalone: true,
+    imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements OnInit {
   @Input() idSecuritycurrency: number;

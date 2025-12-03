@@ -4,8 +4,8 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Currencypair;
@@ -149,9 +149,9 @@ public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<
 
   public void setCashaccount(Cashaccount cashaccount) {
     this.precision = this.currencyPrecisionMap.getOrDefault(cashaccount.getCurrency(),
-        GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
+        BaseConstants.FID_STANDARD_FRACTION_DIGITS);
     this.precisionMC = this.currencyPrecisionMap.getOrDefault(cashaccount.getPortfolio().getCurrency(),
-        GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
+        BaseConstants.FID_STANDARD_FRACTION_DIGITS);
 
     this.cashaccount = cashaccount;
   }
@@ -178,7 +178,7 @@ public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<
    * @param currencyExchangeRate current exchange rate from account currency to main currency
    */
   public void calcTotals(double currencyExchangeRate) {
-    cashBalanceMC = DataHelper.round(cashBalance * currencyExchangeRate, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
+    cashBalanceMC = DataHelper.round(cashBalance * currencyExchangeRate, BaseConstants.FID_STANDARD_FRACTION_DIGITS);
     this.valueMC = cashBalanceMC + valueSecuritiesMC;
   }
 

@@ -12,8 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Sort;
 
+import grafiosch.BaseConstants;
 import grafiosch.exceptions.DataViolationException;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.CashAccountTransfer;
 import grafioschtrader.entities.Transaction;
@@ -39,7 +39,7 @@ class CheckCashaccountAmountTransaction {
     for (Transaction transaction : transactions) {
       try {
         if (transaction.getSecurity() == null) {
-          transaction.validateCashaccountAmount(null, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
+          transaction.validateCashaccountAmount(null, BaseConstants.FID_STANDARD_FRACTION_DIGITS);
         } else if (!transaction.isMarginClosePosition()) {
           if (transaction.isMarginOpenPosition()) {
             transaction.setSecurityRisk(
@@ -47,11 +47,11 @@ class CheckCashaccountAmountTransaction {
                     * (transaction.getTransactionType() == TransactionType.ACCUMULATE ? 1.0 : -1.0)));
             openPositionMap.put(transaction.getIdTransaction(), transaction);
           }
-          transaction.validateCashaccountAmount(null, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
+          transaction.validateCashaccountAmount(null, BaseConstants.FID_STANDARD_FRACTION_DIGITS);
         } else {
           // It must be margin close transaction
           transaction.validateCashaccountAmount(openPositionMap.get(transaction.getConnectedIdTransaction()),
-              GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
+              BaseConstants.FID_STANDARD_FRACTION_DIGITS);
         }
       } catch (DataViolationException e) {
         System.out.println(transaction);
@@ -73,7 +73,7 @@ class CheckCashaccountAmountTransaction {
           searchTrans.setIdTransaction(transaction.getConnectedIdTransaction());
           int index = Collections.binarySearch(transactions, searchTrans, comparator);
           CashAccountTransfer cashAccountTransfer = new CashAccountTransfer(transaction, transactions.get(index));
-          cashAccountTransfer.validateWithdrawalCashaccountAmount(GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
+          cashAccountTransfer.validateWithdrawalCashaccountAmount(BaseConstants.FID_STANDARD_FRACTION_DIGITS);
         } catch (DataViolationException e) {
           System.err.println(transaction);
           System.err.println(e);

@@ -11,7 +11,6 @@ import java.util.stream.IntStream;
 
 import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
@@ -32,7 +31,7 @@ import grafioschtrader.types.TransactionType;
 public abstract class DataBusinessHelper {
 
   public static double roundStandard(double valueToRound) {
-    return DataHelper.round(valueToRound, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
+    return DataHelper.round(valueToRound, BaseConstants.FID_STANDARD_FRACTION_DIGITS);
   }
 
   public static double round(double valueToRound) {

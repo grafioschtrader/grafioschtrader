@@ -27,6 +27,7 @@ import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {BaseSettings} from '../../lib/base.settings';
+import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 
 /**
  * Component for editing single cash account transactions where only one cash account is involved.
@@ -81,6 +82,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    */
   constructor(private portfolioService: PortfolioService,
     private transactionService: TransactionService,
+    private gpsGT: GlobalparameterGTService,
     messageToastService: MessageToastService,
     translateService: TranslateService,
     gps: GlobalparameterService) {
@@ -196,7 +198,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
         this.portfolios, +data);
       this.prepareSecurityaccount(cp.portfolio);
       this.cashaccountCurrency = cp.cashaccount.currency;
-      const precision = this.gps.getCurrencyPrecision(this.cashaccountCurrency);
+      const precision = this.gpsGT.getCurrencyPrecision(this.cashaccountCurrency);
       this.adjustNumberInputFractions(this.configObject.cashaccountAmount, AppSettings.FID_MAX_INT_REAL_DOUBLE, precision);
       this.adjustNumberInputFractions(this.configObject.debitAmount, AppSettings.FID_MAX_INT_REAL_DOUBLE, precision);
       this.adjustNumberInputFractions(this.configObject.transactionCost, AppSettings.FID_MAX_INT_REAL_DOUBLE, precision);

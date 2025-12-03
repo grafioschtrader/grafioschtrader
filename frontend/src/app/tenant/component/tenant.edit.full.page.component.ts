@@ -15,8 +15,8 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
   template: `
     <div class="container">
       <div class="jumbotron-replacement mx-auto">
-        <h2>{{ 'CLIENT' | translate }}</h2>
-        <h4>{{ 'CLIENT_REGISTER' | translate }}</h4>
+        <h2>{{ 'TENANT' | translate }}</h2>
+        <h4>{{ 'TENANT_REGISTER' | translate }}</h4>
         <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                       #form="dynamicForm"
                       (submitBt)="submit($event)">

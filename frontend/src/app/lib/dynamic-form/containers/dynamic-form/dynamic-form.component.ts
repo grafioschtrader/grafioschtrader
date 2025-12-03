@@ -1,5 +1,6 @@
-import {Component, EventEmitter, Input, OnChanges, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, input, output, signal, computed, effect} from '@angular/core';
 import {AbstractControl, UntypedFormBuilder, UntypedFormGroup} from '@angular/forms';
+import {Subscription} from 'rxjs';
 import {FieldConfig} from '../../models/field.config';
 import {InputType} from '../../models/input.type';
 import {Helper} from '../../../helper/helper';
@@ -81,7 +82,10 @@ import {ValueKeyHtmlSelectOptions} from '../../models/value.key.html.select.opti
   `,
   standalone: false
 })
-export class DynamicFormComponent implements OnChanges, OnInit {
+export class DynamicFormComponent implements OnChanges, OnInit, OnDestroy {
+  // ============================================
+  // EXISTING API (Backward Compatible)
+  // ============================================
   @Input() formConfig: FormConfig;
   @Input() config: FieldFormGroup[] = [];
   @Input() formGroupDefinition: FormGroupDefinition;
@@ -89,12 +93,130 @@ export class DynamicFormComponent implements OnChanges, OnInit {
 
   @Output() submitBt: EventEmitter<any> = new EventEmitter<any>();
 
+  // ============================================
+  // NEW SIGNAL API (Opt-In)
+  // ============================================
+
+  /**
+   * Signal-based form configuration. Use this instead of @Input() formConfig
+   * when working with Signals. Mutually exclusive with traditional inputs.
+   */
+  formConfigSignal = input<FormConfig>();
+
+  /**
+   * Signal-based field configuration. Use this instead of @Input() config
+   * when working with Signals.
+   */
+  configSignal = input<FieldFormGroup[]>();
+
+  /**
+   * Signal-based form group definition. Use this instead of @Input() formGroupDefinition
+   * when working with Signals.
+   */
+  formGroupDefinitionSignal = input<FormGroupDefinition>();
+
+  // ============================================
+  // SIGNAL-BASED STATE (Reactive)
+  // ============================================
+
+  /**
+   * Signal containing current form value. Automatically updated when form changes.
+   * Read-only signal that reflects the state of the underlying FormGroup.
+   */
+  formValue = signal<any>({});
+
+  /**
+   * Signal containing form validation state. Updates reactively when validation changes.
+   */
+  formValid = signal<boolean>(false);
+
+  /**
+   * Signal containing form touched state.
+   */
+  formTouched = signal<boolean>(false);
+
+  /**
+   * Signal containing form dirty state.
+   */
+  formDirty = signal<boolean>(false);
+
+  /**
+   * Signal-based output for form submission. Alternative to @Output() submitBt
+   */
+  submitSignal = output<any>();
+
+  // ============================================
+  // COMPUTED SIGNALS (Derived State)
+  // ============================================
+
+  /**
+   * Computed signal returning all form groups from configuration.
+   * Auto-updates when config changes.
+   */
+  formGroupsSignal = computed<FormGroupDefinition[]>(() => {
+    const cfg = this.getActiveConfig();
+    return cfg.filter((fieldFormGroup: any) => !!fieldFormGroup.formGroupName) as FormGroupDefinition[];
+  });
+
+  /**
+   * Computed signal returning all control fields (non-button fields).
+   * Auto-updates when config changes.
+   */
+  controlsSignal = computed<FieldConfig[]>(() => {
+    const cfg = this.getActiveConfig();
+    return FormHelper.getFieldConfigs(cfg).filter(({inputType}) =>
+      inputType !== InputType.Button && inputType !== InputType.Pbutton);
+  });
+
+  /**
+   * Computed signal returning flattened controls (including nested groups).
+   */
+  controlsFlattenSignal = computed<FieldConfig[]>(() => {
+    const cfg = this.getActiveConfig();
+    return FormHelper.flattenConfigMap(cfg).filter(({inputType}) =>
+      inputType !== InputType.Button && inputType !== InputType.Pbutton);
+  });
+
+  /**
+   * Computed signal returning all button fields.
+   */
+  buttonsSignal = computed<FieldConfig[]>(() => {
+    const cfg = this.getActiveConfig();
+    return FormHelper.getFieldConfigs(cfg).filter((config) =>
+      !config.buttonInForm && (config.inputType === InputType.Button || config.inputType === InputType.Pbutton));
+  });
+
+  /**
+   * Computed signal returning the submit button configuration.
+   */
+  submitButtonSignal = computed<FieldConfig | undefined>(() => {
+    const cfg = this.getActiveConfig();
+    return FormHelper.getFieldConfigs(cfg).find((config) =>
+      (config.inputType === InputType.Button || config.inputType === InputType.Pbutton) && !config.buttonFN);
+  });
+
+  // ============================================
+  // INTERNAL STATE
+  // ============================================
+
+  /** Flag indicating if component is using Signal-based API */
+  private usingSignalAPI = signal<boolean>(false);
+
+  /** Subscriptions for form state synchronization */
+  private subscriptions: Subscription[] = [];
+
   form: UntypedFormGroup;
 
   fieldsetConfigs: FieldsetConfig[];
   showWithFieldset: boolean;
 
   constructor(private _formBuilder: UntypedFormBuilder) {
+    // Set up effect to sync form state to signals
+    effect(() => {
+      if (this.usingSignalAPI() && this.form) {
+        this.syncFormStateToSignals();
+      }
+    });
   }
 
   get formGroups(): FormGroupDefinition[] {
@@ -139,11 +261,20 @@ export class DynamicFormComponent implements OnChanges, OnInit {
   }
 
   ngOnInit() {
-    if (this.form && this.config.length > 0) {
+    // Detect which API is being used
+    this.detectAPIMode();
+
+    const activeConfig = this.getActiveConfig();
+    if (this.form && activeConfig.length > 0) {
       this.form = this.createGroupAndControl();
 
       this.fieldsetConfigs = this.createFieldsetConfigs();
       this.showWithFieldset = this.hasFieldset();
+
+      // Set up reactive sync for Signal API
+      if (this.usingSignalAPI()) {
+        this.setupSignalSync();
+      }
     }
   }
 
@@ -237,15 +368,27 @@ export class DynamicFormComponent implements OnChanges, OnInit {
   }
 
   handleSubmit(event: Event) {
-    this.submitButton.disabled = true;
+    const submitBtn = this.usingSignalAPI()
+      ? this.submitButtonSignal()
+      : this.submitButton;
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+    }
+
     event.preventDefault();
     event.stopPropagation();
-    this.submitBt.emit(this.value);
+
+    // Emit to both outputs (traditional and Signal)
+    const value = this.form.value;
+    this.submitBt.emit(value);        // Traditional EventEmitter
+    this.submitSignal.emit(value);    // Signal-based output
   }
 
   setDisableAll(disable: boolean) {
     const method = disable ? 'disable' : 'enable';
-    FormHelper.flattenConfigMap(this.config).forEach(fieldConfig => {
+    const activeConfig = this.getActiveConfig();
+    FormHelper.flattenConfigMap(activeConfig).forEach(fieldConfig => {
       if (fieldConfig.inputType !== InputType.Button && fieldConfig.inputType !== InputType.Pbutton) {
         fieldConfig.formControl[method]();
       }
@@ -260,11 +403,11 @@ export class DynamicFormComponent implements OnChanges, OnInit {
       return;
     }
 
-    this.config = FormHelper.getFieldConfigs(this.config).map((item) => {
+    const activeConfig = this.getActiveConfig();
+    FormHelper.getFieldConfigs(activeConfig).forEach((item) => {
       if (item.field === name) {
         item.disabled = disable;
       }
-      return item;
     });
   }
 
@@ -295,6 +438,116 @@ export class DynamicFormComponent implements OnChanges, OnInit {
 
   helpLink(event): void {
     this.formConfig.helpLinkFN();
+  }
+
+  // ============================================
+  // SIGNAL API HELPERS
+  // ============================================
+
+  /**
+   * Detects whether component is being used with Signal API or traditional API.
+   * Signal API takes precedence if both are provided.
+   */
+  private detectAPIMode(): void {
+    const hasSignalConfig = this.configSignal() !== undefined;
+    this.usingSignalAPI.set(hasSignalConfig);
+  }
+
+  /**
+   * Returns the active configuration (Signal or traditional).
+   * Internal helper to avoid code duplication.
+   */
+  private getActiveConfig(): FieldFormGroup[] {
+    return this.usingSignalAPI()
+      ? (this.configSignal() || [])
+      : this.config;
+  }
+
+  /**
+   * Returns the active form configuration (Signal or traditional).
+   */
+  private getActiveFormConfig(): FormConfig {
+    return this.usingSignalAPI()
+      ? this.formConfigSignal()!
+      : this.formConfig;
+  }
+
+  /**
+   * Sets up reactive synchronization between FormGroup and Signals.
+   * Subscribes to form value changes and updates signals accordingly.
+   */
+  private setupSignalSync(): void {
+    // Sync initial state
+    this.syncFormStateToSignals();
+
+    // Subscribe to value changes
+    const valueSubscription = this.form.valueChanges.subscribe(() => {
+      this.syncFormStateToSignals();
+    });
+    this.subscriptions.push(valueSubscription);
+
+    // Subscribe to status changes
+    const statusSubscription = this.form.statusChanges.subscribe(() => {
+      this.formValid.set(this.form.valid);
+      this.formTouched.set(this.form.touched);
+      this.formDirty.set(this.form.dirty);
+    });
+    this.subscriptions.push(statusSubscription);
+  }
+
+  /**
+   * Synchronizes current FormGroup state to Signal properties.
+   */
+  private syncFormStateToSignals(): void {
+    this.formValue.set(this.form.value);
+    this.formValid.set(this.form.valid);
+    this.formTouched.set(this.form.touched);
+    this.formDirty.set(this.form.dirty);
+  }
+
+  // ============================================
+  // SIGNAL-FRIENDLY PUBLIC METHODS
+  // ============================================
+
+  /**
+   * Sets a field value. Works with both traditional and Signal APIs.
+   * When using Signal API, automatically updates the formValue signal.
+   */
+  setValueSignal(name: string, value: any): void {
+    this.setValue(name, value);
+
+    if (this.usingSignalAPI()) {
+      this.syncFormStateToSignals();
+    }
+  }
+
+  /**
+   * Sets disabled state for a field. Works with both APIs.
+   */
+  setDisabledSignal(name: string, disable: boolean): void {
+    this.setDisabled(name, disable);
+
+    if (this.usingSignalAPI()) {
+      this.syncFormStateToSignals();
+    }
+  }
+
+  /**
+   * Sets disabled state for all fields. Works with both APIs.
+   */
+  setDisableAllSignal(disable: boolean): void {
+    this.setDisableAll(disable);
+
+    if (this.usingSignalAPI()) {
+      this.syncFormStateToSignals();
+    }
+  }
+
+  /**
+   * Cleanup subscriptions when component is destroyed.
+   */
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 }
 

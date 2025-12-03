@@ -37,11 +37,6 @@ export enum GlobalSessionNames {
   /** All members with the prefix "FIELD_SIZE" from the BaseConstants class and its derived classes. */
   FIELD_SIZE = 'fieldSize',
 
-  /**
-   * Some currencies will not have two decimal places. These will be stored under this key.
-   */
-  CURRENCY_PRECISION = 'currencyPrecision',
-
   /** Should an entity's ownership of shared data be visible. For example, a bold font in the table view. */
   UI_SHOW_MY_PROPERTY = 'uiShowMyProperty',
 

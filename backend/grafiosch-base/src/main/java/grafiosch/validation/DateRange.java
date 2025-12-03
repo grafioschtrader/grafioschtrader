@@ -13,7 +13,7 @@ import jakarta.validation.Constraint;
 @Constraint(validatedBy = DateRangeValidator.class)
 @Documented
 public @interface DateRange {
-  String message() default "{gt.not.date.period}";
+  String message() default "{not.date.period}";
 
   String start();
 

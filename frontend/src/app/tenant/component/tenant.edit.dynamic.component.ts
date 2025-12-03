@@ -17,17 +17,10 @@ import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
  */
 @Component({
     template: `
-    <!--
-    <p-dialog header="{{(onlyCurrency? 'CLIENT_CHANGE_CURRENCY': 'CLIENT') | translate}}" [(visible)]="visibleTenantDialog"
-               [style]="{width: '450px'}" (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-    -->
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
+       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-    <!--
-    </p-dialog>
-    -->
   `,
     standalone: false
 })
@@ -54,7 +47,7 @@ export class TenantEditDynamicComponent extends TenantEditComponent implements O
   override submit(value: { [name: string]: any }) {
     if (this.onlyCurrency) {
       this.tenantService.changeCurrencyTenantAndPortfolios(value.currency).subscribe({next: tenant => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'CLIENT'});
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'TENANT'});
         const tenantChanged: Tenant = Object.assign(new Tenant(), tenant);
         this.closeInputDialog(tenantChanged);
       }, error: () => this.configObject.submit.disabled = false});

@@ -1,7 +1,7 @@
 package grafioschtrader.reportviews.transaction;
 
+import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.types.TransactionType;
@@ -60,10 +60,10 @@ public class SecurityTransactionPosition {
   public SecurityTransactionPosition(Transaction transaction, SecurityPositionSummary securityPositionSummary) {
     this.transaction = transaction;
     transactionGainLoss = (securityPositionSummary.transactionGainLoss == null) ? null
-        : DataHelper.round(securityPositionSummary.transactionGainLoss, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
+        : DataHelper.round(securityPositionSummary.transactionGainLoss, BaseConstants.FID_STANDARD_FRACTION_DIGITS);
     transactionGainLossPercentage = (securityPositionSummary.transactionGainLossPercentage == null) ? null
         : DataHelper.round(securityPositionSummary.transactionGainLossPercentage,
-            GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
+            BaseConstants.FID_STANDARD_FRACTION_DIGITS);
     transactionExchangeRate = securityPositionSummary.transactionExchangeRate;
     transactionGainLossMC = securityPositionSummary.transactionGainLossMC;
     transactionCurrencyGainLossMC = securityPositionSummary.transactionCurrencyGainLossMC;

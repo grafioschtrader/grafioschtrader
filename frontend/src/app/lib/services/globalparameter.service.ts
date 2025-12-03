@@ -11,7 +11,7 @@ import {FieldDescriptorInputAndShow} from '../dynamicfield/field.descriptor.inpu
 import {BaseSettings} from '../base.settings';
 import {AppHelper} from '../helper/app.helper';
 import {Auditable} from '../entities/auditable';
-import {FeatureType} from '../login/component/login.component';
+import {FeatureType} from '../login/model/configuration-with-login';
 import {NgxCurrencyConfig, NgxCurrencyInputMode} from 'ngx-currency';
 import {BaseAuthService} from '../login/service/base.auth.service';
 import NumberFormat = Intl.NumberFormat;
@@ -37,7 +37,7 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
   private dateFormatCalendar: string;
   private dateFormatCalendarTowNumber: string;
   private entityKeyMapping: { [entityName: string]: string };
-  private currencyPrecisionMap: { [currency: string]: number };
+
   private fieldSizeMap: { [fieldNameOrKey: string]: number };
   private dateFormatWithoutYear: string;
   private featureCache = new Map<FeatureType, boolean>();
@@ -191,12 +191,7 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
     return this.entityKeyMapping[entityName];
   }
 
-  public getCurrencyPrecision(currency: string): number {
-    if (!this.currencyPrecisionMap) {
-      this.currencyPrecisionMap = JSON.parse(sessionStorage.getItem(GlobalSessionNames.CURRENCY_PRECISION));
-    }
-    return this.currencyPrecisionMap[currency] ? this.currencyPrecisionMap[currency] : BaseSettings.FID_STANDARD_FRACTION_DIGITS;
-  }
+
 
   public getFieldSize(fieldNameOrKey: string): number {
     if (!this.fieldSizeMap) {
@@ -232,14 +227,16 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
 
   /**
    * Opens an external help webpage in a new window.
-   * The base URL is read from session storage (set during application initialization).
+   * The base URL is read from local storage (set during application initialization).
    * If no base URL is configured, the method will do nothing.
    *
    * @param language The language code for the help documentation (e.g., 'en', 'de')
    * @param helpIds The specific help page identifier
+   *
+   * TODO If the user manual is split up, it can be stored in the session storage.
    */
   public toExternalHelpWebpage(language: string, helpIds: string) {
-    const helpUrlBase = sessionStorage.getItem(GlobalSessionNames.EXTERNAL_HELP_URL);
+    const helpUrlBase = localStorage.getItem(GlobalSessionNames.EXTERNAL_HELP_URL);
     if (helpUrlBase) {
       AppHelper.toExternalWebpage(helpUrlBase + '/' + language + '/' + helpIds, 'help');
     }

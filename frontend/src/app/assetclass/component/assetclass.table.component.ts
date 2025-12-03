@@ -1,6 +1,7 @@
 import {Component, OnDestroy} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
@@ -18,6 +19,9 @@ import {ProductIconService} from '../../securitycurrency/service/product.icon.se
 import {TableCrudSupportMenuSecurity} from '../../lib/datashowbase/table.crud.support.menu.security';
 import {HelpIds} from '../../lib/help/help.ids';
 import {BaseSettings} from '../../lib/base.settings';
+import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
+import {AngularSvgIconModule} from 'angular-svg-icon';
+import {AssetclassEditComponent} from './assetclass-edit.component';
 
 /**
  * Shows the asset class as a table.
@@ -61,7 +65,8 @@ import {BaseSettings} from '../../lib/base.settings';
     }
   `,
   providers: [DialogService],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, TranslateModule, ConfigurableTableComponent, AngularSvgIconModule, AssetclassEditComponent]
 })
 export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Assetclass> implements OnDestroy {
   callParam: AssetclassCallParam = new AssetclassCallParam();

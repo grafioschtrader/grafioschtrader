@@ -1,7 +1,7 @@
 import {TableConfigBase} from '../../datashowbase/table.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../services/globalparameter.service';
-import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
+import {Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.component';
 import {AngularSvgIconModule} from 'angular-svg-icon';
@@ -35,7 +35,7 @@ import {BaseSettings} from '../../base.settings';
   template: `
     <div class="datatable nestedtable">
       <configurable-table
-        [data]="user.userEntityChangeLimitList"
+        [data]="user?.userEntityChangeLimitList || []"
         [fields]="fields"
         [dataKey]="'idUserEntityChangeLimit'"
         [selectionMode]="'single'"
@@ -75,7 +75,7 @@ import {BaseSettings} from '../../base.settings';
   standalone: true,
   imports: [CommonModule, ConfigurableTableComponent, AngularSvgIconModule, UserEntityChangeLimitEditComponent]
 })
-export class UserEntityChangeLimitTableComponent extends TableConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
+export class UserEntityChangeLimitTableComponent extends TableConfigBase implements OnInit, OnChanges, OnDestroy, IGlobalMenuAttach {
 
   public static readonly USER_ENTITY_CHANGE_LIMIT = 'USER_ENTITY_CHANGE_LIMIT';
   public readonly UPPER_CASE_ENTITY_NAME = 'entityNameUpperCase';
@@ -174,8 +174,21 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
   }
 
   ngOnInit(): void {
+    this.initializeUserData();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['user'] && this.user) {
+      this.initializeUserData();
+    }
+  }
+
+  private initializeUserData(): void {
+    if (!this.user) {
+      return;
+    }
     this.createProposeLimitForView();
-    this.user.userEntityChangeLimitList.forEach((userEntityChangeLimit: UserEntityChangeLimit) =>
+    this.user.userEntityChangeLimitList?.forEach((userEntityChangeLimit: UserEntityChangeLimit) =>
       userEntityChangeLimit[this.UPPER_CASE_ENTITY_NAME] = userEntityChangeLimit.entityName.toUpperCase());
     this.createTranslatedValueStoreAndFilterField(this.user.userEntityChangeLimitList);
   }

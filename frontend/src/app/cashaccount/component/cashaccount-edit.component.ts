@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {CashaccountService} from '../service/cashaccount.service';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
@@ -16,6 +16,8 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 import {BaseSettings} from '../../lib/base.settings';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 /**
  * Edit a cash account the currency of a cash account can only be changed when there is no transaction for it.
@@ -32,7 +34,8 @@ import {BaseSettings} from '../../lib/base.settings';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`,
-  standalone: false
+  standalone: true,
+  imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> implements OnInit {
 
@@ -69,7 +72,6 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
     this.portfolio = <Portfolio>this.callParam.parentObject;
     this.gpsGT.getCurrencies().subscribe(data => {
       this.configObject.currency.valueKeyHtmlOptions = data;
-
       this.prepareSecurityaccountOption();
       this.form.setDefaultValuesAndEnableSubmit();
       if (this.callParam.thisObject != null) {

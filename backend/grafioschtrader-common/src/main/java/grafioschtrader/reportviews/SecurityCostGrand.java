@@ -2,8 +2,8 @@ package grafioschtrader.reportviews;
 
 import java.util.Map;
 
+import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
-import grafioschtrader.GlobalConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -71,7 +71,7 @@ public abstract class SecurityCostGrand<S, T> extends MapGroup<S, T> {
     super(groupMap);
     this.mainCurrency = currency;
     this.currencyPrecisionMap = currencyPrecisionMap;
-    this.precisionMC = currencyPrecisionMap.getOrDefault(mainCurrency, GlobalConstants.FID_STANDARD_FRACTION_DIGITS);
+    this.precisionMC = currencyPrecisionMap.getOrDefault(mainCurrency, BaseConstants.FID_STANDARD_FRACTION_DIGITS);
   }
 
   public double getGrandTotalTaxCostMC() {

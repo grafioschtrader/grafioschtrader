@@ -59,7 +59,7 @@ export abstract class TenantEditComponent {
     this.form.cleanMaskAndTransferValuesToBusinessObject(tenant);
     this.tenantService.update(tenant).subscribe({
       next: newTenant => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'CLIENT'});
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'TENANT'});
         const tenantNew: Tenant = Object.assign(new Tenant(), newTenant);
         this.closeInputDialog(tenantNew);
       }, error: () => this.configObject.submit.disabled = false

@@ -1,11 +1,14 @@
 import {Component, Input, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {FailedParsedTemplateState} from './failed.parsed.template.state';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {FilterService} from 'primeng/api';
+import {TableModule} from 'primeng/table';
+import {TooltipModule} from 'primeng/tooltip';
 
 /**
  * Display if the import template was not completely recognized. The last successfully recognized field per import
@@ -47,7 +50,8 @@ import {FilterService} from 'primeng/api';
       </p-table>
     </div>
   `,
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, TranslateModule, TableModule, TooltipModule]
 })
 export class TemplateFormCheckDialogResultFailedComponent extends TableConfigBase implements OnInit {
   @Input() failedParsedTemplateStateList: FailedParsedTemplateState[];
