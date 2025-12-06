@@ -154,6 +154,11 @@ legend {
   padding: 1px 1px;
 }
 
+.form-select {
+  line-height: normal;
+  padding: 3px 2.25rem 3px 3px;
+}
+
 .form-control {
   font-size: 0.75rem;
   padding: 1px 1px;

@@ -4,10 +4,12 @@ import {TenantLimit} from '../../shared/types/tenant.limit';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MultipleRequestToOneService} from '../../shared/service/multiple.request.to.one.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
 import {CorrelationSetAddInstrumentTableComponent} from './correlation-set-add-instrument-table.component';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 
 /**
  * Search dialog component for adding existing securities or currency pairs to a correlation set.
@@ -29,7 +31,13 @@ import {CorrelationSetAddInstrumentTableComponent} from './correlation-set-add-i
       </correlation-set-add-instrument-table>
     </p-dialog>
   `,
-    standalone: false
+    imports: [
+      TranslateModule,
+      DialogModule,
+      DynamicFormComponent,
+      CorrelationSetAddInstrumentTableComponent
+    ],
+    standalone: true
 })
 export class CorrelationAddInstrumentComponent extends SecuritycurrencySearchBase {
   /** Controls the visibility state of the add instrument dialog */

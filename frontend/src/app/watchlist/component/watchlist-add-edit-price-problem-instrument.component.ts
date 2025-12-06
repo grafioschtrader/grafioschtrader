@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {HelpIds} from '../../lib/help/help.ids';
 import {WatchlistService} from '../service/watchlist.service';
@@ -13,6 +13,8 @@ import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 import {atLeastOneFieldValidator} from '../../lib/validator/validator';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 /**
  * Dialog component for adding securities and currencies to an empty watchlist whose repeat counter has reached its limit.
@@ -33,7 +35,12 @@ import {ProcessedAction} from '../../lib/types/processed.action';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`,
-    standalone: false
+    standalone: true,
+    imports: [
+      TranslateModule,
+      DialogModule,
+      DynamicFormModule
+    ]
 })
 export class WatchlistAddEditPriceProblemInstrumentComponent extends SimpleEditBase implements OnInit {
   /** The unique identifier of the watchlist to add problem instruments to */

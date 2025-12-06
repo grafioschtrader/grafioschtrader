@@ -4,7 +4,7 @@ import {SecurityDividendsGrandTotal} from '../../entities/view/securitydividends
 import {ActivatedRoute} from '@angular/router';
 import {SecurityDividendsYearGroup} from '../../entities/view/securitydividends/security.dividends.year.group';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
@@ -18,13 +18,27 @@ import {AppSettings} from '../../shared/app.settings';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {IdsAccounts} from '../model/ids.accounts';
+import {CommonModule} from '@angular/common';
+import {TableModule} from 'primeng/table';
+import {TooltipModule} from 'primeng/tooltip';
+import {
+  TenantDividendSecurityAccountSelectionDialogComponent
+} from './tenant-dividend-security-account-selection-dialog.component';
+import {
+  TenantDividendsCashaccountExtendedComponent
+} from './tenant-dividends-cashaccount-extended.component';
+import {
+  TenantDividendsSecurityExtendedComponent
+} from './tenant-dividends-security-extended.component';
 
 /**
  * Shows the dividends and some other information like transaction cost grouped by year.
  */
 @Component({
-    templateUrl: '../view/tenant.dividends.html',
-    standalone: false
+  templateUrl: '../view/tenant.dividends.html',
+  standalone: true,
+  imports: [CommonModule, TranslateModule, TableModule, TooltipModule, TenantDividendSecurityAccountSelectionDialogComponent,
+    TenantDividendsCashaccountExtendedComponent, TenantDividendsSecurityExtendedComponent]
 })
 export class TenantDividendsComponent extends TableConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
 

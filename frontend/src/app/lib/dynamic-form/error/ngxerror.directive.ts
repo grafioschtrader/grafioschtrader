@@ -20,7 +20,7 @@ import {RuleEvent} from './error.message.rules';
 
 @Directive({
     selector: '[ngxError]',
-    standalone: false
+    standalone: true
 })
 export class NgxErrorDirective implements OnInit, OnDestroy, DoCheck, AfterViewInit {
 

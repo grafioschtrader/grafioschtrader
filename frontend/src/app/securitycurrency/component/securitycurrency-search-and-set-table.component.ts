@@ -2,7 +2,7 @@ import {Component, Input} from '@angular/core';
 import {Security} from '../../entities/security';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
 import {SecurityService} from '../service/security.service';
 import {CallBackSetSecurity} from './securitycurrency-search-and-set.component';
@@ -12,6 +12,9 @@ import {Currencypair} from '../../entities/currencypair';
 import {SecuritycurrencySearchTableBase} from './securitycurrency.search.table.base';
 import {SupplementCriteria} from '../model/supplement.criteria';
 import {FilterService} from 'primeng/api';
+import {TableModule} from 'primeng/table';
+import {ButtonModule} from 'primeng/button';
+import {CommonModule} from '@angular/common';
 
 /**
  * After a search over securities or currency the search result ist shown in a table to select a certain security.
@@ -60,7 +63,13 @@ import {FilterService} from 'primeng/api';
       </button>
     </div>
   `,
-    standalone: false
+    imports: [
+        TableModule,
+        ButtonModule,
+        CommonModule,
+        TranslateModule
+    ],
+    standalone: true
 })
 export class SecuritycurrencySearchAndSetTableComponent extends SecuritycurrencySearchTableBase {
   @Input() callBackSetSecurity: CallBackSetSecurity;

@@ -82,9 +82,13 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
       TenantLimitTypes.MAX_WATCHLIST
     ]);
 
-    return combineLatest([tenantObservable, portfolioObservable, tenantLimitsObservable]).pipe(
-      tap(([tenant]) => this.tenant = tenant),
-      map(([tenant, portfolios, tenantLimits]) => {
+    return combineLatest({
+      tenant: tenantObservable,
+      portfolios: portfolioObservable,
+      tenantLimits: tenantLimitsObservable
+    }).pipe(
+      tap(({tenant}) => this.tenant = tenant),
+      map(({tenant, portfolios, tenantLimits}): void => {
         const tenantStringify = JSON.stringify(tenant);
 
         // Set root node label with fresh tenant data
@@ -95,22 +99,7 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
         this.tenantLimits = tenantLimits.reduce((ac, tl) => ({...ac, [tl.msgKey]: tl}), {});
         rootNode.children.splice(0);
 
-        // Add portfolio nodes
-        for (const portfolio of portfolios) {
-          const treeNode = {
-            label: portfolio.name + ' / ' + portfolio.currency,
-            data: new TypeNodeData(
-              TreeNodeType.Portfolio,
-              this.addMainRoute(AppSettings.PORTFOLIO_TAB_MENU_KEY),
-              portfolio.idPortfolio,
-              tenantStringify,
-              JSON.stringify(portfolio)
-            ),
-            expanded: true,
-            children: [this.addSecurityaccountToTree(portfolio)]
-          };
-          rootNode.children.push(treeNode);
-        }
+        this.addPortfoliosToRootNode(portfolios, tenantStringify, rootNode);
       })
     );
   }
@@ -123,7 +112,7 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
       case TreeNodeType.PortfolioRoot:
         menuItems.push(
           {
-            label: 'EDIT_RECORD|CLIENT' + BaseSettings.DIALOG_MENU_SUFFIX,
+            label: 'EDIT_RECORD|TENANT' + BaseSettings.DIALOG_MENU_SUFFIX,
             command: () => this.callbacks?.handleTenantEdit(selectedNodeData, false)
               ?.subscribe(result => {
                 if (result) {
@@ -132,7 +121,7 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
               })
           },
           {
-            label: 'CLIENT_CHANGE_CURRENCY' + BaseSettings.DIALOG_MENU_SUFFIX,
+            label: 'TENANT_CHANGE_CURRENCY' + BaseSettings.DIALOG_MENU_SUFFIX,
             command: () => this.callbacks?.handleTenantEdit(selectedNodeData, true)
               ?.subscribe(result => {
                 if (result) {
@@ -234,6 +223,33 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
   }
 
   // Private helper methods
+
+  /**
+   * Adds portfolio nodes to the root node of the tree.
+   * Creates tree nodes for each portfolio with their associated security account children.
+   *
+   * @param portfolios - Array of portfolios to add to the tree
+   * @param tenantStringify - Stringified tenant object for parent reference
+   * @param rootNode - Root tree node to add portfolio children to
+   * @private
+   */
+  private addPortfoliosToRootNode(portfolios: Portfolio[], tenantStringify: string, rootNode: TreeNode): void {
+    for (const portfolio of portfolios) {
+      const treeNode = {
+        label: portfolio.name + ' / ' + portfolio.currency,
+        data: new TypeNodeData(
+          TreeNodeType.Portfolio,
+          this.addMainRoute(AppSettings.PORTFOLIO_TAB_MENU_KEY),
+          portfolio.idPortfolio,
+          tenantStringify,
+          JSON.stringify(portfolio)
+        ),
+        expanded: true,
+        children: [this.addSecurityaccountToTree(portfolio)]
+      };
+      rootNode.children.push(treeNode);
+    }
+  }
 
   private addSecurityaccountToTree(portfolio: Portfolio): TreeNode {
     const portfolioJson = JSON.stringify(portfolio);

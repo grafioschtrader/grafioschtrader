@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {HelpIds} from '../../lib/help/help.ids';
@@ -9,6 +9,8 @@ import {Assetclass} from '../../entities/assetclass';
 import {SecurityUDFHelper} from './security.udf.helper';
 import {BaseUDFDataEdit} from '../../lib/udfmeta/components/base.udf.data.edit';
 import {Security} from '../../entities/security';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 
 /**
  * Allows you to edit additional fields for the instruments. The input fields are created entirely from metadata.
@@ -17,7 +19,12 @@ import {Security} from '../../entities/security';
 @Component({
     selector: 'udf-security-edit',
     templateUrl: '../../lib/udfmeta/view/general.udf.data.edit.html',
-    standalone: false
+    standalone: true,
+    imports: [
+      TranslateModule,
+      DialogModule,
+      DynamicFormComponent
+    ]
 })
 export class SecurityUDFEditComponent extends BaseUDFDataEdit implements OnInit {
 

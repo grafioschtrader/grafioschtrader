@@ -7,7 +7,7 @@ import {toArray} from './toArray';
 @Directive({
     selector: '[ngxErrors]',
     exportAs: 'ngxErrors',
-    standalone: false
+    standalone: true
 })
 export class NgxErrorsDirective implements OnChanges, OnDestroy, AfterViewInit {
 

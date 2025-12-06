@@ -1,7 +1,7 @@
 import {Component, Input, OnInit, ViewChild} from '@angular/core';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
 import {MessageToastService} from '../../lib/message/message.toast.service';
@@ -13,7 +13,7 @@ import {AppHelper} from '../../lib/helper/app.helper';
 import {SecurityDerived, SecurityEditSupport} from './security.edit.support';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {AfterSetSecurity, CallBackSetSecurityWithAfter} from './securitycurrency-search-and-set.component';
+import {AfterSetSecurity, CallBackSetSecurityWithAfter, SecuritycurrencySearchAndSetComponent} from './securitycurrency-search-and-set.component';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {combineLatest, Observable, Subscription} from 'rxjs';
@@ -39,6 +39,7 @@ import {SecurityCurrencypairDerivedLinks} from '../model/security.currencypair.d
 import {AppSettings} from '../../shared/app.settings';
 import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
+import {DialogModule} from 'primeng/dialog';
 
 /**
  * To create a derived instrument a base instrument is required. Additionally, a formula can be added. Prices depend on other instrument,
@@ -66,7 +67,13 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
       }
     </p-dialog>
   `,
-    standalone: false
+    standalone: true,
+    imports: [
+      TranslateModule,
+      DialogModule,
+      DynamicFormComponent,
+      SecuritycurrencySearchAndSetComponent
+    ]
 })
 export class SecurityDerivedEditComponent extends SimpleEditBase implements OnInit, CallBackSetSecurityWithAfter {
 // Input from parent component

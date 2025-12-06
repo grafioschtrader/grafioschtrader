@@ -1,5 +1,10 @@
 import {Component} from '@angular/core';
 import {BaseInputComponent} from '../base.input.component';
+import {CommonModule} from '@angular/common';
+import {ReactiveFormsModule} from '@angular/forms';
+import {TranslateModule} from '@ngx-translate/core';
+import {ButtonModule} from 'primeng/button';
+import {UpperCaseDirective} from './upper-case.directive';
 
 /**
  * Creates an input field with a following button.
@@ -34,7 +39,14 @@ import {BaseInputComponent} from '../base.input.component';
       </div>
     </ng-container>
   `,
-    standalone: false
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        TranslateModule,
+        ButtonModule,
+        UpperCaseDirective
+    ],
+    standalone: true
 })
 
 export class FormInputButtonComponent extends BaseInputComponent {

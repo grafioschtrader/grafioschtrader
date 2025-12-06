@@ -6,7 +6,7 @@ import {UntypedFormControl, NG_VALIDATORS, Validator} from '@angular/forms';
     providers: [
         { provide: NG_VALIDATORS, useExisting: FileRequiredValidator, multi: true },
     ],
-    standalone: false
+    standalone: true
 })
 export class FileRequiredValidator implements Validator {
   static validate(c: UntypedFormControl): { [key: string]: any } {

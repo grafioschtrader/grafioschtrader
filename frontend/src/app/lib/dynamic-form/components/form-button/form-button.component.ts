@@ -1,9 +1,11 @@
 import {Component} from '@angular/core';
-import {UntypedFormGroup} from '@angular/forms';
+import {ReactiveFormsModule, UntypedFormGroup} from '@angular/forms';
 
 import {FieldFormFormGroupConfig} from '../../models/field.form.form.group.config';
 import {FieldConfig} from '../../models/field.config';
 import {FormConfig} from '../../models/form.config';
+import {TranslateModule} from '@ngx-translate/core';
+import {CommonModule} from '@angular/common';
 
 @Component({
     selector: 'form-button',
@@ -20,7 +22,12 @@ import {FormConfig} from '../../models/form.config';
       </button>
     }
   `,
-    standalone: false
+    imports: [
+        TranslateModule,
+        CommonModule,
+        ReactiveFormsModule
+    ],
+    standalone: true
 })
 
 export class FormButtonComponent implements FieldFormFormGroupConfig {

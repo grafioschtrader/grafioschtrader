@@ -13,7 +13,6 @@ import {TransactionCostGrandSummary} from '../../entities/view/transactioncost/t
 import {TransactionCostGroupSummary} from '../../entities/view/transactioncost/transaction.cost.group.summary';
 import {ColumnConfig, ColumnGroupConfig} from '../../lib/datashowbase/column.config';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
-
 import {AppSettings} from '../../shared/app.settings';
 import {ChartDataService} from '../../shared/chart/service/chart.data.service';
 import {ChartTrace, PlotlyHelper} from '../../shared/chart/plotly.helper';
@@ -42,7 +41,7 @@ import {BaseSettings} from '../../lib/base.settings';
               @for (field of fields; track field) {
                 <th [pSortableColumn]="field.field" [style.max-width.px]="field.width"
                     [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-                  {{field.headerTranslated}}
+                  {{ field.headerTranslated }}
                   <p-sortIcon [field]="field.field"></p-sortIcon>
                 </th>
               }
@@ -62,7 +61,7 @@ import {BaseSettings} from '../../lib/base.settings';
                       [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
                       [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                      || field.dataType===DataType.NumericInteger)? 'text-end': ''">
-                    {{getValueByPath(el, field)}}
+                    {{ getValueByPath(el, field) }}
                   </td>
                 }
               }
@@ -77,7 +76,7 @@ import {BaseSettings} from '../../lib/base.settings';
                   <td class="row-total" [style.width.px]="field.width"
                       [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                 || field.dataType===DataType.NumericInteger)? 'text-end': ''">
-                    {{getValueColumnTotal(field, 0, transactionCostGrandSummary, null)}}
+                    {{ getValueColumnTotal(field, 0, transactionCostGrandSummary, null) }}
                   </td>
                 }
               }
@@ -101,7 +100,7 @@ import {BaseSettings} from '../../lib/base.settings';
       </div>
     </div>
   `,
-    standalone: false
+  standalone: false
 })
 export class TenantTransactionCostComponent extends TableConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
   @ViewChild('dataTable') datatable: ElementRef;
@@ -127,14 +126,14 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
   private subscriptionRequestFromChart: Subscription;
 
   constructor(private portfolioService: PortfolioService,
-              private activatedRoute: ActivatedRoute,
-              private activePanelService: ActivePanelService,
-              private router: Router,
-              private chartDataService: ChartDataService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+    private activatedRoute: ActivatedRoute,
+    private activePanelService: ActivePanelService,
+    private router: Router,
+    private chartDataService: ChartDataService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService) {
     super(filterService, usersettingsService, translateService, gps);
   }
 

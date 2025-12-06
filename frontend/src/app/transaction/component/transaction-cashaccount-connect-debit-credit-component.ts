@@ -1,10 +1,13 @@
 import {Component, Input, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {TransactionCallParam} from './transaction.call.parm';
 import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
 import {HelpIds} from '../../lib/help/help.ids';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {FormDefinitionHelper} from '../../shared/edit/form.definition.helper';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 @Component({
     selector: 'transaction-cashaccount-connect-debit-credit',
@@ -18,7 +21,8 @@ import {FormDefinitionHelper} from '../../shared/edit/form.definition.helper';
       </dynamic-form>
     </p-dialog>
   `,
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, TranslateModule, DialogModule, DynamicFormModule]
 })
 export class TransactionCashaccountConnectDebitCreditComponent extends SimpleEditBase implements OnInit {
 

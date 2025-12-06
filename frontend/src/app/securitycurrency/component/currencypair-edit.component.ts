@@ -3,7 +3,7 @@ import {MessageToastService} from '../../lib/message/message.toast.service';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
 import {AssetclassService} from '../../assetclass/service/assetclass.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {SecuritycurrencyEdit} from './securitycurrency.edit';
 import {combineLatest, Observable, Subscription} from 'rxjs';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
@@ -24,6 +24,8 @@ import {AppSettings} from '../../shared/app.settings';
 import {UDFMetadataHelper} from '../../lib/udfmeta/components/udf.metadata.helper';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 import {BaseSettings} from '../../lib/base.settings';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 
 
 /**
@@ -41,7 +43,12 @@ import {BaseSettings} from '../../lib/base.settings';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`,
-  standalone: false
+  standalone: true,
+  imports: [
+    TranslateModule,
+    DialogModule,
+    DynamicFormComponent
+  ]
 })
 export class CurrencypairEditComponent extends SecuritycurrencyEdit implements OnInit {
 

@@ -5,7 +5,11 @@
       "Bash(npm run build:*)",
       "WebFetch(domain:github.com)",
       "Bash(mvn clean compile:*)",
-      "Bash(mvn clean install:*)"
+      "Bash(mvn clean install:*)",
+      "Bash(ls:*)",
+      "Bash(grep:*)",
+      "Bash(npm run lint)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,5 +1,11 @@
 import {BaseInputComponent} from '../base.input.component';
 import {Component} from '@angular/core';
+import {ReactiveFormsModule} from '@angular/forms';
+import {CommonModule} from '@angular/common';
+import {NgxCurrencyDirective} from 'ngx-currency';
+import {TooltipModule} from 'primeng/tooltip';
+import {TranslateModule} from '@ngx-translate/core';
+import {FilterOutPipe} from '../../pipe/FilterOutPipe';
 
 @Component({
     selector: 'form-input-currency-number',
@@ -18,7 +24,15 @@ import {Component} from '@angular/core';
              onfocus="this.select()"/>
     </ng-container>
   `,
-    standalone: false
+    imports: [
+        ReactiveFormsModule,
+        CommonModule,
+        NgxCurrencyDirective,
+        TooltipModule,
+        TranslateModule,
+        FilterOutPipe
+    ],
+    standalone: true
 })
 export class FormInputCurrencyNumberComponent extends BaseInputComponent {
 }

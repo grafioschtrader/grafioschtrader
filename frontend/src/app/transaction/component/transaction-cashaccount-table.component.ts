@@ -1,11 +1,13 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
 import {TransactionService} from '../service/transaction.service';
 import {Transaction} from '../../entities/transaction';
 import {Currencypair} from '../../entities/currencypair';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 import {CashaccountTransactionPosition} from '../../entities/view/cashaccount.transaction.position';
 import {TransactionContextMenu} from './transaction.context.menu';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Security} from '../../entities/security';
 import {Portfolio} from '../../entities/portfolio';
@@ -25,6 +27,15 @@ import {ConfirmationService, FilterService} from 'primeng/api';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 import {TransactionType} from '../../shared/types/transaction.type';
+import {TableModule} from 'primeng/table';
+import {SelectModule} from 'primeng/select';
+import {DatePickerModule} from 'primeng/datepicker';
+import {ContextMenuModule} from 'primeng/contextmenu';
+import {TooltipModule} from 'primeng/tooltip';
+import {TransactionCashaccountEditSingleComponent} from './transaction-cashaccount-editsingle.component';
+import {TransactionCashaccountEditDoubleComponent} from './transaction-cashaccount-editdouble.component';
+import {TransactionSecurityEditComponent} from './transaction-security-edit.component';
+import {TransactionCashaccountConnectDebitCreditComponent} from './transaction-cashaccount-connect-debit-credit-component';
 
 /**
  * Angular component that displays transactions for a cash account in a table format with context menu functionality.
@@ -35,7 +46,21 @@ import {TransactionType} from '../../shared/types/transaction.type';
 @Component({
   selector: 'transaction-cashaccount-table',
   templateUrl: '../view/transaction.cashaccount.table.html',
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    TranslateModule,
+    TableModule,
+    SelectModule,
+    DatePickerModule,
+    ContextMenuModule,
+    TooltipModule,
+    TransactionCashaccountEditSingleComponent,
+    TransactionCashaccountEditDoubleComponent,
+    TransactionSecurityEditComponent,
+    TransactionCashaccountConnectDebitCreditComponent
+  ]
 })
 export class TransactionCashaccountTableComponent extends TransactionContextMenu
   implements ChildPreservePage, OnInit, OnDestroy {

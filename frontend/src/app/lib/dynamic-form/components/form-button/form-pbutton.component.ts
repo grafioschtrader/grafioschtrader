@@ -1,9 +1,15 @@
 import {Component} from '@angular/core';
-import {UntypedFormGroup} from '@angular/forms';
+import {ReactiveFormsModule, UntypedFormGroup} from '@angular/forms';
 
 import {FieldFormFormGroupConfig} from '../../models/field.form.form.group.config';
 import {FieldConfig} from '../../models/field.config';
 import {FormConfig} from '../../models/form.config';
+import {ButtonModule} from 'primeng/button';
+import {TooltipModule} from 'primeng/tooltip';
+import {TranslateModule} from '@ngx-translate/core';
+import {FilterOutPipe} from '../../pipe/FilterOutPipe';
+import {AngularSvgIconModule} from 'angular-svg-icon';
+import {CommonModule} from '@angular/common';
 
 /**
  * Output of a single button, It is assumed that the output of the buttons is from left to right.
@@ -43,7 +49,16 @@ import {FormConfig} from '../../models/form.config';
       </button>
     }
   `,
-  standalone: false
+  imports: [
+    ButtonModule,
+    TooltipModule,
+    TranslateModule,
+    FilterOutPipe,
+    AngularSvgIconModule,
+    CommonModule,
+    ReactiveFormsModule
+  ],
+  standalone: true
 })
 
 export class FormPButtonComponent implements FieldFormFormGroupConfig {

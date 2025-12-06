@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, OnInit} from '@angular/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {PortfolioService} from '../service/portfolio.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {Portfolio} from '../../entities/portfolio';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
@@ -14,6 +14,7 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {SimpleDynamicEditBase} from '../../lib/edit/simple.dynamic.edit.base';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 /**
  * Component for editing the portfolio.
@@ -24,7 +25,11 @@ import {SimpleDynamicEditBase} from '../../lib/edit/simple.dynamic.edit.base';
                   (submitBt)="submit($event)">
     </dynamic-form>
   `,
-  standalone: false
+  standalone: true,
+  imports: [
+    DynamicFormModule,
+    TranslateModule
+  ]
 })
 export class PortfolioEditDynamicComponent extends SimpleDynamicEditBase<Portfolio> implements OnInit, AfterViewInit {
   callParam: CallParam;

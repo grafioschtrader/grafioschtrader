@@ -5,7 +5,7 @@ import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.ser
 import {WatchlistService} from '../service/watchlist.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import moment from 'moment';
@@ -28,6 +28,25 @@ import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
+import {CommonModule} from '@angular/common';
+import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
+import {AngularSvgIconModule} from 'angular-svg-icon';
+import {TooltipModule} from 'primeng/tooltip';
+import {TransactionSecurityTableComponent} from '../../transaction/component/transaction-security-table.component';
+import {TransactionSecurityMarginTreetableComponent} from '../../transaction/component/transaction-security-margin-treetable.component';
+import {SecuritycurrencyUdfComponent} from './securitycurrency-udf.component';
+import {SecuritycurrencyExtendedInfoComponent} from './securitycurrency-extended-info.component';
+import {WatchlistDividendTableComponent} from './watchlist-dividend-table.component';
+import {WatchlistSecuritysplitTableComponent} from './watchlist-securitysplit-table.component';
+import {WatchlistAddInstrumentComponent} from './watchlist-add-instrument.component';
+import {CurrencypairEditComponent} from '../../securitycurrency/component/currencypair-edit.component';
+import {SecurityEditComponent} from '../../securitycurrency/component/security-edit.component';
+import {SecurityDerivedEditComponent} from '../../securitycurrency/component/security-derived-edit.component';
+import {SecurityUDFEditComponent} from '../../securitycurrency/component/security-udf-edit.component';
+import {AlgoStrategyEditComponent} from '../../algo/component/algo-strategy-edit.component';
+import {WatchlistAddEditPriceProblemInstrumentComponent} from './watchlist-add-edit-price-problem-instrument.component';
+import {TransactionSecurityEditComponent} from '../../transaction/component/transaction-security-edit.component';
+import {UDFGeneralEditComponent} from '../../lib/udfmeta/components/udf-general-edit.component';
 
 /**
  * Shows the performance watchlist. It has no special function implemented.
@@ -40,7 +59,29 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
     }
   `],
   providers: [DialogService],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    TranslateModule,
+    ConfigurableTableComponent,
+    AngularSvgIconModule,
+    TooltipModule,
+    TransactionSecurityTableComponent,
+    TransactionSecurityMarginTreetableComponent,
+    SecuritycurrencyUdfComponent,
+    SecuritycurrencyExtendedInfoComponent,
+    WatchlistDividendTableComponent,
+    WatchlistSecuritysplitTableComponent,
+    WatchlistAddInstrumentComponent,
+    CurrencypairEditComponent,
+    SecurityEditComponent,
+    SecurityDerivedEditComponent,
+    SecurityUDFEditComponent,
+    AlgoStrategyEditComponent,
+    WatchlistAddEditPriceProblemInstrumentComponent,
+    TransactionSecurityEditComponent,
+    UDFGeneralEditComponent
+  ]
 })
 export class WatchlistPerformanceComponent extends WatchlistTable implements OnInit, OnDestroy {
 

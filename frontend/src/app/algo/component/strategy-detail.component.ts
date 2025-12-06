@@ -1,4 +1,5 @@
 import {Component, Input, OnChanges} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {AlgoStrategyParamCall} from '../model/algo.dialog.visible';
 import {SingleRecordConfigBase} from '../../lib/datashowbase/single.record.config.base';
 import {TranslateService} from '@ngx-translate/core';
@@ -20,7 +21,7 @@ import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.help
  * Project: Grafioschtrader
  */
 @Component({
-    selector: 'strategy-detail',
+  selector: 'strategy-detail',
   template: `
     @for (field of fields; track field) {
       <div class="row">
@@ -33,7 +34,8 @@ import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.help
       </div>
     }
   `,
-    standalone: false
+  standalone: true,
+  imports: [CommonModule]
 })
 export class StrategyDetailComponent extends SingleRecordConfigBase implements OnChanges {
   @Input() algoStrategyParamCall: AlgoStrategyParamCall;

@@ -1,8 +1,9 @@
 import {AfterViewInit, Component, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {SimpleDynamicEditBase} from '../../lib/edit/simple.dynamic.edit.base';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
@@ -12,6 +13,7 @@ import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {Watchlist} from '../../entities/watchlist';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {HelpIds} from '../../lib/help/help.ids';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 /**
  * Angular component for creating or modifying watchlists in a dynamic dialog.
@@ -28,7 +30,8 @@ import {HelpIds} from '../../lib/help/help.ids';
                   (submitBt)="submit($event)">
     </dynamic-form>
   `,
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, TranslateModule, DynamicFormModule]
 })
 export class WatchlistEditDynamicComponent extends SimpleDynamicEditBase<Watchlist> implements OnInit, AfterViewInit {
   /**

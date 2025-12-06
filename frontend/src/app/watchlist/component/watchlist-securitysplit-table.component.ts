@@ -1,13 +1,15 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {SecuritysplitService} from '../../securitycurrency/service/securitysplit.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {SvgIconRegistryService} from 'angular-svg-icon';
+import {SvgIconRegistryService, AngularSvgIconModule} from 'angular-svg-icon';
 import {DividendSplitTableBase} from './dividend.split.table.base';
 import {Securitysplit} from '../../entities/dividend.split';
 import {FilterService} from 'primeng/api';
+import {CommonModule} from '@angular/common';
+import {TableModule} from 'primeng/table';
 
 /**
  * Component that displays security splits in a table format for a specific security.
@@ -16,7 +18,13 @@ import {FilterService} from 'primeng/api';
 @Component({
     selector: 'watchlist-securitysplit-table',
     templateUrl: '../view/dividend.split.table.html',
-    standalone: false
+    standalone: true,
+    imports: [
+      CommonModule,
+      TranslateModule,
+      TableModule,
+      AngularSvgIconModule
+    ]
 })
 export class WatchlistSecuritysplitTableComponent extends DividendSplitTableBase<Securitysplit> implements OnInit {
   /** Field name constant for the split date column */

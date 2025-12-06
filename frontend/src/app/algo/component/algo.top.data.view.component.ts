@@ -41,11 +41,20 @@ import {AlgoStrategyHelper} from './algo.strategy.helper';
 import {AlgoTopService} from '../service/algo.top.service';
 import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
 import {TreeAlgoAssetclass, TreeAlgoSecurity, TreeAlgoStrategy, TreeAlgoTop} from '../model/tree.algo.base';
+import {AlgoSecurityEditComponent} from './algo-security-edit.component';
 
 /**
  * Shows algorithmic trading tree with its strategies.
  * Project: Grafioschtrader
  */
+import {CommonModule} from '@angular/common';
+import {TreeTableModule} from 'primeng/treetable';
+import {ContextMenuModule} from 'primeng/contextmenu';
+import {TranslateModule} from '@ngx-translate/core';
+import {StrategyDetailComponent} from './strategy-detail.component';
+import {AlgoAssetclassEditComponent} from './algo-assetclass-edit.component';
+import {AlgoStrategyEditComponent} from './algo-strategy-edit.component';
+
 @Component({
   template: `
     <div class="data-container" (click)="onComponentClick($event)" (contextmenu)="onRightClick($event)"
@@ -113,7 +122,9 @@ import {TreeAlgoAssetclass, TreeAlgoSecurity, TreeAlgoStrategy, TreeAlgoTop} fro
       font-weight: 700 !important;
     }
   `],
-    standalone: false
+    standalone: true,
+    imports: [AlgoSecurityEditComponent, CommonModule, TreeTableModule, ContextMenuModule, TranslateModule,
+      StrategyDetailComponent, AlgoAssetclassEditComponent, AlgoStrategyEditComponent]
 })
 export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
   @ViewChild('contextMenu', {static: true}) contextMenu: any;

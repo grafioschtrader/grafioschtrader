@@ -1,4 +1,5 @@
 import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
@@ -26,7 +27,7 @@ import {ActivatedRoute} from '@angular/router';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {TransactionCallParam} from './transaction.call.parm';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 import {Helper} from '../../lib/helper/helper';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
@@ -53,6 +54,8 @@ import {AbstractControl} from '@angular/forms';
 import {AppSettings} from '../../shared/app.settings';
 import {BusinessSelectOptionsHelper} from '../../securitycurrency/component/business.select.options.helper';
 import {BaseSettings} from '../../lib/base.settings';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 /**
  * Edit transaction for an investment product, also margin product. The transaction type (buy, dividend, sell,
@@ -79,7 +82,8 @@ import {BaseSettings} from '../../lib/base.settings';
       </dynamic-form>
     </p-dialog>
   `,
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, TranslateModule, DialogModule, DynamicFormModule]
 })
 export class TransactionSecurityEditComponent extends TransactionBaseOperations implements OnInit {
 

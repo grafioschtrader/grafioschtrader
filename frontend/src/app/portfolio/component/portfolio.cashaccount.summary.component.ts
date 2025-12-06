@@ -1,10 +1,12 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
 import {CashaccountService} from '../../cashaccount/service/cashaccount.service';
 import {ActivatedRoute, Params} from '@angular/router';
 import {Cashaccount} from '../../entities/cashaccount';
 import {AccountPositionGroupSummary} from '../../entities/view/account.position.group.summary';
 import {TransactionType} from '../../shared/types/transaction.type';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {AccountPositionSummary} from '../../entities/view/account.position.summary';
 import {TransactionCallParam} from '../../transaction/component/transaction.call.parm';
 import {Portfolio} from '../../entities/portfolio';
@@ -32,6 +34,14 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {AppSettings} from '../../shared/app.settings';
 import {BaseSettings} from '../../lib/base.settings';
+import {TableModule} from 'primeng/table';
+import {DatePickerModule} from 'primeng/datepicker';
+import {ContextMenuModule} from 'primeng/contextmenu';
+import {TooltipModule} from 'primeng/tooltip';
+import {CashaccountEditComponent} from '../../cashaccount/component/cashaccount-edit.component';
+import {TransactionCashaccountEditSingleComponent} from '../../transaction/component/transaction-cashaccount-editsingle.component';
+import {TransactionCashaccountEditDoubleComponent} from '../../transaction/component/transaction-cashaccount-editdouble.component';
+import {TransactionCashaccountTableComponent} from '../../transaction/component/transaction-cashaccount-table.component';
 
 
 /**
@@ -39,7 +49,20 @@ import {BaseSettings} from '../../lib/base.settings';
  */
 @Component({
     templateUrl: '../view/portfolio.cashaccount.table.html',
-    standalone: false
+    standalone: true,
+    imports: [
+        CommonModule,
+        FormsModule,
+        TranslateModule,
+        TableModule,
+        DatePickerModule,
+        ContextMenuModule,
+        TooltipModule,
+        CashaccountEditComponent,
+        TransactionCashaccountEditSingleComponent,
+        TransactionCashaccountEditDoubleComponent,
+        TransactionCashaccountTableComponent
+    ]
 })
 export class PortfolioCashaccountSummaryComponent extends TableConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
 

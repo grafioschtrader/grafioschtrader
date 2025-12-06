@@ -4,6 +4,10 @@ import {UntypedFormGroup} from '@angular/forms';
 
 import {FieldConfig} from '../../models/field.config';
 import {FormConfig} from '../../models/form.config';
+import {TranslateModule} from '@ngx-translate/core';
+import {CommonModule} from '@angular/common';
+import {DynamicFieldDirective} from '../../components/dynamic-field/dynamic-field.directive';
+import {ErrorMessageComponent} from './error-message.compoent';
 
 /**
  * It handles one input with its label.
@@ -79,7 +83,13 @@ import {FormConfig} from '../../models/form.config';
       </div>
     </div>
   `,
-  standalone: false
+  imports: [
+    TranslateModule,
+    CommonModule,
+    DynamicFieldDirective,
+    ErrorMessageComponent
+  ],
+  standalone: true
 })
 
 export class DynamicFormLayoutComponent {

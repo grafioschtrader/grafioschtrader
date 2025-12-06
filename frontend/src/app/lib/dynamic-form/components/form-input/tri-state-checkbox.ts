@@ -3,6 +3,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
   selector: 'tri-state-checkbox',
+  standalone: true,
   template: `
     <div
       class="tri-state-checkbox"

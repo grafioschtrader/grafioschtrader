@@ -1,10 +1,12 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Portfolio} from '../../entities/portfolio';
 import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {TreeNode} from 'primeng/api';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
+import {CommonModule} from '@angular/common';
+import {TreeTableModule} from 'primeng/treetable';
 
 /**
  * Display all portfolios and corresponding accounts in a tree structure. This enables a selection of these.
@@ -54,7 +56,12 @@ import {ColumnConfig} from '../../lib/datashowbase/column.config';
       </div>
     }
   `,
-    standalone: false
+    standalone: true,
+    imports: [
+        CommonModule,
+        TreeTableModule,
+        TranslateModule
+    ]
 })
 export class TenantDividendAccountSelectionComponent extends TreeTableConfigBase implements OnInit {
   @Input() columnConfig: ColumnConfig[];

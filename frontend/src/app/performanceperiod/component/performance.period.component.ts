@@ -3,7 +3,7 @@ import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {FormBase} from '../../lib/edit/form.base';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {FirstAndMissingTradingDays, HoldingService, PerformanceWindowDef, WeekYear} from '../service/holding.service';
 import {GlobalSessionNames} from '../../lib/global.session.names';
 import {AppHelper} from '../../lib/helper/app.helper';
@@ -18,6 +18,7 @@ import moment from 'moment';
 import {Weekday} from '../../shared/helper/weekday';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 import {PerformancePeriod, PeriodHoldingAndDiff} from '../model/performance.period';
 import {AppSettings} from '../../shared/app.settings';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -26,6 +27,10 @@ import {ChartTrace, PlotlyHelper} from '../../shared/chart/plotly.helper';
 import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
 import {GlobalGTSessionNames} from '../../shared/global.gt.session.names';
 import {BaseSettings} from '../../lib/base.settings';
+import {CommonModule, DatePipe} from '@angular/common';
+import {ProgressBarModule} from 'primeng/progressbar';
+import {TenantPerformanceFromToDiffComponent} from './performance-period-from-to-diff.component';
+import {TenantPerformanceTreetableComponent} from './performance-period-treetable.component';
 
 /**
  * Performance over a certain period for a tenant or portfolio.
@@ -55,7 +60,9 @@ import {BaseSettings} from '../../lib/base.settings';
       </performance-period-treetable>
     </div>
   `,
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, DatePipe, TranslateModule, DynamicFormModule, ProgressBarModule,
+      TenantPerformanceFromToDiffComponent, TenantPerformanceTreetableComponent]
 })
 export class PerformancePeriodComponent extends FormBase implements OnInit, OnDestroy, IGlobalMenuAttach {
 

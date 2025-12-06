@@ -20,6 +20,11 @@ import {ConfirmationService, FilterService} from 'primeng/api';
 import {TransactionSecurityFieldDefinition} from './transaction.security.field.definition';
 import {TransactionSecurityOptionalParam} from '../model/transaction.security.optional.param';
 import {HelpIds} from '../../lib/help/help.ids';
+import {CommonModule} from '@angular/common';
+import {TableModule} from 'primeng/table';
+import {TooltipModule} from 'primeng/tooltip';
+import {ContextMenuModule} from 'primeng/contextmenu';
+import {TransactionSecurityEditComponent} from './transaction-security-edit.component';
 
 /**
  * Component that displays transaction data for a single security instrument in a tabular format. This component serves as a
@@ -30,7 +35,14 @@ import {HelpIds} from '../../lib/help/help.ids';
 @Component({
     selector: 'transaction-security-table',
     templateUrl: '../view/transaction.security.table.html',
-    standalone: false
+    standalone: true,
+    imports: [
+      CommonModule,
+      TableModule,
+      TooltipModule,
+      ContextMenuModule,
+      TransactionSecurityEditComponent
+    ]
 })
 export class TransactionSecurityTableComponent extends TransactionContextMenu implements OnInit, OnDestroy {
   /** Array of security account identifiers to filter transactions */

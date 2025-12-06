@@ -1,16 +1,20 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {FilterService} from 'primeng/api';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {LastYears} from '../../entities/view/instrument.statistics.result';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
+import {CommonModule} from '@angular/common';
+import {TableModule} from 'primeng/table';
+import {TooltipModule} from 'primeng/tooltip';
 
 @Component({
     selector: 'instrument-year-performance-table',
     templateUrl: '../view/instrument.statistic.table.html',
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, TranslateModule, TableModule, TooltipModule]
 })
 export class InstrumentYearPerformanceTableComponent extends TableConfigBase implements OnInit {
   @Input() values: LastYears[];

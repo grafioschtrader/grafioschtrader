@@ -2,7 +2,7 @@ import {Pipe, PipeTransform} from '@angular/core';
 
 @Pipe({
     name: 'filterOut',
-    standalone: false
+    standalone: true
 })
 export class FilterOutPipe implements PipeTransform {
   constructor() {

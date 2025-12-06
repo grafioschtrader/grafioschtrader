@@ -1,16 +1,19 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {FilterService} from 'primeng/api';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {CashAccountPosition} from '../../entities/view/securitydividends/security.dividends.position';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {SecurityDividendsGrandTotal} from '../../entities/view/securitydividends/security.dividends.grand.total';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {CashAccountTableInputFilter} from '../../transaction/component/transaction-cashaccount-table.component';
+import {CashAccountTableInputFilter, TransactionCashaccountTableComponent} from '../../transaction/component/transaction-cashaccount-table.component';
 import {TransactionType} from '../../shared/types/transaction.type';
 import {TenantDividendsExtendedBase} from './tenant.dividends.extended.base';
 import {ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
+import {CommonModule} from '@angular/common';
+import {TableModule} from 'primeng/table';
+import {TooltipModule} from 'primeng/tooltip';
 
 /**
  * Displays the cash accounts in the interest/dividend report.
@@ -69,7 +72,14 @@ import {ParentChildRegisterService} from '../../shared/service/parent.child.regi
       </p-table>
     </div>
   `,
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    TableModule,
+    TooltipModule,
+    TranslateModule,
+    TransactionCashaccountTableComponent
+  ]
 })
 export class TenantDividendsCashaccountExtendedComponent extends TenantDividendsExtendedBase implements OnInit {
   @Input() securityDividendsGrandTotal: SecurityDividendsGrandTotal;

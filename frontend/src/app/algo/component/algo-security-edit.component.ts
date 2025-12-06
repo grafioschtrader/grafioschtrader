@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {AlgoSecurity} from '../model/algo.security';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {AlgoSecurityService} from '../service/algo.security.service';
@@ -16,6 +16,9 @@ import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {BusinessSelectOptionsHelper} from '../../securitycurrency/component/business.select.options.helper';
+import {CommonModule} from '@angular/common';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 /**
  * Project: Grafioschtrader
@@ -31,7 +34,13 @@ import {BusinessSelectOptionsHelper} from '../../securitycurrency/component/busi
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`,
-    standalone: false
+    standalone: true,
+    imports: [
+        CommonModule,
+        DialogModule,
+        DynamicFormModule,
+        TranslateModule
+    ]
 })
 export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<AlgoSecurity> implements OnInit {
 

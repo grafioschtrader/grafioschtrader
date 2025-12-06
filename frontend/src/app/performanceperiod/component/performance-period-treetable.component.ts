@@ -17,6 +17,9 @@ import {Helper} from '../../lib/helper/helper';
 import moment from 'moment';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {AppSettings} from '../../shared/app.settings';
+import {CommonModule} from '@angular/common';
+import {TreeTableModule} from 'primeng/treetable';
+import {TooltipModule} from 'primeng/tooltip';
 
 /**
  * Shows a tree table with periodic windows on the first column, which can be week or year.
@@ -25,6 +28,7 @@ import {AppSettings} from '../../shared/app.settings';
 @Component({
   selector: 'performance-period-treetable',
   template: `
+    <div class="fcontainer">
     <p-treeTable [value]="periodWindowsNodes" [columns]="fields"
                  selectionMode="single" [(selection)]="selectedNodes">
       <ng-template #header let-fields>
@@ -84,6 +88,7 @@ import {AppSettings} from '../../shared/app.settings';
         </tr>
       </ng-template>
     </p-treeTable>
+    </div>
   `,
   styles: [`
     .cell-holiday {
@@ -94,7 +99,8 @@ import {AppSettings} from '../../shared/app.settings';
       background-color: orange !important;
     }
   `],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, TreeTableModule, TooltipModule]
 })
 export class TenantPerformanceTreetableComponent extends TreeTableConfigBase implements OnInit, OnChanges {
   @Input() performancePeriod: PerformancePeriod;

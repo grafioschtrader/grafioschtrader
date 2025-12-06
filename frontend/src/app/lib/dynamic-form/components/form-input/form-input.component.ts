@@ -1,6 +1,13 @@
 import {Component} from '@angular/core';
 
 import {BaseInputComponent} from '../base.input.component';
+import {TranslateModule} from '@ngx-translate/core';
+import {FilterOutPipe} from '../../pipe/FilterOutPipe';
+import {CommonModule} from '@angular/common';
+import {ReactiveFormsModule} from '@angular/forms';
+import {KeyFilterModule} from 'primeng/keyfilter';
+import {TooltipModule} from 'primeng/tooltip';
+import {UpperCaseDirective} from './upper-case.directive';
 
 /**
  * Input for normal text, password email and number with minimal and maximal value
@@ -34,7 +41,16 @@ import {BaseInputComponent} from '../base.input.component';
       {{config.fieldSuffix|translate}}
     </ng-container>
   `,
-    standalone: false
+    imports: [
+        TranslateModule,
+        FilterOutPipe,
+        CommonModule,
+        ReactiveFormsModule,
+        KeyFilterModule,
+        TooltipModule,
+        UpperCaseDirective
+    ],
+    standalone: true
 })
 
 export class FormInputComponent extends BaseInputComponent {

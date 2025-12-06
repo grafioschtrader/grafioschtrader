@@ -1,5 +1,5 @@
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {AfterViewInit, Component, OnDestroy, OnInit} from '@angular/core';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {AppHelper} from '../../lib/helper/app.helper';
@@ -26,6 +26,7 @@ import {SimpleDynamicEditBase} from '../../lib/edit/simple.dynamic.edit.base';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {AlgoTop} from '../model/algo.top';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 /**
  * Dialog for define a strategy. Asset class can be added dynamically.
@@ -38,7 +39,11 @@ import {CallParam} from '../../shared/maintree/types/dialog.visible';
                   #form="dynamicForm" (submitBt)="submit($event)">
     </dynamic-form>
   `,
-  standalone: false
+  standalone: true,
+  imports: [
+    DynamicFormModule,
+    TranslateModule
+  ]
 })
 export class AlgoRuleStrategyCreateDynamicComponent extends SimpleDynamicEditBase<AlgoTop> implements OnInit, OnDestroy, AfterViewInit {
   static readonly DIALOG_WIDTH = 500;

@@ -6,17 +6,25 @@ import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {TradingCalendarBase} from './trading.calendar.base';
 import {TradingDaysWithDateBoundaries} from '../model/trading.days.with.date.boundaries';
 import {AuditHelper} from '../../lib/helper/audit.helper';
+import {CommonModule} from '@angular/common';
+import {PanelModule} from 'primeng/panel';
+import {SelectModule} from 'primeng/select';
+import {FormsModule} from '@angular/forms';
+import {ButtonModule} from 'primeng/button';
+import {FullyearcalendarLibComponent} from '../../lib/fullyearcalendar/fullyearcalendar-lib.component';
+import {ContextMenuModule} from 'primeng/contextmenu';
 
 /**
  * Component for the  global trading calendar
  */
 @Component({
     templateUrl: '../view/trading.calendar.html',
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, TranslateModule, PanelModule, SelectModule, FormsModule, ButtonModule, FullyearcalendarLibComponent, ContextMenuModule]
 })
 export class TradingCalendarGlobalComponent extends TradingCalendarBase implements OnInit {
 
