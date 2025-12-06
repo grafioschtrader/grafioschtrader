@@ -6,7 +6,7 @@ import {SecurityPositionGrandSummary} from '../../entities/view/security.positio
 import {SecurityaccountTable} from './securityaccountTable';
 import {TransactionCallParam} from '../../transaction/component/transaction.call.parm';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {Subscription} from 'rxjs';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
@@ -21,19 +21,33 @@ import {
 
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {AppSettings} from '../../shared/app.settings';
-import {NgxFileDropEntry} from 'ngx-file-drop';
+import {NgxFileDropEntry, NgxFileDropModule} from 'ngx-file-drop';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {FilterService} from 'primeng/api';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 import {BaseSettings} from '../../lib/base.settings';
+import {CommonModule} from '@angular/common';
+import {TableModule} from 'primeng/table';
+import {DatePicker} from 'primeng/datepicker';
+import {FormsModule} from '@angular/forms';
+import {SelectModule} from 'primeng/select';
+import {TooltipModule} from 'primeng/tooltip';
+import {ContextMenuModule} from 'primeng/contextmenu';
+import {TransactionSecurityTableComponent} from '../../transaction/component/transaction-security-table.component';
+import {TransactionSecurityMarginTreetableComponent} from '../../transaction/component/transaction-security-margin-treetable.component';
+import {TransactionCashaccountTableComponent} from '../../transaction/component/transaction-cashaccount-table.component';
+import {TransactionSecurityEditComponent} from '../../transaction/component/transaction-security-edit.component';
 
 /**
  * It is the summary for a single security account with its securities.
  */
 @Component({
     templateUrl: '../view/securityaccount.table.html',
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, TranslateModule, TableModule, DatePicker, FormsModule, SelectModule, TooltipModule, ContextMenuModule,
+      NgxFileDropModule, TransactionSecurityTableComponent, TransactionSecurityMarginTreetableComponent,
+      TransactionCashaccountTableComponent, TransactionSecurityEditComponent]
 })
 export class SecurityaccountSummaryComponent extends SecurityaccountTable implements OnInit, OnDestroy {
 

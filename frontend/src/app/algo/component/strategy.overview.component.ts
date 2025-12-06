@@ -1,5 +1,10 @@
 import {Component} from '@angular/core';
-import {NgxCurrencyInputMode} from 'ngx-currency';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {DialogModule} from 'primeng/dialog';
+import {ButtonModule} from 'primeng/button';
+import {InputNumberModule} from 'primeng/inputnumber';
+import {NgxCurrencyDirective, NgxCurrencyInputMode} from 'ngx-currency';
 
 /**
  * Project: Grafioschtrader
@@ -39,7 +44,8 @@ import {NgxCurrencyInputMode} from 'ngx-currency';
       </ng-template>
     </p-dialog>
   `,
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, FormsModule, InputNumberModule, ButtonModule, DialogModule, NgxCurrencyDirective]
 })
 export class StrategyOverviewComponent {
   displayBasic: boolean;

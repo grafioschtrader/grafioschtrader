@@ -1,6 +1,12 @@
 import {Component, OnInit} from '@angular/core';
 import {BaseInputComponent} from '../base.input.component';
 import {Helper} from '../../../helper/helper';
+import {ReactiveFormsModule} from '@angular/forms';
+import {CommonModule} from '@angular/common';
+import {DatePicker} from 'primeng/datepicker';
+import {TooltipModule} from 'primeng/tooltip';
+import {TranslateModule} from '@ngx-translate/core';
+import {FilterOutPipe} from '../../pipe/FilterOutPipe';
 
 
 @Component({
@@ -30,7 +36,15 @@ import {Helper} from '../../../helper/helper';
       </p-datepicker>
     </ng-container>
   `,
-    standalone: false
+    imports: [
+        ReactiveFormsModule,
+        CommonModule,
+        DatePicker,
+        TooltipModule,
+        TranslateModule,
+        FilterOutPipe
+    ],
+    standalone: true
 })
 export class FormPCalendarComponent extends BaseInputComponent implements OnInit {
 

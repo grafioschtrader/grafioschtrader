@@ -1,7 +1,9 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {ActivatedRoute, Params, Router} from '@angular/router';
-import {TranslateService} from '@ngx-translate/core';
+import {ActivatedRoute, Params, Router, RouterModule} from '@angular/router';
+import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {combineLatest, Observable, Subscription} from 'rxjs';
+import {CommonModule} from '@angular/common';
+import {Tab, TabList, Tabs} from 'primeng/tabs';
 import {Watchlist} from '../../entities/watchlist';
 import {UDFMetadataSecurityService} from '../../udfmetasecurity/service/udf.metadata.security.service';
 import {GlobalSessionNames} from '../../lib/global.session.names';
@@ -31,7 +33,8 @@ import {TabItem} from '../../lib/types/tab.item';
       <router-outlet></router-outlet>
     </div>
   `,
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, TranslateModule, RouterModule, Tabs, TabList, Tab]
 })
 export class WatchlistTabMenuComponent extends BaseTabMenuComponent implements OnInit, OnDestroy {
 

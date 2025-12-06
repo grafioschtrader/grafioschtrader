@@ -690,7 +690,7 @@ export class DynamicFieldHelper {
         inputType: InputType.InputNumber
       },
       fieldName, labelKey, required ? [Validators.required] : null, required ? [this.RULE_REQUIRED_TOUCHED] : null, fieldOptions);
-    fieldConfig.inputNumberSettings = {maxFractionDigits};
+    fieldConfig.inputNumberSettings = {maxFractionDigits: maxFractionDigits, allowNegative: allowNegative};
     fieldConfig.max = Number('9'.repeat(integerLimit) + '.' + '9'.repeat(maxFractionDigits));
     fieldConfig.min = allowNegative ? fieldConfig.max * -1 : required ? 1 / Math.pow(10, maxFractionDigits) : 0;
     return fieldConfig;
@@ -840,7 +840,7 @@ export class DynamicFieldHelper {
       fieldConfig.currencyMaskConfig.precision = precision;
       DynamicFieldHelper.setCurrencyMaskMaxMin(fieldConfig, integerDigits, precision);
     } else {
-      this.setMinMaxValues(fieldConfig, integerDigits, precision, fieldConfig.currencyMaskConfig.allowNegative);
+      this.setMinMaxValues(fieldConfig, integerDigits, precision, fieldConfig.inputNumberSettings.allowNegative);
       fieldConfig.inputNumberSettings.maxFractionDigits = precision;
     }
   }

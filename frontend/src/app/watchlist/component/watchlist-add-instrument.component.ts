@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, Output, ViewChild} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateService, TranslateModule} from '@ngx-translate/core';
 
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
@@ -9,6 +9,8 @@ import {SecuritycurrencySearchBase} from '../../securitycurrency/component/secur
 import {TenantLimit} from '../../shared/types/tenant.limit';
 import {MultipleRequestToOneService} from '../../shared/service/multiple.request.to.one.service';
 import {WatchlistAddInstrumentTableComponent} from './watchlist-add-instrument-table.component';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 /**
  * Search dialog for adding an existing security or currency pair to a certain watchlist.
@@ -32,7 +34,13 @@ import {WatchlistAddInstrumentTableComponent} from './watchlist-add-instrument-t
       </add-instrument-table>
     </p-dialog>
   `,
-    standalone: false
+    standalone: true,
+    imports: [
+      TranslateModule,
+      DialogModule,
+      DynamicFormModule,
+      WatchlistAddInstrumentTableComponent
+    ]
 })
 export class WatchlistAddInstrumentComponent extends SecuritycurrencySearchBase {
   /** Controls the visibility of the add instrument dialog. */

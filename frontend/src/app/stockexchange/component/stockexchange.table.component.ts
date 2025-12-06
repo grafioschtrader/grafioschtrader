@@ -1,6 +1,6 @@
 import {Component, OnDestroy} from '@angular/core';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {StockexchangeService} from '../service/stockexchange.service';
@@ -22,6 +22,9 @@ import {StockexchangeHasSecurity} from '../model/stockexchange.has.security';
 import {StockexchangeHelper} from './stockexchange.helper';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {BaseSettings} from '../../lib/base.settings';
+import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
+import {StockexchangeEditComponent} from './stockexchange-edit.component';
+import {TradingCalendarStockexchangeComponent} from './trading-calendar-stockexchange.component';
 
 /**
  * Shows stock exchanges in a table
@@ -69,7 +72,13 @@ import {BaseSettings} from '../../lib/base.settings';
     }
   `,
   providers: [DialogService],
-  standalone: false
+  standalone: true,
+  imports: [
+    ConfigurableTableComponent,
+    StockexchangeEditComponent,
+    TradingCalendarStockexchangeComponent,
+    TranslateModule
+  ]
 })
 export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<Stockexchange> implements OnDestroy {
 

@@ -3,7 +3,7 @@ import {Directive, Input} from '@angular/core';
 
 @Directive({
     selector: '[disableControl]',
-    standalone: false
+    standalone: true
 })
 export class DisableControlDirective {
 

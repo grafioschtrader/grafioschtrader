@@ -3,7 +3,7 @@ import {Stockexchange} from '../../entities/stockexchange';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {StockexchangeService} from '../service/stockexchange.service';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {HelpIds} from '../../lib/help/help.ids';
@@ -28,6 +28,8 @@ import {GroupItem, ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/model
 import {StockexchangeMic} from '../model/stockexchange.base.data';
 import {StockexchangeHelper} from './stockexchange.helper';
 import {BaseSettings} from '../../lib/base.settings';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 /**
  * Edit stockexchnage
@@ -44,7 +46,12 @@ import {BaseSettings} from '../../lib/base.settings';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`,
-  standalone: false
+  standalone: true,
+  imports: [
+    DialogModule,
+    DynamicFormModule,
+    TranslateModule
+  ]
 })
 export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchange> implements OnInit {
 
@@ -120,9 +127,9 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
       if (this.canAssignMic()) {
         this.valueChangedOnOnlyMainStockexchange();
         this.valueChangedOnMic();
-        (<any>this.configObject.mic.elementRef).accessibleViewChild.nativeElement.focus();
+        setTimeout(() => (<any>this.configObject.mic.elementRef)?.accessibleViewChild?.nativeElement?.focus());
       } else {
-        this.configObject.name.elementRef.nativeElement.focus();
+        setTimeout(() => this.configObject.name.elementRef?.nativeElement?.focus());
       }
     });
   }

@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {SecurityDividendsPosition} from '../../entities/view/securitydividends/security.dividends.position';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {SecurityDividendsGrandTotal} from '../../entities/view/securitydividends/security.dividends.grand.total';
@@ -9,8 +9,13 @@ import {Security} from '../../entities/security';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {TransactionSecurityOptionalParam} from '../../transaction/model/transaction.security.optional.param';
-import {FilterService} from 'primeng/api';
+import {FilterService, SharedModule} from 'primeng/api';
 import {TenantDividendsExtendedBase} from './tenant.dividends.extended.base';
+import {CommonModule} from '@angular/common';
+import {TableModule} from 'primeng/table';
+import {TooltipModule} from 'primeng/tooltip';
+import {TransactionSecurityTableComponent} from '../../transaction/component/transaction-security-table.component';
+import {TransactionSecurityMarginTreetableComponent} from '../../transaction/component/transaction-security-margin-treetable.component';
 
 /**
  * Shows the dividends and other information of securities for one year in a table. One row per security.
@@ -82,7 +87,16 @@ import {TenantDividendsExtendedBase} from './tenant.dividends.extended.base';
       </p-table>
     </div>
   `,
-    standalone: false
+    standalone: true,
+    imports: [
+        CommonModule,
+        TableModule,
+        TooltipModule,
+        TranslateModule,
+        SharedModule,
+        TransactionSecurityTableComponent,
+        TransactionSecurityMarginTreetableComponent
+    ]
 })
 export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExtendedBase implements OnInit {
   @Input() idsSecurityaccount: number[];

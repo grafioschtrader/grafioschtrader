@@ -15,7 +15,6 @@ import {MainTreeComponent} from './lib/maintree/component/main-tree.component';
 import {TreeModule} from 'primeng/tree';
 import {WatchlistService} from './watchlist/service/watchlist.service';
 import {ContextMenuModule} from 'primeng/contextmenu';
-import {PortfolioCashaccountSummaryComponent} from './portfolio/component/portfolio.cashaccount.summary.component';
 import {SecurityaccountSummariesComponent} from './securityaccount/component/securityaccount.summaries.component';
 import {SecurityaccountSummaryComponent} from './securityaccount/component/securityaccount.summary.component';
 import {SecurityaccountService} from './securityaccount/service/securityaccount.service';
@@ -31,12 +30,11 @@ import {MessageToastService} from './lib/message/message.toast.service';
 import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
 import {UserSettingsService} from './lib/services/user.settings.service';
 import {UserDataService} from './lib/mainmenubar/service/user.data.service';
-import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {provideAnimations} from '@angular/platform-browser/animations';
 import {DynamicFormModule} from './lib/dynamic-form/dynamic-form.module';
 import {ActivePanelService} from './lib/mainmenubar/service/active.panel.service';
 import {TenantService} from './tenant/service/tenant.service';
 import {SecurityaccountEmptyComponent} from './securityaccount/component/securityaccount.empty.component';
-import {StockexchangeTableComponent} from './stockexchange/component/stockexchange.table.component';
 import {StockexchangeService} from './stockexchange/service/stockexchange.service';
 import {DataChangedService} from './lib/maintree/service/data.changed.service';
 import {AssetclassService} from './assetclass/service/assetclass.service';
@@ -46,17 +44,9 @@ import {RegisterComponent} from './lib/login/component/register.component';
 import {TenantEditFullPageComponent} from './tenant/component/tenant.edit.full.page.component';
 import {MainDialogComponent} from './lib/mainmenubar/component/main.dialog.component';
 import {MainDialogService} from './lib/mainmenubar/service/main.dialog.service';
-import {TransactionSecurityEditComponent} from './transaction/component/transaction-security-edit.component';
 import {ParentChildRegisterService} from './shared/service/parent.child.register.service';
-import {FormButtonComponent} from './lib/dynamic-form/components/form-button/form-button.component';
-import {FormPButtonComponent} from './lib/dynamic-form/components/form-button/form-pbutton.component';
-import {FormCheckboxComponent} from './lib/dynamic-form/components/form-input/form-checkbox.component';
-import {FormInputComponent} from './lib/dynamic-form/components/form-input/form-input.component';
-import {FormPCalendarComponent} from './lib/dynamic-form/components/form-input/form-pcalendar.component';
-import {FormPInputTextareaComponent} from './lib/dynamic-form/components/form-input/form-pinputtextarea.component';
-import {HttpClient, HttpClientModule} from '@angular/common/http';
+import {HttpClient, provideHttpClient, withInterceptorsFromDi} from '@angular/common/http';
 import {WatchlistTabMenuComponent} from './watchlist/component/watchlist.tab.menu.component';
-import {WatchlistPerformanceComponent} from './watchlist/component/watchlist.performance.component';
 import {TimeSeriesChartComponent} from './historyquote/component/time.series.chart.component';
 import {ViewSizeChangedService} from './lib/layout/service/view.size.changed.service';
 import {ChartGeneralPurposeComponent} from './shared/chart/component/chart.general.purpose.component';
@@ -78,29 +68,19 @@ import {TenantTabMenuComponent} from './tenant/component/tenant.tab.menu.compone
 import {PortfolioTabMenuComponent} from './portfolio/component/portfolio.tab.menu.component';
 import {TenantTransactionTableComponent} from './tenant/component/tenant.transaction.table.component';
 import {PortfolioTransactionTableComponent} from './portfolio/component/portfolio.transaction.table.component';
-import {FormInputSuggestionComponent} from './lib/dynamic-form/components/form-input/form-input-suggestion.component';
-import {FormFileUploadComponent} from './lib/dynamic-form/components/form-input-file/form-file-upload.component';
-import {FormInputSelectComponent} from './lib/dynamic-form/components/form-input/form-input-select.component';
 import {
   TransactionCashaccountEditDoubleComponent
 } from './transaction/component/transaction-cashaccount-editdouble.component';
 import {
   TransactionCashaccountEditSingleComponent
 } from './transaction/component/transaction-cashaccount-editsingle.component';
-import {SecurityEditComponent} from './securitycurrency/component/security-edit.component';
-import {CurrencypairEditComponent} from './securitycurrency/component/currencypair-edit.component';
-import {WatchlistAddInstrumentComponent} from './watchlist/component/watchlist-add-instrument.component';
-import {WatchlistEditDynamicComponent} from './watchlist/component/watchlist.edit.dynamic.component';
+import {TransactionSecurityEditComponent} from './transaction/component/transaction-security-edit.component';
 import {TradingPlatformPlanEditComponent} from './tradingplatform/component/trading-platform-plan-edit.component';
 import {SecurityaccountEditDynamicComponent} from './securityaccount/component/securityaccount.edit.dynamic.component';
-import {StockexchangeEditComponent} from './stockexchange/component/stockexchange-edit.component';
-import {TransactionCashaccountTableComponent} from './transaction/component/transaction-cashaccount-table.component';
-import {TransactionSecurityTableComponent} from './transaction/component/transaction-security-table.component';
 import {TenantEditDynamicComponent} from './tenant/component/tenant.edit.dynamic.component';
 import {
   TenantDividendsSecurityExtendedComponent
 } from './tenant/component/tenant-dividends-security-extended.component';
-import {SecuritycurrencyExtendedInfoComponent} from './watchlist/component/securitycurrency-extended-info.component';
 import {
   TenantTransactionCostExtendedComponent
 } from './tenant/component/tenant-transaction-cost-extended.component';
@@ -143,12 +123,6 @@ import {
 } from './imptranstemplate/component/template-form-check-dialog-result-failed.component';
 import {ImportTransactionPosService} from './securityaccount/service/import.transaction.pos.service';
 import {
-  SecuritycurrencySearchAndSetComponent
-} from './securitycurrency/component/securitycurrency-search-and-set.component';
-import {
-  SecuritycurrencySearchAndSetTableComponent
-} from './securitycurrency/component/securitycurrency-search-and-set-table.component';
-import {
   SecurityaccountImportSetCashaccountComponent
 } from './securityaccount/component/securityaccount-import-set-cashaccount.component';
 import {
@@ -158,24 +132,17 @@ import {ToastrModule} from 'ngx-toastr';
 import {ProposeChangeEntityService} from './lib/proposechange/service/propose.change.entity.service';
 import {setupProposeChangeEntityHandlers} from './shared/changerequest/propose.change.entity.handlers.setup';
 import {EntityPrepareRegistry} from './lib/proposechange/service/entity.prepare.registry';
-import {
-  TransactionCashaccountConnectDebitCreditComponent
-} from './transaction/component/transaction-cashaccount-connect-debit-credit-component';
 import {AlgoTopService} from './algo/service/algo.top.service';
 import {StrategyOverviewComponent} from './algo/component/strategy.overview.component';
 import {AlgoTopDataViewComponent} from './algo/component/algo.top.data.view.component';
-import {FormTriStateCheckboxComponent} from './lib/dynamic-form/components/form-input/form-tri-state-checkbox.component';
 import {AlgoRuleStrategyCreateWizardComponent} from './algo/component/algo-rule-strategy-create-wizard.component';
 import {StepComponent} from './lib/wizard/component/step.component';
 import {AlgoAssetclassService} from './algo/service/algo.assetclass.service';
 import {AlgoStrategyService} from './algo/service/algo.strategy.service';
-import {StrategyDetailComponent} from './algo/component/strategy-detail.component';
 import {AlgoAssetclassEditComponent} from './algo/component/algo-assetclass-edit.component';
 import {AlgoSecurityEditComponent} from './algo/component/algo-security-edit.component';
 import {AlgoSecurityService} from './algo/service/algo.security.service';
-import {AlgoStrategyEditComponent} from './algo/component/algo-strategy-edit.component';
 import {IndicatorEditComponent} from './historyquote/component/indicator-edit.component';
-import {AlgoRuleStrategyCreateDynamicComponent} from './algo/component/algo.rule.strategy.create.component';
 import {
   TenantDividendSecurityAccountSelectionDialogComponent
 } from './tenant/component/tenant-dividend-security-account-selection-dialog.component';
@@ -200,16 +167,10 @@ import {TradingCalendarGlobalComponent} from './tradingcalendar/component/tradin
 import {FullyearcalendarLibComponent} from './lib/fullyearcalendar/fullyearcalendar-lib.component';
 import {TradingDaysPlusService} from './tradingcalendar/service/trading.days.plus.service';
 import {TradingDaysMinusService} from './stockexchange/service/trading.days.minus.service';
-import {
-  TradingCalendarStockexchangeComponent
-} from './stockexchange/component/trading-calendar-stockexchange.component';
 import {TenantPerformanceTabMenuComponent} from './tenant/component/tenant.performance.tab.menu.component';
 import {PerformancePeriodComponent} from './performanceperiod/component/performance.period.component';
 import {TenantPerformanceEodMissingComponent} from './tenant/component/tenant.performance.eod.missing.component';
 import {HoldingService} from './performanceperiod/service/holding.service';
-import {
-  TenantPerformanceTreetableComponent
-} from './performanceperiod/component/performance-period-treetable.component';
 import {
   TradingCalendarOtherExchangeDynamicComponent
 } from './stockexchange/component/trading.calendar.other.exchange.dynamic.component';
@@ -223,9 +184,6 @@ import {
 import {
   SecurityHistoryquoteQualityTableComponent
 } from './securitycurrency/component/security-historyquote-quality-table.component';
-import {
-  TenantPerformanceFromToDiffComponent
-} from './performanceperiod/component/performance-period-from-to-diff.component';
 import {NgxFileDropModule} from 'ngx-file-drop';
 import {ButtonModule} from 'primeng/button';
 import {DialogModule} from 'primeng/dialog';
@@ -240,11 +198,6 @@ import {InputMaskModule} from 'primeng/inputmask';
 import {Textarea} from 'primeng/textarea';
 import {TooltipModule} from 'primeng/tooltip';
 import {ConfirmationService, SharedModule} from 'primeng/api';
-import {
-  TransactionSecurityMarginTreetableComponent
-} from './transaction/component/transaction-security-margin-treetable.component';
-import {SecurityDerivedEditComponent} from './securitycurrency/component/security-derived-edit.component';
-import {FormInputButtonComponent} from './lib/dynamic-form/components/form-input/form-input-button.component';
 import {AngularSvgIconModule} from 'angular-svg-icon';
 import {ProductIconService} from './securitycurrency/service/product.icon.service';
 import {
@@ -256,11 +209,6 @@ import {MailSendRecvService} from './lib/mail/service/mail.send.recv.service';
 import {ScrollPanelModule} from 'primeng/scrollpanel';
 import {CommonModule} from '@angular/common';
 import {InputNumberModule} from 'primeng/inputnumber';
-import {FormInputNumberComponent} from './lib/dynamic-form/components/form-input/form-input-number.component';
-import {WatchlistDividendSplitFeedComponent} from './watchlist/component/watchlist.dividend.split.feed.component';
-import {WatchlistPriceFeedComponent} from './watchlist/component/watchlist.price.feed.component';
-import {WatchlistSecuritysplitTableComponent} from './watchlist/component/watchlist-securitysplit-table.component';
-import {WatchlistDividendTableComponent} from './watchlist/component/watchlist-dividend-table.component';
 import {DividendService} from './watchlist/service/dividend.service';
 import {CardModule} from 'primeng/card';
 import {GlobalSettingsTableComponent} from './lib/globalsettings/global.settings.table.component';
@@ -272,20 +220,11 @@ import {TaskDataChangeTableComponent} from './lib/taskdatamonitor/component/task
 import {TaskDataChangeEditComponent} from './lib/taskdatamonitor/component/task-data-change-edit.component';
 import {CorrelationSetService} from './watchlist/service/correlation.set.service';
 import {CorrelationTableComponent} from './watchlist/component/correlation-table.component';
-import {CorrelationSetEditComponent} from './watchlist/component/correlation-set-edit.component';
 import {WatchlistAddInstrumentTableComponent} from './watchlist/component/watchlist-add-instrument-table.component';
 import {
   CorrelationSetAddInstrumentTableComponent
 } from './watchlist/component/correlation-set-add-instrument-table.component';
-import {CorrelationAddInstrumentComponent} from './watchlist/component/correlation-add-instrument.component';
-import {InstrumentStatisticsResultComponent} from './securitycurrency/component/instrument-statistics-result.component';
-import {InstrumentAnnualisedReturnComponent} from './securitycurrency/component/instrument.annualised.return.component';
-import {
-  InstrumentYearPerformanceTableComponent
-} from './securitycurrency/component/instrument-year-performance-table.component';
-import {
-  InstrumentStatisticsSummaryComponent
-} from './securitycurrency/component/instrument-statistics-summary.component';
+import {InstrumentStatisticsSummaryComponent} from './securitycurrency/component/instrument-statistics-summary.component';
 import {ConnectorApiKeyTableComponent} from './lib/connectorapikey/component/connector.api.key.table.component';
 import {ConnectorApiKeyEditComponent} from './lib/connectorapikey/component/connector.api.key.edit.component';
 import {ConnectorApiKeyService} from './lib/connectorapikey/service/connector.api.key.service';
@@ -304,9 +243,6 @@ import {SendRecvForwardTabMenuComponent} from './lib/mail/component/send.recv.fo
 import {MailSettingForwardService} from './lib/mail/service/mail.setting.forward.service';
 import {MailForwardSettingTableComponent} from './lib/mail/component/mail.forward.setting.table.component';
 import {MailForwardSettingEditComponent} from './lib/mail/component/mail-forward-setting-edit.component';
-import {
-  WatchlistAddEditPriceProblemInstrumentComponent
-} from './watchlist/component/watchlist-add-edit-price-problem-instrument.component';
 import {NgxCurrencyDirective} from 'ngx-currency';
 import {UDFMetadataSecurityService} from './udfmetasecurity/service/udf.metadata.security.service';
 import {UDFMetadataSecurityTableComponent} from './udfmetasecurity/components/udf.metadata.security.table.component';
@@ -315,9 +251,7 @@ import {
   TenantDividendsCashaccountExtendedComponent
 } from './tenant/component/tenant-dividends-cashaccount-extended.component';
 import {WatchlistUdfComponent} from './watchlist/component/watchlist.udf.component';
-import {SecurityUDFEditComponent} from './securitycurrency/component/security-udf-edit.component';
 import {UDFDataService} from './lib/udfmeta/service/udf.data.service';
-import {SecuritycurrencyUdfComponent} from './watchlist/component/securitycurrency-udf.component';
 import {UDFMetadataGeneralService} from './lib/udfmeta/service/udf.metadata.general.service';
 import {UDFGeneralEditComponent} from './lib/udfmeta/components/udf-general-edit.component';
 import {UDFSpecialTypeDisableUserService} from './lib/udfmeta/service/udf.special.type.disable.user.service';
@@ -349,6 +283,19 @@ import {AfterLoginHandler} from './lib/login/service/after-login.handler';
 import {GtAfterLoginHandler} from './shared/login/gt-after-login.handler';
 import {registerHelpIds} from './lib/help/help.ids';
 import {AppHelpIds} from './shared/help/help.ids';
+import {AlgoStrategyEditComponent} from './algo/component/algo-strategy-edit.component';
+import {SecurityDerivedEditComponent} from './securitycurrency/component/security-derived-edit.component';
+import {SecurityEditComponent} from './securitycurrency/component/security-edit.component';
+import {SecurityUDFEditComponent} from './securitycurrency/component/security-udf-edit.component';
+import {CurrencypairEditComponent} from './securitycurrency/component/currencypair-edit.component';
+import {CorrelationAddInstrumentComponent} from './watchlist/component/correlation-add-instrument.component';
+import {InstrumentStatisticsResultComponent} from './securitycurrency/component/instrument-statistics-result.component';
+import {CorrelationSetEditComponent} from './watchlist/component/correlation-set-edit.component';
+import {WatchlistEditDynamicComponent} from './watchlist/component/watchlist.edit.dynamic.component';
+import {SecuritycurrencySearchAndSetComponent} from './securitycurrency/component/securitycurrency-search-and-set.component';
+import {SecuritycurrencySearchAndSetTableComponent} from './securitycurrency/component/securitycurrency-search-and-set-table.component';
+import {InstrumentAnnualisedReturnComponent} from './securitycurrency/component/instrument.annualised.return.component';
+import {InstrumentYearPerformanceTableComponent} from './securitycurrency/component/instrument-year-performance-table.component';
 
 
 const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader(http, [
@@ -359,46 +306,36 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
 
 @NgModule({
   declarations: [
-    AlgoAssetclassEditComponent, AlgoRuleStrategyCreateDynamicComponent, AlgoRuleStrategyCreateWizardComponent, AlgoSecurityEditComponent,
-    AlgoStrategyEditComponent, AlgoTopDataViewComponent, AppComponent,
+    AppComponent,
     ChartGeneralPurposeComponent,
-    CorrelationAddInstrumentComponent, CorrelationComponent, CorrelationSetAddInstrumentTableComponent,
-    CorrelationSetEditComponent, CorrelationTableComponent, CurrencypairEditComponent,
     GTNetConsumerMonitorComponent, GTNetEditComponent, GTNetMessageAutoAnswerComponent,
     GTNetMessageEditComponent, GTNetMessageTreeTableComponent, GTNetProviderMonitorComponent, GTNetSetupTableComponent,
     IndicatorEditComponent,
-    InstrumentAnnualisedReturnComponent, InstrumentStatisticsResultComponent, InstrumentStatisticsSummaryComponent,
-    InstrumentYearPerformanceTableComponent,
-    PerformancePeriodComponent,
-    PortfolioCashaccountSummaryComponent, PortfolioEditDynamicComponent, PortfolioTabMenuComponent, PortfolioTransactionTableComponent,
-    ReplacePipe,
     SecurityaccountEditDynamicComponent, SecurityaccountEmptyComponent, SecurityaccountImportExtendedInfoComponent,
     SecurityaccountImportExtendedInfoFilenameComponent, SecurityaccountImportSetCashaccountComponent,
     SecurityaccountImportTransactionComponent, SecurityaccountImportTransactionEditHeadComponent,
-    SecurityaccountImportTransactionTableComponent, SecurityaccountSummariesComponent, SecurityaccountSummaryComponent,
-    SecurityaccountTabMenuComponent, SecuritycurrencyExtendedInfoComponent, SecuritycurrencySearchAndSetComponent,
-    SecuritycurrencySearchAndSetTableComponent, SecuritycurrencyUdfComponent, SecurityDerivedEditComponent,
-    SecurityEditComponent, SecurityHistoryquotePeriodEditTableComponent, SecurityHistoryquoteQualityTableComponent,
-    SecurityHistoryquoteQualityTreetableComponent, SecuritysplitEditTableComponent, SecurityUDFEditComponent,
-    StockexchangeEditComponent, StockexchangeTableComponent, StrategyDetailComponent, StrategyOverviewComponent,
-    TenantAlertComponent, TenantDividendAccountSelectionComponent,
-    TenantDividendSecurityAccountSelectionDialogComponent, TenantDividendsCashaccountExtendedComponent,
-    TenantDividendsComponent, TenantDividendsSecurityExtendedComponent, TenantEditDynamicComponent, TenantEditFullPageComponent,
-    TenantPerformanceEodMissingComponent, TenantPerformanceEodMissingTableComponent, TenantPerformanceFromToDiffComponent,
-    TenantPerformanceTabMenuComponent, TenantPerformanceTreetableComponent, TenantSummariesAssetclassComponent,
-    TenantSummariesCashaccountComponent, TenantSummariesSecurityaccountComponent, TenantTabMenuComponent, TenantTransactionCostComponent,
-    TenantTransactionCostExtendedComponent, TenantTransactionTableComponent, TimeSeriesChartComponent,
-    TradingCalendarGlobalComponent, TradingCalendarOtherExchangeDynamicComponent, TradingCalendarStockexchangeComponent,
-    TradingPlatformPlanEditComponent, TradingPlatformPlanTableComponent, TransactionCashaccountConnectDebitCreditComponent,
-    TransactionCashaccountEditDoubleComponent, TransactionCashaccountEditSingleComponent, TransactionCashaccountTableComponent,
-    TransactionSecurityEditComponent, TransactionSecurityMarginTreetableComponent, TransactionSecurityTableComponent,
-    WatchlistAddEditPriceProblemInstrumentComponent, WatchlistAddInstrumentComponent, WatchlistAddInstrumentTableComponent,
-    WatchlistDividendSplitFeedComponent, WatchlistDividendTableComponent, WatchlistEditDynamicComponent, WatchlistPerformanceComponent,
-    WatchlistPriceFeedComponent, WatchlistSecuritysplitTableComponent, WatchlistTabMenuComponent, WatchlistUdfComponent
+    SecurityaccountImportTransactionTableComponent,
+    SecurityaccountTabMenuComponent,
+    SecurityHistoryquoteQualityTableComponent,
+    SecurityHistoryquoteQualityTreetableComponent,
+    TenantAlertComponent,
+    TenantEditDynamicComponent, TenantEditFullPageComponent,
+    TenantPerformanceEodMissingComponent, TenantPerformanceEodMissingTableComponent,
+    TenantPerformanceTabMenuComponent,
+    TenantTransactionCostComponent,
+    TenantTransactionCostExtendedComponent, TimeSeriesChartComponent,
+    TradingCalendarOtherExchangeDynamicComponent,
+    TradingPlatformPlanEditComponent, TradingPlatformPlanTableComponent
   ],
   imports: [
+    ReplacePipe,
+    AlgoAssetclassEditComponent,
+    AlgoRuleStrategyCreateWizardComponent,
+    AlgoSecurityEditComponent,
+    AlgoStrategyEditComponent,
+    AlgoTopDataViewComponent,
+    StrategyOverviewComponent,
     AngularSvgIconModule.forRoot(),
-    BrowserAnimationsModule,
     BrowserModule,
     ButtonModule,
     DatePicker,
@@ -407,38 +344,54 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     CheckboxModule,
     ConfigurableTableComponent,
     ContextMenuModule,
+    CorrelationComponent,
+    CorrelationTableComponent,
+    CorrelationAddInstrumentComponent,
+    CorrelationSetEditComponent,
+    CurrencypairEditComponent,
     ImportTransactionEditPlatformComponent,
     ImportTransactionEditTemplateComponent,
     ImportTransactionTemplateComponent,
     ImportTransactionTemplateTableComponent,
+    InstrumentAnnualisedReturnComponent,
+    InstrumentYearPerformanceTableComponent,
     MessageToastComponent,
+    PortfolioTransactionTableComponent,
+    SecurityaccountSummariesComponent,
+    SecurityaccountSummaryComponent,
+    SecurityDerivedEditComponent,
+    SecurityEditComponent,
+    SecurityHistoryquotePeriodEditTableComponent,
+    SecuritysplitEditTableComponent,
+    SecurityUDFEditComponent,
+    SecuritycurrencySearchAndSetComponent,
+    SecuritycurrencySearchAndSetTableComponent,
     TemplateFormCheckDialogComponent,
     TemplateFormCheckDialogResultFailedComponent,
     TemplateFormCheckDialogResultSuccessComponent,
+    TenantDividendsComponent,
+    TenantSummariesAssetclassComponent,
+    TenantSummariesCashaccountComponent,
+    TenantSummariesSecurityaccountComponent,
+    TenantTransactionTableComponent,
+    TradingCalendarGlobalComponent,
     TransformPdfToTxtDialogComponent,
+    WatchlistAddInstrumentTableComponent,
+    CorrelationSetAddInstrumentTableComponent,
+    WatchlistTabMenuComponent,
+    WatchlistUdfComponent,
+    WatchlistEditDynamicComponent,
+    InstrumentStatisticsResultComponent,
+    PerformancePeriodComponent,
     TableModule,
     TreeTableModule,
     DialogModule,
     DragDropModule,
     DynamicDialogModule,
-    DynamicFormModule.withComponents([
-      FormButtonComponent,
-      FormPButtonComponent,
-      FormCheckboxComponent,
-      FormTriStateCheckboxComponent,
-      FormFileUploadComponent,
-      FormInputComponent,
-      FormInputButtonComponent,
-      FormInputNumberComponent,
-      FormInputSuggestionComponent,
-      FormInputSelectComponent,
-      FormPCalendarComponent,
-      FormPInputTextareaComponent
-    ]),
+    DynamicFormModule,
     NgxFileDropModule,
     FormsModule,
     FullyearcalendarLibComponent,
-    HttpClientModule,
     InputMaskModule,
     Textarea,
     InputTextModule,
@@ -495,8 +448,15 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     TreeModule,
     CommonModule,
     NgxCurrencyDirective,
+    TransactionCashaccountEditDoubleComponent,
+    TransactionCashaccountEditSingleComponent,
+    TransactionSecurityEditComponent,
+    PortfolioEditDynamicComponent,
   ],
-  providers: [ActivePanelService, ActuatorService, AlarmSetupService, AlgoAssetclassService, AlgoSecurityService, AlgoStrategyService,
+  providers: [
+    provideAnimations(),
+    provideHttpClient(withInterceptorsFromDi()),
+    ActivePanelService, ActuatorService, AlarmSetupService, AlgoAssetclassService, AlgoSecurityService, AlgoStrategyService,
     AlgoTopService, AssetclassService, CashaccountService, ChartDataService, ConfirmationService, ConnectorApiKeyService,
     CorrelationSetService, CurrencypairService, DataChangedService, DialogService, DividendService, GlobalparameterService,
     GlobalparameterGTService, GTNetMessageService, TabMenuService, ReleaseNoteService,

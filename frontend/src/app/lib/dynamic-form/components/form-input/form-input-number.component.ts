@@ -1,5 +1,11 @@
 import {Component, OnInit} from '@angular/core';
 import {BaseInputComponent} from '../base.input.component';
+import {ReactiveFormsModule} from '@angular/forms';
+import {CommonModule} from '@angular/common';
+import {InputNumberModule} from 'primeng/inputnumber';
+import {TooltipModule} from 'primeng/tooltip';
+import {TranslateModule} from '@ngx-translate/core';
+import {FilterOutPipe} from '../../pipe/FilterOutPipe';
 
 /**
  * It is not working als expected: https://github.com/primefaces/primeng/issues/9380
@@ -9,8 +15,7 @@ import {BaseInputComponent} from '../base.input.component';
     template: `
     <ng-container [formGroup]="group">
       <p-inputNumber
-        [class.required-input]="isRequired && !config.readonly"
-        inputStyleClass="text-end"
+        [inputStyleClass]="'text-end ' + (isRequired && !config.readonly ? 'required-input' : '')"
         [readonly]="config.readonly"
         [ngStyle]="{'width': config.inputWidth+'em'}"
         [class.negativ-number]="input.value < 0"
@@ -30,10 +35,17 @@ import {BaseInputComponent} from '../base.input.component';
       </p-inputNumber>
     </ng-container>
   `,
-    standalone: false
+    imports: [
+        ReactiveFormsModule,
+        CommonModule,
+        InputNumberModule,
+        TooltipModule,
+        TranslateModule,
+        FilterOutPipe
+    ],
+    standalone: true
 })
 
-export class FormInputNumberComponent extends BaseInputComponent implements OnInit {
-  override ngOnInit() {
-  }
+export class FormInputNumberComponent extends BaseInputComponent  {
+
 }

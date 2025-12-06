@@ -15,6 +15,7 @@ export class DynamicDialogHelper {
     this.translateService.get(this.titleKey).subscribe(msg => {
       dynamicDialogRef = this.dialogService.open(this.componentType, {
         header: msg, width: widthPx + 'px',
+        modal: true,
         closable: true,
         contentStyle,
         data

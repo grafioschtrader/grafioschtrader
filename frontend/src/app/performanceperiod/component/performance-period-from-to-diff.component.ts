@@ -5,6 +5,8 @@ import {GlobalparameterService} from '../../lib/services/globalparameter.service
 import {PeriodHoldingAndDiff} from '../model/performance.period';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {AppHelper} from '../../lib/helper/app.helper';
+import {CommonModule} from '@angular/common';
+import {TooltipModule} from 'primeng/tooltip';
 
 @Component({
     selector: 'performance-period-from-to-diff',
@@ -14,26 +16,29 @@ import {AppHelper} from '../../lib/helper/app.helper';
         <fieldset class="out-border fbox">
           <legend class="out-border-legend">{{titles[i]}}</legend>
           @for (field of fields; track field) {
-            <div class="col-md-9 text-end" [pTooltip]="field.headerTooltipTranslated">
-              {{field.headerTranslated}}
-            </div>
-            <div class="col-md-3 nopadding wrap text-end">
-            <span [style.color]='isValueByPathMinus(phad, field)? "red": "inherit"'>
-            {{getValueByPath(phad, field)}}
-            </span>
+            <div class="row gx-1">
+              <div class="col-9 text-end" [pTooltip]="field.headerTooltipTranslated">
+                {{field.headerTranslated}}
+              </div>
+              <div class="col-3 text-end">
+                <span [style.color]='isValueByPathMinus(phad, field)? "red": "inherit"'>
+                  {{getValueByPath(phad, field)}}
+                </span>
+              </div>
             </div>
           }
         </fieldset>
       }
     </div>
   `,
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, TooltipModule]
 })
 export class TenantPerformanceFromToDiffComponent extends SingleRecordConfigBase implements OnInit, OnChanges {
   @Input() periodHoldingsAndDiff: PeriodHoldingAndDiff[];
 
   titles: string[] = new Array(3);
-
+It
   constructor(translateService: TranslateService, gps: GlobalparameterService) {
     super(translateService, gps);
   }

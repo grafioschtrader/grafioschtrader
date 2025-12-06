@@ -6,7 +6,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {TransactionCallParam} from '../../transaction/component/transaction.call.parm';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {SecurityaccountService} from '../../securityaccount/service/securityaccount.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
@@ -16,6 +16,17 @@ import {OptionalParameters, TimeSeriesQuotesService} from '../../historyquote/se
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {FilterService} from 'primeng/api';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
+import {CommonModule} from '@angular/common';
+import {TableModule} from 'primeng/table';
+import {DatePicker} from 'primeng/datepicker';
+import {FormsModule} from '@angular/forms';
+import {SelectModule} from 'primeng/select';
+import {TooltipModule} from 'primeng/tooltip';
+import {ContextMenuModule} from 'primeng/contextmenu';
+import {TransactionSecurityTableComponent} from '../../transaction/component/transaction-security-table.component';
+import {TransactionSecurityMarginTreetableComponent} from '../../transaction/component/transaction-security-margin-treetable.component';
+import {TransactionCashaccountTableComponent} from '../../transaction/component/transaction-cashaccount-table.component';
+import {TransactionSecurityEditComponent} from '../../transaction/component/transaction-security-edit.component';
 
 /**
  * It is the summary for all security accounts with its securities of a for a certain tenant.
@@ -23,7 +34,10 @@ import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
  */
 @Component({
     templateUrl: '../../securityaccount/view/securityaccount.table.html',
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, TranslateModule, TableModule, DatePicker, FormsModule, SelectModule, TooltipModule, ContextMenuModule,
+      TransactionSecurityTableComponent, TransactionSecurityMarginTreetableComponent,
+      TransactionCashaccountTableComponent, TransactionSecurityEditComponent]
 })
 export class TenantSummariesSecurityaccountComponent extends SecurityaccountTable implements OnInit, OnDestroy {
 

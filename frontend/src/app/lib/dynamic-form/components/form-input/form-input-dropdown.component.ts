@@ -1,5 +1,12 @@
 import {Component} from '@angular/core';
 import {BaseInputComponent} from '../base.input.component';
+import {ReactiveFormsModule} from '@angular/forms';
+import {SelectModule} from 'primeng/select';
+import {TooltipModule} from 'primeng/tooltip';
+import {TranslateModule} from '@ngx-translate/core';
+import {FilterOutPipe} from '../../pipe/FilterOutPipe';
+import {UpperCaseDirective} from './upper-case.directive';
+import {CommonModule} from '@angular/common';
 
 /**
  * This PrimeNG dropdown allows grouping the offered options.
@@ -43,7 +50,16 @@ import {BaseInputComponent} from '../base.input.component';
       </p-select>
     </ng-container>
   `,
-    standalone: false
+    imports: [
+        ReactiveFormsModule,
+        SelectModule,
+        TooltipModule,
+        TranslateModule,
+        FilterOutPipe,
+        UpperCaseDirective,
+        CommonModule
+    ],
+    standalone: true
 })
 
 export class FormInputDropdownComponent extends BaseInputComponent {

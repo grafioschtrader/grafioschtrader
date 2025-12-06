@@ -22,6 +22,11 @@ import {ProposedMarginFinanceCost} from '../model/proposed.margin.finance.cost';
 import {TransactionSecurityFieldDefinition} from './transaction.security.field.definition';
 import {TransactionSecurityOptionalParam} from '../model/transaction.security.optional.param';
 import {HelpIds} from '../../lib/help/help.ids';
+import {CommonModule} from '@angular/common';
+import {TreeTableModule} from 'primeng/treetable';
+import {TooltipModule} from 'primeng/tooltip';
+import {ContextMenuModule} from 'primeng/contextmenu';
+import {TransactionSecurityEditComponent} from './transaction-security-edit.component';
 
 /**
  * Angular component that displays margin-based security transactions in a hierarchical tree table format.
@@ -85,7 +90,14 @@ import {HelpIds} from '../../lib/help/help.ids';
       }
     </div>
   `,
-    standalone: false
+    standalone: true,
+    imports: [
+      CommonModule,
+      TreeTableModule,
+      TooltipModule,
+      ContextMenuModule,
+      TransactionSecurityEditComponent
+    ]
 })
 export class TransactionSecurityMarginTreetableComponent extends TransactionContextMenu implements OnInit, OnDestroy {
   /** Array of security account IDs to filter transactions */

@@ -1,5 +1,10 @@
 import {Component} from '@angular/core';
 import {BaseInputComponent} from '../base.input.component';
+import {ReactiveFormsModule} from '@angular/forms';
+import {CommonModule} from '@angular/common';
+import {TooltipModule} from 'primeng/tooltip';
+import {TranslateModule} from '@ngx-translate/core';
+import {FilterOutPipe} from '../../pipe/FilterOutPipe';
 
 /**
  * A html select component
@@ -10,7 +15,7 @@ import {BaseInputComponent} from '../base.input.component';
     <ng-container [formGroup]="group">
       <select #input
               [ngStyle]="{'width': (config.inputWidth+1) + 'em'}"
-              class="form-control input-sm"
+              class="form-select form-select-sm"
               [class.required-input]="isRequired"
               [id]="config.field"
               [formControlName]="config.field"
@@ -23,7 +28,14 @@ import {BaseInputComponent} from '../base.input.component';
       </select>
     </ng-container>
   `,
-  standalone: false
+  imports: [
+    ReactiveFormsModule,
+    CommonModule,
+    TooltipModule,
+    TranslateModule,
+    FilterOutPipe
+  ],
+  standalone: true
 })
 
 export class FormInputSelectComponent extends BaseInputComponent {

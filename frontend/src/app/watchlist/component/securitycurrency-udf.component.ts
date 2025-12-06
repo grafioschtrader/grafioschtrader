@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {SecurityService} from '../../securitycurrency/service/security.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {ContentBase, SecuritycurrencyBaseInfoFields} from './securitycurrency.base.info.fields';
 import {Securitycurrency} from '../../entities/securitycurrency';
@@ -14,6 +14,9 @@ import {OptionalParams} from '../../lib/datashowbase/column.config';
 import {WatchlistService} from '../service/watchlist.service';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {FieldDescriptorInputAndShowExtendedSecurity} from '../../udfmetasecurity/model/udf.metadata.security';
+import {CommonModule} from '@angular/common';
+import {TooltipModule} from 'primeng/tooltip';
+import {ReplacePipe} from '../../shared/pipe/replace.pipe';
 
 
 /**
@@ -22,7 +25,13 @@ import {FieldDescriptorInputAndShowExtendedSecurity} from '../../udfmetasecurity
 @Component({
   selector: 'securitycurrency-udf',
   templateUrl: '../view/securitycurrency.base.info.fields.html',
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    TranslateModule,
+    TooltipModule,
+    ReplacePipe
+  ]
 })
 export class SecuritycurrencyUdfComponent extends SecuritycurrencyBaseInfoFields implements OnInit {
 

@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {HelpIds} from '../../lib/help/help.ids';
@@ -11,6 +11,8 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {CorrelationEditingSupport} from './correlation.editing.support';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 
 /**
  * Dialog component for creating and editing correlation sets with form validation and dynamic field configuration.
@@ -28,7 +30,12 @@ import {CorrelationEditingSupport} from './correlation.editing.support';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`,
-    standalone: false
+    imports: [
+      TranslateModule,
+      DialogModule,
+      DynamicFormComponent
+    ],
+    standalone: true
 })
 export class CorrelationSetEditComponent extends SimpleEntityEditBase<CorrelationSet> implements OnInit {
 

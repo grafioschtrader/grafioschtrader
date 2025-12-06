@@ -5,7 +5,7 @@ import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-fo
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
@@ -38,6 +38,8 @@ import {Helper} from '../../lib/helper/helper';
 import {AppSettings} from '../../shared/app.settings';
 import {FormConfig} from '../../lib/dynamic-form/models/form.config';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
+import {DialogModule} from 'primeng/dialog';
+import {TabsModule} from 'primeng/tabs';
 
 /**
  * Edit a security with possible security split and history quote period
@@ -89,7 +91,15 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
         </p-tabpanels>
       </p-tabs>
     </p-dialog>`,
-  standalone: false
+  standalone: true,
+  imports: [
+    TranslateModule,
+    DialogModule,
+    TabsModule,
+    DynamicFormComponent,
+    SecuritysplitEditTableComponent,
+    SecurityHistoryquotePeriodEditTableComponent
+  ]
 })
 export class SecurityEditComponent extends SecuritycurrencyEdit implements OnInit, CallbackValueChanged {
   // Access child components

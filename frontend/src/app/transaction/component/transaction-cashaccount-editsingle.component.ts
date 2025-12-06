@@ -6,7 +6,7 @@ import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {ValidatorFn, Validators} from '@angular/forms';
 import {TransactionService} from '../service/transaction.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {Cashaccount} from '../../entities/cashaccount';
 import {gteWithMask, gteWithMaskIncludeNegative} from '../../lib/validator/validator';
 import {Subscription} from 'rxjs';
@@ -28,6 +28,8 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {BaseSettings} from '../../lib/base.settings';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 /**
  * Component for editing single cash account transactions where only one cash account is involved.
@@ -47,7 +49,12 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
       </dynamic-form>
     </p-dialog>
   `,
-  standalone: false
+  standalone: true,
+  imports: [
+    DialogModule,
+    DynamicFormModule,
+    TranslateModule
+  ]
 })
 export class TransactionCashaccountEditSingleComponent extends TransactionCashaccountBaseOperations implements OnInit {
 

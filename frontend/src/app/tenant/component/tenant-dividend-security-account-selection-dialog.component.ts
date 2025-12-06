@@ -7,6 +7,10 @@ import {TenantDividendAccountSelectionComponent} from './tenant-dividend-account
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {IdsAccounts} from '../model/ids.accounts';
 import {ShowRecordConfigBase} from '../../lib/datashowbase/show.record.config.base';
+import {CommonModule} from '@angular/common';
+import {DialogModule} from 'primeng/dialog';
+import {ButtonModule} from 'primeng/button';
+import {TranslateModule} from '@ngx-translate/core';
 
 /**
  * This dialog allows to select certain cash or security accounts. It includes two tree table one for cash the other
@@ -50,7 +54,14 @@ import {ShowRecordConfigBase} from '../../lib/datashowbase/show.record.config.ba
       </div>
     </p-dialog>
   `,
-    standalone: false
+    standalone: true,
+    imports: [
+        CommonModule,
+        DialogModule,
+        ButtonModule,
+        TranslateModule,
+        TenantDividendAccountSelectionComponent
+    ]
 })
 export class TenantDividendSecurityAccountSelectionDialogComponent {
   @Input() portfolios: Portfolio[];

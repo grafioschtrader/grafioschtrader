@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Input, Output, ViewChild} from '@angular/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {SecuritycurrencySearchBase} from './securitycurrency.search.base';
@@ -9,6 +9,8 @@ import {SecuritycurrencySearchAndSetTableComponent} from './securitycurrency-sea
 import {Security} from '../../entities/security';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
 import {MultipleRequestToOneService} from '../../shared/service/multiple.request.to.one.service';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 
 /**
  * Dialog for selecting a security or currency by search criterias.
@@ -28,7 +30,13 @@ import {MultipleRequestToOneService} from '../../shared/service/multiple.request
           </securitycurrency-search-and-set-table>
       </p-dialog>
   `,
-    standalone: false
+    imports: [
+        TranslateModule,
+        DialogModule,
+        DynamicFormComponent,
+        SecuritycurrencySearchAndSetTableComponent
+    ],
+    standalone: true
 })
 export class SecuritycurrencySearchAndSetComponent extends SecuritycurrencySearchBase implements CallBackSetSecurity, AfterSetSecurity {
 

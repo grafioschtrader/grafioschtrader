@@ -1,5 +1,10 @@
 import {Component} from '@angular/core';
 import {BaseInputComponent} from '../base.input.component';
+import {ReactiveFormsModule} from '@angular/forms';
+import {AutoCompleteModule} from 'primeng/autocomplete';
+import {TooltipModule} from 'primeng/tooltip';
+import {TranslateModule} from '@ngx-translate/core';
+import {FilterOutPipe} from '../../pipe/FilterOutPipe';
 
 @Component({
     selector: 'form-input-suggestion',
@@ -15,7 +20,14 @@ import {BaseInputComponent} from '../base.input.component';
       </p-autoComplete>
     </ng-container>
   `,
-    standalone: false
+    imports: [
+        ReactiveFormsModule,
+        AutoCompleteModule,
+        TooltipModule,
+        TranslateModule,
+        FilterOutPipe
+    ],
+    standalone: true
 })
 
 export class FormInputSuggestionComponent extends BaseInputComponent {

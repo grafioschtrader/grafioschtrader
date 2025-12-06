@@ -7,6 +7,11 @@ import {GlobalparameterService} from '../../lib/services/globalparameter.service
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {WatchlistService} from '../service/watchlist.service';
 import {Watchlist} from '../../entities/watchlist';
+import {CommonModule} from '@angular/common';
+import {TranslateModule} from '@ngx-translate/core';
+import {FormsModule} from '@angular/forms';
+import {TableModule} from 'primeng/table';
+import {ButtonModule} from 'primeng/button';
 
 /**
  * Component that displays found instruments in a table for adding to a watchlist. Extends the base AddInstrumentTable
@@ -16,7 +21,8 @@ import {Watchlist} from '../../entities/watchlist';
 @Component({
     selector: 'add-instrument-table',
     templateUrl: '../view/add.instrument.table.html',
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, TranslateModule, FormsModule, TableModule, ButtonModule]
 })
 export class WatchlistAddInstrumentTableComponent extends AddInstrumentTable<Watchlist> {
 

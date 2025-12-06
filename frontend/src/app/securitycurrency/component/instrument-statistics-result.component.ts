@@ -1,6 +1,10 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {InstrumentStatisticsResult} from '../../entities/view/instrument.statistics.result';
 import {SecurityService} from '../service/security.service';
+import {TranslateModule} from '@ngx-translate/core';
+import {InstrumentYearPerformanceTableComponent} from './instrument-year-performance-table.component';
+import {InstrumentAnnualisedReturnComponent} from './instrument.annualised.return.component';
+import {InstrumentStatisticsSummaryComponent} from './instrument-statistics-summary.component';
 
 /**
  * Shows the yield and statistical data about an instrument.
@@ -39,7 +43,13 @@ import {SecurityService} from '../service/security.service';
       border-color: darkgrey;
     }
   `],
-  standalone: false
+  imports: [
+    TranslateModule,
+    InstrumentYearPerformanceTableComponent,
+    InstrumentAnnualisedReturnComponent,
+    InstrumentStatisticsSummaryComponent
+  ],
+  standalone: true
 })
 export class InstrumentStatisticsResultComponent implements OnInit {
   @Input() idSecuritycurrency: number;

@@ -32,6 +32,12 @@ import moment from 'moment';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {BaseSettings} from '../../lib/base.settings';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {TranslateModule} from '@ngx-translate/core';
+import {TableModule} from 'primeng/table';
+import {CorrelationAddInstrumentComponent} from './correlation-add-instrument.component';
+import {InstrumentStatisticsResultComponent} from '../../securitycurrency/component/instrument-statistics-result.component';
 
 /**
  * This component serves as the main table view for correlation sets, displaying securities and currency pairs
@@ -128,7 +134,15 @@ import {BaseSettings} from '../../lib/base.settings';
       </correlation-add-instrument>
     }
   `,
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    TranslateModule,
+    TableModule,
+    CorrelationAddInstrumentComponent,
+    InstrumentStatisticsResultComponent
+  ]
 })
 export class CorrelationTableComponent extends TableConfigBase implements OnDestroy {
   /** Interface for communication with parent component */

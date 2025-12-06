@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {Securitycurrency} from '../../entities/securitycurrency';
 import {SecurityService} from '../../securitycurrency/service/security.service';
@@ -12,6 +12,10 @@ import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
 import {WatchlistService} from '../service/watchlist.service';
 import {WatchlistHelper} from './watchlist.helper';
+import {CommonModule} from '@angular/common';
+import {TooltipModule} from 'primeng/tooltip';
+import {ReplacePipe} from '../../shared/pipe/replace.pipe';
+import {AppHelper} from '../../lib/helper/app.helper';
 
 /**
  * Component that displays detailed information for a currency or financial instrument including quotation data,
@@ -21,7 +25,13 @@ import {WatchlistHelper} from './watchlist.helper';
 @Component({
   selector: 'securitycurrency-extended-info',
   templateUrl: '../view/securitycurrency.base.info.fields.html',
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    TranslateModule,
+    TooltipModule,
+    ReplacePipe
+  ]
 })
 export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseInfoFields implements OnInit {
   /** URL for intraday price data feed */
@@ -181,6 +191,7 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
     return this.feedConnectorsKV[valueField];
   }
 
+  protected readonly AppHelper = AppHelper;
 }
 
 /**

@@ -3,6 +3,11 @@ import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {MenuItem} from 'primeng/api';
+import {TranslateModule} from '@ngx-translate/core';
+import {DialogModule} from 'primeng/dialog';
+import {ButtonModule} from 'primeng/button';
+import {StepsComponent} from '../../lib/wizard/component/steps.component';
+import {StepComponent} from '../../lib/wizard/component/step.component';
 
 /**
  * Test for Wizard - NOT used yet.
@@ -32,7 +37,8 @@ import {MenuItem} from 'primeng/api';
 
 
     </p-dialog>`,
-    standalone: false
+    standalone: true,
+    imports: [TranslateModule, DialogModule, ButtonModule, StepsComponent, StepComponent]
 })
 export class AlgoRuleStrategyCreateWizardComponent implements OnInit {
   // Input from parent view

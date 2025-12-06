@@ -11,7 +11,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {AppSettings} from '../../shared/app.settings';
@@ -29,6 +29,25 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
 import {HelpIds} from '../../lib/help/help.ids';
 import {BaseSettings} from '../../lib/base.settings';
 import {FieldDescriptorInputAndShowExtendedSecurity} from '../../udfmetasecurity/model/udf.metadata.security';
+import {CommonModule} from '@angular/common';
+import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
+import {AngularSvgIconModule} from 'angular-svg-icon';
+import {TooltipModule} from 'primeng/tooltip';
+import {TransactionSecurityTableComponent} from '../../transaction/component/transaction-security-table.component';
+import {TransactionSecurityMarginTreetableComponent} from '../../transaction/component/transaction-security-margin-treetable.component';
+import {SecuritycurrencyUdfComponent} from './securitycurrency-udf.component';
+import {SecuritycurrencyExtendedInfoComponent} from './securitycurrency-extended-info.component';
+import {WatchlistDividendTableComponent} from './watchlist-dividend-table.component';
+import {WatchlistSecuritysplitTableComponent} from './watchlist-securitysplit-table.component';
+import {WatchlistAddInstrumentComponent} from './watchlist-add-instrument.component';
+import {CurrencypairEditComponent} from '../../securitycurrency/component/currencypair-edit.component';
+import {SecurityEditComponent} from '../../securitycurrency/component/security-edit.component';
+import {SecurityDerivedEditComponent} from '../../securitycurrency/component/security-derived-edit.component';
+import {SecurityUDFEditComponent} from '../../securitycurrency/component/security-udf-edit.component';
+import {AlgoStrategyEditComponent} from '../../algo/component/algo-strategy-edit.component';
+import {WatchlistAddEditPriceProblemInstrumentComponent} from './watchlist-add-edit-price-problem-instrument.component';
+import {TransactionSecurityEditComponent} from '../../transaction/component/transaction-security-edit.component';
+import {UDFGeneralEditComponent} from '../../lib/udfmeta/components/udf-general-edit.component';
 
 /**
  * Angular component that displays a watchlist with user-defined additional fields (UDF).
@@ -36,14 +55,36 @@ import {FieldDescriptorInputAndShowExtendedSecurity} from '../../udfmetasecurity
  * from UDF metadata and integration of custom field values into the security data display.
  */
 @Component({
-    templateUrl: '../view/watchlist.data.html',
-    styles: [`
+  templateUrl: '../view/watchlist.data.html',
+  styles: [`
     .cell-move {
       cursor: move !important;
     }
   `],
-    providers: [DialogService],
-    standalone: false
+  providers: [DialogService],
+  standalone: true,
+  imports: [
+    CommonModule,
+    TranslateModule,
+    ConfigurableTableComponent,
+    AngularSvgIconModule,
+    TooltipModule,
+    TransactionSecurityTableComponent,
+    TransactionSecurityMarginTreetableComponent,
+    SecuritycurrencyUdfComponent,
+    SecuritycurrencyExtendedInfoComponent,
+    WatchlistDividendTableComponent,
+    WatchlistSecuritysplitTableComponent,
+    WatchlistAddInstrumentComponent,
+    CurrencypairEditComponent,
+    SecurityEditComponent,
+    SecurityDerivedEditComponent,
+    SecurityUDFEditComponent,
+    AlgoStrategyEditComponent,
+    WatchlistAddEditPriceProblemInstrumentComponent,
+    TransactionSecurityEditComponent,
+    UDFGeneralEditComponent
+  ]
 })
 export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnDestroy {
 

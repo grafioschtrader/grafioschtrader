@@ -139,6 +139,7 @@ export interface InputNumberSetting {
   maxFractionDigits?: number;
   currency?: string;
   prefix?: string;
+  allowNegative?:boolean;
 }
 
 export interface CalendarConfig {

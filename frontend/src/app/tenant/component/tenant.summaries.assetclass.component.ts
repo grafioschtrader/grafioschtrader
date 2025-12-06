@@ -8,7 +8,7 @@ import {GlobalparameterService} from '../../lib/services/globalparameter.service
 import {ChartDataService} from '../../shared/chart/service/chart.data.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {SecurityaccountAssetclassCategortypeGroup} from '../../securityaccount/component/securityaccount.assetclass.categortype.group';
 import {ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
 import {SecurityaccountBaseTable} from '../../securityaccount/component/securityaccount.base.table';
@@ -18,13 +18,27 @@ import {ProductIconService} from '../../securitycurrency/service/product.icon.se
 import {FilterService} from 'primeng/api';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 import {HelpIds} from '../../lib/help/help.ids';
+import {CommonModule} from '@angular/common';
+import {TableModule} from 'primeng/table';
+import {DatePicker} from 'primeng/datepicker';
+import {FormsModule} from '@angular/forms';
+import {SelectModule} from 'primeng/select';
+import {TooltipModule} from 'primeng/tooltip';
+import {ContextMenuModule} from 'primeng/contextmenu';
+import {TransactionSecurityTableComponent} from '../../transaction/component/transaction-security-table.component';
+import {TransactionSecurityMarginTreetableComponent} from '../../transaction/component/transaction-security-margin-treetable.component';
+import {TransactionCashaccountTableComponent} from '../../transaction/component/transaction-cashaccount-table.component';
+import {TransactionSecurityEditComponent} from '../../transaction/component/transaction-security-edit.component';
 
 /**
  * It groups asset classes of securities and includes balance of cash accounts as an asset class.
  */
 @Component({
     templateUrl: '../../securityaccount/view/securityaccount.table.html',
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, TranslateModule, TableModule, DatePicker, FormsModule, SelectModule, TooltipModule, ContextMenuModule,
+      TransactionSecurityTableComponent, TransactionSecurityMarginTreetableComponent,
+      TransactionCashaccountTableComponent, TransactionSecurityEditComponent]
 })
 export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable implements OnInit, OnDestroy {
 

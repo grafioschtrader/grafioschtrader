@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {SecuritysplitService} from '../service/securitysplit.service';
@@ -7,10 +7,13 @@ import {MessageToastService} from '../../lib/message/message.toast.service';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {SplitPeriodTableBase} from './split.period.table.base';
 import {CreateType, Securitysplit} from '../../entities/dividend.split';
-import {SvgIconRegistryService} from 'angular-svg-icon';
+import {SvgIconRegistryService, AngularSvgIconModule} from 'angular-svg-icon';
 import {DividendSplitSvgCreator} from '../../shared/dividendsplit/dividend.split.svg.creator';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {FilterService} from 'primeng/api';
+import {CommonModule} from '@angular/common';
+import {TableModule} from 'primeng/table';
+import {ButtonModule} from 'primeng/button';
 
 /**
  * Shows the table of splits
@@ -18,7 +21,8 @@ import {FilterService} from 'primeng/api';
 @Component({
     selector: 'securitysplit-edit-table',
     templateUrl: '../view/split.period.table.html',
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, TranslateModule, TableModule, ButtonModule, AngularSvgIconModule]
 })
 export class SecuritysplitEditTableComponent extends SplitPeriodTableBase<Securitysplit> {
 

@@ -1,12 +1,15 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {StatisticsSummary} from '../../entities/view/instrument.statistics.result';
 import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {TreeNode} from 'primeng/api';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
+import {TreeTableModule} from 'primeng/treetable';
+import {CommonModule} from '@angular/common';
+import {TooltipModule} from 'primeng/tooltip';
 
 /**
  * Shows statistical data about an instrument.
@@ -59,7 +62,13 @@ import {TranslateValue} from '../../lib/datashowbase/column.config';
       </p-treeTable>
     </div>
   `,
-  standalone: false
+  imports: [
+    TranslateModule,
+    TreeTableModule,
+    CommonModule,
+    TooltipModule
+  ],
+  standalone: true
 })
 export class InstrumentStatisticsSummaryComponent extends TreeTableConfigBase implements OnInit {
   @Input() statisticsSummary: StatisticsSummary;

@@ -1,7 +1,7 @@
-import {SvgIconRegistryService} from 'angular-svg-icon';
+import {SvgIconRegistryService, AngularSvgIconModule} from 'angular-svg-icon';
 import {Component, Input, OnInit} from '@angular/core';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {DividendService} from '../service/dividend.service';
@@ -9,6 +9,8 @@ import {DividendSplitTableBase} from './dividend.split.table.base';
 import {Dividend} from '../../entities/dividend.split';
 import {FilterService} from 'primeng/api';
 import {AppSettings} from '../../shared/app.settings';
+import {CommonModule} from '@angular/common';
+import {TableModule} from 'primeng/table';
 
 /**
  * Component that displays imported dividends as a table for a specific security.
@@ -17,7 +19,13 @@ import {AppSettings} from '../../shared/app.settings';
 @Component({
     selector: 'watchlist-dividend-table',
     templateUrl: '../view/dividend.split.table.html',
-    standalone: false
+    standalone: true,
+    imports: [
+      CommonModule,
+      TranslateModule,
+      TableModule,
+      AngularSvgIconModule
+    ]
 })
 export class WatchlistDividendTableComponent extends DividendSplitTableBase<Dividend> implements OnInit {
   /** Field name constant for the ex-date column */

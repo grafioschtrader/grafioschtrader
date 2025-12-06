@@ -1,5 +1,12 @@
 import {Component} from '@angular/core';
 import {BaseInputComponent} from '../base.input.component';
+import {ReactiveFormsModule} from '@angular/forms';
+import {CommonModule} from '@angular/common';
+import {Textarea} from 'primeng/textarea';
+import {ContextMenuModule} from 'primeng/contextmenu';
+import {TooltipModule} from 'primeng/tooltip';
+import {TranslateModule} from '@ngx-translate/core';
+import {FilterOutPipe} from '../../pipe/FilterOutPipe';
 
 @Component({
     selector: 'form-pinputtextarea',
@@ -20,7 +27,16 @@ import {BaseInputComponent} from '../base.input.component';
       }
     </ng-container>
   `,
-    standalone: false
+    imports: [
+        ReactiveFormsModule,
+        CommonModule,
+        Textarea,
+        ContextMenuModule,
+        TooltipModule,
+        TranslateModule,
+        FilterOutPipe
+    ],
+    standalone: true
 })
 export class FormPInputTextareaComponent extends BaseInputComponent {
 

@@ -1,5 +1,5 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
@@ -23,6 +23,12 @@ import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {FilterService, MenuItem, SelectItem} from 'primeng/api';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {BaseSettings} from '../../lib/base.settings';
+import {CommonModule} from '@angular/common';
+import {TableModule} from 'primeng/table';
+import {DatePicker} from 'primeng/datepicker';
+import {FormsModule} from '@angular/forms';
+import {SelectModule} from 'primeng/select';
+import {TooltipModule} from 'primeng/tooltip';
 
 
 /**
@@ -31,7 +37,8 @@ import {BaseSettings} from '../../lib/base.settings';
  */
 @Component({
   templateUrl: '../view/tenant.summaries.cashaccount.table.html',
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, TranslateModule, TableModule, DatePicker, FormsModule, SelectModule, TooltipModule]
 })
 export class TenantSummariesCashaccountComponent extends TableConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
 

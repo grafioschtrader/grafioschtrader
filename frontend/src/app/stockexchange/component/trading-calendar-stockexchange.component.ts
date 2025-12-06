@@ -7,7 +7,7 @@ import {
 } from '../../tradingcalendar/service/trading.days.plus.service';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {CopyTradingDaysFromSourceToTarget, TradingDaysMinusService} from '../service/trading.days.minus.service';
 import {combineLatest, Observable} from 'rxjs';
@@ -25,6 +25,13 @@ import {AuditHelper} from '../../lib/helper/audit.helper';
 import {Stockexchange} from '../../entities/stockexchange';
 import {CreateType} from '../../entities/dividend.split';
 import {BaseSettings} from '../../lib/base.settings';
+import {PanelModule} from 'primeng/panel';
+import {SelectModule} from 'primeng/select';
+import {FullyearcalendarLibComponent} from '../../lib/fullyearcalendar/fullyearcalendar-lib.component';
+import {ButtonModule} from 'primeng/button';
+import {ContextMenuModule} from 'primeng/contextmenu';
+import {NgClass} from '@angular/common';
+import {FormsModule} from '@angular/forms';
 
 /**
  * The calendar component for the stock exchange.
@@ -32,7 +39,17 @@ import {BaseSettings} from '../../lib/base.settings';
 @Component({
   selector: 'trading-calendar-stockexchange',
   templateUrl: '../../tradingcalendar/view/trading.calendar.html',
-  standalone: false
+  standalone: true,
+  imports: [
+    PanelModule,
+    SelectModule,
+    FullyearcalendarLibComponent,
+    ButtonModule,
+    ContextMenuModule,
+    TranslateModule,
+    NgClass,
+    FormsModule
+  ]
 })
 export class TradingCalendarStockexchangeComponent extends TradingCalendarBase implements OnInit {
   static readonly SYSTEM_CREATED_COLOR = 'red';

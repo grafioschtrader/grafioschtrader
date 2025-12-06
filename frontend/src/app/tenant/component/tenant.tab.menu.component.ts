@@ -1,10 +1,10 @@
-import { Component, OnInit } from '@angular/core';
-import { AppSettings } from '../../shared/app.settings';
-import { GlobalSessionNames } from '../../lib/global.session.names';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import {Component, OnInit} from '@angular/core';
+import {AppSettings} from '../../shared/app.settings';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {TabItem} from '../../lib/types/tab.item';
 import {GlobalGTSessionNames} from '../../shared/global.gt.session.names';
-
+import {SharedTabMenuComponent} from '../../lib/tabmenu/component/shared.tab.menu.component';
+import {RouterModule} from '@angular/router';
 
 
 @Component({
@@ -17,14 +17,19 @@ import {GlobalGTSessionNames} from '../../shared/global.gt.session.names';
       <router-outlet></router-outlet>
     </app-shared-tab-menu>
   `,
-  standalone: false
+  imports: [
+    SharedTabMenuComponent,
+    RouterModule
+  ],
+  standalone: true
 })
 export class TenantTabMenuComponent implements OnInit {
   tabs: TabItem[] = [];
   defaultRoute: string = AppSettings.PORTFOLIO_KEY;
   sessionStorageKey: string = GlobalGTSessionNames.TAB_MENU_TENANT;
 
-  constructor(private gps: GlobalparameterService) {}
+  constructor(private gps: GlobalparameterService) {
+  }
 
   ngOnInit(): void {
     this.initializeTabs();

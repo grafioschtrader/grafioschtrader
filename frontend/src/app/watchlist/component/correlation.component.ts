@@ -16,6 +16,13 @@ import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {Securitycurrency} from '../../entities/securitycurrency';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {CorrelationEditingSupport} from './correlation.editing.support';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {TranslateModule} from '@ngx-translate/core';
+import {PanelModule} from 'primeng/panel';
+import {ContextMenuModule} from 'primeng/contextmenu';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
+import {CorrelationSetEditComponent} from './correlation-set-edit.component';
 
 /**
  * Main component for correlation set management. Supports the creation, deletion, and calculation of correlation sets
@@ -53,7 +60,17 @@ import {CorrelationEditingSupport} from './correlation.editing.support';
       </correlation-set-edit>
     }
   `,
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    TranslateModule,
+    PanelModule,
+    ContextMenuModule,
+    DynamicFormModule,
+    CorrelationTableComponent,
+    CorrelationSetEditComponent
+  ]
 })
 export class CorrelationComponent extends SingleRecordMasterViewBase<CorrelationSet, Securitycurrency, CallParam>
   implements AfterViewInit, OnDestroy, ChildToParent {

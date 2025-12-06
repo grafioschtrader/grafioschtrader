@@ -1,5 +1,11 @@
 import {BaseInputComponent} from '../base.input.component';
 import {Component} from '@angular/core';
+import {ReactiveFormsModule} from '@angular/forms';
+import {CommonModule} from '@angular/common';
+import {MultiSelectModule} from 'primeng/multiselect';
+import {TooltipModule} from 'primeng/tooltip';
+import {TranslateModule} from '@ngx-translate/core';
+import {FilterOutPipe} from '../../pipe/FilterOutPipe';
 
 
 /**
@@ -21,7 +27,15 @@ import {Component} from '@angular/core';
               pTooltip="{{config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP'}}"/>
     </ng-container>
   `,
-    standalone: false
+    imports: [
+        ReactiveFormsModule,
+        CommonModule,
+        MultiSelectModule,
+        TooltipModule,
+        TranslateModule,
+        FilterOutPipe
+    ],
+    standalone: true
 })
 export class FormInputMultiSelectComponent extends BaseInputComponent {
 }

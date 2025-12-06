@@ -1,12 +1,13 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {AppSettings} from '../../shared/app.settings';
 import {GlobalSessionNames} from '../../lib/global.session.names';
-import {ActivatedRoute, Params, Router} from '@angular/router';
+import {ActivatedRoute, Params, Router, RouterModule} from '@angular/router';
 import {Portfolio} from '../../entities/portfolio';
 import {Subscription} from 'rxjs';
 import {TabItem} from '../../lib/types/tab.item';
 import {SessionStorageTabHelper} from '../../lib/tabmenu/component/session.storage.tab.helper';
 import {GlobalGTSessionNames} from '../../shared/global.gt.session.names';
+import {SharedTabMenuComponent} from '../../lib/tabmenu/component/shared.tab.menu.component';
 
 /**
  * Component for the tab menu of a single portfolio.
@@ -23,7 +24,11 @@ import {GlobalGTSessionNames} from '../../shared/global.gt.session.names';
       <router-outlet></router-outlet>
     </app-shared-tab-menu>
   `,
-  standalone: false
+  imports: [
+    SharedTabMenuComponent,
+    RouterModule
+  ],
+  standalone: true
 })
 export class PortfolioTabMenuComponent implements OnInit, OnDestroy {
   tabs: TabItem[] = [

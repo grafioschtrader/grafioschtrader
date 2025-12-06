@@ -1,6 +1,8 @@
 import {BaseInputComponent} from '../base.input.component';
 import {Component} from '@angular/core';
 import {FileRequiredValidator} from './file-input.validator';
+import {ReactiveFormsModule} from '@angular/forms';
+import {CommonModule} from '@angular/common';
 
 
 @Component({
@@ -15,7 +17,11 @@ import {FileRequiredValidator} from './file-input.validator';
              [formControlName]="config.field">
     </ng-container>
   `,
-    standalone: false
+    imports: [
+        ReactiveFormsModule,
+        CommonModule
+    ],
+    standalone: true
 })
 export class FormFileUploadComponent extends BaseInputComponent {
   fileToUpload: File = null;
