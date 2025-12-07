@@ -4,7 +4,7 @@ import {ReactiveFormsModule} from '@angular/forms';
 import {TooltipModule} from 'primeng/tooltip';
 import {TranslateModule} from '@ngx-translate/core';
 import {FilterOutPipe} from '../../pipe/FilterOutPipe';
-import {CommonModule} from '@angular/common';
+
 
 @Component({
     selector: 'form-checkbox',
@@ -16,12 +16,11 @@ import {CommonModule} from '@angular/common';
     </ng-container>
   `,
     imports: [
-        ReactiveFormsModule,
-        TooltipModule,
-        TranslateModule,
-        FilterOutPipe,
-        CommonModule
-    ],
+    ReactiveFormsModule,
+    TooltipModule,
+    TranslateModule,
+    FilterOutPipe
+],
     standalone: true
 })
 export class FormCheckboxComponent extends BaseInputComponent {

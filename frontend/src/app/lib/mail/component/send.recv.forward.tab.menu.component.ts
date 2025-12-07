@@ -2,7 +2,7 @@ import {Component} from '@angular/core';
 import {AppHelper} from '../../helper/app.helper';
 import {TabItem} from '../../types/tab.item';
 import {BaseSettings} from '../../base.settings';
-import {CommonModule} from '@angular/common';
+
 import {RouterModule} from '@angular/router';
 import {SharedTabMenuComponent} from '../../tabmenu/component/shared.tab.menu.component';
 
@@ -21,7 +21,7 @@ import {SharedTabMenuComponent} from '../../tabmenu/component/shared.tab.menu.co
     </app-shared-tab-menu>
   `,
   standalone: true,
-  imports: [CommonModule, RouterModule, SharedTabMenuComponent]
+  imports: [RouterModule, SharedTabMenuComponent]
 })
 export class SendRecvForwardTabMenuComponent {
   tabs: TabItem[] = [

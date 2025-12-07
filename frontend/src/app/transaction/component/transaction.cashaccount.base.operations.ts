@@ -115,11 +115,7 @@ export abstract class TransactionCashaccountBaseOperations extends TransactionBa
    * @returns FieldConfig object configured for transaction cost input
    */
   protected getTransactionCostFieldDefinition(gps: GlobalparameterService): FieldConfig {
-    // return DynamicFieldHelper.createFieldCurrencyNumberHeqF('transactionCost', false,
-    //   AppSettings.FID_SMALL_INTEGER_LIMIT, gps.getStandardFractionDigits(), false,
-    //   this.gps.getNumberCurrencyMask(), true);
-
-    return DynamicFieldHelper.createFieldInputNumberHeqF('transactionCost', false,
+      return DynamicFieldHelper.createFieldInputNumberHeqF('transactionCost', false,
       AppSettings.FID_SMALL_INTEGER_LIMIT, gps.getStandardFractionDigits(), false);
 
   }
@@ -130,13 +126,9 @@ export abstract class TransactionCashaccountBaseOperations extends TransactionBa
    * @returns FieldConfig object configured for debit amount display
    */
   protected getDebitAmountFieldDefinition(gps: GlobalparameterService): FieldConfig {
-   // return DynamicFieldHelper.createFieldCurrencyNumberHeqF('debitAmount', false,
-   //    AppSettings.FID_MAX_INT_REAL_DOUBLE, gps.getStandardFractionDigits(),
-   //    false, this.gps.getNumberCurrencyMask(), true, {readonly: true});
     return DynamicFieldHelper.createFieldInputNumberHeqF('debitAmount', false,
       AppSettings.FID_MAX_INT_REAL_DOUBLE, gps.getStandardFractionDigits(),
       false,  {readonly: true});
-
   }
 
 }

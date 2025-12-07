@@ -23,11 +23,7 @@
       "plotly.js": [
         "./node_modules/plotly.js/dist/plotly.js"
       ]
-    },
-    "lib": [
-      "ES2022",
-      "dom"
-    ]
+    }
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

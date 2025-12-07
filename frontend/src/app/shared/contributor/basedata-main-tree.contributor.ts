@@ -67,6 +67,7 @@ export class BaseDataMainTreeContributor extends MainTreeContributor {
     // Pass the application-specific node type for UDF metadata
     const udfMetadataGeneralNode = LibDataMainTreeContributor.createUdfMetadataGeneralNode(TreeNodeType.UDFMetadataSecurity);
     // Add grafioschtrader-specific child node
+    udfMetadataGeneralNode.expanded = true;
     udfMetadataGeneralNode.children = [this.getUDFMetadataSecurityChild()];
 
     this.rootNode.children = [

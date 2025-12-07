@@ -21,6 +21,11 @@ import {SharedModule} from 'primeng/api';
 
 /**
  * This is the component for displaying the navigation tree. It is used to control the indicators of the main area.
+ *
+ * Important: PrimeNG Tree uses OnPush change detection strategy. To successfully refresh the tree after data changes,
+ * all TreeNode objects must be deep cloned to create new object references. A shallow copy (e.g., [...array]) is not
+ * sufficient - the entire node hierarchy must have new references. This is handled by MainTreeService.getClonedPortfolioTrees()
+ * which recursively clones all nodes while preserving properties like 'expanded'.
  */
 @Component({
   selector: 'main-tree',
@@ -69,15 +74,29 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     this.mainTreeService.buildTree().subscribe(trees => {
       this.portfolioTrees = trees;
       // Trigger initial refresh
-      this.mainTreeService.refreshAllNodes().subscribe();
+      this.mainTreeService.refreshAllNodes().subscribe(() => {
+        this.triggerTreeUpdate();
+      });
     });
   }
 
   /**
    * Refreshes the entire tree.
+   * Triggers PrimeNG Tree change detection by updating the value reference and serialized data.
    */
   private refreshTree(): void {
-    this.mainTreeService.refreshAllNodes().subscribe();
+    this.mainTreeService.refreshAllNodes().subscribe(() => {
+      this.triggerTreeUpdate();
+    });
+  }
+
+  /**
+   * Triggers PrimeNG Tree to recognize changes by deep cloning the tree structure.
+   * This creates new object references for all nodes, which is required for
+   * PrimeNG Tree's OnPush change detection strategy.
+   */
+  private triggerTreeUpdate(): void {
+    this.portfolioTrees = this.mainTreeService.getClonedPortfolioTrees();
   }
 
   getEditMenuItemsByTypeNode(treeNode: TreeNode): MenuItem[] {
@@ -161,7 +180,9 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   private refreshTreeBecauseOfParentAction(): void {
     this.subscription = this.dataChangedService.dateChanged$.subscribe(processedActionData => {
       // Delegate to the service to refresh appropriate nodes
-      this.mainTreeService.refreshNodesForDataChange(processedActionData).subscribe();
+      this.mainTreeService.refreshNodesForDataChange(processedActionData).subscribe(() => {
+        this.triggerTreeUpdate();
+      });
     });
   }
 

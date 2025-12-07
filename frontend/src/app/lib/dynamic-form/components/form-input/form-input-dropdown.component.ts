@@ -6,7 +6,7 @@ import {TooltipModule} from 'primeng/tooltip';
 import {TranslateModule} from '@ngx-translate/core';
 import {FilterOutPipe} from '../../pipe/FilterOutPipe';
 import {UpperCaseDirective} from './upper-case.directive';
-import {CommonModule} from '@angular/common';
+
 
 /**
  * This PrimeNG dropdown allows grouping the offered options.
@@ -51,14 +51,13 @@ import {CommonModule} from '@angular/common';
     </ng-container>
   `,
     imports: [
-        ReactiveFormsModule,
-        SelectModule,
-        TooltipModule,
-        TranslateModule,
-        FilterOutPipe,
-        UpperCaseDirective,
-        CommonModule
-    ],
+    ReactiveFormsModule,
+    SelectModule,
+    TooltipModule,
+    TranslateModule,
+    FilterOutPipe,
+    UpperCaseDirective
+],
     standalone: true
 })
 

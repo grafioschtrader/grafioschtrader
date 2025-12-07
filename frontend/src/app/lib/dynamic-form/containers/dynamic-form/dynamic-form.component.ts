@@ -211,7 +211,9 @@ export class DynamicFormComponent implements OnChanges, OnInit {
           if (sourceObject[config.field]) {
             value = new Date(sourceObject[config.field]);
           }
-        } else {
+        } else if(config.inputType === InputType.InputNumber && sourceObject[config.field] === 0 && config.inputNumberSettings.treatZeroAsNull) {
+          value = null;
+        }  else {
           value = sourceObject[config.field];
         }
       }

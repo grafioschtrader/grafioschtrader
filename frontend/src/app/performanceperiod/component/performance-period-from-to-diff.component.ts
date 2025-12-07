@@ -5,7 +5,7 @@ import {GlobalparameterService} from '../../lib/services/globalparameter.service
 import {PeriodHoldingAndDiff} from '../model/performance.period';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {CommonModule} from '@angular/common';
+
 import {TooltipModule} from 'primeng/tooltip';
 
 @Component({
@@ -32,7 +32,7 @@ import {TooltipModule} from 'primeng/tooltip';
     </div>
   `,
     standalone: true,
-    imports: [CommonModule, TooltipModule]
+    imports: [TooltipModule]
 })
 export class TenantPerformanceFromToDiffComponent extends SingleRecordConfigBase implements OnInit, OnChanges {
   @Input() periodHoldingsAndDiff: PeriodHoldingAndDiff[];

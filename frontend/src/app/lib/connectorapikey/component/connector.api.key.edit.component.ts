@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 import {SimpleEntityEditBase} from '../../edit/simple.entity.edit.base';
 import {ConnectorApiKey, SubscriptionTypeReadableName} from '../types/connector.api.key';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
@@ -33,7 +33,7 @@ import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.htm
       </dynamic-form>
     </p-dialog>`,
     standalone: true,
-    imports: [CommonModule, DialogModule, DynamicFormModule, TranslateModule]
+    imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class ConnectorApiKeyEditComponent extends SimpleEntityEditBase<ConnectorApiKey> implements OnInit {
   @Input() connectorApiKey: ConnectorApiKey;

@@ -18,7 +18,7 @@ import {DynamicDialogs} from '../../dynamicdialog/component/dynamic.dialogs';
 import {ReleaseNote, ReleaseNoteService} from '../service/release.note.service';
 import {HelpIds} from '../../help/help.ids';
 import {BaseSettings} from '../../base.settings';
-import {CommonModule} from '@angular/common';
+
 import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 import {CardModule} from 'primeng/card';
 import {ApplicationInfoComponent} from './application-info.component';
@@ -72,7 +72,7 @@ import {PasswordEditComponent} from './password-edit.component';
   `,
   providers: [DialogService],
   standalone: true,
-  imports: [CommonModule, DynamicFormModule, TranslateModule, CardModule, ApplicationInfoComponent, PasswordEditComponent]
+  imports: [DynamicFormModule, TranslateModule, CardModule, ApplicationInfoComponent, PasswordEditComponent]
 })
 export class LoginComponent extends FormBase implements OnInit, OnDestroy {
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;

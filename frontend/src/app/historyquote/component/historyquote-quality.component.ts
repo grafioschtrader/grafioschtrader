@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 import {SingleRecordConfigBase} from '../../lib/datashowbase/single.record.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
@@ -32,7 +32,7 @@ import {TooltipModule} from 'primeng/tooltip';
     </div>
   `,
   standalone: true,
-  imports: [CommonModule, TooltipModule]
+  imports: [TooltipModule]
 })
 export class HistoryquoteQualityComponent extends SingleRecordConfigBase implements OnInit {
   @Input() historyquoteQuality: IHistoryquoteQuality;

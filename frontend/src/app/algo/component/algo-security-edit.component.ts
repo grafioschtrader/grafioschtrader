@@ -16,7 +16,7 @@ import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {BusinessSelectOptionsHelper} from '../../securitycurrency/component/business.select.options.helper';
-import {CommonModule} from '@angular/common';
+
 import {DialogModule} from 'primeng/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
@@ -36,11 +36,10 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
     </p-dialog>`,
     standalone: true,
     imports: [
-        CommonModule,
-        DialogModule,
-        DynamicFormModule,
-        TranslateModule
-    ]
+    DialogModule,
+    DynamicFormModule,
+    TranslateModule
+]
 })
 export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<AlgoSecurity> implements OnInit {
 

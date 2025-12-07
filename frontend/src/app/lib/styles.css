@@ -189,6 +189,12 @@ legend {
   color: indianred;
 }
 
+/* Override PrimeNG InputNumber styling for negative numbers */
+.negativ-number .p-inputtext,
+.negativ-number .p-inputtext:disabled {
+  color: indianred !important;
+}
+
 .small-padding {
   padding-right: 4px !important;
   padding-left: 4px !important;

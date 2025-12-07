@@ -282,6 +282,7 @@
     "emptyMessage": "Keine Resultat gefunden",
     "emptyFilterMessage": "Keine Resultat gefunden"
   },
+  "notZero": "Wert darf nicht Null sein!",
   "range": "Wert zwischen {{param1}} und {{param2}}!",
   "rangeLength": "Eingabe muss minimal {{param1}} und maximal {{param2}} Zeichen enthalten!",
   "required": "Eingabe verlangt!",

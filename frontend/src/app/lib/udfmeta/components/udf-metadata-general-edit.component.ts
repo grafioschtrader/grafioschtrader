@@ -16,7 +16,7 @@ import {Subscription} from 'rxjs';
 import {SelectOptionsHelper} from '../../helper/select.options.helper';
 import {UDFConfig} from '../../login/model/configuration-with-login';
 import {BaseSettings} from '../../base.settings';
-import {CommonModule} from '@angular/common';
+
 import {DialogModule} from 'primeng/dialog';
 import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 
@@ -39,7 +39,7 @@ import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
     </p-dialog>
   `,
     standalone: true,
-    imports: [CommonModule, DialogModule, DynamicFormModule, TranslateModule]
+    imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class UDFMetadataGeneralEditComponent extends SimpleEntityEditBase<UDFMetadataGeneral> implements OnInit {
   /** Parameters containing UDF metadata to edit and validation exclusion lists */

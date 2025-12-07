@@ -2,7 +2,7 @@ import {BaseInputComponent} from '../base.input.component';
 import {Component} from '@angular/core';
 import {ReactiveFormsModule} from '@angular/forms';
 import {TriStateCheckboxComponent} from './tri-state-checkbox';
-import {CommonModule} from '@angular/common';
+
 
 @Component({
     selector: 'form-tri-state-checkbox',
@@ -12,10 +12,9 @@ import {CommonModule} from '@angular/common';
     </ng-container>
   `,
     imports: [
-        ReactiveFormsModule,
-        TriStateCheckboxComponent,
-        CommonModule
-    ],
+    ReactiveFormsModule,
+    TriStateCheckboxComponent
+],
     standalone: true
 })
 export class FormTriStateCheckboxComponent extends BaseInputComponent {

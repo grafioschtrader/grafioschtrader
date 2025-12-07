@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 import {ImportTransactionTemplate} from '../../entities/import.transaction.template';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
@@ -60,7 +60,7 @@ import {ImportTransactionEditTemplateComponent} from './import-transaction-edit-
   `,
   providers: [DialogService],
   standalone: true,
-  imports: [CommonModule, TranslateModule, ConfigurableTableComponent, ImportTransactionEditTemplateComponent]
+  imports: [TranslateModule, ConfigurableTableComponent, ImportTransactionEditTemplateComponent]
 })
 export class ImportTransactionTemplateTableComponent extends TableCrudSupportMenu<ImportTransactionTemplate> {
   callParam: CallParam;

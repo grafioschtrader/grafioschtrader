@@ -1,6 +1,6 @@
 import {CrudMenuOptions, TableCrudSupportMenu} from '../../datashowbase/table.crud.support.menu';
 import {Component, OnDestroy} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.component';
 import {AngularSvgIconModule} from 'angular-svg-icon';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
@@ -94,9 +94,7 @@ import {BaseSettings} from '../../base.settings';
   `,
   providers: [DialogService],
   standalone: true,
-  imports: [CommonModule, ConfigurableTableComponent, AngularSvgIconModule, TranslateModule,
-    UserEntityChangeLimitTableComponent, UserEditComponent, UserEntityChangeLimitEditComponent,
-    UserChangeOwnerEntitiesComponent]
+  imports: [ConfigurableTableComponent, AngularSvgIconModule, TranslateModule, UserEntityChangeLimitTableComponent, UserEditComponent, UserEntityChangeLimitEditComponent, UserChangeOwnerEntitiesComponent]
 })
 export class UserTableComponent extends TableCrudSupportMenu<User> implements OnDestroy {
 

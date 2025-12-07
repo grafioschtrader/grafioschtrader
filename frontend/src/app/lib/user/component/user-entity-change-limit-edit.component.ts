@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 import {SimpleEntityEditBase} from '../../edit/simple.entity.edit.base';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {DialogModule} from 'primeng/dialog';
@@ -35,7 +35,7 @@ import {ProposeChangeEntityWithEntity} from '../../proposechange/model/propose.c
       </dynamic-form>
     </p-dialog>`,
     standalone: true,
-    imports: [CommonModule, DialogModule, DynamicFormModule, TranslateModule]
+    imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class UserEntityChangeLimitEditComponent extends SimpleEntityEditBase<UserEntityChangeLimit> implements OnInit {
   @Input() user: User;

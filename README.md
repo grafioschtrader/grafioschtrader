@@ -1,5 +1,5 @@
 ## Update to Java 21
-With GT version 0.31.6 we have switched to **Java 21** from **Java 17**. Please adjust the configuration accordingly. **Angular 20** requires **Node.js ^20.19.0, ^22.12.0 or ^24.0.0**. In addition to the configuration of [Java 21](//github.com/grafioschtrader/grafioschtrader/wiki/Install-Java), the existing [Maven Installation](//github.com/grafioschtrader/grafioschtrader/wiki/Installing-the-Latest-Release-of-Apache-Maven) may also need to be adapted.
+With GT version 0.31.6 we have switched to **Java 21** from **Java 17**. Please adjust the configuration accordingly. **Angular 21** requires **Node.js ^20.19.0, ^22.12.0 or ^24.0.0**. In addition to the configuration of [Java 21](//github.com/grafioschtrader/grafioschtrader/wiki/Install-Java), the existing [Maven Installation](//github.com/grafioschtrader/grafioschtrader/wiki/Installing-the-Latest-Release-of-Apache-Maven) may also need to be adapted.
 
 ## Preface
 - **Unless otherwise described, GT will only get a new version if the new features require an update of the database. It is the goal that the master branch always contains the most reliable and feature rich source code.** 

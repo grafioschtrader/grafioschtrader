@@ -26,6 +26,7 @@ import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.
         [data]="entityList"
         [fields]="fields"
         [dataKey]="entityKeyName"
+        [contextMenuAppendTo]="'body'"
         [(selection)]="selectedEntity"
         [contextMenuItems]="contextMenuItems"
         [showContextMenu]="isActivated()"

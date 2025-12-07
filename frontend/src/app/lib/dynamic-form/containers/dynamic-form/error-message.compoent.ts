@@ -2,7 +2,7 @@ import {Component, Input} from '@angular/core';
 import {BaseFieldFieldgroupConfig} from '../../models/base.field.fieldgroup.config';
 import {NgxErrorsDirective} from '../../error/ngxerrors.directive';
 import {NgxErrorDirective} from '../../error/ngxerror.directive';
-import {CommonModule} from '@angular/common';
+
 
 /**
  * Support the validation of a single field with its error message.
@@ -22,9 +22,8 @@ import {CommonModule} from '@angular/common';
   `,
   imports: [
     NgxErrorsDirective,
-    NgxErrorDirective,
-    CommonModule
-  ],
+    NgxErrorDirective
+],
   standalone: true
 })
 export class ErrorMessageComponent {

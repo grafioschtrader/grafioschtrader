@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 import {SimpleEntityEditBase} from '../../edit/simple.entity.edit.base';
 import {
   MailSendForwardDefaultConfig,
@@ -42,7 +42,7 @@ import {HelpIds} from '../../help/help.ids';
     </p-dialog>
   `,
   standalone: true,
-  imports: [CommonModule, DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class MailForwardSettingEditComponent extends SimpleEntityEditBase<MailSettingForward> implements OnInit {
   @Input() callParam: MailSettingForwardParam;

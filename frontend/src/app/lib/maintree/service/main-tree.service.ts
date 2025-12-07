@@ -16,6 +16,43 @@ export class MainTreeService {
   private contributors: MainTreeContributor[];
   private portfolioTrees: TreeNode[] = [];
 
+  /**
+   * Deep clones a TreeNode array, creating new object references for all nodes.
+   * This is necessary to trigger PrimeNG Tree's OnPush change detection.
+   */
+  private deepCloneTreeNodes(nodes: TreeNode[]): TreeNode[] {
+    return nodes.map(node => this.deepCloneTreeNode(node));
+  }
+
+  /**
+   * Deep clones a single TreeNode, preserving all properties including expanded state.
+   */
+  private deepCloneTreeNode(node: TreeNode): TreeNode {
+    const cloned: TreeNode = {
+      label: node.label,
+      data: node.data,
+      icon: node.icon,
+      expandedIcon: node.expandedIcon,
+      collapsedIcon: node.collapsedIcon,
+      leaf: node.leaf,
+      expanded: node.expanded,
+      type: node.type,
+      parent: node.parent,
+      partialSelected: node.partialSelected,
+      styleClass: node.styleClass,
+      draggable: node.draggable,
+      droppable: node.droppable,
+      selectable: node.selectable,
+      key: node.key
+    };
+    if (node.children && node.children.length > 0) {
+      cloned.children = this.deepCloneTreeNodes(node.children);
+      // Update parent references for children
+      cloned.children.forEach(child => child.parent = cloned);
+    }
+    return cloned;
+  }
+
   // Component callbacks - set by the component
   private componentCallbacks: {
     handleEdit?: (componentType: any, parentObject: any, data: any, titleKey: string) => Observable<any>;
@@ -176,6 +213,14 @@ export class MainTreeService {
    */
   getPortfolioTrees(): TreeNode[] {
     return this.portfolioTrees;
+  }
+
+  /**
+   * Returns a deep cloned copy of the tree structure.
+   * Use this to trigger PrimeNG Tree's OnPush change detection.
+   */
+  getClonedPortfolioTrees(): TreeNode[] {
+    return this.deepCloneTreeNodes(this.portfolioTrees);
   }
 
   /**

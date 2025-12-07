@@ -96,28 +96,12 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
 
     // When the input on the following group changes, some calculations must be executed
     const calcGroupConfig: FieldConfig[] = [
-/*
-      DynamicFieldHelper.createFieldCurrencyNumberVSParam('currencyExRate', 'EXCHANGE_RATE',
-        true, this.gps.getMaxFractionDigits() - 2,
-        this.gps.getMaxFractionDigits(), false, this.gps.getNumberCurrencyMask(),
-        null, null, false, {usedLayoutColumns: 8}),
-*/
       DynamicFieldHelper.createFieldInputNumber('currencyExRate', 'EXCHANGE_RATE', true,
         this.gps.getMaxFractionDigits() - 2, this.gps.getMaxFractionDigits(), false,
         {usedLayoutColumns: 8}),
-
       ...this.createExRateButtons(),
-      /*
-      DynamicFieldHelper.createFieldCurrencyNumberVSParamHeqF('creditAmount', true,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), false, {
-          ...this.gps.getNumberCurrencyMask(), allowZero: false
-        }, null, null, true),
-*/
       DynamicFieldHelper.createFieldInputNumberHeqF('creditAmount', true,
         AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), false),
-
-
-
       this.getTransactionCostFieldDefinition(this.gps),
     ];
 
@@ -185,9 +169,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
         this.debitCashaccount = cp.cashaccount;
         this.filterCreditHtmlOptions(this.configObject.idDebitCashaccount.valueKeyHtmlOptions,
           cp.cashaccount.idSecuritycashAccount);
-       // this.configObject.debitAmount.currencyMaskConfig.prefix = AppHelper.addSpaceToCurrency(this.debitCashaccount.currency);
         this.configObject.debitAmount.inputNumberSettings.currency = this.debitCashaccount.currency;
-        // this.configObject.transactionCost.currencyMaskConfig.prefix = AppHelper.addSpaceToCurrency(this.debitCashaccount.currency);
         this.configObject.transactionCost.inputNumberSettings.currency = this.debitCashaccount.currency;
         this.changeCurrencyExRateState();
       }

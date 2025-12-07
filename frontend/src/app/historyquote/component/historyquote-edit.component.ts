@@ -62,20 +62,16 @@ export class HistoryquoteEditComponent extends SimpleEntityEditBase<Historyquote
             disabledDays: [0, 6]
           }
         }),
-      DynamicFieldHelper.createFieldCurrencyNumberHeqF('volume', false,
-        AppSettings.FID_MAX_INTEGER_DIGITS, 0, false, this.gps.getNumberCurrencyMask(), false),
-      DynamicFieldHelper.createFieldCurrencyNumberHeqF('open', false,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), false,
-        this.gps.getNumberCurrencyMask(), false),
-      DynamicFieldHelper.createFieldCurrencyNumberHeqF('high', false,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), false,
-        this.gps.getNumberCurrencyMask(), false),
-      DynamicFieldHelper.createFieldCurrencyNumberHeqF('low', false,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), false,
-        this.gps.getNumberCurrencyMask(), false),
-      DynamicFieldHelper.createFieldCurrencyNumberHeqF('close', true,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), false,
-        this.gps.getNumberCurrencyMask(), false),
+      DynamicFieldHelper.createFieldInputNumberHeqF('volume', false,
+        AppSettings.FID_MAX_INTEGER_DIGITS, 0, false),
+      DynamicFieldHelper.createFieldInputNumberHeqF('open', false,
+        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), false),
+      DynamicFieldHelper.createFieldInputNumberHeqF('high', false,
+        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), false),
+      DynamicFieldHelper.createFieldInputNumberHeqF('low', false,
+        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), false),
+      DynamicFieldHelper.createFieldInputNumberHeqF('close', true,
+        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), false),
       ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
     ];
     this.configObject = this.config.reduce((acc, d) => ({
