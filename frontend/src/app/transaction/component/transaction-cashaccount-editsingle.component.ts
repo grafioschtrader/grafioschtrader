@@ -104,11 +104,8 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
       5, this.helpLink.bind(this));
     const calcGroupConfig: FieldConfig[] = [
       // Validator for amount is set dynamically
-      DynamicFieldHelper.createFieldCurrencyNumberHeqF('cashaccountAmount', true,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), true, {
-          ...this.gps.getNumberCurrencyMask(),
-          allowZero: false
-        }, true),
+      DynamicFieldHelper.createFieldInputNumberHeqF('cashaccountAmount' , true,
+        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), true, {}, true),
       this.getTransactionCostFieldDefinition(this.gps)
     ];
     this.config = [
@@ -119,10 +116,9 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
       DynamicFieldHelper.createFieldSelectNumber('idSecurityaccount', AppSettings.SECURITYACCOUNT.toUpperCase(), false,
         {invisible: true}),
 
-      DynamicFieldHelper.createFieldCurrencyNumberHeqF('taxCost', false,
-        AppSettings.FID_STANDARD_INTEGER_DIGITS, this.gps.getStandardFractionDigits(), false,
-        {...this.gps.getNumberCurrencyMask(), allowNegative: false}, true,
-        {invisible: true}),
+      DynamicFieldHelper.createFieldInputNumberHeqF('taxCost' , true,
+        AppSettings.FID_STANDARD_INTEGER_DIGITS, this.gps.getStandardFractionDigits(), false, {invisible: true}),
+
       {formGroupName: 'calcGroup', fieldConfig: calcGroupConfig},
       this.getDebitAmountFieldDefinition(this.gps),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', BaseSettings.FID_MAX_LETTERS, false),
@@ -352,7 +348,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    * @param validatorKey Validation error key for error messages
    */
   private setAmountValidator(allowNegative: boolean, validator: ValidatorFn, validatorKey: string) {
-    this.configObject.cashaccountAmount.currencyMaskConfig.allowNegative = allowNegative;
+    this.configObject.cashaccountAmount.inputNumberSettings.allowNegative = allowNegative;
     this.configObject.cashaccountAmount.validation = [Validators.required, validator];
     this.configObject.cashaccountAmount.formControl.setValidators(this.configObject.cashaccountAmount.validation);
     this.configObject.cashaccountAmount.errors = [this.errorRequired,

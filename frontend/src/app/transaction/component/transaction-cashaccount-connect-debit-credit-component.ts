@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 import {TransactionCallParam} from './transaction.call.parm';
 import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
 import {HelpIds} from '../../lib/help/help.ids';
@@ -22,7 +22,7 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
     </p-dialog>
   `,
     standalone: true,
-    imports: [CommonModule, TranslateModule, DialogModule, DynamicFormModule]
+    imports: [TranslateModule, DialogModule, DynamicFormModule]
 })
 export class TransactionCashaccountConnectDebitCreditComponent extends SimpleEditBase implements OnInit {
 

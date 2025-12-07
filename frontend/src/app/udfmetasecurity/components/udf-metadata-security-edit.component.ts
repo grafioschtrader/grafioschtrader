@@ -16,7 +16,7 @@ import {Subscription} from 'rxjs';
 import {UDFMetadataHelper} from '../../lib/udfmeta/components/udf.metadata.helper';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 import {UDFMetadataSecurity, UDFMetadataSecurityParam} from '../model/udf.metadata.security';
-import {CommonModule} from '@angular/common';
+
 import {DialogModule} from 'primeng/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
@@ -39,7 +39,7 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
     </p-dialog>
   `,
     standalone: true,
-    imports: [CommonModule, DialogModule, DynamicFormModule, TranslateModule]
+    imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class UDFMetadataSecurityEditComponent extends AssetClassTypeSpecInstrument<UDFMetadataSecurity> implements OnInit {
   /** Parameters containing security UDF metadata to edit and validation exclusion lists */

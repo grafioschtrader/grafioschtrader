@@ -15,7 +15,7 @@ import {InfoLevelType} from '../../message/info.leve.type';
 import {MessageToastService} from '../../message/message.toast.service';
 import {TranslateHelper} from '../../helper/translate.helper';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
-import {CommonModule} from '@angular/common';
+
 import {DialogModule} from 'primeng/dialog';
 import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 
@@ -33,7 +33,7 @@ import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
       </dynamic-form>
     </p-dialog>`,
     standalone: true,
-    imports: [CommonModule, DialogModule, DynamicFormModule, TranslateModule]
+    imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class NicknameLangEditComponent extends SimpleEditBase implements OnInit {
 

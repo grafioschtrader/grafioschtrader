@@ -1,6 +1,6 @@
 import {Component} from '@angular/core';
 import {BaseInputComponent} from '../base.input.component';
-import {CommonModule} from '@angular/common';
+
 import {ReactiveFormsModule} from '@angular/forms';
 import {TranslateModule} from '@ngx-translate/core';
 import {ButtonModule} from 'primeng/button';
@@ -40,12 +40,11 @@ import {UpperCaseDirective} from './upper-case.directive';
     </ng-container>
   `,
     imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        TranslateModule,
-        ButtonModule,
-        UpperCaseDirective
-    ],
+    ReactiveFormsModule,
+    TranslateModule,
+    ButtonModule,
+    UpperCaseDirective
+],
     standalone: true
 })
 

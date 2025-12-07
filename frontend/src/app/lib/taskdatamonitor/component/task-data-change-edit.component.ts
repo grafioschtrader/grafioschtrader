@@ -17,7 +17,7 @@ import moment from 'moment';
 import {Validators} from '@angular/forms';
 import {BaseSettings} from '../../base.settings';
 import {TaskTypeBase} from '../types/task.type.base';
-import {CommonModule} from '@angular/common';
+
 import {DialogModule} from 'primeng/dialog';
 import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 
@@ -34,7 +34,7 @@ import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
     </p-dialog>
   `,
     standalone: true,
-    imports: [CommonModule, DialogModule, DynamicFormModule, TranslateModule]
+    imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataChange> implements OnInit {
   @Input() callParam: TaskDataChange;

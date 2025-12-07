@@ -14,7 +14,7 @@ import {TranslateHelper} from '../../helper/translate.helper';
 import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
 import {GlobalSessionNames} from '../../global.session.names';
 import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
-import {CommonModule} from '@angular/common';
+
 import {DialogModule} from 'primeng/dialog';
 import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 
@@ -34,7 +34,7 @@ import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
       </dynamic-form>
     </p-dialog>`,
   standalone: true,
-  imports: [CommonModule, DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class PasswordEditComponent extends PasswordBaseComponent implements OnInit {
   @Input() forcePasswordChange: boolean;

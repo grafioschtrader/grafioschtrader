@@ -27,7 +27,7 @@ import {ChartTrace, PlotlyHelper} from '../../shared/chart/plotly.helper';
 import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
 import {GlobalGTSessionNames} from '../../shared/global.gt.session.names';
 import {BaseSettings} from '../../lib/base.settings';
-import {CommonModule, DatePipe} from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import {ProgressBarModule} from 'primeng/progressbar';
 import {TenantPerformanceFromToDiffComponent} from './performance-period-from-to-diff.component';
 import {TenantPerformanceTreetableComponent} from './performance-period-treetable.component';

@@ -5,7 +5,7 @@ import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {TreeNode} from 'primeng/api';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
-import {CommonModule} from '@angular/common';
+
 import {TreeTableModule} from 'primeng/treetable';
 
 /**
@@ -58,10 +58,9 @@ import {TreeTableModule} from 'primeng/treetable';
   `,
     standalone: true,
     imports: [
-        CommonModule,
-        TreeTableModule,
-        TranslateModule
-    ]
+    TreeTableModule,
+    TranslateModule
+]
 })
 export class TenantDividendAccountSelectionComponent extends TreeTableConfigBase implements OnInit {
   @Input() columnConfig: ColumnConfig[];

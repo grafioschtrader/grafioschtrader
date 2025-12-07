@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 import {TableConfigBase} from '../datashowbase/table.config.base';
 import {Globalparameters} from '../entities/globalparameters';
 import {FilterService, MenuItem} from 'primeng/api';
@@ -65,7 +65,7 @@ import {HelpIds} from '../help/help.ids';
     }
   `,
   standalone: true,
-  imports: [CommonModule, ConfigurableTableComponent, Textarea, TranslateModule, GlobalSettingsEditComponent]
+  imports: [ConfigurableTableComponent, Textarea, TranslateModule, GlobalSettingsEditComponent]
 })
 export class GlobalSettingsTableComponent extends TableConfigBase implements OnInit, IGlobalMenuAttach {
 

@@ -224,6 +224,7 @@
     "cancel": "Cancel",
     "weekHeader": "Wk"
   },
+  "notZero": "Value must not be zero!",
   "range": "Value between {{param1}} and {{param2}}!",
   "rangeLength": "Input must be at least {{param1}} and and no more than {{param2}} characters!",
   "required": "Input required!",

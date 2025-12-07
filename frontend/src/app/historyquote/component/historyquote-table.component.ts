@@ -39,7 +39,6 @@ import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {AngularSvgIconModule, SvgIconRegistryService} from 'angular-svg-icon';
 import {DialogService} from 'primeng/dynamicdialog';
 import {BaseSettings} from '../../lib/base.settings';
-import {PanelModule} from 'primeng/panel';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {HistoryquoteQualityComponent} from './historyquote-quality.component';
 import {HistoryquoteEditComponent} from './historyquote-edit.component';
@@ -54,18 +53,6 @@ import {HistoryquoteDeleteDialogComponent} from './historyquote-delete-dialog.co
   template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
-      <p-panel>
-        <p-header>
-          <h4>{{ entityNameUpper | translate }} {{ nameSecuritycurrency?.getName() }}</h4>
-          @if (security) {
-            {{ 'TRADING_FROM_TO' | translate }}: {{ getDateByFormat(security.activeFromDate) }}
-            - {{ getDateByFormat(security.activeToDate) }}
-          }
-        </p-header>
-        <historyquote-quality [historyquoteQuality]="historyquotesWithMissings?.historyquoteQuality"
-                              [securitycurrency]="historyquotesWithMissings?.securitycurrency">
-        </historyquote-quality>
-      </p-panel>
       <div class="datatable">
         <configurable-table
           [data]="entityList"
@@ -89,9 +76,21 @@ import {HistoryquoteDeleteDialogComponent} from './historyquote-delete-dialog.co
           [formLocale]="formLocale"
           [containerClass]="''"
           [contextMenuEnabled]="!!contextMenuItems"
-          [showContextMenu]="!!contextMenuItems"
+          [showContextMenu]="isActivated()"
           [contextMenuItems]="contextMenuItems"
           [valueGetterFn]="getValueByPath.bind(this)">
+
+          <!-- Caption content projected into table header -->
+          <div caption>
+            <h4>{{ entityNameUpper | translate }} {{ nameSecuritycurrency?.getName() }}</h4>
+            @if (security) {
+              <span>{{ 'TRADING_FROM_TO' | translate }}: {{ getDateByFormat(security.activeFromDate) }}
+              - {{ getDateByFormat(security.activeToDate) }}</span>
+            }
+            <historyquote-quality [historyquoteQuality]="historyquotesWithMissings?.historyquoteQuality"
+                                  [securitycurrency]="historyquotesWithMissings?.securitycurrency">
+            </historyquote-quality>
+          </div>
 
           <!-- Custom icon cell template for svg-icon rendering -->
           <ng-template #iconCell let-row let-field="field" let-value="value">
@@ -136,7 +135,6 @@ import {HistoryquoteDeleteDialogComponent} from './historyquote-delete-dialog.co
   imports: [
     CommonModule,
     TranslateModule,
-    PanelModule,
     ConfigurableTableComponent,
     AngularSvgIconModule,
     HistoryquoteQualityComponent,
@@ -299,7 +297,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
   }
 
   override resetMenu(historyquote: Historyquote): void {
-    if (!this.security || !this.security.idLinkSecuritycurrency) {
+    if (!this.security.idLinkSecuritycurrency) {
       this.contextMenuItems = this.prepareEditMenu(this.selectedEntity);
       this.contextMenuItems.push({separator: true});
       this.importQuotesMenu.disabled = !this.hasRightsForDeleteEntity(null);

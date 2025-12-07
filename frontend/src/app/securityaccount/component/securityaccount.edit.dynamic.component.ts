@@ -66,12 +66,8 @@ export class SecurityaccountEditDynamicComponent extends SimpleDynamicEditBase<S
       DynamicFieldHelper.createFieldSelectStringHeqF('tradingPlatformPlan',
         true, {dataproperty: 'tradingPlatformPlan.idTradingPlatformPlan'}),
       ...this.getUntilFieldDefinition(),
-      DynamicFieldHelper.createFieldCurrencyNumberHeqF('lowestTransactionCost', true,
-        3, 2, false,
-        {
-          ...this.gps.getNumberCurrencyMask(),
-          prefix: AppHelper.addSpaceToCurrency((<Portfolio>this.callParam.parentObject).currency)
-        }, true, {inputWidth: 10}),
+      DynamicFieldHelper.createFieldInputNumberHeqF('lowestTransactionCost', true,
+        3, 2, false, {inputWidth: 10}),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', BaseSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];
@@ -98,6 +94,8 @@ export class SecurityaccountEditDynamicComponent extends SimpleDynamicEditBase<S
     this.tradingPlatformPlanService.getAllTradingPlatform().subscribe((tradingPlatformPlans: TradingPlatformPlan[]) => {
       this.configObject.tradingPlatformPlan.valueKeyHtmlOptions =
         this.tradingPlatformPlanCreateValueKeyHtmlSelectOptions(tradingPlatformPlans);
+      DynamicFieldHelper.setCurrency(this.configObject.lowestTransactionCost,
+        (<Portfolio>this.callParam.parentObject).currency);
       this.form.setDefaultValuesAndEnableSubmit();
       if (this.callParam.thisObject != null) {
         this.form.transferBusinessObjectToForm(this.callParam.thisObject);

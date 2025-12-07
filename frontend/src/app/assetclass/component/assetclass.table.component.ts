@@ -1,5 +1,5 @@
 import {Component, OnDestroy} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
@@ -66,7 +66,7 @@ import {AssetclassEditComponent} from './assetclass-edit.component';
   `,
   providers: [DialogService],
   standalone: true,
-  imports: [CommonModule, TranslateModule, ConfigurableTableComponent, AngularSvgIconModule, AssetclassEditComponent]
+  imports: [TranslateModule, ConfigurableTableComponent, AngularSvgIconModule, AssetclassEditComponent]
 })
 export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Assetclass> implements OnDestroy {
   callParam: AssetclassCallParam = new AssetclassCallParam();

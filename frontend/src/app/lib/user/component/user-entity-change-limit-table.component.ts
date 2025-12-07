@@ -2,7 +2,7 @@ import {TableConfigBase} from '../../datashowbase/table.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.component';
 import {AngularSvgIconModule} from 'angular-svg-icon';
 import {UserEntityChangeLimitEditComponent} from './user-entity-change-limit-edit.component';
@@ -73,7 +73,7 @@ import {BaseSettings} from '../../base.settings';
       </user-entity-change-limit-edit>
     }`,
   standalone: true,
-  imports: [CommonModule, ConfigurableTableComponent, AngularSvgIconModule, UserEntityChangeLimitEditComponent]
+  imports: [ConfigurableTableComponent, AngularSvgIconModule, UserEntityChangeLimitEditComponent]
 })
 export class UserEntityChangeLimitTableComponent extends TableConfigBase implements OnInit, OnChanges, OnDestroy, IGlobalMenuAttach {
 

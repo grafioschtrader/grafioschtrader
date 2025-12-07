@@ -9,7 +9,7 @@ import {TooltipModule} from 'primeng/tooltip';
 import {TranslateModule} from '@ngx-translate/core';
 import {FilterOutPipe} from '../../pipe/FilterOutPipe';
 import {AngularSvgIconModule} from 'angular-svg-icon';
-import {CommonModule} from '@angular/common';
+
 
 /**
  * Output of a single button, It is assumed that the output of the buttons is from left to right.
@@ -55,9 +55,8 @@ import {CommonModule} from '@angular/common';
     TranslateModule,
     FilterOutPipe,
     AngularSvgIconModule,
-    CommonModule,
     ReactiveFormsModule
-  ],
+],
   standalone: true
 })
 

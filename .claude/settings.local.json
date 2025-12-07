@@ -9,7 +9,11 @@
       "Bash(ls:*)",
       "Bash(grep:*)",
       "Bash(npm run lint)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "WebFetch(domain:v20.primeng.org)",
+      "WebSearch",
+      "WebFetch(domain:primeng.org)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

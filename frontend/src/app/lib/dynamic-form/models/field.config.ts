@@ -2,7 +2,6 @@ import {GroupItem} from './value.key.html.select.options';
 import {InputType} from './input.type';
 import {BaseInputComponent} from '../components/base.input.component';
 import {BaseFieldFieldgroupConfig} from './base.field.fieldgroup.config';
-import {NgxCurrencyConfig} from 'ngx-currency';
 import {BaseFieldDefinition, PropertyEditShare} from './base.field.definition';
 import {MenuItem} from 'primeng/api';
 
@@ -128,8 +127,6 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinit
   /** Used for proposed data changes */
   labelTitle?: string;
 
-  /** See https://github.com/nbfontana/ngx-currency/blob/master/src/currency-mask.config.ts  */
-  currencyMaskConfig?: NgxCurrencyConfig;
 
   /** TODO: May be used for entering functions and variables as MenuItem in the Texterea.  */
   contextMenuItems?: MenuItem[];
@@ -139,7 +136,12 @@ export interface InputNumberSetting {
   maxFractionDigits?: number;
   currency?: string;
   prefix?: string;
-  allowNegative?:boolean;
+  allowNegative?: boolean;
+  allowEmpty?: boolean;
+  /** When true, zero values from the backend are displayed as empty and empty input is sent as null */
+  treatZeroAsNull?: boolean;
+  /** When true, zero is not allowed as input value (validation error) */
+  excludeZero?: boolean;
 }
 
 export interface CalendarConfig {

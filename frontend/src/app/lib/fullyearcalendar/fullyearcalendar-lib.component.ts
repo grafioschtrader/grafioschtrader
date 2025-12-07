@@ -1,5 +1,5 @@
 import {Component, DoCheck, EventEmitter, Input, OnDestroy, Output} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 import {Year} from './model/year';
 import {Range} from './model/range';
 import {YearCalendarData} from './Interface/year.calendar.data';
@@ -24,7 +24,7 @@ import {MonthlyCalendarComponent} from './month-calendar/monthly-calendar.compon
   `,
     styleUrls: ['./fullyearcalendar-lib.scss'],
     standalone: true,
-    imports: [CommonModule, MonthlyCalendarComponent]
+    imports: [MonthlyCalendarComponent]
 })
 export class FullyearcalendarLibComponent implements OnDestroy, DoCheck {
 

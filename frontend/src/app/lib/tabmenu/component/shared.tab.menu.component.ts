@@ -6,7 +6,7 @@ import {TabItem} from '../../types/tab.item';
 import {Subscription} from 'rxjs';
 import {TabMenuService} from '../service/tab.menu.service';
 import {SessionStorageTabHelper} from './session.storage.tab.helper';
-import {CommonModule} from '@angular/common';
+
 import {TabsModule} from 'primeng/tabs';
 
 /**
@@ -37,7 +37,7 @@ import {TabsModule} from 'primeng/tabs';
     </div>
   `,
   standalone: true,
-  imports: [CommonModule, TabsModule, TranslateModule],
+  imports: [TabsModule, TranslateModule],
   providers: [TabMenuService]
 })
 export class SharedTabMenuComponent implements OnInit, OnDestroy {

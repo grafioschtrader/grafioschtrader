@@ -12,7 +12,6 @@ import {BaseSettings} from '../base.settings';
 import {AppHelper} from '../helper/app.helper';
 import {Auditable} from '../entities/auditable';
 import {FeatureType} from '../login/model/configuration-with-login';
-import {NgxCurrencyConfig, NgxCurrencyInputMode} from 'ngx-currency';
 import {BaseAuthService} from '../login/service/base.auth.service';
 import NumberFormat = Intl.NumberFormat;
 import moment from 'moment';
@@ -127,23 +126,6 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
       this.timeSecondDateFormat = formatTime + ' ' + formatYear.replace(/YYYY/g, 'YY');
     }
     return this.timeSecondDateFormat;
-  }
-
-  public getNumberCurrencyMask(): NgxCurrencyConfig {
-    return <NgxCurrencyConfig>{
-      align: 'right',
-      allowNegative: true,
-      allowZero: true,
-      decimal: this.getDecimalSymbol(),
-      precision: BaseSettings.FID_STANDARD_FRACTION_DIGITS,
-      prefix: '',
-      suffix: '',
-      thousands: this.getThousandsSeparatorSymbol(),
-      nullable: true,
-      min: null,
-      max: null,
-      inputMode: NgxCurrencyInputMode.Natural
-    };
   }
 
   public getDateFormatWithoutYear(): string {

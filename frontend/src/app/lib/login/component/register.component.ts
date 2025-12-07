@@ -16,7 +16,7 @@ import {GlobalSessionNames} from '../../global.session.names';
 import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
 import {HelpIds} from '../../help/help.ids';
 import {BaseSettings} from '../../base.settings';
-import {CommonModule} from '@angular/common';
+
 import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 import {ProgressBarModule} from 'primeng/progressbar';
 import {ApplicationInfoComponent} from './application-info.component';
@@ -61,7 +61,7 @@ import {ApplicationInfoComponent} from './application-info.component';
     </div>
   `,
   standalone: true,
-  imports: [CommonModule, DynamicFormModule, TranslateModule, ProgressBarModule, ApplicationInfoComponent]
+  imports: [DynamicFormModule, TranslateModule, ProgressBarModule, ApplicationInfoComponent]
 })
 export class RegisterComponent extends PasswordBaseComponent implements OnInit, OnDestroy {
   progressValue: number;

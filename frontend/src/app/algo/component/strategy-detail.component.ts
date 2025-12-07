@@ -1,5 +1,5 @@
 import {Component, Input, OnChanges} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 import {AlgoStrategyParamCall} from '../model/algo.dialog.visible';
 import {SingleRecordConfigBase} from '../../lib/datashowbase/single.record.config.base';
 import {TranslateService} from '@ngx-translate/core';
@@ -35,7 +35,7 @@ import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.help
     }
   `,
   standalone: true,
-  imports: [CommonModule]
+  imports: []
 })
 export class StrategyDetailComponent extends SingleRecordConfigBase implements OnChanges {
   @Input() algoStrategyParamCall: AlgoStrategyParamCall;

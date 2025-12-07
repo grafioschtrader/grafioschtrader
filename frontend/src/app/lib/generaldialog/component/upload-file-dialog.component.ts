@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 import {ProcessedActionData} from '../../types/processed.action.data';
 import {ProcessedAction} from '../../types/processed.action';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
@@ -48,7 +48,7 @@ import {BaseSettings} from '../../base.settings';
       </dynamic-form>
     </p-dialog>`,
     standalone: true,
-    imports: [CommonModule, DialogModule, DynamicFormModule, TranslateModule]
+    imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class UploadFileDialogComponent extends SimpleEditBase implements OnInit {
 

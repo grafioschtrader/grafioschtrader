@@ -214,8 +214,8 @@ class DataValues {
   public String[] Date;
   public String[] Time;
   public double[] Close;
-  public double[] Open;
-  public double[] Low;
-  public double[] High;
+  public Double[] Open;
+  public Double[] Low;
+  public Double[] High;
   public long[] TotalVolume;
 }

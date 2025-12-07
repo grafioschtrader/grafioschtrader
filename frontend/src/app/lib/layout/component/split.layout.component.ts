@@ -1,7 +1,7 @@
 import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {ChangedViewSizeType, ViewSizeChangedService} from '../service/view.size.changed.service';
 import {RouterModule} from '@angular/router';
-import {CommonModule} from '@angular/common';
+
 import {MenubarComponent} from '../../mainmenubar/component/menubar.component';
 import {MainTreeComponent} from '../../maintree/component/main-tree.component';
 import {MainDialogComponent} from '../../mainmenubar/component/main.dialog.component';
@@ -34,7 +34,7 @@ declare function Split(ids, options);
     <main-dialog></main-dialog>
   `,
     standalone: true,
-    imports: [CommonModule, RouterModule, MenubarComponent, MainTreeComponent, MainDialogComponent]
+    imports: [RouterModule, MenubarComponent, MainTreeComponent, MainDialogComponent]
 })
 
 export class SplitLayoutComponent implements OnInit {

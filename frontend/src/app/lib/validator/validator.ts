@@ -210,6 +210,18 @@ export const range = (value: Array<number>): ValidatorFn => (control: AbstractCo
   return v >= value[0] && v <= value[1] ? null : {range: {value}};
 };
 
+/**
+ * Validates that the input value is not zero.
+ * Allows both positive and negative numbers but rejects zero.
+ */
+export const notZero: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  if (isPresent(Validators.required(control)) || control.value === null || control.value === '') {
+    return null;
+  }
+  const v: number = +control.value;
+  return v !== 0 ? null : {notZero: true};
+};
+
 
 
 

@@ -41,6 +41,7 @@ import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.
       [fields]="fields"
       [dataKey]="'proposeChangeEntity.idProposeRequest'"
       [(selection)]="selectedEntity"
+      [contextMenuAppendTo]="'body'"
       [contextMenuItems]="contextMenuItems"
       [showContextMenu]="isActivated()"
       [containerClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">

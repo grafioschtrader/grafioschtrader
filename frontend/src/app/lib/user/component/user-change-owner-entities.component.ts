@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 import {SimpleEditBase} from '../../edit/simple.edit.base';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {DialogModule} from 'primeng/dialog';
@@ -35,7 +35,7 @@ import {ProcessedAction} from '../../types/processed.action';
       </dynamic-form>
     </p-dialog>`,
     standalone: true,
-    imports: [CommonModule, DialogModule, DynamicFormModule, TranslateModule]
+    imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 
 export class UserChangeOwnerEntitiesComponent extends SimpleEditBase implements OnInit {

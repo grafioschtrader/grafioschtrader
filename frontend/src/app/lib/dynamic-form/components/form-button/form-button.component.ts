@@ -5,7 +5,7 @@ import {FieldFormFormGroupConfig} from '../../models/field.form.form.group.confi
 import {FieldConfig} from '../../models/field.config';
 import {FormConfig} from '../../models/form.config';
 import {TranslateModule} from '@ngx-translate/core';
-import {CommonModule} from '@angular/common';
+
 
 @Component({
     selector: 'form-button',
@@ -23,10 +23,9 @@ import {CommonModule} from '@angular/common';
     }
   `,
     imports: [
-        TranslateModule,
-        CommonModule,
-        ReactiveFormsModule
-    ],
+    TranslateModule,
+    ReactiveFormsModule
+],
     standalone: true
 })
 

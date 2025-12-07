@@ -1,10 +1,10 @@
 import {Component} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 import {FormsModule} from '@angular/forms';
 import {DialogModule} from 'primeng/dialog';
 import {ButtonModule} from 'primeng/button';
 import {InputNumberModule} from 'primeng/inputnumber';
-import {NgxCurrencyDirective, NgxCurrencyInputMode} from 'ngx-currency';
+
 
 /**
  * Project: Grafioschtrader
@@ -12,8 +12,8 @@ import {NgxCurrencyDirective, NgxCurrencyInputMode} from 'ngx-currency';
 @Component({
   template: `
     <h4>Strategy Overview</h4>
-    <input currencyMask [options]="optionsInput01"/>
-    <input currencyMask [options]="optionsInput02"/>
+<!--    <input currencyMask [options]="optionsInput01"/>-->
+<!--    <input currencyMask [options]="optionsInput02"/>-->
     <input type="number" id="tentacles21" name="tentacles">
     <input type="number" id="tentacles32" name="tentacles">
     <p-inputNumber [(ngModel)]="price1" mode="currency" [currency]="curreny1" locale="de-CH" onfocus="this.select()"
@@ -34,8 +34,8 @@ import {NgxCurrencyDirective, NgxCurrencyInputMode} from 'ngx-currency';
       <p-inputNumber [(ngModel)]="price2" mode="currency" [currency]="curreny2" locale="en-US" onfocus="this.select()"
                      currencyDisplay="code" inputStyleClass="text-end"></p-inputNumber>
 
-      <input currencyMask [options]="optionsInput01" onfocus="this.select()"/>
-      <input currencyMask [options]="optionsInput02" onfocus="this.select()"/>
+<!--      <input currencyMask [options]="optionsInput01" onfocus="this.select()"/>-->
+<!--      <input currencyMask [options]="optionsInput02" onfocus="this.select()"/>-->
       <input type="number" id="tentacles1" name="tentacles">
       <input type="number" id="tentacles2" name="tentacles">
 
@@ -45,7 +45,7 @@ import {NgxCurrencyDirective, NgxCurrencyInputMode} from 'ngx-currency';
     </p-dialog>
   `,
   standalone: true,
-  imports: [CommonModule, FormsModule, InputNumberModule, ButtonModule, DialogModule, NgxCurrencyDirective]
+  imports: [FormsModule, InputNumberModule, ButtonModule, DialogModule]
 })
 export class StrategyOverviewComponent {
   displayBasic: boolean;
@@ -53,14 +53,14 @@ export class StrategyOverviewComponent {
     prefix: 'CHF ',
     thousands: '\'',
     decimal: '.',
-    inputMode: NgxCurrencyInputMode.Natural,
+ //   inputMode: NgxCurrencyInputMode.Natural,
     precision: 2
   };
   optionsInput02 = {
     prefix: 'USD ',
     thousands: '\'',
     decimal: '.',
-    inputMode: NgxCurrencyInputMode.Natural,
+  //  inputMode: NgxCurrencyInputMode.Natural,
     precision: 2
   };
   price1 = 100.20;

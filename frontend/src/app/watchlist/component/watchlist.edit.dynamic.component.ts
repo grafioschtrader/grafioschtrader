@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 import {SimpleDynamicEditBase} from '../../lib/edit/simple.dynamic.edit.base';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
@@ -31,7 +31,7 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
     </dynamic-form>
   `,
   standalone: true,
-  imports: [CommonModule, TranslateModule, DynamicFormModule]
+  imports: [TranslateModule, DynamicFormModule]
 })
 export class WatchlistEditDynamicComponent extends SimpleDynamicEditBase<Watchlist> implements OnInit, AfterViewInit {
   /**

@@ -1,5 +1,5 @@
 import {Component, Input, OnChanges, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 import {FormTemplateCheck} from './form.template.check';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
@@ -27,7 +27,7 @@ import {AppSettings} from '../../shared/app.settings';
     }
   `,
     standalone: true,
-    imports: [CommonModule, TranslateModule]
+    imports: [TranslateModule]
 })
 export class TemplateFormCheckDialogResultSuccessComponent extends SingleRecordConfigBase implements OnInit, OnChanges {
   @Input() formTemplateCheck: FormTemplateCheck;

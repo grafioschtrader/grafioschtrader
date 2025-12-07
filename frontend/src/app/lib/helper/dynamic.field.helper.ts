@@ -10,13 +10,14 @@ import {
   gtWithMask,
   maxValue,
   notContainStringInList,
+  notZero,
   range,
   rangeLength,
   webUrl
 } from '../validator/validator';
 import {ValueKeyHtmlSelectOptions} from '../dynamic-form/models/value.key.html.select.options';
 import {FileRequiredValidator} from '../dynamic-form/components/form-input-file/file-input.validator';
-import {NgxCurrencyConfig} from 'ngx-currency';
+
 
 /**
  * Enumeration of special validation types available for form fields.
@@ -30,13 +31,15 @@ export enum VALIDATION_SPECIAL {
   /** Greater than validation with mask support for formatted numbers */
   GT_With_Mask_Param,
   /** Validation to ensure value is not in a specified list of strings */
-  NOT_CONTAIN_STRING_IN_LIST
+  NOT_CONTAIN_STRING_IN_LIST,
+  /** Validation to ensure value is not zero (allows negative and positive) */
+  NOT_ZERO
 }
 
 /**
-* Interface for registering custom validation types.
-* Applications can extend validation capabilities by implementing this interface.
-*/
+ * Interface for registering custom validation types.
+ * Applications can extend validation capabilities by implementing this interface.
+ */
 export interface CustomValidationConfig {
   /** Unique identifier for the validation type */
   key: string;
@@ -99,6 +102,10 @@ export class DynamicFieldHelper {
     [VALIDATION_SPECIAL.NOT_CONTAIN_STRING_IN_LIST]: {
       msgR: {name: 'notContainStringInList', keyi18n: 'notContainStringInList', rules: [RuleEvent.DIRTY]},
       factory: (param1) => notContainStringInList(param1)
+    },
+    [VALIDATION_SPECIAL.NOT_ZERO]: {
+      vFN: notZero,
+      msgR: {name: 'notZero', keyi18n: 'notZero', rules: [RuleEvent.DIRTY]}
     }
   };
 
@@ -662,12 +669,14 @@ export class DynamicFieldHelper {
    * @param maxFractionDigits Maximum number of decimal places
    * @param allowNegative Whether negative values are permitted
    * @param fieldOptions Additional configuration options
+   * @param excludeZero When true, zero is not allowed as input (allows both positive and negative but not zero)
    * @returns FieldConfig for PrimeNG number input with calculated min/max values
    */
   public static createFieldInputNumberHeqF(fieldName: string, required: boolean, integerLimit: number,
-    maxFractionDigits: number, allowNegative: boolean, fieldOptions?: FieldOptions): FieldConfig {
+    maxFractionDigits: number, allowNegative: boolean, fieldOptions?: FieldOptions,
+    excludeZero: boolean = false): FieldConfig {
     return this.createFieldInputNumber(fieldName, AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName), required,
-      integerLimit, maxFractionDigits, allowNegative, fieldOptions);
+      integerLimit, maxFractionDigits, allowNegative, fieldOptions, excludeZero);
   }
 
   /**
@@ -681,136 +690,36 @@ export class DynamicFieldHelper {
    * @param maxFractionDigits Maximum number of decimal places
    * @param allowNegative Whether negative values are permitted
    * @param fieldOptions Additional configuration options
+   * @param excludeZero When true, zero is not allowed as input (allows both positive and negative but not zero)
    * @returns FieldConfig for PrimeNG number input with calculated min/max values
    */
   public static createFieldInputNumber(fieldName: string, labelKey: string, required: boolean, integerLimit: number,
-    maxFractionDigits: number, allowNegative: boolean, fieldOptions?: FieldOptions): FieldConfig {
+    maxFractionDigits: number, allowNegative: boolean, fieldOptions?: FieldOptions,
+    excludeZero: boolean = false): FieldConfig {
+    const validations: ValidatorFn[] = required ? [Validators.required] : [];
+    const errorMessageRules: ErrorMessageRules[] = required ? [this.RULE_REQUIRED_TOUCHED] : [];
+    if (excludeZero) {
+      validations.push(notZero);
+      errorMessageRules.push(this.validationsErrorMap[VALIDATION_SPECIAL.NOT_ZERO].msgR);
+    }
     const fieldConfig: FieldConfig = this.setFieldBaseAndOptions({
         dataType: DataType.Numeric,
         inputType: InputType.InputNumber
       },
-      fieldName, labelKey, required ? [Validators.required] : null, required ? [this.RULE_REQUIRED_TOUCHED] : null, fieldOptions);
-    fieldConfig.inputNumberSettings = {maxFractionDigits: maxFractionDigits, allowNegative: allowNegative};
+      fieldName, labelKey, validations.length > 0 ? validations : null,
+      errorMessageRules.length > 0 ? errorMessageRules : null, fieldOptions);
+    fieldConfig.inputNumberSettings = {
+      maxFractionDigits: maxFractionDigits,
+      allowNegative: allowNegative,
+      allowEmpty: true,
+      treatZeroAsNull: !required,
+      excludeZero: excludeZero
+    };
     fieldConfig.max = Number('9'.repeat(integerLimit) + '.' + '9'.repeat(maxFractionDigits));
-    fieldConfig.min = allowNegative ? fieldConfig.max * -1 : required ? 1 / Math.pow(10, maxFractionDigits) : 0;
+    fieldConfig.min = allowNegative ? fieldConfig.max * -1 : required ? 1 / Math.pow(10, maxFractionDigits) : null;
     return fieldConfig;
   }
 
-  /**
-   * Creates a currency number input field with custom label.
-   * Masked input for currency values with locale-aware formatting.
-   *
-   * @param fieldName Unique field identifier
-   * @param labelKey Translation key for field label
-   * @param required Whether input is mandatory
-   * @param integerLimit Maximum number of integer digits
-   * @param maxFractionDigits Maximum number of decimal places
-   * @param allowNegative Whether negative values are permitted
-   * @param defaultCurrencyMaskConfig Base currency mask configuration
-   * @param isCurrency Whether to display as currency (affects width calculation)
-   * @param fieldOptions Additional configuration options
-   * @returns FieldConfig for currency input with automatic width calculation
-   */
-  public static createFieldCurrencyNumber(fieldName: string, labelKey: string, required: boolean,
-    integerLimit: number, maxFractionDigits: number,
-    allowNegative: boolean, defaultCurrencyMaskConfig: NgxCurrencyConfig,
-    isCurrency: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    return this.createFieldCurrencyNumberVSParam(fieldName, labelKey, required, integerLimit, maxFractionDigits, allowNegative,
-      defaultCurrencyMaskConfig, null, null, isCurrency, fieldOptions);
-  }
-
-  /**
-   * Creates a currency number input field with auto-generated label.
-   * Masked input for currency values with automatic label generation.
-   *
-   * @param fieldName Unique field identifier (also used for label key generation)
-   * @param required Whether input is mandatory
-   * @param integerLimit Maximum number of integer digits
-   * @param maxFractionDigits Maximum number of decimal places
-   * @param allowNegative Whether negative values are permitted
-   * @param defaultCurrencyMaskConfig Base currency mask configuration
-   * @param isCurrency Whether to display as currency (affects width calculation)
-   * @param fieldOptions Additional configuration options
-   * @returns FieldConfig for currency input with automatic width calculation
-   */
-  public static createFieldCurrencyNumberHeqF(fieldName: string, required: boolean,
-    integerLimit: number, maxFractionDigits: number,
-    allowNegative: boolean, defaultCurrencyMaskConfig: NgxCurrencyConfig,
-    isCurrency: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    return this.createFieldCurrencyNumberVSParamHeqF(fieldName, required, integerLimit, maxFractionDigits, allowNegative,
-      defaultCurrencyMaskConfig, null, null, isCurrency, fieldOptions);
-  }
-
-  /**
-   * Creates a currency number input with validation and auto-generated label.
-   * Masked currency input with special validation and automatic labeling.
-   *
-   * @param fieldName Unique field identifier (also used for label key generation)
-   * @param required Whether input is mandatory
-   * @param integerLimit Maximum number of integer digits
-   * @param maxFractionDigits Maximum number of decimal places
-   * @param allowNegative Whether negative values are permitted
-   * @param defaultCurrencyMaskConfig Base currency mask configuration
-   * @param validationSpecials Special validation type to apply
-   * @param param Parameter for the validation function
-   * @param isCurrency Whether to display as currency (affects width calculation)
-   * @param fieldOptions Additional configuration options
-   * @returns FieldConfig for currency input with validation
-   */
-  public static createFieldCurrencyNumberVSParamHeqF(fieldName: string, required: boolean,
-    integerLimit: number, maxFractionDigits: number,
-    allowNegative: boolean, defaultCurrencyMaskConfig: NgxCurrencyConfig,
-    validationSpecials: VALIDATION_SPECIAL, param: number,
-    isCurrency: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    return this.createFieldCurrencyNumberVSParam(fieldName, AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName), required,
-      integerLimit, maxFractionDigits, allowNegative, defaultCurrencyMaskConfig, validationSpecials, param,
-      isCurrency, fieldOptions);
-  }
-
-  /**
-   * Creates a currency number input with validation and custom label.
-   * Masked currency input with parameterized validation and full configuration control.
-   *
-   * @param fieldName Unique field identifier
-   * @param labelKey Translation key for field label
-   * @param required Whether input is mandatory
-   * @param integerDigits Maximum number of integer digits
-   * @param maxFractionDigits Maximum number of decimal places
-   * @param allowNegative Whether negative values are permitted
-   * @param defaultCurrencyMaskConfig Base currency mask configuration
-   * @param validationSpecials Special validation type to apply
-   * @param param Parameter for the validation function
-   * @param isCurrency Whether to display as currency (affects width calculation)
-   * @param fieldOptions Additional configuration options
-   * @returns FieldConfig for currency input with validation and auto-calculated width
-   */
-  public static createFieldCurrencyNumberVSParam(fieldName: string, labelKey: string, required: boolean,
-    integerDigits: number, maxFractionDigits: number,
-    allowNegative: boolean, defaultCurrencyMaskConfig: NgxCurrencyConfig,
-    validationSpecials: VALIDATION_SPECIAL, param: number,
-    isCurrency: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    const width = fieldOptions?.inputWidth || (integerDigits + maxFractionDigits) + (isCurrency ? 4 : 0);
-    const fieldConfig: FieldConfig = this.setFieldBaseAndOptions({
-        dataType: DataType.Numeric,
-        inputType: InputType.InputCurrencyNumber
-      }, fieldName, labelKey,
-      required ? [Validators.required] : null, required ? [this.RULE_REQUIRED_TOUCHED] : null, {
-        ...fieldOptions,
-        inputWidth: width
-      });
-    this.setMinMaxValues(fieldConfig, integerDigits, maxFractionDigits, allowNegative);
-    fieldConfig.currencyMaskConfig = {
-      ...defaultCurrencyMaskConfig,
-      ...{
-        precision: maxFractionDigits, allowNegative, min: fieldConfig.min, max: fieldConfig.max
-      }
-    };
-    return validationSpecials ? this.addValidationParam(fieldConfig, validationSpecials, param) : fieldConfig;
-  }
 
   /**
    * Sets currency prefix for number input fields.
@@ -820,11 +729,7 @@ export class DynamicFieldHelper {
    * @param currency Currency code to display as prefix (gets space appended)
    */
   public static setCurrency(fieldConfig: FieldConfig, currency: string): void {
-    if (fieldConfig.inputType === InputType.InputCurrencyNumber) {
-      fieldConfig.currencyMaskConfig.prefix = AppHelper.addSpaceToCurrency(currency);
-    } else {
-      fieldConfig.inputNumberSettings.currency = currency;
-    }
+    fieldConfig.inputNumberSettings.currency = currency;
   }
 
   /**
@@ -836,31 +741,10 @@ export class DynamicFieldHelper {
    * @param precision Number of decimal places
    */
   public static adjustNumberFraction(fieldConfig: FieldConfig, integerDigits: number, precision: number): void {
-    if (fieldConfig.inputType === InputType.InputCurrencyNumber) {
-      fieldConfig.currencyMaskConfig.precision = precision;
-      DynamicFieldHelper.setCurrencyMaskMaxMin(fieldConfig, integerDigits, precision);
-    } else {
-      this.setMinMaxValues(fieldConfig, integerDigits, precision, fieldConfig.inputNumberSettings.allowNegative);
-      fieldConfig.inputNumberSettings.maxFractionDigits = precision;
-    }
+    this.setMinMaxValues(fieldConfig, integerDigits, precision, fieldConfig.inputNumberSettings.allowNegative);
+    fieldConfig.inputNumberSettings.maxFractionDigits = precision;
   }
 
-  /**
-   * Updates currency mask min/max values based on digit constraints.
-   * Recalculates value limits and updates currency mask configuration.
-   *
-   * @param fieldConfig Field configuration with currency mask to update
-   * @param integerDigits Maximum number of integer digits
-   * @param maxFractionDigits Maximum number of decimal places
-   */
-  public static setCurrencyMaskMaxMin(fieldConfig: FieldConfig, integerDigits: number, maxFractionDigits: number): void {
-    this.setMinMaxValues(fieldConfig, integerDigits, maxFractionDigits, fieldConfig.currencyMaskConfig.allowNegative);
-    const newMask = fieldConfig.currencyMaskConfig = {
-      ...fieldConfig.currencyMaskConfig,
-      ...{min: fieldConfig.min, max: fieldConfig.max}
-    };
-    fieldConfig.currencyMaskConfig = newMask;
-  }
 
   /**
    * Checks if a field configuration has required validation.
@@ -1155,9 +1039,9 @@ export class DynamicFieldHelper {
 }
 
 /**
-* Configuration options interface for field creation methods.
-* Provides extensive customization options for form field appearance and behavior.
-*/
+ * Configuration options interface for field creation methods.
+ * Provides extensive customization options for form field appearance and behavior.
+ */
 export interface FieldOptions {
   /** Default value for the field */
   defaultValue?: number | string | boolean | Date;

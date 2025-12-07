@@ -102,6 +102,7 @@ public abstract class BaseFeedConnectorCheck {
   }
 
   void getEodSecurityHistory(boolean needSort, boolean addTimeZone) {
+    boolean printValuesInsteadOfAssert = false;
     final List<SecurityHistoricalDate> hisoricalDate = getHistoricalSecurities();
     if (addTimeZone) {
       applyTimeZonesToSecurities(hisoricalDate);
@@ -136,13 +137,17 @@ public abstract class BaseFeedConnectorCheck {
           .toLocalDate();
       LocalDate hdToDate = Instant.ofEpochMilli(hd.to.getTime()).atZone(zoneId).toLocalDate();
 
-      // Assert size and date range (only date part)
-      Assertions.assertThat(historyquotes.size()).as("Number of history quotes for Security " + hd.security.getName())
-          .isEqualTo(hd.expectedRows);
-      Assertions.assertThat(firstQuoteDate).as("Start date of the first quote for Security " + hd.security.getName())
-          .isEqualTo(hdFromDate);
-      Assertions.assertThat(lastQuoteDate).as("End date of the last quote for Security " + hd.security.getName())
-          .isEqualTo(hdToDate);
+      if (printValuesInsteadOfAssert) {
+        System.out.println(String.format("Security: %s, Actual Rows: %d, First Quote Date: %s, Last Quote Date: %s", hd.security.getName(), historyquotes.size(), firstQuoteDate, lastQuoteDate));
+      } else {
+        // Assert size and date range (only date part)
+        Assertions.assertThat(historyquotes.size()).as("Number of history quotes for Security " + hd.security.getName())
+            .isEqualTo(hd.expectedRows);
+        Assertions.assertThat(firstQuoteDate).as("Start date of the first quote for Security " + hd.security.getName())
+            .isEqualTo(hdFromDate);
+        Assertions.assertThat(lastQuoteDate).as("End date of the last quote for Security " + hd.security.getName())
+            .isEqualTo(hdToDate);
+      }
 
       // Check for weekends
       boolean hasWeekend = historyquotes.stream().map(Historyquote::getDate)
