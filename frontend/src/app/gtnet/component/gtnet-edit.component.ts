@@ -1,7 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
 import {GTNet, GTNetServerStateTypes} from '../model/gtnet';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {HelpIds} from '../../lib/help/help.ids';
@@ -14,13 +14,21 @@ import {Subscription} from 'rxjs';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 
 /**
  * Add ar modify a GTNet entity.
  */
 @Component({
-    selector: 'gtnet-edit',
-    template: `
+  selector: 'gtnet-edit',
+  standalone: true,
+  imports: [
+    DialogModule,
+    DynamicFormComponent,
+    TranslateModule
+  ],
+  template: `
     <p-dialog header="{{'GT_NET_NET_AND_MESSAGE' | translate}}" [(visible)]="visibleDialog"
               [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -30,8 +38,7 @@ import {DataType} from '../../lib/dynamic-form/models/data.type';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
-  `,
-    standalone: false
+  `
 })
 export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements OnInit {
   @Input() callParam: GTNet;

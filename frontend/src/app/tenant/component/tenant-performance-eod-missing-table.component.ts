@@ -7,7 +7,7 @@ import {Security} from '../../entities/security';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {SecurityService} from '../../securitycurrency/service/security.service';
-import {IFeedConnector} from '../../securitycurrency/component/ifeed.connector';
+import {IFeedConnector} from '../../shared/securitycurrency/ifeed.connector';
 import {FilterService} from 'primeng/api';
 
 /**

@@ -17,6 +17,8 @@ import grafioschtrader.dto.IHistoryquoteQuality;
 import grafioschtrader.dto.IMinMaxDateHistoryquote;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
 import grafioschtrader.entities.Historyquote;
+import grafioschtrader.entities.Security;
+import grafioschtrader.entities.SecurityDerivedLink;
 import jakarta.transaction.Transactional;
 
 public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, Integer>,

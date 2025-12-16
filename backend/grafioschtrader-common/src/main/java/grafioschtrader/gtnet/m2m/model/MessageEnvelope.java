@@ -9,16 +9,52 @@ import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.entities.GTNetMessage.GTNetMessageParam;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "The model for the first contact with a remote server.")
+/**
+ * Wrapper for all machine-to-machine (M2M) communication between GTNet instances.
+ *
+ * Every HTTP request/response between peers is wrapped in a MessageEnvelope, providing:
+ * <ul>
+ *   <li>Sender identification (sourceDomain)</li>
+ *   <li>Reply correlation (souceIdForReply links to the sender's message ID)</li>
+ *   <li>Message type and parameters (messageCode, gtNetMessageParamMap)</li>
+ *   <li>Optional arbitrary payload (JSON node for type-specific data like GTNet during handshake)</li>
+ * </ul>
+ *
+ */
+@Schema(description = """
+    Wrapper for machine-to-machine (M2M) communication between GTNet instances. Every HTTP request/response is
+    wrapped in this envelope, providing sender identification, reply correlation, message type with parameters,
+    and optional JSON payload for type-specific data. Used by BaseDataClient for sending and GTNetM2MResource
+    for receiving.""")
 public class MessageEnvelope {
 
-  @Schema(description = "Source machine")
+  @Schema(description = """
+      Base URL of the sending domain (e.g., 'https://example.com:8080'). Identifies the origin of the message
+      and is used by the receiver to look up the corresponding GTNet entry for token validation.""")
   public String sourceDomain;
-  public Integer souceIdForReply;
+
+  @Schema(description = """
+      The sender's local message ID (idGtNetMessage). The receiver stores this in their idSourceGtNetMessage field
+      when saving the received message, enabling cross-system message correlation.""")
+  public Integer idSourceGtNetMessage;
+
+  @Schema(description = "UTC timestamp when the message was created. Used for ordering and staleness detection.")
   public Date timestamp;
+
+  @Schema(description = "Message type code from GTNetMessageCodeType. Determines how the receiver processes this message.")
   public byte messageCode;
+
+  @Schema(description = """
+      Typed parameters specific to this message code. Key is parameter name, value contains the actual data.
+      Structure defined by GTNetModelHelper for each message type.""")
   public Map<String, GTNetMessageParam> gtNetMessageParamMap;
+
+  @Schema(description = "Optional free-text message for human-readable context or notes.")
   public String message;
+
+  @Schema(description = """
+      Optional JSON payload for complex, type-specific data. Used during handshake to transmit the full GTNet
+      entity of the sender. Can contain any serializable object based on the message code.""")
   public JsonNode payload;
 
   public MessageEnvelope() {
@@ -26,7 +62,7 @@ public class MessageEnvelope {
 
   public MessageEnvelope(String sourceDomain, GTNetMessage gtNetMsg) {
     this.sourceDomain = sourceDomain;
-    this.souceIdForReply = gtNetMsg.getIdGtNetMessage();
+    this.idSourceGtNetMessage = gtNetMsg.getIdGtNetMessage();
     this.timestamp = gtNetMsg.getTimestamp();
     this.messageCode = gtNetMsg.getMessageCode().getValue();
     this.gtNetMessageParamMap = gtNetMsg.getGtNetMessageParamMap();

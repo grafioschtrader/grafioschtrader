@@ -4,59 +4,63 @@
    Each type displays different columns and expanded row content.
 -->
 
-<configurable-table
-  [data]="securityPositionList"
-  [fields]="fields"
-  [dataKey]="'securitycurrency.idSecuritycurrency'"
-  [selectionMode]="selectMultiMode"
-  [(selection)]="singleMultiSelection"
-  [multiSortMeta]="multiSortMeta"
-  [customSortFn]="customSort.bind(this)"
-  [scrollHeight]="'flex'"
-  [scrollable]="true"
-  [stripedRows]="true"
-  [showGridlines]="true"
-  [loading]="loading"
-  [containerClass]="{'data-container': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
-  [expandable]="true"
-  [expandedRowTemplate]="expandedContent"
-  [canExpandFn]="canExpandRow.bind(this)"
-  [showContextMenu]="contextMenuItems && isActivated()"
-  [contextMenuItems]="contextMenuItems"
-  [ownerHighlightFn]="ownerHighlightFn.bind(this)"
-  [negativeValueFn]="isValueByPathMinus.bind(this)"
-  [valueGetterFn]="getValueByPath.bind(this)"
-  (componentClick)="onComponentClick($event)"
-  (colResize)="onColResize($event)"
-  [contextMenuAppendTo]="'body'">
+<div class="data-table-container" style="height: 100%; overflow: hidden;">
+  <configurable-table
+    [data]="securityPositionList"
+    [fields]="fields"
+    [dataKey]="'securitycurrency.idSecuritycurrency'"
+    [selectionMode]="selectMultiMode"
+    [(selection)]="singleMultiSelection"
+    [multiSortMeta]="multiSortMeta"
+    [customSortFn]="customSort.bind(this)"
+    [scrollHeight]="'flex'"
+    [scrollable]="true"
+    [stripedRows]="true"
+    [showGridlines]="true"
+    [loading]="loading"
+    [containerClass]="{'data-container': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+    [expandable]="true"
+    [expandedRowTemplate]="expandedContent"
+    [canExpandFn]="canExpandRow.bind(this)"
+    [showContextMenu]="contextMenuItems && isActivated()"
+    [contextMenuItems]="contextMenuItems"
+    [ownerHighlightFn]="ownerHighlightFn.bind(this)"
+    [negativeValueFn]="isValueByPathMinus.bind(this)"
+    [valueGetterFn]="getValueByPath.bind(this)"
+    (componentClick)="onComponentClick($event)"
+    (colResize)="onColResize($event)"
+    [contextMenuAppendTo]="'body'">
 
-  <!-- Caption -->
-  <h4 caption>{{ 'WATCHLIST' | translate }}: "{{ watchlist.name }}" {{
-    securitycurrencyGroup?.lastTimestamp | date: 'HH:mm dd.MM.yy'
-  }}</h4>
+    <!-- Caption -->
+    <h4 caption>{{ 'WATCHLIST' | translate }}: "{{ watchlist.name }}" {{
+      securitycurrencyGroup?.lastTimestamp | date: 'HH:mm dd.MM.yy'
+    }}</h4>
 
-  <!-- Custom icon cell template for svg-icon rendering with drag-and-drop -->
-  <ng-template #iconCell let-row let-field="field" let-value="value">
-    <svg-icon
-      [name]="value"
-      [svgStyle]="{ 'width.px':14, 'height.px':14 }"
-      [pTooltip]="row.securitycurrency.idSecuritycurrency"
-      class="cell-move"
-      draggable="true"
-      (dragstart)="dragStart($event, row)"
-      (dragend)="dragEnd($event, row)">
-    </svg-icon>
-  </ng-template>
+    <!-- Custom icon cell template for svg-icon rendering with drag-and-drop -->
+    <ng-template #iconCell let-row let-field="field" let-value="value">
+      <span
+        class="cell-move"
+        draggable="true"
+        [pTooltip]="row.securitycurrency.idSecuritycurrency"
+        (dragstart)="dragStart($event, row)"
+        (dragend)="dragEnd($event, row)">
+        <svg-icon
+          [name]="value"
+          [svgStyle]="{ 'width.px':14, 'height.px':14 }">
+        </svg-icon>
+      </span>
+    </ng-template>
 
-  <!-- Custom link icon cell template -->
-  <ng-template #linkIconCell let-row let-field="field">
-    <svg-icon
-      [name]="'link' + (field.field.match(fieldNumberRegex) % 4)"
-      [svgStyle]="{ 'width.px':24, 'height.px':14 }">
-    </svg-icon>
-  </ng-template>
+    <!-- Custom link icon cell template -->
+    <ng-template #linkIconCell let-row let-field="field">
+      <svg-icon
+        [name]="'link' + (field.field.match(fieldNumberRegex) % 4)"
+        [svgStyle]="{ 'width.px':24, 'height.px':14 }">
+      </svg-icon>
+    </ng-template>
 
-</configurable-table>
+  </configurable-table>
+</div>
 
 <!-- Expanded row content template -->
 <ng-template #expandedContent let-row>

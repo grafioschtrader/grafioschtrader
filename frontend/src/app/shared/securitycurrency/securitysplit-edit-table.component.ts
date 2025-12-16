@@ -2,7 +2,7 @@ import {Component} from '@angular/core';
 import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {SecuritysplitService} from '../service/securitysplit.service';
+import {SecuritysplitService} from '../../securitycurrency/service/securitysplit.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {SplitPeriodTableBase} from './split.period.table.base';
@@ -20,7 +20,7 @@ import {ButtonModule} from 'primeng/button';
  */
 @Component({
     selector: 'securitysplit-edit-table',
-    templateUrl: '../view/split.period.table.html',
+    templateUrl: './view/split.period.table.html',
     standalone: true,
     imports: [CommonModule, TranslateModule, TableModule, ButtonModule, AngularSvgIconModule]
 })

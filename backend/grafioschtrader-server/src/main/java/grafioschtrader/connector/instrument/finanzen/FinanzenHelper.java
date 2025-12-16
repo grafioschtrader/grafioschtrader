@@ -3,17 +3,13 @@ package grafioschtrader.connector.instrument.finanzen;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Security;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 public class FinanzenHelper {
-
-  private static final Logger log = LoggerFactory.getLogger(FinanzenHelper.class);
+  
   private static final Map<ControllerUrlMapping, ControllerAssetClass> controllerUrlMapping = new ConcurrentHashMap<>();
 
   // intra‑URL segments

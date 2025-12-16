@@ -4,7 +4,7 @@
           (onNodeSelect)="onNodeSelect($event)" [(selection)]="selectedNode"
           [contextMenu]="cm"  [value]="portfolioTrees" selectionMode="single">
     <ng-template let-node pTemplate="default">
-        <span (dragover)="dragOver($event, node)" (drop)="drop($event, node)">
+        <span (dragover)="dragOver($event, node)" (dragenter)="dragOver($event, node)" (drop)="drop($event, node)">
             {{node.label}}
         </span>
     </ng-template>

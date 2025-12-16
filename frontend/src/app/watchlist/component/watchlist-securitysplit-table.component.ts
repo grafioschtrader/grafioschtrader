@@ -9,7 +9,7 @@ import {DividendSplitTableBase} from './dividend.split.table.base';
 import {Securitysplit} from '../../entities/dividend.split';
 import {FilterService} from 'primeng/api';
 import {CommonModule} from '@angular/common';
-import {TableModule} from 'primeng/table';
+import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 
 /**
  * Component that displays security splits in a table format for a specific security.
@@ -22,7 +22,7 @@ import {TableModule} from 'primeng/table';
     imports: [
       CommonModule,
       TranslateModule,
-      TableModule,
+      ConfigurableTableComponent,
       AngularSvgIconModule
     ]
 })

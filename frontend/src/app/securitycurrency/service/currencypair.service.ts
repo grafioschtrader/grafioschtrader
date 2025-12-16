@@ -5,7 +5,7 @@ import {MessageToastService} from '../../lib/message/message.toast.service';
 import {CurrencypairWithHistoryquote} from '../../entities/view/currencypair.with.historyquote';
 import {CurrencypairWithTransaction} from '../../entities/view/currencypair.with.transaction';
 import {Observable} from 'rxjs';
-import {IFeedConnector} from '../component/ifeed.connector';
+import {IFeedConnector} from '../../shared/securitycurrency/ifeed.connector';
 import {HttpClient} from '@angular/common/http';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../lib/login/service/log-in.service';

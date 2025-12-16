@@ -13,7 +13,15 @@
       "WebFetch(domain:v20.primeng.org)",
       "WebSearch",
       "WebFetch(domain:primeng.org)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(mvn package:*)",
+      "Bash(copy \"C:\\SoftwareProjekte\\Hugos\\grafioschtrader\\backend\\grafioschtrader-server\\src\\main\\java\\grafioschtrader\\repository\\GTNetJpaRepositoryImpl.java\" \"X:\\grafioschtrader\\backend\\grafioschtrader-server\\src\\main\\java\\grafioschtrader\\repository\\GTNetJpaRepositoryImpl.java\")",
+      "Bash(copy \"C:\\SoftwareProjekte\\Hugos\\grafioschtrader\\backend\\grafioschtrader-server\\src\\main\\java\\grafioschtrader\\m2m\\client\\BaseDataClient.java\" \"X:\\grafioschtrader\\backend\\grafioschtrader-server\\src\\main\\java\\grafioschtrader\\m2m\\client\\BaseDataClient.java\")",
+      "Bash(copy \"C:\\SoftwareProjekte\\Hugos\\grafioschtrader\\backend\\grafioschtrader-common\\src\\main\\java\\grafioschtrader\\entities\\GTNet.java\" \"X:\\grafioschtrader\\backend\\grafioschtrader-common\\src\\main\\java\\grafioschtrader\\entities\\GTNet.java\")",
+      "Bash(tree:*)",
+      "Bash(dir /b \"C:\\SoftwareProjekte\\Hugos\\grafioschtrader\\backend\")",
+      "Bash(dir /b \"C:\\SoftwareProjekte\\Hugos\\grafioschtrader\\frontend\\src\")",
+      "Bash(del \"C:\\SoftwareProjekte\\Hugos\\grafioschtrader\\frontend\\src\\app\\gtnet\\component\\gtnet-exchange-table.component.ts\")"
     ],
     "deny": [],
     "ask": []

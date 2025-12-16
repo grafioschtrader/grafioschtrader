@@ -16,6 +16,9 @@ import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteD
 public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaRepository<Currencypair>,
     JpaSpecificationExecutor<Currencypair>, CurrencypairJpaRepositoryCustom, UpdateCreateJpaRepository<Currencypair> {
 
+  @Query("SELECT c, e, (SELECT COUNT(d) FROM GTNetSupplierDetail d WHERE d.securitycurrency.idSecuritycurrency = c.idSecuritycurrency) FROM Currencypair c LEFT JOIN GTNetExchange e ON e.securitycurrency.idSecuritycurrency = c.idSecuritycurrency ORDER BY c.fromCurrency, c.toCurrency")
+  List<Object[]> findAllWithGTNetExchange();
+
   List<Currencypair> findByFromCurrency(String fromCurrency);
 
   Currencypair findByFromCurrencyAndToCurrency(String fromCurrency, String toCurrency);

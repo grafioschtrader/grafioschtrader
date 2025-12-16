@@ -6,7 +6,7 @@ import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {SplitPeriodTableBase} from './split.period.table.base';
 import {HistoryquotePeriod} from '../../entities/historyquote.period';
-import {HistoryquotePeriodService} from '../service/historyquote.period.service';
+import {HistoryquotePeriodService} from '../../securitycurrency/service/historyquote.period.service';
 import {FilterService} from 'primeng/api';
 import {CommonModule} from '@angular/common';
 import {TableModule} from 'primeng/table';
@@ -18,7 +18,7 @@ import {AngularSvgIconModule} from 'angular-svg-icon';
  */
 @Component({
     selector: 'security-historyquote-period-edit-table',
-    templateUrl: '../view/split.period.table.html',
+    templateUrl: './view/split.period.table.html',
     standalone: true,
     imports: [CommonModule, TranslateModule, TableModule, ButtonModule, AngularSvgIconModule]
 })

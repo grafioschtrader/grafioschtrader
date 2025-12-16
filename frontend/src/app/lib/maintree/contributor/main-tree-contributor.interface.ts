@@ -96,7 +96,7 @@ export abstract class MainTreeContributor {
    * Called during dragover event.
    *
    * @param targetNode The tree node being dragged over
-   * @param dragData The data being dragged (typically from dataTransfer)
+   * @param dataTransfer The data transfer object from the drag event
    * @returns true if this contributor can handle the drop operation
    */
   canDrop?(targetNode: TreeNode, dragData: string): boolean {
@@ -108,7 +108,7 @@ export abstract class MainTreeContributor {
    * Called when an item is dropped on a node that this contributor manages.
    *
    * @param targetNode The tree node where the drop occurred
-   * @param dragData The data that was dropped
+   * @param dataTransfer The data transfer object containing the dropped data
    * @param sourceLabel Optional label of the source node (for messaging)
    */
   handleDrop?(targetNode: TreeNode, dragData: string, sourceLabel?: string): void {

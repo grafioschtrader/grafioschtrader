@@ -10,7 +10,7 @@ import {Dividend} from '../../entities/dividend.split';
 import {FilterService} from 'primeng/api';
 import {AppSettings} from '../../shared/app.settings';
 import {CommonModule} from '@angular/common';
-import {TableModule} from 'primeng/table';
+import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 
 /**
  * Component that displays imported dividends as a table for a specific security.
@@ -23,7 +23,7 @@ import {TableModule} from 'primeng/table';
     imports: [
       CommonModule,
       TranslateModule,
-      TableModule,
+      ConfigurableTableComponent,
       AngularSvgIconModule
     ]
 })

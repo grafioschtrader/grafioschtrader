@@ -99,8 +99,8 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
     // Global Settings node defined in lib contributor
     this.rootNode.children.push(LibDataMainTreeContributor.createGlobalSettingsNode());
 
-    // Commented out as in original code
-    // this.addGTNetToTree();
+    // GTNet peer-to-peer network for data sharing between Grafioschtrader instances
+    this.addGTNetToTree();
 
     // Task Data Monitor node defined in lib contributor
     this.rootNode.children.push(LibDataMainTreeContributor.createTaskDataMonitorNode());
@@ -112,8 +112,11 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
     }
   }
 
-  // Currently commented out in original code
   private addGTNetToTree(): void {
+    // Only add GTNet if feature is enabled
+    if (!this.globalParamService.useGtnet()) {
+      return;
+    }
     const gtNetNode: TreeNode = {
       expanded: true,
       children: [],
@@ -154,6 +157,17 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
       data: new TypeNodeData(
         TreeNodeType.NO_MENU,
         this.addMainRoute(AppSettings.GT_NET_PROVIDER_MONITOR_KEY),
+        null,
+        null,
+        null
+      )
+    });
+
+    gtNetNode.children.push({
+      label: 'GT_NET_EXCHANGE',
+      data: new TypeNodeData(
+        TreeNodeType.NO_MENU,
+        this.addMainRoute(AppSettings.GT_NET_EXCHANGE_KEY),
         null,
         null,
         null

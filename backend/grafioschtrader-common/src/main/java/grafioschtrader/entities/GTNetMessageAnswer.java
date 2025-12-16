@@ -1,58 +1,110 @@
 package grafioschtrader.entities;
 
 import grafioschtrader.gtnet.GTNetMessageCodeType;
+import grafioschtrader.gtnet.GTNetModelHelper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+/**
+ * Defines automatic response templates for incoming GTNet messages requiring replies.
+ *
+ * Administrators can configure up to three conditional responses per message type, each evaluated using
+ * EvalEx expressions. The conditions can reference variables such as:
+ * <ul>
+ *   <li>Time of day and day of week</li>
+ *   <li>Current request load and daily counters</li>
+ *   <li>Requester's domain information and timezone</li>
+ *   <li>Payload values from the incoming message</li>
+ * </ul>
+ *
+ * Response evaluation order: condition1 is checked first; if true, responseMsgCode1 is sent. If false,
+ * condition2 is evaluated, and so on. If no condition matches, the message waits for manual review.
+ *
+ * The {@code waitDaysApply} field enforces a cooling-off period after negative responses, preventing
+ * immediate re-requests from the same domain.
+ *
+ * Note: The EvalEx evaluation logic in GTNetMessageAnswerJpaRepositoryImpl is currently a placeholder
+ * and needs implementation.
+ *
+ * @see GTNetMessageCodeType for message types that may require automated responses
+ * @see GTNetModelHelper for mapping between message codes and their payload models
+ */
 @Entity
 @Table(name = GTNetMessageAnswer.TABNAME)
 @Schema(description = """
-    Certain incoming messages require a response. This can be an affirmative, a negative or a manual response.
-    The automatic reply can be made according to specified conditions. The corresponding answer is determined by conditions,
-    using the EvalEx framework.""")
-
+    Defines automatic response templates for incoming GTNet messages requiring replies. Administrators can configure
+    up to three conditional responses per message type, evaluated using EvalEx expressions. Conditions can reference
+    time, request load, requester information, and payload values. If no condition matches, the message waits for
+    manual review. The waitDaysApply field enforces a cooling-off period after negative responses.""")
 public class GTNetMessageAnswer {
   public static final String TABNAME = "gt_net_message_answer";
 
   @Id
+  @Schema(description = """
+      The incoming message code this answer template applies to. Acts as the primary key since each request type
+      has at most one auto-answer configuration. Uses values from GTNetMessageCodeType enum.""")
   @Column(name = "request_msg_code")
   private byte requestMsgCode;
 
+  @Schema(description = """
+      First response option message code. This response is sent if responseMsgConditional1 evaluates to true
+      (or is null/empty). Uses values from GTNetMessageCodeType enum, typically an ACCEPT or REJECT variant.""")
   @Column(name = "response_msg_code1")
   private byte responseMsgCode1;
 
+  @Schema(description = """
+      EvalEx expression for the first response condition. If this evaluates to true, responseMsgCode1 is sent.
+      Can reference variables like 'hour', 'dayOfWeek', 'dailyCount', 'requesterTimezone', and payload fields.
+      Null or empty string means always match (unconditional first response).""")
   @Column(name = "response_msg_conditional1")
   private String responseMsgConditional1;
 
+  @Schema(description = """
+      Optional human-readable message to include with the first response. Typically used to provide context
+      for the decision, such as 'Automatically approved during business hours' or 'Capacity limit reached'.""")
   @Column(name = "response_msg_message1")
   private String responseMsgMessage1;
 
+  @Schema(description = """
+      Second response option message code. Evaluated only if responseMsgConditional1 was false. Null if only
+      one response option is configured.""")
   @Column(name = "response_msg_code2")
   private Byte responseMsgCode2;
 
-  @Schema(description = "2nd: This response is given if there is no condition or if this condition is met.")
+  @Schema(description = """
+      EvalEx expression for the second response condition. Evaluated only if the first condition was false.
+      If this evaluates to true, responseMsgCode2 is sent. Null or empty means always match at this level.""")
   @Column(name = "response_msg_conditional2")
   private String responseMsgConditional2;
 
-  @Schema(description = "2nd: Contains optional a message. This message is created by the user")
+  @Schema(description = "Optional human-readable message to include with the second response.")
   @Column(name = "response_msg_message2")
   private String responseMsgMessage2;
 
+  @Schema(description = """
+      Third response option message code. Evaluated only if both previous conditions were false. Null if only
+      one or two response options are configured.""")
   @Column(name = "response_msg_code3")
   private Byte responseMsgCode3;
 
-  @Schema(description = "3nd: This response is given if there is no condition or if this condition is met.")
+  @Schema(description = """
+      EvalEx expression for the third response condition. Evaluated only if both previous conditions were false.
+      If this evaluates to true, responseMsgCode3 is sent. If all conditions are false, no automatic response
+      is generated and the message waits for manual review.""")
   @Column(name = "response_msg_conditional3")
   private String responseMsgConditional3;
 
-  @Schema(description = "Thrid: Contains optional a message. This message is created by the user")
+  @Schema(description = "Optional human-readable message to include with the third response.")
   @Column(name = "response_msg_message3")
   private String responseMsgMessage3;
 
-  @Schema(description = "If the answer was negative, it is necessary to wait minimally so many days for the next apply.")
+  @Schema(description = """
+      Cooling-off period in days after a negative/rejection response. If set, the requesting domain must wait
+      this many days before submitting another request of the same type. Helps prevent request spam and gives
+      administrators time to review persistent requesters. Null or 0 means no waiting period.""")
   @Column(name = "wait_days_apply")
   private String waitDaysAplly;
 

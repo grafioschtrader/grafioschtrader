@@ -45,6 +45,61 @@ export enum GTNetServerStateTypes {
   SS_OPEN = 3
 }
 
+/**
+ * Represents a GTNetExchange configuration for a security or currency pair.
+ * Contains 4 boolean flags controlling price data exchange via GTNet.
+ */
+export class GTNetExchange implements BaseID {
+  idGtNetExchange: number;
+  securitycurrency: any;
+  lastpriceRecv: boolean;
+  historicalRecv: boolean;
+  lastpriceSend: boolean;
+  historicalSend: boolean;
+  detailCount?: number;
 
+  getId(): number {
+    return this.idGtNetExchange;
+  }
+}
 
+/**
+ * Enum for price types used in GTNetSupplierDetail
+ */
+export enum PriceType {
+  LASTPRICE = 'LASTPRICE',
+  HISTORICAL = 'HISTORICAL'
+}
 
+/**
+ * Represents a GTNet supplier header entry.
+ */
+export interface GTNetSupplier {
+  idGtNetSupplier: number;
+  gtNet: GTNet;
+  lastUpdate: string;
+}
+
+/**
+ * Represents a detail entry for what price types a supplier offers.
+ */
+export interface GTNetSupplierDetail {
+  idGtNetSupplierDetail: number;
+  idGtNetSupplier: number;
+  securitycurrency: any;
+  priceType: PriceType;
+}
+
+/**
+ * Combined DTO for supplier with details, used in expandable rows.
+ */
+export interface GTNetSupplierWithDetails {
+  supplier: GTNetSupplier;
+  details: GTNetSupplierDetail[];
+}
+
+export interface GTSecuritiyCurrencyExchange {
+  securitiescurrenciesList: any[];
+  exchangeMap: { [idSecuritycurrency: number]: GTNetExchange };
+  idSecuritycurrenies: number[];
+}

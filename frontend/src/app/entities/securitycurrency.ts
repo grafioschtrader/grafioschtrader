@@ -3,6 +3,7 @@ import {Auditable} from '../lib/entities/auditable';
 
 
 export class Securitycurrency extends Auditable {
+  dtype?: string;
   idSecuritycurrency?: number = null;
   note?: string = null;
   fullLoadTimestamp: number;

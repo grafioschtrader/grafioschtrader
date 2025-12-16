@@ -21,7 +21,7 @@ import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 import {AppSettings} from '../../shared/app.settings';
-import {BusinessSelectOptionsHelper} from '../../securitycurrency/component/business.select.options.helper';
+import {BusinessSelectOptionsHelper} from '../../shared/securitycurrency/business.select.options.helper';
 import {SimpleDynamicEditBase} from '../../lib/edit/simple.dynamic.edit.base';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 import {AlgoTop} from '../model/algo.top';

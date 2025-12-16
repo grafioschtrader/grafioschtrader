@@ -12,7 +12,7 @@ import {Currencypair} from '../../entities/currencypair';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
-import {CurrencypairService} from '../service/currencypair.service';
+import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {HelpIds} from '../../lib/help/help.ids';
 import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';

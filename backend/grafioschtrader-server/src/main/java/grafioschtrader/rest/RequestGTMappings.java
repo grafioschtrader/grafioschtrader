@@ -60,6 +60,9 @@ public interface RequestGTMappings {
   public static final String GTNET_MESSAGE_ANSWER = "gtnetmessageanswer";
   public static final String GTNET_MESSAGE_ANSWER_MAP = RequestMappings.API + GTNET_MESSAGE_ANSWER;
 
+  public static final String GTNETEXCHANGE = "gtnetexchange";
+  public static final String GTNETEXCHANGE_MAP = RequestMappings.API + GTNETEXCHANGE;
+
   public static final String HISTORYQUOTE_MAP = RequestMappings.API + Historyquote.TABNAME;
 
   public static final String HISTORYQUOTE_PERIOD = "historyquoteperiod";

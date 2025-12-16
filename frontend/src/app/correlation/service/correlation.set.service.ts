@@ -18,7 +18,7 @@ import {TenantLimit} from '../../shared/types/tenant.limit';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
 import {SecuritycurrencyLists} from '../../entities/view/securitycurrency.lists';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {AddSearchToListService} from '../component/add-instrument-table.component';
+import {AddSearchToListService} from '../../watchlist/component/add-instrument-table.component';
 import {BaseSettings} from '../../lib/base.settings';
 
 @Injectable()

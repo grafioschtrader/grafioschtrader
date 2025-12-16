@@ -14,7 +14,10 @@ import grafiosch.common.DateHelper;
 import grafioschtrader.connector.calendar.ISplitCalendarFeedConnector;
 import grafioschtrader.connector.yahoo.AbstractYahooFinanceConnector;
 import grafioschtrader.connector.yahoo.YahooFinanceDTO;
-import grafioschtrader.connector.yahoo.YahooFinanceDTO.*;
+import grafioschtrader.connector.yahoo.YahooFinanceDTO.QueryOperand;
+import grafioschtrader.connector.yahoo.YahooFinanceDTO.VisualizationDocument;
+import grafioschtrader.connector.yahoo.YahooFinanceDTO.VisualizationResponse;
+import grafioschtrader.connector.yahoo.YahooFinanceDTO.VisualizationResult;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.types.CreateType;
 

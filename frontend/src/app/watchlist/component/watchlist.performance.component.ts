@@ -39,8 +39,8 @@ import {SecuritycurrencyExtendedInfoComponent} from './securitycurrency-extended
 import {WatchlistDividendTableComponent} from './watchlist-dividend-table.component';
 import {WatchlistSecuritysplitTableComponent} from './watchlist-securitysplit-table.component';
 import {WatchlistAddInstrumentComponent} from './watchlist-add-instrument.component';
-import {CurrencypairEditComponent} from '../../securitycurrency/component/currencypair-edit.component';
-import {SecurityEditComponent} from '../../securitycurrency/component/security-edit.component';
+import {CurrencypairEditComponent} from '../../shared/securitycurrency/currencypair-edit.component';
+import {SecurityEditComponent} from '../../shared/securitycurrency/security-edit.component';
 import {SecurityDerivedEditComponent} from '../../securitycurrency/component/security-derived-edit.component';
 import {SecurityUDFEditComponent} from '../../securitycurrency/component/security-udf-edit.component';
 import {AlgoStrategyEditComponent} from '../../algo/component/algo-strategy-edit.component';
