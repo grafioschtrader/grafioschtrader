@@ -19,8 +19,8 @@ import {AssetclassEditComponent} from '../../assetclass/component/assetclass-edi
 import {StockexchangeEditComponent} from '../../stockexchange/component/stockexchange-edit.component';
 import {ImportTransactionEditPlatformComponent} from '../../imptranstemplate/component/import-transaction-edit-platform.component';
 import {ImportTransactionEditTemplateComponent} from '../../imptranstemplate/component/import-transaction-edit-template.component';
-import {CurrencypairEditComponent} from '../../securitycurrency/component/currencypair-edit.component';
-import {SecurityEditComponent} from '../../securitycurrency/component/security-edit.component';
+import {CurrencypairEditComponent} from '../../shared/securitycurrency/currencypair-edit.component';
+import {SecurityEditComponent} from '../../shared/securitycurrency/security-edit.component';
 import {SecurityDerivedEditComponent} from '../../securitycurrency/component/security-derived-edit.component';
 import {TradingPlatformPlanEditComponent} from '../../tradingplatform/component/trading-platform-plan-edit.component';
 import {HistoryquoteEditComponent} from '../../historyquote/component/historyquote-edit.component';

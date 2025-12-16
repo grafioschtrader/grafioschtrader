@@ -16,11 +16,11 @@ import {BaseSettings} from '../../lib/base.settings';
 
 
 @Component({
+  standalone: true,
   template: `
     Auto Answer Message
   `,
-  providers: [DialogService],
-  standalone: false
+  providers: [DialogService]
 })
 export class GTNetMessageAutoAnswerComponent extends TableCrudSupportMenu<GTNetMessageAnswer> {
 

@@ -16,7 +16,7 @@ import {AlgoAssetclassSecurityBaseEdit} from './algo.assetclass.security.base.ed
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
-import {BusinessSelectOptionsHelper} from '../../securitycurrency/component/business.select.options.helper';
+import {BusinessSelectOptionsHelper} from '../../shared/securitycurrency/business.select.options.helper';
 import {DialogModule} from 'primeng/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 

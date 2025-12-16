@@ -35,6 +35,20 @@
   4. Persist received responses in the local database so the UI tree can display them.
 - First contact: when `tokenThis` is null, the system generates a GUID, sends `GT_NET_FIRST_HANDSHAKE_S` that includes the local GTNet payload, and expects either ACCEPT or REJECT. The receiver must validate reachability, store `tokenRemote`, and reply accordingly.
 
+#### Message Retry Mechanism
+- `GTNetMsgRequest` in `GTNetModelHelper` defines per-message-type retry behaviour via `repeatSendAsMany`. Values range from 1 (single attempt) to 10 (e.g., maintenance broadcasts).
+- `GTNetMessageAttempt` (`backend/.../entities/GTNetMessageAttempt.java`) records each transmission attempt for outgoing messages:
+  - `attemptNumber` – sequential counter starting at 1.
+  - `attemptTimestamp` – UTC timestamp when the attempt was made.
+  - `success` – true if the remote acknowledged the message (HTTP 2xx).
+  - `httpStatus` – HTTP status code returned, or null for network-level failures.
+  - `errorMessage` – detailed error information (max 512 characters).
+- A background task in `grafiosch.task` periodically queries messages where the latest attempt failed and `attemptCount < repeatSendAsMany`. The task applies exponential backoff, creates a new `GTNetMessageAttempt` record, and marks the message as permanently failed once attempts are exhausted.
+- Requirements:
+  - The retry task must respect daily request limits on both sides.
+  - Administrators should see the attempt history in the message detail view so they can diagnose connectivity issues.
+  - Messages with `repeatSendAsMany = 1` are not retried; a single failure is final.
+
 ### 3. Machine-to-Machine Transport
 - `MessageEnvelope` (`backend/.../gtnet/m2m/model/MessageEnvelope.java`) wraps every M2M call. Besides the `GTNetMessage` attributes it can contain an arbitrary JSON payload (e.g., serialized `GTNet` during handshake).
 - HTTP transport uses `BaseDataClient`:
@@ -43,13 +57,30 @@
 - Incoming requests hit `GTNetM2MResource.receiveMessage`, which delegates to `GTNetJpaRepository.getMsgResponse`. The implementation currently handles ping and handshake, but other message codes still need to be wired.
 - Requirement: the resource must validate `Authorization` tokens against `GTNet.tokenThis` and reject callers that are unknown or revoked. This check is not implemented yet.
 
-### 4. Server List & Data Exchange Tracking
-- `GTNetDataExchange` (`backend/.../entities/GTNetDataExchange.java`) declares which entity instances are exchanged, who owns the master record and when messages were last sent/received. Fields `sendMsgCode`, `recvMsgCode`, `requestEntityTimestamp`, and `giveEntityTimestamp` make it possible to audit the current state.
-- `MessageCodesGTNetwork` is a reduced enum devoted to this table ("data ready" / "cannot be delivered anymore").
-- Requirements derived from the data model:
-  - Each exchanged entity pair must have a record specifying direction (`inOut`), remote ids and indirection depth.
-  - Every outgoing or incoming message needs to update the corresponding timestamps to support resumption after outages.
-  - Admins must be able to revoke access (`GT_NET_*_REVOKE_*`) which flips the records into a terminal state.
+### 4. Instrument Exchange Configuration & Supplier Catalogue
+- `GTNetExchange` (`backend/grafioschtrader-common/src/main/java/grafioschtrader/entities/GTNetExchange.java`) replaced the old `GTNetDataExchange`. There is exactly one row per `Securitycurrency`, carrying four boolean toggles:
+  - `lastpriceRecv` / `historicalRecv` declare whether the local system wants to consume intraday or historical prices for that instrument via GTNet.
+  - `lastpriceSend` / `historicalSend` declare whether the local system is willing to publish its own data to other peers.
+  - The entity is the canonical place where server side jobs look up which instruments belong to which flow; no remote ids or `sendMsgCode`/`recvMsgCode` fields remain in the schema.
+- `GTSecuritiyCurrencyExchange` (`backend/grafioschtrader-common/src/main/java/grafioschtrader/dto/GTSecuritiyCurrencyExchange.java`) bundles:
+  - the full list of securities or currency pairs (`securitiescurrenciesList`),
+  - a map of persisted `GTNetExchange` rows (`exchangeMap`), and
+  - the set of `idSecuritycurrenies` that currently have remote supplier details so the frontend knows where to show expandable rows.
+- `GTNetExchangeJpaRepository`/`GTNetExchangeResource` (`backend/grafioschtrader-server/src/main/java/grafioschtrader/repository|rest`) expose the management API used by Angular:
+  - `/securities?activeOnly=true|false` and `/currencypairs` return the DTO described above.
+  - `/batch` performs a dirty-checked update of many rows at once.
+  - `/addsecurity/{id}` and `/addcurrencypair/{id}` create placeholder records with all toggles set to `false` so the first save can persist them.
+  - `/supplierdetails/{idSecuritycurrency}` returns `GTNetSupplierWithDetails` entries for the expandable table rows.
+- `GTNetSupplier` (`backend/grafioschtrader-common/src/main/java/grafioschtrader/entities/GTNetSupplier.java`) records which remote `GTNet` domain has explicitly granted the local server permission to use its price data. Besides the foreign key to `GTNet`, the table stores `lastUpdate`, the timestamp of the most recent capability refresh.
+- `GTNetSupplierDetail` (`backend/grafioschtrader-common/src/main/java/grafioschtrader/entities/GTNetSupplierDetail.java`) is the per-instrument catalogue row. Each entry links a supplier (`idGtNetSupplier`) to one `Securitycurrency` and tags it with a `PriceType` (`LASTPRICE` or `HISTORICAL`). The detail list is populated whenever the supplier answers a “which instruments do you serve?” query.
+- `GTNetSupplierWithDetails` (`backend/grafioschtrader-common/src/main/java/grafioschtrader/gtnet/model/GTNetSupplierWithDetails.java`) is the DTO returned by `/supplierdetails`: it contains the supplier header (remote domain, server states, `lastUpdate`) plus every detail row for the selected `Securitycurrency`.
+- Requirements derived from the updated data model:
+  - The admin UI (`GTNetExchangeSecuritiesComponent` / `GTNetExchangeCurrencypairsComponent`) must merge the complete instrument list with any persisted `GTNetExchange` row, initialize unchecked entries when none exist yet, and only send modified rows to `/batch`.
+  - Toggling any of the four checkboxes has to update the relevant `GTNetExchange` row; these settings drive the background jobs that pull in or publish prices, so the backend must enforce them before performing supplier calls.
+  - Adding a security or currency pair from the UI must go through `/addsecurity`/`/addcurrencypair` to seed a persisted row with all booleans `false`; future saves simply flip the flags.
+  - The expandable supplier view needs the backend to keep `GTNetSupplier`/`GTNetSupplierDetail` synchronized with what remote peers share. `/supplierdetails/{id}` has to emit the remote domain (`supplier.gtNet.domainRemoteName`), server state, price type, and the supplier’s `lastUpdate` timestamp exactly as stored in the entities.
+  - `GTNetExchangeJpaRepositoryImpl.getIdSecuritycurrencyWithDetails` already flags which rows have any supplier information; this set must stay accurate so the Angular table can enable/disable row expansion correctly.
+  - Future capability polls must refresh `GTNetSupplier.lastUpdate` and replace the corresponding detail rows so stale supplier entries do not mislead administrators.
 
 ### 5. Intraday Last Price Distribution
 - `GTNetLastprice` (base), `GTNetLastpriceSecurity`, and `GTNetLastpriceCurrencypair` store normalized OHLCV data. They back the provider and consumer monitors.
@@ -79,9 +110,9 @@
 
 ## Non-Functional & Operational Requirements
 1. **Authentication** – Every M2M request must include the remote-supplied `tokenRemote`; local services shall verify this token, log failed attempts, and optionally revoke the token by clearing `tokenRemote`.
-2. **Observability** – Each send/receive operation is persisted in `GTNetMessage`, `GTNetDataExchange` and, for prices, `GTNetLastpriceLog`. Administrators must be able to audit who triggered any change.
+2. **Observability** – Each send/receive operation is persisted in `GTNetMessage` and, for prices, `GTNetLastpriceLog`, while per-instrument entitlements now live in `GTNetExchange` plus `GTNetSupplier`/`GTNetSupplierDetail`. Administrators must be able to correlate a toggle change or supplier refresh with the resulting data traffic.
 3. **Rate Limiting** – Daily counters on `GTNet` entities enforce fairness. Background jobs must reset counters at `00:00 UTC`.
-4. **Resilience** – When a remote instance is unreachable (`BaseDataClient` errors), the system shall retry per connector policy, mark the message as failed, and surface the problem in the UI.
+4. **Resilience** – When a remote instance is unreachable (`BaseDataClient` errors), the system records the failed attempt in `GTNetMessageAttempt` and schedules a retry if `attemptCount < repeatSendAsMany`. Exponential backoff prevents overloading recovering servers. Once all attempts are exhausted, the message is marked as permanently failed and surfaced in the UI.
 5. **Extensibility** – New message types only require updating `GTNetModelHelper` plus their request/response models; the UI consumes the metadata automatically.
 6. **Security** – Handshake payloads include `GTNet` metadata. Sensitive fields (`tokenThis`, `tokenRemote`) are `@JsonIgnore` so they never leak to untrusted clients.
 
@@ -96,6 +127,8 @@
 8. UI navigation: the Admin tree intentionally hides the GTNet nodes. Re-enable them when permissions, help pages and user guidance are ready.
 9. Form validation: `submitMsg` contains a `TODO check model integrity`. Incoming payloads from the UI should be validated against the dynamic descriptors before a message is sent.
 10. Test coverage and migration scripts for the new tables (`gt_net_*`) must be expanded; currently no automated tests exercise the handshake or messaging flows.
+11. The retry background task for `GTNetMessageAttempt` must be implemented in `grafiosch.task`. It should query pending retries, apply exponential backoff, and update attempt records.
+12. The frontend message detail view needs to display the attempt history from `GTNetMessageAttempt` so administrators can diagnose transmission failures.
 
 ## Appendix – Message Codes & Intent
 - `GT_NET_PING` – Liveness probe; response mirrors the ping.

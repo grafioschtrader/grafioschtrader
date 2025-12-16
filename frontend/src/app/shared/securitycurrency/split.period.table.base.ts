@@ -8,7 +8,7 @@ import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Security} from '../../entities/security';
 import {plainToInstance} from 'class-transformer';
-import {DeleteCreateMultiple} from '../service/delete.create.multiple';
+import {DeleteCreateMultiple} from '../../securitycurrency/service/delete.create.multiple';
 import {ClassConstructor} from 'class-transformer/types/interfaces';
 import {FilterService} from 'primeng/api';
 import {BaseSettings} from '../../lib/base.settings';

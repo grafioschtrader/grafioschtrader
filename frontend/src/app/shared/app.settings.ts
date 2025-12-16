@@ -84,6 +84,9 @@ export class AppSettings {
   public static readonly GT_NET_CONSUME_MONITOR_KEY = 'gtnetconsumemonitor';
   public static readonly GT_NET_KEY = 'gtnet';
   public static readonly GT_NET_AUTO_ANSWER_KEY = 'gtnetautoanwser';
+  public static readonly GT_NET_EXCHANGE_KEY = 'gtnetexchange';
+  public static readonly GT_NET_EXCHANGE_SECURITIES_KEY = 'securities';
+  public static readonly GT_NET_EXCHANGE_CURRENCYPAIRS_KEY = 'currencypairs';
   public static readonly GT_NET_MESSAGE_KEY = 'gtnetmessage';
   public static readonly GT_NET_PROVIDER_MONITOR_KEY = 'gtnetprovidermonitor';
   public static readonly TRADING_DAYS_MINUS_KEY = AppSettings.TRADING_DAYS_MINUS.toLowerCase();

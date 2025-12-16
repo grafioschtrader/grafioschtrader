@@ -48,7 +48,7 @@ import {ChartGeneralPurposeComponent} from './shared/chart/component/chart.gener
 import {ChartDataService} from './shared/chart/service/chart.data.service';
 import {TableModule} from 'primeng/table';
 import {TimeSeriesQuotesService} from './historyquote/service/time.series.quotes.service';
-import {CorrelationComponent} from './watchlist/component/correlation.component';
+import {CorrelationComponent} from './correlation/component/correlation.component';
 import {TradingPlatformPlanTableComponent} from './tradingplatform/component/trading.platform.plan.table.component';
 import {TradingPlatformPlanService} from './tradingplatform/service/trading.platform.plan.service';
 import {TenantDividendsComponent} from './tenant/component/tenant.dividends.component';
@@ -69,7 +69,7 @@ import {TradingPlatformPlanEditComponent} from './tradingplatform/component/trad
 import {SecurityaccountEditDynamicComponent} from './securityaccount/component/securityaccount.edit.dynamic.component';
 import {TenantEditDynamicComponent} from './tenant/component/tenant.edit.dynamic.component';
 import {TenantTransactionCostExtendedComponent} from './tenant/component/tenant-transaction-cost-extended.component';
-import {SecuritysplitEditTableComponent} from './securitycurrency/component/securitysplit-edit-table.component';
+import {SecuritysplitEditTableComponent} from './shared/securitycurrency/securitysplit-edit-table.component';
 import {PortfolioEditDynamicComponent} from './portfolio/component/portfolio.edit.dynamic.component';
 import {SecurityaccountTabMenuComponent} from './securityaccount/component/securityaccount.tab.menu.component';
 import {ImportTransactionHeadService} from './securityaccount/service/import.transaction.head.service';
@@ -177,7 +177,7 @@ import {AngularSvgIconModule} from 'angular-svg-icon';
 import {ProductIconService} from './securitycurrency/service/product.icon.service';
 import {
   SecurityHistoryquotePeriodEditTableComponent
-} from './securitycurrency/component/security-historyquote-period-edit-table.component';
+} from './shared/securitycurrency/security-historyquote-period-edit-table.component';
 import {HistoryquotePeriodService} from './securitycurrency/service/historyquote.period.service';
 import {DragDropModule} from 'primeng/dragdrop';
 import {MailSendRecvService} from './lib/mail/service/mail.send.recv.service';
@@ -193,12 +193,12 @@ import {MultipleRequestToOneService} from './shared/service/multiple.request.to.
 import {TaskDataChangeService} from './lib/taskdatamonitor/service/task.data.change.service';
 import {TaskDataChangeTableComponent} from './lib/taskdatamonitor/component/task.data.change.table.component';
 import {TaskDataChangeEditComponent} from './lib/taskdatamonitor/component/task-data-change-edit.component';
-import {CorrelationSetService} from './watchlist/service/correlation.set.service';
-import {CorrelationTableComponent} from './watchlist/component/correlation-table.component';
+import {CorrelationSetService} from './correlation/service/correlation.set.service';
+import {CorrelationTableComponent} from './correlation/component/correlation-table.component';
 import {WatchlistAddInstrumentTableComponent} from './watchlist/component/watchlist-add-instrument-table.component';
 import {
   CorrelationSetAddInstrumentTableComponent
-} from './watchlist/component/correlation-set-add-instrument-table.component';
+} from './correlation/component/correlation-set-add-instrument-table.component';
 import {ConnectorApiKeyTableComponent} from './lib/connectorapikey/component/connector.api.key.table.component';
 import {ConnectorApiKeyEditComponent} from './lib/connectorapikey/component/connector.api.key.edit.component';
 import {ConnectorApiKeyService} from './lib/connectorapikey/service/connector.api.key.service';
@@ -255,12 +255,12 @@ import {registerHelpIds} from './lib/help/help.ids';
 import {AppHelpIds} from './shared/help/help.ids';
 import {AlgoStrategyEditComponent} from './algo/component/algo-strategy-edit.component';
 import {SecurityDerivedEditComponent} from './securitycurrency/component/security-derived-edit.component';
-import {SecurityEditComponent} from './securitycurrency/component/security-edit.component';
+import {SecurityEditComponent} from './shared/securitycurrency/security-edit.component';
 import {SecurityUDFEditComponent} from './securitycurrency/component/security-udf-edit.component';
-import {CurrencypairEditComponent} from './securitycurrency/component/currencypair-edit.component';
-import {CorrelationAddInstrumentComponent} from './watchlist/component/correlation-add-instrument.component';
+import {CurrencypairEditComponent} from './shared/securitycurrency/currencypair-edit.component';
+import {CorrelationAddInstrumentComponent} from './correlation/component/correlation-add-instrument.component';
 import {InstrumentStatisticsResultComponent} from './securitycurrency/component/instrument-statistics-result.component';
-import {CorrelationSetEditComponent} from './watchlist/component/correlation-set-edit.component';
+import {CorrelationSetEditComponent} from './correlation/component/correlation-set-edit.component';
 import {WatchlistEditDynamicComponent} from './watchlist/component/watchlist.edit.dynamic.component';
 import {
   SecuritycurrencySearchAndSetComponent
@@ -284,8 +284,6 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
   declarations: [
     AppComponent,
     ChartGeneralPurposeComponent,
-    GTNetConsumerMonitorComponent, GTNetEditComponent, GTNetMessageAutoAnswerComponent,
-    GTNetMessageEditComponent, GTNetMessageTreeTableComponent, GTNetProviderMonitorComponent, GTNetSetupTableComponent,
     IndicatorEditComponent,
     SecurityaccountEditDynamicComponent, SecurityaccountEmptyComponent, SecurityaccountImportExtendedInfoComponent,
     SecurityaccountImportExtendedInfoFilenameComponent, SecurityaccountImportSetCashaccountComponent,
@@ -325,6 +323,13 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     CorrelationAddInstrumentComponent,
     CorrelationSetEditComponent,
     CurrencypairEditComponent,
+    GTNetConsumerMonitorComponent,
+    GTNetEditComponent,
+    GTNetMessageAutoAnswerComponent,
+    GTNetMessageEditComponent,
+    GTNetMessageTreeTableComponent,
+    GTNetProviderMonitorComponent,
+    GTNetSetupTableComponent,
     ImportTransactionEditPlatformComponent,
     ImportTransactionEditTemplateComponent,
     ImportTransactionTemplateComponent,

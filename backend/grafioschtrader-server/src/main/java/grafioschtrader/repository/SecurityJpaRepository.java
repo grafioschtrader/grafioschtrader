@@ -28,6 +28,9 @@ import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository<Security>,
     JpaSpecificationExecutor<Security>, SecurityJpaRepositoryCustom, UpdateCreateJpaRepository<Security> {
 
+
+  List<Security> findByActiveToDateAfterAndIdTenantPrivateIsNullAndStockexchange_secondaryMarketTrue(Date date);
+  
   /**
    * Executes the `deleteUpdateHistoryQuality` stored procedure to refresh the historyquote_quality metrics for all
    * securities.

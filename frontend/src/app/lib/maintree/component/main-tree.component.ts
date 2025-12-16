@@ -159,13 +159,18 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
 
   public dragOver(event: DragEvent, node: TreeNode) {
     const dragData = event.dataTransfer.getData('text/plain');
-    if (this.mainTreeService.canDrop(node, dragData)) {
+    const canDrop = this.mainTreeService.canDrop(node, dragData);
+    if (canDrop) {
       event.preventDefault();
+      event.stopPropagation();
+      event.dataTransfer.dropEffect = 'move';
+    } else {
     }
   }
 
   public drop(event: DragEvent, treeNode: TreeNode) {
     event.preventDefault();
+    event.stopPropagation();
     const dragData = event.dataTransfer.getData('text/plain');
     const sourceLabel = this.selectedNode?.label;
     this.mainTreeService.handleDrop(treeNode, dragData, sourceLabel);

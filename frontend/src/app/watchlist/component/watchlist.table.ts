@@ -501,8 +501,9 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
    */
   dragStart(event: DragEvent, data: SecuritycurrencyPosition<Security | Currencypair>) {
     this.changeDetectionStrategy.detach();
-    event.dataTransfer.setData('text/plain',
-      JSON.stringify(new WatchlistSecurityExists(this.watchlist.idWatchlist, data.securitycurrency.idSecuritycurrency)));
+    const dragPayload = JSON.stringify(new WatchlistSecurityExists(this.watchlist.idWatchlist, data.securitycurrency.idSecuritycurrency));
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', dragPayload);
   }
 
   /**

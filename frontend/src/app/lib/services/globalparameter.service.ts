@@ -228,6 +228,10 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
     return this.prepareUseFeatures(FeatureType.ALERT);
   }
 
+  public useGtnet(): boolean {
+    return this.prepareUseFeatures(FeatureType.GTNET);
+  }
+
   private prepareUseFeatures(featureType: FeatureType): boolean {
     // Check if the feature state is already cached
     if (!this.featureCache.has(featureType)) {

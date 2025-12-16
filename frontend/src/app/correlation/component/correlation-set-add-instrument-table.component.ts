@@ -1,4 +1,4 @@
-import {AddInstrumentTable} from './add-instrument-table.component';
+import {AddInstrumentTable} from '../../watchlist/component/add-instrument-table.component';
 import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
 import {Component} from '@angular/core';
 import {FilterService} from 'primeng/api';
@@ -20,7 +20,7 @@ import {ButtonModule} from 'primeng/button';
  */
 @Component({
     selector: 'correlation-set-add-instrument-table',
-    templateUrl: '../view/add.instrument.table.html',
+    templateUrl: '../../watchlist/view/add.instrument.table.html',
     standalone: true,
     imports: [CommonModule, TranslateModule, FormsModule, TableModule, ButtonModule]
 })

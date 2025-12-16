@@ -1,12 +1,31 @@
 package grafioschtrader.gtnet;
 
+import grafioschtrader.entities.GTNetMessage;
+
 /**
- * Enums ending with C are intended for communication triggering by the client. Enums ending with S are intended as a
- * response from the server.
+ * Enumerates all message types in the GTNet peer-to-peer communication protocol.
  *
- * Enums containing a _SEL_ are applied to the remote server. Enums that have an _ALL_ will be applied to all remote
- * servers that are affected.
+ * <h3>Naming Convention</h3>
+ * Message codes follow a structured naming pattern that indicates their purpose and behavior:
+ * <ul>
+ *   <li><b>Suffix _C</b>: Client-initiated messages (triggered from UI or scheduled jobs)</li>
+ *   <li><b>Suffix _S</b>: Server response messages (replies to requests)</li>
+ *   <li><b>Contains _SEL_</b>: Targeted at a specific selected remote server</li>
+ *   <li><b>Contains _ALL_</b>: Broadcast to all applicable remote servers</li>
+ * </ul>
  *
+ * <h3>Message Workflows</h3>
+ * <ol>
+ *   <li><b>Handshake (1-3)</b>: Initial connection and token exchange between peers</li>
+ *   <li><b>Server List (10-13)</b>: Discovery of other GTNet participants via peer sharing</li>
+ *   <li><b>Last Price (20-24)</b>: Intraday price data sharing negotiation</li>
+ *   <li><b>Entity (30-34)</b>: Historical/EOD data sharing negotiation</li>
+ *   <li><b>Both (40-44)</b>: Combined entity and last price negotiation</li>
+ *   <li><b>Notifications (50-51)</b>: Maintenance windows and shutdown announcements</li>
+ * </ol>
+ *
+ * @see GTNetModelHelper for mapping message codes to payload model classes
+ * @see GTNetMessage for message storage and threading
  */
 public enum GTNetMessageCodeType {
   //

@@ -94,6 +94,7 @@ import {BaseLocale} from '../dynamic-form/models/base.locale';
         [rows]="rows"
         [first]="firstRowIndex"
         (onPage)="onPage($event)"
+        [rowsPerPageOptions]="rowsPerPageOptions"
         [scrollable]="scrollable"
         [scrollHeight]="scrollHeight"
         [loading]="loading"
@@ -174,6 +175,9 @@ import {BaseLocale} from '../dynamic-form/models/base.locale';
                             <p-columnFilter type="numeric" [field]="field.field"
                                             [locale]="formLocale"
                                             minFractionDigits="2" display="menu"></p-columnFilter>
+                          }
+                          @case (DataType.String) {
+                            <p-columnFilter type="text" [field]="field.fieldTranslated || field.field" display="menu"></p-columnFilter>
                           }
                         }
                       }
@@ -431,6 +435,11 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
    * Number of rows to display per page when pagination is enabled.
    */
   @Input() rows = 20;
+
+  /**
+   * Options for rows per page dropdown.
+   */
+  @Input() rowsPerPageOptions: number[] = [10, 20, 50, 100];
 
   /**
    * Index of the first row on the current page (0-based).

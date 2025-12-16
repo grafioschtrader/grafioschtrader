@@ -229,7 +229,8 @@ export class MainTreeService {
    */
   canDrop(targetNode: TreeNode, dragData: string): boolean {
     for (const contributor of this.contributors) {
-      if (contributor.canDrop?.(targetNode, dragData)) {
+      const result = contributor.canDrop?.(targetNode, dragData);
+      if (result) {
         return true;
       }
     }

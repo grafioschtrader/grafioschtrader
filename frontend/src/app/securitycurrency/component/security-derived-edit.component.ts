@@ -10,7 +10,7 @@ import {MainDialogService} from '../../lib/mainmenubar/service/main.dialog.servi
 import {HelpIds} from '../../lib/help/help.ids';
 import {Security} from '../../entities/security';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {SecurityDerived, SecurityEditSupport} from './security.edit.support';
+import {SecurityDerived, SecurityEditSupport} from '../../shared/securitycurrency/security.edit.support';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AfterSetSecurity, CallBackSetSecurityWithAfter, SecuritycurrencySearchAndSetComponent} from './securitycurrency-search-and-set.component';
@@ -20,7 +20,7 @@ import {combineLatest, Observable, Subscription} from 'rxjs';
 import {Stockexchange} from '../../entities/stockexchange';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 import {Assetclass} from '../../entities/assetclass';
-import {IFeedConnector} from './ifeed.connector';
+import {IFeedConnector} from '../../shared/securitycurrency/ifeed.connector';
 import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
 import {AssetclassService} from '../../assetclass/service/assetclass.service';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';

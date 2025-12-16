@@ -1,6 +1,6 @@
 package grafioschtrader.repository;
 
-import java.util.stream.Stream;
+import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -10,5 +10,5 @@ import grafioschtrader.entities.GTNetMessage;
 public interface GTNetMessageJpaRepository extends JpaRepository<GTNetMessage, Integer>,
     GTNetMessageJpaRepositoryCustom, UpdateCreateJpaRepository<GTNetMessage> {
 
-  Stream<GTNetMessage> findAllByOrderByIdGtNetAscTimestampAsc();
+  List<GTNetMessage> findAllByOrderByIdGtNetAscTimestampAsc();
 }

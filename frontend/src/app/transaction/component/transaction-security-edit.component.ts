@@ -52,7 +52,7 @@ import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
 import {ClosedMarginPosition} from '../model/closed.margin.position';
 import {AbstractControl} from '@angular/forms';
 import {AppSettings} from '../../shared/app.settings';
-import {BusinessSelectOptionsHelper} from '../../securitycurrency/component/business.select.options.helper';
+import {BusinessSelectOptionsHelper} from '../../shared/securitycurrency/business.select.options.helper';
 import {BaseSettings} from '../../lib/base.settings';
 import {DialogModule} from 'primeng/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';

@@ -15,7 +15,7 @@ import {WatchlistPerformanceComponent} from './watchlist/component/watchlist.per
 import {TimeSeriesChartComponent} from './historyquote/component/time.series.chart.component';
 import {ChartGeneralPurposeComponent} from './shared/chart/component/chart.general.purpose.component';
 import {RegistrationTokenVerifyComponent} from './lib/login/component/registration.token.verify.component';
-import {CorrelationComponent} from './watchlist/component/correlation.component';
+import {CorrelationComponent} from './correlation/component/correlation.component';
 import {TradingPlatformPlanTableComponent} from './tradingplatform/component/trading.platform.plan.table.component';
 import {TenantDividendsComponent} from './tenant/component/tenant.dividends.component';
 import {TenantTransactionCostComponent} from './tenant/component/tenant.transaction.cost.component';
@@ -55,6 +55,9 @@ import {GTNetConsumerMonitorComponent} from './gtnet/component/gtnet.consumer.mo
 import {GTNetSetupTableComponent} from './gtnet/component/gtnet.setup.table.component';
 import {GTNetProviderMonitorComponent} from './gtnet/component/gtnet.provider.monitor.component';
 import {GTNetMessageAutoAnswerComponent} from './gtnet/component/gtnet.message.auto.answer.component';
+import {GTNetExchangeTabMenuComponent} from './gtnet/component/gtnet-exchange-tabmenu.component';
+import {GTNetExchangeSecuritiesComponent} from './gtnet/component/gtnet-exchange-securities.component';
+import {GTNetExchangeCurrencypairsComponent} from './gtnet/component/gtnet-exchange-currencypairs.component';
 import {SendRecvTreetableComponent} from './lib/mail/component/send.recv.treetable.component';
 import {adminGuard, authGuard} from './shared/service/guards.definition';
 import {SendRecvForwardTabMenuComponent} from './lib/mail/component/send.recv.forward.tab.menu.component';
@@ -282,6 +285,23 @@ const APP_ROUTES: Routes = [
         path: AppSettings.GT_NET_PROVIDER_MONITOR_KEY,
         component: GTNetProviderMonitorComponent,
         canActivate: [authGuard]
+      },
+      {
+        path: AppSettings.GT_NET_EXCHANGE_KEY,
+        component: GTNetExchangeTabMenuComponent,
+        canActivate: [authGuard],
+        children: [
+          {
+            path: AppSettings.GT_NET_EXCHANGE_SECURITIES_KEY,
+            component: GTNetExchangeSecuritiesComponent,
+            canActivate: [authGuard]
+          },
+          {
+            path: AppSettings.GT_NET_EXCHANGE_CURRENCYPAIRS_KEY,
+            component: GTNetExchangeCurrencypairsComponent,
+            canActivate: [authGuard]
+          }
+        ]
       },
       {
         path: BaseSettings.TASK_DATA_CHANGE_MONITOR_KEY,

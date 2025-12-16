@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {GTNetMessageCodeType, MsgCallParam} from '../model/gtnet.message';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {HelpIds} from '../../lib/help/help.ids';
@@ -21,12 +21,20 @@ import {ProcessedAction} from '../../lib/types/processed.action';
 import {GTNetService} from '../service/gtnet.service';
 import {GTNetWithMessages, MsgRequest} from '../model/gtnet';
 import {BaseSettings} from '../../lib/base.settings';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 
 /**
  * Crate a new GTNet message. A message can not be changed.
  */
 @Component({
   selector: 'gtnet-message-edit',
+  standalone: true,
+  imports: [
+    DialogModule,
+    DynamicFormComponent,
+    TranslateModule
+  ],
   template: `
     <p-dialog header="{{'GT_NET_MESSAGE_SEND' | translate}}" [(visible)]="visibleDialog"
               [style]="{width: '500px'}"
@@ -37,8 +45,7 @@ import {BaseSettings} from '../../lib/base.settings';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
-  `,
-  standalone: false
+  `
 })
 export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit {
   @Input() msgCallParam: MsgCallParam;

@@ -1,4 +1,5 @@
 import {Component, Input, OnInit, ViewChild} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {GTNetMessage, MsgCallParam} from '../model/gtnet.message';
@@ -10,12 +11,24 @@ import {HelpIds} from '../../lib/help/help.ids';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {ClassDescriptorInputAndShow} from '../../lib/dynamicfield/field.descriptor.input.and.show';
+import {TreeTableModule} from 'primeng/treetable';
+import {ContextMenuModule} from 'primeng/contextmenu';
+import {TooltipModule} from 'primeng/tooltip';
+import {GTNetMessageEditComponent} from './gtnet-message-edit.component';
 
 /**
  * It shows the messages in a tree table.
  */
 @Component({
-    selector: 'gtnet-message-treetable',
+  selector: 'gtnet-message-treetable',
+  standalone: true,
+  imports: [
+    CommonModule,
+    TreeTableModule,
+    ContextMenuModule,
+    TooltipModule,
+    GTNetMessageEditComponent
+  ],
   template: `
     <div #cmDiv class="data-container" (click)="onComponentClick($event)"
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
@@ -70,8 +83,7 @@ import {ClassDescriptorInputAndShow} from '../../lib/dynamicfield/field.descript
                           (closeDialog)="handleCloseDialogMsg($event)">
       </gtnet-message-edit>
     }
-  `,
-    standalone: false
+  `
 })
 
 export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {

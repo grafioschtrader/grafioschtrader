@@ -6,7 +6,6 @@ import java.util.Set;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-import grafiosch.dto.ConfigurationWithLogin.FeatureType;
 import grafioschtrader.types.FeatureTypeGT;
 
 @Component
@@ -16,6 +15,7 @@ public class FeatureConfig {
   private boolean websocket;
   private boolean algo;
   private boolean alert;
+  private boolean gtnet;
 
   public Set<FeatureTypeGT> getEnabledFeatures() {
     EnumSet<FeatureTypeGT> features = EnumSet.noneOf(FeatureTypeGT.class);
@@ -27,6 +27,9 @@ public class FeatureConfig {
     }
     if (alert) {
       features.add(FeatureTypeGT.ALERT);
+    }
+    if (gtnet) {
+      features.add(FeatureTypeGT.GTNET);
     }
     return features;
   }
@@ -53,5 +56,13 @@ public class FeatureConfig {
 
   public void setAlert(boolean alert) {
     this.alert = alert;
+  }
+
+  public boolean isGtnet() {
+    return gtnet;
+  }
+
+  public void setGtnet(boolean gtnet) {
+    this.gtnet = gtnet;
   }
 }

@@ -1,5 +1,5 @@
 import {combineLatest} from 'rxjs';
-import {IFeedConnector} from '../component/ifeed.connector';
+import {IFeedConnector} from '../../shared/securitycurrency/ifeed.connector';
 import {SecurityService} from './security.service';
 import {CurrencypairService} from './currencypair.service';
 

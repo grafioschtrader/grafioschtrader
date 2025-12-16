@@ -1,4 +1,6 @@
 import {Component} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
 import {CrudMenuOptions, TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
 import {GTNet, GTNetWithMessages} from '../model/gtnet';
 import {GTNetMessage, MsgCallParam} from '../model/gtnet.message';
@@ -7,7 +9,7 @@ import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {DialogService} from 'primeng/dynamicdialog';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {AppSettings} from '../../shared/app.settings';
@@ -19,8 +21,27 @@ import {combineLatest} from 'rxjs';
 import {GTNetMessageService} from '../service/gtnet.message.service';
 import {ClassDescriptorInputAndShow} from '../../lib/dynamicfield/field.descriptor.input.and.show';
 import {BaseSettings} from '../../lib/base.settings';
+import {TableModule} from 'primeng/table';
+import {ContextMenuModule} from 'primeng/contextmenu';
+import {TooltipModule} from 'primeng/tooltip';
+import {DatePicker} from 'primeng/datepicker';
+import {GTNetEditComponent} from './gtnet-edit.component';
+import {GTNetMessageEditComponent} from './gtnet-message-edit.component';
 
 @Component({
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    TranslateModule,
+    TableModule,
+    ContextMenuModule,
+    TooltipModule,
+    DatePicker,
+    GTNetEditComponent,
+    GTNetMessageEditComponent,
+    GTNetMessageTreeTableComponent
+  ],
   template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
@@ -137,8 +158,7 @@ import {BaseSettings} from '../../lib/base.settings';
       </gtnet-message-edit>
     }
   `,
-  providers: [DialogService],
-  standalone: false
+  providers: [DialogService]
 })
 export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   minDate: Date = new Date('2000-01-01');

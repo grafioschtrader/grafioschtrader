@@ -1,6 +1,5 @@
 package grafioschtrader.reportviews.securitydividends;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;

@@ -1,11 +1,27 @@
 package grafioschtrader.gtnet;
 
+import grafioschtrader.entities.GTNetMessage;
+
+/**
+ * Indicates the direction of a GTNetMessage from the local instance's perspective.
+ *
+ * This enum is crucial for displaying message threads correctly in the UI, where sent and received
+ * messages need different visual treatment (similar to a chat interface).
+ *
+ * @see GTNetMessage#sendRecv for usage in the message entity
+ */
 public enum SendReceivedType {
-  // Message was send
+
+  /** Message was sent by this instance to a remote domain. idGtNet refers to the target. */
   SEND((byte) 0),
-  // Message was received
+
+  /** Message was received by this instance from a remote domain. idGtNet refers to the source. */
   RECEIVED((byte) 1),
-  // Message is answered. This state is not persisted
+
+  /**
+   * Transient state for response messages being constructed. Not typically persisted; used during
+   * message processing to distinguish immediate responses from stored messages.
+   */
   ANSWER((byte) 2);
 
   private final Byte value;

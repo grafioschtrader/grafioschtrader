@@ -14,6 +14,8 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import grafiosch.BaseConstants;
 import grafiosch.common.PropertyAlwaysUpdatable;
@@ -47,6 +49,15 @@ import jakarta.validation.constraints.Size;
 @Table(name = Securitycurrency.TABNAME)
 @Inheritance(strategy = JOINED)
 @DiscriminatorColumn(name = "dtype", discriminatorType = DiscriminatorType.STRING)
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.PROPERTY,
+    property = "dtype"
+)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = Security.class, name = "S"),
+    @JsonSubTypes.Type(value = Currencypair.class, name = "C")
+})
 public abstract class Securitycurrency<S> extends Auditable implements Serializable {
 
   public static final String TABNAME = "securitycurrency";

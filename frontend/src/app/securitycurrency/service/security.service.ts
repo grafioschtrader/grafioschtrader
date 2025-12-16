@@ -4,7 +4,7 @@ import {AppSettings} from '../../shared/app.settings';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {SecurityOpenPositionPerSecurityaccount} from '../../entities/view/security.open.position.per.securityaccount';
 import {Observable} from 'rxjs';
-import {IFeedConnector} from '../component/ifeed.connector';
+import {IFeedConnector} from '../../shared/securitycurrency/ifeed.connector';
 import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
 import {SecurityTransactionSummary} from '../../entities/view/security.transaction.summary';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
