@@ -137,7 +137,7 @@ public class GTNetExchangeJpaRepositoryImpl implements GTNetExchangeJpaRepositor
           .createQuery("SELECT sc FROM Securitycurrency sc WHERE sc.idSecuritycurrency IN :ids", Securitycurrency.class)
           .setParameter("ids", newSecurityCurrencyIds).getResultList();
       securityCurrencyMap = scList.stream()
-          .collect(Collectors.toMap(Securitycurrency::getIdSecuritycurrency, Function.identity()));
+          .collect(Collectors.toMap(Securitycurrency::getIdSecuritycurrency, sc -> sc));
     }
 
     for (GTNetExchange exchange : exchanges) {
