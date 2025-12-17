@@ -15,12 +15,15 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,14 +34,18 @@ import grafiosch.repository.RepositoryHelper;
 import grafioschtrader.entities.GTNet;
 import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.entities.GTNetMessage.GTNetMessageParam;
+import grafioschtrader.entities.GTNetMessageAnswer;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.GTNetModelHelper;
 import grafioschtrader.gtnet.GTNetModelHelper.GTNetMsgRequest;
 import grafioschtrader.gtnet.SendReceivedType;
+import grafioschtrader.gtnet.handler.GTNetMessageContext;
+import grafioschtrader.gtnet.handler.GTNetMessageHandler;
+import grafioschtrader.gtnet.handler.GTNetMessageHandlerRegistry;
+import grafioschtrader.gtnet.handler.HandlerResult;
 import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.gtnet.model.GTNetWithMessages;
 import grafioschtrader.gtnet.model.MsgRequest;
-import grafioschtrader.gtnet.model.msg.ApplicationInfo;
 import grafioschtrader.gtnet.model.msg.FirstHandshakeMsg;
 import grafioschtrader.m2m.GTNetMessageHelper;
 import grafioschtrader.m2m.client.BaseDataClient;
@@ -47,11 +54,16 @@ import jakarta.transaction.Transactional;
 
 public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements GTNetJpaRepositoryCustom {
 
+  private static final Logger log = LoggerFactory.getLogger(GTNetJpaRepositoryImpl.class);
+
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
 
   @Autowired
   private GTNetMessageJpaRepository gtNetMessageJpaRepository;
+
+  @Autowired
+  private GTNetMessageAnswerJpaRepository gtNetMessageAnswerJpaRepository;
 
   @Autowired
   private GlobalparametersService globalparametersService;
@@ -61,6 +73,10 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
   @Autowired
   private BaseDataClient baseDataClient;
+
+  @Autowired
+  @Lazy
+  private GTNetMessageHandlerRegistry handlerRegistry;
 
   @Override
   @Transactional
@@ -74,7 +90,8 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   @Override
   public GTNet saveOnlyAttributes(final GTNet gtNet, final GTNet existingEntity,
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
-    ApplicationInfo applicationInfo = baseDataClient.getActuatorInfo(gtNet.getDomainRemoteName());
+    // Validate remote URL is reachable
+    baseDataClient.getActuatorInfo(gtNet.getDomainRemoteName());
     GTNet gtNetNew = RepositoryHelper.saveOnlyAttributes(gtNetJpaRepository, gtNet, existingEntity,
         updatePropertyLevelClasses);
     if (isDomainNameThisMachine(gtNet.getDomainRemoteName())) {
@@ -114,12 +131,13 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
   private List<GTNet> getTargetDomains(MsgRequest msgRequest) {
     if (msgRequest.messageCode.name().contains(GTNetModelHelper.MESSAGE_TO_ALL)) {
-      if (msgRequest.messageCode == GTNetMessageCodeType.GT_NET_MAINTENANCE_ALL_C
-          || msgRequest.messageCode == GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_ALL_C) {
-        return gtNetJpaRepository.findByAcceptEntityRequestOrAcceptLastpriceRequest(true, true);
-      } else {
-        return List.of();
-      }
+      // All broadcast messages go to servers that have accepted entity or lastprice requests
+      return switch (msgRequest.messageCode) {
+      case GT_NET_OFFLINE_ALL_C, GT_NET_ONLINE_ALL_C, GT_NET_BUSY_ALL_C, GT_NET_RELEASED_BUSY_ALL_C,
+          GT_NET_MAINTENANCE_ALL_C, GT_NET_OPERATION_DISCONTINUED_ALL_C ->
+        gtNetJpaRepository.findByAcceptEntityRequestOrAcceptLastpriceRequest(true, true);
+      default -> List.of();
+      };
     } else {
       List<GTNet> gtNetList = new ArrayList<>();
       gtNetJpaRepository.findById(msgRequest.idGTNetTargetDomain).stream().forEach(n -> gtNetList.add(n));
@@ -229,94 +247,71 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
   // Receive Message
   ///////////////////////////////////////////////////////////////////////
+  /**
+   * Processes an incoming GTNet message and returns the appropriate response.
+   *
+   * This method delegates to the handler registry, which routes the message to the appropriate handler based on the
+   * message code. The handler determines whether to return an immediate response, await manual handling, or process
+   * without response (for announcements).
+   *
+   * @param me the incoming message envelope
+   * @return the response envelope, or null if no immediate response is needed
+   */
   @Override
   public MessageEnvelope getMsgResponse(MessageEnvelope me) throws Exception {
-    MessageEnvelope meResponse = null;
     GTNet myGTNet = gtNetJpaRepository
         .getReferenceById(GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersService));
-    switch (GTNetMessageCodeType.getGTNetMessageCodeTypeByValue(me.messageCode)) {
-    case GT_NET_PING:
-      meResponse = getGTNetPingResponse(myGTNet);
-      break;
 
-    case GT_NET_FIRST_HANDSHAKE_S:
-      meResponse = checkHandshake(myGTNet, me);
-      break;
-    case GT_NET_UPDATE_SERVERLIST_SEL_C:
-      break;
-
-    default:
-      break;
-
+    GTNetMessageCodeType messageCode = GTNetMessageCodeType.getGTNetMessageCodeTypeByValue(me.messageCode);
+    if (messageCode == null) {
+      log.warn("Unknown message code received: {}", me.messageCode);
+      return buildErrorResponse(myGTNet, "UNKNOWN_MESSAGE_CODE", "Unknown message code: " + me.messageCode);
     }
-    return meResponse;
-  }
 
-  private MessageEnvelope getGTNetPingResponse(GTNet myGTnet) {
-    GTNetMessage msgRespone = new GTNetMessage(null, new Date(), SendReceivedType.ANSWER.getValue(), null,
-        GTNetMessageCodeType.GT_NET_PING.getValue(), null, null);
-    MessageEnvelope meResponse = new MessageEnvelope(myGTnet.getDomainRemoteName(), msgRespone);
-    return meResponse;
-  }
-
-  private MessageEnvelope checkHandshake(GTNet myGTNet, MessageEnvelope meRequest)
-      throws JsonProcessingException, IllegalArgumentException {
-    GTNetMsgRequest gtNetMsgRequest = GTNetModelHelper
-        .getMsgClassByMessageCode(GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_S);
-    FirstHandshakeMsg firstHandshakeMsg = (FirstHandshakeMsg) convertMapToPojo(gtNetMsgRequest.model,
-        meRequest.gtNetMessageParamMap);
-    GTNet remoteGTNet = objectMapper.treeToValue(meRequest.payload, GTNet.class);
-
-    // Store the remote's GTNet entry and the token they sent us
-    remoteGTNet = addGTNetRemoteWhenNotExists(remoteGTNet, firstHandshakeMsg.tokenThis);
-
-    // Generate our token for them to use when calling us
-    String ourTokenForThem = DataHelper.generateGUID();
-    remoteGTNet.setTokenThis(ourTokenForThem);
-    gtNetJpaRepository.save(remoteGTNet);
-
-    // First save the received handshake message (with idSourceGtNetMessage from remote)
-    GTNetMessage receivedMsg = new GTNetMessage(
-        remoteGTNet.getIdGtNet(),
-        meRequest.timestamp,
-        SendReceivedType.RECEIVED.getValue(),
-        null,
-        meRequest.messageCode,
-        meRequest.message,
-        meRequest.gtNetMessageParamMap
-    );
-    receivedMsg.setIdSourceGtNetMessage(meRequest.idSourceGtNetMessage);
-    receivedMsg = gtNetMessageJpaRepository.saveMsg(receivedMsg);
-
-    // Build accept response with our token, replyTo points to local received message
-    Map<String, GTNetMessageParam> responseParams = convertPojoToMap(new FirstHandshakeMsg(ourTokenForThem));
-    GTNetMessage responseMsg = new GTNetMessage(
-        remoteGTNet.getIdGtNet(),
-        new Date(),
-        SendReceivedType.SEND.getValue(),
-        receivedMsg.getIdGtNetMessage(),
-        GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_ACCEPT_S.getValue(),
-        null,
-        responseParams
-    );
-
-    // Save our response message
-    responseMsg = gtNetMessageJpaRepository.saveMsg(responseMsg);
-
-    // Return response envelope with our GTNet info in payload
-    MessageEnvelope meResponse = new MessageEnvelope(myGTNet.getDomainRemoteName(), responseMsg);
-    meResponse.payload = objectMapper.convertValue(myGTNet, JsonNode.class);
-    return meResponse;
-  }
-
-  private GTNet addGTNetRemoteWhenNotExists(GTNet gtNetRemote, String remoteToken) {
-    GTNet gtNetRemoteExisting = gtNetJpaRepository.findByDomainRemoteName(gtNetRemote.getDomainRemoteName());
-    if (gtNetRemoteExisting == null) {
-      gtNetRemoteExisting = gtNetRemote;
-      gtNetRemoteExisting.setIdGtNet(null); // Ensure new entity
+    // Check if handler is registered
+    if (!handlerRegistry.hasHandler(messageCode)) {
+      log.warn("No handler registered for message code: {}", messageCode);
+      return buildErrorResponse(myGTNet, "NO_HANDLER", "No handler for message code: " + messageCode);
     }
-    gtNetRemoteExisting.setTokenRemote(remoteToken);
-    return gtNetJpaRepository.save(gtNetRemoteExisting);
+
+    // Look up remote GTNet (may be null for first handshake)
+    GTNet remoteGTNet = gtNetJpaRepository.findByDomainRemoteName(me.sourceDomain);
+
+    // Look up auto-response rules for this message code
+    Optional<GTNetMessageAnswer> autoResponseRules = gtNetMessageAnswerJpaRepository.findById(me.messageCode);
+
+    // Build context for the handler
+    GTNetMessageContext context = new GTNetMessageContext(myGTNet, remoteGTNet, me, autoResponseRules.orElse(null),
+        objectMapper);
+
+    // Get the handler and process the message
+    GTNetMessageHandler handler = handlerRegistry.getHandler(messageCode);
+    HandlerResult result = handler.handle(context);
+
+    // Process the result
+    return switch (result) {
+    case HandlerResult.ImmediateResponse r -> r.response();
+    case HandlerResult.AwaitingManualResponse r -> {
+      log.info("Message {} from {} awaiting manual response", messageCode, me.sourceDomain);
+      yield null;
+    }
+    case HandlerResult.NoResponseNeeded r -> null;
+    case HandlerResult.ProcessingError e -> {
+      log.error("Error processing message {}: {} - {}", messageCode, e.errorCode(), e.message());
+      yield buildErrorResponse(myGTNet, e.errorCode(), e.message());
+    }
+    };
+  }
+
+  /**
+   * Builds an error response envelope.
+   */
+  private MessageEnvelope buildErrorResponse(GTNet myGTNet, String errorCode, String message) {
+    GTNetMessage errorMsg = new GTNetMessage(null, new Date(), SendReceivedType.ANSWER.getValue(), null,
+        GTNetMessageCodeType.GT_NET_PING.getValue(), message, null);
+    errorMsg.setErrorMsgCode(errorCode);
+    MessageEnvelope errorEnvelope = new MessageEnvelope(myGTNet.getDomainRemoteName(), errorMsg);
+    return errorEnvelope;
   }
 
   @Override

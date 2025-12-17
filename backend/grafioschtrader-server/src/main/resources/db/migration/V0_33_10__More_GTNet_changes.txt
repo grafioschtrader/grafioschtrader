@@ -1,0 +1,2 @@
+ALTER TABLE `gt_net` ADD `server_busy` BOOLEAN NOT NULL DEFAULT FALSE AFTER `lastprice_use_detail_log`, 
+ADD `server_online` BOOLEAN NOT NULL DEFAULT FALSE AFTER `server_busy`; 
