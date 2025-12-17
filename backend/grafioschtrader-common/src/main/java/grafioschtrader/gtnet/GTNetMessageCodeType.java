@@ -5,23 +5,23 @@ import grafioschtrader.entities.GTNetMessage;
 /**
  * Enumerates all message types in the GTNet peer-to-peer communication protocol.
  *
- * <h3>Naming Convention</h3>
- * Message codes follow a structured naming pattern that indicates their purpose and behavior:
+ * <h3>Naming Convention</h3> Message codes follow a structured naming pattern that indicates their purpose and
+ * behavior:
  * <ul>
- *   <li><b>Suffix _C</b>: Client-initiated messages (triggered from UI or scheduled jobs)</li>
- *   <li><b>Suffix _S</b>: Server response messages (replies to requests)</li>
- *   <li><b>Contains _SEL_</b>: Targeted at a specific selected remote server</li>
- *   <li><b>Contains _ALL_</b>: Broadcast to all applicable remote servers</li>
+ * <li><b>Suffix _C</b>: Client-initiated messages (triggered from UI or scheduled jobs)</li>
+ * <li><b>Suffix _S</b>: Server response messages (replies to requests)</li>
+ * <li><b>Contains _SEL_</b>: Targeted at a specific selected remote server</li>
+ * <li><b>Contains _ALL_</b>: Broadcast to all applicable remote servers</li>
  * </ul>
  *
  * <h3>Message Workflows</h3>
  * <ol>
- *   <li><b>Handshake (1-3)</b>: Initial connection and token exchange between peers</li>
- *   <li><b>Server List (10-13)</b>: Discovery of other GTNet participants via peer sharing</li>
- *   <li><b>Last Price (20-24)</b>: Intraday price data sharing negotiation</li>
- *   <li><b>Entity (30-34)</b>: Historical/EOD data sharing negotiation</li>
- *   <li><b>Both (40-44)</b>: Combined entity and last price negotiation</li>
- *   <li><b>Notifications (50-51)</b>: Maintenance windows and shutdown announcements</li>
+ * <li><b>Handshake (1-3)</b>: Initial connection and token exchange between peers</li>
+ * <li><b>Server List (10-13)</b>: Discovery of other GTNet participants via peer sharing</li>
+ * <li><b>Last Price (20-24)</b>: Intraday price data sharing negotiation</li>
+ * <li><b>Entity (30-34)</b>: Historical/EOD data sharing negotiation</li>
+ * <li><b>Both (40-44)</b>: Combined entity and last price negotiation</li>
+ * <li><b>Notifications (50-51)</b>: Maintenance windows and shutdown announcements</li>
  * </ol>
  *
  * @see GTNetModelHelper for mapping message codes to payload model classes
@@ -80,10 +80,23 @@ public enum GTNetMessageCodeType {
   /** Exchange of all data is canceled */
   GT_NET_BOTH_REVOKE_SEL_C((byte) 44),
 
-  /** Server is in maintenance mode during time period */
-  GT_NET_MAINTENANCE_ALL_C((byte) 50),
+  /**
+   * The server has gone offline. It is unknown when it will be back online. Perhaps it will just be restarted or even
+   * shut down. Can also be triggered via the user interface.
+   **/
+  GT_NET_OFFLINE_ALL_C((byte) 50),
+  /** The server has been transferred online. The server may have been restarted. Can also be triggered via the user interface.*/
+  GT_NET_ONLINE_ALL_C((byte) 51),
+  /** The system is at full capacity and should no longer be contacted. Only your own status changes should be sent to this server. 
+   This setting can be changed via the user interface.
+  */
+  GT_NET_BUSY_ALL_C((byte) 52),
+  /** The server is no longer busy and can be contacted again. This setting can be changed via the user interface.  */
+  GT_NET_RELEASED_BUSY_ALL_C((byte) 53),
+  /** Server is in maintenance mode during time period */  
+  GT_NET_MAINTENANCE_ALL_C((byte) 54),
   /** Server operation will be discontinued as of this date. */
-  GT_NET_OPERATION_DISCONTINUED_ALL_C((byte) 51);
+  GT_NET_OPERATION_DISCONTINUED_ALL_C((byte) 55);
 
   private final byte value;
 

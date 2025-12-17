@@ -164,6 +164,20 @@ public class GTNet extends BaseID<Integer> {
   @Column(name = "lastprice_use_detail_log")
   private boolean lastpriceUseDetailLog;
 
+  @Schema(description = """
+      The system is at full capacity. This capacity is set by the administrator. 
+      In this state, only the server's own status changes may be sent to such a server.""")
+  @Column(name = "server_busy")
+  private boolean serverBusy;
+  
+  @Schema(description = """
+      This should reflect the current status of the system. No communication will take place with a system that is offline. 
+      This status is communicated to the other servers by starting and stopping the server. However, 
+      it can also be changed via the user interface.""")
+  @Column(name = "server_online")
+  private boolean serverOnline;
+  
+  
   public Integer getIdGtNet() {
     return idGtNet;
   }
@@ -294,6 +308,22 @@ public class GTNet extends BaseID<Integer> {
 
   public void setLastpriceUseDetailLog(boolean lastpriceUseDetailLog) {
     this.lastpriceUseDetailLog = lastpriceUseDetailLog;
+  }
+
+  public boolean isServerBusy() {
+    return serverBusy;
+  }
+
+  public void setServerBusy(boolean serverBusy) {
+    this.serverBusy = serverBusy;
+  }
+
+  public boolean isServerOnline() {
+    return serverOnline;
+  }
+
+  public void setServerOnline(boolean serverOnline) {
+    this.serverOnline = serverOnline;
   }
 
   @Override
