@@ -46,6 +46,8 @@ public enum TaskTypeExtended implements ITaskType {
   MONITOR_INTRADAY_PRICE_DATA((byte) 18),
   /** Stores the determined values of the user-defined fields of user 0. */
   UDF_USER_0_FILL_PERSISTENT_FIELDS_WITH_VALUES((byte) 19),
+  /** Checks and updates the online/busy status of all configured GTNet servers. */
+  GTNET_SERVER_STATUS_CHECK((byte) 20),
 
   // Task which used oldValueNumber or oldValueString can not created by the admin
   ///////////////////////////////////////////////////////////////////////////////

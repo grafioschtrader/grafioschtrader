@@ -21,7 +21,13 @@
       "Bash(tree:*)",
       "Bash(dir /b \"C:\\SoftwareProjekte\\Hugos\\grafioschtrader\\backend\")",
       "Bash(dir /b \"C:\\SoftwareProjekte\\Hugos\\grafioschtrader\\frontend\\src\")",
-      "Bash(del \"C:\\SoftwareProjekte\\Hugos\\grafioschtrader\\frontend\\src\\app\\gtnet\\component\\gtnet-exchange-table.component.ts\")"
+      "Bash(del \"C:\\SoftwareProjekte\\Hugos\\grafioschtrader\\frontend\\src\\app\\gtnet\\component\\gtnet-exchange-table.component.ts\")",
+      "Bash(git -C \"C:\\SoftwareProjekte\\Hugos\\grafioschtrader\" log --oneline -3)",
+      "Bash(git -C \"C:\\SoftwareProjekte\\Hugos\\grafioschtrader\" commit -m \"$(cat <<''EOF''\nContinue on #143 GTNet changes\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git -C \"C:\\SoftwareProjekte\\Hugos\\grafioschtrader\" push pi master)",
+      "Bash(mvn:*)",
+      "Bash(npm run lint:*)",
+      "Bash(git -C \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\" checkout HEAD -- \"backend/grafioschtrader-common/src/main/resources/message/messages_de.properties\" \"backend/grafioschtrader-common/src/main/resources/message/messages.properties\")"
     ],
     "deny": [],
     "ask": []

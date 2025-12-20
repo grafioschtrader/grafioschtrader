@@ -6,14 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import grafiosch.rest.UpdateCreateDeleteAudit;
 import grafiosch.rest.UpdateCreateJpaRepository;
-import grafioschtrader.GlobalConstants;
+import grafiosch.rest.UpdateCreateResource;
 import grafioschtrader.entities.GTNet;
 import grafioschtrader.gtnet.model.GTNetWithMessages;
 import grafioschtrader.gtnet.model.MsgRequest;
@@ -25,7 +25,7 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping(RequestGTMappings.GTNET_MAP)
 @Tag(name = RequestGTMappings.GTNET, description = "Controller for gtnet")
-public class GTNetResource extends UpdateCreateDeleteAudit<GTNet> {
+public class GTNetResource extends UpdateCreateResource<GTNet> {
 
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
@@ -43,15 +43,16 @@ public class GTNetResource extends UpdateCreateDeleteAudit<GTNet> {
     return new ResponseEntity<>(gtNetJpaRepository.submitMsg(msgRequest), HttpStatus.OK);
   }
 
+//  @Operation(summary = "Update a GTNet entity", description = "Updates editable fields of a GTNet entry. When serverBusy status changes, notifies all connected peers.", tags = {
+//      RequestGTMappings.GTNET })
+//  @PutMapping(produces = APPLICATION_JSON_VALUE)
+//  public ResponseEntity<GTNet> updateGTNet(@Valid @RequestBody final GTNet gtNet) throws Exception {
+//    return new ResponseEntity<>(gtNetJpaRepository.saveOnlyAttributes(gtNet), HttpStatus.OK);
+//  }
+
   @Override
   protected UpdateCreateJpaRepository<GTNet> getUpdateCreateJpaRepository() {
     return gtNetJpaRepository;
-  }
-
-  
-  @Override
-  protected String getPrefixEntityLimit() {
-    return GlobalConstants.GT_LIMIT_DAY;
   }
 
 }

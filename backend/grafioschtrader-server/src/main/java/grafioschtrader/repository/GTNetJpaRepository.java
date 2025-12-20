@@ -3,6 +3,7 @@ package grafioschtrader.repository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import grafiosch.rest.UpdateCreateJpaRepository;
 import grafioschtrader.entities.GTNet;
@@ -44,7 +45,7 @@ public interface GTNetJpaRepository
    * @param lastpriceServerState the required server state (typically SS_OPEN = 4)
    * @return list of domains matching both criteria
    */
-  List<GTNet> findByLastpriceConsumerUsageAndLastpriceServerState(byte lastpriceConsumerUsage,
+  List<GTNet> findByGtNetConfig_LastpriceConsumerUsageAndLastpriceServerState(byte lastpriceConsumerUsage,
       byte lastpriceServerState);
 
   /**
@@ -56,5 +57,15 @@ public interface GTNetJpaRepository
    * @return the matching GTNet entry, or null if not found
    */
   GTNet findByDomainRemoteName(String domainRemoteName);
+
+  /**
+   * Finds GTNet entries that have any data exchange configured.
+   * Returns entries where the associated GTNetConfig has either lastpriceExchange > 0 or entityExchange > 0.
+   * Used to determine which remote instances should be notified about this server's online/offline status.
+   *
+   * @return list of GTNet entries with configured data exchange
+   */
+  @Query("SELECT g FROM GTNet g WHERE g.gtNetConfig IS NOT NULL AND (g.gtNetConfig.lastpriceExchange > 0 OR g.gtNetConfig.entityExchange > 0)")
+  List<GTNet> findWithConfiguredExchange();
 
 }

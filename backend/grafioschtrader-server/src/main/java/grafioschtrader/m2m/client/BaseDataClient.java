@@ -1,5 +1,7 @@
 package grafioschtrader.m2m.client;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -43,6 +45,23 @@ import reactor.netty.http.client.HttpClient;
 @Service
 public class BaseDataClient {
 
+  private static final Logger log = LoggerFactory.getLogger(BaseDataClient.class);
+
+  /**
+   * Result wrapper for M2M message sending operations.
+   * Indicates whether the target server is reachable and provides the response if successful.
+   */
+  public record SendResult(boolean serverReachable, MessageEnvelope response, boolean serverBusy) {
+
+    public static SendResult success(MessageEnvelope response) {
+      return new SendResult(true, response, response != null && response.serverBusy);
+    }
+
+    public static SendResult unreachable() {
+      return new SendResult(false, null, false);
+    }
+  }
+
   /**
    * Retrieves application metadata from a remote instance's actuator endpoint.
    *
@@ -75,19 +94,47 @@ public class BaseDataClient {
    * @throws WebClientRequestException if the remote is unreachable
    */
   public MessageEnvelope sendToMsg(String tokenRemote, String targetDomain, MessageEnvelope messageEnvelope) {
-    WebClient.RequestBodySpec requestSpec = getWebClientForDomain(targetDomain).post()
-        .uri(uriBuilder -> uriBuilder.path(RequestGTMappings.GTNET_M2M_MAP).build())
-        .contentType(org.springframework.http.MediaType.APPLICATION_JSON);
+    return sendToMsgWithStatus(tokenRemote, targetDomain, messageEnvelope).response();
+  }
 
-    if (tokenRemote != null) {
-      requestSpec = requestSpec.header(GTNetM2MResource.AUTHORIZATION_HEADER, tokenRemote);
+  /**
+   * Sends a GTNet message to a remote instance and returns detailed status information.
+   *
+   * This method wraps the HTTP call with error handling to distinguish between:
+   * - Server reachable and responded (serverReachable=true, response contains data)
+   * - Server unreachable due to network/connection error (serverReachable=false)
+   *
+   * @param tokenRemote the authentication token received from the remote during handshake
+   * @param targetDomain the base URL of the remote instance
+   * @param messageEnvelope the message to send
+   * @return SendResult containing reachability status, response, and remote server's busy flag
+   */
+  public SendResult sendToMsgWithStatus(String tokenRemote, String targetDomain, MessageEnvelope messageEnvelope) {
+    try {
+      WebClient.RequestBodySpec requestSpec = getWebClientForDomain(targetDomain).post()
+          .uri(uriBuilder -> uriBuilder.path(RequestGTMappings.GTNET_M2M_MAP).build())
+          .contentType(org.springframework.http.MediaType.APPLICATION_JSON);
+
+      if (tokenRemote != null) {
+        requestSpec = requestSpec.header(GTNetM2MResource.AUTHORIZATION_HEADER, tokenRemote);
+      }
+
+      MessageEnvelope response = requestSpec
+          .body(Mono.just(messageEnvelope), MessageEnvelope.class)
+          .retrieve()
+          .bodyToMono(MessageEnvelope.class)
+          .block();
+
+      return SendResult.success(response);
+    } catch (WebClientRequestException e) {
+      // Connection error - server is unreachable
+      log.warn("GTNet server unreachable at {}: {}", targetDomain, e.getMessage());
+      return SendResult.unreachable();
+    } catch (WebClientResponseException e) {
+      // Server responded with an error status (4xx, 5xx) - server is reachable but returned error
+      log.warn("GTNet server at {} returned error status {}: {}", targetDomain, e.getStatusCode(), e.getMessage());
+      return SendResult.success(null);
     }
-
-    return requestSpec
-        .body(Mono.just(messageEnvelope), MessageEnvelope.class)
-        .retrieve()
-        .bodyToMono(MessageEnvelope.class)
-        .block();
   }
 
   /**

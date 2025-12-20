@@ -3,7 +3,9 @@ package grafioschtrader.gtnet.handler.impl;
 import org.springframework.stereotype.Component;
 
 import grafioschtrader.entities.GTNet;
+import grafioschtrader.entities.GTNetConfig;
 import grafioschtrader.entities.GTNetMessage;
+import grafioschtrader.gtnet.GTNetExchangeStatusTypes;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.GTNetServerStateTypes;
 import grafioschtrader.gtnet.handler.AbstractRequestHandler;
@@ -53,6 +55,13 @@ public class BothRequestHandler extends AbstractRequestHandler {
       remoteGTNet.setAcceptLastpriceRequest(true);
       remoteGTNet.setLastpriceServerState(GTNetServerStateTypes.SS_OPEN);
       saveRemoteGTNet(remoteGTNet);
+      // Update GTNetConfig exchange status for both types to bidirectional
+      GTNetConfig gtNetConfig = remoteGTNet.getGtNetConfig();
+      if (gtNetConfig != null) {
+        gtNetConfig.setEntityExchange(GTNetExchangeStatusTypes.ES_BOTH);
+        gtNetConfig.setLastpriceExchange(GTNetExchangeStatusTypes.ES_BOTH);
+        saveGTNetConfig(gtNetConfig);
+      }
     } else if (responseCode == GTNetMessageCodeType.GT_NET_BOTH_REQUEST_IN_PROCESS_S) {
       // In process - no state change yet
     } else if (responseCode == GTNetMessageCodeType.GT_NET_BOTH_REQUEST_REJECTED_S) {
