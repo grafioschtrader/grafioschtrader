@@ -2,7 +2,7 @@ import {Component} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {CrudMenuOptions, TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
-import {GTNet, GTNetWithMessages} from '../model/gtnet';
+import {GTNet, GTNetCallParam, GTNetWithMessages} from '../model/gtnet';
 import {GTNetMessage, MsgCallParam} from '../model/gtnet.message';
 import {GTNetService} from '../service/gtnet.service';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
@@ -95,7 +95,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   minDate: Date = new Date('2000-01-01');
   maxDate: Date = new Date('2099-12-31');
   private readonly domainRemoteName = 'domainRemoteName';
-  callParam: GTNet;
+  callParam: GTNetCallParam;
   gtNetList: GTNet[];
   gtNetMyEntryId: number;
   gtNetMessageMap: { [key: number]: GTNetMessage[] };
@@ -147,7 +147,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   }
 
   override prepareCallParam(entity: GTNet): void {
-    this.callParam = entity;
+    this.callParam = {gtNet: entity, isMyEntry: !!entity && this.isMyEntry(entity, null)};
   }
 
   protected override readData(): void {

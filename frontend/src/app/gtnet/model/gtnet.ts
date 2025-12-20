@@ -123,3 +123,8 @@ export interface GTSecuritiyCurrencyExchange {
   exchangeMap: { [idSecuritycurrency: number]: GTNetExchange };
   idSecuritycurrenies: number[];
 }
+
+export interface GTNetCallParam {
+  gtNet: GTNet;
+  isMyEntry: boolean;
+}
