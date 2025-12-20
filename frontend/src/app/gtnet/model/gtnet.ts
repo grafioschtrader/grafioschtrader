@@ -18,6 +18,13 @@ export class GTNet implements BaseID {
   acceptLastpriceRequest = false;
   lastpriceConsumerUsage: number;
   lastpriceUseDetailLog = 0;
+  serverBusy = false;
+  serverOnline: number | GTNetServerOnlineStatusTypes = GTNetServerOnlineStatusTypes.SOS_UNKNOWN;
+
+  // Computed properties from GTNetConfig (read-only)
+  authorized = false;
+  lastpriceExchange: number | GTNetExchangeStatusTypes = GTNetExchangeStatusTypes.ES_NO_EXCHANGE;
+  entityExchange: number | GTNetExchangeStatusTypes = GTNetExchangeStatusTypes.ES_NO_EXCHANGE;
 
   getId(): number {
     return this.idGtNet;
@@ -43,6 +50,19 @@ export enum GTNetServerStateTypes {
   SS_CLOSED = 1,
   SS_MAINTENANCE = 2,
   SS_OPEN = 3
+}
+
+export enum GTNetServerOnlineStatusTypes {
+  SOS_UNKNOWN = 0,
+  SOS_ONLINE = 1,
+  SOS_OFFLINE = 2
+}
+
+export enum GTNetExchangeStatusTypes {
+  ES_NO_EXCHANGE = 0,
+  ES_SEND = 1,
+  ES_RECEIVE = 2,
+  ES_BOTH = 3
 }
 
 /**

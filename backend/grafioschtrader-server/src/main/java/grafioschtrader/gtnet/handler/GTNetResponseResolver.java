@@ -25,11 +25,11 @@ import grafioschtrader.repository.GTNetMessageAnswerJpaRepository;
  * Uses EvalEx expression engine to evaluate conditions defined in GTNetMessageAnswer entities. Conditions can reference
  * variables such as:
  * <ul>
- *   <li>{@code hour} - Current hour of day (0-23)</li>
- *   <li>{@code dayOfWeek} - Day of week (1=Monday, 7=Sunday)</li>
- *   <li>{@code dailyCount} - Number of requests from this domain today</li>
- *   <li>{@code requesterTimezone} - Timezone of the requesting server</li>
- *   <li>Any parameter from the message payload</li>
+ * <li>{@code hour} - Current hour of day (0-23)</li>
+ * <li>{@code dayOfWeek} - Day of week (1=Monday, 7=Sunday)</li>
+ * <li>{@code dailyCount} - Number of requests from this domain today</li>
+ * <li>{@code requesterTimezone} - Timezone of the requesting server</li>
+ * <li>Any parameter from the message payload</li>
  * </ul>
  *
  * Conditions are evaluated in order (1, 2, 3). The first matching condition determines the response. If no condition
@@ -65,20 +65,20 @@ public class GTNetResponseResolver {
 
     // Evaluate condition 1
     if (evaluateCondition(rules.getResponseMsgConditional1(), evalContext)) {
-      return Optional
-          .of(new ResolvedResponse(rules.getResponseMsgCode1(), rules.getResponseMsgMessage1(), rules.getWaitDaysAplly()));
+      return Optional.of(
+          new ResolvedResponse(rules.getResponseMsgCode1(), rules.getResponseMsgMessage1(), rules.getWaitDaysAplly()));
     }
 
     // Evaluate condition 2
     if (rules.getResponseMsgCode2() != null && evaluateCondition(rules.getResponseMsgConditional2(), evalContext)) {
-      return Optional
-          .of(new ResolvedResponse(rules.getResponseMsgCode2(), rules.getResponseMsgMessage2(), rules.getWaitDaysAplly()));
+      return Optional.of(
+          new ResolvedResponse(rules.getResponseMsgCode2(), rules.getResponseMsgMessage2(), rules.getWaitDaysAplly()));
     }
 
     // Evaluate condition 3
     if (rules.getResponseMsgCode3() != null && evaluateCondition(rules.getResponseMsgConditional3(), evalContext)) {
-      return Optional
-          .of(new ResolvedResponse(rules.getResponseMsgCode3(), rules.getResponseMsgMessage3(), rules.getWaitDaysAplly()));
+      return Optional.of(
+          new ResolvedResponse(rules.getResponseMsgCode3(), rules.getResponseMsgMessage3(), rules.getWaitDaysAplly()));
     }
 
     // No condition matched
@@ -103,20 +103,20 @@ public class GTNetResponseResolver {
 
     // Evaluate condition 1
     if (evaluateCondition(rules.getResponseMsgConditional1(), evalContext)) {
-      return Optional
-          .of(new ResolvedResponse(rules.getResponseMsgCode1(), rules.getResponseMsgMessage1(), rules.getWaitDaysAplly()));
+      return Optional.of(
+          new ResolvedResponse(rules.getResponseMsgCode1(), rules.getResponseMsgMessage1(), rules.getWaitDaysAplly()));
     }
 
     // Evaluate condition 2
     if (rules.getResponseMsgCode2() != null && evaluateCondition(rules.getResponseMsgConditional2(), evalContext)) {
-      return Optional
-          .of(new ResolvedResponse(rules.getResponseMsgCode2(), rules.getResponseMsgMessage2(), rules.getWaitDaysAplly()));
+      return Optional.of(
+          new ResolvedResponse(rules.getResponseMsgCode2(), rules.getResponseMsgMessage2(), rules.getWaitDaysAplly()));
     }
 
     // Evaluate condition 3
     if (rules.getResponseMsgCode3() != null && evaluateCondition(rules.getResponseMsgConditional3(), evalContext)) {
-      return Optional
-          .of(new ResolvedResponse(rules.getResponseMsgCode3(), rules.getResponseMsgMessage3(), rules.getWaitDaysAplly()));
+      return Optional.of(
+          new ResolvedResponse(rules.getResponseMsgCode3(), rules.getResponseMsgMessage3(), rules.getWaitDaysAplly()));
     }
 
     return Optional.empty();
@@ -130,8 +130,11 @@ public class GTNetResponseResolver {
 
     if (remoteGTNet != null) {
       ctx.requesterTimezone = remoteGTNet.getTimeZone();
-      ctx.dailyCount = remoteGTNet.getDailyRequestLimitCount() != null ? remoteGTNet.getDailyRequestLimitCount() : 0;
-      ctx.dailyLimit = remoteGTNet.getDailyRequestLimit() != null ? remoteGTNet.getDailyRequestLimit() : Integer.MAX_VALUE;
+      ctx.dailyCount = remoteGTNet.getGtNetConfig().getDailyRequestLimitCount() != null
+          ? remoteGTNet.getGtNetConfig().getDailyRequestLimitCount()
+          : 0;
+      ctx.dailyLimit = remoteGTNet.getDailyRequestLimit() != null ? remoteGTNet.getDailyRequestLimit()
+          : Integer.MAX_VALUE;
     }
 
     // Add message parameters as context variables
@@ -177,9 +180,9 @@ public class GTNetResponseResolver {
   /**
    * Container for resolved response information.
    *
-   * @param responseCode   the message code to respond with
-   * @param message        optional text message to include
-   * @param waitDaysApply  cooling-off period after this response
+   * @param responseCode  the message code to respond with
+   * @param message       optional text message to include
+   * @param waitDaysApply cooling-off period after this response
    */
   public record ResolvedResponse(GTNetMessageCodeType responseCode, String message, String waitDaysApply) {
   }

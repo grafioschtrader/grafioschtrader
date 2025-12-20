@@ -1,7 +1,7 @@
 {
   "ACCEPTED": "Akzeptiert",
-  "ACCEPT_ENTITY_REQUEST": "Entitäten Austausch",
-  "ACCEPT_LASTPRICE_REQUEST": "LP entfernte Domäne",
+  "ACCEPT_ENTITY_REQUEST": "Kann Entitäten Austausch",
+  "ACCEPT_LASTPRICE_REQUEST": "Kann LP Austausch",
   "ACCEPT_LASTPRICE_REQUEST_TOOLTIP": "Entfernte Domäne nutzt diesen letzten Preis Server",
   "ACCEPT_TOTAL_DIFF": "Differenz Gesamtsumme akzeptieren",
   "ACCEPT_TOTAL_DIFF_TITLE": "Die geringe Abweichung zwischen der errechneten und der importierten Gesamtsumme wird akzeptiert",
@@ -233,6 +233,7 @@
   "GROUP_BY_SUB_CATEGORY": "Unter Anlageklasse gruppiert",
   "GT_NET_AUTO_ANSWER": "Automatische Nachricht",
   "GT_NET_COMM_REQUIREMENT": "Die Kommunikation mit anderen Teilnehmern bedingt die Eintragung Ihres GT-Server. Dabei muss Ihr Server von aussen erreichbar sein.",
+  "GT_NET_COMM_REQUIREMENT_REMOTE": "Nun müssen Sie noch eine weitere erreichbare Instanz für die Kommunikation erfassen.",
   "GT_NET_CONSUME_MONITOR": "GT-Netz Nutzungs-Monitor",
   "GT_NET_EXCHANGE": "Austausch Preisdaten",
   "GT_NET_EXCHANGE_CURRENCYPAIRS": "Austausch Preisdaten Währungspaare",

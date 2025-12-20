@@ -49,6 +49,12 @@ public class MessageEnvelope {
       Structure defined by GTNetModelHelper for each message type.""")
   public Map<String, GTNetMessageParam> gtNetMessageParamMap;
 
+  @Schema(description = """
+      Indicates whether the sending server is currently busy. When true, the recipient should limit communication to
+      server status changes only. This flag is set from the source GTNet entry's serverBusy field and allows
+      capacity-constrained servers to reduce message load.""")
+  public boolean serverBusy;
+  
   @Schema(description = "Optional free-text message for human-readable context or notes.")
   public String message;
 
@@ -56,16 +62,28 @@ public class MessageEnvelope {
       Optional JSON payload for complex, type-specific data. Used during handshake to transmit the full GTNet
       entity of the sender. Can contain any serializable object based on the message code.""")
   public JsonNode payload;
-
+  
   public MessageEnvelope() {
   }
 
   public MessageEnvelope(String sourceDomain, GTNetMessage gtNetMsg) {
+    this(sourceDomain, gtNetMsg, false);
+  }
+
+  /**
+   * Creates a new MessageEnvelope with the source server's busy status.
+   *
+   * @param sourceDomain the base URL of the sending domain
+   * @param gtNetMsg the message to wrap
+   * @param serverBusy whether the source server is currently busy
+   */
+  public MessageEnvelope(String sourceDomain, GTNetMessage gtNetMsg, boolean serverBusy) {
     this.sourceDomain = sourceDomain;
     this.idSourceGtNetMessage = gtNetMsg.getIdGtNetMessage();
     this.timestamp = gtNetMsg.getTimestamp();
     this.messageCode = gtNetMsg.getMessageCode().getValue();
     this.gtNetMessageParamMap = gtNetMsg.getGtNetMessageParamMap();
     this.message = gtNetMsg.getMessage();
+    this.serverBusy = serverBusy;
   }
 }

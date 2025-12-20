@@ -1,0 +1,24 @@
+PS C:\SoftwareProjekte\Hugos\grafioschtrader\frontend> npm start 
+
+> grafioschtrader-client@0.33.9 start
+> ng serve  --proxy-config proxy.conf.json
+
+Initial chunk files | Names         |  Raw size
+scripts.js          | scripts       |   7.08 MB | 
+main.js             | main          |   3.84 MB | 
+styles.css          | styles        | 541.08 kB | 
+polyfills.js        | polyfills     |  95 bytes | 
+
+                    | Initial total |  11.46 MB
+
+Application bundle generation complete. [10.244 seconds] - 2025-12-17T20:34:54.496Z
+
+▲ [WARNING] NG8113: DatePicker is not used within the template of GTNetSetupTableComponent [plugin angular-compiler]
+
+    src/app/gtnet/component/gtnet.setup.table.component.ts:40:4:
+      40 │     DatePicker,
+         ╵     ~~~~~~~~~~                                                                                                                                                                
+
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.

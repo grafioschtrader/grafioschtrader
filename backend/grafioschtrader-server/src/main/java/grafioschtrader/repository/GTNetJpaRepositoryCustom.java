@@ -21,6 +21,17 @@ import grafioschtrader.gtnet.model.MsgRequest;
 public interface GTNetJpaRepositoryCustom extends BaseRepositoryCustom<GTNet> {
 
   /**
+   * Updates a GTNet entity with selective attribute modifications.
+   * Only attributes marked with appropriate update annotations will be changed.
+   * When serverBusy status changes, automatically notifies all connected peers.
+   *
+   * @param gtNet the entity containing new values to save
+   * @return the updated GTNet entity
+   * @throws Exception if the save operation fails or validation errors occur
+   */
+  GTNet saveOnlyAttributes(GTNet gtNet) throws Exception;
+
+  /**
    * Retrieves all GTNet domains with their associated message history.
    *
    * Combines multiple queries into a single response for efficient UI rendering:

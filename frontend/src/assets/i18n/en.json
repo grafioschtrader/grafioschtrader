@@ -1,7 +1,7 @@
 {
   "ACCEPTED": "Accepted",
-  "ACCEPT_ENTITY_REQUEST": "Entity Exchange",
-  "ACCEPT_LASTPRICE_REQUEST": "LP remote domain",
+  "ACCEPT_ENTITY_REQUEST": "Can entity exchange",
+  "ACCEPT_LASTPRICE_REQUEST": "Can LP exchange",
   "ACCEPT_LASTPRICE_REQUEST_TOOLTIP": "Remote domain uses this last price server",
   "ACCEPT_TOTAL_DIFF": "Accept difference total",
   "ACCEPT_TOTAL_DIFF_TITLE": "The small deviation between the calculated and the imported total is accepted",
@@ -234,6 +234,7 @@
   "GROUP_BY_SUB_CATEGORY": "Grouped by Sub-asset class",
   "GT_NET_AUTO_ANSWER": "Automatic message",
   "GT_NET_COMM_REQUIREMENT": "The communication with other participants requires the registration of your GT-Server. Your server must be accessible from outside.",
+  "GT_NET_COMM_REQUIREMENT_REMOTE": "Now you need to enter another accessible instance for communication.",
   "GT_NET_CONSUME_MONITOR": "GT Net consumer monitor",
   "GT_NET_EXCHANGE": "Exchange price data",
   "GT_NET_EXCHANGE_CURRENCYPAIRS": "Exchange currency pair price data",

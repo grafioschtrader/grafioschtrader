@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import grafiosch.common.DataHelper;
 import grafioschtrader.entities.GTNet;
+import grafioschtrader.entities.GTNetConfig;
 import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.entities.GTNetMessage.GTNetMessageParam;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
@@ -18,6 +19,7 @@ import grafioschtrader.gtnet.handler.HandlerResult;
 import grafioschtrader.gtnet.handler.ValidationResult;
 import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.gtnet.model.msg.FirstHandshakeMsg;
+import grafioschtrader.repository.GTNetConfigJpaRepository;
 import grafioschtrader.repository.GTNetJpaRepository;
 
 /**
@@ -42,6 +44,9 @@ public class FirstHandshakeRequestHandler extends AbstractGTNetMessageHandler {
 
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
+
+  @Autowired
+  private GTNetConfigJpaRepository gtNetConfigJpaRepository;
 
   @Override
   public GTNetMessageCodeType getSupportedMessageCode() {
@@ -68,13 +73,14 @@ public class FirstHandshakeRequestHandler extends AbstractGTNetMessageHandler {
     // 3. Extract their GTNet entity from payload
     GTNet remoteGTNet = context.getPayloadAs(GTNet.class);
 
-    // 4. Store or update the remote GTNet entry
+    // 4. Store or update the remote GTNet entry and its config
     GTNet processedRemoteGTNet = addOrUpdateRemoteGTNet(remoteGTNet, theirTokenForUs);
 
-    // 5. Generate our token for them
+    // 5. Generate our token for them and store in GTNetConfig
     String ourTokenForThem = DataHelper.generateGUID();
-    processedRemoteGTNet.setTokenThis(ourTokenForThem);
-    gtNetJpaRepository.save(processedRemoteGTNet);
+    GTNetConfig gtNetConfig = processedRemoteGTNet.getGtNetConfig();
+    gtNetConfig.setTokenThis(ourTokenForThem);
+    gtNetConfigJpaRepository.save(gtNetConfig);
 
     // 6. Store the incoming handshake message
     GTNetMessage storedRequest = storeHandshakeRequest(context, processedRemoteGTNet);
@@ -111,8 +117,14 @@ public class FirstHandshakeRequestHandler extends AbstractGTNetMessageHandler {
       existing = remoteGTNet;
       existing.setIdGtNet(null); // Ensure new entity
     }
-    // Store their token (what we use to authenticate to them)
-    existing.setTokenRemote(theirTokenForUs);
+    // Create or get GTNetConfig and store their token (what we use to authenticate to them)
+    GTNetConfig gtNetConfig = existing.getGtNetConfig();
+    if (gtNetConfig == null) {
+      gtNetConfig = new GTNetConfig();
+    }
+    gtNetConfig.setTokenRemote(theirTokenForUs);
+    gtNetConfig = gtNetConfigJpaRepository.save(gtNetConfig);
+    existing.setGtNetConfig(gtNetConfig);
     return gtNetJpaRepository.save(existing);
   }
 

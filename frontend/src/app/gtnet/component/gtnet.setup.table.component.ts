@@ -14,19 +14,18 @@ import {GlobalparameterService} from '../../lib/services/globalparameter.service
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {AppSettings} from '../../shared/app.settings';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {TranslateValue} from '../../lib/datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {HelpIds} from '../../lib/help/help.ids';
 import {GTNetMessageTreeTableComponent} from './gtnet-message-treetable.component';
 import {combineLatest} from 'rxjs';
 import {GTNetMessageService} from '../service/gtnet.message.service';
 import {ClassDescriptorInputAndShow} from '../../lib/dynamicfield/field.descriptor.input.and.show';
 import {BaseSettings} from '../../lib/base.settings';
-import {TableModule} from 'primeng/table';
 import {ContextMenuModule} from 'primeng/contextmenu';
 import {TooltipModule} from 'primeng/tooltip';
-import {DatePicker} from 'primeng/datepicker';
 import {GTNetEditComponent} from './gtnet-edit.component';
 import {GTNetMessageEditComponent} from './gtnet-message-edit.component';
+import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 
 @Component({
   standalone: true,
@@ -34,116 +33,48 @@ import {GTNetMessageEditComponent} from './gtnet-message-edit.component';
     CommonModule,
     FormsModule,
     TranslateModule,
-    TableModule,
+    ConfigurableTableComponent,
     ContextMenuModule,
     TooltipModule,
-    DatePicker,
     GTNetEditComponent,
     GTNetMessageEditComponent,
     GTNetMessageTreeTableComponent
   ],
   template: `
-    <div class="data-container" (click)="onComponentClick($event)" #cmDiv
-         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
-      <p-table #table [columns]="fields" [value]="gtNetList" selectionMode="single"
-               [(selection)]="selectedEntity" dataKey="idGtNet"
-               sortMode="multiple" [multiSortMeta]="multiSortMeta"
-               (sortFunction)="customSort($event)" [customSort]="true"
-               stripedRows showGridlines>
-        <ng-template #caption>
-          <h4>{{ 'GT_NET_NET_AND_MESSAGE' | translate }}</h4>
-          @if (!gtNetMyEntryId) {
-            <h5 style="color:red;">{{ 'GT_NET_COMM_REQUIREMENT' | translate }}</h5>
-          }
-        </ng-template>
-        <ng-template #header let-fields>
-          <tr>
-            <th style="width:24px"></th>
-            @for (field of fields; track field) {
-              <th [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated"
-                  [style.max-width.px]="field.width"
-                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-                {{ field.headerTranslated }}
-                <p-sortIcon [field]="field.field"></p-sortIcon>
-              </th>
-            }
-          </tr>
-          @if (hasFilter) {
-            <tr>
-              @for (field of fields; track field) {
-                <th style="overflow:visible;">
-                  @switch (field.filterType) {
-                    @case (FilterType.likeDataType) {
-                      @switch (field.dataType) {
-                        @case (field.dataType === DataType.DateString || field.dataType === DataType.DateNumeric ? field.dataType : '') {
-                          <p-columnFilter [field]="field.field" display="menu" [showOperator]="true"
-                                          [matchModeOptions]="customMatchModeOptions" [matchMode]="'gtNoFilter'">
-                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                              <p-datepicker #cal [ngModel]="value" [dateFormat]="baseLocale.dateFormat"
-                                            (onSelect)="filter($event)"
-                                            [minDate]="minDate" [maxDate]="maxDate"
-                                            (onInput)="filter(cal.value)">
-                              </p-datepicker>
-                            </ng-template>
-                          </p-columnFilter>
-                        }
-                        @case (DataType.Numeric) {
-                          <p-columnFilter type="numeric" [field]="field.field"
-                                          [locale]="formLocale"
-                                          minFractionDigits="2" display="menu"></p-columnFilter>
-                        }
-                      }
-                    }
-                  }
-                </th>
-              }
-            </tr>
-          }
-        </ng-template>
-        <ng-template #body let-expanded="expanded" let-el let-columns="fields">
-          <tr [pSelectableRow]="el">
-            <td>
-              @if (gtNetMessageMap[el.idGtNet]) {
-                <a href="#" [pRowToggler]="el">
-                  <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
-                </a>
-              }
-            </td>
-            @for (field of fields; track field) {
-              <td [ngClass]="(field.dataType===DataType.NumericShowZero || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-end': ''" [style.max-width.px]="field.width"
-                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-                @switch (field.templateName) {
-                  @case ('myEntry') {
-                    <span [style]='el.idGtNet === gtNetMyEntryId ? "font-weight:500": null'>
-                     {{ getValueByPath(el, field) }}</span>
-                  }
-                  @case ('check') {
-                    <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>
-                  }
-                  @default {
-                    <span [pTooltip]="getValueByPath(el, field)"
-                          tooltipPosition="top">{{ getValueByPath(el, field) }}</span>
-                  }
-                }
-              </td>
-            }
-          </tr>
-        </ng-template>
-        <ng-template #expandedrow let-el let-columns="fields">
-          <tr>
-            <td [attr.colspan]="numberOfVisibleColumns + 1" style="overflow:visible;">
-              <gtnet-message-treetable [gtNetMessages]="gtNetMessageMap[el.idGtNet]"
-                                       [formDefinitions]="formDefinitions">
-              </gtnet-message-treetable>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
-      @if (contextMenuItems) {
-        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
-      }
-    </div>
+    <configurable-table
+      [data]="gtNetList"
+      [fields]="fields"
+      [dataKey]="'idGtNet'"
+      [(selection)]="selectedEntity"
+      [contextMenuItems]="contextMenuItems"
+      [showContextMenu]="true"
+      [containerClass]="{'data-container-full': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+      [expandable]="true"
+      [expandedRowTemplate]="expandedRow"
+      [canExpandFn]="canExpand.bind(this)"
+      [ownerHighlightFn]="isMyEntry.bind(this)"
+      [valueGetterFn]="getValueByPath.bind(this)"
+      (componentClick)="onComponentClick($event)">
+
+      <h4 caption>{{ 'GT_NET_NET_AND_MESSAGE' | translate }}
+        @if (!gtNetMyEntryId) {
+          <div>
+            <span style="color:red; font-size: 80%">{{ 'GT_NET_COMM_REQUIREMENT' | translate }}</span>
+          </div>
+        } @else if (gtNetList.length === 1) {
+          <div>
+            <span style="color:blue; font-size: 80%">{{ 'GT_NET_COMM_REQUIREMENT_REMOTE' | translate }}</span>
+          </div>
+        }
+      </h4>
+
+    </configurable-table>
+
+    <ng-template #expandedRow let-row>
+      <gtnet-message-treetable [gtNetMessages]="gtNetMessageMap[row.idGtNet]"
+                               [formDefinitions]="formDefinitions">
+      </gtnet-message-treetable>
+    </ng-template>
 
     @if (visibleDialog) {
       <gtnet-edit [visibleDialog]="visibleDialog"
@@ -185,21 +116,30 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
 
     super(AppSettings.GT_NET, gtNetService, confirmationService, messageToastService, activePanelService,
       dialogService, filterService, translateService, gps, usersettingsService,
-      gps.hasRole(BaseSettings.ROLE_ADMIN) ? [CrudMenuOptions.Allow_Create,
-        CrudMenuOptions.Allow_Delete] : []);
+      gps.hasRole(BaseSettings.ROLE_ADMIN) ? [CrudMenuOptions.Allow_Create, CrudMenuOptions.Allow_Edit] : []);
 
     this.addColumnFeqH(DataType.String, this.domainRemoteName, true, false,
-      {width: 200, templateName: 'myEntry'});
+      {width: 200, templateName: 'owner'});
     this.addColumnFeqH(DataType.String, 'timeZone', true, false, {width: 120});
     this.addColumnFeqH(DataType.Boolean, 'spreadCapability', true, false,
       {templateName: 'check'});
-    this.addColumnFeqH(DataType.Boolean, 'acceptEntityRequest', true, false,
+    this.addColumnFeqH(DataType.String, 'serverOnline', true, false,
+      {translateValues: TranslateValue.NORMAL});
+    this.addColumnFeqH(DataType.Boolean, 'serverBusy', true, false,
+      {templateName: 'check'});
+    this.addColumnFeqH(DataType.Boolean, 'authorized', true, false,
+      {templateName: 'check'});
+    this.addColumnFeqH(DataType.Boolean, 'acceptLastpriceRequest', true, false,
       {templateName: 'check'});
     this.addColumnFeqH(DataType.String, 'lastpriceServerState', true, false,
       {translateValues: TranslateValue.NORMAL});
-    this.addColumnFeqH(DataType.Boolean, 'acceptLastpriceRequest', true, false,
+    this.addColumnFeqH(DataType.String, 'lastpriceExchange', true, false,
+      {translateValues: TranslateValue.NORMAL});
+    this.addColumnFeqH(DataType.Boolean, 'acceptEntityRequest', true, false,
       {templateName: 'check'});
     this.addColumnFeqH(DataType.String, 'entityServerState', true, false,
+      {translateValues: TranslateValue.NORMAL});
+    this.addColumnFeqH(DataType.String, 'entityExchange', true, false,
       {translateValues: TranslateValue.NORMAL});
 
     this.multiSortMeta.push({field: this.domainRemoteName, order: 1});
@@ -253,5 +193,16 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     this.visibleDialogMsg = false;
   }
 
+  canExpand(row: GTNet): boolean {
+    return !!(this.gtNetMessageMap && this.gtNetMessageMap[row.idGtNet]);
+  }
+
+  isMyEntry(row: GTNet, field: ColumnConfig): boolean {
+    return row.idGtNet === this.gtNetMyEntryId;
+  }
+
+  protected override hasRightsForUpdateEntity(row: GTNet): boolean {
+    return this.isMyEntry(row, null);
+  }
 
 }

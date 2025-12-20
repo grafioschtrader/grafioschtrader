@@ -11,11 +11,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafioschtrader.entities.GTNet;
+import grafioschtrader.entities.GTNetConfig;
 import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.entities.GTNetMessage.GTNetMessageParam;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.SendReceivedType;
 import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
+import grafioschtrader.repository.GTNetConfigJpaRepository;
 import grafioschtrader.repository.GTNetJpaRepository;
 import grafioschtrader.repository.GTNetMessageJpaRepository;
 
@@ -39,6 +41,9 @@ public abstract class AbstractGTNetMessageHandler implements GTNetMessageHandler
 
   @Autowired
   protected GTNetJpaRepository gtNetJpaRepository;
+
+  @Autowired
+  protected GTNetConfigJpaRepository gtNetConfigJpaRepository;
 
   @Autowired
   protected GTNetMessageJpaRepository gtNetMessageJpaRepository;
@@ -129,5 +134,15 @@ public abstract class AbstractGTNetMessageHandler implements GTNetMessageHandler
    */
   protected GTNet saveRemoteGTNet(GTNet remoteGTNet) {
     return gtNetJpaRepository.save(remoteGTNet);
+  }
+
+  /**
+   * Updates the GTNetConfig entity for the remote server.
+   *
+   * @param gtNetConfig the GTNetConfig entity to update
+   * @return the updated entity
+   */
+  protected GTNetConfig saveGTNetConfig(GTNetConfig gtNetConfig) {
+    return gtNetConfigJpaRepository.save(gtNetConfig);
   }
 }
