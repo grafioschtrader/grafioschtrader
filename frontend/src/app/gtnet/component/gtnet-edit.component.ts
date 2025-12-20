@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
-import {GTNet, GTNetServerOnlineStatusTypes, GTNetServerStateTypes} from '../model/gtnet';
+import {GTNet, GTNetCallParam, GTNetServerOnlineStatusTypes, GTNetServerStateTypes} from '../model/gtnet';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
@@ -42,7 +42,7 @@ import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
   `
 })
 export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements OnInit {
-  @Input() callParam: GTNet;
+  @Input() callParam: GTNetCallParam;
   private readonly BASE_SETTING = 'BASE_SETTING';
   private readonly ENTITY = 'ENTITY';
   private readonly LAST_PRICE = 'LAST_PRICE';
@@ -58,7 +58,7 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
   }
 
   ngOnInit(): void {
-    const isUpdate = !!this.callParam?.idGtNet;
+    const isUpdate = this.callParam.gtNet && !!this.callParam?.gtNet.idGtNet;
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       5, this.helpLink.bind(this));
     this.config = [
@@ -106,13 +106,13 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
       this.configObject.serverOnline.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
         GTNetServerOnlineStatusTypes);
       if(this.callParam) {
-        this.form.transferBusinessObjectToForm(this.callParam);
+        this.form.transferBusinessObjectToForm(this.callParam.gtNet);
       }
     });
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): GTNet {
-    const gtNet: GTNet = this.copyFormToPrivateBusinessObject(new GTNet(), this.callParam);
+    const gtNet: GTNet = this.copyFormToPrivateBusinessObject(new GTNet(), this.callParam.gtNet);
     return gtNet;
   }
 
