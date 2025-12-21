@@ -3,23 +3,51 @@ import {GTNetMessage} from './gtnet.message';
 import {MessageComType} from '../../lib/mail/model/mail.send.recv';
 import {BaseParam} from '../../lib/entities/base.param';
 
+/**
+ * Enum for entity kinds - types of data that can be exchanged.
+ */
+export enum GTNetExchangeKindType {
+  LAST_PRICE = 0,
+  HISTORICAL_PRICES = 1
+}
+
+/**
+ * Represents a data type configuration for a specific GTNet connection.
+ * Each GTNet can have multiple GTNetEntity entries (one per data type).
+ */
+export interface GTNetEntity {
+  idGtNetEntity?: number;
+  idGtNet: number;
+  entityKind: GTNetExchangeKindType;
+  serverState: GTNetServerStateTypes;
+  acceptRequest: boolean;
+  gtNetConfigEntity?: GTNetConfigEntity;
+}
+
+/**
+ * Entity-specific configuration for exchange settings, logging, and consumer usage.
+ */
+export interface GTNetConfigEntity {
+  idGtNetConfigEntity?: number;
+  idGtNetConfig: number;
+  idGtNetEntity: number;
+  exchange: GTNetExchangeStatusTypes;
+  useDetailLog: boolean;
+  consumerUsage: number;
+}
+
 export class GTNet implements BaseID {
   idGtNet: number;
   domainRemoteName: string = null;
   timeZone: string = null;
   spreadCapability = true;
-  entityServerState: number | GTNetServerStateTypes = null;
-  acceptEntityRequest = false;
   dailyRequestLimit: number = null;
-  dailyRequestLimitCount: number;
   dailyRequestLimitRemote: number;
-  dailyRequestLimitRemoteCount: number;
-  lastpriceServerState: number | GTNetServerStateTypes = null;
-  acceptLastpriceRequest = false;
-  lastpriceConsumerUsage: number;
-  lastpriceUseDetailLog = 0;
   serverBusy = false;
   serverOnline: number | GTNetServerOnlineStatusTypes = GTNetServerOnlineStatusTypes.SOS_UNKNOWN;
+
+  // Collection of entity-specific configurations
+  gtNetEntities: GTNetEntity[] = [];
 
   // Computed properties from GTNetConfig (read-only)
   authorized = false;
@@ -28,6 +56,38 @@ export class GTNet implements BaseID {
 
   getId(): number {
     return this.idGtNet;
+  }
+
+  /**
+   * Gets the server state for lastprice (intraday) data from gtNetEntities.
+   */
+  get lastpriceServerState(): GTNetServerStateTypes {
+    const entity = this.gtNetEntities?.find(e => e.entityKind === GTNetExchangeKindType.LAST_PRICE);
+    return entity?.serverState ?? GTNetServerStateTypes.SS_NONE;
+  }
+
+  /**
+   * Gets whether lastprice requests are accepted from gtNetEntities.
+   */
+  get acceptLastpriceRequest(): boolean {
+    const entity = this.gtNetEntities?.find(e => e.entityKind === GTNetExchangeKindType.LAST_PRICE);
+    return entity?.acceptRequest ?? false;
+  }
+
+  /**
+   * Gets the server state for historical price data from gtNetEntities.
+   */
+  get historicalPriceServerState(): GTNetServerStateTypes {
+    const entity = this.gtNetEntities?.find(e => e.entityKind === GTNetExchangeKindType.HISTORICAL_PRICES);
+    return entity?.serverState ?? GTNetServerStateTypes.SS_NONE;
+  }
+
+  /**
+   * Gets whether historical price requests are accepted from gtNetEntities.
+   */
+  get historicalPriceRequest(): boolean {
+    const entity = this.gtNetEntities?.find(e => e.entityKind === GTNetExchangeKindType.HISTORICAL_PRICES);
+    return entity?.acceptRequest ?? false;
   }
 }
 

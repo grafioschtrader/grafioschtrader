@@ -18,10 +18,8 @@ import grafioschtrader.entities.GTNetMessage;
  * <ol>
  * <li><b>Handshake (1-3)</b>: Initial connection and token exchange between peers</li>
  * <li><b>Server List (10-13)</b>: Discovery of other GTNet participants via peer sharing</li>
- * <li><b>Last Price (20-24)</b>: Intraday price data sharing negotiation</li>
- * <li><b>Entity (30-34)</b>: Historical/EOD data sharing negotiation</li>
- * <li><b>Both (40-44)</b>: Combined entity and last price negotiation</li>
- * <li><b>Notifications (50-51)</b>: Maintenance windows and shutdown announcements</li>
+ * <li><b>Notifications (50-55)</b>: Maintenance windows and shutdown announcements</li>
+ * <li><b>Data (60-64)</b>: Unified data exchange negotiation with entityKinds parameter</li>
  * </ol>
  *
  * @see GTNetModelHelper for mapping message codes to payload model classes
@@ -47,38 +45,16 @@ public enum GTNetMessageCodeType {
   /** My server list may no longer be queried (revoke) */
   GT_NET_UPDATE_SERVERLIST_REVOKE_SEL_C((byte) 13),
 
-  /** Request for intraday data */
-  GT_NET_LASTPRICE_REQUEST_SEL_C((byte) 20),
-  /** The request for Intraday data is in processing */
-  GT_NET_LASTPRICE_REQUEST_IN_PROCESS_S((byte) 21),
-  /** Request for intraday data is accepted */
-  GT_NET_LASTPRICE_REQUEST_ACCEPT_S((byte) 22),
-  /** Request for intraday data is rejected */
-  GT_NET_LASTPRICE_REQUEST_REJECTED_S((byte) 23),
-  /** Exchange intraday data is canceled */
-  GT_NET_LASTPRICE_REVOKE_SEL_C((byte) 24),
-
-  /** Request for entity data */
-  GT_NET_ENTITY_REQUEST_SEL_C((byte) 30),
-  /** The request for entity data is in process */
-  GT_NET_ENTITY_REQUEST_IN_PROCESS_S((byte) 31),
-  /** The request for entity data was approved */
-  GT_NET_ENTITY_REQUEST_ACCEPT_S((byte) 32),
-  /** The request for entity data was rejected */
-  GT_NET_ENTITY_REQUEST_REJECTED_S((byte) 33),
-  /** Revoke entity exchange */
-  GT_NET_ENTITY_REVOKE_SEL_C((byte) 34),
-
-  /** Request for all types of data */
-  GT_NET_BOTH_REQUEST_SEL_C((byte) 40),
-  /** Request for all types of data is in process */
-  GT_NET_BOTH_REQUEST_IN_PROCESS_S((byte) 41),
-  /** Request for all types of data is accepted */
-  GT_NET_BOTH_REQUEST_ACCEPT_S((byte) 42),
-  /** Request for all types of data is rejected */
-  GT_NET_BOTH_REQUEST_REJECTED_S((byte) 43),
-  /** Exchange of all data is canceled */
-  GT_NET_BOTH_REVOKE_SEL_C((byte) 44),
+  /** Request for data exchange - entityKinds parameter specifies which data types to request */
+  GT_NET_DATA_REQUEST_SEL_C((byte) 20),
+  /** Data request is being processed */
+  GT_NET_DATA_REQUEST_IN_PROCESS_S((byte) 21),
+  /** Data request accepted */
+  GT_NET_DATA_REQUEST_ACCEPT_S((byte) 22),
+  /** Data request rejected */
+  GT_NET_DATA_REQUEST_REJECTED_S((byte) 23),
+  /** Revoke data exchange for specified entity kinds */
+  GT_NET_DATA_REVOKE_SEL_C((byte) 24),
 
   /**
    * The server has gone offline. It is unknown when it will be back online. Perhaps it will just be restarted or even

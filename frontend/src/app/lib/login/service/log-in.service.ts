@@ -69,6 +69,7 @@ export class LoginService extends BaseAuthService<User> {
     sessionStorage.setItem(GlobalSessionNames.USE_FEATURES, JSON.stringify(configurationWithLogin.useFeatures));
     sessionStorage.setItem(GlobalSessionNames.STANDARD_CURRENCY_PRECISIONS_AND_LIMITS, JSON.stringify(configurationWithLogin.standardPrecision));
     sessionStorage.setItem(GlobalSessionNames.FIELD_SIZE, JSON.stringify(configurationWithLogin.fieldSize));
+    sessionStorage.setItem(GlobalSessionNames.STANDARD_TIMEZONE, configurationWithLogin.standardTimeZone);
     const entityNameWithKeyNameMap = configurationWithLogin.entityNameWithKeyNameList.reduce(
       (ac, eNK) => ({...ac, [eNK.entityName]: eNK.keyName}), {});
     sessionStorage.setItem(GlobalSessionNames.ENTITY_KEY_MAPPING, JSON.stringify(entityNameWithKeyNameMap));
@@ -111,6 +112,8 @@ export class LoginService extends BaseAuthService<User> {
     return <Observable<UserOwnProjection>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${BaseSettings.USER_KEY}/own`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
+
+
 
   updateNicknameLocale(userOwnProjection: UserOwnProjection): Observable<SuccessfullyChanged> {
     return <Observable<SuccessfullyChanged>>this.httpClient.put(`${BaseSettings.API_ENDPOINT}${BaseSettings.USER_KEY}/nicknamelocale`,

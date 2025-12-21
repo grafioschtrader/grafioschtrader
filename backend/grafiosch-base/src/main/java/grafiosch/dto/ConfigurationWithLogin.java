@@ -1,5 +1,6 @@
 package grafiosch.dto;
 
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -54,6 +55,9 @@ public class ConfigurationWithLogin {
    */
   public final boolean passwordRegexOk;
 
+  
+  public final String standardTimeZone = ZoneId.of(BaseConstants.TIME_ZONE).getId();
+  
   /**
    * Configuration for User-Defined Fields (UDF) functionality.
    * 

@@ -1,7 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {GTNetExchangeService} from '../service/gtnet-exchange.service';
-import {GTNetServerStateTypes} from '../model/gtnet';
+import {GTNetExchangeKindType, GTNetServerStateTypes} from '../model/gtnet';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
@@ -35,7 +35,7 @@ export class GTNetSupplierDetailTableComponent implements OnInit {
   ngOnInit(): void {
     this.fields = [
       ShowRecordConfigBase.createColumnConfig(DataType.String, 'supplier.gtNet.domainRemoteName', 'GT_NET_REMOTE_DOMAIN'),
-      ShowRecordConfigBase.createColumnConfig(DataType.String, 'supplier.gtNet.entityServerState', 'GT_NET_ENTITY_SERVER_STATE', true, true,
+      ShowRecordConfigBase.createColumnConfig(DataType.String, 'serverState', 'GT_NET_ENTITY_SERVER_STATE', true, true,
         {fieldValueFN: this.getServerStateLabel.bind(this)}),
       ShowRecordConfigBase.createColumnConfig(DataType.String, 'detail.priceType', 'PRICE_TYPE'),
       ShowRecordConfigBase.createColumnConfig(DataType.DateTimeNumeric, 'supplier.lastUpdate', 'LAST_UPDATE')
@@ -57,8 +57,13 @@ export class GTNetSupplierDetailTableComponent implements OnInit {
   }
 
   getServerStateLabel(data: any, field: ColumnConfig): string {
-     const state = data.supplier.gtNet.entityServerState;
-     return GTNetServerStateTypes[state];
+    // Get the server state from the appropriate GTNetEntity based on the detail's priceType
+    const gtNet = data.supplier.gtNet;
+    const priceType = data.detail.priceType;
+    const entityKind = priceType === 'HISTORICAL' ? GTNetExchangeKindType.HISTORICAL_PRICES : GTNetExchangeKindType.LAST_PRICE;
+    const entity = gtNet.gtNetEntities?.find((e: any) => e.entityKind === entityKind);
+    const state = entity?.serverState ?? GTNetServerStateTypes.SS_NONE;
+    return GTNetServerStateTypes[state];
   }
 
   translateHeaders(fields: ColumnConfig[]): void {

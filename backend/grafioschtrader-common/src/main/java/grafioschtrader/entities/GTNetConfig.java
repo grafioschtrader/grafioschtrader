@@ -1,17 +1,21 @@
 package grafioschtrader.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
+import java.util.List;
 
-import grafiosch.common.PropertyAlwaysUpdatable;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import grafiosch.entities.BaseID;
-import grafioschtrader.gtnet.GTNetExchangeStatusTypes;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 
@@ -27,6 +31,11 @@ public class GTNetConfig extends BaseID<Integer>  {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id_gt_net_config")
   private Integer idGtNetConfig;
+
+  @Schema(description = "Collection of entity-specific configurations for exchange settings per data type")
+  @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "id_gt_net_config")
+  private List<GTNetConfigEntity> gtNetConfigEntities = new ArrayList<>();
 
   @JsonIgnore
   @Schema(description = """
@@ -58,37 +67,6 @@ public class GTNetConfig extends BaseID<Integer>  {
   @Column(name = "daily_req_limit_remote_count")
   private Integer dailyRequestLimitRemoteCount;
 
-  @Schema(description = """
-      Enables detailed logging of intraday price updates from this remote domain. When true, each price change is
-      recorded in GTNetLastpriceDetailLog, providing an audit trail of which client changed which prices and when.
-      May impact performance when enabled for high-volume providers.""")
-  @Column(name = "lastprice_use_detail_log")
-  @PropertyAlwaysUpdatable
-  private boolean lastpriceUseDetailLog;
-
-  @Schema(description = """
-      Exchange status for intraday/last price data with this remote instance. Determines the direction of
-      data flow: no exchange (0), send only (1), receive only (2), or bidirectional (3). Updated when
-      lastprice exchange requests are accepted.""")
-  @Column(name = "lastprice_exchange")
-  private byte lastpriceExchange;
-
-  @Schema(description = """
-      Exchange status for entity/historical data with this remote instance. Determines the direction of
-      data flow: no exchange (0), send only (1), receive only (2), or bidirectional (3). Updated when
-      entity exchange requests are accepted.""")
-  @Column(name = "entity_exchange")
-  private byte entityExchange;
-  
-  
-  @Schema(description = """
-      Priority level for using this remote domain as an intraday price provider. Value 0 means this provider is
-      not used. Values greater than 0 indicate priority (lower numbers = higher priority). Multiple providers can
-      be configured with different priorities for failover scenarios.""")
-  @Column(name = "lastprice_consumer_usage")
-  private byte lastpriceConsumerUsage;
-  
-  
   @Override
   public Integer getId() {
     return idGtNetConfig;
@@ -100,20 +78,17 @@ public class GTNetConfig extends BaseID<Integer>  {
   }
 
 
+  public List<GTNetConfigEntity> getGtNetConfigEntities() {
+    return gtNetConfigEntities;
+  }
+
+  public void setGtNetConfigEntities(List<GTNetConfigEntity> gtNetConfigEntities) {
+    this.gtNetConfigEntities = gtNetConfigEntities;
+  }
+
   public void setDailyRequestLimitCount(Integer dailyRequestLimitCount) {
     this.dailyRequestLimitCount = dailyRequestLimitCount;
   }
-
-
-  public boolean isLastpriceUseDetailLog() {
-    return lastpriceUseDetailLog;
-  }
-
-
-  public void setLastpriceUseDetailLog(boolean lastpriceUseDetailLog) {
-    this.lastpriceUseDetailLog = lastpriceUseDetailLog;
-  }
-
 
   public Integer getIdGtNetConfig() {
     return idGtNetConfig;
@@ -135,34 +110,6 @@ public class GTNetConfig extends BaseID<Integer>  {
     this.tokenRemote = tokenRemote;
   }
 
-  @JsonProperty("lastpriceExchange")
-  public GTNetExchangeStatusTypes getLastpriceExchange() {
-    return GTNetExchangeStatusTypes.getGTNetExchangeStatusType(lastpriceExchange);
-  }
-
-  @JsonProperty("lastpriceExchange")
-  public void setLastpriceExchange(GTNetExchangeStatusTypes lastpriceExchange) {
-    this.lastpriceExchange = lastpriceExchange.getValue();
-  }
-
-  @JsonProperty("entityExchange")
-  public GTNetExchangeStatusTypes getEntityExchange() {
-    return GTNetExchangeStatusTypes.getGTNetExchangeStatusType(entityExchange);
-  }
-
-  @JsonProperty("entityExchange")
-  public void setEntityExchange(GTNetExchangeStatusTypes entityExchange) {
-    this.entityExchange = entityExchange.getValue();
-  }
-
-  public byte getLastpriceConsumerUsage() {
-    return lastpriceConsumerUsage;
-  }
-
-  public void setLastpriceConsumerUsage(byte lastpriceConsumerUsage) {
-    this.lastpriceConsumerUsage = lastpriceConsumerUsage;
-  }
-  
   public Integer getDailyRequestLimitRemoteCount() {
     return dailyRequestLimitRemoteCount;
   }
@@ -171,5 +118,22 @@ public class GTNetConfig extends BaseID<Integer>  {
     this.dailyRequestLimitRemoteCount = dailyRequestLimitRemoteCount;
   }
 
-  
+  /**
+   * Gets or creates a GTNetConfigEntity for the specified GTNetEntity.
+   *
+   * @param idGtNetEntity the ID of the associated GTNetEntity
+   * @return the existing or newly created GTNetConfigEntity
+   */
+  public GTNetConfigEntity getOrCreateConfigEntity(Integer idGtNetEntity) {
+    return gtNetConfigEntities.stream()
+        .filter(e -> idGtNetEntity.equals(e.getIdGtNetEntity()))
+        .findFirst()
+        .orElseGet(() -> {
+          GTNetConfigEntity newConfigEntity = new GTNetConfigEntity();
+          newConfigEntity.setIdGtNetConfig(this.idGtNetConfig);
+          newConfigEntity.setIdGtNetEntity(idGtNetEntity);
+          gtNetConfigEntities.add(newConfigEntity);
+          return newConfigEntity;
+        });
+  }
 }

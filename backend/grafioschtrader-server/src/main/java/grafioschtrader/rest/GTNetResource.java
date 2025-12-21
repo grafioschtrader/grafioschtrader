@@ -43,12 +43,6 @@ public class GTNetResource extends UpdateCreateResource<GTNet> {
     return new ResponseEntity<>(gtNetJpaRepository.submitMsg(msgRequest), HttpStatus.OK);
   }
 
-//  @Operation(summary = "Update a GTNet entity", description = "Updates editable fields of a GTNet entry. When serverBusy status changes, notifies all connected peers.", tags = {
-//      RequestGTMappings.GTNET })
-//  @PutMapping(produces = APPLICATION_JSON_VALUE)
-//  public ResponseEntity<GTNet> updateGTNet(@Valid @RequestBody final GTNet gtNet) throws Exception {
-//    return new ResponseEntity<>(gtNetJpaRepository.saveOnlyAttributes(gtNet), HttpStatus.OK);
-//  }
 
   @Override
   protected UpdateCreateJpaRepository<GTNet> getUpdateCreateJpaRepository() {

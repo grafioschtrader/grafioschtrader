@@ -18,14 +18,17 @@ import grafioschtrader.entities.GTNet;
  */
 public enum GTNetServerStateTypes {
 
+  /** The condition is unknown. **/
+  SS_NONE((byte) 0),
+  
   /** Service not configured or not available. Initial state before handshake. */
-  SS_OPEN((byte) 0),
+  SS_OPEN((byte) 1),
 
   /** Service is available but not accepting new connections. Existing agreements honored. */
-  SS_CLOSED((byte) 1),
+  SS_CLOSED((byte) 2),
 
   /** Temporary unavailability for scheduled maintenance. Service will return to SS_OPEN. */
-  SS_MAINTENANCE((byte) 2);
+  SS_MAINTENANCE((byte) 3);
 
 
   private final Byte value;

@@ -204,7 +204,7 @@ export class DynamicFormComponent implements OnChanges, OnInit {
       if (config.dataproperty) {
         // field can not be used to access the input value
         value = Helper.getValueByPath(sourceObject, config.dataproperty);
-      } else if (sourceObject.hasOwnProperty(config.field)) {
+      } else if (config.field in sourceObject) {
         if (config.dataType === DataType.DateNumeric || config.dataType === DataType.DateTimeNumeric
           || config.dataType === DataType.DateString) {
           // Date is a timestamp / numeric

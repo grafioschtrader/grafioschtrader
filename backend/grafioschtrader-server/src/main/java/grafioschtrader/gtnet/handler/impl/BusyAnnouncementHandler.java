@@ -32,9 +32,9 @@ public class BusyAnnouncementHandler extends AbstractAnnouncementHandler {
       return;
     }
 
-    // Mark both services as closed - server is busy, do not contact for data
-    remoteGTNet.setEntityServerState(GTNetServerStateTypes.SS_CLOSED);
-    remoteGTNet.setLastpriceServerState(GTNetServerStateTypes.SS_CLOSED);
+    // Mark all entity kinds as closed - server is busy, do not contact for data
+    remoteGTNet.getGtNetEntities().forEach(entity ->
+        entity.setServerState(GTNetServerStateTypes.SS_CLOSED));
     saveRemoteGTNet(remoteGTNet);
   }
 }
