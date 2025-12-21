@@ -91,6 +91,10 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
     return sessionStorage.getItem(GlobalSessionNames.LOCALE) || 'de-CH';
   }
 
+  public getStandardTimeZone(): string {
+    return sessionStorage.getItem(GlobalSessionNames.STANDARD_TIMEZONE);
+  }
+
   public isUiShowMyProperty(): boolean {
     return sessionStorage.getItem(GlobalSessionNames.UI_SHOW_MY_PROPERTY) === 'true';
   }

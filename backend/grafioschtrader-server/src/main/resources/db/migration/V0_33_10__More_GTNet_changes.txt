@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Erstellungszeit: 19. Dez 2025 um 19:51
+-- Erstellungszeit: 21. Dez 2025 um 14:24
 -- Server-Version: 10.4.27-MariaDB
 -- PHP-Version: 8.1.12
 
@@ -27,6 +27,8 @@ SET time_zone = "+00:00";
 -- Tabellenstruktur für Tabelle `gt_net`
 --
 
+DROP TABLE IF EXISTS  gt_net_entity;
+DROP TABLE IF EXISTS  gt_net_config_entity;
 DROP TABLE IF EXISTS  gt_net_config;
 DROP TABLE IF EXISTS `gt_net_lastprice_currencypair`;
 DROP TABLE IF EXISTS `gt_net_lastprice_security`;
@@ -46,23 +48,13 @@ ALTER TABLE mail_send_recv DROP INDEX FK_MailInOut_GtNet;
 DROP TABLE IF EXISTS  gt_net;
 
 
---
--- Tabellenstruktur für Tabelle `gt_net`
---
-
 CREATE TABLE `gt_net` (
   `id_gt_net` int(11) NOT NULL,
   `domain_remote_name` varchar(128) NOT NULL,
   `time_zone` varchar(50) NOT NULL,
-  `token_this` varchar(32) DEFAULT NULL,
-  `token_remote` varchar(32) DEFAULT NULL,
   `spread_capability` tinyint(1) NOT NULL DEFAULT 0,
-  `entity_server_state` tinyint(1) NOT NULL DEFAULT 0,
-  `accept_entity_request` tinyint(1) NOT NULL DEFAULT 0,
   `daily_req_limit` int(11) DEFAULT NULL,
   `daily_req_limit_remote` int(11) DEFAULT NULL,
-  `lastprice_server_state` tinyint(1) NOT NULL DEFAULT 0,
-  `accept_lastprice_request` tinyint(1) NOT NULL DEFAULT 0,
   `server_busy` tinyint(1) NOT NULL DEFAULT 0,
   `server_online` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -78,13 +70,40 @@ CREATE TABLE `gt_net_config` (
   `id_gt_net` int(11) NOT NULL,
   `token_this` varchar(32) DEFAULT NULL,
   `token_remote` varchar(32) NOT NULL,
-  `lastprice_exchange` tinyint(1) NOT NULL DEFAULT 0,
-  `entity_exchange` tinyint(1) NOT NULL DEFAULT 0,
-  `lastprice_use_detail_log` tinyint(1) NOT NULL DEFAULT 0,
-  `lastprice_consumer_usage` tinyint(1) NOT NULL DEFAULT 0,
   `daily_req_limit_count` int(11) DEFAULT NULL,
   `daily_req_limit_remote_count` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `gt_net_config_entity`
+--
+
+CREATE TABLE `gt_net_config_entity` (
+  `id_gt_net_config_entity` int(11) DEFAULT NULL,
+  `id_gt_net_config` int(11) NOT NULL,
+  `id_gt_net_entity` int(11) NOT NULL,
+  `exchange` tinyint(1) NOT NULL DEFAULT 0,
+  `use_detail_log` tinyint(1) NOT NULL,
+  `consumer_usage` int(11) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `gt_net_entity`
+--
+
+CREATE TABLE `gt_net_entity` (
+  `id_gt_net_entity` int(11) NOT NULL,
+  `id_gt_net` int(11) NOT NULL,
+  `entity_kind` tinyint(1) NOT NULL,
+  `server_state` tinyint(1) NOT NULL,
+  `accept_request` tinyint(1) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
 
 --
 -- Tabellenstruktur für Tabelle `gt_net_exchange`
@@ -281,6 +300,20 @@ ALTER TABLE `gt_net_config`
   ADD PRIMARY KEY (`id_gt_net_config`);
 
 --
+-- Indizes für die Tabelle `gt_net_config_entity`
+--
+ALTER TABLE `gt_net_config_entity`
+  ADD KEY `FK_GtNetConfigEntity_GtNetConfig` (`id_gt_net_config`),
+  ADD KEY `FK_GtNetConfigEntity_GtNetEntity_GtNetEntity` (`id_gt_net_entity`);
+
+--
+-- Indizes für die Tabelle `gt_net_entity`
+--
+ALTER TABLE `gt_net_entity`
+  ADD PRIMARY KEY (`id_gt_net_entity`),
+  ADD KEY `FK_GtNetEntity_GtNet` (`id_gt_net`);
+
+--
 -- Indizes für die Tabelle `gt_net_exchange`
 --
 ALTER TABLE `gt_net_exchange`
@@ -381,6 +414,12 @@ ALTER TABLE `gt_net_config`
   MODIFY `id_gt_net_config` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT für Tabelle `gt_net_entity`
+--
+ALTER TABLE `gt_net_entity`
+  MODIFY `id_gt_net_entity` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT für Tabelle `gt_net_exchange`
 --
 ALTER TABLE `gt_net_exchange`
@@ -431,6 +470,19 @@ ALTER TABLE `gt_net_supplier_detail`
 --
 -- Constraints der exportierten Tabellen
 --
+
+--
+-- Constraints der Tabelle `gt_net_config_entity`
+--
+ALTER TABLE `gt_net_config_entity`
+  ADD CONSTRAINT `FK_GtNetConfigEntity_GtNetConfig` FOREIGN KEY (`id_gt_net_config`) REFERENCES `gt_net_config` (`id_gt_net_config`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `FK_GtNetConfigEntity_GtNetEntity_GtNetEntity` FOREIGN KEY (`id_gt_net_entity`) REFERENCES `gt_net_entity` (`id_gt_net_entity`) ON UPDATE CASCADE;
+
+--
+-- Constraints der Tabelle `gt_net_entity`
+--
+ALTER TABLE `gt_net_entity`
+  ADD CONSTRAINT `FK_GtNetEntity_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE;
 
 --
 -- Constraints der Tabelle `gt_net_exchange`
@@ -494,7 +546,6 @@ ALTER TABLE `gt_net_message_param`
 ALTER TABLE `gt_net_supplier`
   ADD CONSTRAINT `FK_GtNetSupplier_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`) ON UPDATE CASCADE;
 
-
 --
 -- Constraints der Tabelle `gt_net_supplier_detail`
 --
@@ -509,7 +560,6 @@ ALTER TABLE mail_send_recv ADD CONSTRAINT FK_MailSendRecv_GtNet FOREIGN KEY (id_
 
 DELETE FROM globalparameters WHERE property_name = "gt.gtnet.my.entry.id";
 INSERT INTO globalparameters (property_name, changed_by_system) VALUES ('gt.gtnet.my.entry.id', 1);
-
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

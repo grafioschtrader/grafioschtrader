@@ -33,6 +33,8 @@ export interface ConfigurationWithLogin {
    */
   fieldSize: { [fieldSize: string]: number };
 
+  standardTimeZone: string;
+
   /**
    * Flag indicating whether an entity's ownership of shared data should be visible.
    * For example, a bold font in the table view.

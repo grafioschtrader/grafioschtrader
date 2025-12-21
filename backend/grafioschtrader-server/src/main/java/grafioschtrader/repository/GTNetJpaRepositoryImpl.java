@@ -103,8 +103,15 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   @Override
   public GTNet saveOnlyAttributes(final GTNet gtNet, final GTNet existingEntity,
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
+
+    Optional<GTNet> myGTNetEntryOpt = gtNetJpaRepository
+        .findById(GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersService));
     // Validate remote URL is reachable
-    baseDataClient.getActuatorInfo(gtNet.getDomainRemoteName());
+
+    if (gtNetJpaRepository.count() == 0
+        || (myGTNetEntryOpt.isPresent() && myGTNetEntryOpt.get().getIdGtNet().equals(gtNet.getIdGtNet()))) {
+      baseDataClient.getActuatorInfo(gtNet.getDomainRemoteName());
+    }
 
     // Track serverBusy change before saving
     boolean serverBusyChanged = existingEntity != null && existingEntity.isServerBusy() != gtNet.isServerBusy();
@@ -128,11 +135,10 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    * Sends a serverBusy status notification to all peers with configured exchange.
    *
    * @param myGTNet the local GTNet entry
-   * @param isBusy true if server is now busy, false if released
+   * @param isBusy  true if server is now busy, false if released
    */
   private void sendServerBusyNotification(GTNet myGTNet, boolean isBusy) {
-    GTNetMessageCodeType messageCode = isBusy
-        ? GTNetMessageCodeType.GT_NET_BUSY_ALL_C
+    GTNetMessageCodeType messageCode = isBusy ? GTNetMessageCodeType.GT_NET_BUSY_ALL_C
         : GTNetMessageCodeType.GT_NET_RELEASED_BUSY_ALL_C;
 
     MsgRequest msgRequest = new MsgRequest();
@@ -282,9 +288,9 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   /**
    * Sends a message to a remote GTNet server and updates the target's online/busy status.
    *
-   * @param sourceGTNet the local GTNet entry (provides serverBusy flag for outgoing envelope)
-   * @param targetGTNet the remote GTNet entry to send to (will be updated with online/busy status)
-   * @param gtNetMessage the message to send
+   * @param sourceGTNet   the local GTNet entry (provides serverBusy flag for outgoing envelope)
+   * @param targetGTNet   the remote GTNet entry to send to (will be updated with online/busy status)
+   * @param gtNetMessage  the message to send
    * @param payLoadObject optional payload object to include
    * @return the response envelope, or null if unreachable
    */
@@ -297,8 +303,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     }
 
     String tokenRemote = targetGTNet.getGtNetConfig() != null ? targetGTNet.getGtNetConfig().getTokenRemote() : null;
-    SendResult result = baseDataClient.sendToMsgWithStatus(tokenRemote,
-        targetGTNet.getDomainRemoteName(), meRequest);
+    SendResult result = baseDataClient.sendToMsgWithStatus(tokenRemote, targetGTNet.getDomainRemoteName(), meRequest);
 
     // Update target server's online status based on reachability
     GTNetServerOnlineStatusTypes previousOnline = targetGTNet.getServerOnline();
@@ -400,7 +405,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    * Updates the remote server's online and busy status based on incoming communication.
    *
    * @param remoteGTNet the remote GTNet entry to update
-   * @param serverBusy the busy status from the incoming message
+   * @param serverBusy  the busy status from the incoming message
    */
   private void updateRemoteServerStatus(GTNet remoteGTNet, boolean serverBusy) {
     boolean needsSave = false;
@@ -426,7 +431,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    * Adds the local server's busy status to a response envelope.
    *
    * @param response the response envelope to modify
-   * @param myGTNet the local GTNet entry
+   * @param myGTNet  the local GTNet entry
    * @return the modified response
    */
   private MessageEnvelope addServerBusyToResponse(MessageEnvelope response, GTNet myGTNet) {

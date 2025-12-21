@@ -55,13 +55,12 @@ public abstract class GTNetModelHelper {
     msgFormMap.put(GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_S, new GTNetMsgRequest(FirstHandshakeMsg.class, true, (byte) 1));
     msgFormMap.put(GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_SEL_C,
         new GTNetMsgRequest(UpdateServerlistRequestMsg.class, true, (byte) 1));
-    msgFormMap.put(GTNetMessageCodeType.GT_NET_ENTITY_REQUEST_SEL_C,
-        new GTNetMsgRequest(EntityExchangeRequestMsg.class, true, (byte) 1));
     msgFormMap.put(GTNetMessageCodeType.GT_NET_MAINTENANCE_ALL_C, new GTNetMsgRequest(MaintenanceMsg.class, false, (byte) 10));
 
-    msgFormMap.put(GTNetMessageCodeType.GT_NET_BOTH_REQUEST_SEL_C, new GTNetMsgRequest(null, false, (byte) 1));
-
-    msgFormMap.put(GTNetMessageCodeType.GT_NET_BOTH_REVOKE_SEL_C, new GTNetMsgRequest(RevokeMsg.class, false, (byte) 1));
+    // Unified data exchange messages
+    msgFormMap.put(GTNetMessageCodeType.GT_NET_DATA_REQUEST_SEL_C,
+        new GTNetMsgRequest(EntityExchangeRequestMsg.class, true, (byte) 1));
+    msgFormMap.put(GTNetMessageCodeType.GT_NET_DATA_REVOKE_SEL_C, new GTNetMsgRequest(RevokeMsg.class, false, (byte) 1));
 
     // Server status announcements - no model, no response expected
     msgFormMap.put(GTNetMessageCodeType.GT_NET_OFFLINE_ALL_C, new GTNetMsgRequest(null, false, (byte) 1));

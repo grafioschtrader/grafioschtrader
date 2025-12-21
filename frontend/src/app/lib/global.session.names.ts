@@ -37,6 +37,8 @@ export enum GlobalSessionNames {
   /** All members with the prefix "FIELD_SIZE" from the BaseConstants class and its derived classes. */
   FIELD_SIZE = 'fieldSize',
 
+  STANDARD_TIMEZONE = 'standardTimeZone',
+
   /** Should an entity's ownership of shared data be visible. For example, a bold font in the table view. */
   UI_SHOW_MY_PROPERTY = 'uiShowMyProperty',
 

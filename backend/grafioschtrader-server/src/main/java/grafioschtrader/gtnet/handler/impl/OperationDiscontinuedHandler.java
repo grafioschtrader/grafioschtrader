@@ -29,11 +29,11 @@ public class OperationDiscontinuedHandler extends AbstractAnnouncementHandler {
       return;
     }
 
-    // Mark both services as closed
-    remoteGTNet.setEntityServerState(GTNetServerStateTypes.SS_CLOSED);
-    remoteGTNet.setLastpriceServerState(GTNetServerStateTypes.SS_CLOSED);
-    remoteGTNet.setAcceptEntityRequest(false);
-    remoteGTNet.setAcceptLastpriceRequest(false);
+    // Mark all entity kinds as closed and not accepting requests
+    remoteGTNet.getGtNetEntities().forEach(entity -> {
+      entity.setServerState(GTNetServerStateTypes.SS_CLOSED);
+      entity.setAcceptRequest(false);
+    });
     saveRemoteGTNet(remoteGTNet);
   }
 }

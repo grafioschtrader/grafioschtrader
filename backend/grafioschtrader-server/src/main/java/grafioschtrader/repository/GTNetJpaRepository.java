@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import grafiosch.rest.UpdateCreateJpaRepository;
 import grafioschtrader.entities.GTNet;
@@ -13,7 +14,7 @@ import grafioschtrader.entities.GTNet;
  *
  * Provides CRUD operations for remote domain entries plus specialized queries for:
  * <ul>
- *   <li>Finding broadcast targets (domains accepting entity or price requests)</li>
+ *   <li>Finding broadcast targets (domains with any data exchange configured)</li>
  *   <li>Finding active price providers (for consumer-side queries)</li>
  *   <li>Looking up domains by URL (for handshake processing)</li>
  * </ul>
@@ -24,29 +25,27 @@ public interface GTNetJpaRepository
     extends JpaRepository<GTNet, Integer>, GTNetJpaRepositoryCustom, UpdateCreateJpaRepository<GTNet> {
 
   /**
-   * Finds domains that accept either entity or lastprice requests.
+   * Finds domains that have at least one GTNetEntity accepting requests.
    * Used to determine broadcast targets for maintenance announcements and shutdown notices.
    *
-   * @param acceptEntityRequest true to include domains accepting entity requests
-   * @param acceptLastpriceRequest true to include domains accepting lastprice requests
-   * @return list of domains matching either criterion
+   * @return list of domains where at least one entity kind accepts requests
    */
-  List<GTNet> findByAcceptEntityRequestOrAcceptLastpriceRequest(boolean acceptEntityRequest,
-      boolean acceptLastpriceRequest);
+  @Query("SELECT DISTINCT g FROM GTNet g JOIN g.gtNetEntities e WHERE e.acceptRequest = true")
+  List<GTNet> findByAnyAcceptRequest();
 
   /**
-   * Finds domains that match both the given consumer usage priority and server state.
+   * Finds domains that have a LAST_PRICE entity with specific consumer usage and server state.
    * Used to find active price providers when this instance acts as a consumer.
    *
-   * Note: The parameter names suggest a bug - lastpriceConsumerUsage should probably be "greater than"
-   * rather than "equals", and the query should find providers with SS_OPEN state.
-   *
-   * @param lastpriceConsumerUsage the priority level (0 = not used, higher = used with priority)
-   * @param lastpriceServerState the required server state (typically SS_OPEN = 4)
-   * @return list of domains matching both criteria
+   * @param consumerUsage the priority level (0 = not used, higher = used with priority)
+   * @param serverState the required server state (typically SS_OPEN = 4)
+   * @return list of domains matching the criteria for LAST_PRICE entity kind
    */
-  List<GTNet> findByGtNetConfig_LastpriceConsumerUsageAndLastpriceServerState(byte lastpriceConsumerUsage,
-      byte lastpriceServerState);
+  @Query("SELECT DISTINCT g FROM GTNet g JOIN g.gtNetEntities e JOIN e.gtNetConfigEntity c " +
+         "WHERE e.entityKind = 0 AND c.consumerUsage = :consumerUsage AND e.serverState = :serverState")
+  List<GTNet> findByLastpriceConsumerUsageAndServerState(
+      @Param("consumerUsage") byte consumerUsage,
+      @Param("serverState") byte serverState);
 
   /**
    * Looks up a domain by its URL.
@@ -60,12 +59,12 @@ public interface GTNetJpaRepository
 
   /**
    * Finds GTNet entries that have any data exchange configured.
-   * Returns entries where the associated GTNetConfig has either lastpriceExchange > 0 or entityExchange > 0.
+   * Returns entries where at least one GTNetEntity has a GTNetConfigEntity with exchange > 0.
    * Used to determine which remote instances should be notified about this server's online/offline status.
    *
    * @return list of GTNet entries with configured data exchange
    */
-  @Query("SELECT g FROM GTNet g WHERE g.gtNetConfig IS NOT NULL AND (g.gtNetConfig.lastpriceExchange > 0 OR g.gtNetConfig.entityExchange > 0)")
+  @Query("SELECT DISTINCT g FROM GTNet g JOIN g.gtNetEntities e JOIN e.gtNetConfigEntity c WHERE c.exchange > 0")
   List<GTNet> findWithConfiguredExchange();
 
 }

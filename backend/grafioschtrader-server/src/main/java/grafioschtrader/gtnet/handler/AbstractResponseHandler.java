@@ -12,8 +12,8 @@ import grafioschtrader.gtnet.MessageCategory;
  * Examples:
  * <ul>
  *   <li>GT_NET_FIRST_HANDSHAKE_ACCEPT_S - Remote accepted our handshake</li>
- *   <li>GT_NET_ENTITY_REQUEST_REJECTED_S - Remote rejected our entity data request</li>
- *   <li>GT_NET_LASTPRICE_REQUEST_IN_PROCESS_S - Remote is processing our lastprice request</li>
+ *   <li>GT_NET_DATA_REQUEST_REJECTED_S - Remote rejected our data request</li>
+ *   <li>GT_NET_DATA_REQUEST_IN_PROCESS_S - Remote is processing our data request</li>
  * </ul>
  */
 public abstract class AbstractResponseHandler extends AbstractGTNetMessageHandler {

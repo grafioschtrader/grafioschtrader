@@ -101,6 +101,20 @@ public class GTNetMessageContext {
   }
 
   /**
+   * Returns the value of a specific parameter by key.
+   *
+   * @param key the parameter key
+   * @return the parameter value as String, or null if the parameter doesn't exist
+   */
+  public String getParamValue(String key) {
+    if (request.gtNetMessageParamMap == null) {
+      return null;
+    }
+    GTNetMessageParam param = request.gtNetMessageParamMap.get(key);
+    return param != null ? param.getParamValue() : null;
+  }
+
+  /**
    * Returns the optional text message from the request.
    */
   public String getMessage() {

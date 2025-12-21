@@ -1,16 +1,21 @@
 package grafioschtrader.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.common.PropertyOnlyCreation;
 import grafiosch.entities.BaseID;
+import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetExchangeStatusTypes;
 import grafioschtrader.gtnet.GTNetServerOnlineStatusTypes;
-import grafioschtrader.gtnet.GTNetServerStateTypes;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -18,6 +23,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
@@ -26,11 +32,10 @@ import jakarta.validation.constraints.Size;
 /**
  * Represents a remote domain configuration in the GT-Network (GTNet) peer-to-peer system.
  *
- * Each GTNet entry defines a connection to another Grafioschtrader instance with capability flags.
- * The local instance maintains one entry per known remote domain, plus an entry representing itself
- * (identified via {@code gtnet.my.entry.id} global parameter). This entity contains basic information
- * about the server. The connection configuration (including authentication tokens) is stored in the
- * associated {@link GTNetConfig} entity.
+ * Each GTNet entry defines a connection to another Grafioschtrader instance with capability flags. The local instance
+ * maintains one entry per known remote domain, plus an entry representing itself (identified via
+ * {@code gtnet.my.entry.id} global parameter). This entity contains basic information about the server. The connection
+ * configuration (including authentication tokens) is stored in the associated {@link GTNetConfig} entity.
  */
 @Entity
 @Table(name = GTNet.TABNAME)
@@ -54,12 +59,18 @@ public class GTNet extends BaseID<Integer> {
   @PropertyOnlyCreation
   private String domainRemoteName;
 
+  @Schema(description = """
+      Collection of data type configurations for this remote domain. Each entry defines
+      the exchange capability for a specific data type (LAST_PRICE, HISTORICAL_PRICES, etc.).""")
+  @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "id_gt_net", nullable = false)
+  private List<GTNetEntity> gtNetEntities = new ArrayList<>();
+
   @OneToOne(fetch = FetchType.EAGER)
   @JoinColumn(nullable = true, name = "id_gt_net")
   @PropertyAlwaysUpdatable
   private GTNetConfig gtNetConfig;
-  
-  
+
   @Schema(description = """
       Java timezone identifier (e.g., 'Europe/Zurich', 'America/New_York'). Helps users understand the operating
       hours of the remote server and is used for maintenance window announcements.""")
@@ -79,25 +90,11 @@ public class GTNet extends BaseID<Integer> {
   private boolean spreadCapability;
 
   @Schema(description = """
-      Server state for entity/historical data sharing. Indicates whether this server is available to provide entity
-      data (e.g., historical quotes) to the remote domain. Uses GTNetServerStateTypes enum values.""")
-  @JsonIgnore
-  @Column(name = "entity_server_state")
-  private byte entityServerState;
-
-  @Schema(description = """
-      Enables bidirectional entity data exchange. When true, this server accepts entity data requests from the
-      remote domain, allowing mutual data sharing. When false, entity exchange is unidirectional or disabled.""")
-  @Column(name = "accept_entity_request")
-  private boolean acceptEntityRequest;
-
-  @Schema(description = """
       Maximum number of data requests the remote domain can make to this server per day. This limit protects the
       local server from excessive load. Set to null for unlimited requests. The counter (dailyRequestLimitCount)
       tracks usage and resets at UTC midnight.""")
   @Column(name = "daily_req_limit")
   private Integer dailyRequestLimit;
-  
 
   @Schema(description = """
       Maximum number of data requests this server can make to the remote domain per day. This value is typically
@@ -105,33 +102,15 @@ public class GTNet extends BaseID<Integer> {
   @Column(name = "daily_req_limit_remote")
   private Integer dailyRequestLimitRemote;
 
- 
-
   @Schema(description = """
-      Server state for intraday price sharing. Indicates whether the remote domain is available to provide
-      intraday/last price data. Uses GTNetServerStateTypes enum values.""")
-  @JsonIgnore
-  @Column(name = "lastprice_server_state")
-  private byte lastpriceServerState;
-
-  @Schema(description = """
-      Enables acceptance of intraday price requests from the remote domain. When true, this server will respond
-      to last price queries from the remote.""")
-  @Column(name = "accept_lastprice_request")
-  @PropertyAlwaysUpdatable
-  private boolean acceptLastpriceRequest;
-
-  
-
-  @Schema(description = """
-      This flag can be used to control which messages should still be communicated to the recipient. 
-      If it is true, only server status changes can be communicated to the target system.  
-      For your own server, this change can be set via the UI. 
+      This flag can be used to control which messages should still be communicated to the recipient.
+      If it is true, only server status changes can be communicated to the target system.
+      For your own server, this change can be set via the UI.
       Any change to this flag should be communicated to the other server immediately.""")
   @Column(name = "server_busy")
   @PropertyAlwaysUpdatable
   private boolean serverBusy;
-  
+
   @Schema(description = """
       This should reflect the current status of the system. No communication will take place with a system that is offline.
       This status is communicated to the other servers by starting and stopping the server. However,
@@ -139,8 +118,7 @@ public class GTNet extends BaseID<Integer> {
   @Column(name = "server_online")
   @PropertyAlwaysUpdatable
   private byte serverOnline;
-  
-  
+
   public Integer getIdGtNet() {
     return idGtNet;
   }
@@ -173,24 +151,6 @@ public class GTNet extends BaseID<Integer> {
     this.spreadCapability = spreadCapability;
   }
 
-  @JsonProperty("entityServerState")
-  public GTNetServerStateTypes getEntityServerState() {
-    return GTNetServerStateTypes.getGTNetServerStateType(entityServerState);
-  }
-
-  @JsonProperty("entityServerState")
-  public void setEntityServerState(GTNetServerStateTypes entityServerState) {
-    this.entityServerState = entityServerState.getValue();
-  }
-
-  public boolean isAcceptEntityRequest() {
-    return acceptEntityRequest;
-  }
-
-  public void setAcceptEntityRequest(boolean acceptEntityRequest) {
-    this.acceptEntityRequest = acceptEntityRequest;
-  }
-
   public Integer getDailyRequestLimit() {
     return dailyRequestLimit;
   }
@@ -199,7 +159,6 @@ public class GTNet extends BaseID<Integer> {
     this.dailyRequestLimit = dailyRequestLimit;
   }
 
-  
   public GTNetConfig getGtNetConfig() {
     return gtNetConfig;
   }
@@ -216,33 +175,30 @@ public class GTNet extends BaseID<Integer> {
     this.dailyRequestLimitRemote = dailyRequestLimitRemote;
   }
 
-  
-  @JsonProperty("lastpriceServerState")
-  public GTNetServerStateTypes getLastpriceServerState() {
-    return GTNetServerStateTypes.getGTNetServerStateType(lastpriceServerState);
-  }
-
-  @JsonProperty("lastpriceServerState")
-  public void setLastpriceServerState(GTNetServerStateTypes lastpriceServerState) {
-    this.lastpriceServerState = lastpriceServerState.getValue();
-  }
-
-  public boolean isAcceptLastpriceRequest() {
-    return acceptLastpriceRequest;
-  }
-
-  public void setAcceptLastpriceRequest(boolean acceptLastpriceRequest) {
-    this.acceptLastpriceRequest = acceptLastpriceRequest;
-  }
-
-  
-
   public boolean isServerBusy() {
     return serverBusy;
   }
 
   public void setServerBusy(boolean serverBusy) {
     this.serverBusy = serverBusy;
+  }
+
+  public List<GTNetEntity> getGtNetEntities() {
+    return gtNetEntities;
+  }
+
+  public void setGtNetEntities(List<GTNetEntity> gtNetEntities) {
+    this.gtNetEntities = gtNetEntities;
+  }
+
+  /**
+   * Gets the GTNetEntity for a specific data type.
+   *
+   * @param kind the entity kind to search for
+   * @return Optional containing the matching GTNetEntity, or empty if not found
+   */
+  public Optional<GTNetEntity> getEntity(GTNetExchangeKindType kind) {
+    return gtNetEntities.stream().filter(e -> e.getEntityKind() == kind).findFirst();
   }
 
   @JsonProperty("serverOnline")
@@ -258,8 +214,8 @@ public class GTNet extends BaseID<Integer> {
   // Computed properties for JSON serialization (read-only)
 
   /**
-   * Returns whether this GTNet entry is authorized (tokens have been exchanged).
-   * An entry is considered authorized if it has a GTNetConfig with a tokenRemote set.
+   * Returns whether this GTNet entry is authorized (tokens have been exchanged). An entry is considered authorized if
+   * it has a GTNetConfig with a tokenRemote set.
    *
    * @return true if authorized, false otherwise
    */
@@ -269,26 +225,47 @@ public class GTNet extends BaseID<Integer> {
   }
 
   /**
-   * Returns the lastprice exchange status from GTNetConfig.
-   * Returns ES_NO_EXCHANGE if no GTNetConfig exists.
+   * Returns the lastprice exchange status from the LAST_PRICE entity's GTNetConfigEntity. Returns ES_NO_EXCHANGE if no
+   * matching entity or config exists.
    *
    * @return the lastprice exchange status
    */
   @JsonProperty("lastpriceExchange")
   public GTNetExchangeStatusTypes getLastpriceExchange() {
-    return gtNetConfig != null ? gtNetConfig.getLastpriceExchange() : GTNetExchangeStatusTypes.ES_NO_EXCHANGE;
+    return getEntity(GTNetExchangeKindType.LAST_PRICE).map(GTNetEntity::getGtNetConfigEntity)
+        .map(GTNetConfigEntity::getExchange).orElse(GTNetExchangeStatusTypes.ES_NO_EXCHANGE);
   }
 
   /**
-   * Returns the entity exchange status from GTNetConfig.
-   * Returns ES_NO_EXCHANGE if no GTNetConfig exists.
+   * Returns the entity exchange status from the HISTORICAL_PRICES entity's GTNetConfigEntity. Returns ES_NO_EXCHANGE if
+   * no matching entity or config exists.
    *
    * @return the entity exchange status
    */
   @JsonProperty("entityExchange")
   public GTNetExchangeStatusTypes getEntityExchange() {
-    return gtNetConfig != null ? gtNetConfig.getEntityExchange() : GTNetExchangeStatusTypes.ES_NO_EXCHANGE;
+    return getEntity(GTNetExchangeKindType.HISTORICAL_PRICES).map(GTNetEntity::getGtNetConfigEntity)
+        .map(GTNetConfigEntity::getExchange).orElse(GTNetExchangeStatusTypes.ES_NO_EXCHANGE);
   }
+
+  /**
+   * Gets or creates a GTNetEntity for the specified kind. If the entity doesn't exist, creates a new one and adds it to
+   * the collection.
+   *
+   * @param kind the entity kind
+   * @return the existing or newly created GTNetEntity
+   */
+  public GTNetEntity getOrCreateEntity(GTNetExchangeKindType kind) {
+    return getEntity(kind).orElseGet(() -> {
+      GTNetEntity newEntity = new GTNetEntity();
+      newEntity.setIdGtNet(this.idGtNet);
+      newEntity.setEntityKind(kind);
+      gtNetEntities.add(newEntity);
+      return newEntity;
+    });
+  }
+
+ 
 
   @Override
   public Integer getId() {

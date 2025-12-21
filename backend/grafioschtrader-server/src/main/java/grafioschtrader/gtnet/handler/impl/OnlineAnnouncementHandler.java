@@ -15,7 +15,7 @@ import grafioschtrader.gtnet.handler.GTNetMessageContext;
  * Processes online announcements from remote servers. The remote server has come back online after being offline or
  * after a restart.
  *
- * Restores the remote GTNet server state to open for services that were previously accepted.
+ * Restores the remote GTNet server state to open for entity kinds that were previously accepted.
  */
 @Component
 public class OnlineAnnouncementHandler extends AbstractAnnouncementHandler {
@@ -32,13 +32,10 @@ public class OnlineAnnouncementHandler extends AbstractAnnouncementHandler {
       return;
     }
 
-    // Restore services to open state if they were previously accepted
-    if (remoteGTNet.isAcceptEntityRequest()) {
-      remoteGTNet.setEntityServerState(GTNetServerStateTypes.SS_OPEN);
-    }
-    if (remoteGTNet.isAcceptLastpriceRequest()) {
-      remoteGTNet.setLastpriceServerState(GTNetServerStateTypes.SS_OPEN);
-    }
+    // Restore entity kinds to open state if they were previously accepted
+    remoteGTNet.getGtNetEntities().stream()
+        .filter(entity -> entity.isAcceptRequest())
+        .forEach(entity -> entity.setServerState(GTNetServerStateTypes.SS_OPEN));
     saveRemoteGTNet(remoteGTNet);
   }
 }

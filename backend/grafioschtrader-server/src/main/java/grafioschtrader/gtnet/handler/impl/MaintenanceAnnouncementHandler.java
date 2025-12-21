@@ -30,13 +30,10 @@ public class MaintenanceAnnouncementHandler extends AbstractAnnouncementHandler 
       return;
     }
 
-    // Update server states to maintenance mode
-    if (remoteGTNet.isAcceptEntityRequest()) {
-      remoteGTNet.setEntityServerState(GTNetServerStateTypes.SS_MAINTENANCE);
-    }
-    if (remoteGTNet.isAcceptLastpriceRequest()) {
-      remoteGTNet.setLastpriceServerState(GTNetServerStateTypes.SS_MAINTENANCE);
-    }
+    // Update entity kinds to maintenance mode if they were previously accepted
+    remoteGTNet.getGtNetEntities().stream()
+        .filter(entity -> entity.isAcceptRequest())
+        .forEach(entity -> entity.setServerState(GTNetServerStateTypes.SS_MAINTENANCE));
     saveRemoteGTNet(remoteGTNet);
   }
 }

@@ -135,9 +135,9 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.String, 'lastpriceExchange', true, false,
       {translateValues: TranslateValue.NORMAL});
-    this.addColumnFeqH(DataType.Boolean, 'acceptEntityRequest', true, false,
+    this.addColumnFeqH(DataType.Boolean, 'historicalPriceRequest', true, false,
       {templateName: 'check'});
-    this.addColumnFeqH(DataType.String, 'entityServerState', true, false,
+    this.addColumnFeqH(DataType.String, 'historicalPriceServerState', true, false,
       {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.String, 'entityExchange', true, false,
       {translateValues: TranslateValue.NORMAL});
@@ -147,7 +147,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   }
 
   override prepareCallParam(entity: GTNet): void {
-    this.callParam = {gtNet: entity, isMyEntry: !!entity && this.isMyEntry(entity, null)};
+    this.callParam = {gtNet: entity, isMyEntry: this.gtNetList.length === 0 || !!entity && this.isMyEntry(entity, null)};
   }
 
   protected override readData(): void {

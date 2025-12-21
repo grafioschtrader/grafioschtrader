@@ -32,13 +32,10 @@ public class ReleasedBusyAnnouncementHandler extends AbstractAnnouncementHandler
       return;
     }
 
-    // Restore services to open state if they were previously accepted
-    if (remoteGTNet.isAcceptEntityRequest()) {
-      remoteGTNet.setEntityServerState(GTNetServerStateTypes.SS_OPEN);
-    }
-    if (remoteGTNet.isAcceptLastpriceRequest()) {
-      remoteGTNet.setLastpriceServerState(GTNetServerStateTypes.SS_OPEN);
-    }
+    // Restore entity kinds to open state if they were previously accepted
+    remoteGTNet.getGtNetEntities().stream()
+        .filter(entity -> entity.isAcceptRequest())
+        .forEach(entity -> entity.setServerState(GTNetServerStateTypes.SS_OPEN));
     saveRemoteGTNet(remoteGTNet);
   }
 }
