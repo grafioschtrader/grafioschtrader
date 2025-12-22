@@ -104,8 +104,9 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   public GTNet saveOnlyAttributes(final GTNet gtNet, final GTNet existingEntity,
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
 
-    Optional<GTNet> myGTNetEntryOpt = gtNetJpaRepository
-        .findById(GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersService));
+    Integer myInstanceEntry = globalparametersService.getGTNetMyEntryID();
+    
+    Optional<GTNet> myGTNetEntryOpt = myInstanceEntry != null? gtNetJpaRepository.findById(myInstanceEntry): Optional.empty(); 
     // Validate remote URL is reachable
 
     if (gtNetJpaRepository.count() == 0

@@ -155,25 +155,23 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
       const gtNetEntities: GTNetEntity[] = [];
       const existingEntities = this.callParam.gtNet?.gtNetEntities || [];
 
-      const historicalEntityOld = existingEntities.find(e => e.entityKind === GTNetExchangeKindType.HISTORICAL_PRICES);
+     // const historicalEntityOld = existingEntities.find(e => e.entityKind === GTNetExchangeKindType.HISTORICAL_PRICES);
       const historicalEntity: GTNetEntity = {
-        idGtNetEntity: historicalEntityOld?.idGtNetEntity,
         idGtNet: gtNet.idGtNet,
         entityKind: GTNetExchangeKindType.HISTORICAL_PRICES,
         serverState: GTNetServerStateTypes[value['historicalPriceServerState']] as any,
         acceptRequest: value['historicalPriceRequest'],
-        gtNetConfigEntity: historicalEntityOld?.gtNetConfigEntity
+   //     gtNetConfigEntity: historicalEntityOld?.gtNetConfigEntity
       };
       gtNetEntities.push(historicalEntity);
 
-      const lastPriceEntityOld = existingEntities.find(e => e.entityKind === GTNetExchangeKindType.LAST_PRICE);
+    //  const lastPriceEntityOld = existingEntities.find(e => e.entityKind === GTNetExchangeKindType.LAST_PRICE);
       const lastPriceEntity: GTNetEntity = {
-        idGtNetEntity: lastPriceEntityOld?.idGtNetEntity,
         idGtNet: gtNet.idGtNet,
         entityKind: GTNetExchangeKindType.LAST_PRICE,
         serverState: GTNetServerStateTypes[value['lastpriceServerState']] as any,
-        acceptRequest: lastPriceEntityOld?.acceptRequest || false,
-        gtNetConfigEntity: lastPriceEntityOld?.gtNetConfigEntity
+        acceptRequest: value['acceptLastpriceRequest'],
+       // gtNetConfigEntity: lastPriceEntityOld?.gtNetConfigEntity
       };
 
       gtNetEntities.push(lastPriceEntity);

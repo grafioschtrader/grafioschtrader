@@ -27,8 +27,8 @@ SET time_zone = "+00:00";
 -- Tabellenstruktur für Tabelle `gt_net`
 --
 
-DROP TABLE IF EXISTS  gt_net_entity;
 DROP TABLE IF EXISTS  gt_net_config_entity;
+DROP TABLE IF EXISTS  gt_net_entity;
 DROP TABLE IF EXISTS  gt_net_config;
 DROP TABLE IF EXISTS `gt_net_lastprice_currencypair`;
 DROP TABLE IF EXISTS `gt_net_lastprice_security`;

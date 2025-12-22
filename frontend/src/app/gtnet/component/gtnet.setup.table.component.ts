@@ -2,7 +2,7 @@ import {Component} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {CrudMenuOptions, TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
-import {GTNet, GTNetCallParam, GTNetWithMessages} from '../model/gtnet';
+import {GTNet, GTNetCallParam, GTNetExchangeKindType, GTNetServerStateTypes, GTNetWithMessages} from '../model/gtnet';
 import {GTNetMessage, MsgCallParam} from '../model/gtnet.message';
 import {GTNetService} from '../service/gtnet.service';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
@@ -133,15 +133,10 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       {templateName: 'check'});
     this.addColumnFeqH(DataType.String, 'lastpriceServerState', true, false,
       {translateValues: TranslateValue.NORMAL});
-    this.addColumnFeqH(DataType.String, 'lastpriceExchange', true, false,
-      {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.Boolean, 'historicalPriceRequest', true, false,
       {templateName: 'check'});
     this.addColumnFeqH(DataType.String, 'historicalPriceServerState', true, false,
       {translateValues: TranslateValue.NORMAL});
-    this.addColumnFeqH(DataType.String, 'entityExchange', true, false,
-      {translateValues: TranslateValue.NORMAL});
-
     this.multiSortMeta.push({field: this.domainRemoteName, order: 1});
     this.prepareTableAndTranslate();
   }
@@ -156,6 +151,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
 
     combineLatest(observable).subscribe((data,) => {
       this.gtNetList = (<GTNetWithMessages>data[0]).gtNetList;
+      this.mapGTNetEntityToGTNet();
       this.gtNetMyEntryId = (<GTNetWithMessages>data[0]).gtNetMyEntryId;
       this.createTranslatedValueStoreAndFilterField(this.gtNetList);
       this.gtNetMessageMap = (<GTNetWithMessages>data[0]).gtNetMessageMap;
@@ -168,6 +164,18 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     if (!event[GTNetMessageTreeTableComponent.consumedGT]) {
       this.resetMenu(this.selectedEntity);
     }
+  }
+
+  private mapGTNetEntityToGTNet() {
+    this.gtNetList.forEach(gtNet => gtNet.gtNetEntities.forEach(e => {
+      if(e.entityKind === GTNetExchangeKindType[GTNetExchangeKindType.LAST_PRICE]) {
+        gtNet['acceptLastpriceRequest'] = e.acceptRequest;
+        gtNet['lastpriceServerState'] = e.serverState;
+      } else {
+        gtNet['historicalPriceRequest'] = e.acceptRequest;
+        gtNet['historicalPriceServerState'] = e.serverState;
+      }
+    }));
   }
 
   public override getEditMenuItems(): MenuItem[] {
