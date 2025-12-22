@@ -75,20 +75,33 @@ extract_key() {
 }
 
 # Find a line in the input file that matches the given key
-# Searches for both commented and uncommented versions
+# When duplicates exist, prefers active (uncommented) lines over commented ones
 find_user_line() {
     local search_key="$1"
     local found_line=""
+    local found_active_line=""
 
     while IFS= read -r line; do
         local line_key=$(extract_key "$line")
         if [[ -n "$line_key" && "$line_key" == "$search_key" ]]; then
-            found_line="$line"
-            break
+            # Check if this line is active (not commented with # or !)
+            if [[ ! "$line" =~ ^[[:space:]]*[#!] ]]; then
+                # Active line found - prefer this over commented versions
+                found_active_line="$line"
+                break
+            elif [[ -z "$found_line" ]]; then
+                # First commented occurrence - save as fallback
+                found_line="$line"
+            fi
         fi
     done < "$INPUT_FILE"
 
-    echo "$found_line"
+    # Prefer active line if found, otherwise use commented version
+    if [[ -n "$found_active_line" ]]; then
+        echo "$found_active_line"
+    else
+        echo "$found_line"
+    fi
 }
 
 # Process the sample file line by line
