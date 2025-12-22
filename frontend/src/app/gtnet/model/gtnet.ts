@@ -18,7 +18,7 @@ export enum GTNetExchangeKindType {
 export interface GTNetEntity {
   idGtNetEntity?: number;
   idGtNet: number;
-  entityKind: GTNetExchangeKindType;
+  entityKind: GTNetExchangeKindType|string;
   serverState: GTNetServerStateTypes;
   acceptRequest: boolean;
   gtNetConfigEntity?: GTNetConfigEntity;
@@ -45,50 +45,15 @@ export class GTNet implements BaseID {
   dailyRequestLimitRemote: number;
   serverBusy = false;
   serverOnline: number | GTNetServerOnlineStatusTypes = GTNetServerOnlineStatusTypes.SOS_UNKNOWN;
-
   // Collection of entity-specific configurations
   gtNetEntities: GTNetEntity[] = [];
-
   // Computed properties from GTNetConfig (read-only)
   authorized = false;
-  lastpriceExchange: number | GTNetExchangeStatusTypes = GTNetExchangeStatusTypes.ES_NO_EXCHANGE;
-  entityExchange: number | GTNetExchangeStatusTypes = GTNetExchangeStatusTypes.ES_NO_EXCHANGE;
 
   getId(): number {
     return this.idGtNet;
   }
 
-  /**
-   * Gets the server state for lastprice (intraday) data from gtNetEntities.
-   */
-  get lastpriceServerState(): GTNetServerStateTypes {
-    const entity = this.gtNetEntities?.find(e => e.entityKind === GTNetExchangeKindType.LAST_PRICE);
-    return entity?.serverState ?? GTNetServerStateTypes.SS_NONE;
-  }
-
-  /**
-   * Gets whether lastprice requests are accepted from gtNetEntities.
-   */
-  get acceptLastpriceRequest(): boolean {
-    const entity = this.gtNetEntities?.find(e => e.entityKind === GTNetExchangeKindType.LAST_PRICE);
-    return entity?.acceptRequest ?? false;
-  }
-
-  /**
-   * Gets the server state for historical price data from gtNetEntities.
-   */
-  get historicalPriceServerState(): GTNetServerStateTypes {
-    const entity = this.gtNetEntities?.find(e => e.entityKind === GTNetExchangeKindType.HISTORICAL_PRICES);
-    return entity?.serverState ?? GTNetServerStateTypes.SS_NONE;
-  }
-
-  /**
-   * Gets whether historical price requests are accepted from gtNetEntities.
-   */
-  get historicalPriceRequest(): boolean {
-    const entity = this.gtNetEntities?.find(e => e.entityKind === GTNetExchangeKindType.HISTORICAL_PRICES);
-    return entity?.acceptRequest ?? false;
-  }
 }
 
 export class MsgRequest {
@@ -107,9 +72,9 @@ export interface GTNetWithMessages {
 
 export enum GTNetServerStateTypes {
   SS_NONE = 0,
-  SS_CLOSED = 1,
-  SS_MAINTENANCE = 2,
-  SS_OPEN = 3
+  SS_OPEN = 1,
+  SS_CLOSED = 2,
+  SS_MAINTENANCE = 3
 }
 
 export enum GTNetServerOnlineStatusTypes {

@@ -48,7 +48,6 @@ public class GTNetEntity extends BaseID<Integer> {
   @Schema(description = """
       Server state for data sharing. Indicates whether the remote domain is available to provide
       this kind of data. Uses GTNetServerStateTypes enum values.""")
-  @JsonIgnore
   @Column(name = "server_state")
   private byte serverState;
 
