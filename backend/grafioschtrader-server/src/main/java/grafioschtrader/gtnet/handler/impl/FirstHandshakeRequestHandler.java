@@ -139,6 +139,11 @@ public class FirstHandshakeRequestHandler extends AbstractGTNetMessageHandler {
     if (existing == null) {
       existing = remoteGTNet;
       existing.setIdGtNet(null); // Ensure new entity
+      existing.getGtNetEntities().forEach(e -> {
+    	  e.setGtNetConfigEntity(null);
+    	  e.setIdGtNet(null);
+    	  e.setIdGtNetEntity(null);
+      });
     }
     // Create or get GTNetConfig and store their token (what we use to authenticate to them)
     GTNetConfig gtNetConfig = existing.getGtNetConfig();
@@ -146,7 +151,6 @@ public class FirstHandshakeRequestHandler extends AbstractGTNetMessageHandler {
       gtNetConfig = new GTNetConfig();
     }
     gtNetConfig.setTokenRemote(theirTokenForUs);
-    gtNetConfig = gtNetConfigJpaRepository.save(gtNetConfig);
     existing.setGtNetConfig(gtNetConfig);
     return gtNetJpaRepository.save(existing);
   }

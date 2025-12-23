@@ -77,6 +77,16 @@ public class GTNetConfig extends BaseID<Integer>  {
   }
 
 
+  public Integer getIdGtNet() {
+	return idGtNet;
+}
+
+
+  public void setIdGtNet(Integer idGtNet) {
+	this.idGtNet = idGtNet;
+  }
+
+
   public Integer getDailyRequestLimitCount() {
     return dailyRequestLimitCount;
   }
