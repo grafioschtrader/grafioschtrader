@@ -36,8 +36,7 @@ public abstract class GTNetMessageHelper {
     GTNetMessage gtNetMessagePing = new GTNetMessage(null, new Date(), SendReceivedType.SEND.getValue(), null,
         GTNetMessageCodeType.GT_NET_PING.getValue(), null, null);
 
-    MessageEnvelope meRequest = new MessageEnvelope(sourceGTNet.getDomainRemoteName(), gtNetMessagePing,
-        sourceGTNet.isServerBusy());
+    MessageEnvelope meRequest = new MessageEnvelope(sourceGTNet, gtNetMessagePing);
 
     String tokenRemote = targetGTNet.getGtNetConfig() != null ? targetGTNet.getGtNetConfig().getTokenRemote() : null;
     return baseDataClient.sendToMsgWithStatus(tokenRemote, targetGTNet.getDomainRemoteName(), meRequest);

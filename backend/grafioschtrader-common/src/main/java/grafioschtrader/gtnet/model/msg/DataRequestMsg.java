@@ -1,5 +1,8 @@
 package grafioschtrader.gtnet.model.msg;
 
+import java.util.Set;
+
+import grafioschtrader.gtnet.GTNetExchangeKindType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -13,27 +16,17 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * responder. Default values may come from the sender's GTNet configuration but can be overridden
  * per-request.
  *
- * @see grafioschtrader.entities.GTNet#acceptEntityRequest for bidirectional exchange flag
- * @see grafioschtrader.entities.GTNetExchange for tracking individual entity exchanges
  */
 @Schema(description = """
     Payload for requesting entity/historical data exchange. Covers EOD quotes, security master data, and other
     persistent entities. Proposes exchange terms including bidirectionality and rate limits, which the responder
     can accept, modify, or reject. Distinct from intraday price sharing (GT_NET_LASTPRICE_* messages).""")
-public class EntityExchangeRequestMsg {
+public class DataRequestMsg {
 
   @Schema(description = """
-      Whether this domain's entity list may be shared with third parties. If true, the responder can include
-      this domain when responding to GT_NET_UPDATE_SERVERLIST requests from others.""")
-  public boolean spreadCapability;
+      Specifies which data types the user wants to exchange. Must contain at least one entity kind.
+      Available kinds: LAST_PRICE (intraday prices), HISTORICAL_PRICES (EOD quotes).""")
+  public Set<GTNetExchangeKindType> entityKinds;
 
-  @Schema(description = """
-      Requests bidirectional exchange. If true, the requester is offering to accept entity data requests from
-      the responder as well, enabling mutual data sharing rather than one-way consumption.""")
-  public boolean acceptEntityRequest;
-
-  @Schema(description = """
-      Proposed daily request limit for the responder to grant. The responder may accept this value or counter
-      with a different limit in their response. Null suggests no specific limit preference.""")
-  public Integer dailyRequestLimit;
+ 
 }

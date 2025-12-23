@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import grafioschtrader.entities.GTNet;
 import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.entities.GTNetMessage.GTNetMessageParam;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -62,28 +63,35 @@ public class MessageEnvelope {
       Optional JSON payload for complex, type-specific data. Used during handshake to transmit the full GTNet
       entity of the sender. Can contain any serializable object based on the message code.""")
   public JsonNode payload;
-  
+
+  @Schema(description = """
+      The sender's GTNet entry containing current status and capabilities. Always included in every message
+      to keep the receiver's local copy of this remote's configuration synchronized. Uses GTNetPublicDTO
+      to exclude sensitive authentication tokens.""")
+  public GTNetPublicDTO sourceGtNet;
+
   public MessageEnvelope() {
   }
 
-  public MessageEnvelope(String sourceDomain, GTNetMessage gtNetMsg) {
-    this(sourceDomain, gtNetMsg, false);
+  public MessageEnvelope(GTNet sourceGtNet, GTNetMessage gtNetMsg) {
+    this(sourceGtNet, gtNetMsg, sourceGtNet.isServerBusy());
   }
 
   /**
-   * Creates a new MessageEnvelope with the source server's busy status.
+   * Creates a new MessageEnvelope with the source server's GTNet entry and busy status.
    *
-   * @param sourceDomain the base URL of the sending domain
+   * @param sourceGtNet the GTNet entry of the sending server (converted to DTO to exclude tokens)
    * @param gtNetMsg the message to wrap
    * @param serverBusy whether the source server is currently busy
    */
-  public MessageEnvelope(String sourceDomain, GTNetMessage gtNetMsg, boolean serverBusy) {
-    this.sourceDomain = sourceDomain;
+  public MessageEnvelope(GTNet sourceGtNet, GTNetMessage gtNetMsg, boolean serverBusy) {
+    this.sourceDomain = sourceGtNet.getDomainRemoteName();
     this.idSourceGtNetMessage = gtNetMsg.getIdGtNetMessage();
     this.timestamp = gtNetMsg.getTimestamp();
     this.messageCode = gtNetMsg.getMessageCode().getValue();
     this.gtNetMessageParamMap = gtNetMsg.getGtNetMessageParamMap();
     this.message = gtNetMsg.getMessage();
     this.serverBusy = serverBusy;
+    this.sourceGtNet = new GTNetPublicDTO(sourceGtNet);
   }
 }

@@ -73,27 +73,51 @@ public class FirstHandshakeRequestHandler extends AbstractGTNetMessageHandler {
     // 3. Extract their GTNet entity from payload
     GTNet remoteGTNet = context.getPayloadAs(GTNet.class);
 
-    // 4. Store or update the remote GTNet entry and its config
-    GTNet processedRemoteGTNet = addOrUpdateRemoteGTNet(remoteGTNet, theirTokenForUs);
+    // 4. Check if remote server exists in our GTNet table
+    GTNet existing = gtNetJpaRepository.findByDomainRemoteName(remoteGTNet.getDomainRemoteName());
 
-    // 5. Generate our token for them and store in GTNetConfig
+    // 5. If server doesn't exist and allowServerCreation is false, reject the handshake
+    if (existing == null && !context.getMyGTNet().isAllowServerCreation()) {
+      return createNotInListRejectionResponse(context, remoteGTNet);
+    }
+
+    // 6. Store or update the remote GTNet entry and its config
+    GTNet processedRemoteGTNet = addOrUpdateRemoteGTNet(existing, remoteGTNet, theirTokenForUs);
+
+    // 7. Generate our token for them and store in GTNetConfig
     String ourTokenForThem = DataHelper.generateGUID();
     GTNetConfig gtNetConfig = processedRemoteGTNet.getGtNetConfig();
     gtNetConfig.setTokenThis(ourTokenForThem);
     gtNetConfigJpaRepository.save(gtNetConfig);
 
-    // 6. Store the incoming handshake message
+    // 8. Store the incoming handshake message
     GTNetMessage storedRequest = storeHandshakeRequest(context, processedRemoteGTNet);
 
-    // 7. Build and store the response message
+    // 9. Build and store the response message
     Map<String, GTNetMessageParam> responseParams = convertPojoToParamMap(new FirstHandshakeMsg(ourTokenForThem));
     GTNetMessage responseMsg = new GTNetMessage(processedRemoteGTNet.getIdGtNet(), new java.util.Date(),
         SendReceivedType.SEND.getValue(), storedRequest.getIdGtNetMessage(),
         GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_ACCEPT_S.getValue(), null, responseParams);
     responseMsg = gtNetMessageJpaRepository.saveMsg(responseMsg);
 
-    // 8. Return response with our GTNet info in payload
+    // 10. Return response with our GTNet info in payload
     MessageEnvelope response = createResponseEnvelopeWithPayload(context, responseMsg, context.getMyGTNet());
+    return new HandlerResult.ImmediateResponse(response);
+  }
+
+  /**
+   * Creates a rejection response when the requesting server is not in the GTNet list and allowServerCreation is false.
+   */
+  private HandlerResult createNotInListRejectionResponse(GTNetMessageContext context, GTNet remoteGTNet)
+      throws Exception {
+    // We need to create a temporary entry to store the rejection message, or handle without storing
+    // For rejection, we don't need to store the remote GTNet entry - just send a rejection response
+    GTNetMessage rejectMsg = new GTNetMessage(null, new java.util.Date(), SendReceivedType.SEND.getValue(), null,
+        GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_REJECT_NOT_IN_LIST_S.getValue(),
+        "Server not in GTNet list and automatic server creation is disabled", null);
+    rejectMsg = gtNetMessageJpaRepository.saveMsg(rejectMsg);
+
+    MessageEnvelope response = createResponseEnvelopeWithPayload(context, rejectMsg, context.getMyGTNet());
     return new HandlerResult.ImmediateResponse(response);
   }
 
@@ -111,8 +135,7 @@ public class FirstHandshakeRequestHandler extends AbstractGTNetMessageHandler {
     return ValidationResult.ok();
   }
 
-  private GTNet addOrUpdateRemoteGTNet(GTNet remoteGTNet, String theirTokenForUs) {
-    GTNet existing = gtNetJpaRepository.findByDomainRemoteName(remoteGTNet.getDomainRemoteName());
+  private GTNet addOrUpdateRemoteGTNet(GTNet existing, GTNet remoteGTNet, String theirTokenForUs) {
     if (existing == null) {
       existing = remoteGTNet;
       existing.setIdGtNet(null); // Ensure new entity

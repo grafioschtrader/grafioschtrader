@@ -12,6 +12,18 @@ export enum GTNetExchangeKindType {
 }
 
 /**
+ * Defines the acceptance modes for incoming GTNet data exchange requests.
+ * AC_CLOSED: No requests accepted, data exchange disabled
+ * AC_OPEN: Accepts incoming requests, provides data to remote instances
+ * AC_PUSH_OPEN: Accepts requests AND actively receives pushed updates (LAST_PRICE only)
+ */
+export enum AcceptRequestTypes {
+  AC_CLOSED = 0,
+  AC_OPEN = 1,
+  AC_PUSH_OPEN = 2
+}
+
+/**
  * Represents a data type configuration for a specific GTNet connection.
  * Each GTNet can have multiple GTNetEntity entries (one per data type).
  */
@@ -20,7 +32,7 @@ export interface GTNetEntity {
   idGtNet: number;
   entityKind: GTNetExchangeKindType|string;
   serverState: GTNetServerStateTypes;
-  acceptRequest: boolean;
+  acceptRequest: AcceptRequestTypes|string;
   gtNetConfigEntity?: GTNetConfigEntity;
 }
 
@@ -45,6 +57,7 @@ export class GTNet implements BaseID {
   dailyRequestLimitRemote: number;
   serverBusy = false;
   serverOnline: number | GTNetServerOnlineStatusTypes = GTNetServerOnlineStatusTypes.SOS_UNKNOWN;
+  allowServerCreation = false;
   // Collection of entity-specific configurations
   gtNetEntities: GTNetEntity[] = [];
   // Computed properties from GTNetConfig (read-only)

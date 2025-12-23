@@ -30,9 +30,9 @@ public class MaintenanceAnnouncementHandler extends AbstractAnnouncementHandler 
       return;
     }
 
-    // Update entity kinds to maintenance mode if they were previously accepted
+    // Update entity kinds to maintenance mode if they were previously accepting requests
     remoteGTNet.getGtNetEntities().stream()
-        .filter(entity -> entity.isAcceptRequest())
+        .filter(entity -> entity.isAccepting())
         .forEach(entity -> entity.setServerState(GTNetServerStateTypes.SS_MAINTENANCE));
     saveRemoteGTNet(remoteGTNet);
   }

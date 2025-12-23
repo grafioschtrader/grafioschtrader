@@ -2,7 +2,7 @@ import {Component} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {CrudMenuOptions, TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
-import {GTNet, GTNetCallParam, GTNetExchangeKindType, GTNetServerStateTypes, GTNetWithMessages} from '../model/gtnet';
+import {AcceptRequestTypes, GTNet, GTNetCallParam, GTNetExchangeKindType, GTNetServerStateTypes, GTNetWithMessages} from '../model/gtnet';
 import {GTNetMessage, MsgCallParam} from '../model/gtnet.message';
 import {GTNetService} from '../service/gtnet.service';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
@@ -127,14 +127,16 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.Boolean, 'serverBusy', true, false,
       {templateName: 'check'});
+    this.addColumnFeqH(DataType.Boolean, 'allowServerCreation', true, false,
+      {templateName: 'check'});
     this.addColumnFeqH(DataType.Boolean, 'authorized', true, false,
       {templateName: 'check'});
-    this.addColumnFeqH(DataType.Boolean, 'acceptLastpriceRequest', true, false,
-      {templateName: 'check'});
+    this.addColumnFeqH(DataType.String, 'acceptLastpriceRequest', true, false,
+      {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.String, 'lastpriceServerState', true, false,
       {translateValues: TranslateValue.NORMAL});
-    this.addColumnFeqH(DataType.Boolean, 'historicalPriceRequest', true, false,
-      {templateName: 'check'});
+    this.addColumnFeqH(DataType.String, 'historicalPriceRequest', true, false,
+      {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.String, 'historicalPriceServerState', true, false,
       {translateValues: TranslateValue.NORMAL});
     this.multiSortMeta.push({field: this.domainRemoteName, order: 1});
@@ -168,11 +170,15 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
 
   private mapGTNetEntityToGTNet() {
     this.gtNetList.forEach(gtNet => gtNet.gtNetEntities.forEach(e => {
+      // Convert acceptRequest to enum name string for translation
+      const acceptRequestName = typeof e.acceptRequest === 'number'
+        ? AcceptRequestTypes[e.acceptRequest]
+        : e.acceptRequest;
       if(e.entityKind === GTNetExchangeKindType[GTNetExchangeKindType.LAST_PRICE]) {
-        gtNet['acceptLastpriceRequest'] = e.acceptRequest;
+        gtNet['acceptLastpriceRequest'] = acceptRequestName;
         gtNet['lastpriceServerState'] = e.serverState;
       } else {
-        gtNet['historicalPriceRequest'] = e.acceptRequest;
+        gtNet['historicalPriceRequest'] = acceptRequestName;
         gtNet['historicalPriceServerState'] = e.serverState;
       }
     }));
@@ -183,7 +189,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     menuItems.push({separator: true});
     menuItems.push({
       label: 'GT_NET_MESSAGE_SEND', command: (e) => this.sendMsgSelected(),
-      disabled: !this.selectedEntity && !this.gtNetMyEntryId
+      disabled: !this.selectedEntity || this.selectedEntity.idGtNet == this.gtNetMyEntryId
     });
     return menuItems;
   }

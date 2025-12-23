@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 
 import grafioschtrader.entities.GTNet;
 import grafioschtrader.entities.GTNetMessage;
+import grafioschtrader.gtnet.AcceptRequestTypes;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.GTNetServerStateTypes;
 import grafioschtrader.gtnet.handler.AbstractAnnouncementHandler;
@@ -32,7 +33,7 @@ public class OperationDiscontinuedHandler extends AbstractAnnouncementHandler {
     // Mark all entity kinds as closed and not accepting requests
     remoteGTNet.getGtNetEntities().forEach(entity -> {
       entity.setServerState(GTNetServerStateTypes.SS_CLOSED);
-      entity.setAcceptRequest(false);
+      entity.setAcceptRequest(AcceptRequestTypes.AC_CLOSED);
     });
     saveRemoteGTNet(remoteGTNet);
   }

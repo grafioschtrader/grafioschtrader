@@ -14,6 +14,7 @@ import {DynamicFieldHelper, FieldOptions, FieldOptionsCc, VALIDATION_SPECIAL} fr
 import {dateRange, gteDate} from '../validator/validator';
 import {ErrorMessageRules} from '../dynamic-form/error/error.message.rules';
 import {FieldFormGroup} from '../dynamic-form/models/form.group.definition';
+import {ValueKeyHtmlSelectOptions} from '../dynamic-form/models/value.key.html.select.options';
 
 /**
  * Utility class for automatically generating dynamic form fields from class descriptors.
@@ -45,7 +46,7 @@ export class DynamicFieldModelHelper {
   public static createFieldsFromClassDescriptorInputAndShow(cdias: ClassDescriptorInputAndShow, labelPrefix: string,
     addSubmitButton = false, submitText?: string): FieldFormGroup[] {
     let config: FieldFormGroup[];
-    if (cdias?.constraintValidatorMap) {
+    if (cdias?.constraintValidatorMap && cdias.constraintValidatorMap.size > 0) {
       let validatorCounter = 0;
       for (const [key, value] of Object.entries(cdias.constraintValidatorMap)) {
         validatorCounter++;
@@ -250,6 +251,9 @@ export class DynamicFieldModelHelper {
         fieldConfig = DynamicFieldHelper.createFieldInputWebUrl(targetField, labelKey, fd.required,
           fieldOptionsCc);
         break;
+      case DataType.EnumSet:
+        fieldConfig = this.createEnumSetMultiSelect(fd, labelKey, targetField, fieldOptionsCc);
+        break;
       case DataType.DateString:
       case DataType.DateNumeric:
       case DataType.DateTimeNumeric:
@@ -322,6 +326,33 @@ export class DynamicFieldModelHelper {
   }
 
   /**
+   * Creates a multi-select input for Set&lt;Enum&gt; fields.
+   * Converts enum values from descriptor to ValueKeyHtmlSelectOptions for the dropdown.
+   * Translation keys follow the pattern: ENUM_TYPE.ENUM_VALUE (e.g., GTNetExchangeKindType.LAST_PRICE).
+   *
+   * @param fd Field descriptor containing enumType and enumValues from backend
+   * @param labelKey Translation key for field label
+   * @param targetField Target field name for data binding
+   * @param fieldOptionsCc Additional field options (merged with generated options)
+   * @returns FieldConfig for multi-select component with enum options and empty array default
+   */
+  private static createEnumSetMultiSelect(fd: FieldDescriptorInputAndShow, labelKey: string,
+    targetField: string, fieldOptionsCc?: FieldOptionsCc): FieldConfig {
+    // Convert enum values to select options
+    // key = enum value name (submitted value), value = translation key for display
+    // Translation key pattern: ENUM_TYPE.VALUE (e.g., GTNetExchangeKindType.LAST_PRICE)
+    const valueKeyHtmlOptions: ValueKeyHtmlSelectOptions[] = fd.enumValues?.map(enumValue =>
+      new ValueKeyHtmlSelectOptions(enumValue, `${fd.enumType}.${enumValue}`)
+    ) || [];
+
+    const fieldOptions: FieldOptions = Object.assign({}, fieldOptionsCc, {
+      valueKeyHtmlOptions
+    });
+
+    return DynamicFieldHelper.createFieldMultiSelectString(targetField, labelKey, fd.required, fieldOptions);
+  }
+
+  /**
    * Creates and populates a dynamic model object from form selection and parameter map.
    * Converts parameter values to appropriate data types and builds model object.
    * Useful for creating request objects from form data and selections.
@@ -348,7 +379,8 @@ export class DynamicFieldModelHelper {
 
   /**
    * Converts parameter map values to dynamic model with appropriate data type conversion.
-   * Handles numeric conversion for Numeric and NumericInteger data types, leaves other types as strings.
+   * Handles numeric conversion for Numeric and NumericInteger data types, array handling for EnumSet,
+   * and leaves other types as strings.
    *
    * @param fieldDescriptorInputAndShows Array of field descriptors providing data type information
    * @param paramMap Map or object containing parameter values with paramValue property
@@ -364,6 +396,10 @@ export class DynamicFieldModelHelper {
         case DataType.Numeric:
         case DataType.NumericInteger:
           value = Number(value);
+          break;
+        case DataType.EnumSet:
+          // Backend stores comma-separated string - convert to array for MultiSelect display
+          value = typeof value === 'string' && value ? value.split(',') : [];
           break;
         default:
         // Nothing

@@ -3,6 +3,8 @@ package grafiosch.dynamic.model;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -118,8 +120,7 @@ public abstract class DynamicModelHelper {
           Annotation[] annotations = field.getDeclaredAnnotations();
           if (possibleAnnotationSet.isEmpty()
               || Arrays.stream(annotations).anyMatch(a -> possibleAnnotationSet.contains(a.annotationType()))) {
-            FieldDescriptorInputAndShow fieldDescriptorInputAndShow = new FieldDescriptorInputAndShow(field.getName(),
-                field.getType());
+            FieldDescriptorInputAndShow fieldDescriptorInputAndShow = createFieldDescriptor(field);
             for (Annotation annotation : annotations) {
               if (annotation.annotationType() == NotNull.class || annotation.annotationType() == NotNull.List.class) {
                 fieldDescriptorInputAndShow.required = true;
@@ -149,5 +150,52 @@ public abstract class DynamicModelHelper {
       }
     }
     return fieldDescriptorInputAndShowList;
+  }
+
+  /**
+   * Creates a field descriptor from a Java field, handling special types like Set&lt;Enum&gt;.
+   * For Set&lt;Enum&gt; fields, creates a descriptor with DataType.EnumSet and populates
+   * the available enum values for multi-select input generation.
+   *
+   * @param field the Java field to analyze
+   * @return a field descriptor with appropriate data type and enum values if applicable
+   */
+  private static FieldDescriptorInputAndShow createFieldDescriptor(Field field) {
+    // Check for Set<Enum> type
+    if (Set.class.isAssignableFrom(field.getType())) {
+      Type genericType = field.getGenericType();
+      if (genericType instanceof ParameterizedType) {
+        ParameterizedType pt = (ParameterizedType) genericType;
+        Type[] typeArgs = pt.getActualTypeArguments();
+        if (typeArgs.length == 1 && typeArgs[0] instanceof Class) {
+          Class<?> elementType = (Class<?>) typeArgs[0];
+          if (elementType.isEnum()) {
+            return createEnumSetDescriptor(field.getName(), elementType);
+          }
+        }
+      }
+    }
+    // Default: use standard field analysis
+    return new FieldDescriptorInputAndShow(field.getName(), field.getType());
+  }
+
+  /**
+   * Creates a field descriptor for Set&lt;Enum&gt; fields with multi-select support.
+   * Extracts all enum constant names to populate the available options.
+   *
+   * @param fieldName the name of the field
+   * @param enumClass the enum class type contained in the Set
+   * @return a field descriptor configured for EnumSet data type with available enum values
+   */
+  private static FieldDescriptorInputAndShow createEnumSetDescriptor(String fieldName, Class<?> enumClass) {
+    FieldDescriptorInputAndShow fd = new FieldDescriptorInputAndShow(fieldName, DataType.EnumSet, null, null);
+    fd.enumType = enumClass.getSimpleName();
+
+    // Populate available enum values
+    Object[] enumConstants = enumClass.getEnumConstants();
+    fd.enumValues = Arrays.stream(enumConstants)
+        .map(e -> ((Enum<?>) e).name())
+        .toArray(String[]::new);
+    return fd;
   }
 }

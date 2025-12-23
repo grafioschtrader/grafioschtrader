@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import grafioschtrader.entities.GTNet;
 import grafioschtrader.entities.GTNetEntity;
 import grafioschtrader.entities.GTNetMessage;
+import grafioschtrader.gtnet.AcceptRequestTypes;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.GTNetServerStateTypes;
@@ -55,7 +56,7 @@ public class DataRevokeHandler extends AbstractAnnouncementHandler {
         .filter(e -> e.getEntityKind() == kind)
         .findFirst()
         .ifPresent(entity -> {
-          entity.setAcceptRequest(false);
+          entity.setAcceptRequest(AcceptRequestTypes.AC_CLOSED);
           entity.setServerState(GTNetServerStateTypes.SS_CLOSED);
         });
   }

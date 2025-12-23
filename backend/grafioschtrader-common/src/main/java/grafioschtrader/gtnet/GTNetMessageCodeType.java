@@ -35,6 +35,8 @@ public enum GTNetMessageCodeType {
   GT_NET_FIRST_HANDSHAKE_ACCEPT_S((byte) 2),
   /** The requested server refuses connection */
   GT_NET_FIRST_HANDSHAKE_REJECT_S((byte) 3),
+  /** The requested server rejects because the requesting server is not in the GTNet list and allowServerCreation is false */
+  GT_NET_FIRST_HANDSHAKE_REJECT_NOT_IN_LIST_S((byte) 4),
 
   /** Update server list */
   GT_NET_UPDATE_SERVERLIST_SEL_C((byte) 10),

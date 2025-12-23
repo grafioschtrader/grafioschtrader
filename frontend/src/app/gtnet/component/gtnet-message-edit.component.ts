@@ -134,8 +134,14 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
   private getMessageParam(value: { [name: string]: any }): Map<string, BaseParam> | { [key: string]: BaseParam } {
     const gtNetMessageParamMap: Map<string, BaseParam> | { [key: string]: BaseParam } = {};
     const valuesFlatten = Helper.flattenObject(value);
-    this.classDescriptorInputAndShows && this.classDescriptorInputAndShows.fieldDescriptorInputAndShows.forEach(fDIAS =>
-      gtNetMessageParamMap[fDIAS.fieldName] = new BaseParam(valuesFlatten[fDIAS.fieldName]));
+    this.classDescriptorInputAndShows && this.classDescriptorInputAndShows.fieldDescriptorInputAndShows.forEach(fDIAS => {
+      let paramValue = valuesFlatten[fDIAS.fieldName];
+      // Convert arrays (from MultiSelect/EnumSet) to comma-separated string for backend storage
+      if (Array.isArray(paramValue)) {
+        paramValue = paramValue.join(',');
+      }
+      gtNetMessageParamMap[fDIAS.fieldName] = new BaseParam(paramValue);
+    });
     return gtNetMessageParamMap;
   }
 

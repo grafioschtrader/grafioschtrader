@@ -27,10 +27,11 @@ public interface GTNetJpaRepository
   /**
    * Finds domains that have at least one GTNetEntity accepting requests.
    * Used to determine broadcast targets for maintenance announcements and shutdown notices.
+   * Checks for acceptRequest > 0 (AC_OPEN=1 or AC_PUSH_OPEN=2).
    *
    * @return list of domains where at least one entity kind accepts requests
    */
-  @Query("SELECT DISTINCT g FROM GTNet g JOIN g.gtNetEntities e WHERE e.acceptRequest = true")
+  @Query("SELECT DISTINCT g FROM GTNet g JOIN g.gtNetEntities e WHERE e.acceptRequest > 0")
   List<GTNet> findByAnyAcceptRequest();
 
   /**

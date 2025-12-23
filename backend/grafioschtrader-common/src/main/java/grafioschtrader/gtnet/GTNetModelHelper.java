@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 import grafiosch.dynamic.model.ClassDescriptorInputAndShow;
 import grafiosch.dynamic.model.DynamicModelHelper;
 import grafioschtrader.entities.GTNetMessage;
-import grafioschtrader.gtnet.model.msg.EntityExchangeRequestMsg;
+import grafioschtrader.gtnet.model.msg.DataRequestMsg;
 import grafioschtrader.gtnet.model.msg.FirstHandshakeMsg;
 import grafioschtrader.gtnet.model.msg.MaintenanceMsg;
 import grafioschtrader.gtnet.model.msg.RevokeMsg;
@@ -59,7 +59,7 @@ public abstract class GTNetModelHelper {
 
     // Unified data exchange messages
     msgFormMap.put(GTNetMessageCodeType.GT_NET_DATA_REQUEST_SEL_C,
-        new GTNetMsgRequest(EntityExchangeRequestMsg.class, true, (byte) 1));
+        new GTNetMsgRequest(DataRequestMsg.class, true, (byte) 1));
     msgFormMap.put(GTNetMessageCodeType.GT_NET_DATA_REVOKE_SEL_C, new GTNetMsgRequest(RevokeMsg.class, false, (byte) 1));
 
     // Server status announcements - no model, no response expected
