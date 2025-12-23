@@ -105,6 +105,8 @@ grafioschtrader.platform.swissquote
 grafioschtrader.security.filter
 grafioschtrader.security
 grafioschtrader.exportdelete
+grafioschtrader.gtnet.handler
+grafioschtrader.gtnet.handler.impl
 grafioschtrader.test.start
 grafioschtrader.config
 grafioschtrader.algo.simulate

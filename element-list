@@ -72,6 +72,8 @@ grafioschtrader.entities
 grafioschtrader.entities.projection
 grafioschtrader.exportdelete
 grafioschtrader.gtnet
+grafioschtrader.gtnet.handler
+grafioschtrader.gtnet.handler.impl
 grafioschtrader.gtnet.m2m.model
 grafioschtrader.gtnet.model
 grafioschtrader.gtnet.model.msg
