@@ -1,5 +1,9 @@
 package grafioschtrader.entities;
 
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import grafiosch.entities.BaseID;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
@@ -51,6 +55,13 @@ public class GTNetExchange extends BaseID<Integer> {
   @Transient
   private Long detailCount;
 
+  /**
+   * Transient field to hold the idSecuritycurrency from JSON deserialization.
+   * Used when creating new GTNetExchange entries via batchUpdate.
+   */
+  @Transient
+  private Integer idSecuritycurrencyForNew;
+
   public Integer getIdGtNetExchange() {
     return idGtNetExchange;
   }
@@ -65,6 +76,22 @@ public class GTNetExchange extends BaseID<Integer> {
 
   public void setSecuritycurrency(Securitycurrency<?> securitycurrency) {
     this.securitycurrency = securitycurrency;
+  }
+
+  /**
+   * JSON deserialization setter that extracts the idSecuritycurrency from the incoming JSON object.
+   * This avoids the need for @JsonTypeInfo annotations on Securitycurrency by accepting
+   * the object as a Map and extracting only the ID needed for processing.
+   */
+  @JsonProperty("securitycurrency")
+  public void setSecuritycurrencyFromJson(Map<String, Object> scMap) {
+    if (scMap != null && scMap.containsKey("idSecuritycurrency")) {
+      this.idSecuritycurrencyForNew = (Integer) scMap.get("idSecuritycurrency");
+    }
+  }
+
+  public Integer getIdSecuritycurrencyForNew() {
+    return idSecuritycurrencyForNew;
   }
 
   public boolean isLastpriceRecv() {
