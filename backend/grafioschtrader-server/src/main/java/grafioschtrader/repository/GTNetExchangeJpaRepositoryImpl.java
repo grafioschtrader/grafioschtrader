@@ -128,8 +128,8 @@ public class GTNetExchangeJpaRepositoryImpl implements GTNetExchangeJpaRepositor
     }
 
     List<Integer> newSecurityCurrencyIds = exchanges.stream()
-        .filter(e -> e.getIdGtNetExchange() == null && e.getSecuritycurrency() != null)
-        .map(e -> e.getSecuritycurrency().getIdSecuritycurrency()).collect(Collectors.toList());
+        .filter(e -> e.getIdGtNetExchange() == null && e.getIdSecuritycurrencyForNew() != null)
+        .map(GTNetExchange::getIdSecuritycurrencyForNew).collect(Collectors.toList());
 
     Map<Integer, Securitycurrency<?>> securityCurrencyMap = new HashMap<>();
     if (!newSecurityCurrencyIds.isEmpty()) {
@@ -172,10 +172,10 @@ public class GTNetExchangeJpaRepositoryImpl implements GTNetExchangeJpaRepositor
         }
       } else {
         // Create new entry (idGtNetExchange is null)
-        Securitycurrency<?> sc = securityCurrencyMap.get(exchange.getSecuritycurrency().getIdSecuritycurrency());
+        Securitycurrency<?> sc = securityCurrencyMap.get(exchange.getIdSecuritycurrencyForNew());
         if (sc == null) {
           throw new IllegalArgumentException(
-              "Securitycurrency not found for ID: " + exchange.getSecuritycurrency().getIdSecuritycurrency());
+              "Securitycurrency not found for ID: " + exchange.getIdSecuritycurrencyForNew());
         }
         checkAccess(user, sc);
 

@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.33.9</version>
+		<version>0.33.10</version>
 	</parent>
 
 	<artifactId>grafioschtrader-server</artifactId>
@@ -37,20 +37,20 @@
 		 <dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafiosch-base</artifactId>
-	        <version>0.33.9</version>	
+	        <version>0.33.10</version>	
 		</dependency>
 
  		<dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafiosch-server-base</artifactId>
-	        <version>0.33.9</version>	
+	        <version>0.33.10</version>	
 		</dependency>
 
 		<!-- Grafioschtrader common module -->
 		<dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafioschtrader-common</artifactId>
-			<version>0.33.9</version>
+			<version>0.33.10</version>
 		</dependency>
 
 
