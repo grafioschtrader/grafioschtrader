@@ -55,6 +55,7 @@ CREATE TABLE `gt_net` (
   `spread_capability` tinyint(1) NOT NULL DEFAULT 0,
   `daily_req_limit` int(11) DEFAULT NULL,
   `daily_req_limit_remote` int(11) DEFAULT NULL,
+  `allow_server_creation` tinyint(1) NOT NULL DEFAULT 0,
   `server_busy` tinyint(1) NOT NULL DEFAULT 0,
   `server_online` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

@@ -1,8 +1,6 @@
 package grafioschtrader.gtnet.handler.impl;
 
-import java.util.Arrays;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -11,6 +9,7 @@ import grafioschtrader.entities.GTNet;
 import grafioschtrader.entities.GTNetConfigEntity;
 import grafioschtrader.entities.GTNetEntity;
 import grafioschtrader.entities.GTNetMessage;
+import grafioschtrader.gtnet.AcceptRequestTypes;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetExchangeStatusTypes;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
@@ -18,15 +17,14 @@ import grafioschtrader.gtnet.GTNetServerStateTypes;
 import grafioschtrader.gtnet.handler.AbstractRequestHandler;
 import grafioschtrader.gtnet.handler.GTNetMessageContext;
 import grafioschtrader.gtnet.handler.ValidationResult;
+import grafioschtrader.gtnet.model.msg.DataRequestMsg;
 import grafioschtrader.repository.GTNetEntityJpaRepository;
 
 /**
  * Unified handler for GT_NET_DATA_REQUEST_SEL_C messages.
  *
- * Processes requests for any combination of data types via the entityKinds parameter.
- *
- * The entityKinds parameter should be a comma-separated list of entity kind values
- * (either numeric: "0,1" or names: "LAST_PRICE,HISTORICAL_PRICES").
+ * Processes requests for any combination of data types via the DataRequestMsg payload. The payload contains an
+ * entityKinds set specifying which data types (LAST_PRICE, HISTORICAL_PRICES) the requester wants to exchange.
  */
 @Component
 public class DataRequestHandler extends AbstractRequestHandler {
@@ -47,11 +45,11 @@ public class DataRequestHandler extends AbstractRequestHandler {
           "Data request from unknown domain - handshake required first");
     }
 
-    // Validate entityKinds parameter exists
+    // Validate entityKinds in payload exists
     Set<GTNetExchangeKindType> requestedKinds = getRequestedEntityKinds(context);
     if (requestedKinds.isEmpty()) {
       return ValidationResult.invalid("MISSING_ENTITY_KINDS",
-          "Data request must specify at least one entity kind in the entityKinds parameter");
+          "Data request must specify at least one entity kind in the payload");
     }
 
     return ValidationResult.ok();
@@ -92,7 +90,7 @@ public class DataRequestHandler extends AbstractRequestHandler {
    */
   private void updateEntityForAccept(GTNet remoteGTNet, GTNetExchangeKindType kind) {
     GTNetEntity entity = getOrCreateEntity(remoteGTNet, kind);
-    entity.setAcceptRequest(true);
+    entity.setAcceptRequest(AcceptRequestTypes.AC_OPEN);
     entity.setServerState(GTNetServerStateTypes.SS_OPEN);
 
     // Update the corresponding GTNetConfigEntity exchange status
@@ -107,7 +105,7 @@ public class DataRequestHandler extends AbstractRequestHandler {
    */
   private void updateEntityForReject(GTNet remoteGTNet, GTNetExchangeKindType kind) {
     GTNetEntity entity = getOrCreateEntity(remoteGTNet, kind);
-    entity.setAcceptRequest(false);
+    entity.setAcceptRequest(AcceptRequestTypes.AC_CLOSED);
     entity.setServerState(GTNetServerStateTypes.SS_CLOSED);
   }
 
@@ -129,39 +127,20 @@ public class DataRequestHandler extends AbstractRequestHandler {
   }
 
   /**
-   * Parses the entityKinds parameter from the message context.
+   * Extracts the entity kinds from the DataRequestMsg payload.
    *
    * @param context the message context
-   * @return set of requested entity kinds, or empty set if parameter is missing
+   * @return set of requested entity kinds, or empty set if payload is missing or has no entity kinds
    */
   private Set<GTNetExchangeKindType> getRequestedEntityKinds(GTNetMessageContext context) {
-    String entityKindsParam = context.getParamValue("entityKinds");
-    if (entityKindsParam == null || entityKindsParam.isBlank()) {
+    if (!context.hasPayload()) {
       return Set.of();
     }
-
-    return Arrays.stream(entityKindsParam.split(","))
-        .map(String::trim)
-        .map(this::parseEntityKind)
-        .filter(kind -> kind != null)
-        .collect(Collectors.toSet());
-  }
-
-  /**
-   * Parses a single entity kind value (either numeric or name).
-   */
-  private GTNetExchangeKindType parseEntityKind(String value) {
     try {
-      // Try parsing as numeric value first
-      byte numericValue = Byte.parseByte(value);
-      return GTNetExchangeKindType.getGTNetExchangeKindType(numericValue);
-    } catch (NumberFormatException e) {
-      // Try parsing as enum name
-      try {
-        return GTNetExchangeKindType.valueOf(value.toUpperCase());
-      } catch (IllegalArgumentException ex) {
-        return null;
-      }
+      DataRequestMsg dataRequest = context.getPayloadAs(DataRequestMsg.class);
+      return dataRequest.entityKinds != null ? dataRequest.entityKinds : Set.of();
+    } catch (Exception e) {
+      return Set.of();
     }
   }
 }

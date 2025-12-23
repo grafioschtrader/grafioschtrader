@@ -17,6 +17,7 @@ public class MessageConfig {
   MessageSource messageSource() {
     final ReloadableResourceBundleMessageSource messageSource = new ExposedResourceBundleMessageSource();
     messageSource.setBasenames("classpath:i18n/messages", "classpath:message/messages");
+    messageSource.setDefaultEncoding("UTF-8");
     messageSource.setUseCodeAsDefaultMessage(false);
     messageSource.setDefaultLocale(Locale.US);
     return messageSource;

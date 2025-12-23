@@ -33,6 +33,7 @@ import grafiosch.repository.BaseRepositoryImpl;
 import grafiosch.repository.RepositoryHelper;
 import grafioschtrader.entities.GTNet;
 import grafioschtrader.entities.GTNetConfig;
+import grafioschtrader.entities.GTNetEntity;
 import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.entities.GTNetMessage.GTNetMessageParam;
 import grafioschtrader.entities.GTNetMessageAnswer;
@@ -45,6 +46,8 @@ import grafioschtrader.gtnet.handler.GTNetMessageContext;
 import grafioschtrader.gtnet.handler.GTNetMessageHandler;
 import grafioschtrader.gtnet.handler.GTNetMessageHandlerRegistry;
 import grafioschtrader.gtnet.handler.HandlerResult;
+import grafioschtrader.gtnet.m2m.model.GTNetEntityPublicDTO;
+import grafioschtrader.gtnet.m2m.model.GTNetPublicDTO;
 import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.gtnet.model.GTNetWithMessages;
 import grafioschtrader.gtnet.model.MsgRequest;
@@ -297,8 +300,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    */
   private MessageEnvelope sendMessageWithStatusUpdate(GTNet sourceGTNet, GTNet targetGTNet, GTNetMessage gtNetMessage,
       Object payLoadObject) {
-    MessageEnvelope meRequest = new MessageEnvelope(sourceGTNet.getDomainRemoteName(), gtNetMessage,
-        sourceGTNet.isServerBusy());
+    MessageEnvelope meRequest = new MessageEnvelope(sourceGTNet, gtNetMessage);
     if (payLoadObject != null) {
       meRequest.payload = objectMapper.convertValue(payLoadObject, JsonNode.class);
     }
@@ -306,19 +308,15 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     String tokenRemote = targetGTNet.getGtNetConfig() != null ? targetGTNet.getGtNetConfig().getTokenRemote() : null;
     SendResult result = baseDataClient.sendToMsgWithStatus(tokenRemote, targetGTNet.getDomainRemoteName(), meRequest);
 
-    // Update target server's online status based on reachability
-    GTNetServerOnlineStatusTypes previousOnline = targetGTNet.getServerOnline();
-    GTNetServerOnlineStatusTypes newOnlineStatus = GTNetServerOnlineStatusTypes.fromReachable(result.serverReachable());
-    targetGTNet.setServerOnline(newOnlineStatus);
-
+    // Update target server's status based on response
     if (result.serverReachable() && result.response() != null) {
-      // Update target server's busy status from response
-      targetGTNet.setServerBusy(result.response().serverBusy);
-    }
-
-    // Persist changes if status changed
-    if (previousOnline != newOnlineStatus || (result.serverReachable() && result.response() != null)) {
-      gtNetJpaRepository.save(targetGTNet);
+      updateRemoteGTNetFromEnvelope(targetGTNet, result.response());
+    } else if (!result.serverReachable()) {
+      // Server unreachable - update online status
+      if (targetGTNet.getServerOnline() != GTNetServerOnlineStatusTypes.SOS_OFFLINE) {
+        targetGTNet.setServerOnline(GTNetServerOnlineStatusTypes.SOS_OFFLINE);
+        gtNetJpaRepository.save(targetGTNet);
+      }
     }
 
     return result.response();
@@ -371,9 +369,9 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     // Look up remote GTNet (may be null for first handshake)
     GTNet remoteGTNet = gtNetJpaRepository.findByDomainRemoteName(me.sourceDomain);
 
-    // Update remote server's status - they reached us so they are online
+    // Update remote server's status from the envelope's sourceGtNet
     if (remoteGTNet != null) {
-      updateRemoteServerStatus(remoteGTNet, me.serverBusy);
+      updateRemoteGTNetFromEnvelope(remoteGTNet, me);
     }
 
     // Look up auto-response rules for this message code
@@ -403,33 +401,97 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   }
 
   /**
-   * Updates the remote server's online and busy status based on incoming communication.
+   * Updates the local GTNet entry for a remote server based on the sourceGtNet in the received envelope.
+   * Synchronizes status flags, timezone, capabilities, and entity exchange settings.
    *
-   * @param remoteGTNet the remote GTNet entry to update
-   * @param serverBusy  the busy status from the incoming message
+   * @param localRemoteEntry the local GTNet entry representing the remote server (to be updated)
+   * @param envelope         the received message envelope containing sourceGtNet
    */
-  private void updateRemoteServerStatus(GTNet remoteGTNet, boolean serverBusy) {
+  private void updateRemoteGTNetFromEnvelope(GTNet localRemoteEntry, MessageEnvelope envelope) {
     boolean needsSave = false;
 
-    // Server contacted us, so it's online
-    if (remoteGTNet.getServerOnline() != GTNetServerOnlineStatusTypes.SOS_ONLINE) {
-      remoteGTNet.setServerOnline(GTNetServerOnlineStatusTypes.SOS_ONLINE);
+    // Server communicated with us, so it's online
+    if (localRemoteEntry.getServerOnline() != GTNetServerOnlineStatusTypes.SOS_ONLINE) {
+      localRemoteEntry.setServerOnline(GTNetServerOnlineStatusTypes.SOS_ONLINE);
       needsSave = true;
     }
 
-    // Update busy status from incoming message
-    if (remoteGTNet.isServerBusy() != serverBusy) {
-      remoteGTNet.setServerBusy(serverBusy);
+    // Update busy status from envelope
+    if (localRemoteEntry.isServerBusy() != envelope.serverBusy) {
+      localRemoteEntry.setServerBusy(envelope.serverBusy);
       needsSave = true;
+    }
+
+    // Sync additional fields from sourceGtNet DTO if present
+    GTNetPublicDTO sourceGtNet = envelope.sourceGtNet;
+    if (sourceGtNet != null) {
+      // Sync timezone
+      if (sourceGtNet.getTimeZone() != null
+          && !sourceGtNet.getTimeZone().equals(localRemoteEntry.getTimeZone())) {
+        localRemoteEntry.setTimeZone(sourceGtNet.getTimeZone());
+        needsSave = true;
+      }
+
+      // Sync spread capability
+      if (sourceGtNet.isSpreadCapability() != localRemoteEntry.isSpreadCapability()) {
+        localRemoteEntry.setSpreadCapability(sourceGtNet.isSpreadCapability());
+        needsSave = true;
+      }
+
+      // Sync the remote's daily request limit (what THEY accept from US)
+      if (!java.util.Objects.equals(sourceGtNet.getDailyRequestLimit(), localRemoteEntry.getDailyRequestLimitRemote())) {
+        localRemoteEntry.setDailyRequestLimitRemote(sourceGtNet.getDailyRequestLimit());
+        needsSave = true;
+      }
+
+      // Sync GTNetEntities (data exchange capabilities)
+      if (sourceGtNet.getGtNetEntities() != null) {
+        needsSave |= syncGtNetEntitiesFromDTO(localRemoteEntry, sourceGtNet.getGtNetEntities());
+      }
     }
 
     if (needsSave) {
-      gtNetJpaRepository.save(remoteGTNet);
+      gtNetJpaRepository.save(localRemoteEntry);
     }
   }
 
   /**
-   * Adds the local server's busy status to a response envelope.
+   * Synchronizes the GTNetEntity list from a remote source DTO into the local entry.
+   * Updates existing entities and adds new ones based on entityKind.
+   *
+   * @param localEntry     the local GTNet entry to update
+   * @param sourceEntities the entity DTOs from the remote source
+   * @return true if any changes were made
+   */
+  private boolean syncGtNetEntitiesFromDTO(GTNet localEntry, List<GTNetEntityPublicDTO> sourceEntities) {
+    boolean changed = false;
+
+    for (GTNetEntityPublicDTO sourceEntity : sourceEntities) {
+      GTNetEntity localEntity = localEntry.getOrCreateEntity(sourceEntity.getEntityKind());
+
+      // Sync acceptRequest and serverState from remote
+      if (localEntity.getAcceptRequest() != sourceEntity.getAcceptRequest()) {
+        localEntity.setAcceptRequest(sourceEntity.getAcceptRequest());
+        changed = true;
+      }
+      if (localEntity.getServerState() != sourceEntity.getServerState()) {
+        localEntity.setServerState(sourceEntity.getServerState());
+        changed = true;
+      }
+
+      // Note: We don't sync the local config (exchange direction is local decision)
+      if (localEntity.getIdGtNetEntity() == null) {
+        // New entity was created
+        changed = true;
+      }
+    }
+
+    return changed;
+  }
+
+  /**
+   * Ensures the response envelope contains the local server's GTNet info.
+   * This is a safety check in case the envelope was created without using the standard constructor.
    *
    * @param response the response envelope to modify
    * @param myGTNet  the local GTNet entry
@@ -438,6 +500,9 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   private MessageEnvelope addServerBusyToResponse(MessageEnvelope response, GTNet myGTNet) {
     if (response != null) {
       response.serverBusy = myGTNet.isServerBusy();
+      if (response.sourceGtNet == null) {
+        response.sourceGtNet = new GTNetPublicDTO(myGTNet);
+      }
     }
     return response;
   }
@@ -449,8 +514,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     GTNetMessage errorMsg = new GTNetMessage(null, new Date(), SendReceivedType.ANSWER.getValue(), null,
         GTNetMessageCodeType.GT_NET_PING.getValue(), message, null);
     errorMsg.setErrorMsgCode(errorCode);
-    MessageEnvelope errorEnvelope = new MessageEnvelope(myGTNet.getDomainRemoteName(), errorMsg,
-        myGTNet.isServerBusy());
+    MessageEnvelope errorEnvelope = new MessageEnvelope(myGTNet, errorMsg);
     return errorEnvelope;
   }
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.entities.BaseID;
+import grafioschtrader.gtnet.AcceptRequestTypes;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetServerStateTypes;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -40,10 +41,12 @@ public class GTNetEntity extends BaseID<Integer> {
   private byte entityKind;  
     
   @Schema(description = """
-      When true, this server will respond to exchange of this kind of data queries from the remote.""")
+      Defines how this server handles incoming data exchange requests: AC_CLOSED (no requests),
+      AC_OPEN (accepts requests), or AC_PUSH_OPEN (accepts requests and pushed updates).
+      AC_PUSH_OPEN is only available for LAST_PRICE exchange kind.""")
   @Column(name = "accept_request")
   @PropertyAlwaysUpdatable
-  private boolean acceptRequest;
+  private byte acceptRequest;
   
   @Schema(description = """
       Server state for data sharing. Indicates whether the remote domain is available to provide
@@ -73,12 +76,21 @@ public class GTNetEntity extends BaseID<Integer> {
     this.idGtNetEntity = idGtNetEntity;
   }
 
-  public boolean isAcceptRequest() {
-    return acceptRequest;
+  public AcceptRequestTypes getAcceptRequest() {
+    return AcceptRequestTypes.getAcceptRequestType(acceptRequest);
   }
 
-  public void setAcceptRequest(boolean acceptRequest) {
-    this.acceptRequest = acceptRequest;
+  public void setAcceptRequest(AcceptRequestTypes acceptRequest) {
+    this.acceptRequest = acceptRequest.getValue();
+  }
+
+  /**
+   * Checks if this entity accepts incoming data requests.
+   *
+   * @return true if acceptRequest is AC_OPEN or AC_PUSH_OPEN
+   */
+  public boolean isAccepting() {
+    return getAcceptRequest().isAccepting();
   }
 
   public GTNetServerStateTypes getServerState() {

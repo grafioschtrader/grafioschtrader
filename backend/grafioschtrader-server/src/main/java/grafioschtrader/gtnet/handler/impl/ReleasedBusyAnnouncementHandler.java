@@ -32,9 +32,9 @@ public class ReleasedBusyAnnouncementHandler extends AbstractAnnouncementHandler
       return;
     }
 
-    // Restore entity kinds to open state if they were previously accepted
+    // Restore entity kinds to open state if they were previously accepting requests
     remoteGTNet.getGtNetEntities().stream()
-        .filter(entity -> entity.isAcceptRequest())
+        .filter(entity -> entity.isAccepting())
         .forEach(entity -> entity.setServerState(GTNetServerStateTypes.SS_OPEN));
     saveRemoteGTNet(remoteGTNet);
   }

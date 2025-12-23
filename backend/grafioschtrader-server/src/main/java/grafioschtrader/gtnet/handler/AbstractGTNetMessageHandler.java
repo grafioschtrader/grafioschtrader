@@ -92,7 +92,7 @@ public abstract class AbstractGTNetMessageHandler implements GTNetMessageHandler
    * @return the MessageEnvelope ready for transmission
    */
   protected MessageEnvelope createResponseEnvelope(GTNetMessageContext context, GTNetMessage responseMsg) {
-    return new MessageEnvelope(context.getMyGTNet().getDomainRemoteName(), responseMsg);
+    return new MessageEnvelope(context.getMyGTNet(), responseMsg);
   }
 
   /**

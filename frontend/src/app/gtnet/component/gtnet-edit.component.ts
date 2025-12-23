@@ -1,6 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
 import {
+  AcceptRequestTypes,
   GTNet,
   GTNetCallParam,
   GTNetEntity,
@@ -92,6 +93,7 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
       DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'dailyRequestLimit', true, 0, 9999,
         {defaultValue: 1000, fieldsetName: this.BASE_SETTING}),
       DynamicFieldHelper.createFieldCheckboxHeqF('serverBusy', {fieldsetName: this.BASE_SETTING}),
+      DynamicFieldHelper.createFieldCheckboxHeqF('allowServerCreation', {fieldsetName: this.BASE_SETTING}),
       DynamicFieldHelper.createFieldSelectStringHeqF('serverOnline', true,
         {
           defaultValue: GTNetServerOnlineStatusTypes[GTNetServerOnlineStatusTypes.SOS_UNKNOWN],
@@ -99,22 +101,24 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
           disabled: isUpdate
         }),
 
-      DynamicFieldHelper.createFieldCheckboxHeqF('historicalPriceRequest', {
-        defaultValue: true,
-        fieldsetName: this.HISTORICAL_PRICE,
-        disabled: isUpdate
-      }),
+      DynamicFieldHelper.createFieldSelectStringHeqF('historicalPriceRequest', true,
+        {
+          defaultValue: AcceptRequestTypes[AcceptRequestTypes.AC_OPEN],
+          fieldsetName: this.HISTORICAL_PRICE,
+          disabled: isUpdate
+        }),
       DynamicFieldHelper.createFieldSelectStringHeqF('historicalPriceServerState', true,
         {
           defaultValue: GTNetServerStateTypes[GTNetServerStateTypes.SS_OPEN],
           fieldsetName: this.HISTORICAL_PRICE,
           disabled: isUpdate
         }),
-      DynamicFieldHelper.createFieldCheckboxHeqF('acceptLastpriceRequest', {
-        defaultValue: true,
-        fieldsetName: this.LAST_PRICE,
-        disabled: isUpdate
-      }),
+      DynamicFieldHelper.createFieldSelectStringHeqF('acceptLastpriceRequest', true,
+        {
+          defaultValue: AcceptRequestTypes[AcceptRequestTypes.AC_OPEN],
+          fieldsetName: this.LAST_PRICE,
+          disabled: isUpdate
+        }),
       DynamicFieldHelper.createFieldSelectStringHeqF('lastpriceServerState', true,
         {
           defaultValue: GTNetServerStateTypes[GTNetServerStateTypes.SS_NONE],
@@ -133,6 +137,12 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
         this.configObject.lastpriceServerState.valueKeyHtmlOptions = this.configObject.historicalPriceServerState.valueKeyHtmlOptions;
         this.configObject.serverOnline.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
           GTNetServerOnlineStatusTypes);
+        // For historical prices, AC_PUSH_OPEN is not supported - create options with it disabled
+        this.configObject.historicalPriceRequest.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnumDisabled(
+          this.translateService, AcceptRequestTypes, [AcceptRequestTypes.AC_PUSH_OPEN]);
+        // For last price, all options are available
+        this.configObject.acceptLastpriceRequest.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+          this.translateService, AcceptRequestTypes);
         const gtNet = this.callParam.gtNet ?? new GTNet();
         this.form.transferBusinessObjectToForm(gtNet);
       });
@@ -150,28 +160,24 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
       gtNet.spreadCapability = value['spreadCapability'];
       gtNet.dailyRequestLimit = value['dailyRequestLimit'];
       gtNet.serverBusy = value['serverBusy'];
+      gtNet.allowServerCreation = value['allowServerCreation'];
       gtNet.serverOnline = GTNetServerOnlineStatusTypes[value['serverOnline']] as any;
 
       const gtNetEntities: GTNetEntity[] = [];
-      const existingEntities = this.callParam.gtNet?.gtNetEntities || [];
 
-     // const historicalEntityOld = existingEntities.find(e => e.entityKind === GTNetExchangeKindType.HISTORICAL_PRICES);
       const historicalEntity: GTNetEntity = {
         idGtNet: gtNet.idGtNet,
         entityKind: GTNetExchangeKindType.HISTORICAL_PRICES,
         serverState: GTNetServerStateTypes[value['historicalPriceServerState']] as any,
-        acceptRequest: value['historicalPriceRequest'],
-   //     gtNetConfigEntity: historicalEntityOld?.gtNetConfigEntity
+        acceptRequest: AcceptRequestTypes[value['historicalPriceRequest']] as any,
       };
       gtNetEntities.push(historicalEntity);
 
-    //  const lastPriceEntityOld = existingEntities.find(e => e.entityKind === GTNetExchangeKindType.LAST_PRICE);
       const lastPriceEntity: GTNetEntity = {
         idGtNet: gtNet.idGtNet,
         entityKind: GTNetExchangeKindType.LAST_PRICE,
         serverState: GTNetServerStateTypes[value['lastpriceServerState']] as any,
-        acceptRequest: value['acceptLastpriceRequest'],
-       // gtNetConfigEntity: lastPriceEntityOld?.gtNetConfigEntity
+        acceptRequest: AcceptRequestTypes[value['acceptLastpriceRequest']] as any,
       };
 
       gtNetEntities.push(lastPriceEntity);

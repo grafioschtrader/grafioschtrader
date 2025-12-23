@@ -36,7 +36,10 @@ public enum DataType {
   /** True or false */
   Boolean((byte) 13),
   /** For a web link. Normally this is a string with validation for validity as a URL. */
-  URLString((byte) 20);
+  URLString((byte) 20),
+
+  /** For Set&lt;Enum&gt; fields rendered as multi-select input. The available enum values are provided in enumValues. */
+  EnumSet((byte) 21);
 
   private final Byte value;
 

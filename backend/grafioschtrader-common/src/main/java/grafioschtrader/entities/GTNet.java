@@ -119,6 +119,15 @@ public class GTNet extends BaseID<Integer> {
   @PropertyAlwaysUpdatable
   private byte serverOnline;
 
+  @Schema(description = """
+      Controls whether unknown servers can be automatically added to this GTNet during the first handshake.
+      When false, only servers that already exist in the local GTNet table can successfully complete
+      a handshake - unknown servers will be rejected with GT_NET_FIRST_HANDSHAKE_REJECT_NOT_IN_LIST_S.
+      When true, a handshake from an unknown server will automatically create a new GTNet entry for that server.""")
+  @Column(name = "allow_server_creation")
+  @PropertyAlwaysUpdatable
+  private boolean allowServerCreation;
+
   public Integer getIdGtNet() {
     return idGtNet;
   }
@@ -181,6 +190,14 @@ public class GTNet extends BaseID<Integer> {
 
   public void setServerBusy(boolean serverBusy) {
     this.serverBusy = serverBusy;
+  }
+
+  public boolean isAllowServerCreation() {
+    return allowServerCreation;
+  }
+
+  public void setAllowServerCreation(boolean allowServerCreation) {
+    this.allowServerCreation = allowServerCreation;
   }
 
   public List<GTNetEntity> getGtNetEntities() {

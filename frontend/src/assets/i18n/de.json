@@ -1,5 +1,8 @@
 {
   "ACCEPTED": "Akzeptiert",
+  "AC_CLOSED": "Geschlossen",
+  "AC_OPEN": "Offen",
+  "AC_PUSH_OPEN": "Push Offen",
   "HISTORICAL_PRICE_REQUEST": "Kann hist. Preis Austausch",
   "ACCEPT_LASTPRICE_REQUEST": "Kann LP Austausch",
   "ACCEPT_LASTPRICE_REQUEST_TOOLTIP": "Entfernte Domäne nutzt diesen letzten Preis Server",
@@ -50,6 +53,8 @@
   "ALGO_STRATEGY_NAME": "Strategiename",
   "ALL": "Alle",
   "ALLOWED": "Erlaubt",
+  "ALLOW_SERVER_CREATION": "Server-Erstellung erlauben",
+  "ALLOW_SERVER_CREATION_TOOLTIP": "Wenn aktiviert, können unbekannte Server während des Handshakes automatisch hinzugefügt werden. Wenn deaktiviert, können nur bereits in der Liste vorhandene Server verbinden.",
   "ALL_EOD_AND_DIVIDEND": "Gemäss aller Schlusskurse und Dividende\n",
   "AMOUNT": "Betrag",
   "AMOUNT_ADJUSTED": "Betrag Split korrigiert",

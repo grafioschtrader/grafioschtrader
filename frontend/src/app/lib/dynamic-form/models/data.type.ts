@@ -96,5 +96,11 @@ export enum DataType {
   /**
    * It is similar to a string but with a validation on a web url.
    */
-  URLString = 20
+  URLString = 20,
+
+  /**
+   * Input: Multi-select for Set<Enum> fields. Rendered as p-multiSelect with enum values
+   * provided in FieldDescriptorInputAndShow.enumValues.
+   */
+  EnumSet = 21
 }

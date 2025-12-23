@@ -1,5 +1,8 @@
 {
   "ACCEPTED": "Accepted",
+  "AC_CLOSED": "Closed",
+  "AC_OPEN": "Open",
+  "AC_PUSH_OPEN": "Push Open",
   "HISTORICAL_PRICE_REQUEST": "Can hist. price exchange",
   "ACCEPT_LASTPRICE_REQUEST": "Can LP exchange",
   "ACCEPT_LASTPRICE_REQUEST_TOOLTIP": "Remote domain uses this last price server",
@@ -51,6 +54,8 @@
   "ALGO_STRATEGY_NAME": "Strategy name",
   "ALL": "all",
   "ALLOWED": "Allowed",
+  "ALLOW_SERVER_CREATION": "Allow server creation",
+  "ALLOW_SERVER_CREATION_TOOLTIP": "When enabled, unknown servers can be automatically added during handshake. When disabled, only servers already in the list can connect.",
   "ALL_EOD_AND_DIVIDEND": "According to all closing prices and dividend",
   "AMOUNT": "Amount",
   "AMOUNT_ADJUSTED": "Amount split corrected",

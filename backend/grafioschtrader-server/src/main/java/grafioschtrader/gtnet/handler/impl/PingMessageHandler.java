@@ -38,7 +38,7 @@ public class PingMessageHandler extends AbstractGTNetMessageHandler {
     GTNetMessage responseMsg = new GTNetMessage(null, new Date(), SendReceivedType.ANSWER.getValue(), null,
         GTNetMessageCodeType.GT_NET_PING.getValue(), null, null);
 
-    MessageEnvelope response = new MessageEnvelope(context.getMyGTNet().getDomainRemoteName(), responseMsg);
+    MessageEnvelope response = new MessageEnvelope(context.getMyGTNet(), responseMsg);
     return new HandlerResult.ImmediateResponse(response);
   }
 }

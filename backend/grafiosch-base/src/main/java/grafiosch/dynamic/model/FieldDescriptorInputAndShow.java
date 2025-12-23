@@ -34,6 +34,9 @@ public class FieldDescriptorInputAndShow implements Serializable {
   @Schema(description = "Array of additional form property helpers that provide UI hints and specialized input behaviors")
   public DynamicFormPropertyHelps[] dynamicFormPropertyHelps;
 
+  @Schema(description = "Available enum constant names when dataType is EnumSet. Used to populate multi-select options.")
+  public String[] enumValues;
+
   /**
    * Creates a field descriptor with explicit data type and constraints.
    * 
