@@ -32,6 +32,10 @@ public class GTNetConfig extends BaseID<Integer>  {
   @Column(name = "id_gt_net_config")
   private Integer idGtNetConfig;
 
+  @Schema(description = "Reference to the parent GTNet domain entry")
+  @Column(name = "id_gt_net", nullable = false, insertable = false, updatable = false)
+  private Integer idGtNet;
+  
   @Schema(description = "Collection of entity-specific configurations for exchange settings per data type")
   @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "id_gt_net_config")
