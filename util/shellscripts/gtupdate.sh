@@ -41,6 +41,7 @@ fi
 
 # Copy and execute checkversion.sh
 cp $builddir/grafioschtrader/util/shellscripts/checkversion.sh ~/.
+cp $builddir/grafioschtrader/util/shellscripts/merger.sh ~/.
 cp $builddir/grafioschtrader/util/shellscripts/gtup{front,back}*.sh ~/.
 ~/checkversion.sh
 if [ $? -ne 0 ]; then
