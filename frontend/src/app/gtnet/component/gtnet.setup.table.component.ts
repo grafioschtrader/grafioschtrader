@@ -2,7 +2,10 @@ import {Component} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {CrudMenuOptions, TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
-import {AcceptRequestTypes, GTNet, GTNetCallParam, GTNetExchangeKindType, GTNetServerStateTypes, GTNetWithMessages} from '../model/gtnet';
+import {
+  AcceptRequestTypes, GTNet, GTNetCallParam,
+  GTNetEntity, GTNetExchangeKindType, GTNetServerStateTypes, GTNetWithMessages
+} from '../model/gtnet';
 import {GTNetMessage, MsgCallParam} from '../model/gtnet.message';
 import {GTNetService} from '../service/gtnet.service';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
@@ -26,6 +29,8 @@ import {TooltipModule} from 'primeng/tooltip';
 import {GTNetEditComponent} from './gtnet-edit.component';
 import {GTNetMessageEditComponent} from './gtnet-message-edit.component';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
+import {ProcessedAction} from '../../lib/types/processed.action';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
 
 @Component({
   standalone: true,
@@ -130,7 +135,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     this.addColumnFeqH(DataType.Boolean, 'allowServerCreation', true, false,
       {templateName: 'check'});
     this.addColumnFeqH(DataType.Boolean, 'authorized', true, false,
-      {templateName: 'check'});
+      {templateName: 'check', fieldValueFN: this.isAuthorizedRemote.bind(this)});
     this.addColumnFeqH(DataType.String, 'acceptLastpriceRequest', true, false,
       {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.String, 'lastpriceServerState', true, false,
@@ -184,27 +189,61 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     }));
   }
 
+  isAuthorizedRemote(dataobject: any, field: ColumnConfig, valueField: any): boolean {
+    return this.isAuthorizedRemoteEntry(dataobject);
+  }
+
   public override getEditMenuItems(): MenuItem[] {
     const menuItems: MenuItem[] = super.getEditMenuItems(this.selectedEntity);
     menuItems.push({separator: true});
     menuItems.push({
-      label: 'GT_NET_MESSAGE_SEND', command: (e) => this.sendMsgSelected(),
-      disabled: !this.selectedEntity || this.selectedEntity.idGtNet == this.gtNetMyEntryId
+      label: 'GT_NET_MESSAGE_SEND', command: (e) => this.sendMsg(),
+      disabled: !this.canSendMessage()
     });
     return menuItems;
+  }
+
+  /**
+   * Checks if sending a message is possible:
+   * - With selection: target must not be my own entry
+   * - Without selection: at least one authorized remote entry must exist (for ALL messages)
+   */
+  private canSendMessage(): boolean {
+    if (this.selectedEntity) {
+      return this.selectedEntity.idGtNet !== this.gtNetMyEntryId;
+    }
+    return this.hasAuthorizedRemoteEntry();
+  }
+
+  /**
+   * Checks if at least one remote GTNet entry has been authorized (handshake completed with token exchange).
+   * Authorization requires both tokenThis and tokenRemote to be present in gtNetConfig.
+   * Required for sending ALL broadcast messages.
+   */
+  private hasAuthorizedRemoteEntry(): boolean {
+    return this.gtNetList?.some(gtNet => this.isAuthorizedRemoteEntry(gtNet)) ?? false;
+  }
+
+  private isAuthorizedRemoteEntry(gtNet: GTNet): boolean {
+    return gtNet.gtNetConfig?.authorizedRemoteEntry ?? false;
+  }
+
+  private sendMsg(): void {
+    const isAllMessage = !this.selectedEntity;
+    const idGTNet = this.selectedEntity?.idGtNet ?? null;
+    this.msgCallParam = new MsgCallParam(this.formDefinitions, idGTNet, null, null, isAllMessage);
+    this.visibleDialogMsg = true;
   }
 
   public override getHelpContextId(): string {
     return HelpIds.HELP_GT_NET;
   }
 
-  private sendMsgSelected(): void {
-    this.msgCallParam = new MsgCallParam(this.formDefinitions, this.selectedEntity.idGtNet, null, null);
-    this.visibleDialogMsg = true;
-  }
-
-  handleCloseDialogMsg(dynamicMsg: any): void {
+  handleCloseDialogMsg(processedActionData: ProcessedActionData): void {
     this.visibleDialogMsg = false;
+    if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
+      this.readData();
+    }
   }
 
   canExpand(row: GTNet): boolean {

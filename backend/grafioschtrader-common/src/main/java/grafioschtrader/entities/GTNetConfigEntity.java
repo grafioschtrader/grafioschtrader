@@ -6,26 +6,17 @@ import grafioschtrader.gtnet.GTNetExchangeStatusTypes;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 
+@Schema(description = "Entity-specific configuration for exchange settings, logging, and consumer usage priority.")
 @Entity
 @Table(name = GTNetConfigEntity.TABNAME)
 public class GTNetConfigEntity extends BaseID<Integer>  {
   public static final String TABNAME = "gt_net_config_entity";
 
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "id_gt_net_config_entity")
-  private Integer idGtNetConfigEntity;
-  
-  @JoinColumn(name = "id_gt_net_config", nullable = false)
-  @Column(name = "id_gt_net_config")
-  private Integer idGtNetConfig; 
-  
+  @Schema(description = "Primary key, shared with GTNetEntity. References the parent GTNetEntity.")
   @Column(name = "id_gt_net_entity")
   private Integer idGtNetEntity; 
   
@@ -57,65 +48,36 @@ public class GTNetConfigEntity extends BaseID<Integer>  {
     return GTNetExchangeStatusTypes.getGTNetExchangeStatusType(exchange);
   }
 
-
   public void setExchange(GTNetExchangeStatusTypes exchange) {
     this.exchange = exchange.getValue();
   }
-
-
-  public Integer getIdGtNetConfigEntity() {
-    return idGtNetConfigEntity;
-  }
-
-
-  public void setIdGtNetConfigEntity(Integer idGtNetConfigEntity) {
-    this.idGtNetConfigEntity = idGtNetConfigEntity;
-  }
-
-
-  public Integer getIdGtNetConfig() {
-    return idGtNetConfig;
-  }
-
-
-  public void setIdGtNetConfig(Integer idGtNetConfig) {
-    this.idGtNetConfig = idGtNetConfig;
-  }
-
 
   public Integer getIdGtNetEntity() {
     return idGtNetEntity;
   }
 
-
   public void setIdGtNetEntity(Integer idGtNetEntity) {
     this.idGtNetEntity = idGtNetEntity;
   }
-
 
   public boolean isUseDetailLog() {
     return useDetailLog;
   }
 
-
   public void setUseDetailLog(boolean useDetailLog) {
     this.useDetailLog = useDetailLog;
   }
-
 
   public byte getConsumerUsage() {
     return consumerUsage;
   }
 
-
   public void setConsumerUsage(byte consumerUsage) {
     this.consumerUsage = consumerUsage;
   }
 
-
   @Override
   public Integer getId() {
-    return idGtNetConfigEntity;
+    return idGtNetEntity;
   }
-  
 }

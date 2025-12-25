@@ -15,8 +15,8 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
 
 @Entity
@@ -56,7 +56,7 @@ public class GTNetEntity extends BaseID<Integer> {
 
   @Schema(description = "Entity-specific configuration for exchange settings, logging, and consumer usage")
   @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
-  @JoinColumn(name = "id_gt_net_entity", referencedColumnName = "id_gt_net_entity", insertable = false, updatable = false)
+  @PrimaryKeyJoinColumn(name = "id_gt_net_entity", referencedColumnName = "id_gt_net_entity")
   private GTNetConfigEntity gtNetConfigEntity;
 
   public GTNetExchangeKindType getEntityKind() {

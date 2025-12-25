@@ -154,7 +154,13 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
     this.visibleDialog = false;
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.readData();
-    } else if (processedActionData.transformedError && processedActionData.transformedError.errorClass
+    } else {
+      this.checkLimitError(processedActionData);
+    }
+  }
+
+  protected checkLimitError(processedActionData: ProcessedActionData): void {
+    if (processedActionData.transformedError && processedActionData.transformedError.errorClass
       && processedActionData.transformedError.errorClass instanceof LimitEntityTransactionError) {
       DynamicDialogs.getOpenedLimitTransactionRequestDynamicComponent(
         this.translateService, this.dialogService, this.entityName);
