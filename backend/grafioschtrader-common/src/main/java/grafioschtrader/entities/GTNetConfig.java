@@ -1,21 +1,12 @@
 package grafioschtrader.entities;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.entities.BaseID;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 
@@ -27,19 +18,11 @@ Once a successful handshake has been made with a GT instance, such an entity is 
 public class GTNetConfig extends BaseID<Integer>  {
 
   public static final String TABNAME = "gt_net_config";
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "id_gt_net_config")
-  private Integer idGtNetConfig;
 
-  @Schema(description = "Reference to the parent GTNet domain entry")
-  @Column(name = "id_gt_net", nullable = false)
+  @Id
+  @Schema(description = "Primary key, shared with GTNet. References the parent GTNet domain entry.")
+  @Column(name = "id_gt_net")
   private Integer idGtNet;
-  
-  @Schema(description = "Collection of entity-specific configurations for exchange settings per data type")
-  @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
-  @JoinColumn(name = "id_gt_net_config")
-  private List<GTNetConfigEntity> gtNetConfigEntities = new ArrayList<>();
 
   @JsonIgnore
   @Schema(description = """
@@ -70,12 +53,12 @@ public class GTNetConfig extends BaseID<Integer>  {
       background job.""")
   @Column(name = "daily_req_limit_remote_count")
   private Integer dailyRequestLimitRemoteCount;
-
+  
+  
   @Override
   public Integer getId() {
-    return idGtNetConfig;
+    return idGtNet;
   }
-
 
   public Integer getIdGtNet() {
     return idGtNet;
@@ -85,26 +68,12 @@ public class GTNetConfig extends BaseID<Integer>  {
     this.idGtNet = idGtNet;
   }
 
-
   public Integer getDailyRequestLimitCount() {
     return dailyRequestLimitCount;
   }
 
-
-  public List<GTNetConfigEntity> getGtNetConfigEntities() {
-    return gtNetConfigEntities;
-  }
-
-  public void setGtNetConfigEntities(List<GTNetConfigEntity> gtNetConfigEntities) {
-    this.gtNetConfigEntities = gtNetConfigEntities;
-  }
-
   public void setDailyRequestLimitCount(Integer dailyRequestLimitCount) {
     this.dailyRequestLimitCount = dailyRequestLimitCount;
-  }
-
-  public Integer getIdGtNetConfig() {
-    return idGtNetConfig;
   }
 
   public String getTokenThis() {
@@ -131,22 +100,7 @@ public class GTNetConfig extends BaseID<Integer>  {
     this.dailyRequestLimitRemoteCount = dailyRequestLimitRemoteCount;
   }
 
-  /**
-   * Gets or creates a GTNetConfigEntity for the specified GTNetEntity.
-   *
-   * @param idGtNetEntity the ID of the associated GTNetEntity
-   * @return the existing or newly created GTNetConfigEntity
-   */
-  public GTNetConfigEntity getOrCreateConfigEntity(Integer idGtNetEntity) {
-    return gtNetConfigEntities.stream()
-        .filter(e -> idGtNetEntity.equals(e.getIdGtNetEntity()))
-        .findFirst()
-        .orElseGet(() -> {
-          GTNetConfigEntity newConfigEntity = new GTNetConfigEntity();
-          newConfigEntity.setIdGtNetConfig(this.idGtNetConfig);
-          newConfigEntity.setIdGtNetEntity(idGtNetEntity);
-          gtNetConfigEntities.add(newConfigEntity);
-          return newConfigEntity;
-        });
+  public boolean isAuthorizedRemoteEntry() {
+    return tokenThis != null && tokenRemote != null;
   }
 }

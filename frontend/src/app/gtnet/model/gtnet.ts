@@ -38,14 +38,25 @@ export interface GTNetEntity {
 
 /**
  * Entity-specific configuration for exchange settings, logging, and consumer usage.
+ * Primary key is shared with GTNetEntity (idGtNetEntity).
  */
 export interface GTNetConfigEntity {
-  idGtNetConfigEntity?: number;
-  idGtNetConfig: number;
   idGtNetEntity: number;
   exchange: GTNetExchangeStatusTypes;
   useDetailLog: boolean;
   consumerUsage: number;
+}
+
+/**
+ * GTNet configuration containing connection settings and token presence indicators.
+ * Created after a successful handshake with a remote GT instance.
+ * Primary key is shared with GTNet (idGtNet).
+ */
+export interface GTNetConfig {
+  idGtNet: number;
+  dailyRequestLimitCount?: number;
+  dailyRequestLimitRemoteCount?: number;
+  authorizedRemoteEntry?: boolean;
 }
 
 export class GTNet implements BaseID {
@@ -60,8 +71,8 @@ export class GTNet implements BaseID {
   allowServerCreation = false;
   // Collection of entity-specific configurations
   gtNetEntities: GTNetEntity[] = [];
-  // Computed properties from GTNetConfig (read-only)
-  authorized = false;
+  // Connection configuration with token presence indicators
+  gtNetConfig: GTNetConfig = null;
 
   getId(): number {
     return this.idGtNet;

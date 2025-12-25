@@ -14,7 +14,7 @@ export class GTNetMessage {
 
 export class MsgCallParam {
   constructor(public formDefinitions: { [type: string]: ClassDescriptorInputAndShow }, public idGTNet: number,
-              public replyTo: number, public gtNetMessage: GTNetMessage) {
+              public replyTo: number, public gtNetMessage: GTNetMessage, public isAllMessage: boolean = false) {
   }
 }
 

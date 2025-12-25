@@ -25,6 +25,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -68,7 +69,6 @@ public class GTNet extends BaseID<Integer> {
 
   @OneToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "id_gt_net", referencedColumnName = "id_gt_net", insertable = false, updatable = false)
-  @PropertyAlwaysUpdatable
   private GTNetConfig gtNetConfig;
 
   @Schema(description = """
@@ -229,17 +229,6 @@ public class GTNet extends BaseID<Integer> {
   }
 
   // Computed properties for JSON serialization (read-only)
-
-  /**
-   * Returns whether this GTNet entry is authorized (tokens have been exchanged). An entry is considered authorized if
-   * it has a GTNetConfig with a tokenRemote set.
-   *
-   * @return true if authorized, false otherwise
-   */
-  @JsonProperty("authorized")
-  public boolean isAuthorized() {
-    return gtNetConfig != null && gtNetConfig.getTokenRemote() != null;
-  }
 
   /**
    * Returns the lastprice exchange status from the LAST_PRICE entity's GTNetConfigEntity. Returns ES_NO_EXCHANGE if no

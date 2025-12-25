@@ -79,9 +79,11 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
         GTNetMessageCodeType, [GTNetMessageCodeType[this.msgCallParam.gtNetMessage.messageCode]], false);
       this.configObject[this.MESSAGE_CODE].formControl.setValue(this.msgCallParam.gtNetMessage[this.MESSAGE_CODE]);
     } else {
+      // Filter message codes: ALL messages for broadcast mode, SEL messages for single target mode
+      const filterSuffix = this.msgCallParam.isAllMessage ? '_ALL_C' : '_SEL_C';
       this.configObject[this.MESSAGE_CODE].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
         GTNetMessageCodeType, Object.keys(GTNetMessageCodeType).filter(key => !isNaN(Number(GTNetMessageCodeType[key]))
-          && key.endsWith('_C')).map(k => GTNetMessageCodeType[k]), false);
+          && key.endsWith(filterSuffix)).map(k => GTNetMessageCodeType[k]), false);
     }
   }
 
