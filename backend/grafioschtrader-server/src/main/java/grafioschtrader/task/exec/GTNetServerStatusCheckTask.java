@@ -77,59 +77,67 @@ public class GTNetServerStatusCheckTask implements ITask {
       return;
     }
 
-    // Get all GTNet entries with configured data exchange (potential peers)
     List<GTNet> allPeers = gtNetJpaRepository.findWithConfiguredExchange();
-
     log.info("Starting GTNet server status check for {} peers", allPeers.size());
 
     int checkedCount = 0;
     int onlineCount = 0;
 
     for (GTNet peer : allPeers) {
-      // Skip our own entry
       if (peer.getIdGtNet().equals(myEntryId)) {
         continue;
       }
-
-      // Skip peers without a completed handshake (no GTNetConfig with tokenRemote)
       if (peer.getGtNetConfig() == null || peer.getGtNetConfig().getTokenRemote() == null) {
         log.debug("Skipping peer {} - no handshake completed", peer.getDomainRemoteName());
         continue;
       }
-
       checkedCount++;
-      GTNetServerOnlineStatusTypes previousStatus = peer.getServerOnline();
-
-      try {
-        SendResult result = GTNetMessageHelper.sendPingWithStatus(baseDataClient, myGTNet, peer);
-
-        GTNetServerOnlineStatusTypes newStatus = GTNetServerOnlineStatusTypes.fromReachable(result.serverReachable());
-        peer.setServerOnline(newStatus);
-        if (result.serverReachable() && result.response() != null) {
-          peer.setServerBusy(result.serverBusy());
-        }
-
-        if (result.serverReachable()) {
-          onlineCount++;
-          log.debug("Peer {} is online (busy={})", peer.getDomainRemoteName(), peer.isServerBusy());
-        } else {
-          log.debug("Peer {} is offline", peer.getDomainRemoteName());
-        }
-
-        // Persist if status changed
-        if (previousStatus != newStatus) {
-          gtNetJpaRepository.save(peer);
-        }
-      } catch (Exception e) {
-        log.warn("Error checking status for peer {}: {}", peer.getDomainRemoteName(), e.getMessage());
-        if (previousStatus == GTNetServerOnlineStatusTypes.SOS_ONLINE) {
-          peer.setServerOnline(GTNetServerOnlineStatusTypes.SOS_OFFLINE);
-          gtNetJpaRepository.save(peer);
-        }
+      if (checkAndUpdatePeerStatus(peer, myGTNet)) {
+        onlineCount++;
       }
     }
 
     log.info("GTNet server status check completed: {}/{} peers online", onlineCount, checkedCount);
+  }
+
+  /**
+   * Sends a ping to the specified peer and updates its online/busy status based on the response.
+   *
+   * @param peer the GTNet peer to check
+   * @param myGTNet the local GTNet entry used as the sender
+   * @return true if the peer is online, false otherwise
+   */
+  private boolean checkAndUpdatePeerStatus(GTNet peer, GTNet myGTNet) {
+    GTNetServerOnlineStatusTypes previousStatus = peer.getServerOnline();
+
+    try {
+      SendResult result = GTNetMessageHelper.sendPingWithStatus(baseDataClient, myGTNet, peer);
+
+      GTNetServerOnlineStatusTypes newStatus = GTNetServerOnlineStatusTypes.fromReachable(result.serverReachable());
+      peer.setServerOnline(newStatus);
+      if (result.serverReachable() && result.response() != null) {
+        peer.setServerBusy(result.serverBusy());
+      }
+
+      if (result.serverReachable()) {
+        log.debug("Peer {} is online (busy={})", peer.getDomainRemoteName(), peer.isServerBusy());
+      } else {
+        log.debug("Peer {} is offline", peer.getDomainRemoteName());
+      }
+
+      if (previousStatus != newStatus) {
+        gtNetJpaRepository.save(peer);
+      }
+
+      return result.serverReachable();
+    } catch (Exception e) {
+      log.warn("Error checking status for peer {}: {}", peer.getDomainRemoteName(), e.getMessage());
+      if (previousStatus == GTNetServerOnlineStatusTypes.SOS_ONLINE) {
+        peer.setServerOnline(GTNetServerOnlineStatusTypes.SOS_OFFLINE);
+        gtNetJpaRepository.save(peer);
+      }
+      return false;
+    }
   }
 
   @Override
