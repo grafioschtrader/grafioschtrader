@@ -66,8 +66,8 @@ public class GTNet extends BaseID<Integer> {
   @JoinColumn(name = "id_gt_net", nullable = false)
   private List<GTNetEntity> gtNetEntities = new ArrayList<>();
 
-  @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-  @JoinColumn(nullable = true, name = "id_gt_net")
+  @OneToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "id_gt_net", referencedColumnName = "id_gt_net", insertable = false, updatable = false)
   @PropertyAlwaysUpdatable
   private GTNetConfig gtNetConfig;
 

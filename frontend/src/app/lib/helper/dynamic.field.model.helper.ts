@@ -342,7 +342,7 @@ export class DynamicFieldModelHelper {
     // key = enum value name (submitted value), value = translation key for display
     // Translation key pattern: ENUM_TYPE.VALUE (e.g., GTNetExchangeKindType.LAST_PRICE)
     const valueKeyHtmlOptions: ValueKeyHtmlSelectOptions[] = fd.enumValues?.map(enumValue =>
-      new ValueKeyHtmlSelectOptions(enumValue, `${fd.enumType}.${enumValue}`)
+      new ValueKeyHtmlSelectOptions(enumValue, `${enumValue}`)
     ) || [];
 
     const fieldOptions: FieldOptions = Object.assign({}, fieldOptionsCc, {

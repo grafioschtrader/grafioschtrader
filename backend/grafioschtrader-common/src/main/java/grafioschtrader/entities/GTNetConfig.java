@@ -33,7 +33,7 @@ public class GTNetConfig extends BaseID<Integer>  {
   private Integer idGtNetConfig;
 
   @Schema(description = "Reference to the parent GTNet domain entry")
-  @Column(name = "id_gt_net", nullable = false, insertable = false, updatable = false)
+  @Column(name = "id_gt_net", nullable = false)
   private Integer idGtNet;
   
   @Schema(description = "Collection of entity-specific configurations for exchange settings per data type")
@@ -78,12 +78,11 @@ public class GTNetConfig extends BaseID<Integer>  {
 
 
   public Integer getIdGtNet() {
-	return idGtNet;
-}
-
+    return idGtNet;
+  }
 
   public void setIdGtNet(Integer idGtNet) {
-	this.idGtNet = idGtNet;
+    this.idGtNet = idGtNet;
   }
 
 
