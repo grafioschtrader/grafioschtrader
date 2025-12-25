@@ -58,7 +58,7 @@ export abstract class BaseUDFDataEdit extends SimpleEditBase {
    * @protected
    */
   protected baseInit(fdList: FieldDescriptorInputAndShowExtended[]): void {
-    this.config = DynamicFieldModelHelper.createConfigFieldsFromExtendedDescriptor(fdList, '', true);
+    this.config = DynamicFieldModelHelper.createConfigFieldsFromExtendedDescriptor(this.translateService, fdList, '', true);
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
     this.entityKeyName = this.gps.getKeyNameByEntityName(this.uDFGeneralCallParam.entityName);
   }

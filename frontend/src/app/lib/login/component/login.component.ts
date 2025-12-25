@@ -155,8 +155,8 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
     };
     this.applicationInfo.users;
     this.config = [];
-    this.config.push(DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF('email', fdias));
-    this.config.push(DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF('password', fdias));
+    this.config.push(DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(this.translateService, 'email', fdias));
+    this.config.push(DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(this.translateService, 'password', fdias));
 
     if (this.applicationInfo.users.active < this.applicationInfo.users.allowed) {
       this.config.push(DynamicFieldHelper.createFunctionButton('REGISTRATION',

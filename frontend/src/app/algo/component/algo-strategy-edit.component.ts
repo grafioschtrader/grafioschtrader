@@ -129,8 +129,8 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
   }
 
   private createDynamicInputFields(): void {
-    const fieldConfig: FieldConfig[] = DynamicFieldModelHelper.createConfigFieldsFromDescriptor(this.fieldDescriptorInputAndShows,
-      AppSettings.PREFIX_ALGO_FIELD, false);
+    const fieldConfig: FieldConfig[] = DynamicFieldModelHelper.createConfigFieldsFromDescriptor(this.translateService,
+      this.fieldDescriptorInputAndShows, AppSettings.PREFIX_ALGO_FIELD, false);
 
     this.config = [this.config[0], ...fieldConfig, this.config[this.config.length - 1]];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);

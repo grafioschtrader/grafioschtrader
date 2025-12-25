@@ -88,7 +88,7 @@ export class PasswordEditComponent extends PasswordBaseComponent implements OnIn
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       5);
     this.config = [
-      DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF('password', fdias,
+      DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(this.translateService, 'password', fdias,
         {targetField: PasswordEditComponent.passwordOld}),
       ...this.configPassword,
       DynamicFieldHelper.createSubmitButton()

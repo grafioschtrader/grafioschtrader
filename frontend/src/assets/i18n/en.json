@@ -173,6 +173,7 @@
   "DROP_TEMPLATE_HERE": "Template files here",
   "EDIT_SECURITY_UDF": "Edit additional field",
   "EMA": "Exponential Moving Average",
+  "ENTITY_KINDS": "Information object",
   "HISTORICAL_PRICE_SERVER_STATE": "State hist. price server",
   "ETF_USE_UNTIL": "ETF supported until",
   "EXCHANGE_RATE": "Exchange rate",

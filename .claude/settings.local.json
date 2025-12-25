@@ -27,7 +27,8 @@
       "Bash(git -C \"C:\\SoftwareProjekte\\Hugos\\grafioschtrader\" push pi master)",
       "Bash(mvn:*)",
       "Bash(npm run lint:*)",
-      "Bash(git -C \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\" checkout HEAD -- \"backend/grafioschtrader-common/src/main/resources/message/messages_de.properties\" \"backend/grafioschtrader-common/src/main/resources/message/messages.properties\")"
+      "Bash(git -C \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\" checkout HEAD -- \"backend/grafioschtrader-common/src/main/resources/message/messages_de.properties\" \"backend/grafioschtrader-common/src/main/resources/message/messages.properties\")",
+      "Bash(npm run build:*:*)"
     ],
     "deny": [],
     "ask": []
