@@ -155,7 +155,8 @@ public class FirstHandshakeRequestHandler extends AbstractGTNetMessageHandler {
       gtNetConfig.setIdGtNet(existing.getIdGtNet());  // Set FK manually
     }
     gtNetConfig.setTokenRemote(theirTokenForUs);
-    gtNetConfigJpaRepository.save(gtNetConfig);  // Save config separately
+    gtNetConfig = gtNetConfigJpaRepository.save(gtNetConfig);  // Save config separately
+    existing.setGtNetConfig(gtNetConfig);  // Set reference on entity for later use
     return existing;
   }
 
