@@ -241,13 +241,12 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
         FirstHandshakeMsg responseMsgData = convertMapToPojo(FirstHandshakeMsg.class, meResponse.gtNetMessageParamMap);
         // Create GTNetConfig to store the tokens
         GTNetConfig gtNetConfig = new GTNetConfig();
+        gtNetConfig.setIdGtNet(targetGTNet.getIdGtNet());  // Set FK manually
         // Store their token (what we use to call them) as tokenRemote
         gtNetConfig.setTokenRemote(responseMsgData.tokenThis);
         // Store our token (what they use to call us) as tokenThis
         gtNetConfig.setTokenThis(tokenForRemote);
-        gtNetConfig = gtNetConfigJpaRepository.save(gtNetConfig);
-        targetGTNet.setGtNetConfig(gtNetConfig);
-        gtNetJpaRepository.save(targetGTNet);
+        gtNetConfigJpaRepository.save(gtNetConfig);  // Save config separately
 
         // Save received response message with idSourceGtNetMessage from remote and replyTo pointing to our request
         GTNetMessage gtNetMessageResponse = new GTNetMessage(targetGTNet.getIdGtNet(), meResponse.timestamp,
