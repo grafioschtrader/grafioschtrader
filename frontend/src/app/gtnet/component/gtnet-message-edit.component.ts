@@ -99,7 +99,7 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
 
   private createDynamicInputFields(): void {
     const fieldConfig: FieldConfig[] = <FieldConfig[]>DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
-      this.classDescriptorInputAndShows,
+      this.translateService, this.classDescriptorInputAndShows,
       '', false);
 
     this.config = [this.config[0], ...fieldConfig, ...this.config.slice(-2)];

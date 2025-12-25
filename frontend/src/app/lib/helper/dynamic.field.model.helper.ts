@@ -15,6 +15,8 @@ import {dateRange, gteDate} from '../validator/validator';
 import {ErrorMessageRules} from '../dynamic-form/error/error.message.rules';
 import {FieldFormGroup} from '../dynamic-form/models/form.group.definition';
 import {ValueKeyHtmlSelectOptions} from '../dynamic-form/models/value.key.html.select.options';
+import {TranslateService} from '@ngx-translate/core';
+import {SelectOptionsHelper} from './select.options.helper';
 
 /**
  * Utility class for automatically generating dynamic form fields from class descriptors.
@@ -37,13 +39,15 @@ export class DynamicFieldModelHelper {
    * Handles special validators like date ranges and generates appropriate form groups. If constraint
    * validators are present, creates specialized form groups; otherwise generates standard field configs.
    *
+   * @param translateService Angular TranslateService for translating enum options
    * @param cdias Class descriptor containing field definitions and optional constraint validators map
    * @param labelPrefix Prefix added to field labels for translation key generation (e.g., 'USER_FORM_')
    * @param addSubmitButton Whether to automatically add a submit button to the form
    * @param submitText Custom text for the submit button (defaults to 'SAVE' if not provided)
    * @returns Array of FieldFormGroup objects representing the complete form configuration, or empty array if cdias is null
    */
-  public static createFieldsFromClassDescriptorInputAndShow(cdias: ClassDescriptorInputAndShow, labelPrefix: string,
+  public static createFieldsFromClassDescriptorInputAndShow(translateService: TranslateService,
+    cdias: ClassDescriptorInputAndShow, labelPrefix: string,
     addSubmitButton = false, submitText?: string): FieldFormGroup[] {
     let config: FieldFormGroup[];
     if (cdias?.constraintValidatorMap && cdias.constraintValidatorMap.size > 0) {
@@ -52,14 +56,14 @@ export class DynamicFieldModelHelper {
         validatorCounter++;
         switch (ConstraintValidatorType[key]) {
           case ConstraintValidatorType.DateRange:
-            config = this.createDateRangeFields(cdias, labelPrefix, validatorCounter,
+            config = this.createDateRangeFields(translateService, cdias, labelPrefix, validatorCounter,
               value, addSubmitButton, submitText);
             break;
         }
       }
       return config;
     } else {
-      return cdias ? this.ccFieldsFromDescriptorWithGroup(cdias.fieldDescriptorInputAndShows, labelPrefix, addSubmitButton,
+      return cdias ? this.ccFieldsFromDescriptorWithGroup(translateService, cdias.fieldDescriptorInputAndShows, labelPrefix, addSubmitButton,
         null, submitText) : [];
     }
   }
@@ -69,6 +73,7 @@ export class DynamicFieldModelHelper {
    * Generates two date input fields where the end date must be later than the start date.
    * Creates a FormGroup with dateRange validator and replaces individual date fields.
    *
+   * @param translateService Angular TranslateService for translating enum options
    * @param cdias Class descriptor containing field definitions including start and end date fields
    * @param labelPrefix Prefix for field label translation keys
    * @param validatorCounter Counter to ensure unique form group names (e.g., 'dateRange1', 'dateRange2')
@@ -77,16 +82,17 @@ export class DynamicFieldModelHelper {
    * @param submitText Custom submit button text
    * @returns Array of FieldFormGroup with dateRange validator applied and original fields replaced
    */
-  private static createDateRangeFields(cdias: ClassDescriptorInputAndShow, labelPrefix: string, validatorCounter: number,
+  private static createDateRangeFields(translateService: TranslateService, cdias: ClassDescriptorInputAndShow,
+    labelPrefix: string, validatorCounter: number,
     fields: any, addSubmitButton = false, submitText?: string): FieldFormGroup[] {
     const fdDate1 = cdias.fieldDescriptorInputAndShows.find(f => f.fieldName === fields.startField);
     const fdDate2 = cdias.fieldDescriptorInputAndShows.find(f => f.fieldName === fields.endField);
-    const fieldConfigs = this.createConfigFieldsFromDescriptor([fdDate1, fdDate2], labelPrefix, addSubmitButton, submitText);
+    const fieldConfigs = this.createConfigFieldsFromDescriptor(translateService, [fdDate1, fdDate2], labelPrefix, addSubmitButton, submitText);
     const fieldFormGroup: FieldFormGroup = {formGroupName: 'dateRange' + validatorCounter, fieldConfig: fieldConfigs};
     fieldFormGroup.validation = [dateRange(fdDate1.fieldName, fdDate2.fieldName, fdDate2.fieldName)];
     fieldFormGroup.errors = [{name: 'dateRange', keyi18n: 'dateRange', rules: ['dirty']}];
     const rfwg = new ReplaceFieldWithGroup(fdDate1.fieldName, fieldFormGroup, fdDate2.fieldName);
-    return this.ccFieldsFromDescriptorWithGroup(cdias.fieldDescriptorInputAndShows, labelPrefix, addSubmitButton,
+    return this.ccFieldsFromDescriptorWithGroup(translateService, cdias.fieldDescriptorInputAndShows, labelPrefix, addSubmitButton,
       rfwg, submitText);
 
   }
@@ -96,14 +102,15 @@ export class DynamicFieldModelHelper {
    * Convenience method that auto-generates label key from field name using naming conventions
    * (converts camelCase to UPPER_CASE_WITH_UNDERSCORES and removes common prefixes).
    *
+   * @param translateService Angular TranslateService for translating enum options
    * @param fieldName Name of the field to create configuration for
    * @param fieldDescriptorInputAndShows Array of field descriptors to search through for matching field
    * @param fieldOptionsCc Additional field options and configuration overrides (target field, styling, etc.)
    * @returns FieldConfig object for the specified field, or null if field not found in descriptors
    */
-  public static ccWithFieldsFromDescriptorHeqF(fieldName: string, fieldDescriptorInputAndShows:
-  FieldDescriptorInputAndShow[], fieldOptionsCc?: FieldOptionsCc): FieldConfig {
-    return this.ccWithFieldsFromDescriptor(fieldName, AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
+  public static ccWithFieldsFromDescriptorHeqF(translateService: TranslateService, fieldName: string,
+    fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[], fieldOptionsCc?: FieldOptionsCc): FieldConfig {
+    return this.ccWithFieldsFromDescriptor(translateService, fieldName, AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
       fieldDescriptorInputAndShows, fieldOptionsCc);
   }
 
@@ -112,16 +119,17 @@ export class DynamicFieldModelHelper {
    * Searches through field descriptors to find matching field and generates appropriate input element
    * based on data type, constraints, and field properties (email, password, select options, etc.).
    *
+   * @param translateService Angular TranslateService for translating enum options
    * @param fieldName Name of the field to create configuration for
    * @param labelKey Custom translation key for the field label (bypasses auto-generation)
    * @param fieldDescriptorInputAndShows Array of field descriptors to search through
    * @param fieldOptionsCc Additional field options and configuration overrides (width, validation, etc.)
    * @returns FieldConfig object for the specified field with appropriate input type and validation
    */
-  public static ccWithFieldsFromDescriptor(fieldName: string, labelKey: string, fieldDescriptorInputAndShows:
-  FieldDescriptorInputAndShow[], fieldOptionsCc?: FieldOptionsCc): FieldConfig {
+  public static ccWithFieldsFromDescriptor(translateService: TranslateService, fieldName: string, labelKey: string,
+    fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[], fieldOptionsCc?: FieldOptionsCc): FieldConfig {
     const fd = fieldDescriptorInputAndShows.filter(fdias => fdias.fieldName === fieldName)[0];
-    return this.createConfigFieldFromDescriptor(fd, null, labelKey, fieldOptionsCc);
+    return this.createConfigFieldFromDescriptor(translateService, fd, null, labelKey, fieldOptionsCc);
   }
 
   /**
@@ -129,15 +137,17 @@ export class DynamicFieldModelHelper {
    * Handles asterisk prefixes for labels and help text to skip translation. When text doesn't
    * match translation key pattern (^[A-Z_]+$), it gets asterisk-prefixed to display as literal text.
    *
+   * @param translateService Angular TranslateService for translating enum options
    * @param fdExtendedList Array of extended field descriptors with description and descriptionHelp properties
    * @param labelPrefix Prefix for field label translation keys
    * @param addSubmitButton Whether to add a submit button to the form
    * @param submitText Custom submit button text
    * @returns Array of FieldConfig objects with asterisk-prefixed labels for literal text (non-translation keys)
    */
-  public static createConfigFieldsFromExtendedDescriptor(fdExtendedList: FieldDescriptorInputAndShowExtended[],
+  public static createConfigFieldsFromExtendedDescriptor(translateService: TranslateService,
+    fdExtendedList: FieldDescriptorInputAndShowExtended[],
     labelPrefix: string, addSubmitButton = false, submitText?: string): FieldConfig[] {
-    const fieldConfigs: FieldConfig[] = <FieldConfig[]>this.ccFieldsFromDescriptorWithGroup(fdExtendedList, labelPrefix, addSubmitButton,
+    const fieldConfigs: FieldConfig[] = <FieldConfig[]>this.ccFieldsFromDescriptorWithGroup(translateService, fdExtendedList, labelPrefix, addSubmitButton,
       null, submitText);
     DynamicFieldModelHelper.addAsterisksToLabelAndHelpText(fdExtendedList, fieldConfigs);
     return fieldConfigs;
@@ -171,15 +181,17 @@ export class DynamicFieldModelHelper {
    * Main method for converting server field definitions into form field configurations.
    * Delegates to ccFieldsFromDescriptorWithGroup with no field replacement.
    *
+   * @param translateService Angular TranslateService for translating enum options
    * @param fieldDescriptorInputAndShows Array of field descriptors from server
    * @param labelPrefix Prefix for field label translation keys
    * @param addSubmitButton Whether to add a submit button at the end
    * @param submitText Custom submit button text
    * @returns Array of FieldConfig objects cast as FieldFormGroup for compatibility
    */
-  public static createConfigFieldsFromDescriptor(fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
+  public static createConfigFieldsFromDescriptor(translateService: TranslateService,
+    fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
     labelPrefix: string, addSubmitButton = false, submitText?: string): FieldConfig[] {
-    return <FieldConfig[]>this.ccFieldsFromDescriptorWithGroup(fieldDescriptorInputAndShows, labelPrefix, addSubmitButton,
+    return <FieldConfig[]>this.ccFieldsFromDescriptorWithGroup(translateService, fieldDescriptorInputAndShows, labelPrefix, addSubmitButton,
       null, submitText);
   }
 
@@ -188,6 +200,7 @@ export class DynamicFieldModelHelper {
    * Processes field descriptors and handles special field replacement scenarios for
    * grouped validation (e.g., replacing two date fields with a date range group).
    *
+   * @param translateService Angular TranslateService for translating enum options
    * @param fieldDescriptorInputAndShows Array of field descriptors to process
    * @param labelPrefix Prefix for field label translation keys
    * @param addSubmitButton Whether to add a submit button at the end
@@ -195,7 +208,8 @@ export class DynamicFieldModelHelper {
    * @param submitText Custom submit button text
    * @returns Array of FieldFormGroup objects (mix of individual fields and form groups)
    */
-  private static ccFieldsFromDescriptorWithGroup(fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
+  private static ccFieldsFromDescriptorWithGroup(translateService: TranslateService,
+    fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
     labelPrefix: string, addSubmitButton = false,
     rpg: ReplaceFieldWithGroup, submitText?: string): FieldFormGroup[] {
     const fieldConfigs: FieldFormGroup[] = [];
@@ -205,7 +219,7 @@ export class DynamicFieldModelHelper {
           fieldConfigs.push(rpg.fieldFormGroup);
         }
       } else {
-        const fieldConfig: FieldConfig = this.createConfigFieldFromDescriptor(fd, labelPrefix, null);
+        const fieldConfig: FieldConfig = this.createConfigFieldFromDescriptor(translateService, fd, labelPrefix, null);
         if (fieldConfig) {
           fieldConfigs.push(fieldConfig);
         }
@@ -222,14 +236,15 @@ export class DynamicFieldModelHelper {
    * Determines appropriate input type and validation based on data type (Boolean, String, Numeric,
    * URL, Date variants) and special properties (email, password, percentage, future dates).
    *
+   * @param translateService Angular TranslateService for translating enum options
    * @param fd Field descriptor containing field metadata (dataType, required, min/max, dynamicFormPropertyHelps)
    * @param labelPrefix Prefix for label translation key generation
    * @param labelKey Custom label key (overrides auto-generated prefix + field name)
    * @param fieldOptionsCc Additional field options and overrides (target field, styling, etc.)
    * @returns FieldConfig object with appropriate input type, validation, and calendar config, or null if unsupported type
    */
-  private static createConfigFieldFromDescriptor(fd: FieldDescriptorInputAndShow, labelPrefix: string,
-    labelKey: string, fieldOptionsCc?: FieldOptionsCc): FieldConfig {
+  private static createConfigFieldFromDescriptor(translateService: TranslateService, fd: FieldDescriptorInputAndShow,
+    labelPrefix: string, labelKey: string, fieldOptionsCc?: FieldOptionsCc): FieldConfig {
     let fieldConfig: FieldConfig;
     const targetField = fieldOptionsCc && fieldOptionsCc.targetField ? fieldOptionsCc.targetField : fd.fieldName;
     labelKey = labelKey ? labelKey : labelPrefix + AppHelper.toUpperCaseWithUnderscore(fd.fieldName);
@@ -252,7 +267,7 @@ export class DynamicFieldModelHelper {
           fieldOptionsCc);
         break;
       case DataType.EnumSet:
-        fieldConfig = this.createEnumSetMultiSelect(fd, labelKey, targetField, fieldOptionsCc);
+        fieldConfig = this.createEnumSetMultiSelect(translateService, fd, labelKey, targetField, fieldOptionsCc);
         break;
       case DataType.DateString:
       case DataType.DateNumeric:
@@ -328,22 +343,25 @@ export class DynamicFieldModelHelper {
   /**
    * Creates a multi-select input for Set&lt;Enum&gt; fields.
    * Converts enum values from descriptor to ValueKeyHtmlSelectOptions for the dropdown.
-   * Translation keys follow the pattern: ENUM_TYPE.ENUM_VALUE (e.g., GTNetExchangeKindType.LAST_PRICE).
+   * Options are translated using the enum value as translation key.
    *
+   * @param translateService Angular TranslateService for translating enum options
    * @param fd Field descriptor containing enumType and enumValues from backend
    * @param labelKey Translation key for field label
    * @param targetField Target field name for data binding
    * @param fieldOptionsCc Additional field options (merged with generated options)
-   * @returns FieldConfig for multi-select component with enum options and empty array default
+   * @returns FieldConfig for multi-select component with translated enum options and empty array default
    */
-  private static createEnumSetMultiSelect(fd: FieldDescriptorInputAndShow, labelKey: string,
-    targetField: string, fieldOptionsCc?: FieldOptionsCc): FieldConfig {
-    // Convert enum values to select options
-    // key = enum value name (submitted value), value = translation key for display
-    // Translation key pattern: ENUM_TYPE.VALUE (e.g., GTNetExchangeKindType.LAST_PRICE)
-    const valueKeyHtmlOptions: ValueKeyHtmlSelectOptions[] = fd.enumValues?.map(enumValue =>
-      new ValueKeyHtmlSelectOptions(enumValue, `${enumValue}`)
+  private static createEnumSetMultiSelect(translateService: TranslateService, fd: FieldDescriptorInputAndShow,
+    labelKey: string, targetField: string, fieldOptionsCc?: FieldOptionsCc): FieldConfig {
+    // Convert enum values to select options with translation
+    // key = enum value name (submitted value), value = translated display text
+    const untranslatedOptions: ValueKeyHtmlSelectOptions[] = fd.enumValues?.map(enumValue =>
+      new ValueKeyHtmlSelectOptions(enumValue, enumValue)
     ) || [];
+
+    const valueKeyHtmlOptions = SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(
+      translateService, untranslatedOptions, false);
 
     const fieldOptions: FieldOptions = Object.assign({}, fieldOptionsCc, {
       valueKeyHtmlOptions

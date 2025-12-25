@@ -63,9 +63,9 @@ export abstract class PasswordBaseComponent {
 
   protected init(fdias: FieldDescriptorInputAndShow[], newPassword: boolean): void {
     this.configPassword = [
-      DynamicFieldModelHelper.ccWithFieldsFromDescriptor(PasswordBaseComponent.password,
+      DynamicFieldModelHelper.ccWithFieldsFromDescriptor(this.translateService, PasswordBaseComponent.password,
         (newPassword) ? 'PASSWORD_NEW' : 'PASSWORD', fdias),
-      DynamicFieldModelHelper.ccWithFieldsFromDescriptor(PasswordBaseComponent.password,
+      DynamicFieldModelHelper.ccWithFieldsFromDescriptor(this.translateService, PasswordBaseComponent.password,
         (newPassword) ? 'PASSWORD_NEW_CONFIRM' : 'PASSWORD_CONFIRM', fdias,
         {targetField: PasswordBaseComponent.passwordConfirm}),
     ];

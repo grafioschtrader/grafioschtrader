@@ -144,10 +144,10 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
     };
 
     this.config = [
-      DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF('nickname', fdias),
-      DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF('email', fdias),
+      DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(this.translateService, 'nickname', fdias),
+      DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(this.translateService, 'email', fdias),
       {formGroupName: 'passwordGroup', fieldConfig: this.configPassword},
-      DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF('localeStr', fdias),
+      DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(this.translateService, 'localeStr', fdias),
       DynamicFieldHelper.createFunctionButton('SIGN_IN', (e) =>
         this.router.navigate([`/${BaseSettings.LOGIN_KEY}`])),
       DynamicFieldHelper.createSubmitButton('REGISTRATION')

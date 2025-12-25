@@ -683,7 +683,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     const dataModel = this.usersettingsService.retrieveObject(AppSettings.TA_INDICATORS_STORE + taIndicators);
     this.taEditParam = new TaEditParam(taIndicators,
       dataModel ? dataModel : taFormDefinition.defaultDataModel,
-      DynamicFieldModelHelper.createConfigFieldsFromDescriptor(taFormDefinition.taFormList, '', true, 'APPLY'));
+      DynamicFieldModelHelper.createConfigFieldsFromDescriptor(this.translateService, taFormDefinition.taFormList, '', true, 'APPLY'));
     this.visibleTaDialog = true;
   }
 

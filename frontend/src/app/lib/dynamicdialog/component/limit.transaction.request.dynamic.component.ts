@@ -53,7 +53,7 @@ export class LimitTransactionRequestDynamicComponent extends FormBase implements
     this.dialogTitle = this.dynamicDialogConfig.header;
     this.proposeUserTaskService.getFormDefinitionsByUserTaskType(UserTaskType.LIMIT_CUD_CHANGE).subscribe(
       (fDIaSs: FieldDescriptorInputAndShow[]) => {
-        this.config = DynamicFieldModelHelper.createConfigFieldsFromDescriptor(fDIaSs, '', true, 'SEND');
+        this.config = DynamicFieldModelHelper.createConfigFieldsFromDescriptor(this.translateService, fDIaSs, '', true, 'SEND');
         this.config.splice(this.config.length - 1, 0,
           DynamicFieldHelper.createFieldTextareaInputStringHeqF(this.NOTE_REQUEST, BaseSettings.FID_MAX_LETTERS, true));
         this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
