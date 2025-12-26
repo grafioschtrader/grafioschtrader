@@ -290,13 +290,48 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    * @param msgRequest  the request containing the response message code, replyTo, and optional message
    */
   private void sendResponseMsg(GTNet sourceGTNet, List<GTNet> gtNetList, MsgRequest msgRequest) {
+    // Look up the original request message to get the requester's original message ID
+    Integer replyToSourceId = null;
+    if (msgRequest.replyTo != null) {
+      GTNetMessage originalRequest = gtNetMessageJpaRepository.findById(msgRequest.replyTo).orElse(null);
+      if (originalRequest != null) {
+        replyToSourceId = originalRequest.getIdSourceGtNetMessage();
+      }
+    }
+
     for (GTNet targetGTNet : gtNetList) {
       GTNetMessage gtNetMessage = gtNetMessageJpaRepository.saveMsg(
           new GTNetMessage(targetGTNet.getIdGtNet(), new Date(), SendReceivedType.SEND.getValue(), msgRequest.replyTo,
               msgRequest.messageCode.getValue(), msgRequest.message, null));
-      // Send the response - no payload needed for simple responses
-      sendMessage(sourceGTNet, targetGTNet, gtNetMessage, null);
+      // Send the response with replyToSourceId so the receiver can link it to their original request
+      sendResponseMessage(sourceGTNet, targetGTNet, gtNetMessage, replyToSourceId);
     }
+  }
+
+  /**
+   * Sends a response message to a remote GTNet server with replyToSourceId for correlation.
+   */
+  private MessageEnvelope sendResponseMessage(GTNet sourceGTNet, GTNet targetGTNet, GTNetMessage gtNetMessage,
+      Integer replyToSourceId) {
+    if (hasOrCreateFirstContact(sourceGTNet, targetGTNet)) {
+      MessageEnvelope meRequest = new MessageEnvelope(sourceGTNet, gtNetMessage);
+      meRequest.replyToSourceId = replyToSourceId;
+
+      String tokenRemote = targetGTNet.getGtNetConfig() != null ? targetGTNet.getGtNetConfig().getTokenRemote() : null;
+      SendResult result = baseDataClient.sendToMsgWithStatus(tokenRemote, targetGTNet.getDomainRemoteName(), meRequest);
+
+      // Update target server's status based on response
+      if (result.serverReachable() && result.response() != null) {
+        updateRemoteGTNetFromEnvelope(targetGTNet, result.response());
+      } else if (!result.serverReachable()) {
+        if (targetGTNet.getServerOnline() != GTNetServerOnlineStatusTypes.SOS_OFFLINE) {
+          targetGTNet.setServerOnline(GTNetServerOnlineStatusTypes.SOS_OFFLINE);
+          gtNetJpaRepository.save(targetGTNet);
+        }
+      }
+      return result.response();
+    }
+    return null;
   }
 
   private boolean hasOrCreateFirstContact(GTNet sourceGTNet, GTNet targetGTNet) {

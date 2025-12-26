@@ -2,6 +2,7 @@ package grafioschtrader.gtnet.handler;
 
 import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.gtnet.MessageCategory;
+import grafioschtrader.gtnet.SendReceivedType;
 
 /**
  * Abstract base class for handlers that process response messages.
@@ -13,7 +14,6 @@ import grafioschtrader.gtnet.MessageCategory;
  * <ul>
  *   <li>GT_NET_FIRST_HANDSHAKE_ACCEPT_S - Remote accepted our handshake</li>
  *   <li>GT_NET_DATA_REQUEST_REJECTED_S - Remote rejected our data request</li>
- *   <li>GT_NET_DATA_REQUEST_IN_PROCESS_S - Remote is processing our data request</li>
  * </ul>
  */
 public abstract class AbstractResponseHandler extends AbstractGTNetMessageHandler {
@@ -31,14 +31,33 @@ public abstract class AbstractResponseHandler extends AbstractGTNetMessageHandle
       return new HandlerResult.ProcessingError(validation.errorCode(), validation.message());
     }
 
-    // 2. Store the response message
-    GTNetMessage storedMessage = storeIncomingMessage(context);
+    // 2. Store the response message with link to our original request
+    GTNetMessage storedMessage = storeIncomingResponseMessage(context);
 
     // 3. Process response-specific side effects (e.g., update GTNet state, store tokens)
     processResponseSideEffects(context, storedMessage);
 
     // 4. No reply to a response
     return new HandlerResult.NoResponseNeeded();
+  }
+
+  /**
+   * Stores an incoming response message, linking it to our original request via replyToSourceId.
+   *
+   * @param context the message context containing replyToSourceId
+   * @return the persisted GTNetMessage entity
+   */
+  protected GTNetMessage storeIncomingResponseMessage(GTNetMessageContext context) {
+    Integer idGtNet = context.getRemoteGTNet() != null ? context.getRemoteGTNet().getIdGtNet() : null;
+
+    // replyTo points to our original sent request (using replyToSourceId from the envelope)
+    Integer replyTo = context.getReplyToSourceId();
+
+    GTNetMessage message = new GTNetMessage(idGtNet, context.getTimestamp(), SendReceivedType.RECEIVED.getValue(),
+        replyTo, context.getMessageCodeValue(), context.getMessage(), context.getParams());
+    message.setIdSourceGtNetMessage(context.getIdSourceGtNetMessage());
+
+    return gtNetMessageJpaRepository.saveMsg(message);
   }
 
   /**
