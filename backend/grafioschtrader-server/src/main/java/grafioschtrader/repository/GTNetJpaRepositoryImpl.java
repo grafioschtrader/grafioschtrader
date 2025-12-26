@@ -69,6 +69,12 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
   private static final Logger log = LoggerFactory.getLogger(GTNetJpaRepositoryImpl.class);
 
+  /** Message codes that require a response (_RR_ codes) */
+  private static final List<Byte> RR_MESSAGE_CODES = List.of(
+      GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_SEL_RR_S.getValue(),
+      GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_SEL_RR_C.getValue(),
+      GTNetMessageCodeType.GT_NET_DATA_REQUEST_SEL_RR_C.getValue());
+
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
 
@@ -108,9 +114,28 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   @Transactional
   public GTNetWithMessages getAllGTNetsWithMessages() {
     List<GTNetMessage> gtNetMessages = gtNetMessageJpaRepository.findAllByOrderByIdGtNetAscTimestampAsc();
-    return new GTNetWithMessages(gtNetJpaRepository.findAll(),
-        gtNetMessages.stream().collect(Collectors.groupingBy(GTNetMessage::getIdGtNet)),
-        globalparametersService.getGTNetMyEntryID());
+
+    // Fetch all unanswered requests and group by idGtNet
+    Map<Integer, List<Integer>> outgoingPendingReplies = groupPendingByGtNet(
+        gtNetMessageJpaRepository.findUnansweredRequests(SendReceivedType.SEND.getValue(), RR_MESSAGE_CODES));
+    Map<Integer, List<Integer>> incomingPendingReplies = groupPendingByGtNet(
+        gtNetMessageJpaRepository.findUnansweredRequests(SendReceivedType.RECEIVED.getValue(), RR_MESSAGE_CODES));
+
+    // Group messages by idGtNet
+    Map<Integer, List<GTNetMessage>> gtNetMessageMap = gtNetMessages.stream()
+        .collect(Collectors.groupingBy(GTNetMessage::getIdGtNet));
+
+    return new GTNetWithMessages(gtNetJpaRepository.findAll(), gtNetMessageMap,
+        outgoingPendingReplies, incomingPendingReplies, globalparametersService.getGTNetMyEntryID());
+  }
+
+  /**
+   * Groups the query result (id_gt_net, id_gt_net_message) into a Map by idGtNet.
+   */
+  private Map<Integer, List<Integer>> groupPendingByGtNet(List<Object[]> queryResult) {
+    return queryResult.stream().collect(Collectors.groupingBy(
+        row -> ((Number) row[0]).intValue(),
+        Collectors.mapping(row -> ((Number) row[1]).intValue(), Collectors.toList())));
   }
 
   @Override

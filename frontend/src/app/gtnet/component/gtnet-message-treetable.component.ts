@@ -1,8 +1,8 @@
-import {Component, Input, OnInit, ViewChild} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {GTNetMessage, MsgCallParam} from '../model/gtnet.message';
+import {getValidResponseCodes, GTNetMessage, GTNetMessageCodeType, MsgCallParam, SendReceivedType} from '../model/gtnet.message';
 import {MenuItem, TreeNode} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
@@ -15,6 +15,8 @@ import {TreeTableModule} from 'primeng/treetable';
 import {ContextMenuModule} from 'primeng/contextmenu';
 import {TooltipModule} from 'primeng/tooltip';
 import {GTNetMessageEditComponent} from './gtnet-message-edit.component';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
+import {ProcessedAction} from '../../lib/types/processed.action';
 
 /**
  * It shows the messages in a tree table.
@@ -46,7 +48,8 @@ import {GTNetMessageEditComponent} from './gtnet-message-edit.component';
             </tr>
           </ng-template>
           <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
-            <tr [ttSelectableRow]="rowNode">
+            <tr [ttSelectableRow]="rowNode"
+                [style.background-color]="isPendingMessage(rowData) ? 'greenyellow' : null">
               @for (field of fields; track field; let i = $index) {
                 @if (field.visible) {
                   <td
@@ -88,7 +91,9 @@ import {GTNetMessageEditComponent} from './gtnet-message-edit.component';
 
 export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {
   @Input() gtNetMessages: GTNetMessage[];
+  @Input() pendingMessageIds: Set<number>;
   @Input() formDefinitions: { [type: string]: ClassDescriptorInputAndShow };
+  @Output() dataChanged = new EventEmitter<ProcessedActionData>();
   @ViewChild('cm') contextMenu: any;
 
   public static consumedGT = 'consumedGT';
@@ -111,6 +116,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     this.addColumn(DataType.DateTimeString, 'timestamp', 'RECEIVED_TIME', true, false);
     this.addColumnFeqH(DataType.String, 'messageCode', true, false, {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.String, 'sendRecv', true, false, {translateValues: TranslateValue.NORMAL});
+    this.addColumnFeqH(DataType.String, 'message', true, false, {width: 300});
     this.prepareData();
     this.createTranslateValuesStoreForTranslation(this.rootNode.children);
     this.translateHeadersAndColumns();
@@ -162,17 +168,56 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
 
   private getMenuItems(): MenuItem[] {
     const menuItems: MenuItem[] = [];
+    if (this.selectedNode?.data && this.canReplyToSelected()) {
+      menuItems.push({
+        label: 'REPLY',
+        command: () => this.replyToSelected()
+      });
+    }
     return menuItems;
   }
 
-  private sendMsgSelected(): void {
-    this.msgCallParam = new MsgCallParam(this.formDefinitions, this.selectedNode.data.idGtNet,
-      this.selectedNode.data.idGtNetMessage, null);
+  /**
+   * Checks if the selected message can be replied to:
+   * - Must be an incoming message (sendRecv === 'RECEIVED' or SendReceivedType.RECEIVE)
+   * - Must be a pending (unanswered) request
+   * - Must have valid response codes defined
+   */
+  private canReplyToSelected(): boolean {
+    const msg: GTNetMessage = this.selectedNode?.data;
+    if (!msg) {
+      return false;
+    }
+    const isIncoming = msg.sendRecv === 'RECEIVED' || msg.sendRecv === SendReceivedType.RECEIVE;
+    const isPending = this.pendingMessageIds?.has(msg.idGtNetMessage) ?? false;
+    const validResponses = getValidResponseCodes(msg.messageCode);
+    return isIncoming && isPending && validResponses.length > 0;
+  }
+
+  private replyToSelected(): void {
+    const msg: GTNetMessage = this.selectedNode.data;
+    const validResponses = getValidResponseCodes(msg.messageCode);
+    this.msgCallParam = new MsgCallParam(
+      this.formDefinitions,
+      msg.idGtNet,
+      msg.idGtNetMessage,
+      null,
+      false,
+      validResponses
+    );
     this.visibleDialogMsg = true;
   }
 
-  handleCloseDialogMsg(dynamicMsg: any): void {
+  handleCloseDialogMsg(processedActionData: ProcessedActionData): void {
     this.visibleDialogMsg = false;
+    if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
+      this.dataChanged.emit(processedActionData);
+    }
+  }
+
+  /** Checks if a message is pending (unanswered) and should be highlighted */
+  isPendingMessage(rowData: GTNetMessage): boolean {
+    return this.pendingMessageIds?.has(rowData.idGtNetMessage) ?? false;
   }
 
 }

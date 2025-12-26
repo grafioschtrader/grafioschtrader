@@ -85,8 +85,14 @@ public class FirstHandshakeRequestHandler extends AbstractGTNetMessageHandler {
     GTNet processedRemoteGTNet = addOrUpdateRemoteGTNet(existing, remoteGTNet, theirTokenForUs);
 
     // 7. Generate our token for them and store in GTNetConfig
+    // Fetch GTNetConfig directly from repository to avoid JPA session state issues with the
+    // read-only @OneToOne relationship (insertable=false, updatable=false)
     String ourTokenForThem = DataHelper.generateGUID();
-    GTNetConfig gtNetConfig = processedRemoteGTNet.getGtNetConfig();
+    GTNetConfig gtNetConfig = gtNetConfigJpaRepository.findById(processedRemoteGTNet.getIdGtNet()).orElse(null);
+    if (gtNetConfig == null) {
+      throw new IllegalStateException("GTNetConfig should exist after addOrUpdateRemoteGTNet for GTNet ID: "
+          + processedRemoteGTNet.getIdGtNet());
+    }
     gtNetConfig.setTokenThis(ourTokenForThem);
     gtNetConfigJpaRepository.save(gtNetConfig);
 

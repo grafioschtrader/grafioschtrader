@@ -75,8 +75,6 @@ public class DataRequestHandler extends AbstractRequestHandler {
         updateEntityForAccept(remoteGTNet, kind);
       }
       saveRemoteGTNet(remoteGTNet);
-    } else if (responseCode == GTNetMessageCodeType.GT_NET_DATA_REQUEST_IN_PROCESS_S) {
-      // In process - no state change yet
     } else if (responseCode == GTNetMessageCodeType.GT_NET_DATA_REQUEST_REJECTED_S) {
       for (GTNetExchangeKindType kind : requestedKinds) {
         updateEntityForReject(remoteGTNet, kind);

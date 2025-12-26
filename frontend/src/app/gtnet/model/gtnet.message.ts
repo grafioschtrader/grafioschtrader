@@ -14,7 +14,8 @@ export class GTNetMessage {
 
 export class MsgCallParam {
   constructor(public formDefinitions: { [type: string]: ClassDescriptorInputAndShow }, public idGTNet: number,
-              public replyTo: number, public gtNetMessage: GTNetMessage, public isAllMessage: boolean = false) {
+              public replyTo: number, public gtNetMessage: GTNetMessage, public isAllMessage: boolean = false,
+              public validResponseCodes: GTNetMessageCodeType[] = null) {
   }
 }
 
@@ -29,6 +30,7 @@ export enum GTNetMessageCodeType {
   GT_NET_FIRST_HANDSHAKE_SEL_RR_S = 1,
   GT_NET_FIRST_HANDSHAKE_ACCEPT_S = 2,
   GT_NET_FIRST_HANDSHAKE_REJECT_S = 3,
+  GT_NET_FIRST_HANDSHAKE_REJECT_NOT_IN_LIST_S = 4,
   GT_NET_UPDATE_SERVERLIST_SEL_RR_C = 10,
   GT_NET_UPDATE_SERVERLIST_ACCEPT_S = 11,
   GT_NET_UPDATE_SERVERLIST_REJECTED_S = 12,
@@ -40,8 +42,37 @@ export enum GTNetMessageCodeType {
   GT_NET_MAINTENANCE_ALL_C = 24,
   GT_NET_OPERATION_DISCONTINUED_ALL_C = 25,
   GT_NET_DATA_REQUEST_SEL_RR_C = 50,
-  GT_NET_DATA_REQUEST_IN_PROCESS_S = 51,
   GT_NET_DATA_REQUEST_ACCEPT_S = 52,
   GT_NET_DATA_REQUEST_REJECTED_S = 53,
   GT_NET_DATA_REVOKE_SEL_C = 54
+}
+
+/** Maps request codes (_RR_) to their valid response codes */
+export const RESPONSE_CODE_MAP: { [key: number]: GTNetMessageCodeType[] } = {
+  [GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_SEL_RR_S]: [
+    GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_ACCEPT_S,
+    GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_REJECT_S
+  ],
+  [GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_SEL_RR_C]: [
+    GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_ACCEPT_S,
+    GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_REJECTED_S
+  ],
+  [GTNetMessageCodeType.GT_NET_DATA_REQUEST_SEL_RR_C]: [
+    GTNetMessageCodeType.GT_NET_DATA_REQUEST_ACCEPT_S,
+    GTNetMessageCodeType.GT_NET_DATA_REQUEST_REJECTED_S
+  ]
+};
+
+/** Checks if a message code is a request that requires a response */
+export function isRequestRequiringResponse(code: GTNetMessageCodeType | string): boolean {
+  const codeName = typeof code === 'string' ? code : GTNetMessageCodeType[code];
+  return codeName?.includes('_RR_') ?? false;
+}
+
+/** Gets valid response codes for a request code */
+export function getValidResponseCodes(requestCode: GTNetMessageCodeType | string): GTNetMessageCodeType[] {
+  const codeValue = typeof requestCode === 'string'
+    ? GTNetMessageCodeType[requestCode as keyof typeof GTNetMessageCodeType]
+    : requestCode;
+  return RESPONSE_CODE_MAP[codeValue] ?? [];
 }

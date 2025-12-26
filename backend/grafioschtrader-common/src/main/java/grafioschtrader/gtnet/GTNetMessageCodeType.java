@@ -1,5 +1,9 @@
 package grafioschtrader.gtnet;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 import grafioschtrader.entities.GTNetMessage;
 
 /**
@@ -68,8 +72,6 @@ public enum GTNetMessageCodeType {
   
   /** Request for data exchange - entityKinds parameter specifies which data types to request */
   GT_NET_DATA_REQUEST_SEL_RR_C((byte) 50),
-  /** Data request is being processed */
-  GT_NET_DATA_REQUEST_IN_PROCESS_S((byte) 51),
   /** Data request accepted */
   GT_NET_DATA_REQUEST_ACCEPT_S((byte) 52),
   /** Data request rejected */
@@ -96,5 +98,35 @@ public enum GTNetMessageCodeType {
       }
     }
     return null;
+  }
+
+  /**
+   * Maps request codes (_RR_) to their valid response codes. Used by the UI to show available response options for
+   * unanswered incoming requests.
+   */
+  private static final Map<GTNetMessageCodeType, List<GTNetMessageCodeType>> RESPONSE_MAP = Map.of(
+      GT_NET_FIRST_HANDSHAKE_SEL_RR_S,
+      List.of(GT_NET_FIRST_HANDSHAKE_ACCEPT_S, GT_NET_FIRST_HANDSHAKE_REJECT_S),
+      GT_NET_UPDATE_SERVERLIST_SEL_RR_C,
+      List.of(GT_NET_UPDATE_SERVERLIST_ACCEPT_S, GT_NET_UPDATE_SERVERLIST_REJECTED_S),
+      GT_NET_DATA_REQUEST_SEL_RR_C, List.of(GT_NET_DATA_REQUEST_ACCEPT_S, GT_NET_DATA_REQUEST_REJECTED_S));
+
+  /**
+   * Returns the valid response codes for a given request code.
+   *
+   * @param requestCode the request message code (must be an _RR_ type)
+   * @return list of valid response codes, or empty list if not a request type
+   */
+  public static List<GTNetMessageCodeType> getValidResponses(GTNetMessageCodeType requestCode) {
+    return RESPONSE_MAP.getOrDefault(requestCode, Collections.emptyList());
+  }
+
+  /**
+   * Checks if this message code is a request that requires a response.
+   *
+   * @return true if this is an _RR_ type message code
+   */
+  public boolean isRequestRequiringResponse() {
+    return this.name().contains("_RR_");
   }
 }
