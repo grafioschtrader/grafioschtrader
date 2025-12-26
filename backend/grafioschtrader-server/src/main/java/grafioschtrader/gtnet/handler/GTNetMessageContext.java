@@ -137,6 +137,16 @@ public class GTNetMessageContext {
   }
 
   /**
+   * Returns the ID of the local request message that this response is replying to.
+   *
+   * For response messages only. This allows linking an incoming response to the
+   * original request that was sent from this server.
+   */
+  public Integer getReplyToSourceId() {
+    return request.replyToSourceId;
+  }
+
+  /**
    * Returns the list of auto-response rules configured for this message type, ordered by priority.
    *
    * @return list of GTNetMessageAnswer rules, empty list if no auto-response is configured

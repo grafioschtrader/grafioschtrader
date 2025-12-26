@@ -70,6 +70,13 @@ public class MessageEnvelope {
       to exclude sensitive authentication tokens.""")
   public GTNetPublicDTO sourceGtNet;
 
+  @Schema(description = """
+      For response messages only: The idSourceGtNetMessage of the original request being responded to.
+      This allows the original requester to link the incoming response to their sent request.
+      For example: Server A sends request (ID=100), Server B receives and stores it with idSourceGtNetMessage=100.
+      When Server B replies, replyToSourceId=100 so Server A can link the response to its original request.""")
+  public Integer replyToSourceId;
+
   public MessageEnvelope() {
   }
 
