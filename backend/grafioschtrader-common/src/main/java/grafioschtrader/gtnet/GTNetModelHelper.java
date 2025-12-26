@@ -52,13 +52,13 @@ public abstract class GTNetModelHelper {
 
   static {
     msgFormMap = new HashMap<>();
-    msgFormMap.put(GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_S, new GTNetMsgRequest(FirstHandshakeMsg.class, true, (byte) 1));
-    msgFormMap.put(GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_SEL_C,
+    msgFormMap.put(GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_SEL_RR_S, new GTNetMsgRequest(FirstHandshakeMsg.class, true, (byte) 1));
+    msgFormMap.put(GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_SEL_RR_C,
         new GTNetMsgRequest(UpdateServerlistRequestMsg.class, true, (byte) 1));
     msgFormMap.put(GTNetMessageCodeType.GT_NET_MAINTENANCE_ALL_C, new GTNetMsgRequest(MaintenanceMsg.class, false, (byte) 10));
 
     // Unified data exchange messages
-    msgFormMap.put(GTNetMessageCodeType.GT_NET_DATA_REQUEST_SEL_C,
+    msgFormMap.put(GTNetMessageCodeType.GT_NET_DATA_REQUEST_SEL_RR_C,
         new GTNetMsgRequest(DataRequestMsg.class, true, (byte) 1));
     msgFormMap.put(GTNetMessageCodeType.GT_NET_DATA_REVOKE_SEL_C, new GTNetMsgRequest(RevokeMsg.class, false, (byte) 1));
 

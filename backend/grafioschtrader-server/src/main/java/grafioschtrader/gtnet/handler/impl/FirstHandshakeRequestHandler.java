@@ -50,7 +50,7 @@ public class FirstHandshakeRequestHandler extends AbstractGTNetMessageHandler {
 
   @Override
   public GTNetMessageCodeType getSupportedMessageCode() {
-    return GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_S;
+    return GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_SEL_RR_S;
   }
 
   @Override

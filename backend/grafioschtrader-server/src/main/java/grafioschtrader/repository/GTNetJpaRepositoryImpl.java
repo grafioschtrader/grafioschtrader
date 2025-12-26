@@ -1,16 +1,20 @@
 package grafioschtrader.repository;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -57,6 +61,9 @@ import grafioschtrader.m2m.client.BaseDataClient;
 import grafioschtrader.m2m.client.BaseDataClient.SendResult;
 import grafioschtrader.service.GlobalparametersService;
 import jakarta.transaction.Transactional;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
 
 public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements GTNetJpaRepositoryCustom {
 
@@ -79,6 +86,9 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
   @Autowired
   private ObjectMapper objectMapper;
+
+  @Autowired
+  private Validator validator;
 
   @Autowired
   private BaseDataClient baseDataClient;
@@ -204,16 +214,30 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   /**
    * Message is created and send to the remote servers.
    *
-   * @param gtNetList
-   * @param msgRequest
+   * Converts the gtNetMessageParamMap to the typed model class for validation and serialization as payload. This
+   * ensures type safety and proper handling of complex types like Set&lt;Enum&gt; and LocalDateTime on both sender and
+   * receiver sides.
+   *
+   * @param sourceGTNet     the local GTNet entry
+   * @param gtNetList       list of target GTNet entries to send to
+   * @param gtNetMsgRequest metadata about the message type including model class
+   * @param msgRequest      the request containing message parameters
    */
   private void sendAndSaveMsg(GTNet sourceGTNet, List<GTNet> gtNetList, GTNetMsgRequest gtNetMsgRequest,
       MsgRequest msgRequest) {
+    // Convert map to typed model class for validation and payload serialization
+    Object payloadModel = null;
+    if (gtNetMsgRequest.model != null && msgRequest.gtNetMessageParamMap != null
+        && !msgRequest.gtNetMessageParamMap.isEmpty()) {
+      payloadModel = convertMapToTypedModel(gtNetMsgRequest.model, msgRequest.gtNetMessageParamMap);
+      validateModel(payloadModel);
+    }
+
     for (GTNet targetGTNet : gtNetList) {
       GTNetMessage gtNetMessage = gtNetMessageJpaRepository.saveMsg(
           new GTNetMessage(targetGTNet.getIdGtNet(), new Date(), SendReceivedType.SEND.getValue(), msgRequest.replyTo,
               msgRequest.messageCode.getValue(), msgRequest.message, msgRequest.gtNetMessageParamMap));
-      MessageEnvelope meResponse = sendMessage(sourceGTNet, targetGTNet, gtNetMessage, null);
+      MessageEnvelope meResponse = sendMessage(sourceGTNet, targetGTNet, gtNetMessage, payloadModel);
       if (gtNetMsgRequest.responseExpected && meResponse != null) {
         // Save received response with idSourceGtNetMessage from remote and replyTo pointing to our request
         GTNetMessage responseMsg = new GTNetMessage(targetGTNet.getIdGtNet(), meResponse.timestamp,
@@ -232,7 +256,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       Map<String, GTNetMessageParam> msgMap = convertPojoToMap(new FirstHandshakeMsg(tokenForRemote));
       GTNetMessage gtNetMessageRequest = gtNetMessageJpaRepository
           .saveMsg(new GTNetMessage(targetGTNet.getIdGtNet(), new Date(), SendReceivedType.SEND.getValue(), null,
-              GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_S.getValue(), null, msgMap));
+              GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_SEL_RR_S.getValue(), null, msgMap));
       // Send our GTNet entity in the payload so the receiver can register us
       MessageEnvelope meResponse = sendMessage(sourceGTNet, targetGTNet, gtNetMessageRequest, sourceGTNet);
       if (meResponse != null
@@ -278,9 +302,87 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     return objectMapper.convertValue(valueMap, clazz);
   }
 
+  /**
+   * Converts a gtNetMessageParamMap to a typed model class with special handling for complex types.
+   *
+   * Handles:
+   * <ul>
+   *   <li>Comma-separated strings → Set&lt;Enum&gt; (e.g., "LAST_PRICE,HISTORICAL_PRICES" → Set&lt;GTNetExchangeKindType&gt;)</li>
+   *   <li>ISO-8601 strings → LocalDateTime</li>
+   *   <li>Simple string fields</li>
+   * </ul>
+   *
+   * @param clazz the target model class
+   * @param map   the parameter map from the request
+   * @param <T>   the model type
+   * @return the instantiated and populated model object
+   */
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  private <T> T convertMapToTypedModel(Class<T> clazz, Map<String, GTNetMessageParam> map) {
+    try {
+      T instance = clazz.getDeclaredConstructor().newInstance();
+
+      for (Field field : clazz.getFields()) {
+        GTNetMessageParam param = map.get(field.getName());
+        if (param == null || param.getParamValue() == null) {
+          continue;
+        }
+
+        String value = param.getParamValue();
+        Object convertedValue;
+
+        if (Set.class.isAssignableFrom(field.getType())) {
+          // Handle Set<Enum> - convert comma-separated string to EnumSet
+          ParameterizedType paramType = (ParameterizedType) field.getGenericType();
+          Class<?> enumClass = (Class<?>) paramType.getActualTypeArguments()[0];
+          if (enumClass.isEnum()) {
+            Set enumSet = EnumSet.noneOf((Class<Enum>) enumClass);
+            for (String enumName : value.split(",")) {
+              String trimmed = enumName.trim();
+              if (!trimmed.isEmpty()) {
+                enumSet.add(Enum.valueOf((Class<Enum>) enumClass, trimmed));
+              }
+            }
+            convertedValue = enumSet;
+          } else {
+            continue;
+          }
+        } else if (LocalDateTime.class.isAssignableFrom(field.getType())) {
+          // Handle LocalDateTime - parse ISO-8601 string
+          convertedValue = LocalDateTime.parse(value);
+        } else if (field.getType().isEnum()) {
+          // Handle single enum value
+          convertedValue = Enum.valueOf((Class<Enum>) field.getType(), value);
+        } else {
+          // Default: use Jackson for other types
+          convertedValue = objectMapper.convertValue(value, field.getType());
+        }
+
+        field.set(instance, convertedValue);
+      }
+
+      return instance;
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Failed to convert map to " + clazz.getSimpleName() + ": " + e.getMessage(), e);
+    }
+  }
+
+  /**
+   * Validates a model object using Jakarta Bean Validation.
+   *
+   * @param model the model to validate
+   * @throws ConstraintViolationException if validation fails
+   */
+  private void validateModel(Object model) {
+    Set<ConstraintViolation<Object>> violations = validator.validate(model);
+    if (!violations.isEmpty()) {
+      throw new ConstraintViolationException(violations);
+    }
+  }
+
   private MessageEnvelope sendMessage(GTNet sourceGTNet, GTNet targetGTNet, GTNetMessage gtNetMessage,
       Object payLoadObject) {
-    if (gtNetMessage.getMessageCode() != GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_S
+    if (gtNetMessage.getMessageCode() != GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_SEL_RR_S
         ? hasOrCreateFirstContact(sourceGTNet, targetGTNet)
         : true) {
       return sendMessageWithStatusUpdate(sourceGTNet, targetGTNet, gtNetMessage, payLoadObject);

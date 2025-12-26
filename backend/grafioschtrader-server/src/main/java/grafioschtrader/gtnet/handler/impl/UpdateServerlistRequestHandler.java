@@ -19,7 +19,7 @@ public class UpdateServerlistRequestHandler extends AbstractRequestHandler {
 
   @Override
   public GTNetMessageCodeType getSupportedMessageCode() {
-    return GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_SEL_C;
+    return GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_SEL_RR_C;
   }
 
   @Override

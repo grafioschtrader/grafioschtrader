@@ -34,7 +34,7 @@ public class DataRequestHandler extends AbstractRequestHandler {
 
   @Override
   public GTNetMessageCodeType getSupportedMessageCode() {
-    return GTNetMessageCodeType.GT_NET_DATA_REQUEST_SEL_C;
+    return GTNetMessageCodeType.GT_NET_DATA_REQUEST_SEL_RR_C;
   }
 
   @Override
