@@ -28,7 +28,8 @@
       "Bash(mvn:*)",
       "Bash(npm run lint:*)",
       "Bash(git -C \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\" checkout HEAD -- \"backend/grafioschtrader-common/src/main/resources/message/messages_de.properties\" \"backend/grafioschtrader-common/src/main/resources/message/messages.properties\")",
-      "Bash(npm run build:*:*)"
+      "Bash(npm run build:*:*)",
+      "Bash(del \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\frontend\\\\src\\\\app\\\\gtnet\\\\component\\\\gtnet.message.auto.answer.component.ts\")"
     ],
     "deny": [],
     "ask": []

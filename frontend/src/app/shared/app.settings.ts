@@ -83,7 +83,8 @@ export class AppSettings {
 
   public static readonly GT_NET_CONSUME_MONITOR_KEY = 'gtnetconsumemonitor';
   public static readonly GT_NET_KEY = 'gtnet';
-  public static readonly GT_NET_AUTO_ANSWER_KEY = 'gtnetautoanwser';
+  public static readonly GT_NET_MESSAGE_ANSWER = 'GTNetMessageAnswer';
+  public static readonly GT_NET_MESSAGE_ANSWER_KEY = 'gtnetmessageanswer';
   public static readonly GT_NET_EXCHANGE_KEY = 'gtnetexchange';
   public static readonly GT_NET_EXCHANGE_SECURITIES_KEY = 'securities';
   public static readonly GT_NET_EXCHANGE_CURRENCYPAIRS_KEY = 'currencypairs';
