@@ -1,7 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {TradingPlatformPlanService} from '../service/trading.platform.plan.service';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {TradingPlatformPlan} from '../../entities/tradingplatformplan';
@@ -16,6 +16,8 @@ import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
+import {DialogModule} from 'primeng/dialog';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 @Component({
     selector: 'trading-platform-plan-edit',
@@ -28,7 +30,8 @@ import {AppSettings} from '../../shared/app.settings';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`,
-    standalone: false
+    standalone: true,
+    imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<TradingPlatformPlan> implements OnInit {
   @Input() callParam: TradingPlatformPlan;

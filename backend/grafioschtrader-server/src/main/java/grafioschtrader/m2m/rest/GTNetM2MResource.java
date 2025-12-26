@@ -48,7 +48,7 @@ public class GTNetM2MResource {
     GTNetMessageCodeType messageCode = GTNetMessageCodeType.getGTNetMessageCodeTypeByValue(messageEnvelope.messageCode);
 
     // First handshake doesn't require token validation (no token exists yet)
-    boolean isFirstHandshake = messageCode == GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_S;
+    boolean isFirstHandshake = messageCode == GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_SEL_RR_S;
 
     if (!isFirstHandshake) {
       // Validate token for all other message types

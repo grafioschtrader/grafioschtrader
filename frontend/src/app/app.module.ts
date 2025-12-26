@@ -298,8 +298,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     TenantPerformanceTabMenuComponent,
     TenantTransactionCostComponent,
     TenantTransactionCostExtendedComponent, TimeSeriesChartComponent,
-    TradingCalendarOtherExchangeDynamicComponent,
-    TradingPlatformPlanEditComponent, TradingPlatformPlanTableComponent
+    TradingCalendarOtherExchangeDynamicComponent
   ],
   imports: [
     ReplacePipe,
@@ -411,6 +410,8 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     UDFMetadataSecurityTableComponent,
     TaskDataChangeEditComponent,
     TaskDataChangeTableComponent,
+    TradingPlatformPlanEditComponent,
+    TradingPlatformPlanTableComponent,
     TabsModule,
     TieredMenuModule,
     ToastrModule.forRoot({

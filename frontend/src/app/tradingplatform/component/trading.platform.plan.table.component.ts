@@ -4,7 +4,7 @@ import {TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.me
 import {TradingPlatformPlan} from '../../entities/tradingplatformplan';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {TradingPlatformPlanService} from '../service/trading.platform.plan.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
@@ -15,6 +15,8 @@ import {ConfirmationService, FilterService} from 'primeng/api';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 import {BaseSettings} from '../../lib/base.settings';
+import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
+import {TradingPlatformPlanEditComponent} from './trading-platform-plan-edit.component';
 
 @Component({
   template: `
@@ -48,7 +50,8 @@ import {BaseSettings} from '../../lib/base.settings';
     }
   `,
   providers: [DialogService],
-  standalone: false
+  standalone: true,
+  imports: [TranslateModule, ConfigurableTableComponent, TradingPlatformPlanEditComponent]
 })
 export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<TradingPlatformPlan> implements OnDestroy {
 
