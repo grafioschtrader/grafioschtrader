@@ -2,6 +2,7 @@ package grafioschtrader.gtnet.handler;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -32,8 +33,8 @@ import grafioschtrader.repository.GTNetMessageAnswerJpaRepository;
  * <li>Any parameter from the message payload</li>
  * </ul>
  *
- * Conditions are evaluated in order (1, 2, 3). The first matching condition determines the response. If no condition
- * matches, the message awaits manual admin review.
+ * Rules are evaluated in priority order (lowest priority value first). The first matching condition determines the
+ * response. If no condition matches, the message awaits manual admin review.
  *
  * @see GTNetMessageAnswer for the rule configuration entity
  */
@@ -55,70 +56,36 @@ public class GTNetResponseResolver {
    */
   public Optional<ResolvedResponse> resolveAutoResponse(GTNetMessageCodeType requestCode, GTNet remoteGTNet,
       Map<String, GTNetMessageParam> params) {
-    Optional<GTNetMessageAnswer> rulesOpt = gtNetMessageAnswerJpaRepository.findById(requestCode.getValue());
-    if (rulesOpt.isEmpty()) {
-      return Optional.empty();
-    }
-
-    GTNetMessageAnswer rules = rulesOpt.get();
-    EvalExContext evalContext = buildEvalContext(remoteGTNet, params);
-
-    // Evaluate condition 1
-    if (evaluateCondition(rules.getResponseMsgConditional1(), evalContext)) {
-      return Optional.of(
-          new ResolvedResponse(rules.getResponseMsgCode1(), rules.getResponseMsgMessage1(), rules.getWaitDaysAplly()));
-    }
-
-    // Evaluate condition 2
-    if (rules.getResponseMsgCode2() != null && evaluateCondition(rules.getResponseMsgConditional2(), evalContext)) {
-      return Optional.of(
-          new ResolvedResponse(rules.getResponseMsgCode2(), rules.getResponseMsgMessage2(), rules.getWaitDaysAplly()));
-    }
-
-    // Evaluate condition 3
-    if (rules.getResponseMsgCode3() != null && evaluateCondition(rules.getResponseMsgConditional3(), evalContext)) {
-      return Optional.of(
-          new ResolvedResponse(rules.getResponseMsgCode3(), rules.getResponseMsgMessage3(), rules.getWaitDaysAplly()));
-    }
-
-    // No condition matched
-    return Optional.empty();
+    List<GTNetMessageAnswer> rules = gtNetMessageAnswerJpaRepository
+        .findByRequestMsgCodeOrderByPriority(requestCode.getValue());
+    return resolveAutoResponse(rules, remoteGTNet, params);
   }
 
   /**
    * Resolves auto-response using pre-loaded rules from the context.
    *
-   * @param rules       the GTNetMessageAnswer rules (may be null)
+   * @param rules       the list of GTNetMessageAnswer rules ordered by priority (may be null or empty)
    * @param remoteGTNet the remote GTNet entity
    * @param params      message parameters
    * @return resolved response if a rule matches, empty otherwise
    */
-  public Optional<ResolvedResponse> resolveAutoResponse(GTNetMessageAnswer rules, GTNet remoteGTNet,
+  public Optional<ResolvedResponse> resolveAutoResponse(List<GTNetMessageAnswer> rules, GTNet remoteGTNet,
       Map<String, GTNetMessageParam> params) {
-    if (rules == null) {
+    if (rules == null || rules.isEmpty()) {
       return Optional.empty();
     }
 
     EvalExContext evalContext = buildEvalContext(remoteGTNet, params);
 
-    // Evaluate condition 1
-    if (evaluateCondition(rules.getResponseMsgConditional1(), evalContext)) {
-      return Optional.of(
-          new ResolvedResponse(rules.getResponseMsgCode1(), rules.getResponseMsgMessage1(), rules.getWaitDaysAplly()));
+    // Evaluate each rule in priority order
+    for (GTNetMessageAnswer rule : rules) {
+      if (evaluateCondition(rule.getResponseMsgConditional(), evalContext)) {
+        return Optional.of(new ResolvedResponse(rule.getResponseMsgCode(), rule.getResponseMsgMessage(),
+            rule.getWaitDaysApply()));
+      }
     }
 
-    // Evaluate condition 2
-    if (rules.getResponseMsgCode2() != null && evaluateCondition(rules.getResponseMsgConditional2(), evalContext)) {
-      return Optional.of(
-          new ResolvedResponse(rules.getResponseMsgCode2(), rules.getResponseMsgMessage2(), rules.getWaitDaysAplly()));
-    }
-
-    // Evaluate condition 3
-    if (rules.getResponseMsgCode3() != null && evaluateCondition(rules.getResponseMsgConditional3(), evalContext)) {
-      return Optional.of(
-          new ResolvedResponse(rules.getResponseMsgCode3(), rules.getResponseMsgMessage3(), rules.getWaitDaysAplly()));
-    }
-
+    // No condition matched
     return Optional.empty();
   }
 
@@ -182,9 +149,9 @@ public class GTNetResponseResolver {
    *
    * @param responseCode  the message code to respond with
    * @param message       optional text message to include
-   * @param waitDaysApply cooling-off period after this response
+   * @param waitDaysApply cooling-off period in days after this response
    */
-  public record ResolvedResponse(GTNetMessageCodeType responseCode, String message, String waitDaysApply) {
+  public record ResolvedResponse(GTNetMessageCodeType responseCode, String message, byte waitDaysApply) {
   }
 
   /**

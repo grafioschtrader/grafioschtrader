@@ -131,10 +131,10 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
     };
 
     gtNetNode.children.push({
-      label: 'GT_NET_AUTO_ANSWER',
+      label: 'GT_NET_MESSAGE_ANSWER',
       data: new TypeNodeData(
         TreeNodeType.NO_MENU,
-        this.addMainRoute(AppSettings.GT_NET_AUTO_ANSWER_KEY),
+        this.addMainRoute(AppSettings.GT_NET_MESSAGE_ANSWER_KEY),
         null,
         null,
         null

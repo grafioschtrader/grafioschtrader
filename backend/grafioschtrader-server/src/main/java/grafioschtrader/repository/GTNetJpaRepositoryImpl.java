@@ -19,6 +19,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -500,12 +501,12 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       updateRemoteGTNetFromEnvelope(remoteGTNet, me);
     }
 
-    // Look up auto-response rules for this message code
-    Optional<GTNetMessageAnswer> autoResponseRules = gtNetMessageAnswerJpaRepository.findById(me.messageCode);
+    // Look up auto-response rules for this message code, ordered by priority
+    List<GTNetMessageAnswer> autoResponseRules = gtNetMessageAnswerJpaRepository
+        .findByRequestMsgCodeOrderByPriority(me.messageCode);
 
     // Build context for the handler
-    GTNetMessageContext context = new GTNetMessageContext(myGTNet, remoteGTNet, me, autoResponseRules.orElse(null),
-        objectMapper);
+    GTNetMessageContext context = new GTNetMessageContext(myGTNet, remoteGTNet, me, autoResponseRules, objectMapper);
 
     // Get the handler and process the message
     GTNetMessageHandler handler = handlerRegistry.getHandler(messageCode);

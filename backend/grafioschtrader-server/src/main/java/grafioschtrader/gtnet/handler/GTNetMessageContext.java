@@ -1,5 +1,6 @@
 package grafioschtrader.gtnet.handler;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -27,7 +28,7 @@ public class GTNetMessageContext {
   private final GTNet myGTNet;
   private final GTNet remoteGTNet;
   private final MessageEnvelope request;
-  private final GTNetMessageAnswer autoResponseRules;
+  private final List<GTNetMessageAnswer> autoResponseRules;
   private final ObjectMapper objectMapper;
 
   /**
@@ -36,15 +37,15 @@ public class GTNetMessageContext {
    * @param myGTNet           the local GTNet configuration (this server)
    * @param remoteGTNet       the remote GTNet configuration (may be null for first handshake from unknown domain)
    * @param request           the incoming message envelope
-   * @param autoResponseRules optional auto-response rules for this message type (may be null)
+   * @param autoResponseRules list of auto-response rules for this message type, ordered by priority (may be empty)
    * @param objectMapper      Jackson ObjectMapper for payload conversion
    */
   public GTNetMessageContext(GTNet myGTNet, GTNet remoteGTNet, MessageEnvelope request,
-      GTNetMessageAnswer autoResponseRules, ObjectMapper objectMapper) {
+      List<GTNetMessageAnswer> autoResponseRules, ObjectMapper objectMapper) {
     this.myGTNet = myGTNet;
     this.remoteGTNet = remoteGTNet;
     this.request = request;
-    this.autoResponseRules = autoResponseRules;
+    this.autoResponseRules = autoResponseRules != null ? autoResponseRules : List.of();
     this.objectMapper = objectMapper;
   }
 
@@ -136,11 +137,11 @@ public class GTNetMessageContext {
   }
 
   /**
-   * Returns the optional auto-response rules configured for this message type.
+   * Returns the list of auto-response rules configured for this message type, ordered by priority.
    *
-   * @return GTNetMessageAnswer rules, or null if no auto-response is configured
+   * @return list of GTNetMessageAnswer rules, empty list if no auto-response is configured
    */
-  public GTNetMessageAnswer getAutoResponseRules() {
+  public List<GTNetMessageAnswer> getAutoResponseRules() {
     return autoResponseRules;
   }
 
@@ -148,7 +149,7 @@ public class GTNetMessageContext {
    * Checks if auto-response rules are configured for this message type.
    */
   public boolean hasAutoResponseRules() {
-    return autoResponseRules != null;
+    return !autoResponseRules.isEmpty();
   }
 
   /**
