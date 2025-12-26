@@ -208,15 +208,20 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
   @Override
   public GTNetWithMessages submitMsg(MsgRequest msgRequest) {
+    // For response messages, gtNetMsgRequest may be null (responses don't have registered model classes)
     GTNetMsgRequest gtNetMsgRequest = GTNetModelHelper.getMsgClassByMessageCode(msgRequest.messageCode);
 
-    // Object model = objectMapper.convertValue(msgRequest.gtNetMessageParamMap,
-    // gtNetMsgRequest.model);
-    // TODO check model integrity
     List<GTNet> gtNetList = getTargetDomains(msgRequest);
-    sendAndSaveMsg(
-        gtNetJpaRepository.findById(GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersService)).orElseThrow(),
-        gtNetList, gtNetMsgRequest, msgRequest);
+    GTNet sourceGTNet = gtNetJpaRepository
+        .findById(GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersService)).orElseThrow();
+
+    if (gtNetMsgRequest != null) {
+      // Request message - needs model validation and expects response
+      sendAndSaveMsg(sourceGTNet, gtNetList, gtNetMsgRequest, msgRequest);
+    } else {
+      // Response message - no model validation needed, just send the reply
+      sendResponseMsg(sourceGTNet, gtNetList, msgRequest);
+    }
     return this.getAllGTNetsWithMessages();
   }
 
@@ -272,6 +277,25 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
         responseMsg.setIdSourceGtNetMessage(meResponse.idSourceGtNetMessage);
         gtNetMessageJpaRepository.save(responseMsg);
       }
+    }
+  }
+
+  /**
+   * Sends a response message to the original requester. Response messages don't need model validation
+   * as they are simple acknowledgments with an optional message text. The replyTo field links the
+   * response to the original request message.
+   *
+   * @param sourceGTNet the local GTNet entry
+   * @param gtNetList   list of target GTNet entries (typically just one - the original requester)
+   * @param msgRequest  the request containing the response message code, replyTo, and optional message
+   */
+  private void sendResponseMsg(GTNet sourceGTNet, List<GTNet> gtNetList, MsgRequest msgRequest) {
+    for (GTNet targetGTNet : gtNetList) {
+      GTNetMessage gtNetMessage = gtNetMessageJpaRepository.saveMsg(
+          new GTNetMessage(targetGTNet.getIdGtNet(), new Date(), SendReceivedType.SEND.getValue(), msgRequest.replyTo,
+              msgRequest.messageCode.getValue(), msgRequest.message, null));
+      // Send the response - no payload needed for simple responses
+      sendMessage(sourceGTNet, targetGTNet, gtNetMessage, null);
     }
   }
 
