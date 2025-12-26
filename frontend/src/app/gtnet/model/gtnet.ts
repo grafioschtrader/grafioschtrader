@@ -90,7 +90,12 @@ export class MsgRequest {
 
 export interface GTNetWithMessages {
   gtNetList: GTNet[];
+  /** Message history grouped by idGtNet */
   gtNetMessageMap: { [key: number]: GTNetMessage[] };
+  /** Outgoing pending replies grouped by idGtNet - used for "Answer expected" column */
+  outgoingPendingReplies: { [key: number]: number[] };
+  /** Incoming pending replies grouped by idGtNet - used for "To be answered" column */
+  incomingPendingReplies: { [key: number]: number[] };
   gtNetMyEntryId: number;
 }
 

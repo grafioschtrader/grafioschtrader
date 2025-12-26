@@ -74,16 +74,24 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
   protected override initialize(): void {
     this.configObject[this.MESSAGE_CODE].formControl.enable();
     this.valueChangedOnMessageCode();
-    if (this.msgCallParam.gtNetMessage) {
+    if (this.msgCallParam.validResponseCodes?.length) {
+      // Response mode: only show valid response codes for the request
+      this.configObject[this.MESSAGE_CODE].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+        this.translateService, GTNetMessageCodeType,
+        this.msgCallParam.validResponseCodes.map(code => GTNetMessageCodeType[code]), false);
+    } else if (this.msgCallParam.gtNetMessage) {
       this.configObject[this.MESSAGE_CODE].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
         GTNetMessageCodeType, [GTNetMessageCodeType[this.msgCallParam.gtNetMessage.messageCode]], false);
       this.configObject[this.MESSAGE_CODE].formControl.setValue(this.msgCallParam.gtNetMessage[this.MESSAGE_CODE]);
     } else {
       // Filter message codes: ALL messages for broadcast mode, SEL messages for single target mode
-      const filterSuffix = this.msgCallParam.isAllMessage ? '_ALL_C' : '_SEL_C';
-      this.configObject[this.MESSAGE_CODE].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
-        GTNetMessageCodeType, Object.keys(GTNetMessageCodeType).filter(key => !isNaN(Number(GTNetMessageCodeType[key]))
-          && key.endsWith(filterSuffix)).map(k => GTNetMessageCodeType[k]), false);
+      const filterSuffixes = this.msgCallParam.isAllMessage ? ['_ALL_C']: ['_SEL_RR_C', 'SEL_C', '_ALL_C'];
+      this.configObject[this.MESSAGE_CODE].valueKeyHtmlOptions =
+        SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, GTNetMessageCodeType,
+          Object.keys(GTNetMessageCodeType).filter(
+              key => !isNaN(Number(GTNetMessageCodeType[key])) &&
+                filterSuffixes.some(suffix => key.endsWith(suffix))
+            ).map(k => GTNetMessageCodeType[k]),false);
     }
   }
 

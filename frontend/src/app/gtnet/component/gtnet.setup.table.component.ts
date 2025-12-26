@@ -77,7 +77,9 @@ import {ProcessedActionData} from '../../lib/types/processed.action.data';
 
     <ng-template #expandedRow let-row>
       <gtnet-message-treetable [gtNetMessages]="gtNetMessageMap[row.idGtNet]"
-                               [formDefinitions]="formDefinitions">
+                               [pendingMessageIds]="getPendingMessageIds(row.idGtNet)"
+                               [formDefinitions]="formDefinitions"
+                               (dataChanged)="onTreeTableDataChanged($event)">
       </gtnet-message-treetable>
     </ng-template>
 
@@ -104,6 +106,8 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   gtNetList: GTNet[];
   gtNetMyEntryId: number;
   gtNetMessageMap: { [key: number]: GTNetMessage[] };
+  outgoingPendingReplies: { [key: number]: number[] };
+  incomingPendingReplies: { [key: number]: number[] };
   formDefinitions: { [type: string]: ClassDescriptorInputAndShow };
   visibleDialogMsg = false;
   msgCallParam: MsgCallParam;
@@ -144,6 +148,10 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.String, 'historicalPriceServerState', true, false,
       {translateValues: TranslateValue.NORMAL});
+    this.addColumnFeqH(DataType.Numeric, 'toBeAnswered', true, false,
+      {fieldValueFN: this.getToBeAnsweredCount.bind(this)});
+    this.addColumnFeqH(DataType.Numeric, 'answerExpected', true, false,
+      {fieldValueFN: this.getAnswerExpectedCount.bind(this)});
     this.multiSortMeta.push({field: this.domainRemoteName, order: 1});
     this.prepareTableAndTranslate();
   }
@@ -157,11 +165,14 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       ...(!this.formDefinitions ? [this.gtNetMessageService.getAllFormDefinitionsWithClass()] : [])];
 
     combineLatest(observable).subscribe((data,) => {
-      this.gtNetList = (<GTNetWithMessages>data[0]).gtNetList;
+      const response = <GTNetWithMessages>data[0];
+      this.gtNetList = response.gtNetList;
       this.mapGTNetEntityToGTNet();
-      this.gtNetMyEntryId = (<GTNetWithMessages>data[0]).gtNetMyEntryId;
+      this.gtNetMyEntryId = response.gtNetMyEntryId;
       this.createTranslatedValueStoreAndFilterField(this.gtNetList);
-      this.gtNetMessageMap = (<GTNetWithMessages>data[0]).gtNetMessageMap;
+      this.gtNetMessageMap = response.gtNetMessageMap;
+      this.outgoingPendingReplies = response.outgoingPendingReplies;
+      this.incomingPendingReplies = response.incomingPendingReplies;
       this.formDefinitions ??= <{ [type: string]: ClassDescriptorInputAndShow }>data[1];
       this.prepareTableAndTranslate();
     });
@@ -247,7 +258,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   }
 
   canExpand(row: GTNet): boolean {
-    return !!(this.gtNetMessageMap && this.gtNetMessageMap[row.idGtNet]);
+    return !!(this.gtNetMessageMap && this.gtNetMessageMap[row.idGtNet]?.length);
   }
 
   isMyEntry(row: GTNet, field: ColumnConfig): boolean {
@@ -256,6 +267,30 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
 
   protected override hasRightsForUpdateEntity(row: GTNet): boolean {
     return this.isMyEntry(row, null);
+  }
+
+  /** Returns count of incoming pending replies (requests I need to answer) */
+  getToBeAnsweredCount(dataobject: GTNet, field: ColumnConfig, valueField: any): number {
+    return this.incomingPendingReplies?.[dataobject.idGtNet]?.length ?? 0;
+  }
+
+  /** Returns count of outgoing pending replies (requests awaiting response) */
+  getAnswerExpectedCount(dataobject: GTNet, field: ColumnConfig, valueField: any): number {
+    return this.outgoingPendingReplies?.[dataobject.idGtNet]?.length ?? 0;
+  }
+
+  /** Returns combined set of pending message IDs for a domain (for row highlighting) */
+  getPendingMessageIds(idGtNet: number): Set<number> {
+    const outgoing = this.outgoingPendingReplies?.[idGtNet] ?? [];
+    const incoming = this.incomingPendingReplies?.[idGtNet] ?? [];
+    return new Set([...outgoing, ...incoming]);
+  }
+
+  /** Handle data changes from the tree table (e.g., reply sent) */
+  onTreeTableDataChanged(processedActionData: ProcessedActionData): void {
+    if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
+      this.readData();
+    }
   }
 
 }
