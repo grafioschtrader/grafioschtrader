@@ -434,6 +434,8 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
         // Store our token (what they use to call us) as tokenThis
         gtNetConfig.setTokenThis(tokenForRemote);
         gtNetConfigJpaRepository.save(gtNetConfig);  // Save config separately
+        // Update in-memory object so subsequent calls in same transaction have the token
+        targetGTNet.setGtNetConfig(gtNetConfig);
 
         // Save received response message with idSourceGtNetMessage from remote and replyTo pointing to our request
         GTNetMessage gtNetMessageResponse = new GTNetMessage(targetGTNet.getIdGtNet(), meResponse.timestamp,
