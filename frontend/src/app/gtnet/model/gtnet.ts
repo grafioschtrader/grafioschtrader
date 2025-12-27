@@ -82,6 +82,7 @@ export class GTNet implements BaseID {
 
 export class MsgRequest {
   public gtNetMessageParamMap: Map<string, BaseParam> | { [key: string]: BaseParam };
+  public waitDaysApply: number = null;
 
   constructor(public idGTNetTargetDomain: number, public replyTo: number, public messageCode: MessageComType | string,
               public message: string) {

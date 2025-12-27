@@ -9,6 +9,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
 /**
  * Defines automatic response templates for incoming GTNet messages requiring replies.
@@ -85,8 +87,10 @@ public class GTNetMessageAnswer extends BaseID<Integer> {
       Cooling-off period in days after a negative/rejection response. If set, the requesting domain must wait this
       many days before submitting another request of the same type. Helps prevent request spam and gives
       administrators time to review persistent requesters. 0 means no waiting period.""")
+  @Min(value = 0)
+  @Max(value = 9999)
   @Column(name = "wait_days_apply", nullable = false)
-  private byte waitDaysApply;
+  private Short waitDaysApply;
 
   public Integer getIdGtNetMessageAnswer() {
     return idGtNetMessageAnswer;
@@ -144,11 +148,12 @@ public class GTNetMessageAnswer extends BaseID<Integer> {
     this.responseMsgMessage = responseMsgMessage;
   }
 
-  public byte getWaitDaysApply() {
+  
+  public Short getWaitDaysApply() {
     return waitDaysApply;
   }
 
-  public void setWaitDaysApply(byte waitDaysApply) {
+  public void setWaitDaysApply(Short waitDaysApply) {
     this.waitDaysApply = waitDaysApply;
   }
 

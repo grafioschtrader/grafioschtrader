@@ -1,3 +1,5 @@
+import {HelpIds} from '../../lib/help/help.ids';
+
 /**
  * Application-specific (Grafioschtrader) help IDs.
  * These help IDs are specific to the Grafioschtrader application.
@@ -58,7 +60,10 @@ export const AppHelpIds: Record<string, string> = {
   // Admin data (application-specific extensions)
   HELP_TRADING_CALENDAR: 'admindata/tradingcalendar',
   HELP_HISTORYQUOTE_QUALITY: 'admindata/historyquotequality/',
-  HELP_GT_NET: 'admindata/gtnet',
-  HELP_GT_NET_AUTOANSWER: 'admindata/gtnet/autoanswer',
-  HELP_GT_NET_CONSUME_MONITOR: 'admindata/gtnet/consumemonitor'
+
+  HELP_GT_NET: HelpIds.HELP_MESSAGE_SYSTEM + '/gtnet',
+  HELP_GT_NET_AUTOANSWER: HelpIds.HELP_GT_NET + '/autoanswer',
+  HELP_GT_NET_EXCHANGE: HelpIds.HELP_GT_NET + '/exchange',
+  HELP_GT_NET_CONSUME_MONITOR: HelpIds.HELP_GT_NET + '/consumemonitor'
+
 };

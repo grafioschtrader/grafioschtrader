@@ -11,7 +11,6 @@ import grafioschtrader.entities.GTNetEntity;
 import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.gtnet.AcceptRequestTypes;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
-import grafioschtrader.gtnet.GTNetExchangeStatusTypes;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.GTNetServerStateTypes;
 import grafioschtrader.gtnet.handler.AbstractRequestHandler;
@@ -85,17 +84,21 @@ public class DataRequestHandler extends AbstractRequestHandler {
 
   /**
    * Updates a GTNetEntity to accept state for the specified entity kind.
+   * When we accept their request, we will SEND data to them.
    */
   private void updateEntityForAccept(GTNet remoteGTNet, GTNetExchangeKindType kind) {
     GTNetEntity entity = getOrCreateEntity(remoteGTNet, kind);
     entity.setAcceptRequest(AcceptRequestTypes.AC_OPEN);
     entity.setServerState(GTNetServerStateTypes.SS_OPEN);
 
-    // Update the corresponding GTNetConfigEntity exchange status
+    // Update the corresponding GTNetConfigEntity exchange status - add SEND capability
     GTNetConfigEntity configEntity = entity.getGtNetConfigEntity();
-    if (configEntity != null) {
-      configEntity.setExchange(GTNetExchangeStatusTypes.ES_BOTH);
+    if (configEntity == null) {
+      configEntity = new GTNetConfigEntity();
+      configEntity.setIdGtNetEntity(entity.getIdGtNetEntity());
+      entity.setGtNetConfigEntity(configEntity);
     }
+    configEntity.setExchange(configEntity.getExchange().withSend());
   }
 
   /**

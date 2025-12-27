@@ -151,7 +151,7 @@ public class GTNetResponseResolver {
    * @param message       optional text message to include
    * @param waitDaysApply cooling-off period in days after this response
    */
-  public record ResolvedResponse(GTNetMessageCodeType responseCode, String message, byte waitDaysApply) {
+  public record ResolvedResponse(GTNetMessageCodeType responseCode, String message, Short waitDaysApply) {
   }
 
   /**

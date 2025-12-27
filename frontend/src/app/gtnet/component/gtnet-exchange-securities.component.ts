@@ -30,6 +30,7 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {BaseSettings} from '../../lib/base.settings';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {GTNetSupplierDetailTableComponent} from './gtnet-supplier-detail-table.component';
+import {HelpIds} from '../../lib/help/help.ids';
 
 /**
  * Component for configuring GTNetExchange settings for securities.
@@ -73,6 +74,7 @@ import {GTNetSupplierDetailTableComponent} from './gtnet-supplier-detail-table.c
       [contextMenuEnabled]="true"
       [contextMenuItems]="contextMenuItems"
       [showContextMenu]="true"
+      [containerClass]="{'data-container-full': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
       [expandable]="true"
       [canExpandFn]="canExpand.bind(this)"
       [expandedRowTemplate]="expandedRow">
@@ -336,6 +338,10 @@ export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent
 
   canExpand(row: GTNetExchange): boolean {
     return this.idSecuritycurreniesWithDetails.has(row.securitycurrency.idSecuritycurrency);
+  }
+
+  public override getHelpContextId(): string {
+    return HelpIds.HELP_GT_NET_EXCHANGE;
   }
 
 }

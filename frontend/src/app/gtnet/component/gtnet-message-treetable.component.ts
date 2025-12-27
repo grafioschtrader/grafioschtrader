@@ -2,14 +2,16 @@ import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angula
 import {CommonModule} from '@angular/common';
 import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {getValidResponseCodes, GTNetMessage, GTNetMessageCodeType, MsgCallParam, SendReceivedType} from '../model/gtnet.message';
+import {getReverseCode, getValidResponseCodes, GTNetMessage, GTNetMessageCodeType, MsgCallParam, SendReceivedType} from '../model/gtnet.message';
+import {MsgRequest} from '../model/gtnet';
+import {GTNetService} from '../service/gtnet.service';
 import {MenuItem, TreeNode} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {HelpIds} from '../../lib/help/help.ids';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {TranslateValue} from '../../lib/datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {ClassDescriptorInputAndShow} from '../../lib/dynamicfield/field.descriptor.input.and.show';
 import {TreeTableModule} from 'primeng/treetable';
 import {ContextMenuModule} from 'primeng/contextmenu';
@@ -17,6 +19,9 @@ import {TooltipModule} from 'primeng/tooltip';
 import {GTNetMessageEditComponent} from './gtnet-message-edit.component';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
+import {GTNetMessageService} from '../service/gtnet.message.service';
+import {AngularSvgIconModule, SvgIconRegistryService} from 'angular-svg-icon';
+import {BaseSettings} from '../../lib/base.settings';
 
 /**
  * It shows the messages in a tree table.
@@ -29,7 +34,8 @@ import {ProcessedAction} from '../../lib/types/processed.action';
     TreeTableModule,
     ContextMenuModule,
     TooltipModule,
-    GTNetMessageEditComponent
+    GTNetMessageEditComponent,
+    AngularSvgIconModule
   ],
   template: `
     <div #cmDiv class="data-container" (click)="onComponentClick($event)"
@@ -37,6 +43,7 @@ import {ProcessedAction} from '../../lib/types/processed.action';
       <div class="datatable nestedtable">
         <p-treeTable [value]="rootNode.children" [columns]="fields" dataKey="idGtNetMessage"
                      selectionMode="single" [(selection)]="selectedNode"
+                     (selectionChange)="onSelectionChange($event)"
                      showGridlines="true">
           <ng-template #header let-fields>
             <tr>
@@ -49,7 +56,7 @@ import {ProcessedAction} from '../../lib/types/processed.action';
           </ng-template>
           <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
             <tr [ttSelectableRow]="rowNode"
-                [style.background-color]="isPendingMessage(rowData) ? 'greenyellow' : null">
+                [style.background-color]="getPendingBackgroundColor(rowData)">
               @for (field of fields; track field; let i = $index) {
                 @if (field.visible) {
                   <td
@@ -65,6 +72,14 @@ import {ProcessedAction} from '../../lib/types/processed.action';
                               tooltipPosition="top">
                         {{ getValueByPath(rowData, field) }}
                       </span>
+                      }
+                      @case ('icon') {
+                        <svg-icon [name]="getValueByPath(rowData, field)"
+                                  [svgStyle]="{ 'width.px':16, 'height.px':16 }"></svg-icon>
+                      }
+                      @case ('check') {
+                        <span><i [ngClass]="{'fa fa-check': getValueByPath(rowData, field)}"
+                                 aria-hidden="true"></i></span>
                       }
                       @default {
                         <span [pTooltip]="getValueByPath(rowData, field)">{{ getValueByPath(rowData, field) }}</span>
@@ -91,12 +106,23 @@ import {ProcessedAction} from '../../lib/types/processed.action';
 
 export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {
   @Input() gtNetMessages: GTNetMessage[];
-  @Input() pendingMessageIds: Set<number>;
+  @Input() incomingPendingIds: Set<number>;
+  @Input() outgoingPendingIds: Set<number>;
   @Input() formDefinitions: { [type: string]: ClassDescriptorInputAndShow };
   @Output() dataChanged = new EventEmitter<ProcessedActionData>();
   @ViewChild('cm') contextMenu: any;
 
   public static consumedGT = 'consumedGT';
+
+  /** Maps sendRecv values to icon names */
+  public static sendRecvIconMap: { [key: string]: string } = {
+    [SendReceivedType.SEND]: 'send',
+    ['SEND']: 'send',
+    [SendReceivedType.RECEIVE]: 'envelope',
+    ['RECEIVED']: 'envelope'
+  };
+
+  private static iconLoadDone = false;
 
   rootNode: TreeNode = {children: []};
   selectedNode: TreeNode;
@@ -105,17 +131,39 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   visibleDialogMsg = false;
   msgCallParam: MsgCallParam;
 
-
   constructor(private activePanelService: ActivePanelService,
+              private gtNetMessageService: GTNetMessageService,
+              private gtNetService: GTNetService,
+              private iconReg: SvgIconRegistryService,
               translateService: TranslateService,
               gps: GlobalparameterService) {
     super(translateService, gps);
+    GTNetMessageTreeTableComponent.registerIcons(this.iconReg);
+  }
+
+  private static registerIcons(iconReg: SvgIconRegistryService): void {
+    if (!GTNetMessageTreeTableComponent.iconLoadDone) {
+      const uniqueIcons = new Set(Object.values(GTNetMessageTreeTableComponent.sendRecvIconMap));
+      for (const iconName of uniqueIcons) {
+        iconReg.loadSvg(BaseSettings.PATH_ASSET_ICONS + iconName + BaseSettings.SVG, iconName);
+      }
+      GTNetMessageTreeTableComponent.iconLoadDone = true;
+    }
+  }
+
+  /**
+   * Returns the icon name for a given sendRecv value.
+   */
+  getSendRecvIcon(entity: GTNetMessage, field: ColumnConfig, valueField: any): string {
+    return GTNetMessageTreeTableComponent.sendRecvIconMap[entity.sendRecv] || 'envelope';
   }
 
   ngOnInit(): void {
     this.addColumn(DataType.DateTimeString, 'timestamp', 'RECEIVED_TIME', true, false);
+    this.addColumnFeqH(DataType.Boolean, 'hasBeenRead', true, false, {templateName: 'check', width: 60});
     this.addColumnFeqH(DataType.String, 'messageCode', true, false, {translateValues: TranslateValue.NORMAL});
-    this.addColumnFeqH(DataType.String, 'sendRecv', true, false, {translateValues: TranslateValue.NORMAL});
+    this.addColumnFeqH(DataType.String, 'sendRecv', true, false,
+      {fieldValueFN: this.getSendRecvIcon.bind(this), templateName: 'icon', width: 25});
     this.addColumnFeqH(DataType.String, 'message', true, false, {width: 300});
     this.prepareData();
     this.createTranslateValuesStoreForTranslation(this.rootNode.children);
@@ -127,16 +175,63 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     this.gtNetMessages.forEach(gtMessage => {
       let addNode = this.rootNode;
       if (gtMessage.replyTo) {
-        addNode = nodeMap.get(gtMessage.replyTo);
-        if (addNode.leaf) {
-          addNode.leaf = false;
-          addNode.children = [];
+        const parentNode = nodeMap.get(gtMessage.replyTo);
+        if (parentNode) {
+          addNode = parentNode;
+          if (addNode.leaf) {
+            addNode.leaf = false;
+            addNode.children = [];
+          }
         }
       }
-      const node = {data: gtMessage, leaf: true};
+      const node: TreeNode = {data: gtMessage, leaf: true};
       nodeMap.set(gtMessage.idGtNetMessage, node);
       addNode.children.push(node);
     });
+    // Auto-expand nodes that have unread received messages
+    this.expandNodesWithUnreadMessages(this.rootNode.children, nodeMap);
+  }
+
+  /**
+   * Expands parent nodes that contain unread received messages.
+   */
+  private expandNodesWithUnreadMessages(nodes: TreeNode[], nodeMap: Map<number, TreeNode>): void {
+    nodes?.forEach(node => {
+      const msg: GTNetMessage = node.data;
+      const isReceived = msg.sendRecv === 'RECEIVED' || msg.sendRecv === SendReceivedType.RECEIVE;
+      if (isReceived && !msg.hasBeenRead) {
+        // Mark parent nodes as expanded
+        if (msg.replyTo) {
+          const parentNode = nodeMap.get(msg.replyTo);
+          if (parentNode) {
+            parentNode.expanded = true;
+          }
+        }
+      }
+      // Recurse into children
+      if (node.children?.length) {
+        this.expandNodesWithUnreadMessages(node.children, nodeMap);
+      }
+    });
+  }
+
+  /**
+   * Called when a tree node is selected. Marks received messages as read.
+   */
+  onSelectionChange(node: TreeNode): void {
+    if (!node?.data) {
+      return;
+    }
+    const msg: GTNetMessage = node.data;
+    const isReceived = msg.sendRecv === 'RECEIVED' || msg.sendRecv === SendReceivedType.RECEIVE;
+
+    // Mark as read if it's a received message that hasn't been read
+    if (isReceived && !msg.hasBeenRead) {
+      this.gtNetMessageService.markAsRead(msg.idGtNetMessage).subscribe(() => {
+        // Update local state immediately
+        msg.hasBeenRead = true;
+      });
+    }
   }
 
   isActivated(): boolean {
@@ -174,6 +269,12 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
         command: () => this.replyToSelected()
       });
     }
+    if (this.selectedNode?.data && this.canReverseSelected()) {
+      menuItems.push({
+        label: 'REVERSE',
+        command: () => this.reverseSelected()
+      });
+    }
     return menuItems;
   }
 
@@ -189,7 +290,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
       return false;
     }
     const isIncoming = msg.sendRecv === 'RECEIVED' || msg.sendRecv === SendReceivedType.RECEIVE;
-    const isPending = this.pendingMessageIds?.has(msg.idGtNetMessage) ?? false;
+    const isPending = this.incomingPendingIds?.has(msg.idGtNetMessage) ?? false;
     const validResponses = getValidResponseCodes(msg.messageCode);
     return isIncoming && isPending && validResponses.length > 0;
   }
@@ -208,6 +309,69 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     this.visibleDialogMsg = true;
   }
 
+  /**
+   * Checks if the selected message can be reversed (cancelled):
+   * - Must be a sent message (sendRecv === 'SEND' or SendReceivedType.SEND)
+   * - Must be a reversible message type (MAINTENANCE or OPERATION_DISCONTINUED)
+   * - The dates in the message must be in the future
+   */
+  private canReverseSelected(): boolean {
+    const msg: GTNetMessage = this.selectedNode?.data;
+    if (!msg) {
+      return false;
+    }
+    const isSent = msg.sendRecv === 'SEND' || msg.sendRecv === SendReceivedType.SEND;
+    const reverseCode = getReverseCode(msg.messageCode);
+    if (!isSent || !reverseCode) {
+      return false;
+    }
+    // Check if dates are in the future
+    return this.areDatesInFuture(msg);
+  }
+
+  /**
+   * Checks if the dates in the message parameters are in the future.
+   * For MAINTENANCE: checks fromDateTime
+   * For OPERATION_DISCONTINUED: checks closeStartDate
+   */
+  private areDatesInFuture(msg: GTNetMessage): boolean {
+    const params = msg.gtNetMessageParamMap;
+    if (!params) {
+      return false;
+    }
+    const now = new Date();
+    // Check for maintenance message (fromDateTime)
+    const fromDateTimeParam = params['fromDateTime'];
+    if (fromDateTimeParam) {
+      const fromDateTime = new Date(fromDateTimeParam.paramValue || fromDateTimeParam);
+      return fromDateTime > now;
+    }
+    // Check for discontinued message (closeStartDate)
+    const closeStartDateParam = params['closeStartDate'];
+    if (closeStartDateParam) {
+      const closeStartDate = new Date(closeStartDateParam.paramValue || closeStartDateParam);
+      return closeStartDate > now;
+    }
+    return false;
+  }
+
+  /**
+   * Sends a cancel message for the selected announcement.
+   */
+  private reverseSelected(): void {
+    const msg: GTNetMessage = this.selectedNode.data;
+    const reverseCode = getReverseCode(msg.messageCode);
+    if (!reverseCode) {
+      return;
+    }
+    const msgRequest = new MsgRequest(msg.idGtNet, null, GTNetMessageCodeType[reverseCode], null);
+    this.gtNetService.submitMsg(msgRequest).subscribe({
+      next: () => {
+        this.dataChanged.emit(new ProcessedActionData(ProcessedAction.UPDATED, null));
+      }
+    });
+  }
+
   handleCloseDialogMsg(processedActionData: ProcessedActionData): void {
     this.visibleDialogMsg = false;
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
@@ -215,9 +379,20 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     }
   }
 
-  /** Checks if a message is pending (unanswered) and should be highlighted */
-  isPendingMessage(rowData: GTNetMessage): boolean {
-    return this.pendingMessageIds?.has(rowData.idGtNetMessage) ?? false;
+  /**
+   * Returns the background color for pending messages:
+   * - greenyellow: incoming pending requests (I need to answer)
+   * - yellow: outgoing pending requests (awaiting answer from recipient)
+   * - null: not pending
+   */
+  getPendingBackgroundColor(rowData: GTNetMessage): string | null {
+    if (this.incomingPendingIds?.has(rowData.idGtNetMessage)) {
+      return 'greenyellow';
+    }
+    if (this.outgoingPendingIds?.has(rowData.idGtNetMessage)) {
+      return 'yellow';
+    }
+    return null;
   }
 
 }

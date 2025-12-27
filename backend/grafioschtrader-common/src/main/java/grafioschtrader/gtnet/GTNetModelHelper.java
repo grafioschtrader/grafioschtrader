@@ -8,6 +8,7 @@ import grafiosch.dynamic.model.ClassDescriptorInputAndShow;
 import grafiosch.dynamic.model.DynamicModelHelper;
 import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.gtnet.model.msg.DataRequestMsg;
+import grafioschtrader.gtnet.model.msg.DiscontinuedMsg;
 import grafioschtrader.gtnet.model.msg.FirstHandshakeMsg;
 import grafioschtrader.gtnet.model.msg.MaintenanceMsg;
 import grafioschtrader.gtnet.model.msg.RevokeMsg;
@@ -67,7 +68,11 @@ public abstract class GTNetModelHelper {
     msgFormMap.put(GTNetMessageCodeType.GT_NET_ONLINE_ALL_C, new GTNetMsgRequest(null, false, (byte) 1));
     msgFormMap.put(GTNetMessageCodeType.GT_NET_BUSY_ALL_C, new GTNetMsgRequest(null, false, (byte) 1));
     msgFormMap.put(GTNetMessageCodeType.GT_NET_RELEASED_BUSY_ALL_C, new GTNetMsgRequest(null, false, (byte) 1));
-    msgFormMap.put(GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_ALL_C, new GTNetMsgRequest(null, false, (byte) 1));
+    msgFormMap.put(GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_ALL_C, new GTNetMsgRequest(DiscontinuedMsg.class, false, (byte) 1));
+
+    // Cancel announcements - no model, no response expected
+    msgFormMap.put(GTNetMessageCodeType.GT_NET_MAINTENANCE_CANCEL_ALL_C, new GTNetMsgRequest(null, false, (byte) 1));
+    msgFormMap.put(GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C, new GTNetMsgRequest(null, false, (byte) 1));
   }
 
   /**

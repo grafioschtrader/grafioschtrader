@@ -23,7 +23,7 @@ import grafioschtrader.entities.GTNetMessage;
  * <ol>
  * <li><b>Handshake (1-4)</b>: Initial connection and token exchange between peers</li>
  * <li><b>Server List (10-13)</b>: Discovery of other GTNet participants via peer sharing</li>
- * <li><b>Notifications (20-25)</b>: Maintenance windows and shutdown announcements</li>
+ * <li><b>Notifications (20-27)</b>: Maintenance windows, shutdown announcements, and their cancellations</li>
  * <li><b>Data (50-54)</b>: Unified data exchange negotiation with entityKinds parameter</li>
  * </ol>
  *
@@ -65,11 +65,15 @@ public enum GTNetMessageCodeType {
   GT_NET_BUSY_ALL_C((byte) 22),
   /** The server is no longer busy and can be contacted again. This setting can be changed via the user interface.  */
   GT_NET_RELEASED_BUSY_ALL_C((byte) 23),
-  /** Server is in maintenance mode during time period */  
+  /** Server is in maintenance mode during time period */
   GT_NET_MAINTENANCE_ALL_C((byte) 24),
   /** Server operation will be discontinued as of this date. */
   GT_NET_OPERATION_DISCONTINUED_ALL_C((byte) 25),
-  
+  /** Cancels a previously announced maintenance window */
+  GT_NET_MAINTENANCE_CANCEL_ALL_C((byte) 26),
+  /** Cancels a previously announced operation discontinuation */
+  GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C((byte) 27),
+
   /** Request for data exchange - entityKinds parameter specifies which data types to request */
   GT_NET_DATA_REQUEST_SEL_RR_C((byte) 50),
   /** Data request accepted */

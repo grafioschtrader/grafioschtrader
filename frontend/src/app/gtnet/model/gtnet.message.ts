@@ -10,6 +10,8 @@ export class GTNetMessage {
   messageCode: GTNetMessageCodeType | string = null;
   gtNetMessageParamMap: Map<string, BaseParam> | { [key: string]: BaseParam };
   message: string = null;
+  hasBeenRead: boolean = false;
+  waitDaysApply: number = 0;
 }
 
 export class MsgCallParam {
@@ -41,6 +43,8 @@ export enum GTNetMessageCodeType {
   GT_NET_RELEASED_BUSY_ALL_C = 23,
   GT_NET_MAINTENANCE_ALL_C = 24,
   GT_NET_OPERATION_DISCONTINUED_ALL_C = 25,
+  GT_NET_MAINTENANCE_CANCEL_ALL_C = 26,
+  GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C = 27,
   GT_NET_DATA_REQUEST_SEL_RR_C = 50,
   GT_NET_DATA_REQUEST_ACCEPT_S = 52,
   GT_NET_DATA_REQUEST_REJECTED_S = 53,
@@ -75,4 +79,18 @@ export function getValidResponseCodes(requestCode: GTNetMessageCodeType | string
     ? GTNetMessageCodeType[requestCode as keyof typeof GTNetMessageCodeType]
     : requestCode;
   return RESPONSE_CODE_MAP[codeValue] ?? [];
+}
+
+/** Maps announcement codes to their cancellation codes */
+export const REVERSE_CODE_MAP: { [key: number]: GTNetMessageCodeType } = {
+  [GTNetMessageCodeType.GT_NET_MAINTENANCE_ALL_C]: GTNetMessageCodeType.GT_NET_MAINTENANCE_CANCEL_ALL_C,
+  [GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_ALL_C]: GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C
+};
+
+/** Gets the cancel code for a reversible announcement message */
+export function getReverseCode(messageCode: GTNetMessageCodeType | string): GTNetMessageCodeType | null {
+  const codeValue = typeof messageCode === 'string'
+    ? GTNetMessageCodeType[messageCode as keyof typeof GTNetMessageCodeType]
+    : messageCode;
+  return REVERSE_CODE_MAP[codeValue] ?? null;
 }

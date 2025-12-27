@@ -77,7 +77,8 @@ import {ProcessedActionData} from '../../lib/types/processed.action.data';
 
     <ng-template #expandedRow let-row>
       <gtnet-message-treetable [gtNetMessages]="gtNetMessageMap[row.idGtNet]"
-                               [pendingMessageIds]="getPendingMessageIds(row.idGtNet)"
+                               [incomingPendingIds]="getIncomingPendingIds(row.idGtNet)"
+                               [outgoingPendingIds]="getOutgoingPendingIds(row.idGtNet)"
                                [formDefinitions]="formDefinitions"
                                (dataChanged)="onTreeTableDataChanged($event)">
       </gtnet-message-treetable>
@@ -279,11 +280,14 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     return this.outgoingPendingReplies?.[dataobject.idGtNet]?.length ?? 0;
   }
 
-  /** Returns combined set of pending message IDs for a domain (for row highlighting) */
-  getPendingMessageIds(idGtNet: number): Set<number> {
-    const outgoing = this.outgoingPendingReplies?.[idGtNet] ?? [];
-    const incoming = this.incomingPendingReplies?.[idGtNet] ?? [];
-    return new Set([...outgoing, ...incoming]);
+  /** Returns set of incoming pending message IDs (requests I need to answer) */
+  getIncomingPendingIds(idGtNet: number): Set<number> {
+    return new Set(this.incomingPendingReplies?.[idGtNet] ?? []);
+  }
+
+  /** Returns set of outgoing pending message IDs (requests awaiting response) */
+  getOutgoingPendingIds(idGtNet: number): Set<number> {
+    return new Set(this.outgoingPendingReplies?.[idGtNet] ?? []);
   }
 
   /** Handle data changes from the tree table (e.g., reply sent) */

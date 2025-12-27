@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import grafiosch.rest.UpdateCreateJpaRepository;
-import grafioschtrader.entities.GTNet;
 import grafioschtrader.entities.GTNetMessageAnswer;
 
 public interface GTNetMessageAnswerJpaRepository
