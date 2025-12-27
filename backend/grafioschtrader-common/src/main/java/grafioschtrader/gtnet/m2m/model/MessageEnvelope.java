@@ -77,6 +77,12 @@ public class MessageEnvelope {
       When Server B replies, replyToSourceId=100 so Server A can link the response to its original request.""")
   public Integer replyToSourceId;
 
+  @Schema(description = """
+      Cooling-off period in days after a negative/rejection response. If set, the requesting domain must wait this
+      many days before submitting another request of the same type. 0 means no waiting period. Only applicable
+      for REJECT response codes.""")
+  public Short waitDaysApply;
+
   public MessageEnvelope() {
   }
 
@@ -100,5 +106,6 @@ public class MessageEnvelope {
     this.message = gtNetMsg.getMessage();
     this.serverBusy = serverBusy;
     this.sourceGtNet = new GTNetPublicDTO(sourceGtNet);
+    this.waitDaysApply = gtNetMsg.getWaitDaysApply();
   }
 }

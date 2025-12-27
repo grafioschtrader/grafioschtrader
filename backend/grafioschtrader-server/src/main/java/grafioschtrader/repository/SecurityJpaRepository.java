@@ -29,7 +29,7 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
     JpaSpecificationExecutor<Security>, SecurityJpaRepositoryCustom, UpdateCreateJpaRepository<Security> {
 
 
-  List<Security> findByActiveToDateAfterAndIdTenantPrivateIsNullAndStockexchange_secondaryMarketTrue(Date date);
+  List<Security> findByActiveToDateAfterAndIsinIsNotNull(Date date);
   
   /**
    * Executes the `deleteUpdateHistoryQuality` stored procedure to refresh the historyquote_quality metrics for all

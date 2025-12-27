@@ -28,6 +28,12 @@ export class GTNetMessageService extends AuthServiceWithLogout<GTNetMessage> imp
     return this.updateEntity(gtNetMessage, gtNetMessage.idGtNetMessage, AppSettings.GT_NET_MESSAGE_KEY);
   }
 
+  markAsRead(idGtNetMessage: number): Observable<void> {
+    return this.httpClient.patch<void>(
+      `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_MESSAGE_KEY}/${idGtNetMessage}/markasread`,
+      null, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
   deleteEntity(gtNetMessage: number): Observable<any> {
     return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_MESSAGE_KEY}/${gtNetMessage}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));

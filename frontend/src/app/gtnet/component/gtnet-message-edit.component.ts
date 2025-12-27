@@ -65,6 +65,7 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       4, this.helpLink.bind(this));
     this.config = [
       DynamicFieldHelper.createFieldSelectStringHeqF(this.MESSAGE_CODE, true),
+      DynamicFieldHelper.createFieldInputNumberHeqF('waitDaysApply', false, 4, 0, false, {invisible: true}),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('message', BaseSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton('SEND')
     ];
@@ -79,6 +80,8 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       this.configObject[this.MESSAGE_CODE].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
         this.translateService, GTNetMessageCodeType,
         this.msgCallParam.validResponseCodes.map(code => GTNetMessageCodeType[code]), false);
+      // Show waitDaysApply field in response mode
+      this.configObject.waitDaysApply.invisible = false;
     } else if (this.msgCallParam.gtNetMessage) {
       this.configObject[this.MESSAGE_CODE].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
         GTNetMessageCodeType, [GTNetMessageCodeType[this.msgCallParam.gtNetMessage.messageCode]], false);
@@ -133,6 +136,9 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
     const msgRequest = new MsgRequest(this.msgCallParam.idGTNet, this.msgCallParam.replyTo,
       value[this.MESSAGE_CODE], value.message,);
     msgRequest.gtNetMessageParamMap = this.getMessageParam(value);
+    if (value.waitDaysApply != null) {
+      msgRequest.waitDaysApply = value.waitDaysApply;
+    }
     this.gtNetService.submitMsg(msgRequest).subscribe({
       next: (gtNetWithMessages: GTNetWithMessages) => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'GT_NET_MESSAGE'});

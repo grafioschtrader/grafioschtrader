@@ -3,6 +3,7 @@ package grafioschtrader.repository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import grafiosch.rest.UpdateCreateJpaRepository;
@@ -11,7 +12,17 @@ import grafioschtrader.entities.GTNetMessage;
 public interface GTNetMessageJpaRepository extends JpaRepository<GTNetMessage, Integer>,
     GTNetMessageJpaRepositoryCustom, UpdateCreateJpaRepository<GTNetMessage> {
 
-  List<GTNetMessage> findAllByOrderByIdGtNetAscTimestampAsc();
+  /**
+   * Marks a message as read by setting hasBeenRead to true.
+   *
+   * @param idGtNetMessage the ID of the message to mark as read
+   * @return number of rows updated (0 or 1)
+   */
+  @Modifying
+  @Query("UPDATE GTNetMessage m SET m.hasBeenRead = true WHERE m.idGtNetMessage = ?1")
+  int markAsRead(Integer idGtNetMessage);
+
+  List<GTNetMessage> findAllByOrderByIdGtNetAscTimestampDesc();
 
   /**
    * Finds unanswered request messages based on direction and message codes.

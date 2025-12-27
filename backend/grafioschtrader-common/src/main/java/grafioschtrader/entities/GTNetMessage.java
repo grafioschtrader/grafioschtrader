@@ -27,6 +27,8 @@ import jakarta.persistence.MapKeyColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
 /**
  * Records messages exchanged between GT-Network instances for handshake, data requests, and notifications.
@@ -131,6 +133,16 @@ public class GTNetMessage extends BaseID<Integer> {
   @PropertyAlwaysUpdatable
   @Column(name = "has_been_read")
   private boolean hasBeenRead;
+  
+  @Schema(description = """
+      Cooling-off period in days after a negative/rejection response. If set, the requesting domain must wait this
+      many days before submitting another request of the same type. Helps prevent request spam and gives
+      administrators time to review persistent requesters. 0 means no waiting period.""")
+  @Min(value = 0)
+  @Max(value = 9999)
+  @Column(name = "wait_days_apply", nullable = false)
+  private Short waitDaysApply;
+  
 
   @ElementCollection(fetch = FetchType.EAGER)
   @MapKeyColumn(name = "param_name")
@@ -245,6 +257,16 @@ public class GTNetMessage extends BaseID<Integer> {
     return idGtNetMessage;
   }
 
+  
+  
+  public Short getWaitDaysApply() {
+    return waitDaysApply;
+  }
+
+  public void setWaitDaysApply(Short waitDaysApply) {
+    this.waitDaysApply = waitDaysApply;
+  }
+
   @Embeddable
   // @MappedSuperclass
   public static class GTNetMessageParam extends BaseParam {
@@ -256,4 +278,8 @@ public class GTNetMessage extends BaseID<Integer> {
     }
   }
 
+  public void checkAndUpdateSomeValues() {
+   waitDaysApply = waitDaysApply == null? 0: waitDaysApply;  
+  }
+  
 }

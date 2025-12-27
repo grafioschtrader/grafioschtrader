@@ -142,6 +142,16 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
     });
 
     gtNetNode.children.push({
+      label: 'GT_NET_EXCHANGE',
+      data: new TypeNodeData(
+        TreeNodeType.NO_MENU,
+        this.addMainRoute(AppSettings.GT_NET_EXCHANGE_KEY),
+        null,
+        null,
+        null
+      )});
+
+    gtNetNode.children.push({
       label: 'GT_NET_CONSUME_MONITOR',
       data: new TypeNodeData(
         TreeNodeType.NO_MENU,
@@ -157,17 +167,6 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
       data: new TypeNodeData(
         TreeNodeType.NO_MENU,
         this.addMainRoute(AppSettings.GT_NET_PROVIDER_MONITOR_KEY),
-        null,
-        null,
-        null
-      )
-    });
-
-    gtNetNode.children.push({
-      label: 'GT_NET_EXCHANGE',
-      data: new TypeNodeData(
-        TreeNodeType.NO_MENU,
-        this.addMainRoute(AppSettings.GT_NET_EXCHANGE_KEY),
         null,
         null,
         null

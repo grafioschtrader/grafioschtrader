@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafioschtrader.entities.GTNet;
-import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.entities.GTNetMessage.GTNetMessageParam;
 import grafioschtrader.entities.GTNetMessageAnswer;
 import grafioschtrader.gtnet.GTNetMessageCodeType;

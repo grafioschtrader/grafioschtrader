@@ -19,7 +19,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,14 +37,16 @@ import grafiosch.repository.BaseRepositoryImpl;
 import grafiosch.repository.RepositoryHelper;
 import grafioschtrader.entities.GTNet;
 import grafioschtrader.entities.GTNetConfig;
+import grafioschtrader.entities.GTNetConfigEntity;
 import grafioschtrader.entities.GTNetEntity;
 import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.entities.GTNetMessage.GTNetMessageParam;
 import grafioschtrader.entities.GTNetMessageAnswer;
+import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.GTNetModelHelper;
-import grafioschtrader.gtnet.GTNetServerOnlineStatusTypes;
 import grafioschtrader.gtnet.GTNetModelHelper.GTNetMsgRequest;
+import grafioschtrader.gtnet.GTNetServerOnlineStatusTypes;
 import grafioschtrader.gtnet.SendReceivedType;
 import grafioschtrader.gtnet.handler.GTNetMessageContext;
 import grafioschtrader.gtnet.handler.GTNetMessageHandler;
@@ -114,7 +115,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   @Override
   @Transactional
   public GTNetWithMessages getAllGTNetsWithMessages() {
-    List<GTNetMessage> gtNetMessages = gtNetMessageJpaRepository.findAllByOrderByIdGtNetAscTimestampAsc();
+    List<GTNetMessage> gtNetMessages = gtNetMessageJpaRepository.findAllByOrderByIdGtNetAscTimestampDesc();
 
     // Fetch all unanswered requests and group by idGtNet
     Map<Integer, List<Integer>> outgoingPendingReplies = groupPendingByGtNet(
@@ -189,6 +190,8 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     if (!targets.isEmpty()) {
       sendAndSaveMsg(myGTNet, targets, gtNetMsgRequest, msgRequest);
     }
+    // Save broadcast to own entry for visibility
+    saveBroadcastToOwnEntry(myGTNet, msgRequest);
   }
 
   static boolean isDomainNameThisMachine(String domainName)
@@ -222,7 +225,23 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       // Response message - no model validation needed, just send the reply
       sendResponseMsg(sourceGTNet, gtNetList, msgRequest);
     }
+
+    // For broadcast messages, save a copy under own server entry for visibility
+    if (msgRequest.messageCode.name().contains(GTNetModelHelper.MESSAGE_TO_ALL)) {
+      saveBroadcastToOwnEntry(sourceGTNet, msgRequest);
+    }
+
     return this.getAllGTNetsWithMessages();
+  }
+
+  /**
+   * Saves a copy of a broadcast message under the own server's GTNet entry.
+   * This allows administrators to see sent broadcast messages in their own server's message list.
+   */
+  private void saveBroadcastToOwnEntry(GTNet sourceGTNet, MsgRequest msgRequest) {
+    gtNetMessageJpaRepository.saveMsg(
+        new GTNetMessage(sourceGTNet.getIdGtNet(), new Date(), SendReceivedType.SEND.getValue(),
+            null, msgRequest.messageCode.getValue(), msgRequest.message, msgRequest.gtNetMessageParamMap));
   }
 
   private List<GTNet> getTargetDomains(MsgRequest msgRequest) {
@@ -275,9 +294,64 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
             SendReceivedType.RECEIVED.getValue(), gtNetMessage.getIdGtNetMessage(), meResponse.messageCode,
             meResponse.message, meResponse.gtNetMessageParamMap);
         responseMsg.setIdSourceGtNetMessage(meResponse.idSourceGtNetMessage);
+        // Store waitDaysApply from the response envelope (cooling-off period set by remote admin)
+        if (meResponse.waitDaysApply != null) {
+          responseMsg.setWaitDaysApply(meResponse.waitDaysApply);
+        }
         gtNetMessageJpaRepository.save(responseMsg);
       }
+
+      // Apply side effects for outgoing announcement messages
+      applyOutgoingSideEffects(targetGTNet, msgRequest);
     }
+  }
+
+  /**
+   * Applies side effects for outgoing announcement messages (like revokes).
+   * When we send a revoke, we remove our SEND capability for the specified entity kinds.
+   */
+  private void applyOutgoingSideEffects(GTNet targetGTNet, MsgRequest msgRequest) {
+    if (msgRequest.messageCode == GTNetMessageCodeType.GT_NET_DATA_REVOKE_SEL_C) {
+      Set<GTNetExchangeKindType> revokedKinds = parseEntityKinds(msgRequest.gtNetMessageParamMap);
+      for (GTNetExchangeKindType kind : revokedKinds) {
+        targetGTNet.getEntity(kind).ifPresent(entity -> {
+          GTNetConfigEntity configEntity = entity.getGtNetConfigEntity();
+          if (configEntity != null) {
+            // Remove SEND capability since we're revoking our side
+            configEntity.setExchange(configEntity.getExchange().withoutSend());
+          }
+        });
+      }
+      gtNetJpaRepository.save(targetGTNet);
+    }
+  }
+
+  /**
+   * Parses entityKinds from message parameters.
+   */
+  private Set<GTNetExchangeKindType> parseEntityKinds(Map<String, GTNetMessage.GTNetMessageParam> paramMap) {
+    if (paramMap == null) {
+      return Set.of(GTNetExchangeKindType.LAST_PRICE, GTNetExchangeKindType.HISTORICAL_PRICES);
+    }
+    GTNetMessage.GTNetMessageParam param = paramMap.get("entityKinds");
+    if (param == null || param.getParamValue() == null || param.getParamValue().isBlank()) {
+      return Set.of(GTNetExchangeKindType.LAST_PRICE, GTNetExchangeKindType.HISTORICAL_PRICES);
+    }
+    return Arrays.stream(param.getParamValue().split(","))
+        .map(String::trim)
+        .map(v -> {
+          try {
+            return GTNetExchangeKindType.valueOf(v.toUpperCase());
+          } catch (IllegalArgumentException e) {
+            try {
+              return GTNetExchangeKindType.getGTNetExchangeKindType(Byte.parseByte(v));
+            } catch (NumberFormatException nfe) {
+              return null;
+            }
+          }
+        })
+        .filter(k -> k != null)
+        .collect(Collectors.toSet());
   }
 
   /**
@@ -287,7 +361,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    *
    * @param sourceGTNet the local GTNet entry
    * @param gtNetList   list of target GTNet entries (typically just one - the original requester)
-   * @param msgRequest  the request containing the response message code, replyTo, and optional message
+   * @param msgRequest  the request containing the response message code, replyTo, optional message, and waitDaysApply
    */
   private void sendResponseMsg(GTNet sourceGTNet, List<GTNet> gtNetList, MsgRequest msgRequest) {
     // Look up the original request message to get the requester's original message ID
@@ -300,9 +374,13 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     }
 
     for (GTNet targetGTNet : gtNetList) {
-      GTNetMessage gtNetMessage = gtNetMessageJpaRepository.saveMsg(
-          new GTNetMessage(targetGTNet.getIdGtNet(), new Date(), SendReceivedType.SEND.getValue(), msgRequest.replyTo,
-              msgRequest.messageCode.getValue(), msgRequest.message, null));
+      GTNetMessage gtNetMessage = new GTNetMessage(targetGTNet.getIdGtNet(), new Date(), SendReceivedType.SEND.getValue(), msgRequest.replyTo,
+              msgRequest.messageCode.getValue(), msgRequest.message, null);
+      // Set waitDaysApply if provided by admin
+      if (msgRequest.waitDaysApply != null) {
+        gtNetMessage.setWaitDaysApply(msgRequest.waitDaysApply);
+      }
+      gtNetMessage = gtNetMessageJpaRepository.saveMsg(gtNetMessage);
       // Send the response with replyToSourceId so the receiver can link it to their original request
       sendResponseMessage(sourceGTNet, targetGTNet, gtNetMessage, replyToSourceId);
     }
@@ -362,6 +440,10 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
             SendReceivedType.RECEIVED.getValue(), gtNetMessageRequest.getIdGtNetMessage(), meResponse.messageCode,
             meResponse.message, meResponse.gtNetMessageParamMap);
         gtNetMessageResponse.setIdSourceGtNetMessage(meResponse.idSourceGtNetMessage);
+        // Store waitDaysApply if provided (typically for rejection responses)
+        if (meResponse.waitDaysApply != null) {
+          gtNetMessageResponse.setWaitDaysApply(meResponse.waitDaysApply);
+        }
         gtNetMessageJpaRepository.save(gtNetMessageResponse);
         return true;
       }

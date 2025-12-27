@@ -1,5 +1,7 @@
 package grafioschtrader.entities;
 
+import java.time.LocalDateTime;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.entities.BaseID;
@@ -53,8 +55,13 @@ public class GTNetConfig extends BaseID<Integer>  {
       background job.""")
   @Column(name = "daily_req_limit_remote_count")
   private Integer dailyRequestLimitRemoteCount;
-  
-  
+
+  @Schema(description = """
+      Timestamp of the last update when supplier details were fetched from this remote domain.
+      Updated through periodic polling or manual triggering.""")
+  @Column(name = "supplier_last_update")
+  private LocalDateTime supplierLastUpdate;
+
   @Override
   public Integer getId() {
     return idGtNet;
@@ -98,6 +105,14 @@ public class GTNetConfig extends BaseID<Integer>  {
 
   public void setDailyRequestLimitRemoteCount(Integer dailyRequestLimitRemoteCount) {
     this.dailyRequestLimitRemoteCount = dailyRequestLimitRemoteCount;
+  }
+
+  public LocalDateTime getSupplierLastUpdate() {
+    return supplierLastUpdate;
+  }
+
+  public void setSupplierLastUpdate(LocalDateTime supplierLastUpdate) {
+    this.supplierLastUpdate = supplierLastUpdate;
   }
 
   public boolean isAuthorizedRemoteEntry() {

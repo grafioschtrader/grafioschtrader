@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 import grafioschtrader.entities.GTNet;
-import grafioschtrader.entities.GTNetEntity;
+import grafioschtrader.entities.GTNetConfigEntity;
 import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.gtnet.AcceptRequestTypes;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
@@ -50,6 +50,8 @@ public class DataRevokeHandler extends AbstractAnnouncementHandler {
 
   /**
    * Updates a GTNetEntity to revoked state for the specified entity kind.
+   * When we receive a revoke from them, they are stopping their side of the exchange,
+   * so we lose RECEIVE capability. The entity state is also set to CLOSED.
    */
   private void updateEntityForRevoke(GTNet remoteGTNet, GTNetExchangeKindType kind) {
     remoteGTNet.getGtNetEntities().stream()
@@ -58,6 +60,12 @@ public class DataRevokeHandler extends AbstractAnnouncementHandler {
         .ifPresent(entity -> {
           entity.setAcceptRequest(AcceptRequestTypes.AC_CLOSED);
           entity.setServerState(GTNetServerStateTypes.SS_CLOSED);
+
+          // Remove RECEIVE capability since they revoked their side
+          GTNetConfigEntity configEntity = entity.getGtNetConfigEntity();
+          if (configEntity != null) {
+            configEntity.setExchange(configEntity.getExchange().withoutReceive());
+          }
         });
   }
 

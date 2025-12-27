@@ -1,5 +1,6 @@
 package grafioschtrader.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import grafiosch.entities.BaseID;
@@ -25,15 +26,16 @@ public class GTNetSupplierDetail extends BaseID<Integer> {
 
   public static final String TABNAME = "gt_net_supplier_detail";
 
- 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id_gt_net_supplier_detail")
   private Integer idGtNetSupplierDetail;
 
-  @Schema(description = "The header data for this setting")
-  @Column(name = "id_gt_net_supplier")
-  private Integer idGtNetSupplier;
+  @Schema(description = "Reference to the GTNet configuration for this supplier")
+  @JsonIgnore
+  @JoinColumn(name = "id_gt_net")
+  @ManyToOne
+  private GTNetConfig gtNetConfig;
 
   @Schema(description = "The security or currency pair to which this setting applies.")
   @JoinColumn(name = "id_securitycurrency")
@@ -52,12 +54,16 @@ public class GTNetSupplierDetail extends BaseID<Integer> {
     this.idGtNetSupplierDetail = idGtNetSupplierDetail;
   }
 
-  public Integer getIdGtNetSupplier() {
-    return idGtNetSupplier;
+  public GTNetConfig getGtNetConfig() {
+    return gtNetConfig;
   }
 
-  public void setIdGtNetSupplier(Integer idGtNetSupplier) {
-    this.idGtNetSupplier = idGtNetSupplier;
+  public void setGtNetConfig(GTNetConfig gtNetConfig) {
+    this.gtNetConfig = gtNetConfig;
+  }
+
+  public Integer getIdGtNet() {
+    return gtNetConfig != null ? gtNetConfig.getIdGtNet() : null;
   }
 
   public Securitycurrency<?> getSecuritycurrency() {

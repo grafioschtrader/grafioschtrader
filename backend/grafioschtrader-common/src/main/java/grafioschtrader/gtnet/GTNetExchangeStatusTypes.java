@@ -43,4 +43,62 @@ public enum GTNetExchangeStatusTypes {
     }
     return ES_NO_EXCHANGE;
   }
+
+  /**
+   * Checks if this status includes sending capability.
+   *
+   * @return true if ES_SEND or ES_BOTH
+   */
+  public boolean canSend() {
+    return this == ES_SEND || this == ES_BOTH;
+  }
+
+  /**
+   * Checks if this status includes receiving capability.
+   *
+   * @return true if ES_RECEIVE or ES_BOTH
+   */
+  public boolean canReceive() {
+    return this == ES_RECEIVE || this == ES_BOTH;
+  }
+
+  /**
+   * Returns a new status with sending capability added.
+   * ES_NO_EXCHANGE -> ES_SEND, ES_RECEIVE -> ES_BOTH, others unchanged.
+   *
+   * @return the combined status
+   */
+  public GTNetExchangeStatusTypes withSend() {
+    return getGTNetExchangeStatusType((byte) (this.value | ES_SEND.value));
+  }
+
+  /**
+   * Returns a new status with receiving capability added.
+   * ES_NO_EXCHANGE -> ES_RECEIVE, ES_SEND -> ES_BOTH, others unchanged.
+   *
+   * @return the combined status
+   */
+  public GTNetExchangeStatusTypes withReceive() {
+    return getGTNetExchangeStatusType((byte) (this.value | ES_RECEIVE.value));
+  }
+
+  /**
+   * Returns a new status with sending capability removed.
+   * ES_SEND -> ES_NO_EXCHANGE, ES_BOTH -> ES_RECEIVE, others unchanged.
+   *
+   * @return the reduced status
+   */
+  public GTNetExchangeStatusTypes withoutSend() {
+    return getGTNetExchangeStatusType((byte) (this.value & ~ES_SEND.value));
+  }
+
+  /**
+   * Returns a new status with receiving capability removed.
+   * ES_RECEIVE -> ES_NO_EXCHANGE, ES_BOTH -> ES_SEND, others unchanged.
+   *
+   * @return the reduced status
+   */
+  public GTNetExchangeStatusTypes withoutReceive() {
+    return getGTNetExchangeStatusType((byte) (this.value & ~ES_RECEIVE.value));
+  }
 }

@@ -28,6 +28,8 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {BaseSettings} from '../../lib/base.settings';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {GTNetSupplierDetailTableComponent} from './gtnet-supplier-detail-table.component';
+import {HelpIds} from '../../lib/help/help.ids';
+
 
 /**
  * Component for configuring GTNetExchange settings for currency pairs.
@@ -70,6 +72,7 @@ import {GTNetSupplierDetailTableComponent} from './gtnet-supplier-detail-table.c
       (componentClick)="onComponentClick($event)"
       [contextMenuEnabled]="true"
       [contextMenuItems]="contextMenuItems"
+      [containerClass]="{'data-container-full': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
       [showContextMenu]="true"
       [expandable]="true"
       [canExpandFn]="canExpand.bind(this)"
@@ -208,10 +211,6 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
   protected initializeColumns(): void {
     this.addColumnFeqH(DataType.String, 'securitycurrency.name', true, false,
       {width: 150, filterType: FilterType.likeDataType});
-    this.addColumn(DataType.String, 'securitycurrency.fromCurrency', 'FROM_CURRENCY', true, false,
-      {width: 80, filterType: FilterType.likeDataType});
-    this.addColumn(DataType.String, 'securitycurrency.toCurrency', 'TO_CURRENCY', true, false,
-      {width: 80, filterType: FilterType.likeDataType});
     this.addCheckboxColumns();
 
     this.multiSortMeta.push({field: 'securitycurrency.name', order: 1});
@@ -285,6 +284,10 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
 
   canExpand(row: GTNetExchange): boolean {
     return this.idSecuritycurreniesWithDetails.has(row.securitycurrency.idSecuritycurrency);
+  }
+
+  public override getHelpContextId(): string {
+    return HelpIds.HELP_GT_NET_EXCHANGE;
   }
 
 }

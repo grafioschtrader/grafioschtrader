@@ -22,8 +22,8 @@ import grafiosch.entities.User;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.GTSecuritiyCurrencyExchange;
 import grafioschtrader.entities.Currencypair;
+import grafioschtrader.entities.GTNetConfig;
 import grafioschtrader.entities.GTNetExchange;
-import grafioschtrader.entities.GTNetSupplier;
 import grafioschtrader.entities.GTNetSupplierDetail;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
@@ -54,7 +54,7 @@ public class GTNetExchangeJpaRepositoryImpl implements GTNetExchangeJpaRepositor
   private CurrencypairJpaRepository currencypairJpaRepository;
 
   @Autowired
-  private GTNetSupplierJpaRepository gtNetSupplierJpaRepository;
+  private GTNetConfigJpaRepository gtNetConfigJpaRepository;
 
   @Autowired
   private GTNetSupplierDetailJpaRepository gtNetSupplierDetailJpaRepository;
@@ -73,15 +73,11 @@ public class GTNetExchangeJpaRepositoryImpl implements GTNetExchangeJpaRepositor
       e.printStackTrace();
     }
 
-    result.securitiescurrenciesList = securityJpaRepository
-        .findByActiveToDateAfterAndIdTenantPrivateIsNullAndStockexchange_secondaryMarketTrue(date);
-
+    result.securitiescurrenciesList = securityJpaRepository.findByActiveToDateAfterAndIsinIsNotNull(date);
     result.exchangeMap = gtNetExchangeJpaRepository.findAll().stream()
         .filter(e -> e.getSecuritycurrency() instanceof Security)
         .collect(Collectors.toMap(e -> e.getSecuritycurrency().getIdSecuritycurrency(), Function.identity()));
-
     result.idSecuritycurrenies = getIdSecuritycurrencyWithDetails(result.securitiescurrenciesList);
-
     return result;
   }
 
@@ -99,7 +95,7 @@ public class GTNetExchangeJpaRepositoryImpl implements GTNetExchangeJpaRepositor
 
     return result;
   }
-  
+
   private <T extends Securitycurrency<T>> Set<Integer> getIdSecuritycurrencyWithDetails(
       List<T> securitiescurrenciesList) {
     List<Integer> idsToCheck = securitiescurrenciesList.stream().map(Securitycurrency::getIdSecuritycurrency)
@@ -266,16 +262,17 @@ public class GTNetExchangeJpaRepositoryImpl implements GTNetExchangeJpaRepositor
       return List.of();
     }
 
-    // Group by supplier ID
-    Map<Integer, List<GTNetSupplierDetail>> detailsBySupplier = allDetails.stream()
-        .collect(Collectors.groupingBy(GTNetSupplierDetail::getIdGtNetSupplier));
+    // Group by GTNet ID
+    Map<Integer, List<GTNetSupplierDetail>> detailsByGtNet = allDetails.stream()
+        .filter(d -> d.getIdGtNet() != null)
+        .collect(Collectors.groupingBy(GTNetSupplierDetail::getIdGtNet));
 
-    // Build result list with supplier headers
+    // Build result list with GTNetConfig headers
     List<GTNetSupplierWithDetails> result = new ArrayList<>();
-    for (Map.Entry<Integer, List<GTNetSupplierDetail>> entry : detailsBySupplier.entrySet()) {
-      Optional<GTNetSupplier> supplierOpt = gtNetSupplierJpaRepository.findById(entry.getKey());
-      if (supplierOpt.isPresent()) {
-        result.add(new GTNetSupplierWithDetails(supplierOpt.get(), entry.getValue()));
+    for (Map.Entry<Integer, List<GTNetSupplierDetail>> entry : detailsByGtNet.entrySet()) {
+      Optional<GTNetConfig> configOpt = gtNetConfigJpaRepository.findById(entry.getKey());
+      if (configOpt.isPresent()) {
+        result.add(new GTNetSupplierWithDetails(configOpt.get(), entry.getValue()));
       }
     }
 

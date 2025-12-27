@@ -50,4 +50,10 @@ public class MsgRequest {
       Optional free-text note to include with the message. Displayed alongside structured parameters in the
       recipient's UI. Useful for human context like 'Please respond by Friday' or 'Test message, please ignore'.""")
   public String message;
+
+  @Schema(description = """
+      Cooling-off period in days after a negative/rejection response. Only applicable for response messages
+      (ACCEPT/REJECT codes). If set, the requesting domain must wait this many days before submitting another
+      request of the same type. 0 means no waiting period.""")
+  public Short waitDaysApply;
 }
