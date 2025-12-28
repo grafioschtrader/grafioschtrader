@@ -26,6 +26,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import grafiosch.entities.User;
 import grafiosch.repository.UDFSpecialTypeDisableUserRepository;
 import grafioschtrader.common.DataBusinessHelper;
@@ -100,6 +102,9 @@ public class WatchlistReport {
 
   @Autowired
   private UDFSpecialTypeDisableUserRepository uDFSpecialTypeDisUserRep;
+
+  @PersistenceContext
+  private EntityManager entityManager;
 
   /**
    * Returns the watchlist with the youngest date of history quote. This should help to detect non working historical
@@ -250,7 +255,7 @@ public class WatchlistReport {
   public SecuritycurrencyGroup getWatchlistwithPeriodPerformance(final Integer idWatchlist, final Integer idTenant,
       final Integer daysTimeFrame) {
 
-    final Watchlist watchlist = watchlistJpaRepository.getReferenceById(idWatchlist);
+    Watchlist watchlist = watchlistJpaRepository.getReferenceById(idWatchlist);
     if (!watchlist.getIdTenant().equals(idTenant)) {
       throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
@@ -264,8 +269,23 @@ public class WatchlistReport {
 
     final LocalDate dateTimeFrame = LocalDate.now().minusDays(daysTimeFrame);
     Tenant tenant = tenantJpaRepository.getReferenceById(watchlist.getIdTenant());
+
+    // Check if price update is needed and save watchlist in main transaction to avoid
+    // stale entity issues with async operations (MariaDB 11.x row version detection)
+    final Date timeframe = new Date(
+        System.currentTimeMillis() - 1000 * globalparametersService.getWatchlistIntradayUpdateTimeout());
+    final boolean needsPriceUpdate = watchlist.getLastTimestamp() == null
+        || timeframe.after(watchlist.getLastTimestamp());
+    if (needsPriceUpdate) {
+      watchlist.setLastTimestamp(new Date(System.currentTimeMillis()));
+      watchlist = watchlistJpaRepository.saveAndFlush(watchlist);
+      log.info("Intraday update for {}", watchlist.getName());
+    }
+
+    // Capture final reference for lambda
+    final Watchlist finalWatchlist = watchlist;
     final CompletableFuture<GTNetLastpriceService.SecurityCurrency> securityCurrencyCF = CompletableFuture
-        .supplyAsync(() -> updateLastPrice(tenant, watchlist));
+        .supplyAsync(() -> executeLastPriceUpdate(tenant, finalWatchlist, needsPriceUpdate));
     final CompletableFuture<Map<Integer, ISecuritycurrencyIdDateClose>> historyquoteMaxDayCF = CompletableFuture
         .supplyAsync(() -> getMaxDayHistoryquotesByIdWatchlist(idWatchlist));
     final CompletableFuture<Map<Integer, ISecuritycurrencyIdDateClose>> historyquoteLastDayYearCF = CompletableFuture
@@ -280,10 +300,28 @@ public class WatchlistReport {
         .supplyAsync(() -> this.watchlistJpaRepository
             .watchlistSecuritiesHasOpenOrClosedTransactionForThisTenant(idWatchlist, idTenant));
 
-    final SecuritycurrencyGroup securitycurrencyGroup = combineLastPriceHistoryquote(tenant, securityCurrencyCF.join(),
-        historyquoteMaxDayCF.join(), historyquoteLastDayYearCF.join(), historyquoteTimeFrameCF.join(),
-        securitiesIsUsedElsewhereCF.join(), currencypairIsUsedElsewhereCF.join(),
-        watchlistSecurtiesTransactionCF.join(), watchlist, daysTimeFrame, securitysplitMap, dateCurrencyMap);
+    // Wait for all async operations to complete and collect their results
+    final GTNetLastpriceService.SecurityCurrency securityCurrency = securityCurrencyCF.join();
+    final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteMaxDay = historyquoteMaxDayCF.join();
+    final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteLastDayYear = historyquoteLastDayYearCF.join();
+    final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteTimeFrame = historyquoteTimeFrameCF.join();
+    final int[] securitiesIsUsedElsewhere = securitiesIsUsedElsewhereCF.join();
+    final int[] currencypairIsUsedElsewhere = currencypairIsUsedElsewhereCF.join();
+    final int[] watchlistSecurtiesTransaction = watchlistSecurtiesTransactionCF.join();
+
+    // Clear persistence context to avoid stale entity conflicts after async price updates.
+    // The async operations may have modified Security/Currencypair entities in separate transactions,
+    // causing version mismatches when this transaction's context tries to flush.
+    entityManager.clear();
+
+    // Reload entities after clearing context since they were detached
+    final Watchlist reloadedWatchlist = watchlistJpaRepository.getReferenceById(idWatchlist);
+    final Tenant reloadedTenant = tenantJpaRepository.getReferenceById(idTenant);
+
+    final SecuritycurrencyGroup securitycurrencyGroup = combineLastPriceHistoryquote(reloadedTenant, securityCurrency,
+        historyquoteMaxDay, historyquoteLastDayYear, historyquoteTimeFrame,
+        securitiesIsUsedElsewhere, currencypairIsUsedElsewhere,
+        watchlistSecurtiesTransaction, reloadedWatchlist, daysTimeFrame, securitysplitMap, dateCurrencyMap);
     securitycurrencyGroup.idWatchlist = idWatchlist;
 
     return securitycurrencyGroup;
@@ -319,33 +357,28 @@ public class WatchlistReport {
   }
 
   /**
-   * Updates the last prices for instruments in a watchlist if the last update is older than the configured timeout. For
-   * performance watchlists, it also updates dependent currency pairs not directly in the watchlist.
+   * Executes the last price update for instruments in a watchlist. The decision whether to update
+   * and the watchlist save are done in the calling method to avoid stale entity issues with
+   * async operations in MariaDB 11.x.
    *
-   * @param tenant    The tenant owning the watchlist.
-   * @param watchlist The watchlist to process.
+   * @param tenant           The tenant owning the watchlist.
+   * @param watchlist        The watchlist to process.
+   * @param needsPriceUpdate Whether the price update should be performed.
    * @return A {@link GTNetLastpriceService.SecurityCurrency} object containing the lists of securities and
-   *         currencypairs (some potentially updated, others not, depending on the timestamp).
+   *         currencypairs (some potentially updated, others not).
    */
-  private GTNetLastpriceService.SecurityCurrency updateLastPrice(Tenant tenant, Watchlist watchlist) {
+  private GTNetLastpriceService.SecurityCurrency executeLastPriceUpdate(Tenant tenant, Watchlist watchlist,
+      boolean needsPriceUpdate) {
     final List<Security> securities = watchlist.getSecuritycurrencyListByType(Security.class);
     final List<Currencypair> currencypairs = watchlist.getSecuritycurrencyListByType(Currencypair.class);
 
-    final Date timeframe = new Date(
-        System.currentTimeMillis() - 1000 * globalparametersService.getWatchlistIntradayUpdateTimeout());
-    if (watchlist.getLastTimestamp() == null || timeframe.after(watchlist.getLastTimestamp())) {
-      watchlist.setLastTimestamp(new Date(System.currentTimeMillis()));
-      watchlist = watchlistJpaRepository.save(watchlist);
-      log.info("Intraday update for {}", watchlist.getName());
+    if (needsPriceUpdate) {
       List<Currencypair> currenciesNotInList = updateDependingCurrencyWhenPerformanceWatchlist(tenant, watchlist,
           currencypairs);
-      return gTNetLastpriceService.updateLastpriceIncludeSupplier(
-          watchlist.getSecuritycurrencyListByType(Security.class),
-          watchlist.getSecuritycurrencyListByType(Currencypair.class), currenciesNotInList);
-
+      return gTNetLastpriceService.updateLastpriceIncludeSupplier(securities, currencypairs, currenciesNotInList);
     } else {
-      log.info("No intraday update for {} because last update was at {} and is not after {}", watchlist.getName(),
-          watchlist.getLastTimestamp(), timeframe);
+      log.info("No intraday update for {} because last update was at {}", watchlist.getName(),
+          watchlist.getLastTimestamp());
       return new GTNetLastpriceService.SecurityCurrency(securities, currencypairs);
     }
   }
