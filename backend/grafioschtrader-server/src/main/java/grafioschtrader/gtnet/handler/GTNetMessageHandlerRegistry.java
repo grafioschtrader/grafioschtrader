@@ -38,22 +38,25 @@ public class GTNetMessageHandlerRegistry {
   /**
    * Creates the registry and registers all discovered handlers.
    *
-   * Spring automatically injects all beans implementing GTNetMessageHandler.
+   * Spring automatically injects all beans implementing GTNetMessageHandler. Each handler can support multiple message
+   * codes via {@link GTNetMessageHandler#getSupportedMessageCodes()}.
    *
    * @param handlerList all GTNetMessageHandler beans in the application context
    * @throws IllegalStateException if duplicate handlers are found for the same message code
    */
   public GTNetMessageHandlerRegistry(List<GTNetMessageHandler> handlerList) {
     for (GTNetMessageHandler handler : handlerList) {
-      GTNetMessageCodeType code = handler.getSupportedMessageCode();
-      if (handlers.containsKey(code)) {
-        throw new IllegalStateException(String.format("Duplicate handler for message code %s: existing=%s, new=%s", code,
-            handlers.get(code).getClass().getSimpleName(), handler.getClass().getSimpleName()));
+      for (GTNetMessageCodeType code : handler.getSupportedMessageCodes()) {
+        if (handlers.containsKey(code)) {
+          throw new IllegalStateException(String.format("Duplicate handler for message code %s: existing=%s, new=%s",
+              code, handlers.get(code).getClass().getSimpleName(), handler.getClass().getSimpleName()));
+        }
+        handlers.put(code, handler);
+        log.debug("Registered handler {} for message code {}", handler.getClass().getSimpleName(), code);
       }
-      handlers.put(code, handler);
-      log.debug("Registered handler {} for message code {}", handler.getClass().getSimpleName(), code);
     }
-    log.info("GTNet message handler registry initialized with {} handlers", handlers.size());
+    log.info("GTNet message handler registry initialized with {} handlers for {} message codes", handlerList.size(),
+        handlers.size());
   }
 
   /**
