@@ -94,8 +94,7 @@ public class UpdateServerlistRequestHandler extends AbstractRequestHandler {
     // Include server list in payload for ACCEPT responses
     if (responseCode == GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_ACCEPT_S) {
       List<GTNetPublicDTO> serverList = buildShareableServerList(context);
-      envelope.payload = objectMapper.convertValue(serverList,
-          objectMapper.getTypeFactory().constructCollectionType(List.class, GTNetPublicDTO.class));
+      envelope.payload = objectMapper.valueToTree(serverList);
       log.info("Including {} servers in server list response to {}", serverList.size(), context.getSourceDomain());
     }
 
