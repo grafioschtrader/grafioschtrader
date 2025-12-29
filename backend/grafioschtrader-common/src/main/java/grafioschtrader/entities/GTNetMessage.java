@@ -3,6 +3,7 @@ package grafioschtrader.entities;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.common.PropertyOnlyCreation;
@@ -35,15 +36,15 @@ import jakarta.validation.constraints.Min;
  *
  * The messaging model supports both point-to-point and broadcast communication patterns:
  * <ul>
- *   <li>Point-to-point: Messages sent to a specific remote domain (e.g., handshake, data requests)</li>
- *   <li>Broadcast: Messages sent to all domains matching certain criteria (e.g., maintenance announcements)</li>
+ * <li>Point-to-point: Messages sent to a specific remote domain (e.g., handshake, data requests)</li>
+ * <li>Broadcast: Messages sent to all domains matching certain criteria (e.g., maintenance announcements)</li>
  * </ul>
  *
- * Message threading is supported via {@code replyTo} (local reply chain) and {@code idSourceGtNetMessage}
- * (remote message correlation). The combination enables both peers to track conversation threads.
+ * Message threading is supported via {@code replyTo} (local reply chain) and {@code idSourceGtNetMessage} (remote
+ * message correlation). The combination enables both peers to track conversation threads.
  *
- * The {@code gtNetMessageParamMap} contains typed parameters specific to each message code, enabling
- * extensible payloads without schema changes. Parameter definitions are provided by {@link GTNetModelHelper}.
+ * The {@code gtNetMessageParamMap} contains typed parameters specific to each message code, enabling extensible
+ * payloads without schema changes. Parameter definitions are provided by {@link GTNetModelHelper}.
  *
  * @see GTNetMessageCodeType for available message types and their lifecycle
  * @see GTNetModelHelper for message-to-model mappings
@@ -133,7 +134,7 @@ public class GTNetMessage extends BaseID<Integer> {
   @PropertyAlwaysUpdatable
   @Column(name = "has_been_read")
   private boolean hasBeenRead;
-  
+
   @Schema(description = """
       Cooling-off period in days after a negative/rejection response. If set, the requesting domain must wait this
       many days before submitting another request of the same type. Helps prevent request spam and gives
@@ -142,7 +143,6 @@ public class GTNetMessage extends BaseID<Integer> {
   @Max(value = 9999)
   @Column(name = "wait_days_apply", nullable = false)
   private Short waitDaysApply;
-  
 
   @ElementCollection(fetch = FetchType.EAGER)
   @MapKeyColumn(name = "param_name")
@@ -257,8 +257,6 @@ public class GTNetMessage extends BaseID<Integer> {
     return idGtNetMessage;
   }
 
-  
-  
   public Short getWaitDaysApply() {
     return waitDaysApply;
   }
@@ -279,7 +277,21 @@ public class GTNetMessage extends BaseID<Integer> {
   }
 
   public void checkAndUpdateSomeValues() {
-   waitDaysApply = waitDaysApply == null? 0: waitDaysApply;  
+    waitDaysApply = waitDaysApply == null ? 0 : waitDaysApply;
+    // Remove entries with null paramValue as the database doesn't allow nulls
+    if (gtNetMessageParamMap != null) {
+      gtNetMessageParamMap.entrySet().removeIf(e -> e.getValue() == null || e.getValue().getParamValue() == null);
+    }
   }
-  
+
+  @Override
+  public String toString() {
+    String paramMapStr = (gtNetMessageParamMap != null) ? gtNetMessageParamMap.entrySet().stream()
+        .map(e -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining(", ", "{", "}")) : "null";
+
+    return "GTNetMessage [idGtNetMessage=" + idGtNetMessage + ", idGtNet=" + idGtNet + ", timestamp=" + timestamp
+        + ", sendRecv=" + sendRecv + ", idSourceGtNetMessage=" + idSourceGtNetMessage + ", replyTo=" + replyTo
+        + ", messageCode=" + messageCode + ", message=" + message + ", errorMsgCode=" + errorMsgCode + ", hasBeenRead="
+        + hasBeenRead + ", waitDaysApply=" + waitDaysApply + ", gtNetMessageParamMap=" + paramMapStr + "]";
+  }
 }

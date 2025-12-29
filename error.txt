@@ -1,0 +1,25 @@
+GTNetMessage [idGtNetMessage=null, idGtNet=2, timestamp=Mon Dec 29 18:28:17 UTC 2025, sendRecv=0, idSourceGtNetMessage=null, replyTo=null, messageCode=10, message=Danke, errorMsgCode=null, hasBeenRead=false, waitDaysApply=0, gtNetMessageParamMap={spreadCapability=grafioschtrader.entities.GTNetMessage$GTNetMessageParam@2ecf56d4, entityServerState=grafioschtrader.entities.GTNetMessage$GTNetMessageParam@22525c5b, dailyRequestLimit=grafioschtrader.entities.GTNetMessage$GTNetMessageParam@5c25cb66, lastpriceServerState=grafioschtrader.entities.GTNetMessage$GTNetMessageParam@78a86a29}]
+[2m2025-12-29 19:28:17.863[0;39m [33m WARN[0;39m [35m44148[0;39m [2m--- [omcat-handler-0] [0;39m[36mo.m.jdbc.message.server.ErrorPacket     [0;39m [2m:[0;39m Error: 1048-23000: Column 'param_value' cannot be null
+[2m2025-12-29 19:28:17.864[0;39m [33m WARN[0;39m [35m44148[0;39m [2m--- [omcat-handler-0] [0;39m[36mo.h.engine.jdbc.spi.SqlExceptionHelper  [0;39m [2m:[0;39m SQL Error: 1048, SQLState: 23000
+[2m2025-12-29 19:28:17.864[0;39m [31mERROR[0;39m [35m44148[0;39m [2m--- [omcat-handler-0] [0;39m[36mo.h.engine.jdbc.spi.SqlExceptionHelper  [0;39m [2m:[0;39m (conn=1702) Column 'param_value' cannot be null
+org.springframework.dao.DataIntegrityViolationException: could not execute statement [(conn=1702) Column 'param_value' cannot be null] [insert into gt_net_message_param (id_gt_net_message,param_name,param_value) values (?,?,?)]; SQL [insert into gt_net_message_param (id_gt_net_message,param_name,param_value) values (?,?,?)]; constraint [null]
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:294)
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:256)
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.translateExceptionIfPossible(HibernateJpaDialect.java:241)
+	at org.springframework.orm.jpa.JpaTransactionManager.doCommit(JpaTransactionManager.java:567)
+	at org.springframework.transaction.support.AbstractPlatformTransactionManager.processCommit(AbstractPlatformTransactionManager.java:795)
+	at org.springframework.transaction.support.AbstractPlatformTransactionManager.commit(AbstractPlatformTransactionManager.java:758)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning(TransactionAspectSupport.java:698)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:416)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:138)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor$CrudMethodMetadataPopulatingMethodInterceptor.invoke(CrudMethodMetadataPostProcessor.java:165)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:223)
+	at jdk.proxy2/jdk.proxy2.$Proxy301.save(Unknown Source)
+	at grafioschtrader.repository.GTNetMessageJpaRepositoryImpl.saveMsg(GTNetMessageJpaRepositoryImpl.java:21)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	
