@@ -1,12 +1,14 @@
 package grafioschtrader.gtnet.handler;
 
+import java.util.Set;
+
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.MessageCategory;
 
 /**
  * Strategy interface for handling GTNet messages.
  *
- * Each implementation handles one specific message code type. Implementations are auto-discovered by Spring and
+ * Each implementation handles one or more message code types. Implementations are auto-discovered by Spring and
  * registered in {@link GTNetMessageHandlerRegistry}.
  *
  * <h3>Implementation Guidelines</h3>
@@ -15,6 +17,7 @@ import grafioschtrader.gtnet.MessageCategory;
  *   <li>Extend {@link AbstractGTNetMessageHandler} for common functionality</li>
  *   <li>For request handlers, extend {@link AbstractRequestHandler} which integrates auto-response logic</li>
  *   <li>For announcement handlers, extend {@link AbstractAnnouncementHandler}</li>
+ *   <li>Override {@link #getSupportedMessageCodes()} to handle multiple related message codes in one handler</li>
  * </ul>
  *
  * @see GTNetMessageHandlerRegistry for handler lookup
@@ -32,11 +35,24 @@ public interface GTNetMessageHandler {
   HandlerResult handle(GTNetMessageContext context) throws Exception;
 
   /**
-   * Returns the message code this handler is responsible for.
+   * Returns the primary message code this handler is responsible for.
    *
-   * Each handler handles exactly one message code. The registry uses this to route incoming messages.
+   * For handlers supporting multiple codes, this returns the first/primary code. Override
+   * {@link #getSupportedMessageCodes()} to register all supported codes.
    */
   GTNetMessageCodeType getSupportedMessageCode();
+
+  /**
+   * Returns all message codes this handler can process.
+   *
+   * Override this method to handle multiple related message codes in a single handler. The default implementation
+   * returns only the single code from {@link #getSupportedMessageCode()}.
+   *
+   * @return set of supported message codes
+   */
+  default Set<GTNetMessageCodeType> getSupportedMessageCodes() {
+    return Set.of(getSupportedMessageCode());
+  }
 
   /**
    * Returns the category of messages this handler processes.
