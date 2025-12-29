@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.ContextClosedEvent;
@@ -38,9 +37,6 @@ public class GTNetLifecycleListener {
 
   /** Delay in seconds before the GTNet server status check task runs after startup. */
   private static final int STARTUP_DELAY_SECONDS = 30;
-
-  @Value("${gt.use.gtnet:false}")
-  private boolean gtnetEnabled;
 
   @Autowired
   @Lazy
@@ -105,7 +101,7 @@ public class GTNetLifecycleListener {
   }
 
   private boolean checkGTNetIsUsedAndSetup() {
-    if (!gtnetEnabled) {
+    if (!globalparametersService.isGTNetEnabled()) {
       log.debug("GTNet is disabled, skipping offline announcement");
       return false;
     }

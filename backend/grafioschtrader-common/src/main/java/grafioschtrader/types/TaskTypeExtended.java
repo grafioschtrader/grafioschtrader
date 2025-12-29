@@ -48,6 +48,8 @@ public enum TaskTypeExtended implements ITaskType {
   UDF_USER_0_FILL_PERSISTENT_FIELDS_WITH_VALUES((byte) 19),
   /** Checks and updates the online/busy status of all configured GTNet servers. */
   GTNET_SERVER_STATUS_CHECK((byte) 20),
+  /** Resets retry counters (history and intra) for connector(s) on active instruments. */
+  RESET_CONNECTOR_RETRY_COUNTERS((byte) 21),
 
   // Task which used oldValueNumber or oldValueString can not created by the admin
   ///////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,6 @@ import java.util.Map;
 
 import grafioschtrader.entities.GTNetMessage.GTNetMessageParam;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
-import grafioschtrader.gtnet.GTNetModelHelper;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**

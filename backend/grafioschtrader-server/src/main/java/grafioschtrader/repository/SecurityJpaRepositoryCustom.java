@@ -264,4 +264,15 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
   // TODO remove it
   void checkAndClearSecuritycurrencyConnectors(final Security security);
 
+  /**
+   * Resets retry_history_load and retry_intra_load counters to zero for all securities that are active on the given
+   * date and optionally filtered by connector. Securities with retry counters greater than zero and a configured
+   * connector will have their counters reset.
+   *
+   * @param connectorId  the full connector ID (e.g., "gt.datafeed.yahoo") to filter, or null to reset for all
+   *                     connectors
+   * @param activeOnDate the date to check if security is active (activeToDate >= this date)
+   */
+  void resetRetryCountersByConnector(String connectorId, Date activeOnDate);
+
 }

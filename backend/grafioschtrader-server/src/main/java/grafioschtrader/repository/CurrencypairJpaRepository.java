@@ -6,7 +6,9 @@ import java.util.Set;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.rest.UpdateCreateJpaRepository;
 import grafioschtrader.entities.Currencypair;
@@ -245,5 +247,31 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
    //@formatter:on
   @Query(nativeQuery = true)
   List<Currencypair> getHoldCashaccountOutDatetedCurrencypairs();
+
+  /**
+   * Resets retry_history_load counter to zero for all currency pairs, optionally filtered by connector. Only affects
+   * currency pairs where a history connector is configured and retry counter is greater than zero.
+   *
+   * Named query: Currencypair.resetRetryHistoryByConnector
+   *
+   * @param connectorId the full connector ID (e.g., "gt.datafeed.yahoo") to filter, or null to reset all connectors
+   */
+  @Transactional
+  @Modifying
+  @Query(nativeQuery = true)
+  void resetRetryHistoryByConnector(String connectorId);
+
+  /**
+   * Resets retry_intra_load counter to zero for all currency pairs, optionally filtered by connector. Only affects
+   * currency pairs where an intraday connector is configured and retry counter is greater than zero.
+   *
+   * Named query: Currencypair.resetRetryIntraByConnector
+   *
+   * @param connectorId the full connector ID (e.g., "gt.datafeed.yahoo") to filter, or null to reset all connectors
+   */
+  @Transactional
+  @Modifying
+  @Query(nativeQuery = true)
+  void resetRetryIntraByConnector(String connectorId);
 
 }

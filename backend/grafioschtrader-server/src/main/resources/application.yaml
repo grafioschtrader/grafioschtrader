@@ -20,7 +20,6 @@ gt:
     websocket: false
     algo: false
     alert: false
-    gtnet: true
   limit:
     # Limit Data
     #-------------------------------------

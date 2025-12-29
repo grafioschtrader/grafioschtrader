@@ -81,7 +81,17 @@ public enum GTNetMessageCodeType {
   /** Data request rejected */
   GT_NET_DATA_REQUEST_REJECTED_S((byte) 53),
   /** Revoke data exchange for specified entity kinds */
-  GT_NET_DATA_REVOKE_SEL_C((byte) 54);
+  GT_NET_DATA_REVOKE_SEL_C((byte) 54),
+
+  // Lastprice exchange messages (60-65)
+  /** Request intraday prices from remote server, includes current local prices for bidirectional exchange */
+  GT_NET_LASTPRICE_EXCHANGE_SEL_C((byte) 60),
+  /** Response containing intraday prices that are more current than those in the request */
+  GT_NET_LASTPRICE_EXCHANGE_RESPONSE_S((byte) 61),
+  /** Push intraday prices to remote server without requesting prices back */
+  GT_NET_LASTPRICE_PUSH_SEL_C((byte) 62),
+  /** Acknowledge receipt of pushed prices with count of accepted updates */
+  GT_NET_LASTPRICE_PUSH_ACK_S((byte) 63);
 
  
 

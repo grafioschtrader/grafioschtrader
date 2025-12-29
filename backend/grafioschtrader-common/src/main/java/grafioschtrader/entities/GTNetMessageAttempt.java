@@ -3,7 +3,6 @@ package grafioschtrader.entities;
 import java.util.Date;
 
 import grafiosch.entities.BaseID;
-import grafioschtrader.gtnet.GTNetModelHelper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

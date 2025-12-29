@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  */
 public class HistoryquoteQualityGroup extends HistoryquoteQualityIds {
 
-  @Schema(description = "May be differe for head and how it is grouped", required = true)
+  @Schema(description = "May be differe for head and how it is grouped")
   public String name;
   public int numberOfSecurities;
   public int activeNowSecurities;

@@ -25,6 +25,9 @@ public class TaskDataChangeJpaRepositoryImpl extends BaseRepositoryImpl<TaskData
   @Autowired(required = false)
   private List<ITask> tasks = new ArrayList<>();
 
+  @Autowired(required = false)
+  private List<EntityIdOptionsProvider> entityIdOptionsProviders;
+
   @Override
   public TaskDataChange saveOnlyAttributes(final TaskDataChange taskDataChange, final TaskDataChange existingEntity,
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
@@ -45,7 +48,19 @@ public class TaskDataChangeJpaRepositoryImpl extends BaseRepositoryImpl<TaskData
     taskDataChangeConfig.canBeInterruptedList = tasks.stream()
         .filter(t -> t.getTaskType().getValue() <= taskDataChangeConfig.maxUserCreateTask && t.canBeInterrupted())
         .map(t -> t.getTaskType()).collect(Collectors.toList());
+    addEntityIdOptions(taskDataChangeConfig);
     return taskDataChangeConfig;
+  }
+
+  /**
+   * Calls all registered EntityIdOptionsProvider implementations to add entity ID options to the form constraints.
+   *
+   * @param constraints the form constraints to populate with entity ID options
+   */
+  private void addEntityIdOptions(TaskDataChangeFormConstraints constraints) {
+    if (entityIdOptionsProviders != null) {
+      entityIdOptionsProviders.forEach(provider -> provider.addEntityIdOptions(constraints));
+    }
   }
 
   private void checkTaskDataChange(final TaskDataChange taskDataChange, final TaskDataChangeFormConstraints tdcfc) {

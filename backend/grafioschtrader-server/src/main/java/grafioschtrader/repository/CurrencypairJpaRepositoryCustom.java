@@ -204,6 +204,15 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
       SecuritycurrencySearch securitycurrencySearch);
 
   /**
+   * Resets retry_history_load and retry_intra_load counters to zero for all currency pairs, optionally filtered by
+   * connector. Currency pairs with retry counters greater than zero and a configured connector will have their counters
+   * reset. No date filter is applied since currency pairs are always considered active.
+   *
+   * @param connectorId the full connector ID (e.g., "gt.datafeed.yahoo") to filter, or null to reset for all connectors
+   */
+  void resetRetryCountersByConnector(String connectorId);
+
+  /**
    * Gets the exchange rate between two currencies using a provided map of existing currency pairs. If a direct pair
    * (e.g., FROM/TO or TO/FROM) is not found, it may attempt to calculate via a common currency (e.g., EUR).
    *

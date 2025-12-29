@@ -167,6 +167,22 @@ public class GlobalparametersService {
         .map(Globalparameters::getPropertyInt).orElse(null);
   }
 
+  /**
+   * Checks whether GTNet functionality is enabled.
+   *
+   * GTNet is enabled when the global parameter 'gt.gtnet.use' has a non-zero property_int value. If the parameter is not
+   * configured in the database, returns the default value (disabled).
+   *
+   * @return true if GTNet is enabled, false otherwise
+   * @see GlobalParamKeyDefault#GLOB_KEY_GTNET_USE
+   * @see GlobalParamKeyDefault#DEFAULT_GTNET_USE
+   */
+  public boolean isGTNetEnabled() {
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_GTNET_USE)
+        .map(g -> g.getPropertyInt() != null && g.getPropertyInt() != 0)
+        .orElse(GlobalParamKeyDefault.DEFAULT_GTNET_USE != 0);
+  }
+
   public Globalparameters saveGTNetMyEntryID(Integer idGtNet) {
     Globalparameters gp = new Globalparameters(GlobalParamKeyDefault.GLOB_KEY_GTNET_MY_ENTRY_ID);
     gp.setPropertyInt(idGtNet);

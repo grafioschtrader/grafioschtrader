@@ -4,10 +4,6 @@ package grafioschtrader.gtnet;
  * Defines the exchange status between this GTNet instance and a remote instance.
  *
  * Each GTNetConfig tracks two independent exchange statuses:
- * <ul>
- *   <li>{@link GTNetConfig#lastpriceExchange} - Exchange status for intraday/last price data</li>
- *   <li>{@link GTNetConfig#entityExchange} - Exchange status for entity/historical data</li>
- * </ul>
  *
  * The status determines the direction of data flow between instances.
  */

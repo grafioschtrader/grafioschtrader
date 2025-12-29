@@ -1,8 +1,10 @@
 package grafioschtrader.repository;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import grafioschtrader.entities.GTNetExchange;
 
@@ -46,5 +48,23 @@ public interface GTNetExchangeJpaRepository
    * @return list of exchanges with historicalSend = true
    */
   List<GTNetExchange> findByHistoricalSendTrue();
+
+  /**
+   * Returns IDs of instruments configured to receive intraday prices via GTNet.
+   * Used to filter watchlist instruments during price exchange.
+   *
+   * @return set of securitycurrency IDs with lastpriceRecv = true
+   */
+  @Query("SELECT ge.securitycurrency.idSecuritycurrency FROM GTNetExchange ge WHERE ge.lastpriceRecv = true")
+  Set<Integer> findIdsWithLastpriceRecv();
+
+  /**
+   * Returns IDs of instruments configured to send intraday prices via GTNet.
+   * Used by provider side to filter which prices to include in response.
+   *
+   * @return set of securitycurrency IDs with lastpriceSend = true
+   */
+  @Query("SELECT ge.securitycurrency.idSecuritycurrency FROM GTNetExchange ge WHERE ge.lastpriceSend = true")
+  Set<Integer> findIdsWithLastpriceSend();
 
 }

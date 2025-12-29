@@ -63,6 +63,9 @@ export enum TaskTypeExtended {
   /** Stores the determined values of the user-defined fields of user 0 */
   UDF_USER_0_FILL_PERSISTENT_FIELDS_WITH_VALUES = 19,
 
+  GTNET_SERVER_STATUS_CHECK = 20,
+
+  RESET_CONNECTOR_RETRY_COUNTERS = 21,
   // Update tasks
   UPD_V_0_11_0 = 51,
 

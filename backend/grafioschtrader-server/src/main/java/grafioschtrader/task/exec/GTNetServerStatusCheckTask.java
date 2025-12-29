@@ -5,7 +5,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import grafiosch.entities.TaskDataChange;
@@ -41,9 +40,6 @@ public class GTNetServerStatusCheckTask implements ITask {
 
   private static final Logger log = LoggerFactory.getLogger(GTNetServerStatusCheckTask.class);
 
-  @Value("${gt.use.gtnet:false}")
-  private boolean gtnetEnabled;
-
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
 
@@ -60,7 +56,7 @@ public class GTNetServerStatusCheckTask implements ITask {
 
   @Override
   public void doWork(TaskDataChange taskDataChange) throws TaskBackgroundException {
-    if (!gtnetEnabled) {
+    if (!globalparametersService.isGTNetEnabled()) {
       log.debug("GTNet is disabled, skipping server status check");
       return;
     }

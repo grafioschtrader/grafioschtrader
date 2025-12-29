@@ -73,6 +73,13 @@ public abstract class GTNetModelHelper {
     // Cancel announcements - no model, no response expected
     msgFormMap.put(GTNetMessageCodeType.GT_NET_MAINTENANCE_CANCEL_ALL_C, new GTNetMsgRequest(null, false, (byte) 1));
     msgFormMap.put(GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C, new GTNetMsgRequest(null, false, (byte) 1));
+
+    // Lastprice exchange - programmatic M2M, not UI-initiated, uses LastpriceExchangeMsg payload
+    // Response expected for exchange request, no retry needed (synchronous within watchlist update)
+    msgFormMap.put(GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_SEL_C, new GTNetMsgRequest(null, true, (byte) 1));
+    msgFormMap.put(GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_RESPONSE_S, new GTNetMsgRequest(null, false, (byte) 1));
+    msgFormMap.put(GTNetMessageCodeType.GT_NET_LASTPRICE_PUSH_SEL_C, new GTNetMsgRequest(null, true, (byte) 1));
+    msgFormMap.put(GTNetMessageCodeType.GT_NET_LASTPRICE_PUSH_ACK_S, new GTNetMsgRequest(null, false, (byte) 1));
   }
 
   /**

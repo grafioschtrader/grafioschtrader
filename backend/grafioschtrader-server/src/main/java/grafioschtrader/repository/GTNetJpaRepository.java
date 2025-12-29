@@ -68,4 +68,42 @@ public interface GTNetJpaRepository
   @Query("SELECT DISTINCT g FROM GTNet g JOIN g.gtNetEntities e JOIN e.gtNetConfigEntity c WHERE c.exchange > 0")
   List<GTNet> findWithConfiguredExchange();
 
+  /**
+   * Finds push-open servers available for intraday price exchange.
+   * Returns domains where:
+   * <ul>
+   *   <li>LAST_PRICE entity has acceptRequest = AC_PUSH_OPEN (2)</li>
+   *   <li>Server state is SS_OPEN (1)</li>
+   *   <li>Consumer usage priority > 0 (configured for use)</li>
+   *   <li>Server is online (serverOnline = SOS_ONLINE = 1)</li>
+   *   <li>Server is not busy</li>
+   * </ul>
+   * Results are ordered by consumerUsage ASC (lower value = higher priority).
+   *
+   * Named query: GTNet.findPushOpenSuppliers
+   *
+   * @return list of push-open supplier domains ordered by priority
+   */
+  @Query(nativeQuery = true, name = "GTNet.findPushOpenSuppliers")
+  List<GTNet> findPushOpenSuppliers();
+
+  /**
+   * Finds open servers available for intraday price exchange.
+   * Returns domains where:
+   * <ul>
+   *   <li>LAST_PRICE entity has acceptRequest = AC_OPEN (1)</li>
+   *   <li>Server state is SS_OPEN (1)</li>
+   *   <li>Consumer usage priority > 0 (configured for use)</li>
+   *   <li>Server is online (serverOnline = SOS_ONLINE = 1)</li>
+   *   <li>Server is not busy</li>
+   * </ul>
+   * Results are ordered by consumerUsage ASC (lower value = higher priority).
+   *
+   * Named query: GTNet.findOpenSuppliers
+   *
+   * @return list of open supplier domains ordered by priority
+   */
+  @Query(nativeQuery = true, name = "GTNet.findOpenSuppliers")
+  List<GTNet> findOpenSuppliers();
+
 }

@@ -100,6 +100,10 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
   public static final String GLOB_KEY_UDF_GENERAL_RECREATE = GlobalConstants.GT_PREFIX + "udf.general.recreate";
   /** The idGTNet for this Server in GTNet */
   public static final String GLOB_KEY_GTNET_MY_ENTRY_ID = GlobalConstants.GT_PREFIX + "gtnet.my.entry.id";
+  /** Flag to enable/disable GTNet functionality. 0 = disabled, non-zero = enabled. */
+  public static final String GLOB_KEY_GTNET_USE = GlobalConstants.GT_PREFIX + "gtnet.use";
+  /** Default value for GTNet enabled flag (disabled by default). */
+  public static final int DEFAULT_GTNET_USE = 0;
   /** Tenant data entity limits */
   private static final String MAX = "max.";
   public static final String GLOB_KEY_MAX_CASH_ACCOUNT = GlobalConstants.GT_PREFIX + MAX + "cash.account";

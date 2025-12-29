@@ -9,9 +9,6 @@ package grafioschtrader.gtnet;
  *   <li>{@link #RESPONSE}: Reply to a previous request, updates local state</li>
  *   <li>{@link #ANNOUNCEMENT}: One-way notification, no response expected</li>
  * </ul>
- *
- * @see GTNetMessageCodeType for individual message codes
- * @see grafioschtrader.gtnet.handler.GTNetMessageHandler for message processing
  */
 public enum MessageCategory {
 

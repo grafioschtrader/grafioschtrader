@@ -1,58 +1,63 @@
 package grafioschtrader.service;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections4.map.MultiKeyMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.GTNet;
-import grafioschtrader.entities.GTNetLastpriceCurrencypair;
-import grafioschtrader.entities.GTNetLastpriceSecurity;
+import grafioschtrader.entities.GTNetConfig;
 import grafioschtrader.entities.Security;
-import grafioschtrader.gtnet.GTNetServerStateTypes;
+import grafioschtrader.gtnet.GTNetExchangeKindType;
+import grafioschtrader.gtnet.GTNetMessageCodeType;
+import grafioschtrader.gtnet.m2m.model.InstrumentPriceDTO;
+import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
+import grafioschtrader.gtnet.model.msg.LastpriceExchangeMsg;
+import grafioschtrader.m2m.client.BaseDataClient;
+import grafioschtrader.m2m.client.BaseDataClient.SendResult;
 import grafioschtrader.repository.CurrencypairJpaRepository;
+import grafioschtrader.repository.GTNetExchangeJpaRepository;
 import grafioschtrader.repository.GTNetJpaRepository;
 import grafioschtrader.repository.GTNetLastpriceCurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetLastpriceSecurityJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 
 /**
- * Service for orchestrating intraday price updates from GTNet providers.
+ * Service for orchestrating intraday price exchange with GTNet providers.
  *
- * This service acts as the consumer-side coordinator for the intraday price sharing feature.
- * It manages the flow of price data from GTNet providers into the local Security and Currencypair tables.
- *
- * <h3>Planned Workflow</h3>
+ * This service implements the consumer-side flow for intraday price sharing:
  * <ol>
- *   <li>Find active providers (domains with SS_OPEN state and lastpriceConsumerUsage > 0)</li>
- *   <li>Query each provider for their current price data</li>
- *   <li>Merge newer prices into local GTNetLastprice* tables</li>
- *   <li>Update local Security/Currencypair entities with the merged prices</li>
- *   <li>Log operations to GTNetLastpriceLog (and optionally GTNetLastpriceDetailLog)</li>
+ *   <li>Filter instruments by GTNetExchange.lastpriceRecv configuration</li>
+ *   <li>Query push-open servers first (by priority with random selection for same priority)</li>
+ *   <li>Query open servers for remaining unfilled instruments</li>
+ *   <li>Fall back to connectors (IFeedConnector) for any still-unfilled instruments</li>
+ *   <li>If own mode is push-open: push connector-fetched prices back to remote servers</li>
  * </ol>
  *
- * <h3>Current Status</h3>
- * This service is incomplete. The readUpdateGetLastpriceValues method exists but is not connected
- * to the update workflow. Key TODOs:
- * <ul>
- *   <li>Implement M2M calls to fetch prices from remote providers</li>
- *   <li>Complete the MultiKeyMap-based merging logic for currency pairs</li>
- *   <li>Add similar logic for securities (by ISIN)</li>
- *   <li>Wire the service into scheduled jobs or on-demand refresh endpoints</li>
- * </ul>
- *
- * @see GTNet#lastpriceConsumerUsage for provider priority configuration
- * @see GTNetLastpriceCurrencypair for the currency pair price cache
- * @see GTNetLastpriceSecurity for the security price cache
+ * @see InstrumentExchangeSet for tracking which instruments have been filled
  */
 @Service
 public class GTNetLastpriceService {
 
+  private static final Logger log = LoggerFactory.getLogger(GTNetLastpriceService.class);
+
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
+
+  @Autowired
+  private GTNetExchangeJpaRepository gtNetExchangeJpaRepository;
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
@@ -64,37 +69,256 @@ public class GTNetLastpriceService {
   private GTNetLastpriceSecurityJpaRepository gtNetLastpriceSecurityJpaRepository;
 
   @Autowired
-  private GTNetLastpriceCurrencypairJpaRepository gtTNetLastpriceCurrencypairJpaRepository;
+  private GTNetLastpriceCurrencypairJpaRepository gtNetLastpriceCurrencypairJpaRepository;
 
-  public GTNetLastpriceService.SecurityCurrency updateLastpriceIncludeSupplier(List<Security> securyties,
+  @Autowired
+  private BaseDataClient baseDataClient;
+
+  @Autowired
+  private GlobalparametersService globalparametersService;
+
+  private final ObjectMapper objectMapper = new ObjectMapper();
+
+  /**
+   * Main entry point for intraday price update with GTNet integration.
+   * Called from WatchlistReport.executeLastPriceUpdate().
+   *
+   * @param securities list of securities from the watchlist
+   * @param currencypairs list of currency pairs from the watchlist
+   * @param currenciesNotInList additional currency pairs needed for calculations
+   * @return updated securities and currency pairs
+   */
+  public SecurityCurrency updateLastpriceIncludeSupplier(List<Security> securities,
       List<Currencypair> currencypairs, List<Currencypair> currenciesNotInList) {
 
-    List<GTNet> gtNetsOpen = gtNetJpaRepository.findByLastpriceConsumerUsageAndServerState(
-        GTNetServerStateTypes.SS_OPEN.getValue(), GTNetServerStateTypes.SS_OPEN.getValue());
+    // Check if GTNet is enabled
+    if (!globalparametersService.isGTNetEnabled()) {
+      // GTNet disabled - fall back to connectors only
+      currencypairJpaRepository.updateLastPriceByList(currenciesNotInList);
+      return new SecurityCurrency(
+          securityJpaRepository.updateLastPriceByList(securities),
+          currencypairJpaRepository.updateLastPriceByList(currencypairs));
+    }
+
+    try {
+      return executeGTNetExchange(securities, currencypairs, currenciesNotInList);
+    } catch (Exception e) {
+      log.error("GTNet exchange failed, falling back to connectors only", e);
+      currencypairJpaRepository.updateLastPriceByList(currenciesNotInList);
+      return new SecurityCurrency(
+          securityJpaRepository.updateLastPriceByList(securities),
+          currencypairJpaRepository.updateLastPriceByList(currencypairs));
+    }
+  }
+
+  private SecurityCurrency executeGTNetExchange(List<Security> securities,
+      List<Currencypair> currencypairs, List<Currencypair> currenciesNotInList) {
+
+    // 1. Get IDs of instruments configured for GTNet receive
+    Set<Integer> gtNetEnabledIds = gtNetExchangeJpaRepository.findIdsWithLastpriceRecv();
+
+    // 2. Build instrument sets - separate GTNet-enabled from connector-only
+    InstrumentExchangeSet gtNetInstruments = new InstrumentExchangeSet();
+    List<Security> connectorOnlySecurities = new ArrayList<>();
+    List<Currencypair> connectorOnlyCurrencypairs = new ArrayList<>();
+
+    for (Security security : securities) {
+      if (gtNetEnabledIds.contains(security.getIdSecuritycurrency())) {
+        gtNetInstruments.addSecurity(security);
+      } else {
+        connectorOnlySecurities.add(security);
+      }
+    }
+
+    for (Currencypair currencypair : currencypairs) {
+      if (gtNetEnabledIds.contains(currencypair.getIdSecuritycurrency())) {
+        gtNetInstruments.addCurrencypair(currencypair);
+      } else {
+        connectorOnlyCurrencypairs.add(currencypair);
+      }
+    }
+
+    log.info("GTNet exchange: {} instruments enabled, {} securities connector-only, {} pairs connector-only",
+        gtNetInstruments.getTotalCount(), connectorOnlySecurities.size(), connectorOnlyCurrencypairs.size());
+
+    // 3. Query push-open servers by priority
+    if (!gtNetInstruments.isEmpty() && !gtNetInstruments.allFilled()) {
+      List<GTNet> pushOpenSuppliers = getSuppliersByPriorityWithRandomization(
+          gtNetJpaRepository.findPushOpenSuppliers());
+      queryRemoteServers(pushOpenSuppliers, gtNetInstruments);
+    }
+
+    // 4. Query open servers for remaining
+    if (!gtNetInstruments.isEmpty() && !gtNetInstruments.allFilled()) {
+      List<GTNet> openSuppliers = getSuppliersByPriorityWithRandomization(
+          gtNetJpaRepository.findOpenSuppliers());
+      queryRemoteServers(openSuppliers, gtNetInstruments);
+    }
+
+    // 5. Collect unfilled instruments for connector fallback
+    List<Security> remainingSecurities = gtNetInstruments.getUnfilledSecurities();
+    remainingSecurities.addAll(connectorOnlySecurities);
+
+    List<Currencypair> remainingPairs = gtNetInstruments.getUnfilledCurrencypairs();
+    remainingPairs.addAll(connectorOnlyCurrencypairs);
+
+    log.info("GTNet exchange complete: {} securities remaining for connector, {} pairs remaining",
+        remainingSecurities.size(), remainingPairs.size());
+
+    // 6. Fall back to connectors for remaining instruments
     currencypairJpaRepository.updateLastPriceByList(currenciesNotInList);
+    List<Security> updatedSecurities = securityJpaRepository.updateLastPriceByList(remainingSecurities);
+    List<Currencypair> updatedPairs = currencypairJpaRepository.updateLastPriceByList(remainingPairs);
 
-    return new GTNetLastpriceService.SecurityCurrency(securityJpaRepository.updateLastPriceByList(securyties),
-        currencypairJpaRepository.updateLastPriceByList(currencypairs));
+    // Combine with already-filled instruments
+    List<Security> allSecurities = new ArrayList<>(gtNetInstruments.getAllSecurities());
+    for (Security s : updatedSecurities) {
+      if (!containsSecurity(allSecurities, s)) {
+        allSecurities.add(s);
+      }
+    }
+
+    List<Currencypair> allPairs = new ArrayList<>(gtNetInstruments.getAllCurrencypairs());
+    for (Currencypair cp : updatedPairs) {
+      if (!containsCurrencypair(allPairs, cp)) {
+        allPairs.add(cp);
+      }
+    }
+
+    return new SecurityCurrency(allSecurities, allPairs);
   }
 
-  private List<GTNetLastpriceCurrencypair> readUpdateGetLastpriceValues(List<Currencypair> currencypairs) {
-    List<String> fromCurrencies = currencypairs.stream().map(Currencypair::getFromCurrency)
-        .collect(Collectors.toList());
-    List<String> toCurrencies = currencypairs.stream().map(Currencypair::getToCurrency).collect(Collectors.toList());
+  /**
+   * Randomizes suppliers within the same priority level.
+   * Suppliers are already ordered by priority ASC, so we need to shuffle within groups.
+   */
+  private List<GTNet> getSuppliersByPriorityWithRandomization(List<GTNet> suppliers) {
+    if (suppliers == null || suppliers.size() <= 1) {
+      return suppliers != null ? suppliers : new ArrayList<>();
+    }
 
-    List<GTNetLastpriceCurrencypair> gtNetLastpriceList = gtTNetLastpriceCurrencypairJpaRepository
-        .getLastpricesByListByFromAndToCurrencies(fromCurrencies, toCurrencies);
-    MultiKeyMap<String, GTNetLastpriceCurrencypair> lastCurrencyPriceMap = new MultiKeyMap<>();
+    // Group by priority (consumerUsage value from GTNetConfigEntity)
+    Map<Byte, List<GTNet>> byPriority = suppliers.stream()
+        .collect(Collectors.groupingBy(gtNet -> {
+          // Get the LAST_PRICE entity's consumerUsage
+          return gtNet.getGtNetEntities().stream()
+              .filter(e -> e.getEntityKind() == GTNetExchangeKindType.LAST_PRICE)
+              .findFirst()
+              .map(e -> e.getGtNetConfigEntity().getConsumerUsage())
+              .orElse((byte) 0);
+        }));
 
-    return gtNetLastpriceList;
+    // Shuffle within each priority group and flatten
+    List<GTNet> result = new ArrayList<>();
+    byPriority.keySet().stream()
+        .sorted()
+        .forEach(priority -> {
+          List<GTNet> group = byPriority.get(priority);
+          Collections.shuffle(group);
+          result.addAll(group);
+        });
+
+    return result;
   }
 
+  /**
+   * Queries remote servers for price data.
+   */
+  private void queryRemoteServers(List<GTNet> suppliers, InstrumentExchangeSet instruments) {
+    for (GTNet supplier : suppliers) {
+      if (instruments.allFilled()) {
+        break;
+      }
+
+      try {
+        queryRemoteServer(supplier, instruments);
+      } catch (Exception e) {
+        log.warn("Failed to query GTNet server {}: {}", supplier.getDomainRemoteName(), e.getMessage());
+      }
+    }
+  }
+
+  private void queryRemoteServer(GTNet supplier, InstrumentExchangeSet instruments) {
+    GTNetConfig config = supplier.getGtNetConfig();
+    if (config == null || !config.isAuthorizedRemoteEntry()) {
+      log.debug("Skipping unauthorized server: {}", supplier.getDomainRemoteName());
+      return;
+    }
+
+    // Build request with unfilled instruments and their current timestamps
+    List<InstrumentPriceDTO> securityDTOs = instruments.getUnfilledSecurityDTOs();
+    List<InstrumentPriceDTO> currencypairDTOs = instruments.getUnfilledCurrencypairDTOs();
+
+    if (securityDTOs.isEmpty() && currencypairDTOs.isEmpty()) {
+      return;
+    }
+
+    LastpriceExchangeMsg requestPayload = LastpriceExchangeMsg.forRequest(securityDTOs, currencypairDTOs);
+
+    // Build MessageEnvelope
+    MessageEnvelope requestEnvelope = new MessageEnvelope();
+    requestEnvelope.messageCode = GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_SEL_C.getValue();
+    requestEnvelope.timestamp = new Date();
+    requestEnvelope.payload = objectMapper.valueToTree(requestPayload);
+
+    log.debug("Sending lastprice request to {} with {} securities, {} pairs",
+        supplier.getDomainRemoteName(), securityDTOs.size(), currencypairDTOs.size());
+
+    // Send request
+    SendResult result = baseDataClient.sendToMsgWithStatus(
+        config.getTokenRemote(),
+        supplier.getDomainRemoteName(),
+        requestEnvelope);
+
+    if (!result.serverReachable()) {
+      log.warn("GTNet server {} is unreachable", supplier.getDomainRemoteName());
+      return;
+    }
+
+    MessageEnvelope response = result.response();
+    if (response == null || response.payload == null) {
+      log.debug("No price data received from {}", supplier.getDomainRemoteName());
+      return;
+    }
+
+    // Parse response
+    try {
+      LastpriceExchangeMsg responsePayload = objectMapper.treeToValue(response.payload, LastpriceExchangeMsg.class);
+
+      int updatedCount = 0;
+      if (responsePayload.securities != null) {
+        updatedCount += responsePayload.securities.size();
+      }
+      if (responsePayload.currencypairs != null) {
+        updatedCount += responsePayload.currencypairs.size();
+      }
+
+      log.info("Received {} price updates from {}", updatedCount, supplier.getDomainRemoteName());
+
+      // Process response - update instruments and mark as filled
+      instruments.processResponse(responsePayload.securities, responsePayload.currencypairs);
+
+    } catch (JsonProcessingException e) {
+      log.error("Failed to parse lastprice response from {}", supplier.getDomainRemoteName(), e);
+    }
+  }
+
+  private boolean containsSecurity(List<Security> list, Security security) {
+    return list.stream().anyMatch(s -> s.getIdSecuritycurrency().equals(security.getIdSecuritycurrency()));
+  }
+
+  private boolean containsCurrencypair(List<Currencypair> list, Currencypair currencypair) {
+    return list.stream().anyMatch(cp -> cp.getIdSecuritycurrency().equals(currencypair.getIdSecuritycurrency()));
+  }
+
+  /**
+   * Result container for security and currency pair lists.
+   */
   public static class SecurityCurrency {
     public List<Security> securities;
     public List<Currencypair> currencypairs;
 
     public SecurityCurrency(final List<Security> securities, final List<Currencypair> currencypairs) {
-      super();
       this.securities = securities;
       this.currencypairs = currencypairs;
     }

@@ -23,6 +23,8 @@ import {CommonModule} from '@angular/common';
 import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.component';
 import {TooltipModule} from 'primeng/tooltip';
 import {TaskDataChangeEditComponent} from './task-data-change-edit.component';
+import {TaskFilterDialogComponent} from './task-filter-dialog.component';
+import {TranslateHelper} from '../../helper/translate.helper';
 
 /**
  * Shows the batch Jobs in a table.
@@ -92,10 +94,17 @@ import {TaskDataChangeEditComponent} from './task-data-change-edit.component';
                              (closeDialog)="handleCloseDialog($event)">
       </task-data-change-edit>
     }
+
+    @if (visibleFilterDialog) {
+      <task-filter-dialog [visibleDialog]="visibleFilterDialog"
+                          (closeDialog)="handleCloseFilterDialog($event)">
+      </task-filter-dialog>
+    }
   `,
   providers: [DialogService],
   standalone: true,
-  imports: [CommonModule, ConfigurableTableComponent, TooltipModule, TranslateModule, TaskDataChangeEditComponent]
+  imports: [CommonModule, ConfigurableTableComponent, TooltipModule, TranslateModule, TaskDataChangeEditComponent,
+    TaskFilterDialogComponent]
 })
 export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataChange> {
 
@@ -106,12 +115,15 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
   callParam: TaskDataChange;
   ProgressStateType: typeof ProgressStateType = ProgressStateType;
   editMenu: MenuItem;
+  visibleFilterDialog = false;
+  /** Current task ID filter. Null means no filter (load all). */
+  currentTaskFilter: number[] | null = null;
 
   tdcFormConstraints: TaskDataChangeFormConstraints;
 
   constructor(private taskDataChangeService: TaskDataChangeService,
     @Inject(TASK_EXTENDED_SERVICE) private taskExtendService: ITaskExtendService,
-    @Inject(TASK_TYPE_ENUM) private taskTypeEnum: any,
+    @Inject(TASK_TYPE_ENUM)  taskTypeEnum: any,
     confirmationService: ConfirmationService,
     messageToastService: MessageToastService,
     activePanelService: ActivePanelService,
@@ -129,7 +141,6 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
     this.addColumnFeqH(DataType.DateTimeSecondString, 'creationTime', true, false);
     this.addColumnFeqH(DataType.NumericShowZero, 'taskAsId', true, false,
       {width: 40, maxFractionDigits: 0, filterType: FilterType.likeDataType});
-
     this.addColumnFeqH(DataType.String, 'idTask', true, false,
       {translateValues: TranslateValue.NORMAL, width: 300, filterType: FilterType.likeDataType});
     this.addColumnFeqH(DataType.DateTimeSecondString, 'earliestStartTime', true, false);
@@ -168,6 +179,8 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
   }
 
   protected override initialize(): void {
+    // Load stored filter from LocalStorage (null means load all)
+    this.currentTaskFilter = TaskFilterDialogComponent.getStoredTaskIdsStatic();
     this.taskDataChangeService.getFormConstraints().subscribe((tdcFormConstraints: TaskDataChangeFormConstraints) => {
       // Only needs to be read once, as this is configuration data.
       this.tdcFormConstraints = tdcFormConstraints
@@ -176,8 +189,9 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
   }
 
   protected override readData(): void {
-    combineLatest([this.taskDataChangeService.getAllTaskDataChange(), this.taskExtendService.supportAdditionalToolTipData()
-      ? this.taskExtendService.getAdditionalData() : of([])]).subscribe(([taskDataChanges, additionalData]: [TaskDataChange[], any]) => {
+    combineLatest([this.taskDataChangeService.getAllTaskDataChange(this.currentTaskFilter),
+      this.taskExtendService.supportAdditionalToolTipData()
+        ? this.taskExtendService.getAdditionalData() : of([])]).subscribe(([taskDataChanges, additionalData]: [TaskDataChange[], any]) => {
       this.taskDataChangeList = taskDataChanges;
       if (this.taskExtendService.supportAdditionalToolTipData()) {
         this.additionalData = additionalData;
@@ -186,6 +200,40 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
       this.createTranslatedValueStoreAndFilterField(this.taskDataChangeList);
       this.prepareFilter(this.taskDataChangeList);
     });
+  }
+
+  protected override prepareShowMenu(): MenuItem[] {
+    const menuItems: MenuItem[] = [];
+    menuItems.push({
+      label: 'TASK_FILTER' + BaseSettings.DIALOG_MENU_SUFFIX,
+      command: () => this.openFilterDialog()
+    });
+    menuItems.push({separator: true});
+    const columnMenuItems = this.getMenuShowOptions();
+    if (columnMenuItems) {
+      menuItems.push(...columnMenuItems);
+    }
+    TranslateHelper.translateMenuItems(menuItems, this.translateService);
+    return menuItems;
+  }
+
+  /**
+   * Opens the task filter dialog.
+   */
+  openFilterDialog(): void {
+    this.visibleFilterDialog = true;
+  }
+
+  /**
+   * Handles the close event from the filter dialog.
+   * @param selectedTaskIds Array of selected task IDs or null if cancelled
+   */
+  handleCloseFilterDialog(selectedTaskIds: number[] | null): void {
+    this.visibleFilterDialog = false;
+    if (selectedTaskIds !== null) {
+      this.currentTaskFilter = selectedTaskIds;
+      this.readData();
+    }
   }
 
   protected override addCustomMenusToSelectedEntity(taskDataChange: TaskDataChange, menuItems: MenuItem[]): void {

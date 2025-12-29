@@ -11,9 +11,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
  *
  * The MessageEnvelope also includes the full GTNet entity of the sender in its payload field,
  * providing the remote with timezone, capability flags, and other configuration.
- *
- * @see grafioschtrader.entities.GTNet#tokenThis for local token generation
- * @see grafioschtrader.entities.GTNet#tokenRemote for received token storage
  */
 @Schema(description = """
     Payload for the initial handshake message between GTNet peers. Contains the locally generated authentication

@@ -1,7 +1,7 @@
 import {AuthServiceWithLogout} from '../../login/service/base.auth.service.with.logout';
 import {TaskDataChange, TaskDataChangeFormConstraints} from '../types/task.data.change';
 import {LoginService} from '../../login/service/log-in.service';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
 import {MessageToastService} from '../../message/message.toast.service';
 import {Observable} from 'rxjs/internal/Observable';
 import {catchError} from 'rxjs/operators';
@@ -17,9 +17,18 @@ export class TaskDataChangeService extends AuthServiceWithLogout<TaskDataChange>
     super(loginService, httpClient, messageToastService);
   }
 
-  getAllTaskDataChange(): Observable<TaskDataChange[]> {
+  /**
+   * Retrieves all task data changes, optionally filtered by task IDs.
+   * @param idTasks Optional array of task IDs to filter by. If null/undefined, all tasks are returned.
+   * @returns Observable of TaskDataChange array
+   */
+  getAllTaskDataChange(idTasks?: number[]): Observable<TaskDataChange[]> {
+    let params = new HttpParams();
+    if (idTasks && idTasks.length > 0) {
+      params = params.set('idTasks', idTasks.join(','));
+    }
     return <Observable<TaskDataChange[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${BaseSettings.TASK_DATA_CHANGE_KEY}`,
-      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+      {...this.getHeaders(), params}).pipe(catchError(this.handleError.bind(this)));
   }
 
   getFormConstraints(): Observable<TaskDataChangeFormConstraints> {

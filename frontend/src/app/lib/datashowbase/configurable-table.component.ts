@@ -176,6 +176,16 @@ import {BaseLocale} from '../dynamic-form/models/base.locale';
                                             [locale]="formLocale"
                                             minFractionDigits="2" display="menu"></p-columnFilter>
                           }
+                          @case (DataType.NumericShowZero) {
+                            <p-columnFilter type="numeric" [field]="field.field"
+                                            [locale]="formLocale"
+                                            minFractionDigits="0" display="menu"></p-columnFilter>
+                          }
+                          @case (DataType.NumericInteger) {
+                            <p-columnFilter type="numeric" [field]="field.field"
+                                            [locale]="formLocale"
+                                            minFractionDigits="0" display="menu"></p-columnFilter>
+                          }
                           @case (DataType.String) {
                             <p-columnFilter type="text" [field]="field.fieldTranslated || field.field" display="menu"></p-columnFilter>
                           }

@@ -127,6 +127,17 @@ public interface IFeedConnector {
   @Schema(description = "Id of the connector without prefix")
   String getShortID();
 
+  /**
+   * Returns a numeric identifier for this connector, derived from the short ID hash code. Used for task data change
+   * references where an integer entity ID is needed.
+   *
+   * @return numeric identifier based on shortId.hashCode()
+   */
+  @JsonIgnore
+  default int getIdNumber() {
+    return getShortID().hashCode();
+  }
+
   @Schema(description = "The display name of the connector ")
   String getReadableName();
 
