@@ -114,11 +114,17 @@ public class ServerlistResponseHandler extends AbstractResponseHandler {
   }
 
   /**
-   * Updates an existing server with information from the DTO.
+   * Updates an existing server with information from the DTO if the remote data is newer.
    *
    * @return true if any changes were made
    */
   private boolean updateExistingServer(GTNet existing, GTNetPublicDTO dto) {
+    // Only update if remote data is newer than ours
+    if (!isRemoteNewer(existing, dto)) {
+      log.debug("Skipping update for {} - local data is newer or same age", dto.getDomainRemoteName());
+      return false;
+    }
+
     boolean changed = false;
 
     // Update spread capability
@@ -133,11 +139,37 @@ public class ServerlistResponseHandler extends AbstractResponseHandler {
       changed = true;
     }
 
+    // Update daily request limit
+    if (dto.getDailyRequestLimit() != null
+        && !dto.getDailyRequestLimit().equals(existing.getDailyRequestLimit())) {
+      existing.setDailyRequestLimit(dto.getDailyRequestLimit());
+      changed = true;
+    }
+
     if (changed) {
       gtNetJpaRepository.save(existing);
     }
 
     return changed;
+  }
+
+  /**
+   * Checks if the remote DTO data is newer than our local entry.
+   *
+   * @param existing the local GTNet entry
+   * @param dto      the remote DTO
+   * @return true if remote is newer or if timestamps cannot be compared
+   */
+  private boolean isRemoteNewer(GTNet existing, GTNetPublicDTO dto) {
+    if (dto.getLastModifiedTime() == null) {
+      // Remote has no timestamp - assume it could be newer (be conservative)
+      return true;
+    }
+    if (existing.getLastModifiedTime() == null) {
+      // We have no timestamp - remote is definitely more informative
+      return true;
+    }
+    return dto.getLastModifiedTime().after(existing.getLastModifiedTime());
   }
 
   /**

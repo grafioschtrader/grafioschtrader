@@ -1,8 +1,12 @@
 package grafioschtrader.entities;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -17,6 +21,7 @@ import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -25,6 +30,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -38,7 +45,7 @@ import jakarta.validation.constraints.Size;
  */
 @Entity
 @Table(name = GTNet.TABNAME)
-
+@EntityListeners(AuditingEntityListener.class)
 public class GTNet extends BaseID<Integer> {
 
   public static final String TABNAME = "gt_net";
@@ -126,6 +133,14 @@ public class GTNet extends BaseID<Integer> {
   @PropertyAlwaysUpdatable
   private boolean allowServerCreation;
 
+  @Schema(description = """
+      Timestamp when this GTNet entry was last modified. Used to determine which server has more recent information
+      when exchanging server lists between peers. Automatically updated by JPA auditing.""")
+  @LastModifiedDate
+  @Temporal(TemporalType.TIMESTAMP)
+  @Column(name = "last_modified_time")
+  private Date lastModifiedTime;
+
   public Integer getIdGtNet() {
     return idGtNet;
   }
@@ -196,6 +211,14 @@ public class GTNet extends BaseID<Integer> {
 
   public void setAllowServerCreation(boolean allowServerCreation) {
     this.allowServerCreation = allowServerCreation;
+  }
+
+  public Date getLastModifiedTime() {
+    return lastModifiedTime;
+  }
+
+  public void setLastModifiedTime(Date lastModifiedTime) {
+    this.lastModifiedTime = lastModifiedTime;
   }
 
   public List<GTNetEntity> getGtNetEntities() {
