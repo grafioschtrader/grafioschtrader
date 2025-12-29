@@ -9,8 +9,10 @@ import java.util.stream.Stream;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.query.Procedure;
+import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.rest.UpdateCreateJpaRepository;
 import grafioschtrader.dto.IHistoryquoteQualityFlat;
@@ -407,6 +409,34 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
    */
   @Query(nativeQuery = true)
   List<MonitorFailedConnector> getFailedIntradayConnector(LocalDate dateBackOrRetry, int retry, int percentageFailed);
+
+  /**
+   * Resets retry_history_load counter to zero for securities active on the given date, optionally filtered by
+   * connector. Only affects securities where a history connector is configured and retry counter is greater than zero.
+   *
+   * Named query: Security.resetRetryHistoryByConnector
+   *
+   * @param activeOnDate  the date used to filter active securities (active_to_date >= this date)
+   * @param connectorId   the full connector ID (e.g., "gt.datafeed.yahoo") to filter, or null to reset all connectors
+   */
+  @Transactional
+  @Modifying
+  @Query(nativeQuery = true)
+  void resetRetryHistoryByConnector(Date activeOnDate, String connectorId);
+
+  /**
+   * Resets retry_intra_load counter to zero for securities active on the given date, optionally filtered by connector.
+   * Only affects securities where an intraday connector is configured and retry counter is greater than zero.
+   *
+   * Named query: Security.resetRetryIntraByConnector
+   *
+   * @param activeOnDate  the date used to filter active securities (active_to_date >= this date)
+   * @param connectorId   the full connector ID (e.g., "gt.datafeed.yahoo") to filter, or null to reset all connectors
+   */
+  @Transactional
+  @Modifying
+  @Query(nativeQuery = true)
+  void resetRetryIntraByConnector(Date activeOnDate, String connectorId);
 
   @Override
   void calcGainLossBasedOnDateOrNewestPrice(List<SecurityPositionSummary> securitycurrencyPositionSummary,

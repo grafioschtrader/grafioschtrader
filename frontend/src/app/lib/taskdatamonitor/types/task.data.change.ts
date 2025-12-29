@@ -40,9 +40,17 @@ export enum TaskDataExecPriority {
   PRIO_VERY_HIGH = 5
 }
 
+/** Backend response format for entity ID options */
+export interface EntityIdOption {
+  key: string;
+  value: string;
+}
+
 export class TaskDataChangeFormConstraints {
   taskTypeConfig: { [key: string]: string[] };
   canBeInterruptedList: string[];
+  /** Mapping of entity names to their selectable ID options (e.g., IFeedConnector -> connector list) */
+  entityIdOptions: { [entity: string]: EntityIdOption[] };
   maxUserCreateTask: number;
   maxDaysInFuture: number;
 }

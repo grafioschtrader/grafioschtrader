@@ -1,15 +1,10 @@
 package grafioschtrader.gtnet;
 
-import grafioschtrader.entities.GTNetExchange;
-
 /**
  * Simplified message codes used specifically in the GTNetDataExchange table.
  *
  * Unlike the full GTNetMessageCodeType enum (which covers the complete messaging protocol), this enum
  * contains only the data availability states needed for tracking individual entity exchanges.
- *
- * @see GTNetExchange#sendMsgCode for outgoing status
- * @see GTNetExchange#recvMsgCode for incoming status
  */
 public enum MessageCodesGTNetwork {
 

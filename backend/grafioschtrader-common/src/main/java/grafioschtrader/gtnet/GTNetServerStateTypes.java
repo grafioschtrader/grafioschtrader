@@ -1,20 +1,11 @@
 package grafioschtrader.gtnet;
 
-import grafioschtrader.entities.GTNet;
-
 /**
  * Defines the availability states for GTNet data sharing services (entity data and intraday prices).
  *
  * Each GTNet domain tracks two independent server states:
- * <ul>
- *   <li>{@link GTNet#entityServerState} - Availability for historical/entity data sharing</li>
- *   <li>{@link GTNet#lastpriceServerState} - Availability for intraday price sharing</li>
- * </ul>
  *
  * Consumer implementations should only attempt to query providers in {@code SS_OPEN} state.
- *
- * @see GTNet#entityServerState
- * @see GTNet#lastpriceServerState
  */
 public enum GTNetServerStateTypes {
 

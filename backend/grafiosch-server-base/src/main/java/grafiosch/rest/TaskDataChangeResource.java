@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import grafiosch.dto.TaskDataChangeFormConstraints;
@@ -20,6 +21,7 @@ import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.task.BackgroundWorker;
 import grafiosch.types.ProgressStateType;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
@@ -34,13 +36,20 @@ public class TaskDataChangeResource extends UpdateCreateDeleteAuditResource<Task
   private BackgroundWorker backgroundWorker;
 
   @Operation(
-      summary = "Get all background tasks", 
-      description = "Retrieves a list of all background tasks with their current status and execution details",
+      summary = "Get all background tasks",
+      description = "Retrieves a list of background tasks with their current status and execution details. "
+          + "Optionally filter by specific task IDs using the idTasks parameter.",
       tags = { RequestMappings.TASK_DATA_CHANGE }
   )
   @GetMapping(produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<TaskDataChange>> getAllTaskDataChange() {
-    return new ResponseEntity<>(taskDataChangeJpaRepository.findAll(), HttpStatus.OK);
+  public ResponseEntity<List<TaskDataChange>> getAllTaskDataChange(
+      @Parameter(description = "Comma-separated list of task IDs to filter by (e.g., '0,1,5,20'). "
+          + "If not provided, all tasks are returned.")
+      @RequestParam(required = false) List<Byte> idTasks) {
+    if (idTasks == null || idTasks.isEmpty()) {
+      return new ResponseEntity<>(taskDataChangeJpaRepository.findAll(), HttpStatus.OK);
+    }
+    return new ResponseEntity<>(taskDataChangeJpaRepository.findByIdTaskIn(idTasks), HttpStatus.OK);
   }
 
   @Operation(

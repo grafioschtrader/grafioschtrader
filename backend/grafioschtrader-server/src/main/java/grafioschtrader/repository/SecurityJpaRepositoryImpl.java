@@ -713,4 +713,11 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
         .collect(Collectors.toMap(isi -> isi.getIdSecuritycurrency(), isi -> isi.getTooltip()));
   }
 
+  @Override
+  @Transactional
+  public void resetRetryCountersByConnector(String connectorId, Date activeOnDate) {
+    securityJpaRepository.resetRetryHistoryByConnector(activeOnDate, connectorId);
+    securityJpaRepository.resetRetryIntraByConnector(activeOnDate, connectorId);
+  }
+
 }

@@ -9,17 +9,26 @@ import grafiosch.types.ITaskType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = """
-   Configuration constraints for task data change form operations and validations. 
+   Configuration constraints for task data change form operations and validations.
    This information is very helpful in the user interface for creating a new job.""")
 public class TaskDataChangeFormConstraints {
-  
-  @Schema(description = "Configuration mapping of task types to their allowed parameter lists. Each task type can have specific parameters that control its behavior and execution", 
+
+  @Schema(description = "Configuration mapping of task types to their allowed parameter lists. Each task type can have specific parameters that control its behavior and execution",
       example = "{\"TOKEN_USER_REGISTRATION_PURGE\": [\"batchSize\", \"maxAge\"], \"MOVE_CREATED_BY_USER_TO_OTHER_USER\": [\"sourceUserId\", \"targetUserId\"]}")
   public Map<ITaskType, List<String>> taskTypeConfig = new HashMap<>();
-  
-  @Schema(description = "List of task types that support interruption during execution. Tasks in this list can be safely stopped or cancelled while running", 
+
+  @Schema(description = "List of task types that support interruption during execution. Tasks in this list can be safely stopped or cancelled while running",
       example = "[\"TOKEN_USER_REGISTRATION_PURGE\"]")
   public List<ITaskType> canBeInterruptedList = new ArrayList<>();
+
+  @Schema(description = """
+      Mapping of entity names to their selectable ID options. When an entity type has predefined options
+      (e.g., IFeedConnector with specific connectors), the frontend can display a dropdown instead of a
+      free-form numeric input. The key is the entity class simple name, the value is a list of
+      id-name pairs where the key is the numeric ID and value is the display name.""",
+      example = "{\"IFeedConnector\": [{\"key\": \"118005765\", \"value\": \"Yahoo Finance\"}]}")
+  public Map<String, List<ValueKeyHtmlSelectOptions>> entityIdOptions = new HashMap<>();
+
   @Schema(description = "Maximum number of tasks that a single user is allowed to create")
   public int maxUserCreateTask = 30;
   @Schema(description = "Maximum number of days in the future that a task can be scheduled for execution")

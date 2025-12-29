@@ -5,7 +5,7 @@ import {GlobalparameterService} from '../../services/globalparameter.service';
 import {MessageToastService} from '../../message/message.toast.service';
 import {HelpIds} from '../../help/help.ids';
 import {TaskDataChangeService} from '../service/task.data.change.service';
-import {TaskDataChange, TaskDataChangeFormConstraints} from '../types/task.data.change';
+import {TaskDataChange, TaskDataChangeFormConstraints, EntityIdOption} from '../types/task.data.change';
 import {AppHelper} from '../../helper/app.helper';
 import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
 import {TranslateHelper} from '../../helper/translate.helper';
@@ -13,6 +13,7 @@ import {SelectOptionsHelper} from '../../helper/select.options.helper';
 import {Subscription} from 'rxjs';
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
 import {DataType} from '../../dynamic-form/models/data.type';
+import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import moment from 'moment';
 import {Validators} from '@angular/forms';
 import {BaseSettings} from '../../base.settings';
@@ -59,8 +60,7 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
     this.config = [
       DynamicFieldHelper.createFieldSelectStringHeqF('idTask', true),
       DynamicFieldHelper.createFieldSelectStringHeqF('entity', true),
-      DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'idEntity', true, 1,
-        Math.pow(2, 32 - 1)),
+      DynamicFieldHelper.createFieldSelectStringHeqF('idEntity', true),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateTimeNumeric, 'earliestStartTime', true,
         {
           calendarConfig: {
@@ -89,6 +89,18 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
 
   valueChangedOnEntity(): void {
     this.entitySubscribe = this.configObject.entity.formControl.valueChanges.subscribe(entity => {
+      const hasEntityIdOptions = entity && this.tdcFormConstraints.entityIdOptions
+        && this.tdcFormConstraints.entityIdOptions[entity];
+      if (hasEntityIdOptions) {
+        // Convert backend options to form options and show as dropdown
+        this.configObject.idEntity.valueKeyHtmlOptions = this.tdcFormConstraints.entityIdOptions[entity]
+          .map((opt: EntityIdOption) => new ValueKeyHtmlSelectOptions(opt.key, opt.value));
+      } else {
+        // No options available - show as number input
+        this.configObject.idEntity.valueKeyHtmlOptions = null;
+      }
+      // Reset idEntity value when entity changes
+      this.configObject.idEntity.formControl.setValue(null);
       FormHelper.disableEnableFieldConfigs(!entity || entity.length === 0, [this.configObject.idEntity]);
     });
   }
@@ -116,6 +128,10 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
     const taskDataChange = this.copyFormToPrivateBusinessObject(new TaskDataChange(), null);
     taskDataChange.earliestStartTime = moment(taskDataChange.earliestStartTime).add(moment().utcOffset() * -1,
       'm').format('yyyy-MM-DD HH:mm:ss');
+    // Convert idEntity to number if it was selected from dropdown (string key)
+    if (taskDataChange.idEntity && typeof taskDataChange.idEntity === 'string') {
+      taskDataChange.idEntity = parseInt(taskDataChange.idEntity, 10);
+    }
     return taskDataChange;
   }
 }

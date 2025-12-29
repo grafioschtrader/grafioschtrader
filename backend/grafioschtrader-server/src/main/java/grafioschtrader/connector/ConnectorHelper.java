@@ -62,6 +62,24 @@ public class ConnectorHelper {
   }
 
   /**
+   * Locates a feed connector by its numeric identifier (hash code of short ID). This method is used when looking up
+   * connectors from task data change records where integer entity IDs are stored.
+   *
+   * @param feedConnectors the list of available feed connectors to search through
+   * @param idNumber       the numeric identifier (shortId.hashCode()) of the connector to find
+   * @return the matching connector if found, or null if no connector matches
+   * @see IFeedConnector#getIdNumber()
+   */
+  public static IFeedConnector getConnectorByIdNumber(final List<IFeedConnector> feedConnectors, final int idNumber) {
+    for (final IFeedConnector feedConnector : feedConnectors) {
+      if (feedConnector.getIdNumber() == idNumber) {
+        return feedConnector;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Determines whether the current authenticated user has permission to access
    * the specified feed connector's configuration and API key information.
    * 

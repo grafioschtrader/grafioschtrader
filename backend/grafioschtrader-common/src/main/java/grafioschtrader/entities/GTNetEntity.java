@@ -1,7 +1,5 @@
 package grafioschtrader.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.entities.BaseID;
 import grafioschtrader.gtnet.AcceptRequestTypes;

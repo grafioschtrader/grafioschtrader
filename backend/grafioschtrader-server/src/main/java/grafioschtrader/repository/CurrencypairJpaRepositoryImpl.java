@@ -474,4 +474,11 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
     return historyquoteJpaRepository;
   }
 
+  @Override
+  @Transactional
+  public void resetRetryCountersByConnector(String connectorId) {
+    currencypairJpaRepository.resetRetryHistoryByConnector(connectorId);
+    currencypairJpaRepository.resetRetryIntraByConnector(connectorId);
+  }
+
 }

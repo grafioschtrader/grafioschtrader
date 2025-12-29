@@ -1,0 +1,2 @@
+DELETE FROM globalparameters WHERE property_name = 'gt.gtnet.use';
+INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_blob`, `changed_by_system`) VALUES ('gt.gtnet.use', '0', NULL, NULL, NULL, '0');

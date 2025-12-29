@@ -11,7 +11,7 @@ public class HistoryquoteQualityIds {
   public Byte categoryType;
   public Byte specialInvestmentInstrument;
 
-  @Schema(description = "Can be used for the UI to differentiate the individual elements.", required = true)
+  @Schema(description = "Can be used for the UI to differentiate the individual elements.")
   public int uniqueKey;
 
   public void setValues(IHistoryquoteQualityFlat hqf, int groupLevel, boolean isConnectGroup) {
