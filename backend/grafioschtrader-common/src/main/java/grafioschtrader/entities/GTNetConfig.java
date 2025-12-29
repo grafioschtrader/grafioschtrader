@@ -62,6 +62,13 @@ public class GTNetConfig extends BaseID<Integer>  {
   @Column(name = "supplier_last_update")
   private LocalDateTime supplierLastUpdate;
 
+  @Schema(description = """
+      Indicates whether this remote domain has been granted access to receive our server list. Set to true when we
+      respond with GT_NET_UPDATE_SERVERLIST_ACCEPT_S (manually or automatically). Set to false when we receive
+      GT_NET_UPDATE_SERVERLIST_REVOKE_SEL_C from them or when we explicitly revoke their access.""")
+  @Column(name = "serverlist_access_granted")
+  private boolean serverlistAccessGranted;
+
   @Override
   public Integer getId() {
     return idGtNet;
@@ -117,5 +124,13 @@ public class GTNetConfig extends BaseID<Integer>  {
 
   public boolean isAuthorizedRemoteEntry() {
     return tokenThis != null && tokenRemote != null;
+  }
+
+  public boolean isServerlistAccessGranted() {
+    return serverlistAccessGranted;
+  }
+
+  public void setServerlistAccessGranted(boolean serverlistAccessGranted) {
+    this.serverlistAccessGranted = serverlistAccessGranted;
   }
 }

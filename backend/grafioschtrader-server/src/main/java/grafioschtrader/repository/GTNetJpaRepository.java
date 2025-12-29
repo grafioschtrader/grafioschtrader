@@ -106,4 +106,15 @@ public interface GTNetJpaRepository
   @Query(nativeQuery = true, name = "GTNet.findOpenSuppliers")
   List<GTNet> findOpenSuppliers();
 
+  /**
+   * Finds domains that have spreadCapability enabled and are online.
+   * Used to build the server list for sharing with remote domains that have been granted access.
+   * Excludes the requesting server (by id) from the results.
+   *
+   * @param excludeId the GTNet ID to exclude (typically the requester's entry)
+   * @return list of shareable GTNet entries
+   */
+  @Query("SELECT g FROM GTNet g WHERE g.spreadCapability = true AND g.serverOnline = 1 AND g.idGtNet <> :excludeId")
+  List<GTNet> findShareableServers(@Param("excludeId") Integer excludeId);
+
 }
