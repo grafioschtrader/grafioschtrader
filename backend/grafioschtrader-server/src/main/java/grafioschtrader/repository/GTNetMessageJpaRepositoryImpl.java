@@ -17,6 +17,7 @@ public class GTNetMessageJpaRepositoryImpl extends BaseRepositoryImpl<GTNetMessa
   @Override
   public GTNetMessage saveMsg(GTNetMessage gtNetMessage) {
     gtNetMessage.checkAndUpdateSomeValues();
+    System.out.println(gtNetMessage);
     return gtNetMessageJpaRepository.save(gtNetMessage);
   }
 

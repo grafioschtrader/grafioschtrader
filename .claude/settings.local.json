@@ -36,7 +36,8 @@
       "Bash(cmd //c:*)",
       "Bash(cmd /c \"cd /d C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend && mvn clean compile -Dmaven.test.skip=true\")",
       "Bash(dir /b \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\frontend\\\\src\\\\app\\\\lib\\\\taskdatamonitor\")",
-      "Bash(gh --version:*)"
+      "Bash(gh --version:*)",
+      "Bash(cmd /c:*)"
     ],
     "deny": [],
     "ask": []
