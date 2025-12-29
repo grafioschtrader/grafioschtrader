@@ -56,12 +56,21 @@ public abstract class AbstractRequestHandler extends AbstractGTNetMessageHandler
     // 3. Process request-specific side effects (e.g., store remote GTNet for handshake)
     processRequestSideEffects(context, storedRequest);
 
-    // 4. Try automatic response via GTNetMessageAnswer rules
+    // 4. Check for prior approval (e.g., previously granted server list access)
+    Optional<GTNetMessageCodeType> priorApproval = checkPriorApproval(context);
+    if (priorApproval.isPresent()) {
+      GTNetMessageCodeType responseCode = priorApproval.get();
+      applyResponseSideEffects(context, responseCode, storedRequest);
+      MessageEnvelope response = buildResponse(context, responseCode, null, storedRequest);
+      return new HandlerResult.ImmediateResponse(response);
+    }
+
+    // 5. Try automatic response via GTNetMessageAnswer rules
     Optional<ResolvedResponse> autoResponse = responseResolver.resolveAutoResponse(context.getAutoResponseRules(),
         context.getRemoteGTNet(), context.getParams());
 
     if (autoResponse.isPresent()) {
-      // 5a. Build and return automatic response
+      // 6a. Build and return automatic response
       ResolvedResponse resolved = autoResponse.get();
 
       // Apply any post-response actions (e.g., update GTNet state after accept)
@@ -70,9 +79,22 @@ public abstract class AbstractRequestHandler extends AbstractGTNetMessageHandler
       MessageEnvelope response = buildResponse(context, resolved.responseCode(), resolved.message(), storedRequest);
       return new HandlerResult.ImmediateResponse(response);
     } else {
-      // 5b. No auto-response rule matched, wait for admin
+      // 6b. No auto-response rule matched, wait for admin
       return new HandlerResult.AwaitingManualResponse(storedRequest);
     }
+  }
+
+  /**
+   * Checks if this request should be auto-accepted based on prior approval.
+   *
+   * Override this method to implement "repeat approval" logic where a previously approved request type from the same
+   * remote can be auto-accepted without requiring GTNetMessageAnswer rules.
+   *
+   * @param context the message context
+   * @return Optional containing the response code if prior approval exists, empty otherwise
+   */
+  protected Optional<GTNetMessageCodeType> checkPriorApproval(GTNetMessageContext context) {
+    return Optional.empty();
   }
 
   /**
