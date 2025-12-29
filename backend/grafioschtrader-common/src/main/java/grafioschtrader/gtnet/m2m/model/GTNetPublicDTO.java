@@ -1,6 +1,7 @@
 package grafioschtrader.gtnet.m2m.model;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import grafioschtrader.entities.GTNet;
@@ -46,6 +47,9 @@ public class GTNetPublicDTO {
   @Schema(description = "Data exchange capabilities for different entity kinds")
   private List<GTNetEntityPublicDTO> gtNetEntities = new ArrayList<>();
 
+  @Schema(description = "Timestamp when this entry was last modified, used to determine freshness during server list exchange")
+  private Date lastModifiedTime;
+
   public GTNetPublicDTO() {
   }
 
@@ -61,6 +65,7 @@ public class GTNetPublicDTO {
     this.serverBusy = gtNet.isServerBusy();
     this.serverOnline = gtNet.getServerOnline();
     this.allowServerCreation = gtNet.isAllowServerCreation();
+    this.lastModifiedTime = gtNet.getLastModifiedTime();
 
     if (gtNet.getGtNetEntities() != null) {
       for (GTNetEntity entity : gtNet.getGtNetEntities()) {
@@ -139,5 +144,13 @@ public class GTNetPublicDTO {
 
   public void setGtNetEntities(List<GTNetEntityPublicDTO> gtNetEntities) {
     this.gtNetEntities = gtNetEntities;
+  }
+
+  public Date getLastModifiedTime() {
+    return lastModifiedTime;
+  }
+
+  public void setLastModifiedTime(Date lastModifiedTime) {
+    this.lastModifiedTime = lastModifiedTime;
   }
 }

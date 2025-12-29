@@ -1,2 +1,10 @@
 DELETE FROM globalparameters WHERE property_name = 'gt.gtnet.use';
-INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_blob`, `changed_by_system`) VALUES ('gt.gtnet.use', '0', NULL, NULL, NULL, '0');
+INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_blob`, `changed_by_system`) VALUES ('gt.gtnet.use', '1', NULL, NULL, NULL, '0');
+
+-- Add serverlist_access_granted column to track if a remote has been granted access to our server list
+ALTER TABLE gt_net_config DROP COLUMN IF EXISTS serverlist_access_granted;
+ALTER TABLE gt_net_config ADD COLUMN serverlist_access_granted TINYINT(1) NOT NULL DEFAULT 0;
+
+-- Add last_modified_time column to GTNet for determining freshness during server list exchange
+ALTER TABLE gt_net DROP COLUMN IF EXISTS last_modified_time;
+ALTER TABLE gt_net ADD COLUMN last_modified_time TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
