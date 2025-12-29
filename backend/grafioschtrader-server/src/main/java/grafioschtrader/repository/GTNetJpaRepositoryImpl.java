@@ -381,19 +381,66 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
         gtNetMessage.setWaitDaysApply(msgRequest.waitDaysApply);
       }
       gtNetMessage = gtNetMessageJpaRepository.saveMsg(gtNetMessage);
+
+      // Apply side effects for specific response codes
+      applyManualResponseSideEffects(sourceGTNet, targetGTNet, msgRequest.messageCode);
+
       // Send the response with replyToSourceId so the receiver can link it to their original request
-      sendResponseMessage(sourceGTNet, targetGTNet, gtNetMessage, replyToSourceId);
+      // Include payload for specific response codes
+      Object payload = buildManualResponsePayload(sourceGTNet, targetGTNet, msgRequest.messageCode);
+      sendResponseMessage(sourceGTNet, targetGTNet, gtNetMessage, replyToSourceId, payload);
     }
   }
 
   /**
+   * Applies side effects for manual responses that require state changes.
+   */
+  private void applyManualResponseSideEffects(GTNet sourceGTNet, GTNet targetGTNet, GTNetMessageCodeType responseCode) {
+    if (responseCode == GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_ACCEPT_S) {
+      // Grant server list access to this remote
+      GTNetConfig config = targetGTNet.getGtNetConfig();
+      if (config != null && !config.isServerlistAccessGranted()) {
+        config.setServerlistAccessGranted(true);
+        gtNetConfigJpaRepository.save(config);
+        log.info("Granted server list access to {} via manual response", targetGTNet.getDomainRemoteName());
+      }
+    }
+  }
+
+  /**
+   * Builds payload for manual responses that require data in the envelope.
+   *
+   * @return payload object or null if no payload is needed
+   */
+  private Object buildManualResponsePayload(GTNet sourceGTNet, GTNet targetGTNet, GTNetMessageCodeType responseCode) {
+    if (responseCode == GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_ACCEPT_S) {
+      // Include server list in payload
+      List<GTNet> shareableServers = gtNetJpaRepository.findShareableServers(targetGTNet.getIdGtNet());
+      List<GTNetPublicDTO> serverList = shareableServers.stream().map(GTNetPublicDTO::new).collect(Collectors.toList());
+      log.info("Including {} servers in manual server list response to {}", serverList.size(),
+          targetGTNet.getDomainRemoteName());
+      return serverList;
+    }
+    return null;
+  }
+
+  /**
    * Sends a response message to a remote GTNet server with replyToSourceId for correlation.
+   *
+   * @param sourceGTNet     the local GTNet entry
+   * @param targetGTNet     the remote GTNet entry
+   * @param gtNetMessage    the message to send
+   * @param replyToSourceId the original request's source ID for correlation
+   * @param payload         optional payload to include in the envelope (can be null)
    */
   private MessageEnvelope sendResponseMessage(GTNet sourceGTNet, GTNet targetGTNet, GTNetMessage gtNetMessage,
-      Integer replyToSourceId) {
+      Integer replyToSourceId, Object payload) {
     if (hasOrCreateFirstContact(sourceGTNet, targetGTNet)) {
       MessageEnvelope meRequest = new MessageEnvelope(sourceGTNet, gtNetMessage);
       meRequest.replyToSourceId = replyToSourceId;
+      if (payload != null) {
+        meRequest.payload = objectMapper.convertValue(payload, JsonNode.class);
+      }
 
       String tokenRemote = targetGTNet.getGtNetConfig() != null ? targetGTNet.getGtNetConfig().getTokenRemote() : null;
       SendResult result = baseDataClient.sendToMsgWithStatus(tokenRemote, targetGTNet.getDomainRemoteName(), meRequest);
