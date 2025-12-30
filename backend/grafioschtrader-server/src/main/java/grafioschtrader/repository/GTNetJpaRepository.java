@@ -114,7 +114,7 @@ public interface GTNetJpaRepository
    * @param excludeId the GTNet ID to exclude (typically the requester's entry)
    * @return list of shareable GTNet entries
    */
-  @Query("SELECT g FROM GTNet g WHERE g.spreadCapability = true AND g.serverOnline = 1 AND g.idGtNet <> :excludeId")
+  @Query("SELECT g FROM GTNet g WHERE g.spreadCapability = true AND g.idGtNet <> :excludeId")
   List<GTNet> findShareableServers(@Param("excludeId") Integer excludeId);
 
 }

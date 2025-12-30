@@ -160,11 +160,11 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
 
   ngOnInit(): void {
     this.addColumn(DataType.DateTimeString, 'timestamp', 'RECEIVED_TIME', true, false);
-    this.addColumnFeqH(DataType.Boolean, 'hasBeenRead', true, false, {templateName: 'check', width: 60});
-    this.addColumnFeqH(DataType.String, 'messageCode', true, false, {translateValues: TranslateValue.NORMAL});
-    this.addColumnFeqH(DataType.String, 'sendRecv', true, false,
+    this.addColumnFeqH(DataType.String, 'SEND_RECV_TIME', true, false,
       {fieldValueFN: this.getSendRecvIcon.bind(this), templateName: 'icon', width: 25});
+    this.addColumnFeqH(DataType.String, 'messageCode', true, false, {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.String, 'message', true, false, {width: 300});
+    this.addColumnFeqH(DataType.Boolean, 'hasBeenRead', true, false, {templateName: 'check', width: 60});
     this.prepareData();
     this.createTranslateValuesStoreForTranslation(this.rootNode.children);
     this.translateHeadersAndColumns();
@@ -172,22 +172,33 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
 
   private prepareData(): void {
     const nodeMap = new Map<number, TreeNode>();
+
+    // First pass: create all nodes and populate the nodeMap
+    // This ensures all nodes exist before we establish parent-child relationships,
+    // regardless of the order messages arrive from the backend (timestamp DESC).
     this.gtNetMessages.forEach(gtMessage => {
-      let addNode = this.rootNode;
+      const node: TreeNode = {data: gtMessage, leaf: true};
+      nodeMap.set(gtMessage.idGtNetMessage, node);
+    });
+
+    // Second pass: establish parent-child relationships
+    this.gtNetMessages.forEach(gtMessage => {
+      const node = nodeMap.get(gtMessage.idGtNetMessage);
       if (gtMessage.replyTo) {
         const parentNode = nodeMap.get(gtMessage.replyTo);
         if (parentNode) {
-          addNode = parentNode;
-          if (addNode.leaf) {
-            addNode.leaf = false;
-            addNode.children = [];
+          if (parentNode.leaf) {
+            parentNode.leaf = false;
+            parentNode.children = [];
           }
+          parentNode.children.push(node);
+          return;
         }
       }
-      const node: TreeNode = {data: gtMessage, leaf: true};
-      nodeMap.set(gtMessage.idGtNetMessage, node);
-      addNode.children.push(node);
+      // No parent found or no replyTo - add to root
+      this.rootNode.children.push(node);
     });
+
     // Auto-expand nodes that have unread received messages
     this.expandNodesWithUnreadMessages(this.rootNode.children, nodeMap);
   }
