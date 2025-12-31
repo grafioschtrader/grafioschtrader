@@ -1,0 +1,9 @@
+java.lang.SecurityException: Unknown source domain: null
+	at grafioschtrader.repository.GTNetJpaRepositoryImpl.validateIncomingToken(GTNetJpaRepositoryImpl.java:1045) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360) ~[spring-aop-6.2.15.jar:6.2.15]
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:724) ~[spring-aop-6.2.15.jar:6.2.15]
+	at grafioschtrader.repository.GTNetJpaRepositoryImpl$$SpringCGLIB$$0.validateIncomingToken(<generated>) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
