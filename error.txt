@@ -1,4 +1,5 @@
-at [Source: UNKNOWN; byte offset: #UNKNOWN] (through reference chain: grafioschtrader.gtnet.model.msg.LastpriceExchangeMsg["empty"])
+com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException: Unrecognized field "totalCount" (class grafioschtrader.gtnet.model.msg.LastpriceExchangeMsg), not marked as ignorable (3 known properties: "currencypairs", "securities", "acceptedCount"])
+ at [Source: UNKNOWN; byte offset: #UNKNOWN] (through reference chain: grafioschtrader.gtnet.model.msg.LastpriceExchangeMsg["totalCount"])
 	at com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException.from(UnrecognizedPropertyException.java:61) ~[jackson-databind-2.19.4.jar:2.19.4]
 	at com.fasterxml.jackson.databind.DeserializationContext.handleUnknownProperty(DeserializationContext.java:1180) ~[jackson-databind-2.19.4.jar:2.19.4]
 	at com.fasterxml.jackson.databind.deser.std.StdDeserializer.handleUnknownProperty(StdDeserializer.java:2244) ~[jackson-databind-2.19.4.jar:2.19.4]
