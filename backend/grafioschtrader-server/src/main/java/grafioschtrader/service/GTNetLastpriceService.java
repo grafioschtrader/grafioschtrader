@@ -235,6 +235,7 @@ public class GTNetLastpriceService {
       try {
         queryRemoteServer(supplier, instruments);
       } catch (Exception e) {
+        e.printStackTrace();
         log.warn("Failed to query GTNet server {}: {}", supplier.getDomainRemoteName(), e.getMessage());
       }
     }
@@ -257,9 +258,10 @@ public class GTNetLastpriceService {
 
     LastpriceExchangeMsg requestPayload = LastpriceExchangeMsg.forRequest(securityDTOs, currencypairDTOs);
 
-    // Get local GTNet entry for source identification
-    GTNet myGTNet = gtNetJpaRepository
-        .getReferenceById(GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersService));
+    // Get local GTNet entry for source identification (use findById to eagerly load - async context has no session)
+    Integer myGTNetId = GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersService);
+    GTNet myGTNet = gtNetJpaRepository.findById(myGTNetId)
+        .orElseThrow(() -> new IllegalStateException("Local GTNet entry not found: " + myGTNetId));
 
     // Build MessageEnvelope with source identification
     MessageEnvelope requestEnvelope = new MessageEnvelope();
