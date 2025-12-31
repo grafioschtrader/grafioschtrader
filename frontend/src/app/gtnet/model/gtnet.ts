@@ -42,7 +42,7 @@ export interface GTNetEntity {
  */
 export interface GTNetConfigEntity {
   idGtNetEntity: number;
-  exchange: GTNetExchangeStatusTypes;
+  exchange: GTNetExchangeStatusTypes | string;
   useDetailLog: boolean;
   consumerUsage: number;
 }
