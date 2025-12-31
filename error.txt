@@ -1,9 +1,20 @@
-java.lang.SecurityException: Unknown source domain: null
-	at grafioschtrader.repository.GTNetJpaRepositoryImpl.validateIncomingToken(GTNetJpaRepositoryImpl.java:1045) ~[classes/:na]
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
-	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360) ~[spring-aop-6.2.15.jar:6.2.15]
-	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:724) ~[spring-aop-6.2.15.jar:6.2.15]
-	at grafioschtrader.repository.GTNetJpaRepositoryImpl$$SpringCGLIB$$0.validateIncomingToken(<generated>) ~[classes/:na]
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+org.hibernate.LazyInitializationException: Could not initialize proxy [grafioschtrader.entities.GTNet#1] - no session
+	at org.hibernate.proxy.AbstractLazyInitializer.initialize(AbstractLazyInitializer.java:174)
+	at org.hibernate.proxy.AbstractLazyInitializer.getImplementation(AbstractLazyInitializer.java:328)
+	at org.hibernate.proxy.pojo.bytebuddy.ByteBuddyInterceptor.intercept(ByteBuddyInterceptor.java:44)
+	at org.hibernate.proxy.ProxyConfiguration$InterceptorDispatcher.intercept(ProxyConfiguration.java:102)
+	at grafioschtrader.entities.GTNet$HibernateProxy.getDomainRemoteName(Unknown Source)
+	at grafioschtrader.service.GTNetLastpriceService.queryRemoteServer(GTNetLastpriceService.java:267)
+	at grafioschtrader.service.GTNetLastpriceService.queryRemoteServers(GTNetLastpriceService.java:236)
+	at grafioschtrader.service.GTNetLastpriceService.executeGTNetExchange(GTNetLastpriceService.java:150)
+	at grafioschtrader.service.GTNetLastpriceService.updateLastpriceIncludeSupplier(GTNetLastpriceService.java:106)
+	at grafioschtrader.reports.WatchlistReport.executeLastPriceUpdate(WatchlistReport.java:378)
+	at grafioschtrader.reports.WatchlistReport.lambda$getWatchlistwithPeriodPerformance$16(WatchlistReport.java:288)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1768)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.exec(CompletableFuture.java:1760)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:387)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312)
+	at java.base/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
+[2m2025-12-31 17:28:35.503[0;39m [33m WARN[0;39m [35m31868[0;39m [2m--- [onPool-worker-1] [0;39m[36mg.service.GTNetLastpriceService         [0;39m [2m:[0;39m Failed to query GTNet server https://grafioschtrader.com: Could not initialize proxy [grafioschtrader.entities.GTNet#1] - no session
