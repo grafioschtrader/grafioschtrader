@@ -47,6 +47,7 @@ import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.GTNetModelHelper;
 import grafioschtrader.gtnet.GTNetModelHelper.GTNetMsgRequest;
 import grafioschtrader.gtnet.GTNetServerOnlineStatusTypes;
+import grafioschtrader.gtnet.GTNetServerStateTypes;
 import grafioschtrader.gtnet.SendReceivedType;
 import grafioschtrader.gtnet.handler.GTNetMessageContext;
 import grafioschtrader.gtnet.handler.GTNetMessageHandler;
@@ -301,7 +302,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
         gtNetMessageJpaRepository.save(responseMsg);
 
         // Process payload from synchronous responses that contain data
-        processSynchronousResponsePayload(sourceGTNet, meResponse);
+        processSynchronousResponsePayload(sourceGTNet, meResponse, targetGTNet, gtNetMessage);
       }
 
       // Apply side effects for outgoing announcement messages
@@ -314,18 +315,48 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    * This method handles responses that would normally be processed by response handlers when received
    * asynchronously via the M2M endpoint, but need special handling when received as immediate HTTP responses.
    *
-   * @param myGTNet    the local GTNet entry
-   * @param meResponse the response envelope containing the payload
+   * @param myGTNet       the local GTNet entry
+   * @param meResponse    the response envelope containing the payload
+   * @param targetGTNet   the remote GTNet entry that sent the response
+   * @param gtNetMessage  the original request message we sent
    */
-  private void processSynchronousResponsePayload(GTNet myGTNet, MessageEnvelope meResponse) {
-    if (meResponse.payload == null || meResponse.payload.isNull()) {
-      return;
-    }
-
+  private void processSynchronousResponsePayload(GTNet myGTNet, MessageEnvelope meResponse,
+      GTNet targetGTNet, GTNetMessage gtNetMessage) {
     GTNetMessageCodeType responseCode = GTNetMessageCodeType.getGTNetMessageCodeTypeByValue(meResponse.messageCode);
+
     if (responseCode == GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_ACCEPT_S) {
-      processServerListPayload(myGTNet, meResponse);
+      if (meResponse.payload != null && !meResponse.payload.isNull()) {
+        processServerListPayload(myGTNet, meResponse);
+      }
+    } else if (responseCode == GTNetMessageCodeType.GT_NET_DATA_REQUEST_ACCEPT_S) {
+      // When they accept our data request, we will RECEIVE data from them
+      Set<GTNetExchangeKindType> acceptedKinds = parseEntityKinds(gtNetMessage.getGtNetMessageParamMap());
+      for (GTNetExchangeKindType kind : acceptedKinds) {
+        updateEntityForReceive(targetGTNet, kind);
+      }
+      gtNetJpaRepository.save(targetGTNet);
+      log.info("Created GTNetConfigEntity with RECEIVE capability for {} entity kinds from {}",
+          acceptedKinds.size(), targetGTNet.getDomainRemoteName());
     }
+  }
+
+  /**
+   * Updates a GTNetEntity to add RECEIVE capability for the specified entity kind.
+   * When they accept our request, we will RECEIVE data from them.
+   */
+  private void updateEntityForReceive(GTNet remoteGTNet, GTNetExchangeKindType kind) {
+    GTNetEntity entity = remoteGTNet.getOrCreateEntity(kind);
+    entity.setServerState(GTNetServerStateTypes.SS_OPEN);
+
+    GTNetConfigEntity configEntity = entity.getGtNetConfigEntity();
+    if (configEntity == null) {
+      configEntity = new GTNetConfigEntity();
+      if (entity.getIdGtNetEntity() != null) {
+        configEntity.setIdGtNetEntity(entity.getIdGtNetEntity());
+      }
+      entity.setGtNetConfigEntity(configEntity);
+    }
+    configEntity.setExchange(configEntity.getExchange().withReceive());
   }
 
   /**
@@ -506,7 +537,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       gtNetMessage = gtNetMessageJpaRepository.saveMsg(gtNetMessage);
 
       // Apply side effects for specific response codes
-      applyManualResponseSideEffects(sourceGTNet, targetGTNet, msgRequest.messageCode);
+      applyManualResponseSideEffects(sourceGTNet, targetGTNet, msgRequest);
 
       // Send the response with replyToSourceId so the receiver can link it to their original request
       // Include payload for specific response codes
@@ -518,7 +549,9 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   /**
    * Applies side effects for manual responses that require state changes.
    */
-  private void applyManualResponseSideEffects(GTNet sourceGTNet, GTNet targetGTNet, GTNetMessageCodeType responseCode) {
+  private void applyManualResponseSideEffects(GTNet sourceGTNet, GTNet targetGTNet, MsgRequest msgRequest) {
+    GTNetMessageCodeType responseCode = msgRequest.messageCode;
+
     if (responseCode == GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_ACCEPT_S) {
       // Grant server list access to this remote
       GTNetConfig config = targetGTNet.getGtNetConfig();
@@ -527,7 +560,50 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
         gtNetConfigJpaRepository.save(config);
         log.info("Granted server list access to {} via manual response", targetGTNet.getDomainRemoteName());
       }
+    } else if (responseCode == GTNetMessageCodeType.GT_NET_DATA_REQUEST_ACCEPT_S) {
+      // When we accept their data request, we will SEND data to them
+      // Get the entityKinds from the original request message
+      Set<GTNetExchangeKindType> acceptedKinds = getEntityKindsFromOriginalRequest(msgRequest.replyTo);
+      for (GTNetExchangeKindType kind : acceptedKinds) {
+        updateEntityForSend(targetGTNet, kind);
+      }
+      gtNetJpaRepository.save(targetGTNet);
+      log.info("Created GTNetConfigEntity with SEND capability for {} entity kinds to {}",
+          acceptedKinds.size(), targetGTNet.getDomainRemoteName());
     }
+  }
+
+  /**
+   * Gets the entityKinds from the original request message.
+   */
+  private Set<GTNetExchangeKindType> getEntityKindsFromOriginalRequest(Integer replyToMessageId) {
+    if (replyToMessageId == null) {
+      return Set.of(GTNetExchangeKindType.LAST_PRICE, GTNetExchangeKindType.HISTORICAL_PRICES);
+    }
+    GTNetMessage originalRequest = gtNetMessageJpaRepository.findById(replyToMessageId).orElse(null);
+    if (originalRequest == null || originalRequest.getGtNetMessageParamMap() == null) {
+      return Set.of(GTNetExchangeKindType.LAST_PRICE, GTNetExchangeKindType.HISTORICAL_PRICES);
+    }
+    return parseEntityKinds(originalRequest.getGtNetMessageParamMap());
+  }
+
+  /**
+   * Updates a GTNetEntity to add SEND capability for the specified entity kind.
+   * When we accept their request, we will SEND data to them.
+   */
+  private void updateEntityForSend(GTNet remoteGTNet, GTNetExchangeKindType kind) {
+    GTNetEntity entity = remoteGTNet.getOrCreateEntity(kind);
+    entity.setServerState(GTNetServerStateTypes.SS_OPEN);
+
+    GTNetConfigEntity configEntity = entity.getGtNetConfigEntity();
+    if (configEntity == null) {
+      configEntity = new GTNetConfigEntity();
+      if (entity.getIdGtNetEntity() != null) {
+        configEntity.setIdGtNetEntity(entity.getIdGtNetEntity());
+      }
+      entity.setGtNetConfigEntity(configEntity);
+    }
+    configEntity.setExchange(configEntity.getExchange().withSend());
   }
 
   /**
