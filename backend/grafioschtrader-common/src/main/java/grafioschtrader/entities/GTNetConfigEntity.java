@@ -24,9 +24,9 @@ public class GTNetConfigEntity extends BaseID<Integer>  {
   @Schema(description = """
       Exchange status for entities with this remote instance. Determines the direction of the
       data flow: no exchange (0), send only (1), receive only (2), or bidirectional (3). Updated when
-      exchange requests are accepted.""")
+      exchange requests are accepted. Defaults to bidirectional (ES_BOTH).""")
   @Column(name = "exchange")
-  private byte exchange;
+  private byte exchange = GTNetExchangeStatusTypes.ES_BOTH.getValue();
   
 
   @Schema(description = """
