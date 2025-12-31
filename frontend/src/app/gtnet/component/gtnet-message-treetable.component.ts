@@ -159,8 +159,8 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   }
 
   ngOnInit(): void {
-    this.addColumn(DataType.DateTimeString, 'timestamp', 'RECEIVED_TIME', true, false);
-    this.addColumnFeqH(DataType.String, 'SEND_RECV_TIME', true, false,
+    this.addColumn(DataType.DateTimeString, 'timestamp', 'SEND_RECV_TIME', true, false);
+    this.addColumn(DataType.String, 'sendRecv', 'A', true, false,
       {fieldValueFN: this.getSendRecvIcon.bind(this), templateName: 'icon', width: 25});
     this.addColumnFeqH(DataType.String, 'messageCode', true, false, {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.String, 'message', true, false, {width: 300});

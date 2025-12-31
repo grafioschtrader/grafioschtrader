@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
-import {GTNetConfigEntity} from '../model/gtnet';
+import {GTNetConfigEntity, GTNetExchangeKindType} from '../model/gtnet';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
@@ -13,6 +13,7 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {DialogModule} from 'primeng/dialog';
 import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
+import {GTNetConfigEntityDisplay} from './gtnet-config-entity-table.component';
 
 /**
  * Dialog component for editing GTNetConfigEntity.
@@ -30,7 +31,7 @@ import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-fo
     <p-dialog header="{{ 'GT_NET_CONFIG_ENTITY_EDIT' | translate }}" [(visible)]="visibleDialog"
               [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-
+      <p class="big-size">{{gtNetConfigEntity.entityKind | translate}}</p>
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm"
                     (submitBt)="submit($event)">
@@ -40,7 +41,7 @@ import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-fo
   providers: [GTNetConfigEntityService]
 })
 export class GTNetConfigEntityEditComponent extends SimpleEntityEditBase<GTNetConfigEntity> implements OnInit {
-  @Input() gtNetConfigEntity: GTNetConfigEntity;
+  @Input() gtNetConfigEntity: GTNetConfigEntityDisplay;
 
   constructor(
     translateService: TranslateService,
@@ -48,7 +49,7 @@ export class GTNetConfigEntityEditComponent extends SimpleEntityEditBase<GTNetCo
     messageToastService: MessageToastService,
     gtNetConfigEntityService: GTNetConfigEntityService
   ) {
-    super(HelpIds.HELP_GT_NET, AppSettings.GT_NET_CONFIG_ENTITY.toUpperCase(), translateService, gps,
+    super(HelpIds.HELP_GT_NET, 'GT_NET_CONFIG_ENTITY_EDIT', translateService, gps,
       messageToastService, gtNetConfigEntityService);
   }
 
@@ -68,6 +69,7 @@ export class GTNetConfigEntityEditComponent extends SimpleEntityEditBase<GTNetCo
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): GTNetConfigEntity {
+
     const entity: GTNetConfigEntity = {
       idGtNetEntity: this.gtNetConfigEntity.idGtNetEntity,
       exchange: this.gtNetConfigEntity.exchange,
@@ -77,3 +79,5 @@ export class GTNetConfigEntityEditComponent extends SimpleEntityEditBase<GTNetCo
     return entity;
   }
 }
+
+

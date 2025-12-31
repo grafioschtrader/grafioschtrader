@@ -42,6 +42,7 @@ import {GTNetConfigEntityEditComponent} from './gtnet-config-entity-edit.compone
         [dataKey]="'idGtNetEntity'"
         [(selection)]="selectedEntity"
         [contextMenuItems]="contextMenuItems"
+        [contextMenuAppendTo]="'body'"
         [showContextMenu]="true"
         [containerClass]="{'data-container-full': true, 'nested-table': true}"
         [valueGetterFn]="getValueByPath.bind(this)"
@@ -91,7 +92,7 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
   }
 
   ngOnInit(): void {
-    this.addColumn(DataType.String, 'entityKindTranslated', 'ENTITY_KINDS', true, false,
+    this.addColumn(DataType.String, 'entityKind', 'ENTITY', true, false,
       {translateValues: TranslateValue.NORMAL, width: 150});
     this.addColumn(DataType.String, 'exchange', 'LASTPRICE_EXCHANGE', true, false,
       {translateValues: TranslateValue.NORMAL, width: 120});
@@ -120,7 +121,6 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
     return {
       ...configEntity,
       entityKind: gtNetEntity.entityKind,
-      entityKindTranslated: entityKindKey,
       exchange: typeof configEntity.exchange === 'number'
         ? GTNetExchangeStatusTypes[configEntity.exchange]
         : configEntity.exchange
@@ -136,7 +136,7 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
     this.contextMenuItems = [];
     if (this.selectedEntity) {
       this.contextMenuItems.push({
-        label: 'EDIT_RECORD',
+        label: 'EDIT_RECORD|GT_NET_CONFIG_ENTITY_EDIT',
         command: () => this.openEditDialog()
       });
     }
@@ -161,11 +161,11 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
  * Extended interface for display purposes, combining GTNetConfigEntity with entity kind information.
  * The exchange property is overridden to allow string values for translation.
  */
-interface GTNetConfigEntityDisplay {
+export interface GTNetConfigEntityDisplay {
   idGtNetEntity: number;
   exchange: GTNetExchangeStatusTypes | string;
   useDetailLog: boolean;
   consumerUsage: number;
   entityKind: GTNetExchangeKindType | string;
-  entityKindTranslated: string;
 }
+
