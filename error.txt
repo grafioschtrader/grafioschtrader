@@ -1,20 +1,25 @@
-org.hibernate.LazyInitializationException: Could not initialize proxy [grafioschtrader.entities.GTNet#1] - no session
-	at org.hibernate.proxy.AbstractLazyInitializer.initialize(AbstractLazyInitializer.java:174)
-	at org.hibernate.proxy.AbstractLazyInitializer.getImplementation(AbstractLazyInitializer.java:328)
-	at org.hibernate.proxy.pojo.bytebuddy.ByteBuddyInterceptor.intercept(ByteBuddyInterceptor.java:44)
-	at org.hibernate.proxy.ProxyConfiguration$InterceptorDispatcher.intercept(ProxyConfiguration.java:102)
-	at grafioschtrader.entities.GTNet$HibernateProxy.getDomainRemoteName(Unknown Source)
-	at grafioschtrader.service.GTNetLastpriceService.queryRemoteServer(GTNetLastpriceService.java:267)
-	at grafioschtrader.service.GTNetLastpriceService.queryRemoteServers(GTNetLastpriceService.java:236)
-	at grafioschtrader.service.GTNetLastpriceService.executeGTNetExchange(GTNetLastpriceService.java:150)
-	at grafioschtrader.service.GTNetLastpriceService.updateLastpriceIncludeSupplier(GTNetLastpriceService.java:106)
-	at grafioschtrader.reports.WatchlistReport.executeLastPriceUpdate(WatchlistReport.java:378)
-	at grafioschtrader.reports.WatchlistReport.lambda$getWatchlistwithPeriodPerformance$16(WatchlistReport.java:288)
-	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1768)
-	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.exec(CompletableFuture.java:1760)
-	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:387)
-	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312)
-	at java.base/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843)
-	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808)
-	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
-[2m2025-12-31 17:28:35.503[0;39m [33m WARN[0;39m [35m31868[0;39m [2m--- [onPool-worker-1] [0;39m[36mg.service.GTNetLastpriceService         [0;39m [2m:[0;39m Failed to query GTNet server https://grafioschtrader.com: Could not initialize proxy [grafioschtrader.entities.GTNet#1] - no session
+at [Source: UNKNOWN; byte offset: #UNKNOWN] (through reference chain: grafioschtrader.gtnet.model.msg.LastpriceExchangeMsg["empty"])
+	at com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException.from(UnrecognizedPropertyException.java:61) ~[jackson-databind-2.19.4.jar:2.19.4]
+	at com.fasterxml.jackson.databind.DeserializationContext.handleUnknownProperty(DeserializationContext.java:1180) ~[jackson-databind-2.19.4.jar:2.19.4]
+	at com.fasterxml.jackson.databind.deser.std.StdDeserializer.handleUnknownProperty(StdDeserializer.java:2244) ~[jackson-databind-2.19.4.jar:2.19.4]
+	at com.fasterxml.jackson.databind.deser.BeanDeserializerBase.handleUnknownProperty(BeanDeserializerBase.java:1823) ~[jackson-databind-2.19.4.jar:2.19.4]
+	at com.fasterxml.jackson.databind.deser.BeanDeserializerBase.handleUnknownVanilla(BeanDeserializerBase.java:1801) ~[jackson-databind-2.19.4.jar:2.19.4]
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer.vanillaDeserialize(BeanDeserializer.java:308) ~[jackson-databind-2.19.4.jar:2.19.4]
+	at com.fasterxml.jackson.databind.deser.BeanDeserializer.deserialize(BeanDeserializer.java:169) ~[jackson-databind-2.19.4.jar:2.19.4]
+	at com.fasterxml.jackson.databind.deser.DefaultDeserializationContext.readRootValue(DefaultDeserializationContext.java:342) ~[jackson-databind-2.19.4.jar:2.19.4]
+	at com.fasterxml.jackson.databind.ObjectMapper._readValue(ObjectMapper.java:4952) ~[jackson-databind-2.19.4.jar:2.19.4]
+	at com.fasterxml.jackson.databind.ObjectMapper.readValue(ObjectMapper.java:3063) ~[jackson-databind-2.19.4.jar:2.19.4]
+	at com.fasterxml.jackson.databind.ObjectMapper.treeToValue(ObjectMapper.java:3527) ~[jackson-databind-2.19.4.jar:2.19.4]
+	at grafioschtrader.service.GTNetLastpriceService.queryRemoteServer(GTNetLastpriceService.java:297) ~[classes/:na]
+	at grafioschtrader.service.GTNetLastpriceService.queryRemoteServers(GTNetLastpriceService.java:236) ~[classes/:na]
+	at grafioschtrader.service.GTNetLastpriceService.executeGTNetExchange(GTNetLastpriceService.java:157) ~[classes/:na]
+	at grafioschtrader.service.GTNetLastpriceService.updateLastpriceIncludeSupplier(GTNetLastpriceService.java:106) ~[classes/:na]
+	at grafioschtrader.reports.WatchlistReport.executeLastPriceUpdate(WatchlistReport.java:378) ~[classes/:na]
+	at grafioschtrader.reports.WatchlistReport.lambda$getWatchlistwithPeriodPerformance$16(WatchlistReport.java:288) ~[classes/:na]
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1768) ~[na:na]
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.exec(CompletableFuture.java:1760) ~[na:na]
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:387) ~[na:na]
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312) ~[na:na]
+	at java.base/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843) ~[na:na]
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808) ~[na:na]
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188) ~[na:na]

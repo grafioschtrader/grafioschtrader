@@ -3,6 +3,8 @@ package grafioschtrader.gtnet.model.msg;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import grafioschtrader.gtnet.m2m.model.InstrumentPriceDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -66,6 +68,7 @@ public class LastpriceExchangeMsg {
   /**
    * Checks if this payload is empty.
    */
+  @JsonIgnore
   public boolean isEmpty() {
     return getTotalCount() == 0;
   }
