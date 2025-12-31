@@ -8,6 +8,8 @@ import grafiosch.entities.BaseID;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorColumn;
+import jakarta.persistence.DiscriminatorType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -39,6 +41,7 @@ import jakarta.persistence.TemporalType;
 @Entity
 @Table(name = GTNetLastprice.TABNAME)
 @Inheritance(strategy = JOINED)
+@DiscriminatorColumn(name = "dtype", discriminatorType = DiscriminatorType.STRING)
 @Schema(description = """
     Abstract base class for intraday price data shared via the GT-Network. Stores normalized OHLCV data that can be
     exchanged between GTNet peers. Extended by GTNetLastpriceSecurity (for securities with ISIN) and
