@@ -20,6 +20,7 @@ import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {HelpIds} from '../../lib/help/help.ids';
 import {GTNetMessageTreeTableComponent} from './gtnet-message-treetable.component';
+import {GTNetConfigEntityTableComponent} from './gtnet-config-entity-table.component';
 import {combineLatest} from 'rxjs';
 import {GTNetMessageService} from '../service/gtnet.message.service';
 import {ClassDescriptorInputAndShow} from '../../lib/dynamicfield/field.descriptor.input.and.show';
@@ -43,7 +44,8 @@ import {ProcessedActionData} from '../../lib/types/processed.action.data';
     TooltipModule,
     GTNetEditComponent,
     GTNetMessageEditComponent,
-    GTNetMessageTreeTableComponent
+    GTNetMessageTreeTableComponent,
+    GTNetConfigEntityTableComponent
   ],
   template: `
     <configurable-table
@@ -76,6 +78,12 @@ import {ProcessedActionData} from '../../lib/types/processed.action.data';
     </configurable-table>
 
     <ng-template #expandedRow let-row>
+      @if (hasConfigEntity(row)) {
+        <gtnet-config-entity-table
+          [gtNetEntities]="row.gtNetEntities"
+          (dataChanged)="onConfigEntityDataChanged($event)">
+        </gtnet-config-entity-table>
+      }
       <gtnet-message-treetable [gtNetMessages]="gtNetMessageMap[row.idGtNet]"
                                [incomingPendingIds]="getIncomingPendingIds(row.idGtNet)"
                                [outgoingPendingIds]="getOutgoingPendingIds(row.idGtNet)"
@@ -295,6 +303,18 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.readData();
     }
+  }
+
+  /** Handle data changes from the config entity table */
+  onConfigEntityDataChanged(processedActionData: ProcessedActionData): void {
+    if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
+      this.readData();
+    }
+  }
+
+  /** Check if any GTNetEntity has a GTNetConfigEntity */
+  hasConfigEntity(row: GTNet): boolean {
+    return row.gtNetEntities?.some(entity => entity.gtNetConfigEntity != null) ?? false;
   }
 
 }

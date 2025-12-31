@@ -39,3 +39,39 @@ In this case, probably only a small intraday price data exchange will take place
 6. The request to the second instance differs only in that the price data transmitted to this remote server may be more current.
 7. The local securities and currency pairs receive intraday price data updates from this response.
 8. For securities and currency pairs that have not yet received an update, the configured connector of the instrument's intraday data source is used.
+
+
+{{< mermaid >}}
+sequenceDiagram
+    autonumber
+    participant LPO as Local Push-Open Server
+    participant R1 as Remote Push-Open #1 (prio)
+    participant R2 as Remote Push-Open #2 (prio/selected)
+    participant CON as Intraday Connector (source)
+
+    LPO->>LPO: 1) Determine exchange partners by priority (select one if tie)
+
+    LPO->>R1: 2) Send intersection + intraday data + lastUpdate timestamps
+    R1-->>LPO: 3) Return intraday data newer than in request
+    LPO->>LPO: 4) Apply intraday updates to local instruments
+
+    alt 5) Second configured push-open instance available
+        LPO->>R2: 6) Send request (possibly with more current data)
+        R2-->>LPO: 7) Return newer intraday data
+        LPO->>LPO: Apply updates from R2
+    else 5) No second configured instance
+        LPO->>LPO: Select another remote "open for exchange" by priority
+        LPO->>R2: Send request (selected instance)
+        R2-->>LPO: Return newer intraday data
+        LPO->>LPO: Apply updates from R2
+    end
+
+    LPO->>CON: 8) Fetch intraday for instruments still without update
+    CON-->>LPO: Current prices (remaining instruments)
+
+    LPO->>R1: 9) Send updates (from R2 + connector current prices)
+    R1-->>LPO: Ack: number of updated price data received
+
+    LPO->>R2: 10) Send only connector current prices
+    R2-->>LPO: Ack: number of updated price data received
+{{< /mermaid >}}
