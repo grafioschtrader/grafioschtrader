@@ -61,6 +61,7 @@ public class LastpriceExchangeMsg {
   /**
    * Returns the total number of instruments in this payload.
    */
+  @JsonIgnore
   public int getTotalCount() {
     return (securities != null ? securities.size() : 0) + (currencypairs != null ? currencypairs.size() : 0);
   }
