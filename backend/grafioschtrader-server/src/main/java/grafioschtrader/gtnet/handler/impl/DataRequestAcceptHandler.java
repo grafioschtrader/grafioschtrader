@@ -66,7 +66,10 @@ public class DataRequestAcceptHandler extends AbstractResponseHandler {
     GTNetConfigEntity configEntity = entity.getGtNetConfigEntity();
     if (configEntity == null) {
       configEntity = new GTNetConfigEntity();
-      configEntity.setIdGtNetEntity(entity.getIdGtNetEntity());
+      // Only set ID for existing entities; for new entities, JPA cascade handles ID via @PrimaryKeyJoinColumn
+      if (entity.getIdGtNetEntity() != null) {
+        configEntity.setIdGtNetEntity(entity.getIdGtNetEntity());
+      }
       entity.setGtNetConfigEntity(configEntity);
     }
     configEntity.setExchange(configEntity.getExchange().withReceive());
