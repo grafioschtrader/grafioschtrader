@@ -53,8 +53,8 @@ public abstract class GTNetLastprice extends BaseID<Integer> {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Basic(optional = false)
-  @Column(name = "id_net_lastprice")
-  protected Integer idNetLastprice;
+  @Column(name = "id_gt_net_lastprice")
+  protected Integer idGtNetLastprice;
 
   @Schema(description = "Time of the last instraday price update")
   @Column(name = "timestamp")
@@ -85,13 +85,10 @@ public abstract class GTNetLastprice extends BaseID<Integer> {
     super();
   }
 
-  public Integer getIdNetLastprice() {
-    return idNetLastprice;
+  public Integer getIdGtNetLastprice() {
+    return idGtNetLastprice;
   }
-
-  public void setIdNetLastprice(Integer idNetLastprice) {
-    this.idNetLastprice = idNetLastprice;
-  }
+ 
 
   public Date getTimestamp() {
     return timestamp;
@@ -143,7 +140,7 @@ public abstract class GTNetLastprice extends BaseID<Integer> {
 
   @Override
   public Integer getId() {
-    return idNetLastprice;
+    return idGtNetLastprice;
   }
 
 }
