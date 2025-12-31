@@ -22,8 +22,10 @@ import grafioschtrader.entities.GTNetConfig;
 import grafioschtrader.entities.Security;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
+import grafioschtrader.gtnet.m2m.model.GTNetPublicDTO;
 import grafioschtrader.gtnet.m2m.model.InstrumentPriceDTO;
 import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
+import grafioschtrader.m2m.GTNetMessageHelper;
 import grafioschtrader.gtnet.model.msg.LastpriceExchangeMsg;
 import grafioschtrader.m2m.client.BaseDataClient;
 import grafioschtrader.m2m.client.BaseDataClient.SendResult;
@@ -255,8 +257,15 @@ public class GTNetLastpriceService {
 
     LastpriceExchangeMsg requestPayload = LastpriceExchangeMsg.forRequest(securityDTOs, currencypairDTOs);
 
-    // Build MessageEnvelope
+    // Get local GTNet entry for source identification
+    GTNet myGTNet = gtNetJpaRepository
+        .getReferenceById(GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersService));
+
+    // Build MessageEnvelope with source identification
     MessageEnvelope requestEnvelope = new MessageEnvelope();
+    requestEnvelope.sourceDomain = myGTNet.getDomainRemoteName();
+    requestEnvelope.sourceGtNet = new GTNetPublicDTO(myGTNet);
+    requestEnvelope.serverBusy = myGTNet.isServerBusy();
     requestEnvelope.messageCode = GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_SEL_C.getValue();
     requestEnvelope.timestamp = new Date();
     requestEnvelope.payload = objectMapper.valueToTree(requestPayload);
