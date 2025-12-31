@@ -37,7 +37,12 @@
       "Bash(cmd /c \"cd /d C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend && mvn clean compile -Dmaven.test.skip=true\")",
       "Bash(dir /b \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\frontend\\\\src\\\\app\\\\lib\\\\taskdatamonitor\")",
       "Bash(gh --version:*)",
-      "Bash(cmd /c:*)"
+      "Bash(cmd /c:*)",
+      "Bash(findstr:*)",
+      "Bash(curl:*)",
+      "Bash(nslookup:*)",
+      "Bash(dir /b \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend\\\\grafioschtrader-server\\\\src\\\\main\\\\resources\\\\static\")",
+      "Bash(xargs:*)"
     ],
     "deny": [],
     "ask": []

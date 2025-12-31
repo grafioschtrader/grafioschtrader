@@ -41,6 +41,7 @@ public class GTNetConfigEntity extends BaseID<Integer>  {
      Priority level for using this remote domain as a supplier. A value of 0 means that this supplier is not used. Values greater than 0 indicate the priority (lower numbers = higher priority). Multiple suppliers
      with different priorities can be configured for failover scenarios.""")
   @Column(name = "consumer_usage")
+  @PropertyAlwaysUpdatable
   private byte consumerUsage;
   
 
