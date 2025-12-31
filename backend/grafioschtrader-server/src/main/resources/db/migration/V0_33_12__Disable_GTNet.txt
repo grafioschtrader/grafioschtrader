@@ -8,3 +8,6 @@ ALTER TABLE gt_net_config ADD COLUMN serverlist_access_granted TINYINT(1) NOT NU
 -- Add last_modified_time column to GTNet for determining freshness during server list exchange
 ALTER TABLE gt_net DROP COLUMN IF EXISTS last_modified_time;
 ALTER TABLE gt_net ADD COLUMN last_modified_time TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+
+ALTER TABLE gt_net_lastprice DROP COLUMN IF EXISTS dtype;
+ALTER TABLE gt_net_lastprice ADD dtype VARCHAR(1) NOT NULL AFTER id_gt_net; 
