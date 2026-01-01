@@ -56,6 +56,10 @@ public abstract class GTNetLastprice extends BaseID<Integer> {
   @Column(name = "id_gt_net_lastprice")
   protected Integer idGtNetLastprice;
 
+  @Schema(description = "Reference to the GTNet server that owns this price data")
+  @Column(name = "id_gt_net", nullable = false)
+  protected Integer idGtNet;
+
   @Schema(description = "Time of the last instraday price update")
   @Column(name = "timestamp")
   @Temporal(TemporalType.TIMESTAMP)
@@ -88,7 +92,14 @@ public abstract class GTNetLastprice extends BaseID<Integer> {
   public Integer getIdGtNetLastprice() {
     return idGtNetLastprice;
   }
- 
+
+  public Integer getIdGtNet() {
+    return idGtNet;
+  }
+
+  public void setIdGtNet(Integer idGtNet) {
+    this.idGtNet = idGtNet;
+  }
 
   public Date getTimestamp() {
     return timestamp;
