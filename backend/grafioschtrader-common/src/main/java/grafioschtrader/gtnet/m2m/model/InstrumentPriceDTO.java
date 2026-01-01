@@ -92,6 +92,7 @@ public class InstrumentPriceDTO implements Serializable {
   /**
    * Checks if this DTO represents a security (has ISIN).
    */
+  @JsonIgnore
   public boolean isSecurity() {
     return isin != null;
   }
@@ -99,6 +100,7 @@ public class InstrumentPriceDTO implements Serializable {
   /**
    * Checks if this DTO represents a currency pair (no ISIN, has toCurrency).
    */
+  @JsonIgnore
   public boolean isCurrencypair() {
     return isin == null && toCurrency != null;
   }
