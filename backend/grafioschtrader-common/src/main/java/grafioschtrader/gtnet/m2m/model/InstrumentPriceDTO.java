@@ -3,6 +3,8 @@ package grafioschtrader.gtnet.m2m.model;
 import java.io.Serializable;
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -104,6 +106,7 @@ public class InstrumentPriceDTO implements Serializable {
   /**
    * Returns a unique key for this instrument (ISIN+currency for securities, from+to for pairs).
    */
+  @JsonIgnore
   public String getKey() {
     if (isSecurity()) {
       return isin + ":" + currency;
