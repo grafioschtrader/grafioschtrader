@@ -21,6 +21,15 @@ import grafioschtrader.search.SecuritycurrencySearch;
 public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Security> {
 
   /**
+   * Batch query to find securities by ISIN+currency tuples in a single database query.
+   * Used by GTNet lastprice exchange to efficiently query multiple securities.
+   *
+   * @param isinCurrencyPairs list of [isin, currency] pairs to query
+   * @return list of matching Security entities
+   */
+  List<Security> findByIsinCurrencyTuples(List<String[]> isinCurrencyPairs);
+
+  /**
    * Completes the history for all securities or currency pairs associated with the given stock exchanges until
    * yesterday's date.
    *

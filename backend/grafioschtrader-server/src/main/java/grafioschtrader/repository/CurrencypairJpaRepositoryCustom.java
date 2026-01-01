@@ -16,6 +16,15 @@ import grafioschtrader.search.SecuritycurrencySearch;
 public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyService<Currencypair> {
 
   /**
+   * Batch query to find currency pairs by fromCurrency+toCurrency tuples in a single database query.
+   * Used by GTNet lastprice exchange to efficiently query multiple currency pairs.
+   *
+   * @param currencyPairs list of [fromCurrency, toCurrency] pairs to query
+   * @return list of matching Currencypair entities
+   */
+  List<Currencypair> findByCurrencyTuples(List<String[]> currencyPairs);
+
+  /**
    * Fetches and updates the historical end-of-day price data for all currency pairs from their respective data
    * providers up to the most recent trading day.
    *

@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -19,16 +20,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.GTNet;
 import grafioschtrader.entities.GTNetConfig;
+import grafioschtrader.entities.GTNetEntity;
 import grafioschtrader.entities.Security;
+import grafioschtrader.gtnet.AcceptRequestTypes;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.m2m.model.GTNetPublicDTO;
 import grafioschtrader.gtnet.m2m.model.InstrumentPriceDTO;
 import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
-import grafioschtrader.m2m.GTNetMessageHelper;
 import grafioschtrader.gtnet.model.msg.LastpriceExchangeMsg;
+import grafioschtrader.m2m.GTNetMessageHelper;
 import grafioschtrader.m2m.client.BaseDataClient;
 import grafioschtrader.m2m.client.BaseDataClient.SendResult;
+import grafioschtrader.gtnet.handler.impl.lastprice.PushOpenLastpriceQueryStrategy;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetExchangeJpaRepository;
 import grafioschtrader.repository.GTNetJpaRepository;
@@ -72,6 +76,9 @@ public class GTNetLastpriceService {
 
   @Autowired
   private GTNetLastpriceCurrencypairJpaRepository gtNetLastpriceCurrencypairJpaRepository;
+
+  @Autowired
+  private PushOpenLastpriceQueryStrategy pushOpenLastpriceQueryStrategy;
 
   @Autowired
   private BaseDataClient baseDataClient;
@@ -143,21 +150,26 @@ public class GTNetLastpriceService {
     log.info("GTNet exchange: {} instruments enabled, {} securities connector-only, {} pairs connector-only",
         gtNetInstruments.getTotalCount(), connectorOnlySecurities.size(), connectorOnlyCurrencypairs.size());
 
-    // 3. Query push-open servers by priority
+    // 3. If local server is AC_PUSH_OPEN, query own push pool first (before contacting remote servers)
+    if (!gtNetInstruments.isEmpty() && !gtNetInstruments.allFilled()) {
+      queryLocalPushPoolIfPushOpen(gtNetInstruments);
+    }
+
+    // 4. Query push-open servers by priority
     if (!gtNetInstruments.isEmpty() && !gtNetInstruments.allFilled()) {
       List<GTNet> pushOpenSuppliers = getSuppliersByPriorityWithRandomization(
           gtNetJpaRepository.findPushOpenSuppliers());
       queryRemoteServers(pushOpenSuppliers, gtNetInstruments);
     }
 
-    // 4. Query open servers for remaining
+    // 5. Query open servers for remaining
     if (!gtNetInstruments.isEmpty() && !gtNetInstruments.allFilled()) {
       List<GTNet> openSuppliers = getSuppliersByPriorityWithRandomization(
           gtNetJpaRepository.findOpenSuppliers());
       queryRemoteServers(openSuppliers, gtNetInstruments);
     }
 
-    // 5. Collect unfilled instruments for connector fallback
+    // 6. Collect unfilled instruments for connector fallback
     List<Security> remainingSecurities = gtNetInstruments.getUnfilledSecurities();
     remainingSecurities.addAll(connectorOnlySecurities);
 
@@ -167,7 +179,7 @@ public class GTNetLastpriceService {
     log.info("GTNet exchange complete: {} securities remaining for connector, {} pairs remaining",
         remainingSecurities.size(), remainingPairs.size());
 
-    // 6. Fall back to connectors for remaining instruments
+    // 7. Fall back to connectors for remaining instruments
     currencypairJpaRepository.updateLastPriceByList(currenciesNotInList);
     List<Security> updatedSecurities = securityJpaRepository.updateLastPriceByList(remainingSecurities);
     List<Currencypair> updatedPairs = currencypairJpaRepository.updateLastPriceByList(remainingPairs);
@@ -311,6 +323,62 @@ public class GTNetLastpriceService {
 
     } catch (JsonProcessingException e) {
       log.error("Failed to parse lastprice response from {}", supplier.getDomainRemoteName(), e);
+    }
+  }
+
+  /**
+   * Queries the local push pool if this server is configured as AC_PUSH_OPEN.
+   * This allows the server to use its own cached prices before contacting remote servers.
+   *
+   * @param instruments the instrument set to query and update
+   */
+  private void queryLocalPushPoolIfPushOpen(InstrumentExchangeSet instruments) {
+    // Get local GTNet entry
+    Integer myGTNetId = globalparametersService.getGTNetMyEntryID();
+    if (myGTNetId == null) {
+      return;
+    }
+
+    Optional<GTNet> myGTNetOpt = gtNetJpaRepository.findById(myGTNetId);
+    if (myGTNetOpt.isEmpty()) {
+      return;
+    }
+
+    GTNet myGTNet = myGTNetOpt.get();
+
+    // Check if we have an AC_PUSH_OPEN LAST_PRICE entity
+    Optional<GTNetEntity> lastpriceEntity = myGTNet.getEntity(GTNetExchangeKindType.LAST_PRICE);
+    if (lastpriceEntity.isEmpty()) {
+      return;
+    }
+
+    AcceptRequestTypes acceptMode = lastpriceEntity.get().getAcceptRequest();
+    if (acceptMode != AcceptRequestTypes.AC_PUSH_OPEN) {
+      return;
+    }
+
+    log.debug("Querying local push pool (AC_PUSH_OPEN mode)");
+
+    // Query local push pool for securities
+    List<InstrumentPriceDTO> securityDTOs = instruments.getUnfilledSecurityDTOs();
+    if (!securityDTOs.isEmpty()) {
+      List<InstrumentPriceDTO> securityPrices = pushOpenLastpriceQueryStrategy.querySecurities(
+          securityDTOs, Collections.emptySet());
+      if (!securityPrices.isEmpty()) {
+        instruments.processResponse(securityPrices, null);
+        log.debug("Local push pool: found {} security prices", securityPrices.size());
+      }
+    }
+
+    // Query local push pool for currency pairs
+    List<InstrumentPriceDTO> currencypairDTOs = instruments.getUnfilledCurrencypairDTOs();
+    if (!currencypairDTOs.isEmpty()) {
+      List<InstrumentPriceDTO> currencypairPrices = pushOpenLastpriceQueryStrategy.queryCurrencypairs(
+          currencypairDTOs, Collections.emptySet());
+      if (!currencypairPrices.isEmpty()) {
+        instruments.processResponse(null, currencypairPrices);
+        log.debug("Local push pool: found {} currencypair prices", currencypairPrices.size());
+      }
     }
   }
 
