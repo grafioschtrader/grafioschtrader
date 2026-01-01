@@ -1,8 +1,5 @@
 package grafioschtrader.gtnet.handler.impl;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -11,13 +8,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.GTNet;
 import grafioschtrader.entities.GTNetEntity;
-import grafioschtrader.entities.GTNetLastpriceCurrencypair;
-import grafioschtrader.entities.GTNetLastpriceSecurity;
 import grafioschtrader.entities.GTNetMessage;
-import grafioschtrader.entities.Security;
 import grafioschtrader.gtnet.AcceptRequestTypes;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
@@ -25,23 +18,21 @@ import grafioschtrader.gtnet.MessageCategory;
 import grafioschtrader.gtnet.handler.AbstractGTNetMessageHandler;
 import grafioschtrader.gtnet.handler.GTNetMessageContext;
 import grafioschtrader.gtnet.handler.HandlerResult;
-import grafioschtrader.gtnet.m2m.model.InstrumentPriceDTO;
+import grafioschtrader.gtnet.handler.impl.lastprice.LastpriceQueryStrategy;
+import grafioschtrader.gtnet.handler.impl.lastprice.OpenLastpriceQueryStrategy;
+import grafioschtrader.gtnet.handler.impl.lastprice.PushOpenLastpriceQueryStrategy;
 import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.gtnet.model.msg.LastpriceExchangeMsg;
-import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetExchangeJpaRepository;
-import grafioschtrader.repository.GTNetLastpriceCurrencypairJpaRepository;
-import grafioschtrader.repository.GTNetLastpriceSecurityJpaRepository;
-import grafioschtrader.repository.SecurityJpaRepository;
 
 /**
  * Handler for GT_NET_LASTPRICE_EXCHANGE_SEL_C requests from remote instances.
  *
- * Processes intraday price data requests and returns prices that are newer than the requester's timestamps. The handler
- * operates differently based on the local server's acceptRequest mode:
+ * Processes intraday price data requests and returns prices that are newer than the requester's timestamps.
+ * Delegates to strategy classes based on the local server's acceptRequest mode:
  * <ul>
- *   <li>AC_PUSH_OPEN: Queries GTNetLastprice* tables (shared price pool)</li>
- *   <li>AC_OPEN: Queries Security/Currencypair entities directly (local data only)</li>
+ *   <li>{@link PushOpenLastpriceQueryStrategy} for AC_PUSH_OPEN: Queries GTNetLastprice* tables (shared price pool)</li>
+ *   <li>{@link OpenLastpriceQueryStrategy} for AC_OPEN: Queries and updates local Security/Currencypair entities</li>
  * </ul>
  *
  * @see GTNetMessageCodeType#GT_NET_LASTPRICE_EXCHANGE_SEL_C
@@ -52,16 +43,10 @@ public class LastpriceExchangeHandler extends AbstractGTNetMessageHandler {
   private static final Logger log = LoggerFactory.getLogger(LastpriceExchangeHandler.class);
 
   @Autowired
-  private SecurityJpaRepository securityJpaRepository;
+  private PushOpenLastpriceQueryStrategy pushOpenStrategy;
 
   @Autowired
-  private CurrencypairJpaRepository currencypairJpaRepository;
-
-  @Autowired
-  private GTNetLastpriceSecurityJpaRepository gtNetLastpriceSecurityJpaRepository;
-
-  @Autowired
-  private GTNetLastpriceCurrencypairJpaRepository gtNetLastpriceCurrencypairJpaRepository;
+  private OpenLastpriceQueryStrategy openStrategy;
 
   @Autowired
   private GTNetExchangeJpaRepository gtNetExchangeJpaRepository;
@@ -111,23 +96,19 @@ public class LastpriceExchangeHandler extends AbstractGTNetMessageHandler {
     // Get IDs of instruments we're allowed to send
     Set<Integer> sendableIds = gtNetExchangeJpaRepository.findIdsWithLastpriceSend();
 
-    // Determine data source based on accept mode
+    // Select strategy based on accept mode
     AcceptRequestTypes acceptMode = lastpriceEntity.get().getAcceptRequest();
+    LastpriceQueryStrategy strategy = selectStrategy(acceptMode);
+
+    // Execute queries using the selected strategy
     LastpriceExchangeMsg response = new LastpriceExchangeMsg();
+    response.securities = strategy.querySecurities(request.securities, sendableIds);
+    response.currencypairs = strategy.queryCurrencypairs(request.currencypairs, sendableIds);
 
-    if (acceptMode == AcceptRequestTypes.AC_PUSH_OPEN) {
-      // Query from GTNetLastprice* tables (shared pool)
-      response.securities = querySecuritiesFromPushPool(request.securities, sendableIds);
-      response.currencypairs = queryCurrencypairsFromPushPool(request.currencypairs, sendableIds);
-    } else {
-      // Query from Security/Currencypair entities directly
-      response.securities = querySecuritiesFromLocal(request.securities, sendableIds);
-      response.currencypairs = queryCurrencypairsFromLocal(request.currencypairs, sendableIds);
-    }
-
-    log.info("Responding with {} securities and {} currencypairs to {}",
+    log.info("Responding with {} securities and {} currencypairs to {} (mode: {})",
         response.securities.size(), response.currencypairs.size(),
-        context.getRemoteGTNet() != null ? context.getRemoteGTNet().getDomainRemoteName() : "unknown");
+        context.getRemoteGTNet() != null ? context.getRemoteGTNet().getDomainRemoteName() : "unknown",
+        acceptMode);
 
     // Store response message
     GTNetMessage responseMsg = storeResponseMessage(context, GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_RESPONSE_S,
@@ -139,174 +120,14 @@ public class LastpriceExchangeHandler extends AbstractGTNetMessageHandler {
   }
 
   /**
-   * Queries securities from the push-open pool (GTNetLastpriceSecurity table).
+   * Selects the appropriate query strategy based on the accept mode.
    */
-  private List<InstrumentPriceDTO> querySecuritiesFromPushPool(List<InstrumentPriceDTO> requested,
-      Set<Integer> sendableIds) {
-    List<InstrumentPriceDTO> result = new ArrayList<>();
-    if (requested == null || requested.isEmpty()) {
-      return result;
+  private LastpriceQueryStrategy selectStrategy(AcceptRequestTypes acceptMode) {
+    if (acceptMode == AcceptRequestTypes.AC_PUSH_OPEN) {
+      return pushOpenStrategy;
     }
-
-    for (InstrumentPriceDTO req : requested) {
-      if (req.getIsin() == null || req.getCurrency() == null) {
-        continue;
-      }
-
-      // Query from GTNetLastpriceSecurity - need to add a method that finds by single ISIN+currency
-      List<String> isins = List.of(req.getIsin());
-      List<String> currencies = List.of(req.getCurrency());
-      List<GTNetLastpriceSecurity> prices =
-          gtNetLastpriceSecurityJpaRepository.getLastpricesByListByIsinsAndCurrencies(isins, currencies);
-
-      for (GTNetLastpriceSecurity price : prices) {
-        if (isNewer(price.getTimestamp(), req.getTimestamp())) {
-          result.add(fromGTNetLastpriceSecurity(price));
-        }
-      }
-    }
-    return result;
-  }
-
-  /**
-   * Queries currency pairs from the push-open pool (GTNetLastpriceCurrencypair table).
-   */
-  private List<InstrumentPriceDTO> queryCurrencypairsFromPushPool(List<InstrumentPriceDTO> requested,
-      Set<Integer> sendableIds) {
-    List<InstrumentPriceDTO> result = new ArrayList<>();
-    if (requested == null || requested.isEmpty()) {
-      return result;
-    }
-
-    for (InstrumentPriceDTO req : requested) {
-      if (req.getCurrency() == null || req.getToCurrency() == null) {
-        continue;
-      }
-
-      List<String> fromCurrencies = List.of(req.getCurrency());
-      List<String> toCurrencies = List.of(req.getToCurrency());
-      List<GTNetLastpriceCurrencypair> prices =
-          gtNetLastpriceCurrencypairJpaRepository.getLastpricesByListByFromAndToCurrencies(fromCurrencies, toCurrencies);
-
-      for (GTNetLastpriceCurrencypair price : prices) {
-        if (isNewer(price.getTimestamp(), req.getTimestamp())) {
-          result.add(fromGTNetLastpriceCurrencypair(price));
-        }
-      }
-    }
-    return result;
-  }
-
-  /**
-   * Queries securities from local Security entities.
-   */
-  private List<InstrumentPriceDTO> querySecuritiesFromLocal(List<InstrumentPriceDTO> requested,
-      Set<Integer> sendableIds) {
-    List<InstrumentPriceDTO> result = new ArrayList<>();
-    if (requested == null || requested.isEmpty()) {
-      return result;
-    }
-
-    for (InstrumentPriceDTO req : requested) {
-      if (req.getIsin() == null || req.getCurrency() == null) {
-        continue;
-      }
-
-      Security security = securityJpaRepository.findByIsinAndCurrency(req.getIsin(), req.getCurrency());
-      if (security == null) {
-        continue;
-      }
-
-      // Check if we're allowed to send this instrument
-      if (!sendableIds.isEmpty() && !sendableIds.contains(security.getIdSecuritycurrency())) {
-        continue;
-      }
-
-      if (isNewer(security.getSTimestamp(), req.getTimestamp())) {
-        result.add(InstrumentPriceDTO.fromSecurity(security));
-      }
-    }
-    return result;
-  }
-
-  /**
-   * Queries currency pairs from local Currencypair entities.
-   */
-  private List<InstrumentPriceDTO> queryCurrencypairsFromLocal(List<InstrumentPriceDTO> requested,
-      Set<Integer> sendableIds) {
-    List<InstrumentPriceDTO> result = new ArrayList<>();
-    if (requested == null || requested.isEmpty()) {
-      return result;
-    }
-
-    for (InstrumentPriceDTO req : requested) {
-      if (req.getCurrency() == null || req.getToCurrency() == null) {
-        continue;
-      }
-
-      Currencypair currencypair = currencypairJpaRepository.findByFromCurrencyAndToCurrency(
-          req.getCurrency(), req.getToCurrency());
-      if (currencypair == null) {
-        continue;
-      }
-
-      // Check if we're allowed to send this instrument
-      if (!sendableIds.isEmpty() && !sendableIds.contains(currencypair.getIdSecuritycurrency())) {
-        continue;
-      }
-
-      if (isNewer(currencypair.getSTimestamp(), req.getTimestamp())) {
-        result.add(InstrumentPriceDTO.fromCurrencypair(currencypair));
-      }
-    }
-    return result;
-  }
-
-  /**
-   * Checks if the local timestamp is newer than the requested timestamp.
-   */
-  private boolean isNewer(Date local, Date requested) {
-    if (local == null) {
-      return false;
-    }
-    if (requested == null) {
-      return true; // Requester has no data, any local data is newer
-    }
-    return local.after(requested);
-  }
-
-  /**
-   * Creates an InstrumentPriceDTO from a GTNetLastpriceSecurity entity.
-   */
-  private InstrumentPriceDTO fromGTNetLastpriceSecurity(GTNetLastpriceSecurity price) {
-    InstrumentPriceDTO dto = new InstrumentPriceDTO();
-    dto.setIsin(price.getIsin());
-    dto.setCurrency(price.getCurrency());
-    dto.setToCurrency(null);
-    dto.setTimestamp(price.getTimestamp());
-    dto.setOpen(price.getOpen());
-    dto.setHigh(price.getHigh());
-    dto.setLow(price.getLow());
-    dto.setLast(price.getLast());
-    dto.setVolume(price.getVolume());
-    return dto;
-  }
-
-  /**
-   * Creates an InstrumentPriceDTO from a GTNetLastpriceCurrencypair entity.
-   */
-  private InstrumentPriceDTO fromGTNetLastpriceCurrencypair(GTNetLastpriceCurrencypair price) {
-    InstrumentPriceDTO dto = new InstrumentPriceDTO();
-    dto.setIsin(null);
-    dto.setCurrency(price.getFromCurrency());
-    dto.setToCurrency(price.getToCurrency());
-    dto.setTimestamp(price.getTimestamp());
-    dto.setOpen(price.getOpen());
-    dto.setHigh(price.getHigh());
-    dto.setLow(price.getLow());
-    dto.setLast(price.getLast());
-    dto.setVolume(price.getVolume());
-    return dto;
+    // AC_OPEN or any other mode uses the open strategy
+    return openStrategy;
   }
 
   /**

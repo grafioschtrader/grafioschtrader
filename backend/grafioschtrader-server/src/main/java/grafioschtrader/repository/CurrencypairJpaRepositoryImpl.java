@@ -481,4 +481,36 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
     currencypairJpaRepository.resetRetryIntraByConnector(connectorId);
   }
 
+  @Override
+  @SuppressWarnings("unchecked")
+  public List<Currencypair> findByCurrencyTuples(List<String[]> currencyPairs) {
+    if (currencyPairs == null || currencyPairs.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    // Build dynamic SQL with tuple IN clause: WHERE (from_currency, to_currency) IN (('EUR','USD'), ('CHF','EUR'), ...)
+    StringBuilder sql = new StringBuilder();
+    sql.append("SELECT * FROM currencypair c ");
+    sql.append("JOIN securitycurrency sc ON c.id_securitycurrency = sc.id_securitycurrency ");
+    sql.append("WHERE (c.from_currency, c.to_currency) IN (");
+
+    List<Object> params = new ArrayList<>();
+    for (int i = 0; i < currencyPairs.size(); i++) {
+      if (i > 0) {
+        sql.append(", ");
+      }
+      sql.append("(?, ?)");
+      params.add(currencyPairs.get(i)[0]); // fromCurrency
+      params.add(currencyPairs.get(i)[1]); // toCurrency
+    }
+    sql.append(")");
+
+    var query = entityManager.createNativeQuery(sql.toString(), Currencypair.class);
+    for (int i = 0; i < params.size(); i++) {
+      query.setParameter(i + 1, params.get(i));
+    }
+
+    return query.getResultList();
+  }
+
 }

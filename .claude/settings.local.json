@@ -42,7 +42,9 @@
       "Bash(curl:*)",
       "Bash(nslookup:*)",
       "Bash(dir /b \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend\\\\grafioschtrader-server\\\\src\\\\main\\\\resources\\\\static\")",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(dir /b \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend\\\\grafioschtrader-server\\\\src\\\\main\\\\java\\\\grafioschtrader\\\\gtnet\")",
+      "Bash(del \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend\\\\grafioschtrader-server\\\\src\\\\main\\\\java\\\\grafioschtrader\\\\service\\\\LastpricePoolQueryService.java\")"
     ],
     "deny": [],
     "ask": []
