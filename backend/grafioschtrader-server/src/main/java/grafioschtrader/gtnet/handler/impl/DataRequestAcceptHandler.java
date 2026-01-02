@@ -72,17 +72,7 @@ public class DataRequestAcceptHandler extends AbstractResponseHandler {
   private void updateEntityForReceive(GTNet remoteGTNet, GTNetExchangeKindType kind) {
     GTNetEntity entity = remoteGTNet.getOrCreateEntity(kind);
     entity.setServerState(GTNetServerStateTypes.SS_OPEN);
-
-    GTNetConfigEntity configEntity = entity.getGtNetConfigEntity();
-    if (configEntity == null) {
-      configEntity = new GTNetConfigEntity();
-      // Only set ID for existing entities; for new entities, JPA cascade handles ID via @PrimaryKeyJoinColumn
-      if (entity.getIdGtNetEntity() != null) {
-        configEntity.setIdGtNetEntity(entity.getIdGtNetEntity());
-      }
-      entity.setGtNetConfigEntity(configEntity);
-    }
-    // Note: exchange defaults to ES_BOTH now, withReceive() ensures RECEIVE is set
+    GTNetConfigEntity configEntity = entity.getOrCreateConfigEntity();
     configEntity.setExchange(configEntity.getExchange().withReceive());
   }
 

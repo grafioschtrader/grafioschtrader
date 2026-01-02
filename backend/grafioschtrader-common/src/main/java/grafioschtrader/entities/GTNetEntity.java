@@ -130,6 +130,23 @@ public class GTNetEntity extends BaseID<Integer> {
     this.gtNetConfigEntity = gtNetConfigEntity;
   }
 
+  /**
+   * Returns the existing GTNetConfigEntity or creates a new one if none exists.
+   * Handles the ID binding required for the @PrimaryKeyJoinColumn relationship:
+   * for persisted entities, sets the config entity's ID; for new entities, JPA cascade handles it.
+   *
+   * @return the existing or newly created GTNetConfigEntity
+   */
+  public GTNetConfigEntity getOrCreateConfigEntity() {
+    if (gtNetConfigEntity == null) {
+      gtNetConfigEntity = new GTNetConfigEntity();
+      if (idGtNetEntity != null) {
+        gtNetConfigEntity.setIdGtNetEntity(idGtNetEntity);
+      }
+    }
+    return gtNetConfigEntity;
+  }
+
   public Short getMaxLimit() {
     return maxLimit;
   }

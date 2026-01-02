@@ -90,17 +90,7 @@ public class DataRequestHandler extends AbstractRequestHandler {
     GTNetEntity entity = getOrCreateEntity(remoteGTNet, kind);
     entity.setAcceptRequest(AcceptRequestTypes.AC_OPEN);
     entity.setServerState(GTNetServerStateTypes.SS_OPEN);
-
-    // Update the corresponding GTNetConfigEntity exchange status - add SEND capability
-    GTNetConfigEntity configEntity = entity.getGtNetConfigEntity();
-    if (configEntity == null) {
-      configEntity = new GTNetConfigEntity();
-      // Only set ID for existing entities; for new entities, JPA cascade handles ID via @PrimaryKeyJoinColumn
-      if (entity.getIdGtNetEntity() != null) {
-        configEntity.setIdGtNetEntity(entity.getIdGtNetEntity());
-      }
-      entity.setGtNetConfigEntity(configEntity);
-    }
+    GTNetConfigEntity configEntity = entity.getOrCreateConfigEntity();
     configEntity.setExchange(configEntity.getExchange().withSend());
   }
 

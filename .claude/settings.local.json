@@ -55,7 +55,8 @@
       "Bash(cmd.exe /c \"cd /d C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\frontend && npm run build\")",
       "Bash(powershell.exe -Command \"cd C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend; mvn clean compile -Dmaven.test.skip=true\")",
       "Bash(powershell.exe -Command \"cd C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\frontend; npm run build\")",
-      "Bash(powershell.exe -Command \"cd C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend; mvn clean compile -Dmaven.test.skip=true -pl grafioschtrader-server -am 2>&1 | Select-Object -Last 30\")"
+      "Bash(powershell.exe -Command \"cd C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend; mvn clean compile -Dmaven.test.skip=true -pl grafioschtrader-server -am 2>&1 | Select-Object -Last 30\")",
+      "Bash(powershell.exe -Command \"cd C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend; mvn clean compile -Dmaven.test.skip=true 2>&1 | Select-Object -Last 30\")"
     ],
     "deny": [],
     "ask": []
