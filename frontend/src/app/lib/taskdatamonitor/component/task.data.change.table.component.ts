@@ -120,10 +120,11 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
   currentTaskFilter: number[] | null = null;
 
   tdcFormConstraints: TaskDataChangeFormConstraints;
+  taskTypeEnum: any;
 
   constructor(private taskDataChangeService: TaskDataChangeService,
     @Inject(TASK_EXTENDED_SERVICE) private taskExtendService: ITaskExtendService,
-    @Inject(TASK_TYPE_ENUM)  taskTypeEnum: any,
+    @Inject(TASK_TYPE_ENUM) taskTypeEnum: any,
     confirmationService: ConfirmationService,
     messageToastService: MessageToastService,
     activePanelService: ActivePanelService,
@@ -136,6 +137,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
       dialogService, filterService, translateService, gps, usersettingsService,
       gps.hasRole(BaseSettings.ROLE_ADMIN) ? [CrudMenuOptions.Allow_Create,
         CrudMenuOptions.Allow_Delete] : []);
+    this.taskTypeEnum = taskTypeEnum;
 
     this.addColumnFeqH(DataType.NumericInteger, 'idTaskDataChange', true, false);
     this.addColumnFeqH(DataType.DateTimeSecondString, 'creationTime', true, false);
