@@ -187,6 +187,9 @@ public class GTNetLastpriceService {
     List<Security> updatedSecurities = securityJpaRepository.updateLastPriceByList(remainingSecurities);
     List<Currencypair> updatedPairs = currencypairJpaRepository.updateLastPriceByList(remainingPairs);
 
+    // 8. If local server is AC_PUSH_OPEN, update push pool with connector-fetched prices
+    updatePushPoolIfPushOpen(updatedSecurities, updatedPairs);
+
     // Combine with already-filled instruments
     List<Security> allSecurities = new ArrayList<>(gtNetInstruments.getAllSecurities());
     for (Security s : updatedSecurities) {
@@ -386,6 +389,62 @@ public class GTNetLastpriceService {
       if (!currencypairPrices.isEmpty()) {
         instruments.processResponse(null, currencypairPrices);
         log.debug("Local push pool: found {} currencypair prices", currencypairPrices.size());
+      }
+    }
+  }
+
+  /**
+   * Updates the GTNetLastprice* push pool tables with connector-fetched prices if this server is AC_PUSH_OPEN.
+   * This ensures that prices obtained from connectors are available for remote clients requesting data.
+   *
+   * For each instrument:
+   * - If no entry exists in the push pool, creates a new one
+   * - If an entry exists but the connector price is newer, updates it
+   * - If an entry exists with a newer or equal timestamp, skips it
+   *
+   * @param securities list of securities with updated prices from connectors
+   * @param currencypairs list of currency pairs with updated prices from connectors
+   */
+  private void updatePushPoolIfPushOpen(List<Security> securities, List<Currencypair> currencypairs) {
+    // Get local GTNet entry
+    Integer myGTNetId = globalparametersService.getGTNetMyEntryID();
+    if (myGTNetId == null) {
+      return;
+    }
+
+    Optional<GTNet> myGTNetOpt = gtNetJpaRepository.findById(myGTNetId);
+    if (myGTNetOpt.isEmpty()) {
+      return;
+    }
+
+    GTNet myGTNet = myGTNetOpt.get();
+
+    // Check if we have an AC_PUSH_OPEN LAST_PRICE entity
+    Optional<GTNetEntity> lastpriceEntity = myGTNet.getEntity(GTNetExchangeKindType.LAST_PRICE);
+    if (lastpriceEntity.isEmpty()) {
+      return;
+    }
+
+    AcceptRequestTypes acceptMode = lastpriceEntity.get().getAcceptRequest();
+    if (acceptMode != AcceptRequestTypes.AC_PUSH_OPEN) {
+      return;
+    }
+
+    log.debug("Updating push pool with connector-fetched prices (AC_PUSH_OPEN mode)");
+
+    // Update securities in push pool
+    if (securities != null && !securities.isEmpty()) {
+      int securityCount = gtNetLastpriceSecurityJpaRepository.updateFromConnectorFetch(securities, myGTNetId);
+      if (securityCount > 0) {
+        log.debug("Updated {} securities in push pool", securityCount);
+      }
+    }
+
+    // Update currency pairs in push pool
+    if (currencypairs != null && !currencypairs.isEmpty()) {
+      int currencypairCount = gtNetLastpriceCurrencypairJpaRepository.updateFromConnectorFetch(currencypairs, myGTNetId);
+      if (currencypairCount > 0) {
+        log.debug("Updated {} currency pairs in push pool", currencypairCount);
       }
     }
   }

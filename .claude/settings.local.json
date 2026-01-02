@@ -50,7 +50,8 @@
       "Bash(del \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend\\\\grafioschtrader-common\\\\src\\\\main\\\\java\\\\grafioschtrader\\\\entities\\\\GTNetLastpriceDetailLog.java\")",
       "Bash(cmd.exe /c \"cd /d C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend && mvn clean compile -Dmaven.test.skip=true 2>&1\")",
       "Bash(powershell.exe -Command \"cd C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend; mvn clean compile -Dmaven.test.skip=true 2>&1\")",
-      "Bash(cmd.exe /c \"cd /d C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend && mvn clean compile -Dmaven.test.skip=true\")"
+      "Bash(cmd.exe /c \"cd /d C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend && mvn clean compile -Dmaven.test.skip=true\")",
+      "Bash(powershell.exe -Command \"Remove-Item -Path ''C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend\\\\grafioschtrader-server\\\\target\\\\classes\\\\grafioschtrader\\\\repository\\\\GTNetLastprice*'' -Force -ErrorAction SilentlyContinue; Remove-Item -Path ''C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend\\\\grafioschtrader-server\\\\target\\\\classes\\\\grafioschtrader\\\\service\\\\GTNetLastpriceService.class'' -Force -ErrorAction SilentlyContinue; echo ''Deleted class files''\")"
     ],
     "deny": [],
     "ask": []
