@@ -60,7 +60,7 @@ public class GTNetEntity extends BaseID<Integer> {
   @Column(name = "max_limit")
   @Min(value = 10)
   @Max(value = 999)
-  private Short maxLimit;
+  private Short maxLimit = 300;
 
   @Schema(description = "Enables exchange statistics logging for this entity type. When true, exchange requests and responses are logged to GTNetExchangeLog.")
   @Column(name = "enable_log")
