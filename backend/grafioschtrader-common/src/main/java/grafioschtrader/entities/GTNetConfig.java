@@ -74,7 +74,7 @@ public class GTNetConfig extends BaseID<Integer>  {
       sends a request that exceeds the configured max_limit for an entity kind (e.g., requesting more than 300
       instruments in a single lastprice request). Used to identify misbehaving clients. Max value is 99.""")
   @Column(name = "request_violation_count")
-  private Byte requestViolationCount;
+  private Byte requestViolationCount = 0;
 
   @Override
   public Integer getId() {
