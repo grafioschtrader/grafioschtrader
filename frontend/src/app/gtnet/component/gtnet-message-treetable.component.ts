@@ -2,7 +2,7 @@ import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angula
 import {CommonModule} from '@angular/common';
 import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {getReverseCode, getValidResponseCodes, GTNetMessage, GTNetMessageCodeType, MsgCallParam, SendReceivedType} from '../model/gtnet.message';
+import {DeliveryStatus, getReverseCode, getValidResponseCodes, GTNetMessage, GTNetMessageCodeType, MsgCallParam, SendReceivedType} from '../model/gtnet.message';
 import {MsgRequest} from '../model/gtnet';
 import {GTNetService} from '../service/gtnet.service';
 import {MenuItem, TreeNode} from 'primeng/api';
@@ -391,12 +391,16 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   }
 
   /**
-   * Returns the background color for pending messages:
+   * Returns the background color for messages based on their status:
+   * - red: delivery failed (all retry attempts exhausted)
    * - greenyellow: incoming pending requests (I need to answer)
    * - yellow: outgoing pending requests (awaiting answer from recipient)
-   * - null: not pending
+   * - null: normal state
    */
   getPendingBackgroundColor(rowData: GTNetMessage): string | null {
+    if (rowData.deliveryStatus === DeliveryStatus.FAILED || rowData.deliveryStatus === 'FAILED') {
+      return 'red';
+    }
     if (this.incomingPendingIds?.has(rowData.idGtNetMessage)) {
       return 'greenyellow';
     }

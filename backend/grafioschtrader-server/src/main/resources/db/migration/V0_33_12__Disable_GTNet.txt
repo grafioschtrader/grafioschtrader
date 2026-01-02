@@ -18,6 +18,8 @@ INSERT INTO globalparameters(property_name, property_date_time, changed_by_syste
 UPDATE globalparameters SET input_rule = 'min:1,max:99' WHERE property_name IN('gt.split.retry', 'g.max.limit.request.exceeded.count');
 UPDATE globalparameters SET input_rule = 'min:2,max:24' WHERE property_name IN('gt.max.correlation.instruments');
 
+ALTER TABLE gt_net_message DROP COLUMN IF EXISTS delivery_status;
+ALTER TABLE gt_net_message ADD delivery_status TINYINT(1) NOT NULL DEFAULT '0';
 
 -- Add serverlist_access_granted column to track if a remote has been granted access to our server list
 ALTER TABLE gt_net_config DROP COLUMN IF EXISTS serverlist_access_granted;

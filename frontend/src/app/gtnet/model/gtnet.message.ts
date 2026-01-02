@@ -11,7 +11,14 @@ export class GTNetMessage {
   gtNetMessageParamMap: Map<string, BaseParam> | { [key: string]: BaseParam };
   message: string = null;
   hasBeenRead: boolean = false;
+  deliveryStatus: DeliveryStatus | string = DeliveryStatus.PENDING;
   waitDaysApply: number = 0;
+}
+
+export enum DeliveryStatus {
+  PENDING = 0,
+  DELIVERED = 1,
+  FAILED = 2
 }
 
 export class MsgCallParam {
