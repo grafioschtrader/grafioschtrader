@@ -34,11 +34,11 @@ export class GTNetSupplierDetailTableComponent implements OnInit {
 
   ngOnInit(): void {
     this.fields = [
-      ShowRecordConfigBase.createColumnConfig(DataType.String, 'supplier.gtNet.domainRemoteName', 'GT_NET_REMOTE_DOMAIN'),
+      ShowRecordConfigBase.createColumnConfig(DataType.String, 'gtNet.domainRemoteName', 'GT_NET_REMOTE_DOMAIN'),
       ShowRecordConfigBase.createColumnConfig(DataType.String, 'serverState', 'GT_NET_ENTITY_SERVER_STATE', true, true,
         {fieldValueFN: this.getServerStateLabel.bind(this)}),
       ShowRecordConfigBase.createColumnConfig(DataType.String, 'detail.priceType', 'PRICE_TYPE'),
-      ShowRecordConfigBase.createColumnConfig(DataType.DateTimeNumeric, 'supplier.lastUpdate', 'LAST_UPDATE')
+      ShowRecordConfigBase.createColumnConfig(DataType.DateTimeNumeric, 'gtNet.gtNetConfig.supplierLastUpdate', 'LAST_UPDATE')
     ];
     this.translateHeaders(this.fields);
 
@@ -47,8 +47,8 @@ export class GTNetSupplierDetailTableComponent implements OnInit {
       data.forEach(dto => {
         dto.details.forEach(detail => {
           this.flattenedData.push({
-            uniqueId: `${dto.supplier.idGtNetSupplier}-${detail.idGtNetSupplierDetail}`,
-            supplier: dto.supplier,
+            uniqueId: `${dto.gtNet.idGtNet}-${detail.idGtNetSupplierDetail}`,
+            gtNet: dto.gtNet,
             detail: detail
           });
         });
@@ -58,7 +58,7 @@ export class GTNetSupplierDetailTableComponent implements OnInit {
 
   getServerStateLabel(data: any, field: ColumnConfig): string {
     // Get the server state from the appropriate GTNetEntity based on the detail's priceType
-    const gtNet = data.supplier.gtNet;
+    const gtNet = data.gtNet;
     const priceType = data.detail.priceType;
     const entityKind = priceType === 'HISTORICAL' ? GTNetExchangeKindType.HISTORICAL_PRICES : GTNetExchangeKindType.LAST_PRICE;
     const entity = gtNet.gtNetEntities?.find((e: any) => e.entityKind === entityKind);
