@@ -314,6 +314,11 @@ public class GTNetLastpriceService {
     try {
       LastpriceExchangeMsg responsePayload = objectMapper.treeToValue(response.payload, LastpriceExchangeMsg.class);
 
+      if (responsePayload == null) {
+        log.debug("Empty response payload from {}", supplier.getDomainRemoteName());
+        return;
+      }
+
       int responseCount = 0;
       if (responsePayload.securities != null) {
         responseCount += responsePayload.securities.size();

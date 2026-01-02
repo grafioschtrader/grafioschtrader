@@ -22,6 +22,7 @@ import grafiosch.entities.User;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.GTSecuritiyCurrencyExchange;
 import grafioschtrader.entities.Currencypair;
+import grafioschtrader.entities.GTNet;
 import grafioschtrader.entities.GTNetConfig;
 import grafioschtrader.entities.GTNetExchange;
 import grafioschtrader.entities.GTNetSupplierDetail;
@@ -55,6 +56,9 @@ public class GTNetExchangeJpaRepositoryImpl implements GTNetExchangeJpaRepositor
 
   @Autowired
   private GTNetConfigJpaRepository gtNetConfigJpaRepository;
+
+  @Autowired
+  private GTNetJpaRepository gtNetJpaRepository;
 
   @Autowired
   private GTNetSupplierDetailJpaRepository gtNetSupplierDetailJpaRepository;
@@ -267,12 +271,12 @@ public class GTNetExchangeJpaRepositoryImpl implements GTNetExchangeJpaRepositor
         .filter(d -> d.getIdGtNet() != null)
         .collect(Collectors.groupingBy(GTNetSupplierDetail::getIdGtNet));
 
-    // Build result list with GTNetConfig headers
+    // Build result list with GTNet headers (includes domainRemoteName and gtNetConfig)
     List<GTNetSupplierWithDetails> result = new ArrayList<>();
     for (Map.Entry<Integer, List<GTNetSupplierDetail>> entry : detailsByGtNet.entrySet()) {
-      Optional<GTNetConfig> configOpt = gtNetConfigJpaRepository.findById(entry.getKey());
-      if (configOpt.isPresent()) {
-        result.add(new GTNetSupplierWithDetails(configOpt.get(), entry.getValue()));
+      Optional<GTNet> gtNetOpt = gtNetJpaRepository.findById(entry.getKey());
+      if (gtNetOpt.isPresent()) {
+        result.add(new GTNetSupplierWithDetails(gtNetOpt.get(), entry.getValue()));
       }
     }
 

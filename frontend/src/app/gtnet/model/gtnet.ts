@@ -162,29 +162,22 @@ export enum PriceType {
 }
 
 /**
- * Represents a GTNet supplier header entry.
- */
-export interface GTNetSupplier {
-  idGtNetSupplier: number;
-  gtNet: GTNet;
-  lastUpdate: string;
-}
-
-/**
  * Represents a detail entry for what price types a supplier offers.
  */
 export interface GTNetSupplierDetail {
   idGtNetSupplierDetail: number;
-  idGtNetSupplier: number;
+  idGtNet: number;
   securitycurrency: any;
   priceType: PriceType;
 }
 
 /**
  * Combined DTO for supplier with details, used in expandable rows.
+ * Contains the GTNet domain information (with domainRemoteName and config)
+ * along with a list of detail entries for price types offered.
  */
 export interface GTNetSupplierWithDetails {
-  supplier: GTNetSupplier;
+  gtNet: GTNet;
   details: GTNetSupplierDetail[];
 }
 
