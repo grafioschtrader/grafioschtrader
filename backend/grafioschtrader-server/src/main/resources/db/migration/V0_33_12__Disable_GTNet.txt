@@ -11,8 +11,8 @@ INSERT INTO globalparameters(property_name, property_int, changed_by_system) VAL
 DELETE FROM globalparameters WHERE property_name = "gt.gtnet.use.log";
 INSERT INTO globalparameters(property_name, property_int, changed_by_system) VALUES ("gt.gtnet.use.log", 1, 0);
 
-DELETE FROM globalparameters WHERE property_name = "gtnet.exchange.sync.timestamp";
-INSERT INTO globalparameters(property_name, property_date_time, changed_by_system) VALUES ("gtnet.exchange.sync.timestamp", CURRENT_TIMESTAMP, 0);
+DELETE FROM globalparameters WHERE property_name = "gt.gtnet.exchange.sync.timestamp";
+INSERT INTO globalparameters(property_name, property_date_time, changed_by_system) VALUES ("gt.gtnet.exchange.sync.timestamp", CURRENT_TIMESTAMP - INTERVAL 1 DAY, 0);
 
 
 UPDATE globalparameters SET input_rule = 'min:1,max:99' WHERE property_name IN('gt.split.retry', 'g.max.limit.request.exceeded.count');
