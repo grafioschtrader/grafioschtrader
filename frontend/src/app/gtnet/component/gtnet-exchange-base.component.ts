@@ -1,4 +1,4 @@
-import {Directive, OnInit, ViewChild} from '@angular/core';
+import {Directive, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {ConfirmationService, FilterService, MenuItem, SortEvent} from 'primeng/api';
 import {DialogService} from 'primeng/dynamicdialog';
@@ -27,10 +27,13 @@ import {InfoLevelType} from '../../lib/message/info.leve.type';
  * - Context menu handling
  */
 @Directive()
-export abstract class GTNetExchangeBaseComponent extends TableCrudSupportMenu<GTNetExchange> implements OnInit {
+export abstract class GTNetExchangeBaseComponent extends TableCrudSupportMenu<GTNetExchange> implements OnInit, OnDestroy {
 
   /** Set of modified item IDs for batch save tracking */
   modifiedItems: Set<number> = new Set();
+
+  /** Tracks if any saves occurred during component lifetime for triggering sync on destroy */
+  private savesOccurred: boolean = false;
 
   /** Entity for dialog calls (required by base class) */
   callParam: GTNetExchange;
@@ -134,6 +137,7 @@ export abstract class GTNetExchangeBaseComponent extends TableCrudSupportMenu<GT
             }
           }
           this.modifiedItems.clear();
+          this.savesOccurred = true;
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'GT_NET_EXCHANGE_SAVE_SUCCESS');
         },
         error: () => {
@@ -223,5 +227,40 @@ export abstract class GTNetExchangeBaseComponent extends TableCrudSupportMenu<GT
    */
   isUserAllowedToMultiSelect(): boolean {
     return this.gps.hasRole('ROLE_ADMIN') || this.gps.hasRole('ROLE_ALL_EDIT');
+  }
+
+  /**
+   * Lifecycle hook called when component is destroyed.
+   * Prompts user to save unsaved changes, then triggers sync if saves occurred.
+   */
+  ngOnDestroy(): void {
+    if (this.hasUnsavedChanges()) {
+      this.confirmationService.confirm({
+        header: this.translateService.instant('GT_NET_EXCHANGE_UNSAVED_CHANGES_HEADER'),
+        message: this.translateService.instant('GT_NET_EXCHANGE_UNSAVED_CHANGES_MESSAGE'),
+        accept: () => {
+          this.saveChanges();
+          this.triggerSyncIfNeeded();
+        },
+        reject: () => {
+          // User declined, do not save or sync
+        }
+      });
+    } else if (this.savesOccurred) {
+      this.triggerSyncIfNeeded();
+    }
+  }
+
+  /**
+   * Triggers the exchange sync background job if saves occurred.
+   */
+  private triggerSyncIfNeeded(): void {
+    if (this.savesOccurred) {
+      this.gtNetExchangeService.triggerSync().subscribe({
+        error: (err) => {
+          console.error('Failed to trigger exchange sync:', err);
+        }
+      });
+    }
   }
 }

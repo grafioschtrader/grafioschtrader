@@ -36,6 +36,9 @@ public abstract class BaseConstants {
   /** This format is indeed a standard, specifically an international one (ISO 8601). */
   public static final String STANDARD_DATE_FORMAT = "yyyy-MM-dd";
 
+  /** ISO 8601 date-time format for JSON serialization with LocalDateTime. */
+  public static final String STANDARD_DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
+
   /** Standard local date-time format including hours and minutes. */
   public static final String STANDARD_LOCAL_DATE_TIME = "yyyy-MM-dd HH:mm";
   

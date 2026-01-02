@@ -13,6 +13,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -99,6 +100,11 @@ public class Globalparameters implements Serializable {
   @Column(name = "property_date")
   private LocalDate propertyDate;
 
+  @Schema(description = "DateTime value for time-precise configuration settings")
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
+  @Column(name = "property_date_time")
+  private LocalDateTime propertyDateTime;
+
   @Schema(description = "Binary data for complex configuration objects")
   @Lob
   @Column(name = "property_blob")
@@ -107,6 +113,14 @@ public class Globalparameters implements Serializable {
   @Schema(description = "This property will be changed by the system")
   @Column(name = "changed_by_system")
   private boolean changedBySystem = false;
+
+  @Schema(description = """
+      Validation rules for property values in DSL format. Supported rules:
+      min:N (minimum value), max:N (maximum value), enum:N1,N2,N3 (allowed values),
+      pattern:REGEX (regex pattern for strings). Example: "min:1,max:99" or "enum:1,7,12,365".""")
+  @Size(max = 100)
+  @Column(name = "input_rule")
+  private String inputRule;
 
   @Transient
   private String propertyBlobAsText;
@@ -160,6 +174,15 @@ public class Globalparameters implements Serializable {
     return this;
   }
 
+  public LocalDateTime getPropertyDateTime() {
+    return propertyDateTime;
+  }
+
+  public Globalparameters setPropertyDateTime(LocalDateTime propertyDateTime) {
+    this.propertyDateTime = propertyDateTime;
+    return this;
+  }
+
   @JsonIgnore
   public byte[] getPropertyBlob() {
     return propertyBlob;
@@ -191,6 +214,14 @@ public class Globalparameters implements Serializable {
 
   public void setChangedBySystem(boolean changedBySystem) {
     this.changedBySystem = changedBySystem;
+  }
+
+  public String getInputRule() {
+    return inputRule;
+  }
+
+  public void setInputRule(String inputRule) {
+    this.inputRule = inputRule;
   }
 
   /**
@@ -244,6 +275,8 @@ public class Globalparameters implements Serializable {
   public void replaceExistingPropertyValue(Globalparameters gpNew) {
     if (gpNew.getPropertyDate() != null && propertyDate != null) {
       this.propertyDate = gpNew.getPropertyDate();
+    } else if (gpNew.getPropertyDateTime() != null && propertyDateTime != null) {
+      this.propertyDateTime = gpNew.getPropertyDateTime();
     } else if (gpNew.getPropertyInt() != null && propertyInt != null) {
       this.propertyInt = gpNew.getPropertyInt();
     } else if (gpNew.getPropertyString() != null && propertyString != null) {

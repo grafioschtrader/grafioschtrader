@@ -70,6 +70,7 @@ public class GTNet extends BaseID<Integer> {
       the exchange capability for a specific data type (LAST_PRICE, HISTORICAL_PRICES, etc.).""")
   @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "id_gt_net", nullable = false)
+  @PropertyAlwaysUpdatable
   private List<GTNetEntity> gtNetEntities = new ArrayList<>();
 
   @OneToOne(fetch = FetchType.EAGER)
@@ -226,7 +227,11 @@ public class GTNet extends BaseID<Integer> {
   }
 
   public void setGtNetEntities(List<GTNetEntity> gtNetEntities) {
-    this.gtNetEntities = gtNetEntities;
+    // Clear and re-add to preserve Hibernate's tracked collection (orphanRemoval = true)
+    this.gtNetEntities.clear();
+    if (gtNetEntities != null) {
+      this.gtNetEntities.addAll(gtNetEntities);
+    }
   }
 
   /**

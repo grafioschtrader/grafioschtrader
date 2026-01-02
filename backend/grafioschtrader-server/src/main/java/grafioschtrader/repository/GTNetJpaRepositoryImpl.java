@@ -150,8 +150,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     Optional<GTNet> myGTNetEntryOpt = myInstanceEntry != null? gtNetJpaRepository.findById(myInstanceEntry): Optional.empty(); 
     // Validate remote URL is reachable
 
-    if (gtNetJpaRepository.count() == 0
-        || (myGTNetEntryOpt.isPresent() && myGTNetEntryOpt.get().getIdGtNet().equals(gtNet.getIdGtNet()))) {
+    if (gtNetJpaRepository.count() == 0) {
       baseDataClient.getActuatorInfo(gtNet.getDomainRemoteName());
     }
 

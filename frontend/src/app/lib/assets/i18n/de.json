@@ -58,6 +58,7 @@
   "ID_USER_FROM": "Von",
   "ID_USER_TO": "An",
   "INFO": "Info",
+  "INPUT_RULE": "Validierungsregel",
   "LIMIT_REQUEST_EXCEED_COUNT": "Verstoss Anfragelimit",
   "LOADING": "Daten laden...",
   "LOCALE_STR": "Sprache und Land",

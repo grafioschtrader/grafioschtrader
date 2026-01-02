@@ -69,6 +69,13 @@ public class GTNetConfig extends BaseID<Integer>  {
   @Column(name = "serverlist_access_granted")
   private boolean serverlistAccessGranted;
 
+  @Schema(description = """
+      Counter that tracks the number of request violations from this remote domain. Incremented when the remote
+      sends a request that exceeds the configured max_limit for an entity kind (e.g., requesting more than 300
+      instruments in a single lastprice request). Used to identify misbehaving clients. Max value is 99.""")
+  @Column(name = "request_violation_count")
+  private Byte requestViolationCount;
+
   @Override
   public Integer getId() {
     return idGtNet;
@@ -132,5 +139,24 @@ public class GTNetConfig extends BaseID<Integer>  {
 
   public void setServerlistAccessGranted(boolean serverlistAccessGranted) {
     this.serverlistAccessGranted = serverlistAccessGranted;
+  }
+
+  public Byte getRequestViolationCount() {
+    return requestViolationCount;
+  }
+
+  public void setRequestViolationCount(Byte requestViolationCount) {
+    this.requestViolationCount = requestViolationCount;
+  }
+
+  /**
+   * Increments the request violation counter. Initializes to 1 if currently null. Caps at 99.
+   */
+  public void incrementRequestViolationCount() {
+    if (this.requestViolationCount == null) {
+      this.requestViolationCount = 1;
+    } else if (this.requestViolationCount < 99) {
+      this.requestViolationCount = (byte) (this.requestViolationCount + 1);
+    }
   }
 }

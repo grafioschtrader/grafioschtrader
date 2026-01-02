@@ -113,6 +113,8 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
           fieldsetName: this.HISTORICAL_PRICE,
           disabled: isUpdate
         }),
+      DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'historicalMaxLimit', true, 10, 999,
+        {defaultValue: 300, fieldsetName: this.HISTORICAL_PRICE}),
       DynamicFieldHelper.createFieldSelectStringHeqF('acceptLastpriceRequest', true,
         {
           defaultValue: AcceptRequestTypes[AcceptRequestTypes.AC_OPEN],
@@ -124,7 +126,9 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
           defaultValue: GTNetServerStateTypes[GTNetServerStateTypes.SS_NONE],
           fieldsetName: this.LAST_PRICE,
           disabled: isUpdate
-        })
+        }),
+      DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'lastpriceMaxLimit', true, 10, 999,
+        {defaultValue: 300, fieldsetName: this.LAST_PRICE})
     ] : [];
   }
 
@@ -153,7 +157,10 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
     const gtNet: GTNet = new GTNet();
     Object.assign(gtNet, this.callParam.gtNet);
 
-    gtNet.domainRemoteName = value['domainRemoteName'];
+    // Only set domainRemoteName from form value during create (field is disabled during update)
+    if (value['domainRemoteName'] !== undefined) {
+      gtNet.domainRemoteName = value['domainRemoteName'];
+    }
     gtNet.timeZone = this.gps.getStandardTimeZone();
     if (this.callParam.isMyEntry) {
       gtNet.timeZone = value['timeZone'];
@@ -164,20 +171,41 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
       gtNet.serverOnline = GTNetServerOnlineStatusTypes[value['serverOnline']] as any;
 
       const gtNetEntities: GTNetEntity[] = [];
+      const existingEntities = this.callParam.gtNet?.gtNetEntities || [];
 
+      const existingHistorical = existingEntities.find(e =>
+        e.entityKind === GTNetExchangeKindType.HISTORICAL_PRICES ||
+        e.entityKind === GTNetExchangeKindType[GTNetExchangeKindType.HISTORICAL_PRICES]);
       const historicalEntity: GTNetEntity = {
+        idGtNetEntity: existingHistorical?.idGtNetEntity,
         idGtNet: gtNet.idGtNet,
         entityKind: GTNetExchangeKindType.HISTORICAL_PRICES,
-        serverState: GTNetServerStateTypes[value['historicalPriceServerState']] as any,
-        acceptRequest: AcceptRequestTypes[value['historicalPriceRequest']] as any,
+        // Use form value if available, otherwise preserve existing (fields are disabled during update)
+        serverState: value['historicalPriceServerState'] !== undefined
+          ? GTNetServerStateTypes[value['historicalPriceServerState']] as any
+          : existingHistorical?.serverState,
+        acceptRequest: value['historicalPriceRequest'] !== undefined
+          ? AcceptRequestTypes[value['historicalPriceRequest']] as any
+          : existingHistorical?.acceptRequest,
+        maxLimit: value['historicalMaxLimit'],
       };
       gtNetEntities.push(historicalEntity);
 
+      const existingLastPrice = existingEntities.find(e =>
+        e.entityKind === GTNetExchangeKindType.LAST_PRICE ||
+        e.entityKind === GTNetExchangeKindType[GTNetExchangeKindType.LAST_PRICE]);
       const lastPriceEntity: GTNetEntity = {
+        idGtNetEntity: existingLastPrice?.idGtNetEntity,
         idGtNet: gtNet.idGtNet,
         entityKind: GTNetExchangeKindType.LAST_PRICE,
-        serverState: GTNetServerStateTypes[value['lastpriceServerState']] as any,
-        acceptRequest: AcceptRequestTypes[value['acceptLastpriceRequest']] as any,
+        // Use form value if available, otherwise preserve existing (fields are disabled during update)
+        serverState: value['lastpriceServerState'] !== undefined
+          ? GTNetServerStateTypes[value['lastpriceServerState']] as any
+          : existingLastPrice?.serverState,
+        acceptRequest: value['acceptLastpriceRequest'] !== undefined
+          ? AcceptRequestTypes[value['acceptLastpriceRequest']] as any
+          : existingLastPrice?.acceptRequest,
+        maxLimit: value['lastpriceMaxLimit'],
       };
 
       gtNetEntities.push(lastPriceEntity);

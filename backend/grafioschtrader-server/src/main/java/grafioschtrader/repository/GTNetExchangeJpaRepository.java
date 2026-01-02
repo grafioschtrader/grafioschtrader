@@ -1,5 +1,6 @@
 package grafioschtrader.repository;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -66,5 +67,15 @@ public interface GTNetExchangeJpaRepository
    */
   @Query("SELECT ge.securitycurrency.idSecuritycurrency FROM GTNetExchange ge WHERE ge.lastpriceSend = true")
   Set<Integer> findIdsWithLastpriceSend();
+
+  /**
+   * Finds all GTNetExchange entries modified after the given timestamp.
+   * Used for incremental synchronization with GTNet peers to determine which
+   * exchange configurations have changed since the last sync.
+   *
+   * @param timestamp the timestamp after which to find modified entries
+   * @return list of GTNetExchange entries with lastModifiedTime after the given timestamp
+   */
+  List<GTNetExchange> findByLastModifiedTimeAfter(Date timestamp);
 
 }

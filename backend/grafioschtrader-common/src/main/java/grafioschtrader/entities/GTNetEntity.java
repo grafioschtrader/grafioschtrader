@@ -16,6 +16,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
 @Entity
 @Table(name = GTNetEntity.TABNAME)
@@ -51,6 +53,19 @@ public class GTNetEntity extends BaseID<Integer> {
       this kind of data. Uses GTNetServerStateTypes enum values.""")
   @Column(name = "server_state")
   private byte serverState;
+
+  @Schema(description = """
+      Maximum number of instruments (securities or currency pairs) that can be transferred in a single request.
+      For example, 300 for LAST_PRICE means a maximum of 300 instruments per request. Valid range: 10-999.""")
+  @Column(name = "max_limit")
+  @Min(value = 10)
+  @Max(value = 999)
+  private Short maxLimit;
+
+  @Schema(description = "Enables exchange statistics logging for this entity type. When true, exchange requests and responses are logged to GTNetExchangeLog.")
+  @Column(name = "enable_log")
+  @PropertyAlwaysUpdatable
+  private boolean enableLog;
 
   @Schema(description = "Entity-specific configuration for exchange settings, logging, and consumer usage")
   @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -113,6 +128,22 @@ public class GTNetEntity extends BaseID<Integer> {
 
   public void setGtNetConfigEntity(GTNetConfigEntity gtNetConfigEntity) {
     this.gtNetConfigEntity = gtNetConfigEntity;
+  }
+
+  public Short getMaxLimit() {
+    return maxLimit;
+  }
+
+  public void setMaxLimit(Short maxLimit) {
+    this.maxLimit = maxLimit;
+  }
+
+  public boolean isEnableLog() {
+    return enableLog;
+  }
+
+  public void setEnableLog(boolean enableLog) {
+    this.enableLog = enableLog;
   }
 
   @Override

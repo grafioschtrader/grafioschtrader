@@ -104,6 +104,14 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
   public static final String GLOB_KEY_GTNET_USE = GlobalConstants.GT_PREFIX + "gtnet.use";
   /** Default value for GTNet enabled flag (disabled by default). */
   public static final int DEFAULT_GTNET_USE = 0;
+  /** Flag to enable/disable GTNet exchange logging. 0 = disabled, non-zero = enabled. */
+  public static final String GLOB_KEY_GTNET_USE_LOG = GlobalConstants.GT_PREFIX + "gtnet.use.log";
+  /** Default value for GTNet logging enabled flag (disabled by default). */
+  public static final int DEFAULT_GTNET_USE_LOG = 0;
+  /** Timestamp of last GTNet exchange synchronization with peers. */
+  public static final String GLOB_KEY_GTNET_EXCHANGE_SYNC_TIMESTAMP = GlobalConstants.GT_PREFIX + "gtnet.exchange.sync.timestamp";
+  /** Default value for GTNet exchange sync timestamp - epoch start means never synced. */
+  public static final Date DEFAULT_GTNET_EXCHANGE_SYNC_TIMESTAMP = new Date(0L);
   /** Tenant data entity limits */
   private static final String MAX = "max.";
   public static final String GLOB_KEY_MAX_CASH_ACCOUNT = GlobalConstants.GT_PREFIX + MAX + "cash.account";

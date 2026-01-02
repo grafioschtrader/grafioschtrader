@@ -26,8 +26,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import grafiosch.entities.User;
 import grafiosch.repository.UDFSpecialTypeDisableUserRepository;
 import grafioschtrader.common.DataBusinessHelper;
@@ -58,6 +56,8 @@ import grafioschtrader.repository.TransactionJpaRepository;
 import grafioschtrader.repository.WatchlistJpaRepository;
 import grafioschtrader.service.GTNetLastpriceService;
 import grafioschtrader.service.GlobalparametersService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 /**
  * Prepares the Data for every kind of Watchlists.

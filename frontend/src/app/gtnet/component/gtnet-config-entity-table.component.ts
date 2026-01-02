@@ -94,11 +94,12 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
   ngOnInit(): void {
     this.addColumn(DataType.String, 'entityKind', 'ENTITY', true, false,
       {translateValues: TranslateValue.NORMAL, width: 150});
+    this.addColumn(DataType.Numeric, 'maxLimit', 'GT_NET_MAX_LIMIT', true, false, );
     this.addColumn(DataType.String, 'exchange', 'LASTPRICE_EXCHANGE', true, false,
-      {translateValues: TranslateValue.NORMAL, width: 120});
+      {translateValues: TranslateValue.NORMAL});
     this.addColumn(DataType.Boolean, 'useDetailLog', 'LASTPRICE_USE_DETAIL_LOG', true, false,
-      {templateName: 'check', width: 100});
-    this.addColumn(DataType.Numeric, 'consumerUsage', 'LASTPRICE_CONSUMER_USAGE', true, false, {width: 100});
+      {templateName: 'check'});
+    this.addColumn(DataType.NumericInteger, 'consumerUsage', 'LASTPRICE_CONSUMER_USAGE', true, false );
 
     this.prepareData();
     this.createTranslatedValueStore(this.configEntities);
@@ -121,6 +122,7 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
     return {
       ...configEntity,
       entityKind: gtNetEntity.entityKind,
+      maxLimit: gtNetEntity.maxLimit,
       exchange: typeof configEntity.exchange === 'number'
         ? GTNetExchangeStatusTypes[configEntity.exchange]
         : configEntity.exchange
@@ -167,5 +169,6 @@ export interface GTNetConfigEntityDisplay {
   useDetailLog: boolean;
   consumerUsage: number;
   entityKind: GTNetExchangeKindType | string;
+  maxLimit?: number;
 }
 

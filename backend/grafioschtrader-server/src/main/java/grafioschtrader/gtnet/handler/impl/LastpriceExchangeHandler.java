@@ -24,6 +24,7 @@ import grafioschtrader.gtnet.handler.impl.lastprice.PushOpenLastpriceQueryStrate
 import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.gtnet.model.msg.LastpriceExchangeMsg;
 import grafioschtrader.repository.GTNetExchangeJpaRepository;
+import grafioschtrader.service.GTNetExchangeLogService;
 
 /**
  * Handler for GT_NET_LASTPRICE_EXCHANGE_SEL_C requests from remote instances.
@@ -50,6 +51,9 @@ public class LastpriceExchangeHandler extends AbstractGTNetMessageHandler {
 
   @Autowired
   private GTNetExchangeJpaRepository gtNetExchangeJpaRepository;
+
+  @Autowired
+  private GTNetExchangeLogService gtNetExchangeLogService;
 
   @Override
   public GTNetMessageCodeType getSupportedMessageCode() {
@@ -89,9 +93,19 @@ public class LastpriceExchangeHandler extends AbstractGTNetMessageHandler {
       return createEmptyResponse(context, storedRequest);
     }
 
-    log.debug("Received lastprice request for {} securities and {} currencypairs",
+    int totalInstruments = (request.securities != null ? request.securities.size() : 0)
+        + (request.currencypairs != null ? request.currencypairs.size() : 0);
+
+    log.debug("Received lastprice request for {} securities and {} currencypairs (total: {})",
         request.securities != null ? request.securities.size() : 0,
-        request.currencypairs != null ? request.currencypairs.size() : 0);
+        request.currencypairs != null ? request.currencypairs.size() : 0,
+        totalInstruments);
+
+    // Check if request exceeds max_limit
+    Short maxLimit = lastpriceEntity.get().getMaxLimit();
+    if (maxLimit != null && totalInstruments > maxLimit) {
+      return handleMaxLimitExceeded(context, storedRequest, totalInstruments, maxLimit);
+    }
 
     // Get IDs of instruments we're allowed to send
     Set<Integer> sendableIds = gtNetExchangeJpaRepository.findIdsWithLastpriceSend();
@@ -105,10 +119,17 @@ public class LastpriceExchangeHandler extends AbstractGTNetMessageHandler {
     response.securities = strategy.querySecurities(request.securities, sendableIds);
     response.currencypairs = strategy.queryCurrencypairs(request.currencypairs, sendableIds);
 
+    int responseCount = response.securities.size() + response.currencypairs.size();
     log.info("Responding with {} securities and {} currencypairs to {} (mode: {})",
         response.securities.size(), response.currencypairs.size(),
         context.getRemoteGTNet() != null ? context.getRemoteGTNet().getDomainRemoteName() : "unknown",
         acceptMode);
+
+    // Log exchange statistics as supplier
+    if (context.getRemoteGTNet() != null) {
+      gtNetExchangeLogService.logAsSupplier(context.getRemoteGTNet(), GTNetExchangeKindType.LAST_PRICE,
+          totalInstruments, responseCount, responseCount);
+    }
 
     // Store response message
     GTNetMessage responseMsg = storeResponseMessage(context, GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_RESPONSE_S,
@@ -137,6 +158,32 @@ public class LastpriceExchangeHandler extends AbstractGTNetMessageHandler {
     GTNetMessage responseMsg = storeResponseMessage(context, GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_RESPONSE_S,
         null, null, storedRequest);
     MessageEnvelope envelope = createResponseEnvelopeWithPayload(context, responseMsg, new LastpriceExchangeMsg());
+    return new HandlerResult.ImmediateResponse(envelope);
+  }
+
+  /**
+   * Handles requests that exceed the configured max_limit.
+   * Increments the violation counter for the remote domain and returns an error response.
+   */
+  private HandlerResult handleMaxLimitExceeded(GTNetMessageContext context, GTNetMessage storedRequest,
+      int requestedCount, short maxLimit) {
+    log.warn("Request from {} exceeded max_limit: {} instruments requested, limit is {}",
+        context.getRemoteGTNet() != null ? context.getRemoteGTNet().getDomainRemoteName() : "unknown",
+        requestedCount, maxLimit);
+
+    // Increment violation counter for the remote domain
+    if (context.getRemoteGTNet() != null && context.getRemoteGTNet().getGtNetConfig() != null) {
+      context.getRemoteGTNet().getGtNetConfig().incrementRequestViolationCount();
+      saveGTNetConfig(context.getRemoteGTNet().getGtNetConfig());
+    }
+
+    // Store violation response message
+    String message = String.format("Request exceeded max_limit: %d instruments requested, limit is %d",
+        requestedCount, maxLimit);
+    GTNetMessage responseMsg = storeResponseMessage(context,
+        GTNetMessageCodeType.GT_NET_LASTPRICE_MAX_LIMIT_EXCEEDED_S, message, null, storedRequest);
+
+    MessageEnvelope envelope = createResponseEnvelope(context, responseMsg);
     return new HandlerResult.ImmediateResponse(envelope);
   }
 }

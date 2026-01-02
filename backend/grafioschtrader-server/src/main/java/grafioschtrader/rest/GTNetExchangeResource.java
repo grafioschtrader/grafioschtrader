@@ -16,12 +16,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.entities.TaskDataChange;
+import grafiosch.repository.TaskDataChangeJpaRepository;
+import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.dto.GTSecuritiyCurrencyExchange;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.GTNetExchange;
 import grafioschtrader.entities.Security;
 import grafioschtrader.gtnet.model.GTNetSupplierWithDetails;
 import grafioschtrader.repository.GTNetExchangeJpaRepository;
+import grafioschtrader.types.TaskTypeExtended;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,6 +43,9 @@ public class GTNetExchangeResource {
 
   @Autowired
   private GTNetExchangeJpaRepository gtNetExchangeJpaRepository;
+
+  @Autowired
+  private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
 
   @Operation(summary = "Get all configured securities",
       description = "Returns all GTNetExchange entries for securities with their configuration flags")
@@ -101,5 +108,16 @@ public class GTNetExchangeResource {
       @Parameter(description = "The ID of the security or currency pair")
       @PathVariable Integer idSecuritycurrency) {
     return new ResponseEntity<>(gtNetExchangeJpaRepository.getSupplierDetails(idSecuritycurrency), HttpStatus.OK);
+  }
+
+  @Operation(summary = "Trigger exchange sync job",
+      description = "Creates a background task to sync exchange configurations with GTNet peers. "
+          + "This updates GTNetSupplierDetail entries based on what instruments each peer offers.")
+  @PostMapping(value = "/triggersync", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<Void> triggerSync() {
+    TaskDataChange taskDataChange = new TaskDataChange(
+        TaskTypeExtended.GTNET_EXCHANGE_SYNC, TaskDataExecPriority.PRIO_NORMAL);
+    taskDataChangeJpaRepository.save(taskDataChange);
+    return new ResponseEntity<>(HttpStatus.ACCEPTED);
   }
 }
