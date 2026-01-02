@@ -140,7 +140,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       {width: 200, templateName: 'owner'});
     this.addColumnFeqH(DataType.String, 'timeZone', true, false, {width: 120});
     this.addColumnFeqH(DataType.Boolean, 'spreadCapability', true, false,
-      {templateName: 'check'});
+      {templateName: 'check', width: 30});
     this.addColumnFeqH(DataType.String, 'serverOnline', true, false,
       {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.Boolean, 'serverBusy', true, false,
@@ -153,11 +153,13 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.String, 'lastpriceServerState', true, false,
       {translateValues: TranslateValue.NORMAL});
+    this.addColumnFeqH(DataType.NumericInteger, 'lastpriceMaxLimit', true, false);
     this.addColumnFeqH(DataType.String, 'historicalPriceRequest', true, false,
       {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.String, 'historicalPriceServerState', true, false,
       {translateValues: TranslateValue.NORMAL});
-    this.addColumnFeqH(DataType.Numeric, 'toBeAnswered', true, false,
+    this.addColumnFeqH(DataType.NumericInteger, 'historicalMaxLimit', true, false);
+    this.addColumnFeqH(DataType.NumericInteger, 'toBeAnswered', true, false,
       {fieldValueFN: this.getToBeAnsweredCount.bind(this)});
     this.addColumnFeqH(DataType.Numeric, 'answerExpected', true, false,
       {fieldValueFN: this.getAnswerExpectedCount.bind(this)});
@@ -202,9 +204,11 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       if(e.entityKind === GTNetExchangeKindType[GTNetExchangeKindType.LAST_PRICE]) {
         gtNet['acceptLastpriceRequest'] = acceptRequestName;
         gtNet['lastpriceServerState'] = e.serverState;
+        gtNet['lastpriceMaxLimit'] = e.maxLimit;
       } else {
         gtNet['historicalPriceRequest'] = acceptRequestName;
         gtNet['historicalPriceServerState'] = e.serverState;
+        gtNet['historicalMaxLimit'] = e.maxLimit;
       }
     }));
   }

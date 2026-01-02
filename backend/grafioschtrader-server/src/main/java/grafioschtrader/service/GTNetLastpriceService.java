@@ -25,6 +25,7 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.gtnet.AcceptRequestTypes;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
+import grafioschtrader.gtnet.handler.impl.lastprice.PushOpenLastpriceQueryStrategy;
 import grafioschtrader.gtnet.m2m.model.GTNetPublicDTO;
 import grafioschtrader.gtnet.m2m.model.InstrumentPriceDTO;
 import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
@@ -32,7 +33,6 @@ import grafioschtrader.gtnet.model.msg.LastpriceExchangeMsg;
 import grafioschtrader.m2m.GTNetMessageHelper;
 import grafioschtrader.m2m.client.BaseDataClient;
 import grafioschtrader.m2m.client.BaseDataClient.SendResult;
-import grafioschtrader.gtnet.handler.impl.lastprice.PushOpenLastpriceQueryStrategy;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetExchangeJpaRepository;
 import grafioschtrader.repository.GTNetJpaRepository;
@@ -85,6 +85,9 @@ public class GTNetLastpriceService {
 
   @Autowired
   private GlobalparametersService globalparametersService;
+
+  @Autowired
+  private GTNetExchangeLogService gtNetExchangeLogService;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -308,18 +311,23 @@ public class GTNetLastpriceService {
     try {
       LastpriceExchangeMsg responsePayload = objectMapper.treeToValue(response.payload, LastpriceExchangeMsg.class);
 
-      int updatedCount = 0;
+      int responseCount = 0;
       if (responsePayload.securities != null) {
-        updatedCount += responsePayload.securities.size();
+        responseCount += responsePayload.securities.size();
       }
       if (responsePayload.currencypairs != null) {
-        updatedCount += responsePayload.currencypairs.size();
+        responseCount += responsePayload.currencypairs.size();
       }
 
-      log.info("Received {} price updates from {}", updatedCount, supplier.getDomainRemoteName());
+      log.info("Received {} price updates from {}", responseCount, supplier.getDomainRemoteName());
 
       // Process response - update instruments and mark as filled
-      instruments.processResponse(responsePayload.securities, responsePayload.currencypairs);
+      int updatedCount = instruments.processResponse(responsePayload.securities, responsePayload.currencypairs);
+
+      // Log exchange statistics as consumer
+      int entitiesSent = securityDTOs.size() + currencypairDTOs.size();
+      gtNetExchangeLogService.logAsConsumer(supplier, GTNetExchangeKindType.LAST_PRICE,
+          entitiesSent, updatedCount, responseCount);
 
     } catch (JsonProcessingException e) {
       log.error("Failed to parse lastprice response from {}", supplier.getDomainRemoteName(), e);

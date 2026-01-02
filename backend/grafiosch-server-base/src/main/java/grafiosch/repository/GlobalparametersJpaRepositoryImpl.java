@@ -25,6 +25,7 @@ import grafiosch.GlobalParamKeyBaseDefault;
 import grafiosch.common.UserAccessHelper;
 import grafiosch.config.ExposedResourceBundleMessageSource;
 import grafiosch.dto.IPropertiesSelfCheck;
+import grafiosch.dto.InputRule;
 import grafiosch.dto.PasswordRegexProperties;
 import grafiosch.dto.TenantLimit;
 import grafiosch.dto.ValueKeyHtmlSelectOptions;
@@ -166,6 +167,7 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
       if (existingGpOpt.isPresent()) {
         Globalparameters existingGp = existingGpOpt.get();
         checkBlobPropertyBeforeSave(updGp);
+        validateInputRule(existingGp, updGp, user);
         existingGp.replaceExistingPropertyValue(updGp);
         existingGp = globalparametersJpaRepository.save(existingGp);
         Globalparameters.resetDBValueOfKey(existingGp.getPropertyName());
@@ -193,6 +195,39 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
         final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
         throw new IllegalArgumentException(messages.getMessage(errorMsg, null, user.createAndGetJavaLocale()));
       }
+    }
+  }
+
+  /**
+   * Validates property values against input rules defined in the existing global parameter. Parses the inputRule DSL
+   * string and validates the updated property value (integer or string) accordingly.
+   *
+   * @param existingGp the existing global parameter containing the inputRule
+   * @param updGp      the updated global parameter with new property value
+   * @param user       the current user for locale-specific error messages
+   * @throws IllegalArgumentException if validation fails with localized error message
+   */
+  private void validateInputRule(Globalparameters existingGp, Globalparameters updGp, User user) {
+    if (existingGp.getInputRule() == null || existingGp.getInputRule().isBlank()) {
+      return;
+    }
+
+    InputRule rule = InputRule.parse(existingGp.getInputRule());
+    if (rule == null) {
+      return;
+    }
+
+    String errorMsgKey = null;
+    if (updGp.getPropertyInt() != null) {
+      errorMsgKey = rule.validate(updGp.getPropertyInt());
+    } else if (updGp.getPropertyString() != null) {
+      errorMsgKey = rule.validate(updGp.getPropertyString());
+    }
+
+    if (errorMsgKey != null) {
+      String errorMsg = messages.getMessage(errorMsgKey, new Object[] { rule.getDescription() },
+          user.createAndGetJavaLocale());
+      throw new IllegalArgumentException(errorMsg);
     }
   }
 

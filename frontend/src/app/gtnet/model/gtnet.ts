@@ -33,6 +33,16 @@ export interface GTNetEntity {
   entityKind: GTNetExchangeKindType|string;
   serverState: GTNetServerStateTypes;
   acceptRequest: AcceptRequestTypes|string;
+  /**
+   * Maximum number of instruments (securities or currency pairs) that can be transferred in a single request.
+   * For example, 300 for LAST_PRICE means a maximum of 300 instruments per request.
+   */
+  maxLimit?: number;
+  /**
+   * Enables exchange statistics logging for this entity type.
+   * When true, exchange requests and responses are logged to GTNetExchangeLog.
+   */
+  enableLog?: boolean;
   gtNetConfigEntity?: GTNetConfigEntity;
 }
 
@@ -57,6 +67,11 @@ export interface GTNetConfig {
   dailyRequestLimitCount?: number;
   dailyRequestLimitRemoteCount?: number;
   authorizedRemoteEntry?: boolean;
+  /**
+   * Counter that tracks the number of request violations from this remote domain.
+   * Incremented when the remote sends a request that exceeds the configured max_limit.
+   */
+  requestViolationCount?: number;
 }
 
 export class GTNet implements BaseID {

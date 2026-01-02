@@ -81,7 +81,9 @@ export class AppSettings {
   public static readonly TRADING_CALENDAR_GLOBAL_KEY = 'tradingcalendarglobal';
   public static readonly SECURITY_HISTORY_QUALITY_KEY = 'historyquotequality';
 
-  public static readonly GT_NET_CONSUME_MONITOR_KEY = 'gtnetconsumemonitor';
+  public static readonly GT_NET_EXCHANGE_LOG_KEY = 'gtnetexchangelog';
+  public static readonly GT_NET_EXCHANGE_LOG_LASTPRICE_KEY = 'lastprice';
+  public static readonly GT_NET_EXCHANGE_LOG_HISTORICAL_KEY = 'historical';
   public static readonly GT_NET_KEY = 'gtnet';
   public static readonly GT_NET_CONFIG_ENTITY = 'GTNetConfigEntity';
   public static readonly GT_NET_CONFIG_ENTITY_KEY = 'gtnetconfigentity';
@@ -91,7 +93,6 @@ export class AppSettings {
   public static readonly GT_NET_EXCHANGE_SECURITIES_KEY = 'securities';
   public static readonly GT_NET_EXCHANGE_CURRENCYPAIRS_KEY = 'currencypairs';
   public static readonly GT_NET_MESSAGE_KEY = 'gtnetmessage';
-  public static readonly GT_NET_PROVIDER_MONITOR_KEY = 'gtnetprovidermonitor';
   public static readonly TRADING_DAYS_MINUS_KEY = AppSettings.TRADING_DAYS_MINUS.toLowerCase();
   public static readonly TRADING_DAYS_PLUS_KEY = AppSettings.TRADING_DAYS_PLUS.toLowerCase();
   public static readonly IMPORT_TRANSACTION_HEAD_KEY = AppSettings.IMPORT_TRANSACTION_HEAD.toLowerCase();

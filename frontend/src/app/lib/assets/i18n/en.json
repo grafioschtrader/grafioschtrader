@@ -58,6 +58,7 @@
   "ID_USER_FROM": "From",
   "ID_USER_TO": "To",
   "INFO": "Info",
+  "INPUT_RULE": "Validation rule",
   "LIMIT_REQUEST_EXCEED_COUNT": "Violation of request limit",
   "LOADING": "Data loading...",
   "LOCALE_STR": "Language and country",

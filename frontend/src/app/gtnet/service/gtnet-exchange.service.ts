@@ -125,4 +125,20 @@ export class GTNetExchangeService extends AuthServiceWithLogout<GTNetExchange> i
       this.getHeaders()
     ).pipe(catchError(this.handleError.bind(this)));
   }
+
+  /**
+   * Triggers the exchange sync background job.
+   *
+   * Creates a background task to sync GTNetExchange configurations with GTNet peers.
+   * This updates GTNetSupplierDetail entries based on what instruments each peer offers.
+   *
+   * @returns Observable of void
+   */
+  triggerSync(): Observable<void> {
+    return this.httpClient.post<void>(
+      `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_EXCHANGE_KEY}/triggersync`,
+      {},
+      this.getHeaders()
+    ).pipe(catchError(this.handleError.bind(this)));
+  }
 }

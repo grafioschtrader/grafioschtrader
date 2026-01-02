@@ -1,10 +1,11 @@
 /**
- * Component for editing the portfolio.
+ * Component for editing global parameter values.
  */
 import {Component, Input, OnInit} from '@angular/core';
 
 import {SimpleEntityEditBase} from '../edit/simple.entity.edit.base';
 import {Globalparameters} from '../entities/globalparameters';
+import {InputRule} from '../entities/input-rule';
 import {FieldConfig} from '../dynamic-form/models/field.config';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {DialogModule} from 'primeng/dialog';
@@ -17,6 +18,7 @@ import {TranslateHelper} from '../helper/translate.helper';
 import {AppHelper} from '../helper/app.helper';
 import {HelpIds} from '../help/help.ids';
 import {BaseSettings} from '../base.settings';
+import {ValidatorFn} from '@angular/forms';
 
 @Component({
   selector: 'globalsettings-edit',
@@ -26,6 +28,9 @@ import {BaseSettings} from '../base.settings';
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <h5>{{ globalparameters.propertyName }}</h5>
+      @if (inputRuleDescription) {
+        <p class="text-secondary"><small>{{ 'INPUT_RULE' | translate }}: {{ inputRuleDescription }}</small></p>
+      }
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm"
                     (submitBt)="submit($event)">
@@ -37,7 +42,9 @@ import {BaseSettings} from '../base.settings';
 export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalparameters> implements OnInit {
 
   @Input() globalparameters: Globalparameters;
+  inputRuleDescription: string = null;
   private selectedPropertyField: string;
+  private inputRule: InputRule = null;
 
   constructor(translateService: TranslateService,
     gps: GlobalparameterService,
@@ -47,6 +54,14 @@ export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalpara
   }
 
   ngOnInit(): void {
+    // Parse input rule if present
+    if (this.globalparameters.inputRule) {
+      this.inputRule = InputRule.parse(this.globalparameters.inputRule);
+      if (this.inputRule) {
+        this.inputRuleDescription = this.inputRule.getDescription();
+      }
+    }
+
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       3, this.helpLink.bind(this));
     this.config = [
@@ -65,23 +80,51 @@ export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalpara
   }
 
   private getPropertyDefinition(globalparameters: Globalparameters): FieldConfig {
+    let fieldConfig: FieldConfig;
+
     if (globalparameters.propertyBlobAsText) {
       this.selectedPropertyField = 'propertyBlobAsText';
-      return DynamicFieldHelper.createFieldTextareaInputStringHeqF(this.selectedPropertyField, BaseSettings.FID_MAX_LETTERS, true,
+      fieldConfig = DynamicFieldHelper.createFieldTextareaInputStringHeqF(this.selectedPropertyField, BaseSettings.FID_MAX_LETTERS, true,
         {textareaRows: 10});
+    } else if (globalparameters.propertyDateTime) {
+      this.selectedPropertyField = 'propertyDateTime';
+      // Use string input for datetime values (ISO 8601 format)
+      fieldConfig = DynamicFieldHelper.createFieldInputString(this.selectedPropertyField, globalparameters.propertyName,
+        30, true);
     } else if (globalparameters.propertyDate) {
       this.selectedPropertyField = 'propertyDate';
-      return DynamicFieldHelper.createFieldPcalendar(DataType.DateString, this.selectedPropertyField,
+      fieldConfig = DynamicFieldHelper.createFieldPcalendar(DataType.DateString, this.selectedPropertyField,
         globalparameters.propertyName, true);
     } else if (globalparameters.propertyInt !== null) {
       this.selectedPropertyField = 'propertyInt';
-      return DynamicFieldHelper.createFieldMinMaxNumber(DataType.Numeric,
-        this.selectedPropertyField, globalparameters.propertyName, true, 0, 9999);
+      // Use inputRule min/max if available, otherwise use defaults
+      const min = this.inputRule?.min ?? 0;
+      const max = this.inputRule?.max ?? 9999;
+      fieldConfig = DynamicFieldHelper.createFieldMinMaxNumber(DataType.Numeric,
+        this.selectedPropertyField, globalparameters.propertyName, true, min, max);
+      // Add additional validators from inputRule (enum validator)
+      if (this.inputRule) {
+        const additionalValidators = this.inputRule.getValidators();
+        // Filter out min/max validators since they are already applied
+        const enumValidators = additionalValidators.filter(v => v !== null);
+        if (fieldConfig.validation && enumValidators.length > 0) {
+          fieldConfig.validation = [...fieldConfig.validation, ...enumValidators];
+        }
+      }
     } else {
       this.selectedPropertyField = 'propertyString';
-      return DynamicFieldHelper.createFieldInputString(this.selectedPropertyField, globalparameters.propertyName,
+      fieldConfig = DynamicFieldHelper.createFieldInputString(this.selectedPropertyField, globalparameters.propertyName,
         30, true);
+      // Add pattern validator from inputRule if present
+      if (this.inputRule) {
+        const additionalValidators = this.inputRule.getValidators();
+        if (fieldConfig.validation && additionalValidators.length > 0) {
+          fieldConfig.validation = [...fieldConfig.validation, ...additionalValidators];
+        }
+      }
     }
+
+    return fieldConfig;
   }
 
 }

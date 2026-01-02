@@ -183,9 +183,58 @@ public class GlobalparametersService {
         .orElse(GlobalParamKeyDefault.DEFAULT_GTNET_USE != 0);
   }
 
+  /**
+   * Checks whether GTNet exchange logging is enabled.
+   *
+   * GTNet logging is enabled when the global parameter 'gt.gtnet.use.log' has a non-zero property_int value.
+   * If the parameter is not configured in the database, returns the default value (disabled).
+   * This controls whether GTNetExchangeLog records are created for data exchanges.
+   *
+   * @return true if GTNet logging is enabled, false otherwise
+   * @see GlobalParamKeyDefault#GLOB_KEY_GTNET_USE_LOG
+   * @see GlobalParamKeyDefault#DEFAULT_GTNET_USE_LOG
+   */
+  public boolean isGTNetLogEnabled() {
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_GTNET_USE_LOG)
+        .map(g -> g.getPropertyInt() != null && g.getPropertyInt() != 0)
+        .orElse(GlobalParamKeyDefault.DEFAULT_GTNET_USE_LOG != 0);
+  }
+
   public Globalparameters saveGTNetMyEntryID(Integer idGtNet) {
     Globalparameters gp = new Globalparameters(GlobalParamKeyDefault.GLOB_KEY_GTNET_MY_ENTRY_ID);
     gp.setPropertyInt(idGtNet);
+    gp.setChangedBySystem(true);
+    return globalparametersJpaRepository.save(gp);
+  }
+
+  /**
+   * Gets the timestamp when GTNetExchange was last synchronized with peers.
+   *
+   * The timestamp is stored as a Date in the global parameters. If the parameter is not configured
+   * or has never been set, returns the epoch (1970-01-01) indicating no sync has occurred.
+   *
+   * @return the last sync timestamp, or epoch (0L) if never synced
+   * @see GlobalParamKeyDefault#GLOB_KEY_GTNET_EXCHANGE_SYNC_TIMESTAMP
+   */
+  public Date getGTNetExchangeSyncTimestamp() {
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_GTNET_EXCHANGE_SYNC_TIMESTAMP)
+        .map(g -> DateHelper.convertToDateViaInstant(g.getPropertyDateTime()))
+        .orElse(GlobalParamKeyDefault.DEFAULT_GTNET_EXCHANGE_SYNC_TIMESTAMP);
+  }
+
+  /**
+   * Updates the GTNet exchange sync timestamp to the current time.
+   *
+   * Called after a successful GTNet exchange synchronization job to record when the last sync occurred.
+   * This timestamp is used to determine which GTNetExchange entries have changed since the last sync.
+   *
+   * @return the saved Globalparameters entity
+   * @see GlobalParamKeyDefault#GLOB_KEY_GTNET_EXCHANGE_SYNC_TIMESTAMP
+   */
+  public Globalparameters updateGTNetExchangeSyncTimestamp() {
+    Globalparameters gp = globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_GTNET_EXCHANGE_SYNC_TIMESTAMP)
+        .orElse(new Globalparameters(GlobalParamKeyDefault.GLOB_KEY_GTNET_EXCHANGE_SYNC_TIMESTAMP));
+    gp.setPropertyDateTime(java.time.LocalDateTime.now());
     gp.setChangedBySystem(true);
     return globalparametersJpaRepository.save(gp);
   }

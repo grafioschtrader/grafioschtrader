@@ -80,6 +80,10 @@ public abstract class GTNetModelHelper {
     msgFormMap.put(GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_RESPONSE_S, new GTNetMsgRequest(null, false, (byte) 1));
     msgFormMap.put(GTNetMessageCodeType.GT_NET_LASTPRICE_PUSH_SEL_C, new GTNetMsgRequest(null, true, (byte) 1));
     msgFormMap.put(GTNetMessageCodeType.GT_NET_LASTPRICE_PUSH_ACK_S, new GTNetMsgRequest(null, false, (byte) 1));
+
+    // Exchange sync - programmatic M2M, uses ExchangeSyncMsg payload for bidirectional config sharing
+    msgFormMap.put(GTNetMessageCodeType.GT_NET_EXCHANGE_SYNC_SEL_RR_C, new GTNetMsgRequest(null, true, (byte) 1));
+    msgFormMap.put(GTNetMessageCodeType.GT_NET_EXCHANGE_SYNC_RESPONSE_S, new GTNetMsgRequest(null, false, (byte) 1));
   }
 
   /**

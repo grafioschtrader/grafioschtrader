@@ -1,6 +1,9 @@
 package grafioschtrader.entities;
 
+import java.util.Date;
 import java.util.Map;
+
+import org.springframework.data.annotation.LastModifiedDate;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -14,6 +17,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
 
 @Entity
@@ -52,6 +57,15 @@ public class GTNetExchange extends BaseID<Integer> {
   @Column(name = "historical_send")
   private boolean historicalSend;
 
+  
+  @Schema(description = """
+      Timestamp when this GTNet entry was last modified. Used to determine which server has more recent information
+      when exchanging server lists between peers. Automatically updated by JPA auditing.""")
+  @LastModifiedDate
+  @Temporal(TemporalType.TIMESTAMP)
+  @Column(name = "last_modified_time")
+  private Date lastModifiedTime;
+  
   @Transient
   private Long detailCount;
 
@@ -124,6 +138,16 @@ public class GTNetExchange extends BaseID<Integer> {
 
   public void setHistoricalSend(boolean historicalSend) {
     this.historicalSend = historicalSend;
+  }
+  
+  
+
+  public Date getLastModifiedTime() {
+    return lastModifiedTime;
+  }
+
+  public void setLastModifiedTime(Date lastModifiedTime) {
+    this.lastModifiedTime = lastModifiedTime;
   }
 
   public Long getDetailCount() {

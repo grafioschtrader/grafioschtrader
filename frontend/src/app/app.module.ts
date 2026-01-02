@@ -202,9 +202,9 @@ import {
 import {ConnectorApiKeyTableComponent} from './lib/connectorapikey/component/connector.api.key.table.component';
 import {ConnectorApiKeyEditComponent} from './lib/connectorapikey/component/connector.api.key.edit.component';
 import {ConnectorApiKeyService} from './lib/connectorapikey/service/connector.api.key.service';
-import {GTNetConsumerMonitorComponent} from './gtnet/component/gtnet.consumer.monitor.component';
 import {GTNetSetupTableComponent} from './gtnet/component/gtnet.setup.table.component';
-import {GTNetProviderMonitorComponent} from './gtnet/component/gtnet.provider.monitor.component';
+import {GTNetExchangeLogTabMenuComponent} from './gtnet/component/gtnet-exchange-log-tabmenu.component';
+import {GTNetExchangeLogComponent} from './gtnet/component/gtnet-exchange-log.component';
 import {GTNetService} from './gtnet/service/gtnet.service';
 import {GTNetMessageTreeTableComponent} from './gtnet/component/gtnet-message-treetable.component';
 import {GTNetEditComponent} from './gtnet/component/gtnet-edit.component';
@@ -323,12 +323,11 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     CorrelationAddInstrumentComponent,
     CorrelationSetEditComponent,
     CurrencypairEditComponent,
-    GTNetConsumerMonitorComponent,
     GTNetEditComponent,
+    GTNetExchangeLogComponent,
     GTNetMessageAnswerTableComponent,
     GTNetMessageEditComponent,
     GTNetMessageTreeTableComponent,
-    GTNetProviderMonitorComponent,
     GTNetSetupTableComponent,
     ImportTransactionEditPlatformComponent,
     ImportTransactionEditTemplateComponent,

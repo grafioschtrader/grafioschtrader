@@ -1,9 +1,29 @@
-DELETE FROM globalparameters WHERE property_name = 'gt.gtnet.use';
-INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_blob`, `changed_by_system`) VALUES ('gt.gtnet.use', '1', NULL, NULL, NULL, '0');
+
+ALTER TABLE globalparameters DROP COLUMN IF EXISTS property_date_time;
+ALTER TABLE globalparameters ADD property_date_time TIMESTAMP NULL AFTER property_date;
+
+ALTER TABLE globalparameters DROP COLUMN IF EXISTS input_rule;
+ALTER TABLE globalparameters ADD input_rule VARCHAR(100) NULL AFTER changed_by_system;
+
+DELETE FROM globalparameters WHERE property_name = "gt.gtnet.use";
+INSERT INTO globalparameters(property_name, property_int, changed_by_system) VALUES ("gt.gtnet.use", 1, 0);
+
+DELETE FROM globalparameters WHERE property_name = "gt.gtnet.use.log";
+INSERT INTO globalparameters(property_name, property_int, changed_by_system) VALUES ("gt.gtnet.use.log", 1, 0);
+
+DELETE FROM globalparameters WHERE property_name = "gtnet.exchange.sync.timestamp";
+INSERT INTO globalparameters(property_name, property_date_time, changed_by_system) VALUES ("gtnet.exchange.sync.timestamp", CURRENT_TIMESTAMP, 0);
+
+
+UPDATE globalparameters SET input_rule = 'min:1,max:99' WHERE property_name IN('gt.split.retry', 'g.max.limit.request.exceeded.count');
+UPDATE globalparameters SET input_rule = 'min:2,max:24' WHERE property_name IN('gt.max.correlation.instruments');
+
 
 -- Add serverlist_access_granted column to track if a remote has been granted access to our server list
 ALTER TABLE gt_net_config DROP COLUMN IF EXISTS serverlist_access_granted;
+ALTER TABLE gt_net_config DROP COLUMN IF EXISTS request_violation_count;
 ALTER TABLE gt_net_config ADD COLUMN serverlist_access_granted TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE gt_net_config ADD COLUMN request_violation_count TINYINT(2) NOT NULL DEFAULT 0; 
 
 -- Add last_modified_time column to GTNet for determining freshness during server list exchange
 ALTER TABLE gt_net DROP COLUMN IF EXISTS last_modified_time;
@@ -11,3 +31,42 @@ ALTER TABLE gt_net ADD COLUMN last_modified_time TIMESTAMP NULL DEFAULT CURRENT_
 
 ALTER TABLE gt_net_lastprice DROP COLUMN IF EXISTS dtype;
 ALTER TABLE gt_net_lastprice ADD dtype VARCHAR(1) NOT NULL AFTER id_gt_net; 
+
+ALTER TABLE gt_net_entity DROP COLUMN IF EXISTS max_limit;
+ALTER TABLE gt_net_entity ADD max_limit SMALLINT(5) NOT NULL AFTER accept_request; 
+
+CREATE INDEX IF NOT EXISTS idx_gtnet_exchange_modified ON gt_net_exchange (last_modified_time);
+
+
+DELETE FROM gt_net_exchange;
+ALTER TABLE gt_net_exchange DROP COLUMN IF EXISTS last_modified_time;
+ALTER TABLE gt_net_exchange ADD last_modified_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+
+-- Drop old unused log tables
+DROP TABLE IF EXISTS `gt_net_lastprice_detail_log`;
+DROP TABLE IF EXISTS `gt_net_lastprice_log`;
+
+-- Add enable_log column to gt_net_entity
+ALTER TABLE `gt_net_entity` ADD COLUMN `enable_log` tinyint(1) NOT NULL DEFAULT 0 AFTER `max_limit`;
+
+-- Create new exchange log table
+CREATE TABLE `gt_net_exchange_log` (
+  `id_gt_net_exchange_log` int(11) NOT NULL AUTO_INCREMENT,
+  `id_gt_net` int(11) NOT NULL,
+  `entity_kind` tinyint(1) NOT NULL COMMENT '0=LAST_PRICE, 1=HISTORICAL_PRICES',
+  `log_as_supplier` tinyint(1) NOT NULL COMMENT '1=Supplier, 0=Consumer',
+  `period_type` tinyint(1) NOT NULL COMMENT '0=INDIVIDUAL, 1=DAILY, 2=WEEKLY, 3=MONTHLY, 4=YEARLY',
+  `period_start` date NOT NULL COMMENT 'Start of aggregation period',
+  `timestamp` timestamp NOT NULL DEFAULT current_timestamp() COMMENT 'Time of log entry or last update for aggregates',
+  `entities_sent` int(11) NOT NULL DEFAULT 0 COMMENT 'Entities sent (Consumer) or received (Supplier)',
+  `entities_updated` int(11) NOT NULL DEFAULT 0 COMMENT 'Entities successfully updated',
+  `entities_in_response` int(11) NOT NULL DEFAULT 0 COMMENT 'Entities in response',
+  `request_count` int(11) NOT NULL DEFAULT 1 COMMENT 'Number of requests aggregated',
+  PRIMARY KEY (`id_gt_net_exchange_log`),
+  KEY `FK_GTNetExchangeLog_GTNet` (`id_gt_net`),
+  KEY `idx_gtnet_log_lookup` (`id_gt_net`, `entity_kind`, `log_as_supplier`, `period_type`, `period_start`),
+  KEY `idx_gtnet_log_period` (`period_type`, `period_start`),
+  CONSTRAINT `FK_GTNetExchangeLog_GTNet` FOREIGN KEY (`id_gt_net`)
+    REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

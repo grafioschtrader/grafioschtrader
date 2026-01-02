@@ -64,10 +64,13 @@ public class InstrumentExchangeSet {
   /**
    * Processes a response from a remote server, updating local entities and marking as filled.
    *
-   * @param response the response payload containing updated prices
+   * @param responseSecurities list of security price DTOs from the response
+   * @param responseCurrencypairs list of currency pair price DTOs from the response
+   * @return the number of entities that were successfully updated with newer data
    */
-  public void processResponse(List<InstrumentPriceDTO> responseSecurities,
+  public int processResponse(List<InstrumentPriceDTO> responseSecurities,
       List<InstrumentPriceDTO> responseCurrencypairs) {
+    int updatedCount = 0;
     if (responseSecurities != null) {
       for (InstrumentPriceDTO dto : responseSecurities) {
         String key = dto.getKey();
@@ -75,6 +78,7 @@ public class InstrumentExchangeSet {
         if (security != null && isNewer(dto.getTimestamp(), security.getSTimestamp())) {
           updateSecurityFromDTO(security, dto);
           markAsFilled(key);
+          updatedCount++;
         }
       }
     }
@@ -85,9 +89,11 @@ public class InstrumentExchangeSet {
         if (currencypair != null && isNewer(dto.getTimestamp(), currencypair.getSTimestamp())) {
           updateCurrencypairFromDTO(currencypair, dto);
           markAsFilled(key);
+          updatedCount++;
         }
       }
     }
+    return updatedCount;
   }
 
   /**

@@ -44,7 +44,13 @@
       "Bash(dir /b \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend\\\\grafioschtrader-server\\\\src\\\\main\\\\resources\\\\static\")",
       "Bash(xargs:*)",
       "Bash(dir /b \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend\\\\grafioschtrader-server\\\\src\\\\main\\\\java\\\\grafioschtrader\\\\gtnet\")",
-      "Bash(del \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend\\\\grafioschtrader-server\\\\src\\\\main\\\\java\\\\grafioschtrader\\\\service\\\\LastpricePoolQueryService.java\")"
+      "Bash(del \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend\\\\grafioschtrader-server\\\\src\\\\main\\\\java\\\\grafioschtrader\\\\service\\\\LastpricePoolQueryService.java\")",
+      "Bash(cd:*)",
+      "Bash(del \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend\\\\grafioschtrader-common\\\\src\\\\main\\\\java\\\\grafioschtrader\\\\entities\\\\GTNetLastpriceLog.java\")",
+      "Bash(del \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend\\\\grafioschtrader-common\\\\src\\\\main\\\\java\\\\grafioschtrader\\\\entities\\\\GTNetLastpriceDetailLog.java\")",
+      "Bash(cmd.exe /c \"cd /d C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend && mvn clean compile -Dmaven.test.skip=true 2>&1\")",
+      "Bash(powershell.exe -Command \"cd C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend; mvn clean compile -Dmaven.test.skip=true 2>&1\")",
+      "Bash(cmd.exe /c \"cd /d C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend && mvn clean compile -Dmaven.test.skip=true\")"
     ],
     "deny": [],
     "ask": []

@@ -1,0 +1,40 @@
+{
+    "domainRemoteName": "http://asus98.duckdns.org:8080",
+    "timeZone": "Europe/Zurich",
+    "spreadCapability": true,
+    "dailyRequestLimit": 999,
+    "serverBusy": false,
+    "allowServerCreation": true,
+    "gtNetEntities": [
+        {
+            "idGtNetEntity": 1,
+            "idGtNet": 1,
+            "entityKind": 1,
+            "maxLimit": "138"
+        },
+        {
+            "idGtNetEntity": 2,
+            "idGtNet": 1,
+            "entityKind": 0,
+            "maxLimit": "198"
+        }
+    ],
+    "gtNetConfig": null,
+    "idGtNet": 1,
+    "dailyRequestLimitRemote": null,
+    "lastModifiedTime": 1767279000000,
+    "id": 1,
+    "lastpriceExchange": "ES_NO_EXCHANGE",
+    "entityExchange": "ES_NO_EXCHANGE",
+    "historicalPriceRequest": "AC_CLOSED",
+    "historicalPriceServerState": "SS_NONE",
+    "historicalMaxLimit": 139,
+    "acceptLastpriceRequest": "AC_OPEN",
+    "lastpriceServerState": "SS_OPEN",
+    "lastpriceMaxLimit": 199,
+    "serverOnline$": "Unbekannt",
+    "acceptLastpriceRequest$": "Offen",
+    "lastpriceServerState$": "Im Betrieb",
+    "historicalPriceRequest$": "Geschlossen",
+    "historicalPriceServerState$": "Keine Angabe"
+}

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import grafioschtrader.gtnet.m2m.model.InstrumentPriceDTO;
 import io.swagger.v3.oas.annotations.media.Schema;

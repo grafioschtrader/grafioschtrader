@@ -50,6 +50,10 @@ public enum TaskTypeExtended implements ITaskType {
   GTNET_SERVER_STATUS_CHECK((byte) 20),
   /** Resets retry counters (history and intra) for connector(s) on active instruments. */
   RESET_CONNECTOR_RETRY_COUNTERS((byte) 21),
+  /** Aggregates GTNet exchange log entries from shorter to longer periods. */
+  GTNET_EXCHANGE_LOG_AGGREGATION((byte) 22),
+  /** Synchronizes GTNetExchange configurations with GTNet peers to update GTNetSupplierDetail entries. */
+  GTNET_EXCHANGE_SYNC((byte) 23),
 
   // Task which used oldValueNumber or oldValueString can not created by the admin
   ///////////////////////////////////////////////////////////////////////////////

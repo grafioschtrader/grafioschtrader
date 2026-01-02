@@ -26,6 +26,11 @@ public class GTNetEntityPublicDTO {
   @Schema(description = "Server state for data sharing (NONE, CLOSED, MAINTENANCE, OPEN)")
   private GTNetServerStateTypes serverState;
 
+  @Schema(description = """
+      Maximum number of instruments (securities or currency pairs) that can be transferred in a single request.
+      For example, 300 for LAST_PRICE means a maximum of 300 instruments per request.""")
+  private Short maxLimit;
+
   public GTNetEntityPublicDTO() {
   }
 
@@ -36,6 +41,7 @@ public class GTNetEntityPublicDTO {
     this.entityKind = entity.getEntityKind();
     this.acceptRequest = entity.getAcceptRequest();
     this.serverState = entity.getServerState();
+    this.maxLimit = entity.getMaxLimit();
   }
 
   public GTNetExchangeKindType getEntityKind() {
@@ -69,5 +75,13 @@ public class GTNetEntityPublicDTO {
 
   public void setServerState(GTNetServerStateTypes serverState) {
     this.serverState = serverState;
+  }
+
+  public Short getMaxLimit() {
+    return maxLimit;
+  }
+
+  public void setMaxLimit(Short maxLimit) {
+    this.maxLimit = maxLimit;
   }
 }
