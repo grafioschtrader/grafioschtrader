@@ -10,6 +10,7 @@ import grafiosch.common.PropertyOnlyCreation;
 import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
 import grafiosch.entities.BaseID;
 import grafiosch.entities.BaseParam;
+import grafioschtrader.gtnet.DeliveryStatus;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.GTNetModelHelper;
 import grafioschtrader.gtnet.SendReceivedType;
@@ -136,6 +137,13 @@ public class GTNetMessage extends BaseID<Integer> {
   private boolean hasBeenRead;
 
   @Schema(description = """
+      Delivery status for outgoing messages. Tracks whether the message was successfully transmitted to the remote
+      domain. PENDING (0) = queued or retries possible, DELIVERED (1) = successfully sent, FAILED (2) = all retries
+      exhausted. For received messages (sendRecv = RECEIVED), this field is not applicable.""")
+  @Column(name = "delivery_status")
+  private byte deliveryStatus = DeliveryStatus.PENDING.getValue();
+
+  @Schema(description = """
       Cooling-off period in days after a negative/rejection response. If set, the requesting domain must wait this
       many days before submitting another request of the same type. Helps prevent request spam and gives
       administrators time to review persistent requesters. 0 means no waiting period.""")
@@ -252,6 +260,14 @@ public class GTNetMessage extends BaseID<Integer> {
     this.hasBeenRead = hasBeenRead;
   }
 
+  public DeliveryStatus getDeliveryStatus() {
+    return DeliveryStatus.getDeliveryStatus(deliveryStatus);
+  }
+
+  public void setDeliveryStatus(DeliveryStatus deliveryStatus) {
+    this.deliveryStatus = deliveryStatus.getValue();
+  }
+
   @Override
   public Integer getId() {
     return idGtNetMessage;
@@ -292,6 +308,7 @@ public class GTNetMessage extends BaseID<Integer> {
     return "GTNetMessage [idGtNetMessage=" + idGtNetMessage + ", idGtNet=" + idGtNet + ", timestamp=" + timestamp
         + ", sendRecv=" + sendRecv + ", idSourceGtNetMessage=" + idSourceGtNetMessage + ", replyTo=" + replyTo
         + ", messageCode=" + messageCode + ", message=" + message + ", errorMsgCode=" + errorMsgCode + ", hasBeenRead="
-        + hasBeenRead + ", waitDaysApply=" + waitDaysApply + ", gtNetMessageParamMap=" + paramMapStr + "]";
+        + hasBeenRead + ", deliveryStatus=" + deliveryStatus + ", waitDaysApply=" + waitDaysApply
+        + ", gtNetMessageParamMap=" + paramMapStr + "]";
   }
 }
