@@ -35,13 +35,12 @@ ALTER TABLE gt_net_lastprice ADD dtype VARCHAR(1) NOT NULL AFTER id_gt_net;
 ALTER TABLE gt_net_entity DROP COLUMN IF EXISTS max_limit;
 ALTER TABLE gt_net_entity ADD max_limit SMALLINT(5) NOT NULL AFTER accept_request; 
 
-CREATE INDEX IF NOT EXISTS idx_gtnet_exchange_modified ON gt_net_exchange (last_modified_time);
-
 
 DELETE FROM gt_net_exchange;
 ALTER TABLE gt_net_exchange DROP COLUMN IF EXISTS last_modified_time;
 ALTER TABLE gt_net_exchange ADD last_modified_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
+CREATE INDEX IF NOT EXISTS idx_gtnet_exchange_modified ON gt_net_exchange (last_modified_time);
 
 -- Drop old unused log tables
 DROP TABLE IF EXISTS `gt_net_lastprice_detail_log`;

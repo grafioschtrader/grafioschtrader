@@ -66,6 +66,13 @@ export enum TaskTypeExtended {
   GTNET_SERVER_STATUS_CHECK = 20,
 
   RESET_CONNECTOR_RETRY_COUNTERS = 21,
+
+  /** Aggregates GTNet exchange log entries from shorter to longer periods. */
+  GTNET_EXCHANGE_LOG_AGGREGATION = 22,
+
+  /** Synchronizes GTNetExchange configurations with GTNet peers to update GTNetSupplierDetail entries. */
+  GTNET_EXCHANGE_SYNC = 23,
+
   // Update tasks
   UPD_V_0_11_0 = 51,
 
