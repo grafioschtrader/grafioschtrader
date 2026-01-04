@@ -26,6 +26,8 @@ import {ShowRecordConfigBase} from '../../lib/datashowbase/show.record.config.ba
 })
 export class GTNetSupplierDetailTableComponent implements OnInit {
   @Input() idSecuritycurrency: number;
+  /** Discriminator type: 'S' for Security, 'C' for Currencypair */
+  @Input() dtype: string;
 
   flattenedData: any[] = [];
   fields: ColumnConfig[] = [];
@@ -42,7 +44,11 @@ export class GTNetSupplierDetailTableComponent implements OnInit {
     ];
     this.translateHeaders(this.fields);
 
-    this.gtNetExchangeService.getSupplierDetails(this.idSecuritycurrency).subscribe(data => {
+    const observable = this.dtype === 'S'
+      ? this.gtNetExchangeService.getSecuritySupplierDetails(this.idSecuritycurrency)
+      : this.gtNetExchangeService.getCurrencypairSupplierDetails(this.idSecuritycurrency);
+
+    observable.subscribe(data => {
       this.flattenedData = [];
       data.forEach(dto => {
         dto.details.forEach(detail => {

@@ -136,21 +136,15 @@ export enum GTNetExchangeStatusTypes {
 }
 
 /**
- * Represents a GTNetExchange configuration for a security or currency pair.
- * Contains 4 boolean flags controlling price data exchange via GTNet.
+ * Interface for GTNet exchange fields on Securitycurrency entities.
+ * These fields are now directly on Security and Currencypair entities.
  */
-export class GTNetExchange implements BaseID {
-  idGtNetExchange: number;
-  securitycurrency: any;
-  lastpriceRecv: boolean;
-  historicalRecv: boolean;
-  lastpriceSend: boolean;
-  historicalSend: boolean;
-  detailCount?: number;
-
-  getId(): number {
-    return this.idGtNetExchange;
-  }
+export interface GTNetExchangeFields {
+  gtNetLastpriceRecv?: boolean;
+  gtNetHistoricalRecv?: boolean;
+  gtNetLastpriceSend?: boolean;
+  gtNetHistoricalSend?: boolean;
+  gtNetLastModifiedTime?: Date;
 }
 
 /**
@@ -181,9 +175,12 @@ export interface GTNetSupplierWithDetails {
   details: GTNetSupplierDetail[];
 }
 
+/**
+ * DTO containing securities or currency pairs with their GTNet exchange configurations.
+ * The GTNet fields are now directly on the Securitycurrency entities.
+ */
 export interface GTSecuritiyCurrencyExchange {
   securitiescurrenciesList: any[];
-  exchangeMap: { [idSecuritycurrency: number]: GTNetExchange };
   idSecuritycurrenies: number[];
 }
 

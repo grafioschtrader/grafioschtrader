@@ -1,5 +1,6 @@
 package grafioschtrader.gtnet.handler.impl;
 
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -23,7 +24,8 @@ import grafioschtrader.gtnet.handler.impl.lastprice.OpenLastpriceQueryStrategy;
 import grafioschtrader.gtnet.handler.impl.lastprice.PushOpenLastpriceQueryStrategy;
 import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.gtnet.model.msg.LastpriceExchangeMsg;
-import grafioschtrader.repository.GTNetExchangeJpaRepository;
+import grafioschtrader.repository.CurrencypairJpaRepository;
+import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.service.GTNetExchangeLogService;
 
 /**
@@ -50,7 +52,10 @@ public class LastpriceExchangeHandler extends AbstractGTNetMessageHandler {
   private OpenLastpriceQueryStrategy openStrategy;
 
   @Autowired
-  private GTNetExchangeJpaRepository gtNetExchangeJpaRepository;
+  private SecurityJpaRepository securityJpaRepository;
+
+  @Autowired
+  private CurrencypairJpaRepository currencypairJpaRepository;
 
   @Autowired
   private GTNetExchangeLogService gtNetExchangeLogService;
@@ -107,8 +112,9 @@ public class LastpriceExchangeHandler extends AbstractGTNetMessageHandler {
       return handleMaxLimitExceeded(context, storedRequest, totalInstruments, maxLimit);
     }
 
-    // Get IDs of instruments we're allowed to send
-    Set<Integer> sendableIds = gtNetExchangeJpaRepository.findIdsWithLastpriceSend();
+    // Get IDs of instruments we're allowed to send (combine from both repositories)
+    Set<Integer> sendableIds = new HashSet<>(securityJpaRepository.findIdsWithGtNetLastpriceSend());
+    sendableIds.addAll(currencypairJpaRepository.findIdsWithGtNetLastpriceSend());
 
     // Select strategy based on accept mode
     AcceptRequestTypes acceptMode = lastpriceEntity.get().getAcceptRequest();

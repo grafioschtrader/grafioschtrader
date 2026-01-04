@@ -13,7 +13,6 @@ import {InputTextModule} from 'primeng/inputtext';
 
 import {GTNetExchangeBaseComponent} from './gtnet-exchange-base.component';
 import {GTNetExchangeService} from '../service/gtnet-exchange.service';
-import {GTNetExchange, GTSecuritiyCurrencyExchange} from '../model/gtnet';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
@@ -32,7 +31,7 @@ import {HelpIds} from '../../lib/help/help.ids';
 
 
 /**
- * Component for configuring GTNetExchange settings for currency pairs.
+ * Component for configuring GTNet exchange settings for currency pairs.
  * Displays a table with currency pair information and 4 boolean checkboxes for exchange configuration.
  * Supports editing the underlying currency pair via a dialog.
  */
@@ -57,7 +56,7 @@ import {HelpIds} from '../../lib/help/help.ids';
     <configurable-table
       [data]="entityList"
       [fields]="fields"
-      dataKey="idGtNetExchange"
+      dataKey="idSecuritycurrency"
       [selectionMode]="'single'"
       [(selection)]="selectedEntity"
       (selectionChange)="onSelectionChange($event)"
@@ -107,7 +106,7 @@ import {HelpIds} from '../../lib/help/help.ids';
       </ng-template>
 
       <ng-template #expandedRow let-row>
-        <gtnet-supplier-detail-table [idSecuritycurrency]="row.securitycurrency.idSecuritycurrency">
+        <gtnet-supplier-detail-table [idSecuritycurrency]="row.idSecuritycurrency" [dtype]="'C'">
         </gtnet-supplier-detail-table>
       </ng-template>
 
@@ -173,7 +172,7 @@ import {HelpIds} from '../../lib/help/help.ids';
   `],
   providers: [DialogService]
 })
-export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseComponent {
+export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseComponent<Currencypair> {
 
   @ViewChild(ConfigurableTableComponent) configurableTable: ConfigurableTableComponent;
 
@@ -196,7 +195,7 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService
   ) {
-    super(gtNetExchangeService, confirmationService, messageToastService, activePanelService,
+    super('Currencypair', gtNetExchangeService, confirmationService, messageToastService, activePanelService,
       dialogService, filterService, translateService, gps, usersettingsService);
   }
 
@@ -209,30 +208,17 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
   }
 
   protected initializeColumns(): void {
-    this.addColumnFeqH(DataType.String, 'securitycurrency.name', true, false,
+    this.addColumnFeqH(DataType.String, 'name', true, false,
       {width: 150, filterType: FilterType.likeDataType});
     this.addCheckboxColumns();
 
-    this.multiSortMeta.push({field: 'securitycurrency.name', order: 1});
+    this.multiSortMeta.push({field: 'name', order: 1});
     this.prepareTableAndTranslate();
   }
 
   protected loadData(): void {
     this.gtNetExchangeService.getCurrencypairs().subscribe(data => {
-      this.entityList = data.securitiescurrenciesList.map(sc => {
-        const exchange = data.exchangeMap[sc.idSecuritycurrency];
-        if (exchange) {
-          return exchange;
-        }
-        return {
-          idGtNetExchange: null,
-          securitycurrency: sc,
-          lastpriceRecv: false,
-          historicalRecv: false,
-          lastpriceSend: false,
-          historicalSend: false
-        } as GTNetExchange;
-      });
+      this.entityList = data.securitiescurrenciesList;
       this.idSecuritycurreniesWithDetails = new Set(data.idSecuritycurrenies);
       this.modifiedItems.clear();
       this.createTranslatedValueStoreAndFilterField(this.entityList);
@@ -240,12 +226,25 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
   }
 
   /**
+   * Save modified currency pairs via batch update.
+   */
+  saveChanges(): void {
+    const modifiedList = this.getModifiedList();
+    if (modifiedList.length > 0) {
+      this.gtNetExchangeService.batchUpdateCurrencypairs(modifiedList).subscribe({
+        next: (updatedItems) => this.handleSaveSuccess(updatedItems),
+        error: () => this.handleSaveError()
+      });
+    }
+  }
+
+  /**
    * Override to build edit menu with currency pair edit option.
    */
-  protected override prepareEditMenu(entity: GTNetExchange): MenuItem[] {
+  protected override prepareEditMenu(entity: Currencypair): MenuItem[] {
     const menuItems: MenuItem[] = [];
 
-    if (entity?.securitycurrency) {
+    if (entity) {
       menuItems.push({
         label: 'EDIT_RECORD|CURRENCYPAIR' + BaseSettings.DIALOG_MENU_SUFFIX,
         command: () => this.editCurrencypair(entity)
@@ -259,8 +258,8 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
   /**
    * Opens the currency pair edit dialog.
    */
-  editCurrencypair(entity: GTNetExchange): void {
-    this.currencypairCallParam = entity.securitycurrency as Currencypair;
+  editCurrencypair(entity: Currencypair): void {
+    this.currencypairCallParam = entity;
     this.visibleEditCurrencypairDialog = true;
   }
 
@@ -278,12 +277,12 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
   /**
    * Wrapper for selection change to call resetMenu
    */
-  onSelectionChange(entity: GTNetExchange): void {
+  onSelectionChange(entity: Currencypair): void {
     this.resetMenu(entity);
   }
 
-  canExpand(row: GTNetExchange): boolean {
-    return this.idSecuritycurreniesWithDetails.has(row.securitycurrency.idSecuritycurrency);
+  canExpand(row: Currencypair): boolean {
+    return this.idSecuritycurreniesWithDetails.has(row.idSecuritycurrency);
   }
 
   public override getHelpContextId(): string {

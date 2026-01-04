@@ -3,11 +3,10 @@ package grafioschtrader.service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +33,6 @@ import grafioschtrader.m2m.GTNetMessageHelper;
 import grafioschtrader.m2m.client.BaseDataClient;
 import grafioschtrader.m2m.client.BaseDataClient.SendResult;
 import grafioschtrader.repository.CurrencypairJpaRepository;
-import grafioschtrader.repository.GTNetExchangeJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentCurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentSecurityJpaRepository;
 import grafioschtrader.repository.GTNetJpaRepository;
@@ -55,15 +53,12 @@ import grafioschtrader.repository.SecurityJpaRepository;
  * @see InstrumentExchangeSet for tracking which instruments have been filled
  */
 @Service
-public class GTNetLastpriceService {
+public class GTNetLastpriceService extends BaseGTNetExchangeService {
 
   private static final Logger log = LoggerFactory.getLogger(GTNetLastpriceService.class);
 
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
-
-  @Autowired
-  private GTNetExchangeJpaRepository gtNetExchangeJpaRepository;
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
@@ -126,8 +121,9 @@ public class GTNetLastpriceService {
   private SecurityCurrency executeGTNetExchange(List<Security> securities,
       List<Currencypair> currencypairs, List<Currencypair> currenciesNotInList) {
 
-    // 1. Get IDs of instruments configured for GTNet receive
-    Set<Integer> gtNetEnabledIds = gtNetExchangeJpaRepository.findIdsWithLastpriceRecv();
+    // 1. Get IDs of instruments configured for GTNet receive (from both securities and currency pairs)
+    Set<Integer> gtNetEnabledIds = new HashSet<>(securityJpaRepository.findIdsWithGtNetLastpriceRecv());
+    gtNetEnabledIds.addAll(currencypairJpaRepository.findIdsWithGtNetLastpriceRecv());
 
     // 2. Build instrument sets - separate GTNet-enabled from connector-only
     InstrumentExchangeSet gtNetInstruments = new InstrumentExchangeSet();
@@ -161,14 +157,14 @@ public class GTNetLastpriceService {
     // 4. Query push-open servers by priority
     if (!gtNetInstruments.isEmpty() && !gtNetInstruments.allFilled()) {
       List<GTNet> pushOpenSuppliers = getSuppliersByPriorityWithRandomization(
-          gtNetJpaRepository.findPushOpenSuppliers());
+          gtNetJpaRepository.findPushOpenSuppliers(), GTNetExchangeKindType.LAST_PRICE);
       queryRemoteServers(pushOpenSuppliers, gtNetInstruments);
     }
 
     // 5. Query open servers for remaining
     if (!gtNetInstruments.isEmpty() && !gtNetInstruments.allFilled()) {
       List<GTNet> openSuppliers = getSuppliersByPriorityWithRandomization(
-          gtNetJpaRepository.findOpenSuppliers());
+          gtNetJpaRepository.findOpenSuppliers(), GTNetExchangeKindType.LAST_PRICE);
       queryRemoteServers(openSuppliers, gtNetInstruments);
     }
 
@@ -206,39 +202,6 @@ public class GTNetLastpriceService {
     }
 
     return new SecurityCurrency(allSecurities, allPairs);
-  }
-
-  /**
-   * Randomizes suppliers within the same priority level.
-   * Suppliers are already ordered by priority ASC, so we need to shuffle within groups.
-   */
-  private List<GTNet> getSuppliersByPriorityWithRandomization(List<GTNet> suppliers) {
-    if (suppliers == null || suppliers.size() <= 1) {
-      return suppliers != null ? suppliers : new ArrayList<>();
-    }
-
-    // Group by priority (consumerUsage value from GTNetConfigEntity)
-    Map<Byte, List<GTNet>> byPriority = suppliers.stream()
-        .collect(Collectors.groupingBy(gtNet -> {
-          // Get the LAST_PRICE entity's consumerUsage
-          return gtNet.getGtNetEntities().stream()
-              .filter(e -> e.getEntityKind() == GTNetExchangeKindType.LAST_PRICE)
-              .findFirst()
-              .map(e -> e.getGtNetConfigEntity().getConsumerUsage())
-              .orElse((byte) 0);
-        }));
-
-    // Shuffle within each priority group and flatten
-    List<GTNet> result = new ArrayList<>();
-    byPriority.keySet().stream()
-        .sorted()
-        .forEach(priority -> {
-          List<GTNet> group = byPriority.get(priority);
-          Collections.shuffle(group);
-          result.addAll(group);
-        });
-
-    return result;
   }
 
   /**

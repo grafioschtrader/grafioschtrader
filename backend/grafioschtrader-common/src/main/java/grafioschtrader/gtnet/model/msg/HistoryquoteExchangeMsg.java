@@ -2,6 +2,7 @@ package grafioschtrader.gtnet.model.msg;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -93,5 +94,65 @@ public class HistoryquoteExchangeMsg {
   @JsonIgnore
   public boolean isEmpty() {
     return getTotalInstrumentCount() == 0;
+  }
+
+  /**
+   * Returns securities that contain actual historical data (not want-to-receive markers).
+   */
+  @JsonIgnore
+  public List<InstrumentHistoryquoteDTO> getSecuritiesWithData() {
+    if (securities == null) {
+      return new ArrayList<>();
+    }
+    return securities.stream()
+        .filter(dto -> !dto.isWantToReceiveResponse() && dto.getRecordCount() > 0)
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Returns securities marked as "want to receive" (supplier wants data but cannot provide it).
+   */
+  @JsonIgnore
+  public List<InstrumentHistoryquoteDTO> getSecuritiesWantingData() {
+    if (securities == null) {
+      return new ArrayList<>();
+    }
+    return securities.stream()
+        .filter(InstrumentHistoryquoteDTO::isWantToReceiveResponse)
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Returns currency pairs that contain actual historical data (not want-to-receive markers).
+   */
+  @JsonIgnore
+  public List<InstrumentHistoryquoteDTO> getCurrencypairsWithData() {
+    if (currencypairs == null) {
+      return new ArrayList<>();
+    }
+    return currencypairs.stream()
+        .filter(dto -> !dto.isWantToReceiveResponse() && dto.getRecordCount() > 0)
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Returns currency pairs marked as "want to receive" (supplier wants data but cannot provide it).
+   */
+  @JsonIgnore
+  public List<InstrumentHistoryquoteDTO> getCurrencypairsWantingData() {
+    if (currencypairs == null) {
+      return new ArrayList<>();
+    }
+    return currencypairs.stream()
+        .filter(InstrumentHistoryquoteDTO::isWantToReceiveResponse)
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Checks if this payload contains any "want to receive" markers.
+   */
+  @JsonIgnore
+  public boolean hasWantToReceiveMarkers() {
+    return !getSecuritiesWantingData().isEmpty() || !getCurrencypairsWantingData().isEmpty();
   }
 }

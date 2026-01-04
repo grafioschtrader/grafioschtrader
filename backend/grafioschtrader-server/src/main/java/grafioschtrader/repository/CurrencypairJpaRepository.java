@@ -1,5 +1,6 @@
 package grafioschtrader.repository;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -18,8 +19,40 @@ import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteD
 public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaRepository<Currencypair>,
     JpaSpecificationExecutor<Currencypair>, CurrencypairJpaRepositoryCustom, UpdateCreateJpaRepository<Currencypair> {
 
-  @Query("SELECT c, e, (SELECT COUNT(d) FROM GTNetSupplierDetail d WHERE d.securitycurrency.idSecuritycurrency = c.idSecuritycurrency) FROM Currencypair c LEFT JOIN GTNetExchange e ON e.securitycurrency.idSecuritycurrency = c.idSecuritycurrency ORDER BY c.fromCurrency, c.toCurrency")
-  List<Object[]> findAllWithGTNetExchange();
+  /**
+   * Returns IDs of currency pairs configured to receive intraday prices via GTNet.
+   */
+  @Query("SELECT c.idSecuritycurrency FROM Currencypair c WHERE c.gtNetLastpriceRecv = true")
+  Set<Integer> findIdsWithGtNetLastpriceRecv();
+
+  /**
+   * Returns IDs of currency pairs configured to send intraday prices via GTNet.
+   */
+  @Query("SELECT c.idSecuritycurrency FROM Currencypair c WHERE c.gtNetLastpriceSend = true")
+  Set<Integer> findIdsWithGtNetLastpriceSend();
+
+  /**
+   * Returns IDs of currency pairs configured to receive historical prices via GTNet.
+   */
+  @Query("SELECT c.idSecuritycurrency FROM Currencypair c WHERE c.gtNetHistoricalRecv = true")
+  Set<Integer> findIdsWithGtNetHistoricalRecv();
+
+  /**
+   * Returns IDs of currency pairs configured to send historical prices via GTNet.
+   */
+  @Query("SELECT c.idSecuritycurrency FROM Currencypair c WHERE c.gtNetHistoricalSend = true")
+  Set<Integer> findIdsWithGtNetHistoricalSend();
+
+  /**
+   * Finds currency pairs modified after the given timestamp for GTNet sync.
+   */
+  List<Currencypair> findByGtNetLastModifiedTimeAfter(Date timestamp);
+
+  /**
+   * Retrieves all currency pairs with supplier detail count for GTNet exchange configuration.
+   */
+  @Query("SELECT c, (SELECT COUNT(d) FROM GTNetSupplierDetail d WHERE d.securitycurrency.idSecuritycurrency = c.idSecuritycurrency) FROM Currencypair c ORDER BY c.fromCurrency, c.toCurrency")
+  List<Object[]> findAllWithSupplierDetailCount();
 
   List<Currencypair> findByFromCurrency(String fromCurrency);
 

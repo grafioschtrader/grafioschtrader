@@ -1,6 +1,5 @@
 package grafioschtrader.repository;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -17,8 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import grafioschtrader.entities.GTNetInstrumentSecurity;
 import grafioschtrader.entities.GTNetLastprice;
 import grafioschtrader.entities.Security;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 
 /**
  * Implementation of custom repository methods for GTNetInstrumentSecurity.
@@ -30,9 +27,6 @@ public class GTNetInstrumentSecurityJpaRepositoryImpl implements GTNetInstrument
 
   private static final Logger log = LoggerFactory.getLogger(GTNetInstrumentSecurityJpaRepositoryImpl.class);
 
-  @PersistenceContext
-  private EntityManager entityManager;
-
   @Autowired
   private GTNetInstrumentSecurityJpaRepository gtNetInstrumentSecurityJpaRepository;
 
@@ -40,35 +34,22 @@ public class GTNetInstrumentSecurityJpaRepositoryImpl implements GTNetInstrument
   private GTNetLastpriceJpaRepository gtNetLastpriceJpaRepository;
 
   @Override
-  @SuppressWarnings("unchecked")
   public List<GTNetInstrumentSecurity> findByIsinCurrencyTuples(List<String[]> isinCurrencyPairs) {
     if (isinCurrencyPairs == null || isinCurrencyPairs.isEmpty()) {
       return Collections.emptyList();
     }
 
-    // Build dynamic SQL with tuple IN clause: WHERE (isin, currency) IN (('US123','USD'), ('DE456','EUR'), ...)
-    StringBuilder sql = new StringBuilder();
-    sql.append("SELECT s.* FROM gt_net_instrument i ");
-    sql.append("JOIN gt_net_instrument_security s ON i.id_gt_net_instrument = s.id_gt_net_instrument ");
-    sql.append("WHERE (s.isin, s.currency) IN (");
+    // Convert tuples to composite keys for JPQL query
+    List<String> keys = isinCurrencyPairs.stream()
+        .filter(pair -> pair[0] != null && pair[1] != null)
+        .map(pair -> pair[0] + "|" + pair[1])
+        .collect(Collectors.toList());
 
-    List<Object> params = new ArrayList<>();
-    for (int i = 0; i < isinCurrencyPairs.size(); i++) {
-      if (i > 0) {
-        sql.append(", ");
-      }
-      sql.append("(?, ?)");
-      params.add(isinCurrencyPairs.get(i)[0]); // isin
-      params.add(isinCurrencyPairs.get(i)[1]); // currency
-    }
-    sql.append(")");
-
-    var query = entityManager.createNativeQuery(sql.toString(), GTNetInstrumentSecurity.class);
-    for (int i = 0; i < params.size(); i++) {
-      query.setParameter(i + 1, params.get(i));
+    if (keys.isEmpty()) {
+      return Collections.emptyList();
     }
 
-    return query.getResultList();
+    return gtNetInstrumentSecurityJpaRepository.findByIsinCurrencyKeys(keys);
   }
 
   @Override

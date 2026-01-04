@@ -152,7 +152,7 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
       )});
 
     gtNetNode.children.push({
-      label: 'GTNET_EXCHANGE_LOG',
+      label: 'GT_NET_EXCHANGE_LOG',
       data: new TypeNodeData(
         TreeNodeType.NO_MENU,
         this.addMainRoute(AppSettings.GT_NET_EXCHANGE_LOG_KEY),

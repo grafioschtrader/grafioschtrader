@@ -156,6 +156,31 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
   @OrderBy("date ASC")
   protected List<Historyquote> historyquoteList;
 
+  @Schema(description = "Receive intraday prices for this instrument via GTNet.")
+  @Column(name = "gt_net_lastprice_recv")
+  @PropertyAlwaysUpdatable
+  private boolean gtNetLastpriceRecv = false;
+
+  @Schema(description = "Receive historical price data for this instrument via GTNet.")
+  @Column(name = "gt_net_historical_recv")
+  @PropertyAlwaysUpdatable
+  private boolean gtNetHistoricalRecv = false;
+
+  @Schema(description = "Share intraday prices of this instrument via GTNet.")
+  @Column(name = "gt_net_lastprice_send")
+  @PropertyAlwaysUpdatable
+  private boolean gtNetLastpriceSend = false;
+
+  @Schema(description = "Share historical price data of this instrument via GTNet.")
+  @Column(name = "gt_net_historical_send")
+  @PropertyAlwaysUpdatable
+  private boolean gtNetHistoricalSend = false;
+
+  @Schema(description = "Timestamp when GTNet exchange settings were last modified.")
+  @Column(name = "gt_net_last_modified_time")
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date gtNetLastModifiedTime;
+
   public abstract String getName();
 
   @JsonIgnore
@@ -341,6 +366,46 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
 
   public void setUrlHistoryExtend(String urlUrlHistoryExtend) {
     this.urlHistoryExtend = urlUrlHistoryExtend;
+  }
+
+  public boolean isGtNetLastpriceRecv() {
+    return gtNetLastpriceRecv;
+  }
+
+  public void setGtNetLastpriceRecv(boolean gtNetLastpriceRecv) {
+    this.gtNetLastpriceRecv = gtNetLastpriceRecv;
+  }
+
+  public boolean isGtNetHistoricalRecv() {
+    return gtNetHistoricalRecv;
+  }
+
+  public void setGtNetHistoricalRecv(boolean gtNetHistoricalRecv) {
+    this.gtNetHistoricalRecv = gtNetHistoricalRecv;
+  }
+
+  public boolean isGtNetLastpriceSend() {
+    return gtNetLastpriceSend;
+  }
+
+  public void setGtNetLastpriceSend(boolean gtNetLastpriceSend) {
+    this.gtNetLastpriceSend = gtNetLastpriceSend;
+  }
+
+  public boolean isGtNetHistoricalSend() {
+    return gtNetHistoricalSend;
+  }
+
+  public void setGtNetHistoricalSend(boolean gtNetHistoricalSend) {
+    this.gtNetHistoricalSend = gtNetHistoricalSend;
+  }
+
+  public Date getGtNetLastModifiedTime() {
+    return gtNetLastModifiedTime;
+  }
+
+  public void setGtNetLastModifiedTime(Date gtNetLastModifiedTime) {
+    this.gtNetLastModifiedTime = gtNetLastModifiedTime;
   }
 
   public void clearUnusedFields() {
