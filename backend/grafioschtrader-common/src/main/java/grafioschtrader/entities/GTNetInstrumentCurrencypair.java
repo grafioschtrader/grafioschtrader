@@ -10,25 +10,33 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * Intraday price data for currency pairs shared via the GT-Network.
+ * Instrument pool entry for currency pairs in the GT-Network.
  *
  * Currency pairs are identified by the combination of fromCurrency and toCurrency (both ISO 4217 codes),
  * enabling cross-system matching. The exchange rate represents how many units of toCurrency equal one
  * unit of fromCurrency (e.g., EUR/USD = 1.10 means 1 EUR = 1.10 USD).
  *
- * @see GTNetLastprice for base OHLCV fields
- * @see GTNetLastpriceSecurity for security prices
+ * <h3>Usage</h3>
+ * <ul>
+ *   <li>Used by {@link GTNetLastprice} for intraday exchange rate data</li>
+ *   <li>Used by {@link GTNetHistoryquote} for historical exchange rates (foreign instruments only)</li>
+ *   <li>When {@link #isLocalInstrument()} returns true, historical data goes to {@link Historyquote} instead</li>
+ * </ul>
+ *
+ * @see GTNetInstrument for base fields and local/foreign distinction
+ * @see GTNetInstrumentSecurity for security instruments
  */
 @Entity
-@Table(name = GTNetLastpriceCurrencypair.TABNAME)
+@Table(name = GTNetInstrumentCurrencypair.TABNAME)
 @DiscriminatorValue("C")
 @Schema(description = """
-    Intraday price data for currency pairs shared via the GT-Network. Currency pairs are identified by from/to
-    currency codes (ISO 4217), enabling cross-system matching. The rate represents units of toCurrency per one
-    unit of fromCurrency. Contains OHLCV fields inherited from GTNetLastprice.""")
-public class GTNetLastpriceCurrencypair extends GTNetLastprice {
+    Instrument pool entry for currency pairs in the GT-Network. Currency pairs are identified by from/to
+    currency codes (ISO 4217), enabling cross-system matching. When idSecuritycurrency is set, this pair
+    exists locally. Price data is stored in GTNetLastprice (intraday) and either historyquote (local) or
+    gt_net_historyquote (foreign) for historical data.""")
+public class GTNetInstrumentCurrencypair extends GTNetInstrument {
 
-  public static final String TABNAME = "gt_net_lastprice_currencypair";
+  public static final String TABNAME = "gt_net_instrument_currencypair";
 
   @Schema(description = """
       Source currency code (ISO 4217, e.g., 'EUR', 'USD', 'CHF'). Combined with toCurrency, this uniquely
@@ -50,7 +58,7 @@ public class GTNetLastpriceCurrencypair extends GTNetLastprice {
   @Column(name = "to_currency")
   private String toCurrency;
 
-  public GTNetLastpriceCurrencypair() {
+  public GTNetInstrumentCurrencypair() {
     super();
   }
 
@@ -68,6 +76,11 @@ public class GTNetLastpriceCurrencypair extends GTNetLastprice {
 
   public void setToCurrency(String toCurrency) {
     this.toCurrency = toCurrency;
+  }
+
+  @Override
+  public String getInstrumentKey() {
+    return fromCurrency + ":" + toCurrency;
   }
 
 }

@@ -15,7 +15,7 @@ export enum GTNetExchangeKindType {
  * Defines the acceptance modes for incoming GTNet data exchange requests.
  * AC_CLOSED: No requests accepted, data exchange disabled
  * AC_OPEN: Accepts incoming requests, provides data to remote instances
- * AC_PUSH_OPEN: Accepts requests AND actively receives pushed updates (LAST_PRICE only)
+ * AC_PUSH_OPEN: Accepts requests AND actively receives pushed updates (for both LAST_PRICE and HISTORICAL_PRICES)
  */
 export enum AcceptRequestTypes {
   AC_CLOSED = 0,

@@ -12,17 +12,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import grafioschtrader.entities.Currencypair;
-import grafioschtrader.entities.GTNetLastpriceCurrencypair;
-import grafioschtrader.entities.GTNetLastpriceSecurity;
+import grafioschtrader.entities.GTNetInstrumentCurrencypair;
+import grafioschtrader.entities.GTNetInstrumentSecurity;
+import grafioschtrader.entities.GTNetLastprice;
 import grafioschtrader.entities.Security;
 import grafioschtrader.gtnet.m2m.model.InstrumentPriceDTO;
 import grafioschtrader.repository.CurrencypairJpaRepository;
-import grafioschtrader.repository.GTNetLastpriceCurrencypairJpaRepository;
-import grafioschtrader.repository.GTNetLastpriceSecurityJpaRepository;
+import grafioschtrader.repository.GTNetInstrumentCurrencypairJpaRepository;
+import grafioschtrader.repository.GTNetInstrumentSecurityJpaRepository;
+import grafioschtrader.repository.GTNetLastpriceJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 
 /**
- * Service for querying the local push pool (GTNetLastprice* tables) for intraday prices.
+ * Service for querying the local push pool (GTNetInstrument* and GTNetLastprice tables) for intraday prices.
  *
  * This service provides reusable query logic for:
  * <ul>
@@ -32,7 +34,8 @@ import grafioschtrader.repository.SecurityJpaRepository;
  *
  * Supports two data sources:
  * <ul>
- *   <li>Push pool (AC_PUSH_OPEN mode): Queries GTNetLastpriceSecurity/GTNetLastpriceCurrencypair tables</li>
+ *   <li>Push pool (AC_PUSH_OPEN mode): Queries GTNetInstrumentSecurity/GTNetInstrumentCurrencypair
+ *       and GTNetLastprice tables</li>
  *   <li>Local entities (AC_OPEN mode): Queries Security/Currencypair tables directly</li>
  * </ul>
  */
@@ -40,10 +43,13 @@ import grafioschtrader.repository.SecurityJpaRepository;
 public class LastpricePoolQueryService {
 
   @Autowired
-  private GTNetLastpriceSecurityJpaRepository gtNetLastpriceSecurityJpaRepository;
+  private GTNetInstrumentSecurityJpaRepository gtNetInstrumentSecurityJpaRepository;
 
   @Autowired
-  private GTNetLastpriceCurrencypairJpaRepository gtNetLastpriceCurrencypairJpaRepository;
+  private GTNetInstrumentCurrencypairJpaRepository gtNetInstrumentCurrencypairJpaRepository;
+
+  @Autowired
+  private GTNetLastpriceJpaRepository gtNetLastpriceJpaRepository;
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
@@ -69,7 +75,7 @@ public class LastpricePoolQueryService {
   }
 
   /**
-   * Queries securities from the push pool (GTNetLastpriceSecurity table).
+   * Queries securities from the push pool (GTNetInstrumentSecurity and GTNetLastprice tables).
    * For instruments not found, returns the request as a "final price" if last price is non-zero.
    *
    * @param requested list of requested securities with their current timestamps
@@ -98,19 +104,31 @@ public class LastpricePoolQueryService {
       return new PoolQueryResult(result, notFoundKeys);
     }
 
-    // Single batch query for all securities
-    List<GTNetLastpriceSecurity> prices = gtNetLastpriceSecurityJpaRepository.findByIsinCurrencyTuples(tuples);
+    // Single batch query for all security instruments
+    List<GTNetInstrumentSecurity> instruments = gtNetInstrumentSecurityJpaRepository.findByIsinCurrencyTuples(tuples);
+
+    // Get lastprice entries for found instruments
+    List<Integer> instrumentIds = instruments.stream()
+        .map(GTNetInstrumentSecurity::getIdGtNetInstrument)
+        .toList();
+    Map<Integer, GTNetLastprice> lastpriceMap = new HashMap<>();
+    if (!instrumentIds.isEmpty()) {
+      gtNetLastpriceJpaRepository.findByGtNetInstrumentIdGtNetInstrumentIn(instrumentIds)
+          .forEach(lp -> lastpriceMap.put(lp.getGtNetInstrument().getIdGtNetInstrument(), lp));
+    }
 
     // Track which instruments were found in the pool
     Set<String> foundKeys = new HashSet<>();
 
     // Match results with requests and filter by timestamp
-    for (GTNetLastpriceSecurity price : prices) {
-      String key = price.getIsin() + ":" + price.getCurrency();
+    for (GTNetInstrumentSecurity instrument : instruments) {
+      String key = instrument.getIsin() + ":" + instrument.getCurrency();
       foundKeys.add(key);
       InstrumentPriceDTO req = requestMap.get(key);
-      if (req != null && isNewer(price.getTimestamp(), req.getTimestamp())) {
-        result.add(fromGTNetLastpriceSecurity(price));
+      GTNetLastprice lastprice = lastpriceMap.get(instrument.getIdGtNetInstrument());
+
+      if (req != null && lastprice != null && isNewer(lastprice.getTimestamp(), req.getTimestamp())) {
+        result.add(fromInstrumentAndLastprice(instrument, lastprice));
       }
     }
 
@@ -129,7 +147,7 @@ public class LastpricePoolQueryService {
   }
 
   /**
-   * Queries currency pairs from the push pool (GTNetLastpriceCurrencypair table).
+   * Queries currency pairs from the push pool (GTNetInstrumentCurrencypair and GTNetLastprice tables).
    * For instruments not found, returns the request as a "final price" if last price is non-zero.
    *
    * @param requested list of requested currency pairs with their current timestamps
@@ -158,19 +176,31 @@ public class LastpricePoolQueryService {
       return new PoolQueryResult(result, notFoundKeys);
     }
 
-    // Single batch query for all currency pairs
-    List<GTNetLastpriceCurrencypair> prices = gtNetLastpriceCurrencypairJpaRepository.findByCurrencyTuples(tuples);
+    // Single batch query for all currency pair instruments
+    List<GTNetInstrumentCurrencypair> instruments = gtNetInstrumentCurrencypairJpaRepository.findByCurrencyTuples(tuples);
+
+    // Get lastprice entries for found instruments
+    List<Integer> instrumentIds = instruments.stream()
+        .map(GTNetInstrumentCurrencypair::getIdGtNetInstrument)
+        .toList();
+    Map<Integer, GTNetLastprice> lastpriceMap = new HashMap<>();
+    if (!instrumentIds.isEmpty()) {
+      gtNetLastpriceJpaRepository.findByGtNetInstrumentIdGtNetInstrumentIn(instrumentIds)
+          .forEach(lp -> lastpriceMap.put(lp.getGtNetInstrument().getIdGtNetInstrument(), lp));
+    }
 
     // Track which instruments were found in the pool
     Set<String> foundKeys = new HashSet<>();
 
     // Match results with requests and filter by timestamp
-    for (GTNetLastpriceCurrencypair price : prices) {
-      String key = price.getFromCurrency() + ":" + price.getToCurrency();
+    for (GTNetInstrumentCurrencypair instrument : instruments) {
+      String key = instrument.getFromCurrency() + ":" + instrument.getToCurrency();
       foundKeys.add(key);
       InstrumentPriceDTO req = requestMap.get(key);
-      if (req != null && isNewer(price.getTimestamp(), req.getTimestamp())) {
-        result.add(fromGTNetLastpriceCurrencypair(price));
+      GTNetLastprice lastprice = lastpriceMap.get(instrument.getIdGtNetInstrument());
+
+      if (req != null && lastprice != null && isNewer(lastprice.getTimestamp(), req.getTimestamp())) {
+        result.add(fromInstrumentAndLastprice(instrument, lastprice));
       }
     }
 
@@ -296,12 +326,12 @@ public class LastpricePoolQueryService {
   }
 
   /**
-   * Creates an InstrumentPriceDTO from a GTNetLastpriceSecurity entity.
+   * Creates an InstrumentPriceDTO from a GTNetInstrumentSecurity and GTNetLastprice.
    */
-  private InstrumentPriceDTO fromGTNetLastpriceSecurity(GTNetLastpriceSecurity price) {
+  private InstrumentPriceDTO fromInstrumentAndLastprice(GTNetInstrumentSecurity instrument, GTNetLastprice price) {
     InstrumentPriceDTO dto = new InstrumentPriceDTO();
-    dto.setIsin(price.getIsin());
-    dto.setCurrency(price.getCurrency());
+    dto.setIsin(instrument.getIsin());
+    dto.setCurrency(instrument.getCurrency());
     dto.setToCurrency(null);
     dto.setTimestamp(price.getTimestamp());
     dto.setOpen(price.getOpen());
@@ -313,13 +343,13 @@ public class LastpricePoolQueryService {
   }
 
   /**
-   * Creates an InstrumentPriceDTO from a GTNetLastpriceCurrencypair entity.
+   * Creates an InstrumentPriceDTO from a GTNetInstrumentCurrencypair and GTNetLastprice.
    */
-  private InstrumentPriceDTO fromGTNetLastpriceCurrencypair(GTNetLastpriceCurrencypair price) {
+  private InstrumentPriceDTO fromInstrumentAndLastprice(GTNetInstrumentCurrencypair instrument, GTNetLastprice price) {
     InstrumentPriceDTO dto = new InstrumentPriceDTO();
     dto.setIsin(null);
-    dto.setCurrency(price.getFromCurrency());
-    dto.setToCurrency(price.getToCurrency());
+    dto.setCurrency(instrument.getFromCurrency());
+    dto.setToCurrency(instrument.getToCurrency());
     dto.setTimestamp(price.getTimestamp());
     dto.setOpen(price.getOpen());
     dto.setHigh(price.getHigh());

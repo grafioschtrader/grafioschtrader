@@ -1,89 +1,88 @@
 package grafioschtrader.entities;
 
-import static jakarta.persistence.InheritanceType.JOINED;
-
 import java.util.Date;
 
 import grafiosch.entities.BaseID;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
-import jakarta.persistence.DiscriminatorColumn;
-import jakarta.persistence.DiscriminatorType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Inheritance;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 
 /**
- * Abstract base class for intraday price data shared via the GT-Network.
+ * Intraday price data for instruments in the GT-Network pool.
  *
- * This entity stores normalized OHLCV (Open, High, Low, Close, Volume) data for instruments that can be
- * shared between GTNet peers. Concrete implementations exist for:
- * <ul>
- *   <li>{@link GTNetLastpriceSecurity} - Securities identified by ISIN</li>
- *   <li>{@link GTNetLastpriceCurrencypair} - Currency pairs identified by from/to currency codes</li>
- * </ul>
+ * This entity stores normalized OHLCV (Open, High, Low, Last, Volume) data for instruments that are shared
+ * between GTNet peers. Each record references a {@link GTNetInstrument} which identifies the security or
+ * currency pair.
  *
- * The data flow works as follows:
+ * <h3>Data Flow</h3>
  * <ol>
  *   <li>Provider instances update this table with current market data from their connectors</li>
- *   <li>Consumer instances query providers and merge newer data into their local Security/Currencypair tables</li>
- *   <li>All operations are logged via {@link GTNetLastpriceLog} and optionally {@link GTNetLastpriceDetailLog}</li>
+ *   <li>Consumer instances query providers and receive price updates</li>
+ *   <li>Updates are applied based on timestamp comparison (newer wins)</li>
  * </ol>
  *
- * Uses JPA JOINED inheritance strategy, with discriminator values 'S' for Security and 'C' for Currencypair.
+ * <h3>Relationship to Instrument Pool</h3>
+ * Each GTNetLastprice record has a 1:1 relationship with a GTNetInstrument. The instrument provides
+ * the identification (ISIN+currency for securities, from/to currency for pairs), while this entity
+ * stores the actual price data.
+ *
+ * @see GTNetInstrument for instrument identification
+ * @see GTNetInstrumentSecurity for security instruments
+ * @see GTNetInstrumentCurrencypair for currency pair instruments
  */
 @Entity
 @Table(name = GTNetLastprice.TABNAME)
-@Inheritance(strategy = JOINED)
-@DiscriminatorColumn(name = "dtype", discriminatorType = DiscriminatorType.STRING)
 @Schema(description = """
-    Abstract base class for intraday price data shared via the GT-Network. Stores normalized OHLCV data that can be
-    exchanged between GTNet peers. Extended by GTNetLastpriceSecurity (for securities with ISIN) and
-    GTNetLastpriceCurrencypair (for currency pairs). Provider instances populate this data from their connectors;
-    consumer instances query providers and merge newer data into local tables.""")
-public abstract class GTNetLastprice extends BaseID<Integer> {
+    Intraday price data for instruments in the GT-Network pool. Stores OHLCV (Open, High, Low, Last, Volume)
+    data with a timestamp, linked to a GTNetInstrument which provides the identification. Provider instances
+    populate this from connectors; consumer instances query providers and merge newer data.""")
+public class GTNetLastprice extends BaseID<Integer> {
   public static final String TABNAME = "gt_net_lastprice";
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Basic(optional = false)
   @Column(name = "id_gt_net_lastprice")
-  protected Integer idGtNetLastprice;
+  private Integer idGtNetLastprice;
 
-  @Schema(description = "Reference to the GTNet server that owns this price data")
-  @Column(name = "id_gt_net", nullable = false)
-  protected Integer idGtNet;
+  @Schema(description = "Reference to the instrument in the GTNet pool")
+  @ManyToOne
+  @JoinColumn(name = "id_gt_net_instrument", nullable = false)
+  private GTNetInstrument gtNetInstrument;
 
-  @Schema(description = "Time of the last instraday price update")
+  @Schema(description = "Time of the last intraday price update")
   @Column(name = "timestamp")
   @Temporal(TemporalType.TIMESTAMP)
-  protected Date timestamp;
+  private Date timestamp;
 
   @Schema(description = "Opening price for the last or current trading day")
   @Column(name = "open")
-  protected Double open;
+  private Double open;
 
-  @Schema(description = "Lowest price for the last or current trading day.")
-  @Column(name = "low")
-  protected Double low;
-
-  @Schema(description = "Higest price for the last or current trading day.")
+  @Schema(description = "Highest price for the last or current trading day")
   @Column(name = "high")
-  protected Double high;
+  private Double high;
 
-  @Schema(description = "The most current price - possibly with after hour trade.")
+  @Schema(description = "Lowest price for the last or current trading day")
+  @Column(name = "low")
+  private Double low;
+
+  @Schema(description = "The most current price - possibly with after-hour trades")
   @Column(name = "last")
-  protected Double last;
+  private Double last;
 
   @Schema(description = "The traded volume for this trading day. Cryptocurrencies can also have a volume.")
   @Column(name = "volume")
-  protected Long volume;
+  private Long volume;
 
   public GTNetLastprice() {
     super();
@@ -93,12 +92,12 @@ public abstract class GTNetLastprice extends BaseID<Integer> {
     return idGtNetLastprice;
   }
 
-  public Integer getIdGtNet() {
-    return idGtNet;
+  public GTNetInstrument getGtNetInstrument() {
+    return gtNetInstrument;
   }
 
-  public void setIdGtNet(Integer idGtNet) {
-    this.idGtNet = idGtNet;
+  public void setGtNetInstrument(GTNetInstrument gtNetInstrument) {
+    this.gtNetInstrument = gtNetInstrument;
   }
 
   public Date getTimestamp() {
@@ -117,20 +116,20 @@ public abstract class GTNetLastprice extends BaseID<Integer> {
     this.open = open;
   }
 
-  public Double getLow() {
-    return low;
-  }
-
-  public void setLow(Double low) {
-    this.low = low;
-  }
-
   public Double getHigh() {
     return high;
   }
 
   public void setHigh(Double high) {
     this.high = high;
+  }
+
+  public Double getLow() {
+    return low;
+  }
+
+  public void setLow(Double low) {
+    this.low = low;
   }
 
   public Double getLast() {
