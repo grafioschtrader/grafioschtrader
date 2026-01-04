@@ -1,0 +1,92 @@
+-- GTNet Redesign: Generalized Instrument Pool
+-- No data migration needed - GTNet not yet in production use
+-- This is a reference schema - user will create actual Flyway migration
+
+-- Drop existing GTNet lastprice tables (no data to preserve)
+DROP TABLE IF EXISTS gt_net_exchange_log;
+DROP TABLE IF EXISTS gt_net_lastprice_detail_log;
+DROP TABLE IF EXISTS gt_net_lastprice_log;
+DROP TABLE IF EXISTS gt_net_lastprice_security;
+DROP TABLE IF EXISTS gt_net_lastprice_currencypair;
+DROP TABLE IF EXISTS gt_net_lastprice;
+DROP TABLE IF EXISTS gt_net_historyquote;
+DROP TABLE IF EXISTS gt_net_instrument_security;
+DROP TABLE IF EXISTS gt_net_instrument_currencypair;
+DROP TABLE IF EXISTS gt_net_instrument;
+
+
+-- 1. Instrument Pool Base Table
+CREATE TABLE gt_net_instrument (
+  id_gt_net_instrument INT AUTO_INCREMENT PRIMARY KEY,
+  id_gt_net INT NOT NULL,
+  dtype VARCHAR(1) NOT NULL,
+  id_securitycurrency INT NULL,  -- NULL = foreign instrument, set = local instrument
+  CONSTRAINT FK_GtNetInstrument_GtNet
+    FOREIGN KEY (id_gt_net) REFERENCES gt_net(id_gt_net),
+  CONSTRAINT FK_GtNetInstrument_Securitycurrency
+    FOREIGN KEY (id_securitycurrency) REFERENCES securitycurrency(id_securitycurrency)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- 2. Instrument Pool: Security (identified by ISIN + currency)
+CREATE TABLE gt_net_instrument_security (
+  id_gt_net_instrument INT PRIMARY KEY,
+  isin VARCHAR(12) NOT NULL,
+  currency CHAR(3) NOT NULL,
+  UNIQUE KEY UK_GtNetInstrumentSec_IsinCurrency (isin, currency),
+  CONSTRAINT FK_GtNetInstrumentSec_Instrument
+    FOREIGN KEY (id_gt_net_instrument) REFERENCES gt_net_instrument(id_gt_net_instrument)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- 3. Instrument Pool: Currency Pair (identified by from/to currency)
+CREATE TABLE gt_net_instrument_currencypair (
+  id_gt_net_instrument INT PRIMARY KEY,
+  from_currency CHAR(3) NOT NULL,
+  to_currency CHAR(3) NOT NULL,
+  UNIQUE KEY UK_GtNetInstrumentCp_FromTo (from_currency, to_currency),
+  CONSTRAINT FK_GtNetInstrumentCp_Instrument
+    FOREIGN KEY (id_gt_net_instrument) REFERENCES gt_net_instrument(id_gt_net_instrument)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- 4. Lastprice Data (intraday prices, FK to instrument pool)
+CREATE TABLE gt_net_lastprice (
+  id_gt_net_lastprice INT AUTO_INCREMENT PRIMARY KEY,
+  id_gt_net_instrument INT NOT NULL,
+  timestamp TIMESTAMP NULL,
+  open DOUBLE(22,8),
+  high DOUBLE(22,8),
+  low DOUBLE(22,8),
+  last DOUBLE(22,8),
+  volume BIGINT,
+  UNIQUE KEY UK_GtNetLastprice_Instrument (id_gt_net_instrument),
+  CONSTRAINT FK_GtNetLastprice_Instrument
+    FOREIGN KEY (id_gt_net_instrument) REFERENCES gt_net_instrument(id_gt_net_instrument)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- 5. Historyquote Data (EOD prices for FOREIGN instruments only)
+CREATE TABLE gt_net_historyquote (
+  id_gt_net_historyquote INT AUTO_INCREMENT PRIMARY KEY,
+  id_gt_net_instrument INT NOT NULL,
+  date DATE NOT NULL,
+  open DOUBLE(22,8),
+  high DOUBLE(22,8),
+  low DOUBLE(22,8),
+  close DOUBLE(22,8) NOT NULL,
+  volume BIGINT,
+  UNIQUE KEY UK_GtNetHistoryquote_InstrumentDate (id_gt_net_instrument, date),
+  CONSTRAINT FK_GtNetHistoryquote_Instrument
+    FOREIGN KEY (id_gt_net_instrument) REFERENCES gt_net_instrument(id_gt_net_instrument)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- 6. Exchange Log (unified for lastprice and historyquote)
+CREATE TABLE gt_net_exchange_log (
+  id_gt_net_exchange_log INT AUTO_INCREMENT PRIMARY KEY,
+  id_gt_net INT NOT NULL,
+  exchange_kind TINYINT NOT NULL,  -- 0=LAST_PRICE, 1=HISTORICAL_PRICES
+  log_as_supplier TINYINT(1) NOT NULL,
+  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  instrument_payload INT DEFAULT 0,
+  read_count INT DEFAULT 0,
+  write_count INT DEFAULT 0,
+  CONSTRAINT FK_GtNetExchangeLog_GtNet
+    FOREIGN KEY (id_gt_net) REFERENCES gt_net(id_gt_net)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

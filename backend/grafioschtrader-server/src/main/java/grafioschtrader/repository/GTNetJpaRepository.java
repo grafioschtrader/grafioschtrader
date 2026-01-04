@@ -117,4 +117,42 @@ public interface GTNetJpaRepository
   @Query("SELECT g FROM GTNet g WHERE g.spreadCapability = true AND g.idGtNet <> :excludeId")
   List<GTNet> findShareableServers(@Param("excludeId") Integer excludeId);
 
+  /**
+   * Finds push-open servers available for historical price exchange.
+   * Returns domains where:
+   * <ul>
+   *   <li>HISTORICAL_PRICES entity has acceptRequest = AC_PUSH_OPEN (2)</li>
+   *   <li>Server state is SS_OPEN (1)</li>
+   *   <li>Consumer usage priority > 0 (configured for use)</li>
+   *   <li>Server is online (serverOnline = SOS_ONLINE = 1)</li>
+   *   <li>Server is not busy</li>
+   * </ul>
+   * Results are ordered by consumerUsage ASC (lower value = higher priority).
+   *
+   * Named query: GTNet.findHistoryquotePushOpenSuppliers
+   *
+   * @return list of push-open supplier domains for historyquotes ordered by priority
+   */
+  @Query(nativeQuery = true, name = "GTNet.findHistoryquotePushOpenSuppliers")
+  List<GTNet> findHistoryquotePushOpenSuppliers();
+
+  /**
+   * Finds open servers available for historical price exchange.
+   * Returns domains where:
+   * <ul>
+   *   <li>HISTORICAL_PRICES entity has acceptRequest = AC_OPEN (1)</li>
+   *   <li>Server state is SS_OPEN (1)</li>
+   *   <li>Consumer usage priority > 0 (configured for use)</li>
+   *   <li>Server is online (serverOnline = SOS_ONLINE = 1)</li>
+   *   <li>Server is not busy</li>
+   * </ul>
+   * Results are ordered by consumerUsage ASC (lower value = higher priority).
+   *
+   * Named query: GTNet.findHistoryquoteOpenSuppliers
+   *
+   * @return list of open supplier domains for historyquotes ordered by priority
+   */
+  @Query(nativeQuery = true, name = "GTNet.findHistoryquoteOpenSuppliers")
+  List<GTNet> findHistoryquoteOpenSuppliers();
+
 }

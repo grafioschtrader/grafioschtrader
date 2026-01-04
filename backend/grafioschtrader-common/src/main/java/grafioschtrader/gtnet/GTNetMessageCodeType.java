@@ -99,7 +99,19 @@ public enum GTNetMessageCodeType {
   /** Request exchange configuration sync from remote server, includes local changed entries since last sync */
   GT_NET_EXCHANGE_SYNC_SEL_RR_C((byte) 70),
   /** Response containing remote's changed exchange entries for bidirectional sync */
-  GT_NET_EXCHANGE_SYNC_RESPONSE_S((byte) 71);
+  GT_NET_EXCHANGE_SYNC_RESPONSE_S((byte) 71),
+
+  // Historyquote exchange messages (80-84)
+  /** Request historical prices from remote server for date range, includes local date coverage info */
+  GT_NET_HISTORYQUOTE_EXCHANGE_SEL_C((byte) 80),
+  /** Response containing historical prices for requested dates */
+  GT_NET_HISTORYQUOTE_EXCHANGE_RESPONSE_S((byte) 81),
+  /** Push historical prices to remote server without requesting prices back */
+  GT_NET_HISTORYQUOTE_PUSH_SEL_C((byte) 82),
+  /** Acknowledge receipt of pushed historical prices with count of accepted updates */
+  GT_NET_HISTORYQUOTE_PUSH_ACK_S((byte) 83),
+  /** Response when the request exceeds the configured max_limit for instruments or date range */
+  GT_NET_HISTORYQUOTE_MAX_LIMIT_EXCEEDED_S((byte) 84);
 
 
 

@@ -141,10 +141,9 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
         this.configObject.lastpriceServerState.valueKeyHtmlOptions = this.configObject.historicalPriceServerState.valueKeyHtmlOptions;
         this.configObject.serverOnline.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
           GTNetServerOnlineStatusTypes);
-        // For historical prices, AC_PUSH_OPEN is not supported - create options with it disabled
-        this.configObject.historicalPriceRequest.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnumDisabled(
-          this.translateService, AcceptRequestTypes, [AcceptRequestTypes.AC_PUSH_OPEN]);
-        // For last price, all options are available
+        // All AcceptRequestTypes options are available for both historical and last prices
+        this.configObject.historicalPriceRequest.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+          this.translateService, AcceptRequestTypes);
         this.configObject.acceptLastpriceRequest.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
           this.translateService, AcceptRequestTypes);
         const gtNet = this.callParam.gtNet ?? new GTNet();

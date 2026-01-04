@@ -69,6 +69,24 @@ public interface GTNetExchangeJpaRepository
   Set<Integer> findIdsWithLastpriceSend();
 
   /**
+   * Returns IDs of instruments configured to receive historical price data via GTNet.
+   * Used to filter instruments during historical data exchange.
+   *
+   * @return set of securitycurrency IDs with historicalRecv = true
+   */
+  @Query("SELECT ge.securitycurrency.idSecuritycurrency FROM GTNetExchange ge WHERE ge.historicalRecv = true")
+  Set<Integer> findIdsWithHistoricalRecv();
+
+  /**
+   * Returns IDs of instruments configured to send historical price data via GTNet.
+   * Used by provider side to filter which historical prices to include in response.
+   *
+   * @return set of securitycurrency IDs with historicalSend = true
+   */
+  @Query("SELECT ge.securitycurrency.idSecuritycurrency FROM GTNetExchange ge WHERE ge.historicalSend = true")
+  Set<Integer> findIdsWithHistoricalSend();
+
+  /**
    * Finds all GTNetExchange entries modified after the given timestamp.
    * Used for incremental synchronization with GTNet peers to determine which
    * exchange configurations have changed since the last sync.

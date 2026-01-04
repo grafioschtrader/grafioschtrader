@@ -113,15 +113,14 @@ public class FirstHandshakeRequestHandler extends AbstractGTNetMessageHandler {
 
   /**
    * Creates a rejection response when the requesting server is not in the GTNet list and allowServerCreation is false.
+   * Note: We don't persist this message since there's no valid GTNet entry to associate it with.
    */
   private HandlerResult createNotInListRejectionResponse(GTNetMessageContext context, GTNet remoteGTNet)
       throws Exception {
-    // We need to create a temporary entry to store the rejection message, or handle without storing
-    // For rejection, we don't need to store the remote GTNet entry - just send a rejection response
-    GTNetMessage rejectMsg = new GTNetMessage(null, new java.util.Date(), SendReceivedType.SEND.getValue(), null,
-        GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_REJECT_NOT_IN_LIST_S.getValue(),
-        "Server not in GTNet list and automatic server creation is disabled", null);
-    rejectMsg = gtNetMessageJpaRepository.saveMsg(rejectMsg);
+    // Create rejection message without persisting - no valid GTNet entry exists for unknown servers
+    GTNetMessage rejectMsg = new GTNetMessage(null, new java.util.Date(), SendReceivedType.ANSWER.getValue(), null,
+        GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_REJECT_S.getValue(),
+        "You are not in my server list and we do not have automatic admission enabled.", null);
 
     MessageEnvelope response = createResponseEnvelopeWithPayload(context, rejectMsg, context.getMyGTNet());
     return new HandlerResult.ImmediateResponse(response);

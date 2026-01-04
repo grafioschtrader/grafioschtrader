@@ -35,9 +35,9 @@ import grafioschtrader.m2m.client.BaseDataClient;
 import grafioschtrader.m2m.client.BaseDataClient.SendResult;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetExchangeJpaRepository;
+import grafioschtrader.repository.GTNetInstrumentCurrencypairJpaRepository;
+import grafioschtrader.repository.GTNetInstrumentSecurityJpaRepository;
 import grafioschtrader.repository.GTNetJpaRepository;
-import grafioschtrader.repository.GTNetLastpriceCurrencypairJpaRepository;
-import grafioschtrader.repository.GTNetLastpriceSecurityJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 
 /**
@@ -72,10 +72,10 @@ public class GTNetLastpriceService {
   private CurrencypairJpaRepository currencypairJpaRepository;
 
   @Autowired
-  private GTNetLastpriceSecurityJpaRepository gtNetLastpriceSecurityJpaRepository;
+  private GTNetInstrumentSecurityJpaRepository gtNetInstrumentSecurityJpaRepository;
 
   @Autowired
-  private GTNetLastpriceCurrencypairJpaRepository gtNetLastpriceCurrencypairJpaRepository;
+  private GTNetInstrumentCurrencypairJpaRepository gtNetInstrumentCurrencypairJpaRepository;
 
   @Autowired
   private PushOpenLastpriceQueryStrategy pushOpenLastpriceQueryStrategy;
@@ -439,7 +439,7 @@ public class GTNetLastpriceService {
 
     // Update securities in push pool
     if (securities != null && !securities.isEmpty()) {
-      int securityCount = gtNetLastpriceSecurityJpaRepository.updateFromConnectorFetch(securities, myGTNetId);
+      int securityCount = gtNetInstrumentSecurityJpaRepository.updateFromConnectorFetch(securities, myGTNetId);
       if (securityCount > 0) {
         log.debug("Updated {} securities in push pool", securityCount);
       }
@@ -447,7 +447,7 @@ public class GTNetLastpriceService {
 
     // Update currency pairs in push pool
     if (currencypairs != null && !currencypairs.isEmpty()) {
-      int currencypairCount = gtNetLastpriceCurrencypairJpaRepository.updateFromConnectorFetch(currencypairs, myGTNetId);
+      int currencypairCount = gtNetInstrumentCurrencypairJpaRepository.updateFromConnectorFetch(currencypairs, myGTNetId);
       if (currencypairCount > 0) {
         log.debug("Updated {} currency pairs in push pool", currencypairCount);
       }
