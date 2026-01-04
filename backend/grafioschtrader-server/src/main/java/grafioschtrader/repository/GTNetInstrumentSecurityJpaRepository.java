@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import grafioschtrader.entities.GTNetInstrumentSecurity;
 
@@ -65,5 +66,15 @@ public interface GTNetInstrumentSecurityJpaRepository
    */
   @Query("SELECT s FROM GTNetInstrumentSecurity s WHERE s.idGtNet = ?1 AND s.idSecuritycurrency IS NULL")
   List<GTNetInstrumentSecurity> findForeignInstrumentsByIdGtNet(Integer idGtNet);
+
+  /**
+   * Finds security instruments by a list of composite keys (ISIN|currency format).
+   * Used for batch lookups when matching instruments from GTNet requests.
+   *
+   * @param keys list of composite keys in "ISIN|currency" format
+   * @return list of matching security instruments
+   */
+  @Query("SELECT s FROM GTNetInstrumentSecurity s WHERE CONCAT(s.isin, '|', s.currency) IN :keys")
+  List<GTNetInstrumentSecurity> findByIsinCurrencyKeys(@Param("keys") List<String> keys);
 
 }

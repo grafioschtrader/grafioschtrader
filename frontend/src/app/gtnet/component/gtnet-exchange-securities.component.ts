@@ -13,7 +13,6 @@ import {InputTextModule} from 'primeng/inputtext';
 
 import {GTNetExchangeBaseComponent} from './gtnet-exchange-base.component';
 import {GTNetExchangeService} from '../service/gtnet-exchange.service';
-import {GTNetExchange, GTSecuritiyCurrencyExchange} from '../model/gtnet';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
@@ -33,7 +32,7 @@ import {GTNetSupplierDetailTableComponent} from './gtnet-supplier-detail-table.c
 import {HelpIds} from '../../lib/help/help.ids';
 
 /**
- * Component for configuring GTNetExchange settings for securities.
+ * Component for configuring GTNet exchange settings for securities.
  * Displays a table with security information and 4 boolean checkboxes for exchange configuration.
  * Supports editing the underlying security via a dialog.
  */
@@ -58,7 +57,7 @@ import {HelpIds} from '../../lib/help/help.ids';
     <configurable-table
       [data]="entityList"
       [fields]="fields"
-      dataKey="securitycurrency.idSecuritycurrency"
+      dataKey="idSecuritycurrency"
       [selectionMode]="'single'"
       [(selection)]="selectedEntity"
       (selectionChange)="onSelectionChange($event)"
@@ -84,30 +83,30 @@ import {HelpIds} from '../../lib/help/help.ids';
         <div class="flex align-items-center gap-2">
           <div class="flex align-items-center gap-2 mr-3 border-right-1 pr-3 surface-border">
             <div>
-              <span class="me-2 cursor-help" [pTooltip]="'GT_NET_RECV_INTRADAY' | translate"
-                    tooltipPosition="top">{{ 'LASTPRICE_RECV' | translate }}</span>
-              <p-checkbox [binary]="true" (onChange)="toggleColumn('lastpriceRecv', $event)"
+              <span class="me-2 cursor-help" [pTooltip]="'GT_NET_LASTPRICE_RECV_TOOLTIP' | translate"
+                    tooltipPosition="top">{{ 'GT_NET_LASTPRICE_RECV' | translate }}</span>
+              <p-checkbox [binary]="true" (onChange)="toggleColumn('gtNetLastpriceRecv', $event)"
                           [disabled]="!isUserAllowedToMultiSelect()"></p-checkbox>
             </div>
 
             <div>
-              <span class="me-2 cursor-help" [pTooltip]="'HISTORICAL_RECV_TOOLTIP' | translate"
-                    tooltipPosition="top">{{ 'HISTORICAL_RECV' | translate }}</span>
-              <p-checkbox [binary]="true" (onChange)="toggleColumn('historicalRecv', $event)"
+              <span class="me-2 cursor-help" [pTooltip]="'GT_NET_HISTORICAL_RECV_TOOLTIP' | translate"
+                    tooltipPosition="top">{{ 'GT_NET_HISTORICAL_RECV' | translate }}</span>
+              <p-checkbox [binary]="true" (onChange)="toggleColumn('gtNetHistoricalRecv', $event)"
                           [disabled]="!isUserAllowedToMultiSelect()"></p-checkbox>
             </div>
 
             <div>
-              <span class="me-2 cursor-help" [pTooltip]="'LASTPRICE_SEND_TOOLTIP' | translate"
-                    tooltipPosition="top">{{ 'LASTPRICE_SEND' | translate }}</span>
-              <p-checkbox [binary]="true" (onChange)="toggleColumn('lastpriceSend', $event)"
+              <span class="me-2 cursor-help" [pTooltip]="'GT_NET_LASTPRICE_SEND_TOOLTIP' | translate"
+                    tooltipPosition="top">{{ 'GT_NET_LASTPRICE_SEND' | translate }}</span>
+              <p-checkbox [binary]="true" (onChange)="toggleColumn('gtNetLastpriceSend', $event)"
                           [disabled]="!isUserAllowedToMultiSelect()"></p-checkbox>
             </div>
 
             <div>
-              <span class="me-2 cursor-help" [pTooltip]="'HISTORICAL_SEND_TOOLTIP' | translate"
-                    tooltipPosition="top">{{'HISTORICAL_SEND' | translate }}</span>
-              <p-checkbox [binary]="true" (onChange)="toggleColumn('historicalSend', $event)"
+              <span class="me-2 cursor-help" [pTooltip]="'GT_NET_HISTORICAL_SEND_TOOLTIP' | translate"
+                    tooltipPosition="top">{{'GT_NET_HISTORICAL_SEND' | translate }}</span>
+              <p-checkbox [binary]="true" (onChange)="toggleColumn('gtNetHistoricalSend', $event)"
                           [disabled]="!isUserAllowedToMultiSelect()"></p-checkbox>
             </div>
           </div>
@@ -150,7 +149,7 @@ import {HelpIds} from '../../lib/help/help.ids';
       </ng-template>
 
       <ng-template #expandedRow let-row>
-        <gtnet-supplier-detail-table [idSecuritycurrency]="row.securitycurrency.idSecuritycurrency">
+        <gtnet-supplier-detail-table [idSecuritycurrency]="row.idSecuritycurrency" [dtype]="'S'">
         </gtnet-supplier-detail-table>
       </ng-template>
 
@@ -175,7 +174,7 @@ import {HelpIds} from '../../lib/help/help.ids';
   `],
   providers: [DialogService]
 })
-export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent {
+export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent<Security> {
 
   @ViewChild(ConfigurableTableComponent) configurableTable: ConfigurableTableComponent;
 
@@ -201,7 +200,7 @@ export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService
   ) {
-    super(gtNetExchangeService, confirmationService, messageToastService, activePanelService,
+    super('Security', gtNetExchangeService, confirmationService, messageToastService, activePanelService,
       dialogService, filterService, translateService, gps, usersettingsService);
   }
 
@@ -214,41 +213,28 @@ export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent
   }
 
   protected initializeColumns(): void {
-    this.addColumnFeqH(DataType.String, 'securitycurrency.name', true, false,
+    this.addColumnFeqH(DataType.String, 'name', true, false,
       {width: 200, filterType: FilterType.likeDataType});
-    this.addColumn(DataType.String, 'securitycurrency.isin', 'ISIN', true, false,
+    this.addColumn(DataType.String, 'isin', 'ISIN', true, false,
       {width: 120, filterType: FilterType.likeDataType});
-    this.addColumn(DataType.String, 'securitycurrency.tickerSymbol', 'SYMBOL', true, false,
+    this.addColumn(DataType.String, 'tickerSymbol', 'SYMBOL', true, false,
       {width: 80, filterType: FilterType.likeDataType});
-    this.addColumn(DataType.String, 'securitycurrency.currency', 'CURRENCY', true, false, {width: 60});
-    this.addColumn(DataType.DateString, 'securitycurrency.activeToDate', 'ACTIVE_TO_DATE', true, false,
+    this.addColumn(DataType.String, 'currency', 'CURRENCY', true, false, {width: 60});
+    this.addColumn(DataType.DateString, 'activeToDate', 'ACTIVE_TO_DATE', true, false,
       {width: 100, filterType: FilterType.likeDataType});
-    this.addColumn(DataType.String, 'securitycurrency.assetClass.categoryType', AppSettings.ASSETCLASS.toUpperCase(), true, true,
+    this.addColumn(DataType.String, 'assetClass.categoryType', AppSettings.ASSETCLASS.toUpperCase(), true, true,
       {translateValues: TranslateValue.NORMAL, width: 100, filterType: FilterType.likeDataType});
-    this.addColumn(DataType.String, 'securitycurrency.assetClass.specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT',
+    this.addColumn(DataType.String, 'assetClass.specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT',
       true, false, {width: 150, translateValues: TranslateValue.NORMAL, filterType: FilterType.likeDataType});
     this.addCheckboxColumns();
 
-    this.multiSortMeta.push({field: 'securitycurrency.name', order: 1});
+    this.multiSortMeta.push({field: 'name', order: 1});
     this.prepareTableAndTranslate();
   }
 
   protected loadData(): void {
     this.gtNetExchangeService.getSecurities(this.activeOnly).subscribe(data => {
-      this.entityList = data.securitiescurrenciesList.map(sc => {
-        const exchange = data.exchangeMap[sc.idSecuritycurrency];
-        if (exchange) {
-          return exchange;
-        }
-        return {
-          idGtNetExchange: null,
-          securitycurrency: sc,
-          lastpriceRecv: false,
-          historicalRecv: false,
-          lastpriceSend: false,
-          historicalSend: false
-        } as GTNetExchange;
-      });
+      this.entityList = data.securitiescurrenciesList;
       this.idSecuritycurreniesWithDetails = new Set(data.idSecuritycurrenies);
       this.modifiedItems.clear();
       this.createTranslatedValueStoreAndFilterField(this.entityList);
@@ -256,11 +242,24 @@ export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent
   }
 
   /**
+   * Save modified securities via batch update.
+   */
+  saveChanges(): void {
+    const modifiedList = this.getModifiedList();
+    if (modifiedList.length > 0) {
+      this.gtNetExchangeService.batchUpdateSecurities(modifiedList).subscribe({
+        next: (updatedItems) => this.handleSaveSuccess(updatedItems),
+        error: () => this.handleSaveError()
+      });
+    }
+  }
+
+  /**
    * For securities: disable intraday fields if security is inactive.
    */
-  override isCheckboxDisabled(item: GTNetExchange, field: string): boolean {
-    if (field === 'lastpriceRecv' || field === 'lastpriceSend') {
-      const activeToDate = item.securitycurrency?.activeToDate;
+  override isCheckboxDisabled(item: Security, field: string): boolean {
+    if (field === 'gtNetLastpriceRecv' || field === 'gtNetLastpriceSend') {
+      const activeToDate = item.activeToDate;
       if (activeToDate) {
         const today = new Date();
         const endDate = new Date(activeToDate);
@@ -273,10 +272,10 @@ export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent
   /**
    * Override to build edit menu with security edit option.
    */
-  protected override prepareEditMenu(entity: GTNetExchange): MenuItem[] {
+  protected override prepareEditMenu(entity: Security): MenuItem[] {
     const menuItems: MenuItem[] = [];
 
-    if (entity?.securitycurrency) {
+    if (entity) {
       menuItems.push({
         label: 'EDIT_RECORD|SECURITY' + BaseSettings.DIALOG_MENU_SUFFIX,
         command: () => this.editSecurity(entity)
@@ -290,8 +289,8 @@ export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent
   /**
    * Opens the security edit dialog.
    */
-  editSecurity(entity: GTNetExchange): void {
-    this.securityCallParam = entity.securitycurrency as Security;
+  editSecurity(entity: Security): void {
+    this.securityCallParam = entity;
     this.visibleEditSecurityDialog = true;
   }
 
@@ -309,7 +308,7 @@ export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent
   /**
    * Toggles the specified boolean column for all currently filtered rows.
    *
-   * @param field The field name to toggle (e.g., 'lastpriceRecv').
+   * @param field The field name to toggle (e.g., 'gtNetLastpriceRecv').
    * @param checkboxEvent The event from the checkbox (contains checked state).
    */
   toggleColumn(field: string, checkboxEvent: any): void {
@@ -332,12 +331,12 @@ export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent
   /**
    * Wrapper for selection change to call resetMenu
    */
-  onSelectionChange(entity: GTNetExchange): void {
+  onSelectionChange(entity: Security): void {
     this.resetMenu(entity);
   }
 
-  canExpand(row: GTNetExchange): boolean {
-    return this.idSecuritycurreniesWithDetails.has(row.securitycurrency.idSecuritycurrency);
+  canExpand(row: Security): boolean {
+    return this.idSecuritycurreniesWithDetails.has(row.idSecuritycurrency);
   }
 
   public override getHelpContextId(): string {

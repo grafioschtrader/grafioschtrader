@@ -6,7 +6,7 @@ import {DialogService} from 'primeng/dynamicdialog';
 import {CrudMenuOptions, TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {GTNetExchange} from '../model/gtnet';
+import {GTNetExchangeFields} from '../model/gtnet';
 import {GTNetExchangeService} from '../service/gtnet-exchange.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {FilterType} from '../../lib/datashowbase/filter.type';
@@ -14,10 +14,12 @@ import {HelpIds} from '../../lib/help/help.ids';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
+import {Securitycurrency} from '../../entities/securitycurrency';
 
 /**
- * Abstract base component for GTNetExchange configuration tables.
+ * Abstract base component for GTNet exchange configuration tables.
  * Provides common functionality for both securities and currency pairs tables.
+ * Now works directly with Security and Currencypair entities that have GTNet fields.
  *
  * Shared functionality includes:
  * - Table configuration with checkbox columns for boolean flags
@@ -27,7 +29,8 @@ import {InfoLevelType} from '../../lib/message/info.leve.type';
  * - Context menu handling
  */
 @Directive()
-export abstract class GTNetExchangeBaseComponent extends TableCrudSupportMenu<GTNetExchange> implements OnInit, OnDestroy {
+export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GTNetExchangeFields>
+    extends TableCrudSupportMenu<T> implements OnInit, OnDestroy {
 
   /** Set of modified item IDs for batch save tracking */
   modifiedItems: Set<number> = new Set();
@@ -36,11 +39,12 @@ export abstract class GTNetExchangeBaseComponent extends TableCrudSupportMenu<GT
   private savesOccurred: boolean = false;
 
   /** Entity for dialog calls (required by base class) */
-  callParam: GTNetExchange;
+  callParam: T;
 
   @ViewChild('cmDiv') contextMenuDiv: any;
 
   protected constructor(
+    entityName: string,
     protected gtNetExchangeService: GTNetExchangeService,
     confirmationService: ConfirmationService,
     messageToastService: MessageToastService,
@@ -51,7 +55,7 @@ export abstract class GTNetExchangeBaseComponent extends TableCrudSupportMenu<GT
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService
   ) {
-    super('GTNetExchange', gtNetExchangeService, confirmationService, messageToastService, activePanelService,
+    super(entityName, null, confirmationService, messageToastService, activePanelService,
       dialogService, filterService, translateService, gps, usersettingsService, [CrudMenuOptions.ParentControl]);
     this.rowsPerPage = 50;
   }
@@ -82,69 +86,70 @@ export abstract class GTNetExchangeBaseComponent extends TableCrudSupportMenu<GT
   abstract getDType(): string;
 
   /**
-   * Add the 4 common checkbox columns for GTNetExchange boolean flags.
+   * Add the 4 common checkbox columns for GTNet exchange boolean flags.
+   * Uses the new field names directly on the entity.
    */
   protected addCheckboxColumns(): void {
-    this.addColumnFeqH(DataType.Boolean, 'lastpriceRecv',  true, false,
+    this.addColumnFeqH(DataType.Boolean, 'gtNetLastpriceRecv',  true, false,
       {width: 80, templateName: 'checkbox'});
-    this.addColumnFeqH(DataType.Boolean, 'historicalRecv',  true, false,
+    this.addColumnFeqH(DataType.Boolean, 'gtNetHistoricalRecv',  true, false,
       {width: 80, templateName: 'checkbox'});
-    this.addColumnFeqH(DataType.Boolean, 'lastpriceSend',  true, false,
+    this.addColumnFeqH(DataType.Boolean, 'gtNetLastpriceSend',  true, false,
       {width: 80, templateName: 'checkbox'});
-    this.addColumnFeqH(DataType.Boolean, 'historicalSend',  true, false,
+    this.addColumnFeqH(DataType.Boolean, 'gtNetHistoricalSend',  true, false,
       {width: 80, templateName: 'checkbox'});
   }
 
   /**
    * Handle checkbox value change - marks item as modified.
-   * Tracks by idSecuritycurrency since new items don't have idGtNetExchange yet.
+   * Tracks by idSecuritycurrency directly on the entity.
    */
-  onCheckboxChange(item: GTNetExchange): void {
-    this.modifiedItems.add(item.securitycurrency.idSecuritycurrency);
+  onCheckboxChange(item: T): void {
+    this.modifiedItems.add(item.idSecuritycurrency);
   }
 
   /**
    * Check if a checkbox should be disabled.
    * Override in derived classes for specific logic.
    */
-  isCheckboxDisabled(item: GTNetExchange, field: string): boolean {
+  isCheckboxDisabled(item: T, field: string): boolean {
     return false;
   }
 
   /**
-   * Save all modified items via batch update.
-   * Handles both existing items (with idGtNetExchange) and new items (without).
+   * Get the list of modified entities for batch save.
    */
-  saveChanges(): void {
-    const modifiedList = this.entityList.filter(item =>
-      this.modifiedItems.has(item.securitycurrency.idSecuritycurrency));
+  protected getModifiedList(): T[] {
+    return this.entityList.filter(item => this.modifiedItems.has(item.idSecuritycurrency));
+  }
 
-    modifiedList.forEach(item => {
-      if (!item.securitycurrency.dtype) {
-        item.securitycurrency.dtype = this.getDType();
+  /**
+   * Save all modified items via batch update.
+   * Must be implemented by derived classes as securities and currency pairs use different endpoints.
+   */
+  abstract saveChanges(): void;
+
+  /**
+   * Handle successful save response.
+   */
+  protected handleSaveSuccess(updatedItems: T[]): void {
+    // Update entityList with returned items
+    for (const updated of updatedItems) {
+      const index = this.entityList.findIndex(e => e.idSecuritycurrency === updated.idSecuritycurrency);
+      if (index >= 0) {
+        this.entityList[index] = updated;
       }
-    });
-
-    if (modifiedList.length > 0) {
-      this.gtNetExchangeService.batchUpdate(modifiedList).subscribe({
-        next: (updatedItems) => {
-          // Update entityList with returned items (which now have idGtNetExchange for new items)
-          for (const updated of updatedItems) {
-            const index = this.entityList.findIndex(e =>
-              e.securitycurrency.idSecuritycurrency === updated.securitycurrency.idSecuritycurrency);
-            if (index >= 0) {
-              this.entityList[index] = updated;
-            }
-          }
-          this.modifiedItems.clear();
-          this.savesOccurred = true;
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'GT_NET_EXCHANGE_SAVE_SUCCESS');
-        },
-        error: () => {
-          this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'SAVE_ERROR');
-        }
-      });
     }
+    this.modifiedItems.clear();
+    this.savesOccurred = true;
+    this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'GT_NET_EXCHANGE_SAVE_SUCCESS');
+  }
+
+  /**
+   * Handle save error.
+   */
+  protected handleSaveError(): void {
+    this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'SAVE_ERROR');
   }
 
   /**
@@ -192,7 +197,7 @@ export abstract class GTNetExchangeBaseComponent extends TableCrudSupportMenu<GT
     return (field.dataType === DataType.Numeric || field.dataType === DataType.DateTimeNumeric) ? 'text-end' : '';
   }
 
-  override prepareCallParam(entity: GTNetExchange): void {
+  override prepareCallParam(entity: T): void {
     this.callParam = entity;
   }
 
@@ -207,14 +212,14 @@ export abstract class GTNetExchangeBaseComponent extends TableCrudSupportMenu<GT
   /**
    * Override to build edit menu. Can be overridden by derived classes.
    */
-  protected override prepareEditMenu(entity: GTNetExchange): MenuItem[] {
+  protected override prepareEditMenu(entity: T): MenuItem[] {
     return null;
   }
 
   /**
    * Reset menu based on selection. Can be overridden by derived classes.
    */
-  protected override resetMenu(entity: GTNetExchange): void {
+  protected override resetMenu(entity: T): void {
     this.selectedEntity = entity;
     this.contextMenuItems = this.prepareEditMenu(this.selectedEntity);
     this.activePanelService.activatePanel(this, {

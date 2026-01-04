@@ -8,120 +8,100 @@ import {LoginService} from '../../lib/login/service/log-in.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {BaseSettings} from '../../lib/base.settings';
 import {AppSettings} from '../../shared/app.settings';
-import {GTNetExchange, GTNetSupplierWithDetails, GTSecuritiyCurrencyExchange} from '../model/gtnet';
-import {DeleteService} from '../../lib/datashowbase/delete.service';
+import {GTNetSupplierWithDetails, GTSecuritiyCurrencyExchange} from '../model/gtnet';
+import {Security} from '../../entities/security';
+import {Currencypair} from '../../entities/currencypair';
 
 /**
- * Service for managing GTNetExchange configurations.
+ * Service for managing GTNet exchange configurations on securities and currency pairs.
  *
- * Provides methods to retrieve, update, and manage exchange configurations
- * for securities and currency pairs participating in GTNet price data sharing.
+ * The GTNet exchange fields (gtNetLastpriceRecv, gtNetHistoricalRecv, gtNetLastpriceSend,
+ * gtNetHistoricalSend) are now directly on the Security and Currencypair entities.
  */
 @Injectable({
   providedIn: 'root'
 })
-export class GTNetExchangeService extends AuthServiceWithLogout<GTNetExchange> implements DeleteService {
+export class GTNetExchangeService extends AuthServiceWithLogout<Security> {
 
   constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
     super(loginService, httpClient, messageToastService);
   }
 
   /**
-   * Retrieves all GTNetExchange entries for securities.
+   * Retrieves all securities with their GTNet exchange configuration.
    *
    * @param activeOnly When true, returns only active securities
    * @returns Observable of GTSecuritiyCurrencyExchange
    */
   getSecurities(activeOnly: boolean = true): Observable<GTSecuritiyCurrencyExchange> {
     return this.httpClient.get<GTSecuritiyCurrencyExchange>(
-      `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_EXCHANGE_KEY}/securities?activeOnly=${activeOnly}`,
+      `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/gtnetexchange?activeOnly=${activeOnly}`,
       this.getHeaders()
     ).pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
-   * Retrieves all GTNetExchange entries for currency pairs.
+   * Retrieves all currency pairs with their GTNet exchange configuration.
    *
    * @returns Observable of GTSecuritiyCurrencyExchange
    */
   getCurrencypairs(): Observable<GTSecuritiyCurrencyExchange> {
     return this.httpClient.get<GTSecuritiyCurrencyExchange>(
-      `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_EXCHANGE_KEY}/currencypairs`,
+      `${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/gtnetexchange`,
       this.getHeaders()
     ).pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
-   * Batch updates multiple GTNetExchange entries.
+   * Batch updates GTNet exchange fields for multiple securities.
    *
-   * @param exchanges Array of GTNetExchange entities to update
-   * @returns Observable of updated GTNetExchange array
+   * @param securities Array of Security entities with updated GTNet fields
+   * @returns Observable of updated Security array
    */
-  batchUpdate(exchanges: GTNetExchange[]): Observable<GTNetExchange[]> {
-    return this.httpClient.post<GTNetExchange[]>(
-      `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_EXCHANGE_KEY}/batch`,
-      exchanges,
+  batchUpdateSecurities(securities: Security[]): Observable<Security[]> {
+    return this.httpClient.post<Security[]>(
+      `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/gtnetexchange/batch`,
+      securities,
       this.getHeaders()
     ).pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
-   * Adds a security to the GTNetExchange configuration.
+   * Batch updates GTNet exchange fields for multiple currency pairs.
    *
-   * @param idSecuritycurrency The ID of the security to add
-   * @returns Observable of the created GTNetExchange entry
+   * @param currencypairs Array of Currencypair entities with updated GTNet fields
+   * @returns Observable of updated Currencypair array
    */
-  addSecurity(idSecuritycurrency: number): Observable<GTNetExchange> {
-    return this.httpClient.post<GTNetExchange>(
-      `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_EXCHANGE_KEY}/addsecurity/${idSecuritycurrency}`,
-      {},
+  batchUpdateCurrencypairs(currencypairs: Currencypair[]): Observable<Currencypair[]> {
+    return this.httpClient.post<Currencypair[]>(
+      `${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/gtnetexchange/batch`,
+      currencypairs,
       this.getHeaders()
     ).pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
-   * Adds a currency pair to the GTNetExchange configuration.
+   * Retrieves supplier details for a given security.
    *
-   * @param idSecuritycurrency The ID of the currency pair to add
-   * @returns Observable of the created GTNetExchange entry
-   */
-  addCurrencypair(idSecuritycurrency: number): Observable<GTNetExchange> {
-    return this.httpClient.post<GTNetExchange>(
-      `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_EXCHANGE_KEY}/addcurrencypair/${idSecuritycurrency}`,
-      {},
-      this.getHeaders()
-    ).pipe(catchError(this.handleError.bind(this)));
-  }
-
-  /**
-   * Deletes a GTNetExchange entry.
-   *
-   * @param id The ID of the GTNetExchange entry to delete
-   * @returns Observable of void
-   */
-  deleteExchange(id: number): Observable<void> {
-    return this.httpClient.delete<void>(
-      `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_EXCHANGE_KEY}/${id}`,
-      this.getHeaders()
-    ).pipe(catchError(this.handleError.bind(this)));
-  }
-
-  /**
-   * Implements DeleteService interface.
-   */
-  deleteEntity(id: number | string): Observable<any> {
-    return this.deleteExchange(typeof id === 'number' ? id : parseInt(id, 10));
-  }
-
-  /**
-   * Retrieves supplier details for a given security or currency pair.
-   *
-   * @param idSecuritycurrency The ID of the security or currency pair
+   * @param idSecuritycurrency The ID of the security
    * @returns Observable of GTNetSupplierWithDetails array
    */
-  getSupplierDetails(idSecuritycurrency: number): Observable<GTNetSupplierWithDetails[]> {
+  getSecuritySupplierDetails(idSecuritycurrency: number): Observable<GTNetSupplierWithDetails[]> {
     return this.httpClient.get<GTNetSupplierWithDetails[]>(
-      `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_EXCHANGE_KEY}/supplierdetails/${idSecuritycurrency}`,
+      `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idSecuritycurrency}/gtnetexchange/supplierdetails`,
+      this.getHeaders()
+    ).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /**
+   * Retrieves supplier details for a given currency pair.
+   *
+   * @param idSecuritycurrency The ID of the currency pair
+   * @returns Observable of GTNetSupplierWithDetails array
+   */
+  getCurrencypairSupplierDetails(idSecuritycurrency: number): Observable<GTNetSupplierWithDetails[]> {
+    return this.httpClient.get<GTNetSupplierWithDetails[]>(
+      `${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/${idSecuritycurrency}/gtnetexchange/supplierdetails`,
       this.getHeaders()
     ).pipe(catchError(this.handleError.bind(this)));
   }
@@ -129,14 +109,14 @@ export class GTNetExchangeService extends AuthServiceWithLogout<GTNetExchange> i
   /**
    * Triggers the exchange sync background job.
    *
-   * Creates a background task to sync GTNetExchange configurations with GTNet peers.
+   * Creates a background task to sync GTNet exchange configurations with GTNet peers.
    * This updates GTNetSupplierDetail entries based on what instruments each peer offers.
    *
    * @returns Observable of void
    */
   triggerSync(): Observable<void> {
     return this.httpClient.post<void>(
-      `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_EXCHANGE_KEY}/triggersync`,
+      `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/gtnetexchange/triggersync`,
       {},
       this.getHeaders()
     ).pipe(catchError(this.handleError.bind(this)));

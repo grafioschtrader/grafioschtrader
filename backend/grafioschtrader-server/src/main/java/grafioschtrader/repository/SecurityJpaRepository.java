@@ -32,7 +32,36 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
 
 
   List<Security> findByActiveToDateAfterAndIsinIsNotNull(Date date);
-  
+
+  /**
+   * Returns IDs of securities configured to receive intraday prices via GTNet.
+   */
+  @Query("SELECT s.idSecuritycurrency FROM Security s WHERE s.gtNetLastpriceRecv = true")
+  Set<Integer> findIdsWithGtNetLastpriceRecv();
+
+  /**
+   * Returns IDs of securities configured to send intraday prices via GTNet.
+   */
+  @Query("SELECT s.idSecuritycurrency FROM Security s WHERE s.gtNetLastpriceSend = true")
+  Set<Integer> findIdsWithGtNetLastpriceSend();
+
+  /**
+   * Returns IDs of securities configured to receive historical prices via GTNet.
+   */
+  @Query("SELECT s.idSecuritycurrency FROM Security s WHERE s.gtNetHistoricalRecv = true")
+  Set<Integer> findIdsWithGtNetHistoricalRecv();
+
+  /**
+   * Returns IDs of securities configured to send historical prices via GTNet.
+   */
+  @Query("SELECT s.idSecuritycurrency FROM Security s WHERE s.gtNetHistoricalSend = true")
+  Set<Integer> findIdsWithGtNetHistoricalSend();
+
+  /**
+   * Finds securities modified after the given timestamp for GTNet sync.
+   */
+  List<Security> findByGtNetLastModifiedTimeAfterAndIsinIsNotNull(Date timestamp);
+
   /**
    * Executes the `deleteUpdateHistoryQuality` stored procedure to refresh the historyquote_quality metrics for all
    * securities.

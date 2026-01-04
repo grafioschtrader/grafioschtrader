@@ -1,6 +1,5 @@
 package grafioschtrader.repository;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -17,8 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.GTNetInstrumentCurrencypair;
 import grafioschtrader.entities.GTNetLastprice;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 
 /**
  * Implementation of custom repository methods for GTNetInstrumentCurrencypair.
@@ -30,9 +27,6 @@ public class GTNetInstrumentCurrencypairJpaRepositoryImpl implements GTNetInstru
 
   private static final Logger log = LoggerFactory.getLogger(GTNetInstrumentCurrencypairJpaRepositoryImpl.class);
 
-  @PersistenceContext
-  private EntityManager entityManager;
-
   @Autowired
   private GTNetInstrumentCurrencypairJpaRepository gtNetInstrumentCurrencypairJpaRepository;
 
@@ -40,35 +34,22 @@ public class GTNetInstrumentCurrencypairJpaRepositoryImpl implements GTNetInstru
   private GTNetLastpriceJpaRepository gtNetLastpriceJpaRepository;
 
   @Override
-  @SuppressWarnings("unchecked")
   public List<GTNetInstrumentCurrencypair> findByCurrencyTuples(List<String[]> currencyPairs) {
     if (currencyPairs == null || currencyPairs.isEmpty()) {
       return Collections.emptyList();
     }
 
-    // Build dynamic SQL with tuple IN clause: WHERE (from_currency, to_currency) IN (('EUR','USD'), ('CHF','EUR'), ...)
-    StringBuilder sql = new StringBuilder();
-    sql.append("SELECT c.* FROM gt_net_instrument i ");
-    sql.append("JOIN gt_net_instrument_currencypair c ON i.id_gt_net_instrument = c.id_gt_net_instrument ");
-    sql.append("WHERE (c.from_currency, c.to_currency) IN (");
+    // Convert tuples to composite keys for JPQL query
+    List<String> keys = currencyPairs.stream()
+        .filter(pair -> pair[0] != null && pair[1] != null)
+        .map(pair -> pair[0] + "|" + pair[1])
+        .collect(Collectors.toList());
 
-    List<Object> params = new ArrayList<>();
-    for (int i = 0; i < currencyPairs.size(); i++) {
-      if (i > 0) {
-        sql.append(", ");
-      }
-      sql.append("(?, ?)");
-      params.add(currencyPairs.get(i)[0]); // fromCurrency
-      params.add(currencyPairs.get(i)[1]); // toCurrency
-    }
-    sql.append(")");
-
-    var query = entityManager.createNativeQuery(sql.toString(), GTNetInstrumentCurrencypair.class);
-    for (int i = 0; i < params.size(); i++) {
-      query.setParameter(i + 1, params.get(i));
+    if (keys.isEmpty()) {
+      return Collections.emptyList();
     }
 
-    return query.getResultList();
+    return gtNetInstrumentCurrencypairJpaRepository.findByCurrencyPairKeys(keys);
   }
 
   @Override

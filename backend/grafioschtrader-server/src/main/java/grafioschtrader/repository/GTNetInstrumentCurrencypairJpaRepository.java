@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import grafioschtrader.entities.GTNetInstrumentCurrencypair;
 
@@ -66,5 +67,15 @@ public interface GTNetInstrumentCurrencypairJpaRepository
    */
   @Query("SELECT c FROM GTNetInstrumentCurrencypair c WHERE c.idGtNet = ?1 AND c.idSecuritycurrency IS NULL")
   List<GTNetInstrumentCurrencypair> findForeignInstrumentsByIdGtNet(Integer idGtNet);
+
+  /**
+   * Finds currency pair instruments by a list of composite keys (fromCurrency|toCurrency format).
+   * Used for batch lookups when matching instruments from GTNet requests.
+   *
+   * @param keys list of composite keys in "fromCurrency|toCurrency" format
+   * @return list of matching currency pair instruments
+   */
+  @Query("SELECT c FROM GTNetInstrumentCurrencypair c WHERE CONCAT(c.fromCurrency, '|', c.toCurrency) IN :keys")
+  List<GTNetInstrumentCurrencypair> findByCurrencyPairKeys(@Param("keys") List<String> keys);
 
 }

@@ -134,7 +134,7 @@ export class GTNetExchangeLogComponent extends TreeTableConfigBase implements On
 
   exchangeLogTrees: GTNetExchangeLogTree[] = [];
   mainTableFields: ColumnConfig[] = [];
-  titleKey: string = 'GTNET_EXCHANGE_LOG';
+  titleKey: string = 'GT_NET_EXCHANGE_LOG';
 
   private supplierNodesCache: Map<number, TreeNode[]> = new Map();
   private consumerNodesCache: Map<number, TreeNode[]> = new Map();

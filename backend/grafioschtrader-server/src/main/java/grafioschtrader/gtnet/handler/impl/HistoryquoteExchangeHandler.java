@@ -1,5 +1,6 @@
 package grafioschtrader.gtnet.handler.impl;
 
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -23,7 +24,8 @@ import grafioschtrader.gtnet.handler.impl.historyquote.OpenHistoryquoteQueryStra
 import grafioschtrader.gtnet.handler.impl.historyquote.PushOpenHistoryquoteQueryStrategy;
 import grafioschtrader.gtnet.m2m.model.InstrumentHistoryquoteDTO;
 import grafioschtrader.gtnet.model.msg.HistoryquoteExchangeMsg;
-import grafioschtrader.repository.GTNetExchangeJpaRepository;
+import grafioschtrader.repository.CurrencypairJpaRepository;
+import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.service.GTNetExchangeLogService;
 
 /**
@@ -51,7 +53,10 @@ public class HistoryquoteExchangeHandler extends AbstractGTNetMessageHandler {
   private OpenHistoryquoteQueryStrategy openStrategy;
 
   @Autowired
-  private GTNetExchangeJpaRepository gtNetExchangeJpaRepository;
+  private SecurityJpaRepository securityJpaRepository;
+
+  @Autowired
+  private CurrencypairJpaRepository currencypairJpaRepository;
 
   @Autowired
   private GTNetExchangeLogService gtNetExchangeLogService;
@@ -107,8 +112,9 @@ public class HistoryquoteExchangeHandler extends AbstractGTNetMessageHandler {
       return handleMaxLimitExceeded(context, storedRequest, totalInstruments, maxLimit);
     }
 
-    // Get IDs of instruments we're allowed to send
-    Set<Integer> sendableIds = gtNetExchangeJpaRepository.findIdsWithHistoricalSend();
+    // Get IDs of instruments we're allowed to send (combine from both repositories)
+    Set<Integer> sendableIds = new HashSet<>(securityJpaRepository.findIdsWithGtNetHistoricalSend());
+    sendableIds.addAll(currencypairJpaRepository.findIdsWithGtNetHistoricalSend());
 
     // Select strategy based on accept mode
     AcceptRequestTypes acceptMode = historyEntity.get().getAcceptRequest();

@@ -3,7 +3,11 @@ package grafioschtrader.rest;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,11 +28,17 @@ import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.dto.CrossRateRequest;
 import grafioschtrader.dto.CrossRateResponse;
+import grafioschtrader.dto.GTSecuritiyCurrencyExchange;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
 import grafioschtrader.entities.Currencypair;
+import grafioschtrader.entities.GTNet;
+import grafioschtrader.entities.GTNetSupplierDetail;
+import grafioschtrader.gtnet.model.GTNetSupplierWithDetails;
 import grafioschtrader.reportviews.currencypair.CurrencypairWithHistoryquote;
 import grafioschtrader.reportviews.currencypair.CurrencypairWithTransaction;
 import grafioschtrader.repository.CurrencypairJpaRepository;
+import grafioschtrader.repository.GTNetJpaRepository;
+import grafioschtrader.repository.GTNetSupplierDetailJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
 import grafioschtrader.search.SecuritycurrencySearch;
@@ -47,6 +59,12 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
 
   @Autowired
   private TransactionJpaRepository transactionJpaRepository;
+
+  @Autowired
+  private GTNetSupplierDetailJpaRepository gtNetSupplierDetailJpaRepository;
+
+  @Autowired
+  private GTNetJpaRepository gtNetJpaRepository;
 
   @Operation(summary = "Get currency pair by security currency ID", description = """
       Retrieves a currency pair associated with the given currency ID. Returns null if no matching currency pair is found.
@@ -173,6 +191,75 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
   @Override
   protected String getPrefixEntityLimit() {
     return GlobalConstants.GT_LIMIT_DAY;
+  }
+
+  // ==================== GTNet Exchange Endpoints ====================
+
+  @Operation(summary = "Returns currency pairs with GTNet exchange configuration", description = "Returns all currency pairs with their GTNet exchange fields and IDs of currency pairs that have supplier details", tags = {
+      Currencypair.TABNAME })
+  @GetMapping(value = "/gtnetexchange", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<GTSecuritiyCurrencyExchange<Currencypair>> getCurrencypairsWithGTNetExchange() {
+    List<Currencypair> currencypairs = currencypairJpaRepository.findAll();
+
+    GTSecuritiyCurrencyExchange<Currencypair> result = new GTSecuritiyCurrencyExchange<>();
+    result.securitiescurrenciesList = currencypairs;
+
+    // Get IDs of currency pairs that have supplier details
+    List<Integer> allIds = currencypairs.stream()
+        .map(Currencypair::getIdSecuritycurrency)
+        .collect(Collectors.toList());
+    result.idSecuritycurrenies = gtNetSupplierDetailJpaRepository.findIdSecuritycurrencyWithDetails(allIds);
+
+    return new ResponseEntity<>(result, HttpStatus.OK);
+  }
+
+  @Operation(summary = "Batch updates GTNet exchange fields for currency pairs", description = "Updates the gtNetLastpriceRecv, gtNetHistoricalRecv, gtNetLastpriceSend, gtNetHistoricalSend fields for multiple currency pairs", tags = {
+      Currencypair.TABNAME })
+  @PostMapping(value = "/gtnetexchange/batch", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<Currencypair>> batchUpdateCurrencypairsGTNetExchange(
+      @RequestBody List<Currencypair> currencypairs) {
+    List<Currencypair> updatedCurrencypairs = new ArrayList<>();
+    Date now = new Date();
+
+    for (Currencypair currencypair : currencypairs) {
+      Currencypair existing = currencypairJpaRepository.findById(currencypair.getIdSecuritycurrency()).orElse(null);
+      if (existing != null) {
+        existing.setGtNetLastpriceRecv(currencypair.isGtNetLastpriceRecv());
+        existing.setGtNetHistoricalRecv(currencypair.isGtNetHistoricalRecv());
+        existing.setGtNetLastpriceSend(currencypair.isGtNetLastpriceSend());
+        existing.setGtNetHistoricalSend(currencypair.isGtNetHistoricalSend());
+        existing.setGtNetLastModifiedTime(now);
+        updatedCurrencypairs.add(currencypairJpaRepository.save(existing));
+      }
+    }
+
+    return new ResponseEntity<>(updatedCurrencypairs, HttpStatus.OK);
+  }
+
+  @Operation(summary = "Returns supplier details for a currency pair", description = "Returns information about which GTNet suppliers can provide price data for this currency pair", tags = {
+      Currencypair.TABNAME })
+  @GetMapping(value = "/{idSecuritycurrency}/gtnetexchange/supplierdetails", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<GTNetSupplierWithDetails>> getCurrencypairSupplierDetails(
+      @PathVariable Integer idSecuritycurrency) {
+    List<GTNetSupplierDetail> details = gtNetSupplierDetailJpaRepository.findAll().stream()
+        .filter(d -> d.getSecuritycurrency() != null
+            && d.getSecuritycurrency().getIdSecuritycurrency().equals(idSecuritycurrency))
+        .collect(Collectors.toList());
+
+    // Group by GTNet (supplier)
+    Map<Integer, List<GTNetSupplierDetail>> byGtNet = details.stream()
+        .filter(d -> d.getGtNetConfig() != null)
+        .collect(Collectors.groupingBy(d -> d.getGtNetConfig().getIdGtNet()));
+
+    List<GTNetSupplierWithDetails> result = new ArrayList<>();
+    for (Map.Entry<Integer, List<GTNetSupplierDetail>> entry : byGtNet.entrySet()) {
+      GTNet gtNet = gtNetJpaRepository.findById(entry.getKey()).orElse(null);
+      if (gtNet != null) {
+        result.add(new GTNetSupplierWithDetails(gtNet, entry.getValue()));
+      }
+    }
+
+    return new ResponseEntity<>(result, HttpStatus.OK);
   }
 
 }

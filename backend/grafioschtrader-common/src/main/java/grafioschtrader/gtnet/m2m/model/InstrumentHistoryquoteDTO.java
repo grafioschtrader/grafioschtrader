@@ -43,6 +43,17 @@ public class InstrumentHistoryquoteDTO implements Serializable {
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
   private Date toDate;
 
+  @Schema(description = """
+      When true in a response, indicates the supplier is interested in receiving historical data for this instrument
+      but cannot provide it. The consumer should push data back in a subsequent message if available.""")
+  private Boolean wantsToReceive;
+
+  @Schema(description = """
+      The date from which the supplier wants to receive historical data (typically the day after their most recent
+      data). Only populated when wantsToReceive is true.""")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+  private Date wantsDataFromDate;
+
   @Schema(description = "List of historical price records within the date range")
   private List<HistoryquoteRecordDTO> records = new ArrayList<>();
 
@@ -73,6 +84,41 @@ public class InstrumentHistoryquoteDTO implements Serializable {
     dto.toCurrency = toCurrency;
     dto.fromDate = fromDate;
     dto.toDate = toDate;
+    return dto;
+  }
+
+  /**
+   * Creates a "want to receive" response DTO for a security.
+   * Used by AC_OPEN servers to indicate interest in receiving historical data they cannot provide.
+   *
+   * @param isin the ISIN of the security
+   * @param currency the currency of the security
+   * @param wantsFromDate the date from which data is wanted (typically most recent local data + 1 day)
+   */
+  public static InstrumentHistoryquoteDTO forSecurityWantToReceive(String isin, String currency, Date wantsFromDate) {
+    InstrumentHistoryquoteDTO dto = new InstrumentHistoryquoteDTO();
+    dto.isin = isin;
+    dto.currency = currency;
+    dto.wantsToReceive = true;
+    dto.wantsDataFromDate = wantsFromDate;
+    return dto;
+  }
+
+  /**
+   * Creates a "want to receive" response DTO for a currency pair.
+   * Used by AC_OPEN servers to indicate interest in receiving historical data they cannot provide.
+   *
+   * @param fromCurrency the source currency
+   * @param toCurrency the target currency
+   * @param wantsFromDate the date from which data is wanted (typically most recent local data + 1 day)
+   */
+  public static InstrumentHistoryquoteDTO forCurrencypairWantToReceive(String fromCurrency, String toCurrency,
+      Date wantsFromDate) {
+    InstrumentHistoryquoteDTO dto = new InstrumentHistoryquoteDTO();
+    dto.currency = fromCurrency;
+    dto.toCurrency = toCurrency;
+    dto.wantsToReceive = true;
+    dto.wantsDataFromDate = wantsFromDate;
     return dto;
   }
 
@@ -110,6 +156,14 @@ public class InstrumentHistoryquoteDTO implements Serializable {
   @JsonIgnore
   public int getRecordCount() {
     return records != null ? records.size() : 0;
+  }
+
+  /**
+   * Checks if this DTO is a "want to receive" response (supplier wants data but cannot provide it).
+   */
+  @JsonIgnore
+  public boolean isWantToReceiveResponse() {
+    return Boolean.TRUE.equals(wantsToReceive);
   }
 
   // Getters and setters
@@ -152,6 +206,22 @@ public class InstrumentHistoryquoteDTO implements Serializable {
 
   public void setToDate(Date toDate) {
     this.toDate = toDate;
+  }
+
+  public Boolean getWantsToReceive() {
+    return wantsToReceive;
+  }
+
+  public void setWantsToReceive(Boolean wantsToReceive) {
+    this.wantsToReceive = wantsToReceive;
+  }
+
+  public Date getWantsDataFromDate() {
+    return wantsDataFromDate;
+  }
+
+  public void setWantsDataFromDate(Date wantsDataFromDate) {
+    this.wantsDataFromDate = wantsDataFromDate;
   }
 
   public List<HistoryquoteRecordDTO> getRecords() {

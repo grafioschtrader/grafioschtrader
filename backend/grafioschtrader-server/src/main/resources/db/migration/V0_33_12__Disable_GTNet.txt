@@ -1,4 +1,33 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.0
+-- https://www.phpmyadmin.net/
+--
+-- Host: 127.0.0.1
+-- Erstellungszeit: 04. Jan 2026 um 10:30
+-- Server-Version: 10.4.27-MariaDB
+-- PHP-Version: 8.1.12
 
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Datenbank: `grafioschtrader`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `gt_net`
+--
+
+-- Hugo
 ALTER TABLE globalparameters DROP COLUMN IF EXISTS property_date_time;
 ALTER TABLE globalparameters ADD property_date_time TIMESTAMP NULL AFTER property_date;
 
@@ -14,60 +43,542 @@ INSERT INTO globalparameters(property_name, property_int, changed_by_system) VAL
 DELETE FROM globalparameters WHERE property_name = "gt.gtnet.exchange.sync.timestamp";
 INSERT INTO globalparameters(property_name, property_date_time, changed_by_system) VALUES ("gt.gtnet.exchange.sync.timestamp", CURRENT_TIMESTAMP - INTERVAL 1 DAY, 0);
 
+DELETE FROM globalparameters WHERE property_name = "gt.gtnet.my.entry.id";
+INSERT INTO globalparameters SET property_name = 'gt.gtnet.my.entry.id', changed_by_system = 1;
 
 UPDATE globalparameters SET input_rule = 'min:1,max:99' WHERE property_name IN('gt.split.retry', 'g.max.limit.request.exceeded.count');
 UPDATE globalparameters SET input_rule = 'min:2,max:24' WHERE property_name IN('gt.max.correlation.instruments');
 
-ALTER TABLE gt_net_message DROP COLUMN IF EXISTS delivery_status;
-ALTER TABLE gt_net_message ADD delivery_status TINYINT(1) NOT NULL DEFAULT '0';
 
--- Add serverlist_access_granted column to track if a remote has been granted access to our server list
-ALTER TABLE gt_net_config DROP COLUMN IF EXISTS serverlist_access_granted;
-ALTER TABLE gt_net_config DROP COLUMN IF EXISTS request_violation_count;
-ALTER TABLE gt_net_config ADD COLUMN serverlist_access_granted TINYINT(1) NOT NULL DEFAULT 0;
-ALTER TABLE gt_net_config ADD COLUMN request_violation_count TINYINT(2) NOT NULL DEFAULT 0; 
+ALTER TABLE mail_send_recv DROP FOREIGN KEY FK_MailSendRecv_GtNet;
+ALTER TABLE mail_send_recv DROP INDEX FK_MailInOut_GtNet;
 
--- Add last_modified_time column to GTNet for determining freshness during server list exchange
-ALTER TABLE gt_net DROP COLUMN IF EXISTS last_modified_time;
-ALTER TABLE gt_net ADD COLUMN last_modified_time TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+ALTER TABLE securitycurrency DROP COLUMN IF EXISTS gt_net_lastprice_recv;
+ALTER TABLE securitycurrency DROP COLUMN IF EXISTS gt_net_historical_recv;
+ALTER TABLE securitycurrency DROP COLUMN IF EXISTS gt_net_lastprice_send;
+ALTER TABLE securitycurrency DROP COLUMN IF EXISTS gt_net_historical_send;
+ALTER TABLE securitycurrency DROP COLUMN IF EXISTS gt_net_last_modified_time;
 
-ALTER TABLE gt_net_lastprice DROP COLUMN IF EXISTS dtype;
-ALTER TABLE gt_net_lastprice ADD dtype VARCHAR(1) NOT NULL AFTER id_gt_net; 
-
-ALTER TABLE gt_net_entity DROP COLUMN IF EXISTS max_limit;
-ALTER TABLE gt_net_entity ADD max_limit SMALLINT(5) NOT NULL AFTER accept_request; 
+ALTER TABLE securitycurrency ADD gt_net_lastprice_recv TINYINT(1) NOT NULL DEFAULT '0' AFTER s_high, 
+ADD gt_net_historical_recv TINYINT(1) NOT NULL DEFAULT '0' AFTER gt_net_lastprice_recv, 
+ADD gt_net_lastprice_send TINYINT(1) NOT NULL AFTER gt_net_historical_recv, 
+ADD gt_net_historical_send TINYINT(1) NOT NULL AFTER gt_net_lastprice_send, 
+ADD gt_net_last_modified_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER gt_net_historical_send;
 
 
-DELETE FROM gt_net_exchange;
-ALTER TABLE gt_net_exchange DROP COLUMN IF EXISTS last_modified_time;
-ALTER TABLE gt_net_exchange ADD last_modified_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
-CREATE INDEX IF NOT EXISTS idx_gtnet_exchange_modified ON gt_net_exchange (last_modified_time);
+DROP TABLE IF EXISTS gt_net_exchange_log;
+DROP TABLE IF EXISTS gt_net_config_entity;
+DROP TABLE IF EXISTS gt_net_entity;
+DROP TABLE IF EXISTS gt_net_config;
+DROP TABLE IF EXISTS gt_net_lastprice_currencypair;
+DROP TABLE IF EXISTS gt_net_lastprice_security;
+DROP TABLE IF EXISTS gt_net_lastprice_detail_log;
+DROP TABLE IF EXISTS gt_net_message_param;
+DROP TABLE IF EXISTS gt_net_lastprice;
+DROP TABLE IF EXISTS gt_net_message_answer;
+DROP TABLE IF EXISTS gt_net_message_attempt;
+DROP TABLE IF EXISTS gt_net_message;
+DROP TABLE IF EXISTS gt_net_supplier_detail;
+DROP TABLE IF EXISTS gt_net_supplier;
+DROP TABLE IF EXISTS gt_net_exchange;
+DROP TABLE IF EXISTS gt_net_lastprice_log;
+DROP TABLE IF EXISTS gt_net_historyquote;
+DROP TABLE IF EXISTS gt_net_instrument_security;
+DROP TABLE IF EXISTS gt_net_instrument_currencypair;
+DROP TABLE IF EXISTS gt_net_instrument;
+DROP TABLE IF EXISTS gt_net;
 
--- Drop old unused log tables
-DROP TABLE IF EXISTS `gt_net_lastprice_detail_log`;
-DROP TABLE IF EXISTS `gt_net_lastprice_log`;
 
--- Add enable_log column to gt_net_entity
-ALTER TABLE `gt_net_entity` ADD COLUMN `enable_log` tinyint(1) NOT NULL DEFAULT 0 AFTER `max_limit`;
 
--- Create new exchange log table
-CREATE TABLE `gt_net_exchange_log` (
-  `id_gt_net_exchange_log` int(11) NOT NULL AUTO_INCREMENT,
+CREATE TABLE `gt_net` (
   `id_gt_net` int(11) NOT NULL,
-  `entity_kind` tinyint(1) NOT NULL COMMENT '0=LAST_PRICE, 1=HISTORICAL_PRICES',
-  `log_as_supplier` tinyint(1) NOT NULL COMMENT '1=Supplier, 0=Consumer',
-  `period_type` tinyint(1) NOT NULL COMMENT '0=INDIVIDUAL, 1=DAILY, 2=WEEKLY, 3=MONTHLY, 4=YEARLY',
-  `period_start` date NOT NULL COMMENT 'Start of aggregation period',
-  `timestamp` timestamp NOT NULL DEFAULT current_timestamp() COMMENT 'Time of log entry or last update for aggregates',
-  `entities_sent` int(11) NOT NULL DEFAULT 0 COMMENT 'Entities sent (Consumer) or received (Supplier)',
-  `entities_updated` int(11) NOT NULL DEFAULT 0 COMMENT 'Entities successfully updated',
-  `entities_in_response` int(11) NOT NULL DEFAULT 0 COMMENT 'Entities in response',
-  `request_count` int(11) NOT NULL DEFAULT 1 COMMENT 'Number of requests aggregated',
-  PRIMARY KEY (`id_gt_net_exchange_log`),
-  KEY `FK_GTNetExchangeLog_GTNet` (`id_gt_net`),
-  KEY `idx_gtnet_log_lookup` (`id_gt_net`, `entity_kind`, `log_as_supplier`, `period_type`, `period_start`),
-  KEY `idx_gtnet_log_period` (`period_type`, `period_start`),
-  CONSTRAINT `FK_GTNetExchangeLog_GTNet` FOREIGN KEY (`id_gt_net`)
-    REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE
+  `domain_remote_name` varchar(128) NOT NULL,
+  `time_zone` varchar(50) NOT NULL,
+  `spread_capability` tinyint(1) NOT NULL DEFAULT 0,
+  `daily_req_limit` int(11) DEFAULT NULL,
+  `daily_req_limit_remote` int(11) DEFAULT NULL,
+  `allow_server_creation` tinyint(1) NOT NULL DEFAULT 0,
+  `server_busy` tinyint(1) NOT NULL DEFAULT 0,
+  `server_online` tinyint(1) NOT NULL DEFAULT 0,
+  `last_modified_time` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `gt_net_config`
+--
+
+CREATE TABLE `gt_net_config` (
+  `id_gt_net` int(11) NOT NULL,
+  `token_this` varchar(32) DEFAULT NULL,
+  `token_remote` varchar(32) NOT NULL,
+  `daily_req_limit_count` int(11) DEFAULT NULL,
+  `daily_req_limit_remote_count` int(11) DEFAULT NULL,
+  `supplier_last_update` timestamp NULL DEFAULT NULL,
+  `serverlist_access_granted` tinyint(1) NOT NULL DEFAULT 0,
+  `request_violation_count` tinyint(2) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `gt_net_config_entity`
+--
+
+CREATE TABLE `gt_net_config_entity` (
+  `id_gt_net_entity` int(11) NOT NULL,
+  `exchange` tinyint(1) NOT NULL DEFAULT 0,
+  `use_detail_log` tinyint(1) NOT NULL,
+  `consumer_usage` int(11) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `gt_net_entity`
+--
+
+CREATE TABLE `gt_net_entity` (
+  `id_gt_net_entity` int(11) NOT NULL,
+  `id_gt_net` int(11) NOT NULL,
+  `entity_kind` tinyint(1) NOT NULL,
+  `server_state` tinyint(1) NOT NULL,
+  `accept_request` tinyint(1) NOT NULL,
+  `max_limit` smallint(5) NOT NULL,
+  `enable_log` tinyint(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+
+--
+-- Tabellenstruktur für Tabelle `gt_net_exchange_log`
+--
+
+ CREATE TABLE `gt_net_exchange_log` (
+    `id_gt_net_exchange_log` int(11) NOT NULL AUTO_INCREMENT,
+    `id_gt_net` int(11) NOT NULL,
+    `entity_kind` tinyint(4) NOT NULL,
+    `log_as_supplier` tinyint(1) NOT NULL,
+    `period_type` tinyint(4) NOT NULL,
+    `period_start` date NOT NULL,
+    `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
+    `entities_sent` int(11) NOT NULL DEFAULT 0,
+    `entities_updated` int(11) NOT NULL DEFAULT 0,
+    `entities_in_response` int(11) NOT NULL DEFAULT 0,
+    `request_count` int(11) NOT NULL DEFAULT 1,
+    PRIMARY KEY (`id_gt_net_exchange_log`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `gt_net_historyquote`
+--
+
+CREATE TABLE `gt_net_historyquote` (
+  `id_gt_net_historyquote` int(11) NOT NULL,
+  `id_gt_net_instrument` int(11) NOT NULL,
+  `date` date NOT NULL,
+  `open` double(22,8) DEFAULT NULL,
+  `high` double(22,8) DEFAULT NULL,
+  `low` double(22,8) DEFAULT NULL,
+  `close` double(22,8) NOT NULL,
+  `volume` bigint(20) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `gt_net_instrument`
+--
+
+CREATE TABLE `gt_net_instrument` (
+  `id_gt_net_instrument` int(11) NOT NULL,
+  `id_gt_net` int(11) NOT NULL,
+  `dtype` varchar(1) NOT NULL,
+  `id_securitycurrency` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `gt_net_instrument_currencypair`
+--
+
+CREATE TABLE `gt_net_instrument_currencypair` (
+  `id_gt_net_instrument` int(11) NOT NULL,
+  `from_currency` char(3) NOT NULL,
+  `to_currency` char(3) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `gt_net_instrument_security`
+--
+
+CREATE TABLE `gt_net_instrument_security` (
+  `id_gt_net_instrument` int(11) NOT NULL,
+  `isin` varchar(12) NOT NULL,
+  `currency` char(3) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `gt_net_lastprice`
+--
+
+CREATE TABLE `gt_net_lastprice` (
+  `id_gt_net_lastprice` int(11) NOT NULL,
+  `id_gt_net_instrument` int(11) NOT NULL,
+  `timestamp` timestamp NULL DEFAULT NULL,
+  `open` double(22,8) DEFAULT NULL,
+  `high` double(22,8) DEFAULT NULL,
+  `low` double(22,8) DEFAULT NULL,
+  `last` double(22,8) DEFAULT NULL,
+  `volume` bigint(20) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `gt_net_message`
+--
+
+CREATE TABLE `gt_net_message` (
+  `id_gt_net_message` int(11) NOT NULL,
+  `id_gt_net` int(11) NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `send_recv` tinyint(1) NOT NULL,
+  `id_source_gt_net_message` int(11) DEFAULT NULL,
+  `reply_to` int(11) DEFAULT NULL,
+  `message_code` tinyint(3) DEFAULT NULL,
+  `message` varchar(1000) DEFAULT NULL,
+  `error_msg_code` varchar(50) DEFAULT NULL,
+  `has_been_read` tinyint(1) NOT NULL DEFAULT 0,
+  `wait_days_apply` smallint(4) NOT NULL DEFAULT 0,
+  `delivery_status` tinyint(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `gt_net_message_answer`
+--
+
+CREATE TABLE `gt_net_message_answer` (
+  `id_gt_net_message_answer` int(11) NOT NULL,
+  `request_msg_code` tinyint(3) NOT NULL,
+  `response_msg_code` tinyint(3) NOT NULL,
+  `priority` tinyint(1) NOT NULL,
+  `response_msg_conditional` varchar(256) DEFAULT NULL,
+  `response_msg_message` varchar(1000) DEFAULT NULL,
+  `wait_days_apply` tinyint(4) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `gt_net_message_attempt`
+--
+
+CREATE TABLE `gt_net_message_attempt` (
+  `id_gt_net_message_attempt` int(11) NOT NULL,
+  `id_gt_net_message` int(11) NOT NULL,
+  `attempt_number` tinyint(4) NOT NULL,
+  `attempt_timestamp` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `success` tinyint(1) NOT NULL DEFAULT 0,
+  `http_status` smallint(6) DEFAULT NULL,
+  `error_message` varchar(512) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `gt_net_message_param`
+--
+
+CREATE TABLE `gt_net_message_param` (
+  `id_gt_net_message` int(11) NOT NULL,
+  `param_name` varchar(32) NOT NULL,
+  `param_value` varchar(32) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `gt_net_supplier_detail`
+--
+
+CREATE TABLE `gt_net_supplier_detail` (
+  `id_gt_net_supplier_detail` int(11) NOT NULL,
+  `id_gt_net` int(11) NOT NULL,
+  `id_securitycurrency` int(11) NOT NULL,
+  `price_type` tinyint(1) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Indizes der exportierten Tabellen
+--
+
+--
+-- Indizes für die Tabelle `gt_net`
+--
+ALTER TABLE `gt_net`
+  ADD PRIMARY KEY (`id_gt_net`),
+  ADD UNIQUE KEY `domainRemoteName` (`domain_remote_name`);
+
+--
+-- Indizes für die Tabelle `gt_net_config`
+--
+ALTER TABLE `gt_net_config`
+  ADD PRIMARY KEY (`id_gt_net`);
+
+--
+-- Indizes für die Tabelle `gt_net_config_entity`
+--
+ALTER TABLE `gt_net_config_entity`
+  ADD PRIMARY KEY (`id_gt_net_entity`);
+
+--
+-- Indizes für die Tabelle `gt_net_entity`
+--
+ALTER TABLE `gt_net_entity`
+  ADD PRIMARY KEY (`id_gt_net_entity`),
+  ADD KEY `FK_GtNetEntity_GtNet` (`id_gt_net`);
+
+
+--
+-- Indizes für die Tabelle `gt_net_historyquote`
+--
+ALTER TABLE `gt_net_historyquote`
+  ADD PRIMARY KEY (`id_gt_net_historyquote`),
+  ADD UNIQUE KEY `UK_GtNetHistoryquote_InstrumentDate` (`id_gt_net_instrument`,`date`);
+
+--
+-- Indizes für die Tabelle `gt_net_instrument`
+--
+ALTER TABLE `gt_net_instrument`
+  ADD PRIMARY KEY (`id_gt_net_instrument`),
+  ADD KEY `FK_GtNetInstrument_GtNet` (`id_gt_net`),
+  ADD KEY `FK_GtNetInstrument_Securitycurrency` (`id_securitycurrency`);
+
+--
+-- Indizes für die Tabelle `gt_net_instrument_currencypair`
+--
+ALTER TABLE `gt_net_instrument_currencypair`
+  ADD PRIMARY KEY (`id_gt_net_instrument`),
+  ADD UNIQUE KEY `UK_GtNetInstrumentCp_FromTo` (`from_currency`,`to_currency`);
+
+--
+-- Indizes für die Tabelle `gt_net_instrument_security`
+--
+ALTER TABLE `gt_net_instrument_security`
+  ADD PRIMARY KEY (`id_gt_net_instrument`),
+  ADD UNIQUE KEY `UK_GtNetInstrumentSec_IsinCurrency` (`isin`,`currency`);
+
+--
+-- Indizes für die Tabelle `gt_net_lastprice`
+--
+ALTER TABLE `gt_net_lastprice`
+  ADD PRIMARY KEY (`id_gt_net_lastprice`),
+  ADD UNIQUE KEY `UK_GtNetLastprice_Instrument` (`id_gt_net_instrument`);
+
+--
+-- Indizes für die Tabelle `gt_net_message`
+--
+ALTER TABLE `gt_net_message`
+  ADD PRIMARY KEY (`id_gt_net_message`),
+  ADD KEY `FK_GtNetMessage_GtNet` (`id_gt_net`),
+  ADD KEY `FK_GtNetMessage_GtNetMessage` (`reply_to`);
+
+--
+-- Indizes für die Tabelle `gt_net_message_answer`
+--
+ALTER TABLE `gt_net_message_answer`
+  ADD PRIMARY KEY (`id_gt_net_message_answer`),
+  ADD UNIQUE KEY `Unique_GtNetMessageAnswer` (`response_msg_code`,`priority`,`request_msg_code`);
+
+--
+-- Indizes für die Tabelle `gt_net_message_attempt`
+--
+ALTER TABLE `gt_net_message_attempt`
+  ADD PRIMARY KEY (`id_gt_net_message_attempt`),
+  ADD KEY `idx_attempt_message` (`id_gt_net_message`),
+  ADD KEY `idx_attempt_pending` (`success`,`attempt_timestamp`);
+
+--
+-- Indizes für die Tabelle `gt_net_message_param`
+--
+ALTER TABLE `gt_net_message_param`
+  ADD PRIMARY KEY (`id_gt_net_message`,`param_name`);
+
+--
+-- Indizes für die Tabelle `gt_net_supplier_detail`
+--
+ALTER TABLE `gt_net_supplier_detail`
+  ADD PRIMARY KEY (`id_gt_net_supplier_detail`),
+  ADD KEY `FK_GtNetSupplierDetail_SecurityCurrency` (`id_securitycurrency`),
+  ADD KEY `FK_GtNetSupplierDetail` (`id_gt_net`);
+
+--
+-- AUTO_INCREMENT für exportierte Tabellen
+--
+
+--
+-- AUTO_INCREMENT für Tabelle `gt_net`
+--
+ALTER TABLE `gt_net`
+  MODIFY `id_gt_net` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `gt_net_entity`
+--
+ALTER TABLE `gt_net_entity`
+  MODIFY `id_gt_net_entity` int(11) NOT NULL AUTO_INCREMENT;
+
+
+--
+-- AUTO_INCREMENT für Tabelle `gt_net_exchange_log`
+--
+
+--
+-- AUTO_INCREMENT für Tabelle `gt_net_historyquote`
+--
+ALTER TABLE `gt_net_historyquote`
+  MODIFY `id_gt_net_historyquote` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `gt_net_instrument`
+--
+ALTER TABLE `gt_net_instrument`
+  MODIFY `id_gt_net_instrument` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `gt_net_lastprice`
+--
+ALTER TABLE `gt_net_lastprice`
+  MODIFY `id_gt_net_lastprice` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `gt_net_message`
+--
+ALTER TABLE `gt_net_message`
+  MODIFY `id_gt_net_message` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `gt_net_message_answer`
+--
+ALTER TABLE `gt_net_message_answer`
+  MODIFY `id_gt_net_message_answer` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `gt_net_message_attempt`
+--
+ALTER TABLE `gt_net_message_attempt`
+  MODIFY `id_gt_net_message_attempt` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT für Tabelle `gt_net_supplier_detail`
+--
+ALTER TABLE `gt_net_supplier_detail`
+  MODIFY `id_gt_net_supplier_detail` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- Constraints der exportierten Tabellen
+--
+
+--
+-- Constraints der Tabelle `gt_net_config`
+--
+ALTER TABLE `gt_net_config`
+  ADD CONSTRAINT `FK_GTNetConfig_GTNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE;
+
+--
+-- Constraints der Tabelle `gt_net_config_entity`
+--
+ALTER TABLE `gt_net_config_entity`
+  ADD CONSTRAINT `FK_GtNetConfigEntity_GtNetEntity` FOREIGN KEY (`id_gt_net_entity`) REFERENCES `gt_net_entity` (`id_gt_net_entity`) ON UPDATE CASCADE;
+
+--
+-- Constraints der Tabelle `gt_net_entity`
+--
+ALTER TABLE `gt_net_entity`
+  ADD CONSTRAINT `FK_GtNetEntity_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE;
+
+
+--
+-- Constraints der Tabelle `gt_net_exchange_log`
+--
+ALTER TABLE `gt_net_exchange_log`
+  ADD CONSTRAINT `FK_GtNetExchangeLog_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`);
+
+--
+-- Constraints der Tabelle `gt_net_historyquote`
+--
+ALTER TABLE `gt_net_historyquote`
+  ADD CONSTRAINT `FK_GtNetHistoryquote_Instrument` FOREIGN KEY (`id_gt_net_instrument`) REFERENCES `gt_net_instrument` (`id_gt_net_instrument`);
+
+--
+-- Constraints der Tabelle `gt_net_instrument`
+--
+ALTER TABLE `gt_net_instrument`
+  ADD CONSTRAINT `FK_GtNetInstrument_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`),
+  ADD CONSTRAINT `FK_GtNetInstrument_Securitycurrency` FOREIGN KEY (`id_securitycurrency`) REFERENCES `securitycurrency` (`id_securitycurrency`);
+
+--
+-- Constraints der Tabelle `gt_net_instrument_currencypair`
+--
+ALTER TABLE `gt_net_instrument_currencypair`
+  ADD CONSTRAINT `FK_GtNetInstrumentCp_Instrument` FOREIGN KEY (`id_gt_net_instrument`) REFERENCES `gt_net_instrument` (`id_gt_net_instrument`);
+
+--
+-- Constraints der Tabelle `gt_net_instrument_security`
+--
+ALTER TABLE `gt_net_instrument_security`
+  ADD CONSTRAINT `FK_GtNetInstrumentSec_Instrument` FOREIGN KEY (`id_gt_net_instrument`) REFERENCES `gt_net_instrument` (`id_gt_net_instrument`);
+
+--
+-- Constraints der Tabelle `gt_net_lastprice`
+--
+ALTER TABLE `gt_net_lastprice`
+  ADD CONSTRAINT `FK_GtNetLastprice_Instrument` FOREIGN KEY (`id_gt_net_instrument`) REFERENCES `gt_net_instrument` (`id_gt_net_instrument`);
+
+--
+-- Constraints der Tabelle `gt_net_message`
+--
+ALTER TABLE `gt_net_message`
+  ADD CONSTRAINT `FK_GtNetMessage_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`),
+  ADD CONSTRAINT `FK_GtNetMessage_GtNetMessage` FOREIGN KEY (`reply_to`) REFERENCES `gt_net_message` (`id_gt_net_message`);
+
+--
+-- Constraints der Tabelle `gt_net_message_attempt`
+--
+ALTER TABLE `gt_net_message_attempt`
+  ADD CONSTRAINT `fk_attempt_message` FOREIGN KEY (`id_gt_net_message`) REFERENCES `gt_net_message` (`id_gt_net_message`) ON DELETE CASCADE;
+
+--
+-- Constraints der Tabelle `gt_net_message_param`
+--
+ALTER TABLE `gt_net_message_param`
+  ADD CONSTRAINT `FK_GTNetMessageParam_GTNetMessage` FOREIGN KEY (`id_gt_net_message`) REFERENCES `gt_net_message` (`id_gt_net_message`);
+
+--
+-- Constraints der Tabelle `gt_net_supplier_detail`
+--
+ALTER TABLE `gt_net_supplier_detail`
+  ADD CONSTRAINT `FK_GtNetSupplierDetail_GTNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_GtNetSupplierDetail_SecurityCurrency` FOREIGN KEY (`id_securitycurrency`) REFERENCES `securitycurrency` (`id_securitycurrency`) ON DELETE CASCADE;
+COMMIT;
+
+-- Hugo
+ALTER TABLE mail_send_recv ADD INDEX FK_MailInOut_GtNet (id_gt_net);
+ALTER TABLE mail_send_recv ADD CONSTRAINT FK_MailSendRecv_GtNet FOREIGN KEY (id_gt_net) REFERENCES gt_net (id_gt_net);
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

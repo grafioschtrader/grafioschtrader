@@ -5,11 +5,14 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -26,15 +29,22 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import grafiosch.entities.Auditable;
+import grafiosch.entities.TaskDataChange;
 import grafiosch.entities.User;
+import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.rest.UpdateCreateJpaRepository;
 import grafiosch.rest.UpdateCreateResource;
+import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.IFeedConnector;
+import grafioschtrader.dto.GTSecuritiyCurrencyExchange;
 import grafioschtrader.dto.HisotryqouteLinearFilledSummary;
 import grafioschtrader.dto.InstrumentStatisticsResult;
 import grafioschtrader.dto.SecurityCurrencypairDerivedLinks;
+import grafioschtrader.entities.GTNet;
+import grafioschtrader.entities.GTNetSupplierDetail;
 import grafioschtrader.entities.Security;
+import grafioschtrader.gtnet.model.GTNetSupplierWithDetails;
 import grafioschtrader.priceupdate.historyquote.HistoryquoteQualityService;
 import grafioschtrader.reports.SecruityTransactionsReport;
 import grafioschtrader.reports.SecruityTransactionsReport.SecruityTransactionsReportOptions;
@@ -44,9 +54,13 @@ import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityIds;
 import grafioschtrader.reportviews.historyquotequality.IHistoryquoteQualityWithSecurityProp;
 import grafioschtrader.reportviews.securityaccount.SecurityOpenPositionPerSecurityaccount;
 import grafioschtrader.reportviews.transaction.SecurityTransactionSummary;
+import grafioschtrader.repository.GTNetJpaRepository;
+import grafioschtrader.repository.GTNetSupplierDetailJpaRepository;
 import grafioschtrader.repository.SecurityDerivedLinkJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.search.SecuritycurrencySearch;
+import grafioschtrader.service.GTNetExchangeSyncService;
+import grafioschtrader.types.TaskTypeExtended;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -68,6 +82,18 @@ public class SecurityResource extends UpdateCreateResource<Security> {
 
   @Autowired
   private SecurityDerivedLinkJpaRepository securityDerivedLinkJpaRepository;
+
+  @Autowired
+  private GTNetSupplierDetailJpaRepository gtNetSupplierDetailJpaRepository;
+
+  @Autowired
+  private GTNetJpaRepository gtNetJpaRepository;
+
+  @Autowired
+  private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
+
+  @Autowired
+  private GTNetExchangeSyncService gtNetExchangeSyncService;
 
   @Operation(summary = "Returns a security by its Id", description = "Only public securities and the user private security will be returned", tags = {
       Security.TABNAME })
@@ -260,6 +286,88 @@ public class SecurityResource extends UpdateCreateResource<Security> {
   @Override
   protected String getPrefixEntityLimit() {
     return GlobalConstants.GT_LIMIT_DAY;
+  }
+
+  // ==================== GTNet Exchange Endpoints ====================
+
+  @Operation(summary = "Returns securities with GTNet exchange configuration", description = "Returns all securities with their GTNet exchange fields and IDs of securities that have supplier details", tags = {
+      Security.TABNAME })
+  @GetMapping(value = "/gtnetexchange", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<GTSecuritiyCurrencyExchange<Security>> getSecuritiesWithGTNetExchange(
+      @RequestParam(defaultValue = "true") boolean activeOnly) {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    List<Security> securities;
+    if (activeOnly) {
+      securities = securityJpaRepository.findByActiveToDateAfterAndIsinIsNotNull(new Date());
+    } else {
+      securities = securityJpaRepository.findAll().stream().filter(s -> s.getIsin() != null)
+          .collect(Collectors.toList());
+    }
+
+    GTSecuritiyCurrencyExchange<Security> result = new GTSecuritiyCurrencyExchange<>();
+    result.securitiescurrenciesList = securities;
+
+    // Get IDs of securities that have supplier details
+    List<Integer> allIds = securities.stream().map(Security::getIdSecuritycurrency).collect(Collectors.toList());
+    result.idSecuritycurrenies = gtNetSupplierDetailJpaRepository.findIdSecuritycurrencyWithDetails(allIds);
+
+    return new ResponseEntity<>(result, HttpStatus.OK);
+  }
+
+  @Operation(summary = "Batch updates GTNet exchange fields for securities", description = "Updates the gtNetLastpriceRecv, gtNetHistoricalRecv, gtNetLastpriceSend, gtNetHistoricalSend fields for multiple securities", tags = {
+      Security.TABNAME })
+  @PostMapping(value = "/gtnetexchange/batch", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<Security>> batchUpdateSecuritiesGTNetExchange(@RequestBody List<Security> securities) {
+    List<Security> updatedSecurities = new ArrayList<>();
+    Date now = new Date();
+
+    for (Security security : securities) {
+      Security existing = securityJpaRepository.findById(security.getIdSecuritycurrency()).orElse(null);
+      if (existing != null) {
+        existing.setGtNetLastpriceRecv(security.isGtNetLastpriceRecv());
+        existing.setGtNetHistoricalRecv(security.isGtNetHistoricalRecv());
+        existing.setGtNetLastpriceSend(security.isGtNetLastpriceSend());
+        existing.setGtNetHistoricalSend(security.isGtNetHistoricalSend());
+        existing.setGtNetLastModifiedTime(now);
+        updatedSecurities.add(securityJpaRepository.save(existing));
+      }
+    }
+
+    return new ResponseEntity<>(updatedSecurities, HttpStatus.OK);
+  }
+
+  @Operation(summary = "Returns supplier details for a security", description = "Returns information about which GTNet suppliers can provide price data for this security", tags = {
+      Security.TABNAME })
+  @GetMapping(value = "/{idSecuritycurrency}/gtnetexchange/supplierdetails", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<GTNetSupplierWithDetails>> getSecuritySupplierDetails(
+      @PathVariable Integer idSecuritycurrency) {
+    List<GTNetSupplierDetail> details = gtNetSupplierDetailJpaRepository.findAll().stream()
+        .filter(d -> d.getSecuritycurrency() != null
+            && d.getSecuritycurrency().getIdSecuritycurrency().equals(idSecuritycurrency))
+        .collect(Collectors.toList());
+
+    // Group by GTNet (supplier)
+    Map<Integer, List<GTNetSupplierDetail>> byGtNet = details.stream().filter(d -> d.getGtNetConfig() != null)
+        .collect(Collectors.groupingBy(d -> d.getGtNetConfig().getIdGtNet()));
+
+    List<GTNetSupplierWithDetails> result = new ArrayList<>();
+    for (Map.Entry<Integer, List<GTNetSupplierDetail>> entry : byGtNet.entrySet()) {
+      GTNet gtNet = gtNetJpaRepository.findById(entry.getKey()).orElse(null);
+      if (gtNet != null) {
+        result.add(new GTNetSupplierWithDetails(gtNet, entry.getValue()));
+      }
+    }
+
+    return new ResponseEntity<>(result, HttpStatus.OK);
+  }
+
+  @Operation(summary = "Triggers GTNet exchange sync", description = "Creates a background task to sync GTNet exchange configurations with GTNet peers", tags = {
+      Security.TABNAME })
+  @PostMapping(value = "/gtnetexchange/triggersync", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<Void> triggerGTNetExchangeSync() {
+    taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.GTNET_EXCHANGE_SYNC,
+        TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(), null, null));
+    return new ResponseEntity<>(HttpStatus.OK);
   }
 
 }

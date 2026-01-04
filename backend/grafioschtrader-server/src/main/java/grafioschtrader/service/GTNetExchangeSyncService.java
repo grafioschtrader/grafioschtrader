@@ -17,7 +17,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.GTNet;
 import grafioschtrader.entities.GTNetConfig;
-import grafioschtrader.entities.GTNetExchange;
 import grafioschtrader.entities.GTNetSupplierDetail;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
@@ -32,7 +31,6 @@ import grafioschtrader.m2m.client.BaseDataClient;
 import grafioschtrader.m2m.client.BaseDataClient.SendResult;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetConfigJpaRepository;
-import grafioschtrader.repository.GTNetExchangeJpaRepository;
 import grafioschtrader.repository.GTNetJpaRepository;
 import grafioschtrader.repository.GTNetSupplierDetailJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
@@ -58,9 +56,6 @@ public class GTNetExchangeSyncService {
 
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
-
-  @Autowired
-  private GTNetExchangeJpaRepository gtNetExchangeJpaRepository;
 
   @Autowired
   private GTNetSupplierDetailJpaRepository gtNetSupplierDetailJpaRepository;
@@ -150,28 +145,29 @@ public class GTNetExchangeSyncService {
    * @return list of exchange sync items with send flags enabled
    */
   public List<ExchangeSyncItem> getChangedExchangeItems(Date sinceTimestamp) {
-    return gtNetExchangeJpaRepository.findByLastModifiedTimeAfter(sinceTimestamp).stream()
-        .filter(e -> e.isLastpriceSend() || e.isHistoricalSend())
-        .map(this::toExchangeSyncItem)
-        .filter(item -> item != null)
-        .collect(Collectors.toList());
-  }
+    List<ExchangeSyncItem> items = new java.util.ArrayList<>();
 
-  /**
-   * Converts a GTNetExchange entity to an ExchangeSyncItem for the sync payload.
-   */
-  private ExchangeSyncItem toExchangeSyncItem(GTNetExchange exchange) {
-    Securitycurrency<?> sc = exchange.getSecuritycurrency();
-    if (sc instanceof Security security) {
-      return ExchangeSyncItem.forSecurity(
-          security.getIsin(), security.getCurrency(),
-          exchange.isLastpriceSend(), exchange.isHistoricalSend());
-    } else if (sc instanceof Currencypair cp) {
-      return ExchangeSyncItem.forCurrencypair(
-          cp.getFromCurrency(), cp.getToCurrency(),
-          exchange.isLastpriceSend(), exchange.isHistoricalSend());
+    // Get changed securities with GTNet send enabled
+    List<Security> changedSecurities = securityJpaRepository.findByGtNetLastModifiedTimeAfterAndIsinIsNotNull(sinceTimestamp);
+    for (Security security : changedSecurities) {
+      if (security.isGtNetLastpriceSend() || security.isGtNetHistoricalSend()) {
+        items.add(ExchangeSyncItem.forSecurity(
+            security.getIsin(), security.getCurrency(),
+            security.isGtNetLastpriceSend(), security.isGtNetHistoricalSend()));
+      }
     }
-    return null;
+
+    // Get changed currency pairs with GTNet send enabled
+    List<Currencypair> changedCurrencypairs = currencypairJpaRepository.findByGtNetLastModifiedTimeAfter(sinceTimestamp);
+    for (Currencypair cp : changedCurrencypairs) {
+      if (cp.isGtNetLastpriceSend() || cp.isGtNetHistoricalSend()) {
+        items.add(ExchangeSyncItem.forCurrencypair(
+            cp.getFromCurrency(), cp.getToCurrency(),
+            cp.isGtNetLastpriceSend(), cp.isGtNetHistoricalSend()));
+      }
+    }
+
+    return items;
   }
 
   /**
