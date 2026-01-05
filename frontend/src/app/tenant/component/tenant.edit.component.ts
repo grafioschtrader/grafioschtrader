@@ -12,9 +12,11 @@ import {TenantService} from '../service/tenant.service';
 import {Tenant} from '../../entities/tenant';
 import {FormConfig} from '../../lib/dynamic-form/models/form.config';
 import {HelpIds} from '../../lib/help/help.ids';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
+import {GlobalGTSessionNames} from '../../shared/global.gt.session.names';
 
 /**
  * Form for editing the tenant. It also supports changing the currency of the tenant and its portfolios.
@@ -61,6 +63,8 @@ export abstract class TenantEditComponent {
       next: newTenant => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'TENANT'});
         const tenantNew: Tenant = Object.assign(new Tenant(), newTenant);
+        // Update sessionStorage with new closedUntil value
+        sessionStorage.setItem(GlobalGTSessionNames.TENANT_CLOSED_UNTIL, tenantNew.closedUntil || '');
         this.closeInputDialog(tenantNew);
       }, error: () => this.configObject.submit.disabled = false
     });
@@ -93,8 +97,10 @@ export abstract class TenantEditComponent {
     const fieldConfig = [DynamicFieldHelper.createFieldInputStringHeqF('tenantName', 25, true),
       DynamicFieldHelper.createFieldSelectStringHeqF('currency', true),
       DynamicFieldHelper.createFieldCheckboxHeqF('excludeDivTax'),
+      DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'closedUntil', false,
+        {calendarConfig: {minDate: new Date(2000, 0, 1)}}),
       DynamicFieldHelper.createSubmitButton()];
-    return (onlyCurrency) ? [fieldConfig[1], fieldConfig[3]] : fieldConfig;
+    return (onlyCurrency) ? [fieldConfig[1], fieldConfig[4]] : fieldConfig;
   }
 }
 

@@ -5,6 +5,7 @@ import {TenantBase} from '../lib/entities/tenant.base';
 export class Tenant extends TenantBase {
   currency: string = null;
   excludeDivTax: boolean = null;
+  closedUntil: string = null;
   portfolioList: Portfolio[];
   tenantKindType: TenantKindType | string;
   idWatchlistPerformance: number = null;

@@ -74,7 +74,7 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       5, this.helpLink.bind(this));
     this.connectorPriceFieldConfig = SecurityEditSupport.getIntraHistoryFieldDefinition(
-      SecurityDerived.Currencypair);
+      SecurityDerived.Currencypair, this.gps);
 
     this.config = [
       DynamicFieldHelper.createFieldSelectString('fromCurrency', 'CURRENCY_FROM', true,

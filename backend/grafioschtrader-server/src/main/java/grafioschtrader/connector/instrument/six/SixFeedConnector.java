@@ -83,7 +83,7 @@ public class SixFeedConnector extends BaseFeedConnector {
         + "YearToDatePerformance,LatestTradeVolume,TotalVolume,PreviousClosingPrice,BidPrice,AskPrice,BidVolume,AskVolume,DailyLowPrice,DailyLowTime,DailyHighPrice,DailyHighTime,YearlyLowPrice,"
         + "YearlyLowDate,YearlyHighPrice,YearlyHighDate&where=ValorId=" + security.getUrlIntraExtend()
         + "&dojo.preventCache=" + zurichNowInMilli;
-    log.info(url);
+    log.debug(url);
     return url;
   }
 

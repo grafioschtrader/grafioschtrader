@@ -29,6 +29,7 @@ import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securityaccount;
+import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.TradingDaysPlus;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.instrument.SecurityGeneralUnitsCheck;
@@ -70,6 +71,9 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
   @Autowired
   private CurrencypairJpaRepository currencypairJpaRepository;
+
+  @Autowired
+  private TenantJpaRepository tenantJpaRepository;
 
   // Circular Dependency -> Lazy
   private CashaccountJpaRepository cashaccountJpaRepository;
@@ -176,11 +180,13 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   }
 
   /**
-   * Validates that a transaction's cash and security accounts belong to the correct tenant.
-   * 
+   * Validates that a transaction's cash and security accounts belong to the correct tenant,
+   * and that the transaction date is not within a closed period.
+   *
    * @param transaction the transaction to validate
    * @return the security account if one is associated with the transaction, null otherwise
    * @throws SecurityException if accounts don't belong to the current tenant
+   * @throws DataViolationException if transaction date is within a closed period
    */
   private Securityaccount checkTransactionSecurityAndCashaccountBeforSave(Transaction transaction) {
     Securityaccount securityaccount = null;
@@ -198,7 +204,38 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     } else {
       transaction.setCashaccount(cashaccount);
     }
+
+    // Validate transaction date against closedUntil restriction
+    checkTransactionDateAgainstClosedUntil(transaction, cashaccount);
+
     return securityaccount;
+  }
+
+  /**
+   * Validates that the transaction date is after the effective closedUntil date.
+   * Uses portfolio's closedUntil if set, otherwise falls back to tenant's closedUntil.
+   *
+   * @param transaction the transaction to validate
+   * @param cashaccount the cash account associated with the transaction
+   * @throws DataViolationException if transaction date is on or before closedUntil
+   */
+  private void checkTransactionDateAgainstClosedUntil(Transaction transaction, Cashaccount cashaccount) {
+    Portfolio portfolio = cashaccount.getPortfolio();
+    LocalDate effectiveClosedUntil = portfolio != null ? portfolio.getClosedUntil() : null;
+
+    if (effectiveClosedUntil == null) {
+      // Fallback to tenant's closedUntil
+      Tenant tenant = tenantJpaRepository.getReferenceById(transaction.getIdTenant());
+      effectiveClosedUntil = tenant.getClosedUntil();
+    }
+
+    if (effectiveClosedUntil != null) {
+      LocalDate transactionDate = DateHelper.getLocalDate(transaction.getTransactionTime());
+      if (!transactionDate.isAfter(effectiveClosedUntil)) {
+        throw new DataViolationException("transactionTime", "gt.transaction.date.in.closed.period",
+            new Object[] { effectiveClosedUntil });
+      }
+    }
   }
 
   /**

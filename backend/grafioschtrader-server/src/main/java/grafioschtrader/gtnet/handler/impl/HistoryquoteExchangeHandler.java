@@ -22,7 +22,6 @@ import grafioschtrader.gtnet.handler.HandlerResult;
 import grafioschtrader.gtnet.handler.impl.historyquote.HistoryquoteQueryStrategy;
 import grafioschtrader.gtnet.handler.impl.historyquote.OpenHistoryquoteQueryStrategy;
 import grafioschtrader.gtnet.handler.impl.historyquote.PushOpenHistoryquoteQueryStrategy;
-import grafioschtrader.gtnet.m2m.model.InstrumentHistoryquoteDTO;
 import grafioschtrader.gtnet.model.msg.HistoryquoteExchangeMsg;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;

@@ -8,7 +8,8 @@ import {ValidatorFn, Validators} from '@angular/forms';
 import {TransactionService} from '../service/transaction.service';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {Cashaccount} from '../../entities/cashaccount';
-import {gteWithMask, gteWithMaskIncludeNegative} from '../../lib/validator/validator';
+import {gteWithMask, gteWithMaskIncludeNegative, gtDate} from '../../lib/validator/validator';
+import moment from 'moment';
 import {Subscription} from 'rxjs';
 import {Transaction} from '../../entities/transaction';
 import {RuleEvent} from '../../lib/dynamic-form/error/error.message.rules';
@@ -42,6 +43,10 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
               [(visible)]="visibleCashaccountTransactionSingleDialog"
               [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
+
+      @if (transactionLocked) {
+        <div class="alert alert-warning alert-dialog-wrap">{{ transactionLockedMessage }}</div>
+      }
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm"
@@ -201,6 +206,17 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
         this.portfolios, +data);
       this.prepareSecurityaccount(cp.portfolio);
       this.cashaccountCurrency = cp.cashaccount.currency;
+
+      // Update transaction time minDate and validator based on portfolio's closedUntil
+      const effectiveClosedUntil = FormDefinitionHelper.getEffectiveClosedUntil(cp.portfolio, this.gpsGT);
+      FormDefinitionHelper.updateTransactionTimeMinDate(this.configObject.transactionTime, effectiveClosedUntil);
+      this.updateTransactionTimeValidator(effectiveClosedUntil);
+
+      // Check if existing transaction is within closed period
+      if (this.transactionCallParam.transaction) {
+        this.checkTransactionLocked(effectiveClosedUntil, this.transactionCallParam.transaction.transactionTime);
+      }
+
       const precision = this.gpsGT.getCurrencyPrecision(this.cashaccountCurrency);
       this.adjustNumberInputFractions(this.configObject.cashaccountAmount, AppSettings.FID_MAX_INT_REAL_DOUBLE, precision);
       this.adjustNumberInputFractions(this.configObject.debitAmount, AppSettings.FID_MAX_INT_REAL_DOUBLE, precision);
@@ -369,6 +385,49 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
           portfolio.securityaccountList, true);
       this.selectSingleOptions(this.configObject.idSecurityaccount, true);
     }
+  }
 
+  /**
+   * Updates the transactionTime form control validators to include the gtDate validator
+   * with the current effectiveClosedUntil date. Also updates the error message rule with
+   * the formatted date for proper error display.
+   */
+  private updateTransactionTimeValidator(effectiveClosedUntil: Date | null): void {
+    const formControl = this.configObject.transactionTime.formControl;
+    const fieldConfig = this.configObject.transactionTime;
+
+    // Remove existing gtDate error rule if present
+    if (fieldConfig.errors) {
+      fieldConfig.errors = fieldConfig.errors.filter(e => e.name !== 'gtDate');
+    } else {
+      fieldConfig.errors = [];
+    }
+
+    if (effectiveClosedUntil) {
+      // Set required validator plus gtDate validator
+      formControl.setValidators([Validators.required, gtDate(effectiveClosedUntil)]);
+
+      // Add gtDate error rule with formatted date
+      const formattedDate = moment(effectiveClosedUntil).format(this.gps.getDateFormat());
+      const gtDateError = {
+        name: 'gtDate',
+        keyi18n: 'gtDate',
+        param1: formattedDate,
+        rules: [RuleEvent.DIRTY, RuleEvent.TOUCHED],
+        text: null
+      };
+      fieldConfig.errors.push(gtDateError);
+
+      // Translate the new error message
+      this.translateService.get('gtDate', {param1: formattedDate}).subscribe(
+        text => gtDateError.text = text
+      );
+    } else {
+      // Only required validator when no closedUntil restriction
+      formControl.setValidators([Validators.required]);
+    }
+
+    // Re-validate the current value with the new validators
+    formControl.updateValueAndValidity();
   }
 }

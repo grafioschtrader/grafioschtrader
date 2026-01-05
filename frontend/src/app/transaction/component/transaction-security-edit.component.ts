@@ -3,6 +3,7 @@ import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angula
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 import {Portfolio} from '../../entities/portfolio';
 import {Cashaccount} from '../../entities/cashaccount';
 import {Securityaccount} from '../../entities/securityaccount';
@@ -50,7 +51,9 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
 import {ClosedMarginPosition} from '../model/closed.margin.position';
-import {AbstractControl} from '@angular/forms';
+import {AbstractControl, Validators} from '@angular/forms';
+import {gtDate} from '../../lib/validator/validator';
+import {RuleEvent} from '../../lib/dynamic-form/error/error.message.rules';
 import {AppSettings} from '../../shared/app.settings';
 import {BusinessSelectOptionsHelper} from '../../shared/securitycurrency/business.select.options.helper';
 import {BaseSettings} from '../../lib/base.settings';
@@ -75,6 +78,10 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
           </div>
         }
       </p-header>
+
+      @if (transactionLocked) {
+        <div class="alert alert-warning alert-dialog-wrap">{{ transactionLockedMessage }}</div>
+      }
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm"
@@ -141,6 +148,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     private portfolioService: PortfolioService,
     private securityService: SecurityService,
     private activeRoute: ActivatedRoute,
+    private gpsGT: GlobalparameterGTService,
     messageToastService: MessageToastService,
     currencypairService: CurrencypairService,
     historyquoteService: HistoryquoteService,
@@ -203,7 +211,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
     this.config = [
       DynamicFieldHelper.createFieldSelectNumberHeqF('transactionType', true),
-      FormDefinitionHelper.getTransactionTime(true),
+      FormDefinitionHelper.getTransactionTime(),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'exDate', false,
         {calendarConfig: {disabledDays: [0, 6]}}),
       DynamicFieldHelper.createFieldSelectNumber('idSecuritycurrency', AppSettings.SECURITY.toUpperCase(), true,
@@ -298,6 +306,16 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       if (portfolio != null) {
         this.configObject.idCashaccount.valueKeyHtmlOptions = this.createHtmlSelectKeyValue(portfolio.name,
           portfolio.cashaccountList);
+
+        // Update transaction time minDate and validator based on portfolio's closedUntil
+        const effectiveClosedUntil = FormDefinitionHelper.getEffectiveClosedUntil(portfolio, this.gpsGT);
+        FormDefinitionHelper.updateTransactionTimeMinDate(this.configObject.transactionTime, effectiveClosedUntil);
+        this.updateTransactionTimeValidator(effectiveClosedUntil);
+
+        // Check if existing transaction is within closed period
+        if (this.transactionCallParam.transaction) {
+          this.checkTransactionLocked(effectiveClosedUntil, this.transactionCallParam.transaction.transactionTime);
+        }
 
         this.selectedSecurity = this.getSecurityById(this.configObject.idSecuritycurrency.formControl.value);
 
@@ -652,6 +670,9 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     this.currencyCashaccount = null;
     this.securities = [];
 
+    // Reset transaction locked state
+    this.resetTransactionLocked();
+
     this.form.setDefaultValuesAndEnableSubmit();
 
     if (this.transactionCallParam.transactionType === TransactionType.FINANCE_COST) {
@@ -881,6 +902,51 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       securityaccount.idSecuritycashAccount === pos.idSecurityaccount);
     return (securityaccountOpenPositionUnit) ? securityaccountOpenPositionUnit.units : null;
   }
+
+  /**
+   * Updates the transactionTime form control validators to include the gtDate validator
+   * with the current effectiveClosedUntil date. Also updates the error message rule with
+   * the formatted date for proper error display.
+   */
+  private updateTransactionTimeValidator(effectiveClosedUntil: Date | null): void {
+    const formControl = this.configObject.transactionTime.formControl;
+    const fieldConfig = this.configObject.transactionTime;
+
+    // Remove existing gtDate error rule if present
+    if (fieldConfig.errors) {
+      fieldConfig.errors = fieldConfig.errors.filter(e => e.name !== 'gtDate');
+    } else {
+      fieldConfig.errors = [];
+    }
+
+    if (effectiveClosedUntil) {
+      // Set required validator plus gtDate validator
+      formControl.setValidators([Validators.required, gtDate(effectiveClosedUntil)]);
+
+      // Add gtDate error rule with formatted date
+      const formattedDate = moment(effectiveClosedUntil).format(this.gps.getDateFormat());
+      const gtDateError = {
+        name: 'gtDate',
+        keyi18n: 'gtDate',
+        param1: formattedDate,
+        rules: [RuleEvent.DIRTY, RuleEvent.TOUCHED],
+        text: null
+      };
+      fieldConfig.errors.push(gtDateError);
+
+      // Translate the new error message
+      this.translateService.get('gtDate', {param1: formattedDate}).subscribe(
+        text => gtDateError.text = text
+      );
+    } else {
+      // Only required validator when no closedUntil restriction
+      formControl.setValidators([Validators.required]);
+    }
+
+    // Re-validate the current value with the new validators
+    formControl.updateValueAndValidity();
+  }
+
 }
 
 class ChangedIdSecurityAndTime {

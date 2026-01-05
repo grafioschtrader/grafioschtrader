@@ -347,7 +347,7 @@ CREATE TABLE `dividend` (
   PRIMARY KEY (`id_dividend`),
   KEY `FK_Dividend_Security` (`id_securitycurrency`),
   CONSTRAINT `FK_Dividend_Security` FOREIGN KEY (`id_securitycurrency`) REFERENCES `security` (`id_securitycurrency`)
-) ENGINE=InnoDB AUTO_INCREMENT=1042450 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1044230 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -400,8 +400,10 @@ CREATE TABLE `globalparameters` (
   `property_int` int(11) DEFAULT NULL,
   `property_string` varchar(30) DEFAULT NULL,
   `property_date` date DEFAULT NULL,
+  `property_date_time` timestamp NULL DEFAULT NULL,
   `property_blob` blob DEFAULT NULL,
   `changed_by_system` tinyint(1) DEFAULT 0,
+  `input_rule` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`property_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -423,6 +425,7 @@ CREATE TABLE `gt_net` (
   `allow_server_creation` tinyint(1) NOT NULL DEFAULT 0,
   `server_busy` tinyint(1) NOT NULL DEFAULT 0,
   `server_online` tinyint(1) NOT NULL DEFAULT 0,
+  `last_modified_time` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id_gt_net`),
   UNIQUE KEY `domainRemoteName` (`domain_remote_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -442,6 +445,8 @@ CREATE TABLE `gt_net_config` (
   `daily_req_limit_count` int(11) DEFAULT NULL,
   `daily_req_limit_remote_count` int(11) DEFAULT NULL,
   `supplier_last_update` timestamp NULL DEFAULT NULL,
+  `serverlist_access_granted` tinyint(1) NOT NULL DEFAULT 0,
+  `request_violation_count` tinyint(2) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id_gt_net`),
   CONSTRAINT `FK_GTNetConfig_GTNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -477,6 +482,8 @@ CREATE TABLE `gt_net_entity` (
   `entity_kind` tinyint(1) NOT NULL,
   `server_state` tinyint(1) NOT NULL,
   `accept_request` tinyint(1) NOT NULL,
+  `max_limit` smallint(5) NOT NULL,
+  `enable_log` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id_gt_net_entity`),
   KEY `FK_GtNetEntity_GtNet` (`id_gt_net`),
   CONSTRAINT `FK_GtNetEntity_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE
@@ -484,22 +491,103 @@ CREATE TABLE `gt_net_entity` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `gt_net_exchange`
+-- Table structure for table `gt_net_exchange_log`
 --
 
-DROP TABLE IF EXISTS `gt_net_exchange`;
+DROP TABLE IF EXISTS `gt_net_exchange_log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `gt_net_exchange` (
-  `id_gt_net_exchange` int(11) NOT NULL AUTO_INCREMENT,
-  `id_securitycurrency` int(11) NOT NULL,
-  `lastprice_recv` tinyint(1) NOT NULL DEFAULT 0,
-  `historical_recv` tinyint(1) NOT NULL DEFAULT 0,
-  `lastprice_send` tinyint(1) NOT NULL DEFAULT 0,
-  `historical_send` tinyint(1) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id_gt_net_exchange`),
-  KEY `FK_GTNetExchange_Securitycurrency` (`id_securitycurrency`),
-  CONSTRAINT `FK_GTNetExchange_Securitycurrency` FOREIGN KEY (`id_securitycurrency`) REFERENCES `securitycurrency` (`id_securitycurrency`) ON DELETE CASCADE
+CREATE TABLE `gt_net_exchange_log` (
+  `id_gt_net_exchange_log` int(11) NOT NULL AUTO_INCREMENT,
+  `id_gt_net` int(11) NOT NULL,
+  `entity_kind` tinyint(4) NOT NULL,
+  `log_as_supplier` tinyint(1) NOT NULL,
+  `period_type` tinyint(4) NOT NULL,
+  `period_start` date NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
+  `entities_sent` int(11) NOT NULL DEFAULT 0,
+  `entities_updated` int(11) NOT NULL DEFAULT 0,
+  `entities_in_response` int(11) NOT NULL DEFAULT 0,
+  `request_count` int(11) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id_gt_net_exchange_log`),
+  KEY `FK_GtNetExchangeLog_GtNet` (`id_gt_net`),
+  CONSTRAINT `FK_GtNetExchangeLog_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `gt_net_historyquote`
+--
+
+DROP TABLE IF EXISTS `gt_net_historyquote`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `gt_net_historyquote` (
+  `id_gt_net_historyquote` int(11) NOT NULL AUTO_INCREMENT,
+  `id_gt_net_instrument` int(11) NOT NULL,
+  `date` date NOT NULL,
+  `open` double(22,8) DEFAULT NULL,
+  `high` double(22,8) DEFAULT NULL,
+  `low` double(22,8) DEFAULT NULL,
+  `close` double(22,8) NOT NULL,
+  `volume` bigint(20) DEFAULT NULL,
+  PRIMARY KEY (`id_gt_net_historyquote`),
+  UNIQUE KEY `UK_GtNetHistoryquote_InstrumentDate` (`id_gt_net_instrument`,`date`),
+  CONSTRAINT `FK_GtNetHistoryquote_Instrument` FOREIGN KEY (`id_gt_net_instrument`) REFERENCES `gt_net_instrument` (`id_gt_net_instrument`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `gt_net_instrument`
+--
+
+DROP TABLE IF EXISTS `gt_net_instrument`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `gt_net_instrument` (
+  `id_gt_net_instrument` int(11) NOT NULL AUTO_INCREMENT,
+  `id_gt_net` int(11) NOT NULL,
+  `dtype` varchar(1) NOT NULL,
+  `id_securitycurrency` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id_gt_net_instrument`),
+  KEY `FK_GtNetInstrument_GtNet` (`id_gt_net`),
+  KEY `FK_GtNetInstrument_Securitycurrency` (`id_securitycurrency`),
+  CONSTRAINT `FK_GtNetInstrument_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`),
+  CONSTRAINT `FK_GtNetInstrument_Securitycurrency` FOREIGN KEY (`id_securitycurrency`) REFERENCES `securitycurrency` (`id_securitycurrency`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `gt_net_instrument_currencypair`
+--
+
+DROP TABLE IF EXISTS `gt_net_instrument_currencypair`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `gt_net_instrument_currencypair` (
+  `id_gt_net_instrument` int(11) NOT NULL,
+  `from_currency` char(3) NOT NULL,
+  `to_currency` char(3) NOT NULL,
+  PRIMARY KEY (`id_gt_net_instrument`),
+  UNIQUE KEY `UK_GtNetInstrumentCp_FromTo` (`from_currency`,`to_currency`),
+  CONSTRAINT `FK_GtNetInstrumentCp_Instrument` FOREIGN KEY (`id_gt_net_instrument`) REFERENCES `gt_net_instrument` (`id_gt_net_instrument`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `gt_net_instrument_security`
+--
+
+DROP TABLE IF EXISTS `gt_net_instrument_security`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `gt_net_instrument_security` (
+  `id_gt_net_instrument` int(11) NOT NULL,
+  `isin` varchar(12) NOT NULL,
+  `currency` char(3) NOT NULL,
+  PRIMARY KEY (`id_gt_net_instrument`),
+  UNIQUE KEY `UK_GtNetInstrumentSec_IsinCurrency` (`isin`,`currency`),
+  CONSTRAINT `FK_GtNetInstrumentSec_Instrument` FOREIGN KEY (`id_gt_net_instrument`) REFERENCES `gt_net_instrument` (`id_gt_net_instrument`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -512,91 +600,16 @@ DROP TABLE IF EXISTS `gt_net_lastprice`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `gt_net_lastprice` (
   `id_gt_net_lastprice` int(11) NOT NULL AUTO_INCREMENT,
-  `id_gt_net` int(11) NOT NULL,
-  `timestamp` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `id_gt_net_instrument` int(11) NOT NULL,
+  `timestamp` timestamp NULL DEFAULT NULL,
   `open` double(22,8) DEFAULT NULL,
-  `low` double(22,8) DEFAULT NULL,
   `high` double(22,8) DEFAULT NULL,
-  `last` double(22,8) NOT NULL,
+  `low` double(22,8) DEFAULT NULL,
+  `last` double(22,8) DEFAULT NULL,
   `volume` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id_gt_net_lastprice`),
-  KEY `FK_GtNetLastprice_GtNet` (`id_gt_net`),
-  CONSTRAINT `FK_GtNetLastprice_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `gt_net_lastprice_currencypair`
---
-
-DROP TABLE IF EXISTS `gt_net_lastprice_currencypair`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `gt_net_lastprice_currencypair` (
-  `id_gt_net_lastprice` int(11) NOT NULL,
-  `dtype` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `from_currency` char(3) NOT NULL,
-  `to_currency` char(3) NOT NULL,
-  PRIMARY KEY (`id_gt_net_lastprice`),
-  CONSTRAINT `FK_GtNetLastpriceCurrency_GtNetLasprice` FOREIGN KEY (`id_gt_net_lastprice`) REFERENCES `gt_net_lastprice` (`id_gt_net_lastprice`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `gt_net_lastprice_detail_log`
---
-
-DROP TABLE IF EXISTS `gt_net_lastprice_detail_log`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `gt_net_lastprice_detail_log` (
-  `id_gt_net_lastprice_detail_log` int(11) NOT NULL AUTO_INCREMENT,
-  `id_gt_net_lastprice_log` int(11) NOT NULL,
-  `id_gt_net_lastprice` int(11) NOT NULL,
-  `last` double(22,8) NOT NULL,
-  PRIMARY KEY (`id_gt_net_lastprice_detail_log`),
-  KEY `FK_GtNetLastpriceLog_GtNetLastpriceDetailLog` (`id_gt_net_lastprice_log`),
-  KEY `FK_GtNetLastpriceDetailLog_GtNetLastprice` (`id_gt_net_lastprice`),
-  CONSTRAINT `FK_GtNetLastpriceDetailLog_GtNetLastprice` FOREIGN KEY (`id_gt_net_lastprice`) REFERENCES `gt_net_lastprice` (`id_gt_net_lastprice`),
-  CONSTRAINT `FK_GtNetLastpriceLog_GtNetLastpriceDetailLog` FOREIGN KEY (`id_gt_net_lastprice_log`) REFERENCES `gt_net_lastprice_log` (`id_gt_net_lastprice_log`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `gt_net_lastprice_log`
---
-
-DROP TABLE IF EXISTS `gt_net_lastprice_log`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `gt_net_lastprice_log` (
-  `id_gt_net_lastprice_log` int(11) NOT NULL AUTO_INCREMENT,
-  `id_gt_net` int(11) NOT NULL,
-  `log_as_supplier` tinyint(1) NOT NULL,
-  `timestamp` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `lastprice_payload` int(11) NOT NULL DEFAULT 0,
-  `read_count` int(11) NOT NULL DEFAULT 0,
-  `write_count` int(11) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id_gt_net_lastprice_log`),
-  KEY `FK_GtNetLastpriceLog_GtNet` (`id_gt_net`),
-  CONSTRAINT `FK_GtNetLastpriceLog_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `gt_net_lastprice_security`
---
-
-DROP TABLE IF EXISTS `gt_net_lastprice_security`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `gt_net_lastprice_security` (
-  `id_gt_net_lastprice` int(11) NOT NULL,
-  `dtype` varchar(1) DEFAULT NULL,
-  `isin` varchar(12) NOT NULL,
-  `currency` char(3) NOT NULL,
-  PRIMARY KEY (`id_gt_net_lastprice`),
-  CONSTRAINT `FK_GtNetLastpriceSecurity_GtNetLastprice` FOREIGN KEY (`id_gt_net_lastprice`) REFERENCES `gt_net_lastprice` (`id_gt_net_lastprice`)
+  UNIQUE KEY `UK_GtNetLastprice_Instrument` (`id_gt_net_instrument`),
+  CONSTRAINT `FK_GtNetLastprice_Instrument` FOREIGN KEY (`id_gt_net_instrument`) REFERENCES `gt_net_instrument` (`id_gt_net_instrument`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -619,6 +632,7 @@ CREATE TABLE `gt_net_message` (
   `error_msg_code` varchar(50) DEFAULT NULL,
   `has_been_read` tinyint(1) NOT NULL DEFAULT 0,
   `wait_days_apply` smallint(4) NOT NULL DEFAULT 0,
+  `delivery_status` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id_gt_net_message`),
   KEY `FK_GtNetMessage_GtNet` (`id_gt_net`),
   KEY `FK_GtNetMessage_GtNetMessage` (`reply_to`),
@@ -727,7 +741,7 @@ CREATE TABLE `historyquote` (
   UNIQUE KEY `IHistoryQuote_id_Date` (`id_securitycurrency`,`date`),
   KEY `FK_HistoryQuote_SecurityCurrency` (`id_securitycurrency`) USING BTREE,
   CONSTRAINT `FK_HistoryQuote_SecurityCurrency` FOREIGN KEY (`id_securitycurrency`) REFERENCES `securitycurrency` (`id_securitycurrency`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=9195872 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9198156 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -877,7 +891,7 @@ CREATE TABLE `imp_trans_head` (
   KEY `FK_ImpTransHead_Securityaccount` (`id_securitycash_account`),
   CONSTRAINT `FK_ImpTransHead_Securityaccount` FOREIGN KEY (`id_securitycash_account`) REFERENCES `securityaccount` (`id_securitycash_account`),
   CONSTRAINT `FK_ImpTransHead_Tenant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`)
-) ENGINE=InnoDB AUTO_INCREMENT=960 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB AUTO_INCREMENT=964 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -949,7 +963,7 @@ CREATE TABLE `imp_trans_pos` (
   CONSTRAINT `FK_ImpTransPos_Cashaccount1` FOREIGN KEY (`id_cash_account`) REFERENCES `cashaccount` (`id_securitycash_account`),
   CONSTRAINT `FK_ImpTransPos_ImpTransHead` FOREIGN KEY (`id_trans_head`) REFERENCES `imp_trans_head` (`id_trans_head`),
   CONSTRAINT `transacton_maybe` CHECK (`id_transaction_maybe` is null or `id_transaction_maybe` is not null and `id_transaction` is null)
-) ENGINE=InnoDB AUTO_INCREMENT=37288 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB AUTO_INCREMENT=37292 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1013,7 +1027,7 @@ CREATE TABLE `mail_entity` (
   `mark_date` date NOT NULL,
   `creation_date` date NOT NULL,
   PRIMARY KEY (`id_mail_entity`)
-) ENGINE=InnoDB AUTO_INCREMENT=535 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=541 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1042,7 +1056,7 @@ CREATE TABLE `mail_send_recv` (
   KEY `FK_MailInOut_GtNet` (`id_gt_net`),
   CONSTRAINT `FK_MailSendRecv_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`),
   CONSTRAINT `FK_MailSendRecv_Role` FOREIGN KEY (`id_role_to`) REFERENCES `role` (`id_role`)
-) ENGINE=InnoDB AUTO_INCREMENT=849 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=855 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1142,6 +1156,7 @@ CREATE TABLE `portfolio` (
   `id_tenant` int(11) NOT NULL,
   `name` varchar(25) NOT NULL,
   `currency` char(3) NOT NULL,
+  `closed_until` date DEFAULT NULL,
   PRIMARY KEY (`id_portfolio`),
   UNIQUE KEY `idtenant_name` (`id_tenant`,`name`) USING BTREE,
   KEY `FK_Portfolio_Tentant` (`id_tenant`),
@@ -1427,13 +1442,18 @@ CREATE TABLE `securitycurrency` (
   `s_last` double(22,8) DEFAULT NULL,
   `s_low` double(22,8) DEFAULT NULL,
   `s_high` double(22,8) DEFAULT NULL,
+  `gt_net_lastprice_recv` tinyint(1) NOT NULL DEFAULT 0,
+  `gt_net_historical_recv` tinyint(1) NOT NULL DEFAULT 0,
+  `gt_net_lastprice_send` tinyint(1) NOT NULL,
+  `gt_net_historical_send` tinyint(1) NOT NULL,
+  `gt_net_last_modified_time` timestamp NOT NULL DEFAULT current_timestamp(),
   `created_by` int(11) NOT NULL,
   `creation_time` timestamp NOT NULL DEFAULT current_timestamp(),
   `last_modified_by` int(11) NOT NULL,
   `last_modified_time` timestamp NOT NULL DEFAULT current_timestamp(),
   `version` int(11) NOT NULL,
   PRIMARY KEY (`id_securitycurrency`)
-) ENGINE=InnoDB AUTO_INCREMENT=4259 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4260 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1530,7 +1550,7 @@ CREATE TABLE `task_data_change` (
   `failed_message_code` varchar(40) DEFAULT NULL,
   `failed_stack_trace` varchar(4096) DEFAULT NULL,
   PRIMARY KEY (`id_task_data_change`)
-) ENGINE=InnoDB AUTO_INCREMENT=17185 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=17344 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1548,6 +1568,7 @@ CREATE TABLE `tenant` (
   `currency` char(3) NOT NULL,
   `exclude_div_tax` tinyint(1) NOT NULL DEFAULT 0,
   `id_watchlist_performance` int(11) DEFAULT NULL,
+  `closed_until` date DEFAULT NULL,
   PRIMARY KEY (`id_tenant`)
 ) ENGINE=InnoDB AUTO_INCREMENT=49 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1651,7 +1672,7 @@ CREATE TABLE `transaction` (
   CONSTRAINT `c_currency_ex_rate` CHECK (`currency_ex_rate` is not null and `currency_ex_rate` > 0 and `id_currency_pair` is not null or `currency_ex_rate` is null and `id_currency_pair` is null),
   CONSTRAINT `s_units` CHECK (`units` is not null and `units` <> 0 and `id_securitycurrency` is not null or `id_securitycurrency` is null and `units` is null),
   CONSTRAINT `s_quotation` CHECK (`quotation` is not null and (`quotation` > 0 or `quotation` <> 0 and `transaction_type` between 6 and 7) and `id_securitycurrency` is not null or `quotation` is null and `id_securitycurrency` is null)
-) ENGINE=InnoDB AUTO_INCREMENT=1122251 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1122312 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2146,4 +2167,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-12-28 21:53:47
+-- Dump completed on 2026-01-05 17:33:36

@@ -192,6 +192,7 @@
   "dateRange": "Die zwei Datums sind kein gültiger Zeitraum!",
   "equalToPassword": "Die Bestätigung des Passwortes ist falsch!",
   "gt": "Muss grösser {{param1}} sein!",
+  "gtDate": "Datum muss nach {{param1}} liegen!",
   "gteDate": "Zeitpunkt muss gleich oder später {{param1}} sein!",
   "max": "Darf {{param1}} nicht übersteigen!",
   "notContainStringInList": "Diese Bezeichnung wurde schon verwendet!",

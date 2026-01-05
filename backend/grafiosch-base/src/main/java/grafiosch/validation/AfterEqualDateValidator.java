@@ -1,4 +1,4 @@
-package grafioschtrader.validation;
+package grafiosch.validation;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -7,7 +7,11 @@ import java.util.Date;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-public class AfterEqualVaildator implements ConstraintValidator<AfterEqual, Date> {
+/**
+ * Validator for {@link java.util.Date} fields using the {@link AfterEqual} annotation.
+ * Validates that the date is on or after the specified minimum date.
+ */
+public class AfterEqualDateValidator implements ConstraintValidator<AfterEqual, Date> {
   private AfterEqual annotation;
 
   @Override

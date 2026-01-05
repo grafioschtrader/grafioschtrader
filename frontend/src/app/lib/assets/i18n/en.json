@@ -192,6 +192,7 @@
   "dateRange": "The two dates are not a valid period!",
   "equalToPassword": "Confirmation of password is incorrect!",
   "gt": "Must be greater as {{param1}}!",
+  "gtDate": "Date must be after {{param1}}!",
   "gteDate": "Time must be equal or later {{param1}}!",
   "max": "May not exceed {{param1}}!",
   "notContainStringInList": "This name has already been used!",

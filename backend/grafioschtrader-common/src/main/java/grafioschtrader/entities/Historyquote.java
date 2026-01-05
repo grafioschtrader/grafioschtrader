@@ -19,7 +19,7 @@ import grafiosch.entities.ProposeTransientTransfer;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.ImportDataRequired;
 import grafioschtrader.types.HistoryquoteCreateType;
-import grafioschtrader.validation.AfterEqual;
+import grafiosch.validation.AfterEqual;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;

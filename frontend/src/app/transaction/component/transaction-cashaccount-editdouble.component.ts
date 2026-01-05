@@ -28,6 +28,10 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {BaseSettings} from '../../lib/base.settings';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
+import {gtDate} from '../../lib/validator/validator';
+import {Validators} from '@angular/forms';
+import {RuleEvent} from '../../lib/dynamic-form/error/error.message.rules';
+import moment from 'moment';
 import {DialogModule} from 'primeng/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
@@ -40,6 +44,10 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
     <p-dialog header="{{'ACCOUNT_TRANSFER' | translate}}" [(visible)]="visibleCashaccountTransactionDoubleDialog"
               [style]="{width: '550px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
+
+      @if (transactionLocked) {
+        <div class="alert alert-warning alert-dialog-wrap">{{ transactionLockedMessage }}</div>
+      }
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm"
@@ -73,6 +81,10 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
 
   debitCashaccount: Cashaccount;
   creditCashaccount: Cashaccount;
+
+  // Portfolio references for closedUntil calculation
+  private debitPortfolio: Portfolio;
+  private creditPortfolio: Portfolio;
 
   // Observer subscribe
   private transactionTimeChangeSub: Subscription;
@@ -127,7 +139,6 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     this.creditChashaccountChangedSub && this.creditChashaccountChangedSub.unsubscribe();
     this.transactionTimeChangeSub && this.transactionTimeChangeSub.unsubscribe();
     super.close();
-
   }
 
   valueChangedOnCalcFields(): void {
@@ -167,6 +178,8 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
         const cp: { cashaccount: Cashaccount; portfolio: Portfolio } = this.getCashaccountByIdCashaccountFromPortfolios(
           this.portfolios, +data);
         this.debitCashaccount = cp.cashaccount;
+        this.debitPortfolio = cp.portfolio;
+        this.updateTransactionTimeMinDateFromBothPortfolios();
         this.filterCreditHtmlOptions(this.configObject.idDebitCashaccount.valueKeyHtmlOptions,
           cp.cashaccount.idSecuritycashAccount);
         this.configObject.debitAmount.inputNumberSettings.currency = this.debitCashaccount.currency;
@@ -185,6 +198,8 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
         const cp: { cashaccount: Cashaccount; portfolio: Portfolio } = this.getCashaccountByIdCashaccountFromPortfolios(
           this.portfolios, +data);
         this.creditCashaccount = cp.cashaccount;
+        this.creditPortfolio = cp.portfolio;
+        this.updateTransactionTimeMinDateFromBothPortfolios();
         // this.configObject.creditAmount.currencyMaskConfig.prefix = AppHelper.addSpaceToCurrency(this.creditCashaccount.currency);
         this.configObject.creditAmount.inputNumberSettings.currency = this.creditCashaccount.currency;
         this.changeCurrencyExRateState();
@@ -382,5 +397,77 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     }
     cashAccountTransfer.withdrawalTransaction.cashaccountAmount = this.calcDebitAmount(values);
     return cashAccountTransfer;
+  }
+
+  /**
+   * Updates the transaction time minDate using the most restrictive closedUntil from both portfolios.
+   * For double account transfers, transactions must respect both portfolios' closed periods.
+   * Also checks if existing transaction is within the closed period and updates the date validator.
+   */
+  private updateTransactionTimeMinDateFromBothPortfolios(): void {
+    const debitClosedUntil = FormDefinitionHelper.getEffectiveClosedUntil(this.debitPortfolio, this.gpsGT);
+    const creditClosedUntil = FormDefinitionHelper.getEffectiveClosedUntil(this.creditPortfolio, this.gpsGT);
+
+    // Use the later (more restrictive) closedUntil date
+    let effectiveClosedUntil: Date | null = null;
+    if (debitClosedUntil && creditClosedUntil) {
+      effectiveClosedUntil = debitClosedUntil > creditClosedUntil ? debitClosedUntil : creditClosedUntil;
+    } else {
+      effectiveClosedUntil = debitClosedUntil || creditClosedUntil;
+    }
+
+    FormDefinitionHelper.updateTransactionTimeMinDate(this.configObject.transactionTime, effectiveClosedUntil);
+
+    // Update validator to enforce date restriction even for already-entered dates
+    this.updateTransactionTimeValidator(effectiveClosedUntil);
+
+    // Check if existing transaction is within closed period
+    if (this.transactionCallParam.transaction) {
+      this.checkTransactionLocked(effectiveClosedUntil, this.transactionCallParam.transaction.transactionTime);
+    }
+  }
+
+  /**
+   * Updates the transactionTime form control validators to include the gtDate validator
+   * with the current effectiveClosedUntil date. Also updates the error message rule with
+   * the formatted date for proper error display.
+   */
+  private updateTransactionTimeValidator(effectiveClosedUntil: Date | null): void {
+    const formControl = this.configObject.transactionTime.formControl;
+    const fieldConfig = this.configObject.transactionTime;
+
+    // Remove existing gtDate error rule if present
+    if (fieldConfig.errors) {
+      fieldConfig.errors = fieldConfig.errors.filter(e => e.name !== 'gtDate');
+    } else {
+      fieldConfig.errors = [];
+    }
+
+    if (effectiveClosedUntil) {
+      // Set required validator plus gtDate validator
+      formControl.setValidators([Validators.required, gtDate(effectiveClosedUntil)]);
+
+      // Add gtDate error rule with formatted date
+      const formattedDate = moment(effectiveClosedUntil).format(this.gps.getDateFormat());
+      const gtDateError = {
+        name: 'gtDate',
+        keyi18n: 'gtDate',
+        param1: formattedDate,
+        rules: [RuleEvent.DIRTY, RuleEvent.TOUCHED],
+        text: null
+      };
+      fieldConfig.errors.push(gtDateError);
+
+      // Translate the new error message
+      this.translateService.get('gtDate', {param1: formattedDate}).subscribe(
+        text => gtDateError.text = text
+      );
+    } else {
+      // Only required validator when no closedUntil restriction
+      formControl.setValidators([Validators.required]);
+    }
+
+    // Re-validate the current value with the new validators
+    formControl.updateValueAndValidity();
   }
 }

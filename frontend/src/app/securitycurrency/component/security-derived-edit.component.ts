@@ -124,7 +124,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
     ];
 
     this.config.push(...SecurityEditSupport.getSecurityBaseFieldDefinition(SecurityDerived.Derived, this.gps));
-    this.config.push(...SecurityEditSupport.getIntraHistoryFieldDefinition(SecurityDerived.Derived));
+    this.config.push(...SecurityEditSupport.getIntraHistoryFieldDefinition(SecurityDerived.Derived, this.gps));
     this.config.push(...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this));
 
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);

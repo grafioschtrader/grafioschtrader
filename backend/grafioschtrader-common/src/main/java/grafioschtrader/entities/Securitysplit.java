@@ -13,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.types.CreateType;
-import grafioschtrader.validation.AfterEqual;
+import grafiosch.validation.AfterEqual;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;

@@ -29,6 +29,35 @@ body {
   line-height: 1.3;
 }
 
+.dialog-lock-wrapper {
+  position: relative;
+}
+
+.dialog-lock-wrapper.is-locked .dialog-content {
+  pointer-events: none;   /* verhindert Klicks/Fokus */
+  user-select: none;
+  opacity: 0.6;           /* optional: visuelles Feedback */
+}
+
+/* Optional: Overlay für "gesperrt"-Gefühl (Spinner/Tooltip möglich) */
+.dialog-lock-overlay {
+  position: absolute;
+  inset: 0;
+  background: transparent; /* oder rgba(255,255,255,0.2) */
+  z-index: 10;
+  pointer-events: auto;    /* fängt Events ab */
+}
+
+/* Alert for transaction locked warning in dialogs */
+.alert-dialog-wrap {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+
 
 label {
   text-align: end;

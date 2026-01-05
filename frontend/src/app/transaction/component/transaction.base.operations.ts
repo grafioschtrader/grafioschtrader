@@ -11,6 +11,7 @@ import {HistoryquoteService} from '../../historyquote/service/historyquote.servi
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 import {BaseSettings} from '../../lib/base.settings';
+import moment from 'moment';
 
 /**
  * Abstract base class providing common operations for transaction handling, including cash account lookups,
@@ -23,6 +24,12 @@ export abstract class TransactionBaseOperations {
 
   /** Current currency pair used for exchange rate calculations */
   protected currencypair?: Currencypair;
+
+  /** Indicates if the transaction is locked due to being within a closed period */
+  transactionLocked = false;
+
+  /** Message displayed when the transaction is locked */
+  transactionLockedMessage = '';
 
   /**
    * Creates a new TransactionBaseOperations instance with required services.
@@ -149,6 +156,42 @@ export abstract class TransactionBaseOperations {
     this.configObject.exRateButton.disabled = this.configObject.currencyExRate.formControl.disabled ||
       !this.configObject.transactionTime.formControl.valid;
     this.configObject.oneOverX.disabled = this.configObject.currencyExRate.formControl.disabled;
+  }
+
+  /**
+   * Resets the transaction locked state. Should be called when initializing for a new transaction.
+   */
+  protected resetTransactionLocked(): void {
+    this.transactionLocked = false;
+    this.transactionLockedMessage = '';
+  }
+
+  /**
+   * Checks if an existing transaction is within the closed period and locks the form if so.
+   * When locked, sets the transactionLocked flag, displays a message, and hides the submit button.
+   *
+   * @param effectiveClosedUntil The effective closedUntil date from portfolio or tenant
+   * @param transactionTime The transaction time to check (from existing transaction)
+   */
+  protected checkTransactionLocked(effectiveClosedUntil: Date | null, transactionTime: Date | string | number): void {
+    if (effectiveClosedUntil && transactionTime) {
+      const transactionDate = new Date(transactionTime);
+      // Compare dates only (ignore time component)
+      const transactionDateOnly = new Date(transactionDate.getFullYear(), transactionDate.getMonth(), transactionDate.getDate());
+      const closedUntilDateOnly = new Date(effectiveClosedUntil.getFullYear(), effectiveClosedUntil.getMonth(), effectiveClosedUntil.getDate());
+
+      if (transactionDateOnly <= closedUntilDateOnly) {
+        this.transactionLocked = true;
+        const formattedDate = moment(effectiveClosedUntil).format(this.gps.getDateFormat());
+        this.translateService.get('TRANSACTION_LOCKED_MESSAGE', {date: formattedDate}).subscribe(
+          msg => this.transactionLockedMessage = msg
+        );
+        // Hide the submit button
+        if (this.configObject.submit) {
+          this.configObject.submit.invisible = true;
+        }
+      }
+    }
   }
 
 }
