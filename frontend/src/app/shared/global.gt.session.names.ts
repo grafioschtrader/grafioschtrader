@@ -30,5 +30,9 @@ export enum GlobalGTSessionNames {
    */
   CURRENCY_PRECISION = 'currencyPrecision',
 
-
+  /**
+   * Tenant-level closed-until date for transaction period locking.
+   * Transactions on or before this date are protected from modification.
+   */
+  TENANT_CLOSED_UNTIL = 'tenantClosedUntil',
 }

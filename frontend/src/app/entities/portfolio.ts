@@ -7,6 +7,7 @@ export class Portfolio extends TenantBaseId {
 
   name: string = null;
   currency: string = null;
+  closedUntil: string = null;
   idPortfolio?: number;
 
   securitycashaccountList?: Securitycashaccount;

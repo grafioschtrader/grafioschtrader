@@ -6,11 +6,14 @@
 package grafioschtrader.entities;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.entities.TenantBase;
+import grafiosch.validation.AfterEqual;
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.types.TenantKindType;
 import grafioschtrader.validation.ValidCurrencyCode;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -44,12 +47,19 @@ public class Tenant extends TenantBase implements Serializable {
       Interest/dividend tax: In some countries, such as Switzerland, a tax amount of 35%, for example, is automatically
       deducted from certain shares and bonds when the dividend or interest is paid. This amount is refunded on the basis
       of the tax information and the income is taxed as ordinary income. If you select the skip interest/dividend tax option,
-      the tax for the “Interest/dividend” transaction type is skipped when calculating the profit.
+      the tax for the "Interest/dividend" transaction type is skipped when calculating the profit.
       This makes it easier to compare the profits from different securities.""")
   @Basic(optional = false)
   @NotNull
   @Column(name = "exclude_div_tax")
   private boolean excludeDivTax;
+
+  @Schema(description = """
+      Default closed-until date for all portfolios of this tenant. Transactions on or before this date are protected
+      from modification. Individual portfolios can override this setting with their own closedUntil value.""")
+  @Column(name = "closed_until")
+  @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY)
+  private LocalDate closedUntil;
 
   @Schema(description = "List of portfolios belonging to this tenant, ordered alphabetically by name.")
   @JoinColumn(name = "id_tenant")
@@ -88,6 +98,14 @@ public class Tenant extends TenantBase implements Serializable {
 
   public void setExcludeDivTax(boolean excludeDivTax) {
     this.excludeDivTax = excludeDivTax;
+  }
+
+  public LocalDate getClosedUntil() {
+    return closedUntil;
+  }
+
+  public void setClosedUntil(LocalDate closedUntil) {
+    this.closedUntil = closedUntil;
   }
 
   @JsonIgnore
@@ -137,6 +155,7 @@ public class Tenant extends TenantBase implements Serializable {
     this.setTenantName(sourceTenant.getTenantName());
     this.setCurrency(sourceTenant.getCurrency());
     this.setExcludeDivTax(sourceTenant.isExcludeDivTax());
+    this.setClosedUntil(sourceTenant.getClosedUntil());
   }
 
   @Override

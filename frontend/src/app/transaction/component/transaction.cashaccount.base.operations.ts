@@ -64,6 +64,7 @@ export abstract class TransactionCashaccountBaseOperations extends TransactionBa
    * Sets the transaction time to current date and enables form submission controls.
    */
   preInitialize(): void {
+    this.resetTransactionLocked();
     this.form.setDefaultValuesAndEnableSubmit();
     this.configObject.transactionTime.formControl.setValue(new Date());
     this.initialize();

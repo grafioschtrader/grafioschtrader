@@ -4,7 +4,8 @@ import {ConfigurationWithLogin} from '../../lib/login/model/configuration-with-l
  * Extended configuration interface for GrafioschTrader-specific login settings.
  *
  * <p>This interface extends the base ConfigurationWithLogin to include trading application-specific
- * configuration data such as cryptocurrency support and currency precision settings.</p>
+ * configuration data such as cryptocurrency support, currency precision settings, and tenant-level
+ * period locking configuration.</p>
  */
 export interface ConfigurationWithLoginGT extends ConfigurationWithLogin {
   /**
@@ -22,4 +23,13 @@ export interface ConfigurationWithLoginGT extends ConfigurationWithLogin {
    * This mapping provides the correct precision for each currency.
    */
   currencyPrecision: { [currency: string]: number };
+
+  /**
+   * Tenant-level closed-until date for transaction period locking (ISO date string).
+   *
+   * <p>Transactions on or before this date are protected from modification at the tenant level.
+   * Individual portfolios can override this with their own closedUntil value, which takes priority.
+   * If both portfolio and tenant closedUntil are null, there is no date restriction.</p>
+   */
+  tenantClosedUntil: string | null;
 }

@@ -27,7 +27,7 @@ import grafioschtrader.entities.projection.IFormulaInSecurity;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.DistributionFrequency;
 import grafioschtrader.types.SpecialInvestmentInstruments;
-import grafioschtrader.validation.AfterEqual;
+import grafiosch.validation.AfterEqual;
 import grafioschtrader.validation.NonZeroFloatConstraint;
 import grafioschtrader.validation.ValidCurrencyCode;
 import grafioschtrader.validation.ValidISIN;

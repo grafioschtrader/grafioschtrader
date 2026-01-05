@@ -179,8 +179,8 @@ public class GlobalparametersService {
    */
   public boolean isGTNetEnabled() {
     return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_GTNET_USE)
-        .map(g -> g.getPropertyInt() != null && g.getPropertyInt() != 0)
-        .orElse(GlobalParamKeyDefault.DEFAULT_GTNET_USE != 0);
+        .flatMap(g -> Optional.ofNullable(g.getPropertyInt()))
+        .orElse(GlobalParamKeyDefault.DEFAULT_GTNET_USE) != 0;
   }
 
   /**
@@ -196,8 +196,8 @@ public class GlobalparametersService {
    */
   public boolean isGTNetLogEnabled() {
     return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_GTNET_USE_LOG)
-        .map(g -> g.getPropertyInt() != null && g.getPropertyInt() != 0)
-        .orElse(GlobalParamKeyDefault.DEFAULT_GTNET_USE_LOG != 0);
+        .flatMap(g -> Optional.ofNullable(g.getPropertyInt()))
+        .orElse(GlobalParamKeyDefault.DEFAULT_GTNET_USE_LOG) != 0;
   }
 
   public Globalparameters saveGTNetMyEntryID(Integer idGtNet) {

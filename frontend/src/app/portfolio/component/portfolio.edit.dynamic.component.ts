@@ -8,6 +8,7 @@ import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {HelpIds} from '../../lib/help/help.ids';
 import {Tenant} from '../../entities/tenant';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
@@ -52,6 +53,8 @@ export class PortfolioEditDynamicComponent extends SimpleDynamicEditBase<Portfol
     this.config = [
       DynamicFieldHelper.createFieldInputString('name', 'PORTFOLIO_NAME', 25, true),
       DynamicFieldHelper.createFieldSelectStringHeqF('currency', true),
+      DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'closedUntil', false,
+        {calendarConfig: {minDate: new Date(2000, 0, 1)}}),
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);

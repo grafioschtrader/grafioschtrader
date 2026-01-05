@@ -60,10 +60,10 @@ export class SecurityEditSupport {
   static getSecurityBaseFieldDefinition(securityDerived: SecurityDerived, gps: GlobalparameterService): FieldConfig[] {
     const fc: FieldConfig[] = [];
 
-    fc.push(DynamicFieldHelper.createFieldInputString('name', 'NAME_SECURITY', 80, true,
-      {minLength: 2, fieldsetName: 'BASE_DATA'}));
-    fc.push(DynamicFieldHelper.createFieldSelectNumber('assetClass', AppSettings.ASSETCLASS.toUpperCase(), true,
-      {dataproperty: 'assetClass.idAssetClass', fieldsetName: 'BASE_DATA'}));
+      fc.push(DynamicFieldHelper.createFieldInputString('name', 'NAME_SECURITY', 80, true,
+        {minLength: 2, fieldsetName: 'BASE_DATA'}));
+      fc.push(DynamicFieldHelper.createFieldSelectNumber('assetClass', AppSettings.ASSETCLASS.toUpperCase(), true,
+        {dataproperty: 'assetClass.idAssetClass', fieldsetName: 'BASE_DATA'}));
 
     fc.push(DynamicFieldHelper.createFieldCheckbox('isTenantPrivate', 'PRIVATE_SECURITY', {fieldsetName: 'BASE_DATA'}));
 
@@ -110,9 +110,20 @@ export class SecurityEditSupport {
     return fc;
   }
 
-  static getIntraHistoryFieldDefinition(securityDerived: SecurityDerived): FieldConfig[] {
+  private static setGTNetFields(fc: FieldConfig[], gps: GlobalparameterService, sendFieldName: string, recvFieldName: string,
+    fieldsetName: string): void {
+    if(gps.useGtnet()) {
+      fc.push(DynamicFieldHelper.createFieldCheckboxHeqF(sendFieldName,
+        {fieldsetName: fieldsetName, usedLayoutColumns: 6}));
+      fc.push(DynamicFieldHelper.createFieldCheckboxHeqF(recvFieldName,
+        {fieldsetName: fieldsetName, usedLayoutColumns: 6}));
+    }
+  }
+
+  static getIntraHistoryFieldDefinition(securityDerived: SecurityDerived, gps: GlobalparameterService): FieldConfig[] {
     const fc: FieldConfig[] = [];
     if (securityDerived === SecurityDerived.Security || securityDerived === SecurityDerived.Currencypair) {
+      this.setGTNetFields(fc, gps, 'gtNetHistoricalSend', 'gtNetHistoricalRecv', this.HISTORY_SETTINGS)
       fc.push(DynamicFieldHelper.createFieldSelectString('idConnectorHistory', 'HISTORY_DATA_PROVIDER', false,
         {fieldsetName: this.HISTORY_SETTINGS}));
       fc.push(DynamicFieldHelper.createFieldInputStringHeqF('urlHistoryExtend', 254, false,
@@ -121,6 +132,7 @@ export class SecurityEditSupport {
     fc.push(DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'retryHistoryLoad',
       true, 0, 3, {defaultValue: 0, fieldsetName: this.HISTORY_SETTINGS}));
     if (securityDerived === SecurityDerived.Security || securityDerived === SecurityDerived.Currencypair) {
+      this.setGTNetFields(fc, gps, 'gtNetLastpriceSend', 'gtNetLastpriceRecv', this.INTRA_SETTINGS)
       fc.push(DynamicFieldHelper.createFieldSelectString('idConnectorIntra', 'INTRA_DATA_PROVIDER', false,
         {fieldsetName: this.INTRA_SETTINGS}));
       fc.push(DynamicFieldHelper.createFieldInputStringHeqF('urlIntraExtend', 254, false,

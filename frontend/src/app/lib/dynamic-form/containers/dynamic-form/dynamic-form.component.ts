@@ -31,13 +31,15 @@ import {DynamicFieldDirective} from '../../components/dynamic-field/dynamic-fiel
               <legend
                 [ngClass]="fieldsetConfig.fieldsetName? 'out-border-legend': ''">{{ fieldsetConfig.fieldsetName | translate }}
               </legend>
-              @for (field of fieldsetConfig.fieldConfig; track field) {
-                <dynamic-form-layout
-                  [config]="field"
-                  [formConfig]="formConfig"
-                  [group]="form">
-                </dynamic-form-layout>
-              }
+              <div class="row">
+                @for (field of fieldsetConfig.fieldConfig; track field) {
+                  <dynamic-form-layout
+                    [config]="field"
+                    [formConfig]="formConfig"
+                    [group]="form">
+                  </dynamic-form-layout>
+                }
+              </div>
             </fieldset>
           }
         } @else {

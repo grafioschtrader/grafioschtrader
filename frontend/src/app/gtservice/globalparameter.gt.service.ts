@@ -65,4 +65,14 @@ export class GlobalparameterGTService extends BaseAuthService<Globalparameters> 
     return this.currencyPrecisionMap[currency] ? this.currencyPrecisionMap[currency] : BaseSettings.FID_STANDARD_FRACTION_DIGITS;
   }
 
+  /**
+   * Gets the tenant-level closed-until date for transaction period locking.
+   *
+   * @returns The tenant's closedUntil date, or null if not set
+   */
+  public getTenantClosedUntil(): Date | null {
+    const dateStr = sessionStorage.getItem(GlobalGTSessionNames.TENANT_CLOSED_UNTIL);
+    return dateStr ? new Date(dateStr) : null;
+  }
+
 }

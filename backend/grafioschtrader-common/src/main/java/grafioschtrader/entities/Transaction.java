@@ -19,7 +19,7 @@ import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.reportviews.SecurityCostPosition;
 import grafioschtrader.types.TransactionType;
-import grafioschtrader.validation.AfterEqual;
+import grafiosch.validation.AfterEqual;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;

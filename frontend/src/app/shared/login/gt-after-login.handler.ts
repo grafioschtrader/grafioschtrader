@@ -23,6 +23,9 @@ export class GtAfterLoginHandler extends AfterLoginHandler {
 
     sessionStorage.setItem(GlobalGTSessionNames.CURRENCY_PRECISION, JSON.stringify(configurationWithLogin.currencyPrecision));
 
+    // Store tenant-level closed-until date for transaction period locking
+    sessionStorage.setItem(GlobalGTSessionNames.TENANT_CLOSED_UNTIL, configurationWithLogin.tenantClosedUntil || '');
+
     BaseSettings.resetInterFractionLimit(AppSettings, GlobalSessionNames.STANDARD_CURRENCY_PRECISIONS_AND_LIMITS);
   }
 }

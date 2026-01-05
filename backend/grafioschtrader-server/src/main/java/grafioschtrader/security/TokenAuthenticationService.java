@@ -1,5 +1,6 @@
 package grafioschtrader.security;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -14,6 +15,8 @@ import grafiosch.security.TokenAuthentication;
 import grafiosch.security.UserAuthentication;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.config.FeatureConfig;
+import grafioschtrader.entities.Tenant;
+import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.service.GlobalparametersService;
 import jakarta.transaction.Transactional;
 
@@ -45,6 +48,9 @@ public class TokenAuthenticationService extends TokenAuthentication {
 
   @Autowired
   private GlobalparametersService globalparametersService;
+
+  @Autowired
+  private TenantJpaRepository tenantJpaRepository;
 
   /**
    * Generates authentication from STOMP WebSocket connection headers.
@@ -81,11 +87,14 @@ public class TokenAuthenticationService extends TokenAuthentication {
   @Override
   @Transactional
   public ConfigurationWithLogin getConfigurationWithLogin(boolean uiShowMyProperty, String mostPrivilegedRole,
-      boolean passwordRegexOk) {
+      boolean passwordRegexOk, Integer idTenant) {
+    Tenant tenant = tenantJpaRepository.findById(idTenant).orElse(null);
+    LocalDate tenantClosedUntil = (tenant != null) ? tenant.getClosedUntil() : null;
     ConfigurationWithLoginGT configurationWithLogin = new ConfigurationWithLoginGT(getAllEntitiyNamesWithTheirKeys(),
         getGlobalConstantsFieldsByFieldPrefix(GlobalConstants.class, "FIELD_SIZE"), uiShowMyProperty,
         mostPrivilegedRole, passwordRegexOk, globalparametersService.getCurrencyPrecision(),
-        getGlobalConstantsFieldsByFieldPrefix(GlobalConstants.class, "FID"), featureConfig.getEnabledFeatures());
+        getGlobalConstantsFieldsByFieldPrefix(GlobalConstants.class, "FID"), featureConfig.getEnabledFeatures(),
+        tenantClosedUntil);
     return configurationWithLogin;
   }
 
@@ -100,7 +109,7 @@ public class TokenAuthenticationService extends TokenAuthentication {
   static class ConfigurationWithLoginGT extends ConfigurationWithLogin {
     /**
      * List of supported cryptocurrencies for trading operations.
-     * 
+     *
      * <p>Contains the cryptocurrencies that the application supports for trading,
      * portfolio management, and price tracking. This list is used by the frontend
      * to validate and display available cryptocurrency options.</p>
@@ -112,11 +121,21 @@ public class TokenAuthenticationService extends TokenAuthentication {
     public final Map<String, Integer> currencyPrecision;
 
     /**
+     * Tenant-level closed-until date for transaction period locking.
+     *
+     * <p>Transactions on or before this date are protected from modification at the tenant level.
+     * Individual portfolios can override this with their own closedUntil value, which takes priority.
+     * If both portfolio and tenant closedUntil are null, there is no date restriction.</p>
+     */
+    public final LocalDate tenantClosedUntil;
+
+    /**
      * Creates a comprehensive GrafioschTrader configuration object.
      *
      * <p>Constructs the complete configuration with all necessary data for the
      * trading application frontend, including entity metadata, field constraints,
-     * user preferences, financial precision settings, and feature toggles.</p>
+     * user preferences, financial precision settings, feature toggles, and
+     * tenant-level period locking configuration.</p>
      *
      * @param entityNameWithKeyNameList JPA entity metadata for frontend integration
      * @param fieldSize field size constraints from application constants
@@ -126,13 +145,16 @@ public class TokenAuthenticationService extends TokenAuthentication {
      * @param currencyPrecision currency-specific decimal precision mapping
      * @param standardPrecision standard precision constants for field formatting
      * @param useFeatures set of enabled features for partial functionality control
+     * @param tenantClosedUntil tenant-level date before which transactions are locked
      */
     public ConfigurationWithLoginGT(List<EntityNameWithKeyName> entityNameWithKeyNameList,
         Map<String, Integer> fieldSize, boolean uiShowMyProperty, String mostPrivilegedRole, boolean passwordRegexOk,
-        Map<String, Integer> currencyPrecision, Map<String, Integer> standardPrecision, Set<? extends FeatureType> useFeatures) {
+        Map<String, Integer> currencyPrecision, Map<String, Integer> standardPrecision, Set<? extends FeatureType> useFeatures,
+        LocalDate tenantClosedUntil) {
       super(entityNameWithKeyNameList, fieldSize, uiShowMyProperty, mostPrivilegedRole, passwordRegexOk, standardPrecision);
       this.useFeatures = useFeatures;
       this.currencyPrecision = currencyPrecision;
+      this.tenantClosedUntil = tenantClosedUntil;
     }
   }
 

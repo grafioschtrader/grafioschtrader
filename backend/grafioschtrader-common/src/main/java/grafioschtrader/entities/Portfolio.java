@@ -6,6 +6,7 @@
 package grafioschtrader.entities;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -13,6 +14,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.entities.TenantBaseID;
+import grafiosch.validation.AfterEqual;
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.validation.ValidCurrencyCode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
@@ -57,6 +60,14 @@ public class Portfolio extends TenantBaseID implements Serializable {
   @Schema(description = "ID fo Tenant")
   @Column(name = "id_tenant")
   private Integer idTenant;
+
+  @Schema(description = """
+      Transactions on or before this date are protected from modification. Takes priority over tenant-level setting.
+      If null, the tenant's closedUntil value is used as fallback.""")
+  @Column(name = "closed_until")
+  @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY)
+  @PropertyAlwaysUpdatable
+  private LocalDate closedUntil;
 
   @Schema(description = "The security accounts and cash accounts in this portfolio.")
   @OneToMany(mappedBy = "portfolio", orphanRemoval = true, fetch = FetchType.EAGER)
@@ -109,6 +120,14 @@ public class Portfolio extends TenantBaseID implements Serializable {
 
   public void setCurrency(String currency) {
     this.currency = currency;
+  }
+
+  public LocalDate getClosedUntil() {
+    return closedUntil;
+  }
+
+  public void setClosedUntil(LocalDate closedUntil) {
+    this.closedUntil = closedUntil;
   }
 
   @JsonIgnore

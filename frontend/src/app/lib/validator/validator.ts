@@ -45,6 +45,23 @@ export const gteDate = (minDate: Date): ValidatorFn => (control: AbstractControl
     {gteDate: {requiredGt: gteDate, actualValue: control.value}};
 };
 
+/**
+ * Validates that a date is strictly greater than the specified closedUntil date.
+ * Used for transaction period locking where transactions ON closedUntil are still locked.
+ * @param closedUntil The date until which transactions are locked (inclusive)
+ */
+export const gtDate = (closedUntil: Date): ValidatorFn => (control: AbstractControl): ValidationErrors | null => {
+  if (!isPresent(closedUntil) || isPresent(Validators.required(control)) || !control.value) {
+    return null;
+  }
+  const controlDate = new Date(control.value);
+  // Compare dates only (ignore time component)
+  const controlDateOnly = new Date(controlDate.getFullYear(), controlDate.getMonth(), controlDate.getDate());
+  const closedUntilDateOnly = new Date(closedUntil.getFullYear(), closedUntil.getMonth(), closedUntil.getDate());
+  return controlDateOnly > closedUntilDateOnly ? null :
+    {gtDate: {closedUntil: closedUntil}};
+};
+
 export const dateRange = (dateField1: string, dateField2: string, validatorField: string):
   ValidatorFn => (group: FormGroup): ValidationErrors | null => {
   const date1 = group.get(dateField1).value;

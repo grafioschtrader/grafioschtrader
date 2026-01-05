@@ -20,10 +20,6 @@ import grafioschtrader.entities.GTNetHistoryquote;
  *
  * For local instruments, historical data is stored in the standard {@link grafioschtrader.entities.Historyquote}
  * table instead.
- *
- * @see GTNetInstrument for instrument identification and local/foreign distinction
- * @see GTNetLastprice for intraday price data
- * @see Historyquote for local instrument historical data
  */
 public interface GTNetHistoryquoteJpaRepository extends JpaRepository<GTNetHistoryquote, Integer> {
 

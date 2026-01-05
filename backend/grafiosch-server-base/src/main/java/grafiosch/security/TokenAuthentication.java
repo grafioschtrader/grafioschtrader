@@ -81,20 +81,21 @@ public abstract class TokenAuthentication {
 
   /**
    * Creates configuration data for successful login responses.
-   * 
+   *
    * <p>
    * Abstract method that must be implemented by subclasses to provide application-specific configuration data that
    * clients need after successful authentication. This typically includes user preferences, application settings, and
    * frontend configuration.
    * </p>
-   * 
+   *
    * @param uiShowMyProperty   flag indicating user's UI property display preference
    * @param mostPrivilegedRole the user's highest privilege role for authorization
    * @param passwordRegexOk    flag indicating if user's password meets current requirements
+   * @param idTenant           the tenant ID for tenant-specific configuration
    * @return configuration object containing login and application setup data
    */
   public abstract ConfigurationWithLogin getConfigurationWithLogin(boolean uiShowMyProperty, String mostPrivilegedRole,
-      boolean passwordRegexOk);
+      boolean passwordRegexOk, Integer idTenant);
 
   /**
    * Adds JWT token to response header and sends configuration data after successful login.
@@ -130,8 +131,9 @@ public abstract class TokenAuthentication {
     response.addHeader(AUTH_HEADER_NAME,
         jwtTokenHandler.createTokenForUser(user, globalparametersJpaRepository.getJWTExpirationMinutes()));
     PrintWriter out = response.getWriter();
-    jacksonObjectMapper.writeValue(out, getConfigurationWithLogin(((User) user).isUiShowMyProperty(),
-        ((User) user).getMostPrivilegedRole(), passwordRegexOk));
+    final User userEntity = (User) user;
+    jacksonObjectMapper.writeValue(out, getConfigurationWithLogin(userEntity.isUiShowMyProperty(),
+        userEntity.getMostPrivilegedRole(), passwordRegexOk, userEntity.getIdTenant()));
   }
 
   /**

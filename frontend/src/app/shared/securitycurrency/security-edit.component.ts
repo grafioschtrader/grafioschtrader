@@ -149,7 +149,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       2, this.helpLinkPeriod.bind(this));
 
     this.config = SecurityEditSupport.getSecurityBaseFieldDefinition(SecurityDerived.Security, this.gps);
-    this.connectorPriceFieldConfig = SecurityEditSupport.getIntraHistoryFieldDefinition(SecurityDerived.Security);
+    this.connectorPriceFieldConfig = SecurityEditSupport.getIntraHistoryFieldDefinition(SecurityDerived.Security, this.gps);
     this.securityEditSupport.connectorDividendConfig = this.securityEditSupport.getDividendFieldDefinition();
     this.securityEditSupport.connectorSplitConfig = this.securityEditSupport.getSplitDefinition();
     this.config.push(...this.connectorPriceFieldConfig, ...this.securityEditSupport.connectorDividendConfig,

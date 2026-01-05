@@ -35,10 +35,10 @@ ALTER TABLE globalparameters DROP COLUMN IF EXISTS input_rule;
 ALTER TABLE globalparameters ADD input_rule VARCHAR(100) NULL AFTER changed_by_system;
 
 DELETE FROM globalparameters WHERE property_name = "gt.gtnet.use";
-INSERT INTO globalparameters(property_name, property_int, changed_by_system) VALUES ("gt.gtnet.use", 1, 0);
+INSERT INTO globalparameters(property_name, property_int, changed_by_system) VALUES ("gt.gtnet.use", 0, 0);
 
 DELETE FROM globalparameters WHERE property_name = "gt.gtnet.use.log";
-INSERT INTO globalparameters(property_name, property_int, changed_by_system) VALUES ("gt.gtnet.use.log", 1, 0);
+INSERT INTO globalparameters(property_name, property_int, changed_by_system) VALUES ("gt.gtnet.use.log", 0, 0);
 
 DELETE FROM globalparameters WHERE property_name = "gt.gtnet.exchange.sync.timestamp";
 INSERT INTO globalparameters(property_name, property_date_time, changed_by_system) VALUES ("gt.gtnet.exchange.sync.timestamp", CURRENT_TIMESTAMP - INTERVAL 1 DAY, 0);
@@ -65,6 +65,11 @@ ADD gt_net_lastprice_send TINYINT(1) NOT NULL AFTER gt_net_historical_recv,
 ADD gt_net_historical_send TINYINT(1) NOT NULL AFTER gt_net_lastprice_send, 
 ADD gt_net_last_modified_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER gt_net_historical_send;
 
+ALTER TABLE portfolio DROP COLUMN IF EXISTS closed_until;
+ALTER TABLE portfolio ADD closed_until DATE NULL;
+
+ALTER TABLE tenant DROP COLUMN IF EXISTS closed_until;
+ALTER TABLE tenant ADD closed_until DATE NULL;
 
 
 DROP TABLE IF EXISTS gt_net_exchange_log;
