@@ -107,6 +107,8 @@ grafioschtrader.security
 grafioschtrader.exportdelete
 grafioschtrader.gtnet.handler
 grafioschtrader.gtnet.handler.impl
+grafioschtrader.gtnet.handler.impl.lastprice
+grafioschtrader.gtnet.handler.impl.historyquote
 grafioschtrader.test.start
 grafioschtrader.config
 grafioschtrader.algo.simulate

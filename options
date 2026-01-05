@@ -9,7 +9,7 @@
 '/home/runner/work/grafioschtrader/grafioschtrader/backend/grafiosch-base/src/main/java:/home/runner/work/grafioschtrader/grafioschtrader/backend/grafiosch-base/target/generated-sources/annotations:/home/runner/work/grafioschtrader/grafioschtrader/backend/grafiosch-server-base/src/main/java:/home/runner/work/grafioschtrader/grafioschtrader/backend/grafiosch-server-base/target/generated-sources/annotations:/home/runner/work/grafioschtrader/grafioschtrader/backend/grafioschtrader-common/src/main/java:/home/runner/work/grafioschtrader/grafioschtrader/backend/grafioschtrader-common/target/generated-sources/annotations:/home/runner/work/grafioschtrader/grafioschtrader/backend/grafioschtrader-server/src/main/java:/home/runner/work/grafioschtrader/grafioschtrader/backend/grafioschtrader-server/target/generated-sources/annotations:/home/runner/work/grafioschtrader/grafioschtrader/backend/grafiosch-test-integration/src/main/java:/home/runner/work/grafioschtrader/grafioschtrader/backend/grafiosch-test-integration/target/generated-sources/annotations'
 -author
 -bottom
-'Copyright &#169; 2025 grafioschtrader. All rights reserved.'
+'Copyright &#169; 2026 grafioschtrader. All rights reserved.'
 -charset
 'UTF-8'
 -d
@@ -18,8 +18,8 @@
 'UTF-8'
 -Xdoclint:all,-missing
 -doctitle
-'grafioschtrader 0.33.10 API'
+'grafioschtrader 0.33.12 API'
 -use
 -version
 -windowtitle
-'grafioschtrader 0.33.10 API'
+'grafioschtrader 0.33.12 API'

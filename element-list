@@ -74,6 +74,8 @@ grafioschtrader.exportdelete
 grafioschtrader.gtnet
 grafioschtrader.gtnet.handler
 grafioschtrader.gtnet.handler.impl
+grafioschtrader.gtnet.handler.impl.historyquote
+grafioschtrader.gtnet.handler.impl.lastprice
 grafioschtrader.gtnet.m2m.model
 grafioschtrader.gtnet.model
 grafioschtrader.gtnet.model.msg
