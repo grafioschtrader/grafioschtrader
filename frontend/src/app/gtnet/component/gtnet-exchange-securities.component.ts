@@ -29,6 +29,7 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {BaseSettings} from '../../lib/base.settings';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {GTNetSupplierDetailTableComponent} from './gtnet-supplier-detail-table.component';
+import {GTNetExchangeCheckboxesComponent, CheckboxToggleEvent} from './gtnet-exchange-checkboxes.component';
 import {HelpIds} from '../../lib/help/help.ids';
 
 /**
@@ -51,7 +52,8 @@ import {HelpIds} from '../../lib/help/help.ids';
     InputTextModule,
     SecurityEditComponent,
     ConfigurableTableComponent,
-    GTNetSupplierDetailTableComponent
+    GTNetSupplierDetailTableComponent,
+    GTNetExchangeCheckboxesComponent
   ],
   template: `
     <configurable-table
@@ -81,35 +83,10 @@ import {HelpIds} from '../../lib/help/help.ids';
       <div caption class="flex justify-content-between align-items-center w-full">
         <h4>{{ getTitleKey() | translate }}</h4>
         <div class="flex align-items-center gap-2">
-          <div class="flex align-items-center gap-2 mr-3 border-right-1 pr-3 surface-border">
-            <div>
-              <span class="me-2 cursor-help" [pTooltip]="'GT_NET_LASTPRICE_RECV_TOOLTIP' | translate"
-                    tooltipPosition="top">{{ 'GT_NET_LASTPRICE_RECV' | translate }}</span>
-              <p-checkbox [binary]="true" (onChange)="toggleColumn('gtNetLastpriceRecv', $event)"
-                          [disabled]="!isUserAllowedToMultiSelect()"></p-checkbox>
-            </div>
-
-            <div>
-              <span class="me-2 cursor-help" [pTooltip]="'GT_NET_HISTORICAL_RECV_TOOLTIP' | translate"
-                    tooltipPosition="top">{{ 'GT_NET_HISTORICAL_RECV' | translate }}</span>
-              <p-checkbox [binary]="true" (onChange)="toggleColumn('gtNetHistoricalRecv', $event)"
-                          [disabled]="!isUserAllowedToMultiSelect()"></p-checkbox>
-            </div>
-
-            <div>
-              <span class="me-2 cursor-help" [pTooltip]="'GT_NET_LASTPRICE_SEND_TOOLTIP' | translate"
-                    tooltipPosition="top">{{ 'GT_NET_LASTPRICE_SEND' | translate }}</span>
-              <p-checkbox [binary]="true" (onChange)="toggleColumn('gtNetLastpriceSend', $event)"
-                          [disabled]="!isUserAllowedToMultiSelect()"></p-checkbox>
-            </div>
-
-            <div>
-              <span class="me-2 cursor-help" [pTooltip]="'GT_NET_HISTORICAL_SEND_TOOLTIP' | translate"
-                    tooltipPosition="top">{{'GT_NET_HISTORICAL_SEND' | translate }}</span>
-              <p-checkbox [binary]="true" (onChange)="toggleColumn('gtNetHistoricalSend', $event)"
-                          [disabled]="!isUserAllowedToMultiSelect()"></p-checkbox>
-            </div>
-          </div>
+          <gtnet-exchange-checkboxes
+            [disabled]="!isUserAllowedToMultiSelect()"
+            (toggle)="onCheckboxToggle($event)">
+          </gtnet-exchange-checkboxes>
         </div>
         <div class="flex align-items-center gap-2 w-full"
              style="display: flex; width: 100%; margin-bottom: 0.75rem">
@@ -162,16 +139,7 @@ import {HelpIds} from '../../lib/help/help.ids';
       </security-edit>
     }
   `,
-  styles: [`
-    .flex.align-items-center.gap-2.mr-3.border-right-1.pr-3.surface-border {
-      /* Some other styles */
-      padding: 10px;
-      display: flex;
-      justify-content: space-between;
-    }
-
-
-  `],
+  styles: [],
   providers: [DialogService]
 })
 export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent<Security> {
@@ -306,26 +274,17 @@ export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent
   }
 
   /**
-   * Toggles the specified boolean column for all currently filtered rows.
-   *
-   * @param field The field name to toggle (e.g., 'gtNetLastpriceRecv').
-   * @param checkboxEvent The event from the checkbox (contains checked state).
+   * Handles toggle events from the shared checkbox component.
    */
-  toggleColumn(field: string, checkboxEvent: any): void {
-    const state = checkboxEvent.checked;
-    const table = this.configurableTable.table;
-    const data = table.filteredValue || table.value;
+  onCheckboxToggle(event: CheckboxToggleEvent): void {
+    this.toggleColumn(event.field, event.event);
+  }
 
-    if (data) {
-      data.forEach(row => {
-        if (!this.isCheckboxDisabled(row, field)) {
-          if (row[field] !== state) {
-            row[field] = state;
-            this.onCheckboxChange(row);
-          }
-        }
-      });
-    }
+  /**
+   * Returns the ConfigurableTableComponent reference for the base class.
+   */
+  override getConfigurableTable(): ConfigurableTableComponent {
+    return this.configurableTable;
   }
 
   /**

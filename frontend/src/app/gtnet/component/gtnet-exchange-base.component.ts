@@ -1,4 +1,4 @@
-import {Directive, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Directive, OnDestroy, OnInit, ViewChild, inject} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {ConfirmationService, FilterService, MenuItem, SortEvent} from 'primeng/api';
 import {DialogService} from 'primeng/dynamicdialog';
@@ -15,6 +15,7 @@ import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.ser
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {Securitycurrency} from '../../entities/securitycurrency';
+import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 
 /**
  * Abstract base component for GTNet exchange configuration tables.
@@ -232,6 +233,38 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
    */
   isUserAllowedToMultiSelect(): boolean {
     return this.gps.hasRole('ROLE_ADMIN') || this.gps.hasRole('ROLE_ALL_EDIT');
+  }
+
+  /**
+   * Get the ConfigurableTableComponent reference. Must be provided by derived classes.
+   */
+  abstract getConfigurableTable(): ConfigurableTableComponent;
+
+  /**
+   * Toggles the specified boolean column for all currently filtered rows.
+   * Used by the header checkboxes to enable/disable all items at once.
+   *
+   * @param field The field name to toggle (e.g., 'gtNetLastpriceRecv').
+   * @param checkboxEvent The event from the checkbox (contains checked state).
+   */
+  toggleColumn(field: string, checkboxEvent: any): void {
+    const state = checkboxEvent.checked;
+    const table = this.getConfigurableTable()?.table;
+    if (!table) {
+      return;
+    }
+    const data = table.filteredValue || table.value;
+
+    if (data) {
+      data.forEach(row => {
+        if (!this.isCheckboxDisabled(row, field)) {
+          if (row[field] !== state) {
+            row[field] = state;
+            this.onCheckboxChange(row);
+          }
+        }
+      });
+    }
   }
 
   /**

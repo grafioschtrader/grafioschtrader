@@ -27,6 +27,7 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {BaseSettings} from '../../lib/base.settings';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {GTNetSupplierDetailTableComponent} from './gtnet-supplier-detail-table.component';
+import {GTNetExchangeCheckboxesComponent, CheckboxToggleEvent} from './gtnet-exchange-checkboxes.component';
 import {HelpIds} from '../../lib/help/help.ids';
 
 
@@ -50,7 +51,8 @@ import {HelpIds} from '../../lib/help/help.ids';
     InputTextModule,
     CurrencypairEditComponent,
     ConfigurableTableComponent,
-    GTNetSupplierDetailTableComponent
+    GTNetSupplierDetailTableComponent,
+    GTNetExchangeCheckboxesComponent
   ],
   template: `
     <configurable-table
@@ -79,6 +81,12 @@ import {HelpIds} from '../../lib/help/help.ids';
 
       <div caption class="caption-toolbar">
         <h4 class="caption-title">{{ getTitleKey() | translate }}</h4>
+        <div class="caption-row">
+          <gtnet-exchange-checkboxes
+            [disabled]="!isUserAllowedToMultiSelect()"
+            (toggle)="onCheckboxToggle($event)">
+          </gtnet-exchange-checkboxes>
+        </div>
         <div class="caption-actions">
               <span class="p-input-icon-left caption-search">
                 <i class="pi pi-search"></i>
@@ -129,6 +137,11 @@ import {HelpIds} from '../../lib/help/help.ids';
 
     .caption-title {
       margin: 0;
+    }
+
+    .caption-row {
+      display: flex;
+      align-items: center;
     }
 
     .caption-actions {
@@ -279,6 +292,20 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
    */
   onSelectionChange(entity: Currencypair): void {
     this.resetMenu(entity);
+  }
+
+  /**
+   * Handles toggle events from the shared checkbox component.
+   */
+  onCheckboxToggle(event: CheckboxToggleEvent): void {
+    this.toggleColumn(event.field, event.event);
+  }
+
+  /**
+   * Returns the ConfigurableTableComponent reference for the base class.
+   */
+  override getConfigurableTable(): ConfigurableTableComponent {
+    return this.configurableTable;
   }
 
   canExpand(row: Currencypair): boolean {
