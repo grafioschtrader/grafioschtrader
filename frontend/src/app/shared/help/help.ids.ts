@@ -63,7 +63,7 @@ export const AppHelpIds: Record<string, string> = {
 
   HELP_GT_NET: HelpIds.HELP_MESSAGE_SYSTEM + '/gtnet',
   HELP_GT_NET_AUTOANSWER: HelpIds.HELP_GT_NET + '/autoanswer',
-  HELP_GT_NET_EXCHANGE: HelpIds.HELP_GT_NET + '/exchange',
+  HELP_GT_NET_EXCHANGE: '/gtnet/exchange',
   HELP_GT_NET_CONSUME_MONITOR: HelpIds.HELP_GT_NET + '/consumemonitor'
 
 };
