@@ -42,9 +42,11 @@ import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.priceupdate.historyquote.BaseHistoryquoteThru;
 import grafioschtrader.priceupdate.historyquote.HistoryquoteThruConnector;
+import grafioschtrader.priceupdate.historyquote.HistoryquoteThruGTNet;
 import grafioschtrader.priceupdate.historyquote.IHistoryquoteLoad;
 import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteData;
 import grafioschtrader.priceupdate.intraday.IntradayThruConnector;
+import grafioschtrader.service.GTNetHistoryquoteService;
 import grafioschtrader.reportviews.account.CashaccountPositionSummary;
 import grafioschtrader.search.CurrencyPairSearchBuilder;
 import grafioschtrader.search.SecuritycurrencySearch;
@@ -66,14 +68,19 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   @Autowired
   private TenantJpaRepository tenantJpaRepository;
 
+  @Autowired
+  private GTNetHistoryquoteService gtNetHistoryquoteService;
+
   ////////////////////////////////////////////////////////////////
   // Historical prices
   ////////////////////////////////////////////////////////////////
 
   @PostConstruct
   private void postConstruct() {
-    historyquoteThruConnector = new HistoryquoteThruConnector<>(entityManager, globalparametersService,
-        feedConnectorbeans, this, Currencypair.class);
+    HistoryquoteThruConnector<Currencypair> connectorThru = new HistoryquoteThruConnector<>(entityManager,
+        globalparametersService, feedConnectorbeans, this, Currencypair.class);
+    historyquoteThruConnector = new HistoryquoteThruGTNet<>(connectorThru, gtNetHistoryquoteService,
+        globalparametersService);
     intradayThruConnector = new IntradayThruConnector<>(currencypairJpaRepository, globalparametersService,
         feedConnectorbeans, this);
   }

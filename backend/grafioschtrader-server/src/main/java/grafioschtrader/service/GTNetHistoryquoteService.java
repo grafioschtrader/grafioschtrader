@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,8 @@ import grafioschtrader.entities.GTNetInstrumentCurrencypair;
 import grafioschtrader.entities.GTNetInstrumentSecurity;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.Securitycurrency;
+import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteData;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.m2m.model.GTNetPublicDTO;
@@ -166,6 +169,280 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
   }
 
   /**
+   * Main integration point for BaseHistoryquoteThru.
+   *
+   * This method filters the input list by gtNetHistoricalRecv flag, queries GTNet servers in priority order,
+   * and returns a result indicating which instruments were filled and which need connector fallback.
+   * Also tracks "want to receive" markers for later push-back of connector-fetched data.
+   *
+   * @param historySecurityCurrencyList the list of instruments from BaseHistoryquoteThru requiring updates
+   * @param untilCalendar the target end date for historyquote loading
+   * @param <S> Security or Currencypair
+   * @return result containing unfilled instruments, filled instruments, and want-to-receive map
+   */
+  public <S extends Securitycurrency<S>> HistoryquoteExchangeResult<S> requestHistoryquotesFromBaseThru(
+      List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, Calendar untilCalendar) {
+
+    // Check GTNet enabled
+    if (!globalparametersService.isGTNetEnabled() || historySecurityCurrencyList.isEmpty()) {
+      return HistoryquoteExchangeResult.passthrough(historySecurityCurrencyList);
+    }
+
+    // Get IDs with gtNetHistoricalRecv enabled
+    Set<Integer> gtNetEnabledIds = getGtNetEnabledIds(historySecurityCurrencyList);
+    if (gtNetEnabledIds.isEmpty()) {
+      return HistoryquoteExchangeResult.passthrough(historySecurityCurrencyList);
+    }
+
+    // Build the exchange set with GTNet-enabled instruments
+    HistoryquoteExchangeSet<S> exchangeSet = new HistoryquoteExchangeSet<>();
+    Date toDate = untilCalendar.getTime();
+
+    for (SecurityCurrencyMaxHistoryquoteData<S> data : historySecurityCurrencyList) {
+      S instrument = data.getSecurityCurrency();
+      if (gtNetEnabledIds.contains(instrument.getIdSecuritycurrency())) {
+        // Calculate fromDate: day after most recent historyquote
+        Date fromDate = calculateFromDate(data.getDate());
+        exchangeSet.addInstrument(data, fromDate, toDate);
+      }
+    }
+
+    if (exchangeSet.isEmpty()) {
+      return HistoryquoteExchangeResult.passthrough(historySecurityCurrencyList);
+    }
+
+    log.info("Starting GTNet historyquote exchange for {} instruments", exchangeSet.getTotalCount());
+
+    // Query PUSH_OPEN servers first
+    List<GTNet> pushOpenSuppliers = getSuppliersByPriorityWithRandomization(
+        gtNetJpaRepository.findHistoryquotePushOpenSuppliers(), GTNetExchangeKindType.HISTORICAL_PRICES);
+    queryRemoteServersForExchangeSet(pushOpenSuppliers, exchangeSet);
+
+    // Query OPEN servers for remaining unfilled
+    if (!exchangeSet.allFilled()) {
+      List<GTNet> openSuppliers = getSuppliersByPriorityWithRandomization(
+          gtNetJpaRepository.findHistoryquoteOpenSuppliers(), GTNetExchangeKindType.HISTORICAL_PRICES);
+      queryRemoteServersForExchangeSet(openSuppliers, exchangeSet);
+    }
+
+    log.info("GTNet historyquote exchange complete: {}/{} instruments filled",
+        exchangeSet.getTotalCount() - exchangeSet.getUnfilledCount(), exchangeSet.getTotalCount());
+
+    // Build the remaining list for connector fallback (non-GTNet + unfilled)
+    List<SecurityCurrencyMaxHistoryquoteData<S>> remainingForConnector = new ArrayList<>();
+    for (SecurityCurrencyMaxHistoryquoteData<S> data : historySecurityCurrencyList) {
+      if (!gtNetEnabledIds.contains(data.getSecurityCurrency().getIdSecuritycurrency())) {
+        // Not GTNet enabled - pass through to connector
+        remainingForConnector.add(data);
+      }
+    }
+    remainingForConnector.addAll(exchangeSet.getUnfilledInstruments());
+
+    return new HistoryquoteExchangeResult<>(
+        remainingForConnector,
+        exchangeSet.getFilledInstruments(),
+        exchangeSet.getWantToReceiveMap());
+  }
+
+  /**
+   * Push connector-fetched historical data back to GTNet suppliers that expressed "want to receive".
+   *
+   * @param filledByConnector instruments that were filled by connectors
+   * @param wantToReceiveMap map of suppliers and their requested instruments
+   * @param <S> Security or Currencypair
+   */
+  public <S extends Securitycurrency<S>> void pushConnectorDataToGTNet(
+      List<S> filledByConnector,
+      Map<GTNet, List<InstrumentHistoryquoteDTO>> wantToReceiveMap) {
+
+    if (wantToReceiveMap == null || wantToReceiveMap.isEmpty() || filledByConnector == null || filledByConnector.isEmpty()) {
+      return;
+    }
+
+    log.info("Pushing connector-fetched data to {} interested suppliers for {} instruments",
+        wantToReceiveMap.size(), filledByConnector.size());
+
+    for (Map.Entry<GTNet, List<InstrumentHistoryquoteDTO>> entry : wantToReceiveMap.entrySet()) {
+      GTNet supplier = entry.getKey();
+      List<InstrumentHistoryquoteDTO> wantedInstruments = entry.getValue();
+
+      try {
+        HistoryquoteExchangeMsg pushPayload = buildPushPayloadFromConnectorData(filledByConnector, wantedInstruments);
+        if (!pushPayload.isEmpty()) {
+          sendPushToSupplier(supplier, pushPayload);
+        }
+      } catch (Exception e) {
+        log.warn("Failed to push connector data to {}: {}", supplier.getDomainRemoteName(), e.getMessage());
+      }
+    }
+  }
+
+  /**
+   * Queries remote servers and populates the exchange set with results.
+   */
+  private <S extends Securitycurrency<S>> void queryRemoteServersForExchangeSet(
+      List<GTNet> suppliers, HistoryquoteExchangeSet<S> exchangeSet) {
+
+    for (GTNet supplier : suppliers) {
+      if (exchangeSet.allFilled()) {
+        break;
+      }
+
+      try {
+        // Build request with unfilled instruments
+        HistoryquoteExchangeMsg request = HistoryquoteExchangeMsg.forRequest(
+            exchangeSet.getUnfilledSecurityDTOs(),
+            exchangeSet.getUnfilledCurrencypairDTOs());
+
+        if (request.isEmpty()) {
+          continue;
+        }
+
+        QueryResult result = queryRemoteServerWithWantTracking(supplier, request);
+
+        // Process the response to update exchange set and track want-to-receive
+        if (result.responsePayload != null) {
+          exchangeSet.processResponse(result.responsePayload, supplier);
+        }
+      } catch (Exception e) {
+        log.warn("Failed to query GTNet server {} for historyquotes: {}",
+            supplier.getDomainRemoteName(), e.getMessage());
+      }
+    }
+  }
+
+  /**
+   * Gets the set of securitycurrency IDs that have gtNetHistoricalRecv enabled.
+   */
+  @SuppressWarnings("unchecked")
+  private <S extends Securitycurrency<S>> Set<Integer> getGtNetEnabledIds(
+      List<SecurityCurrencyMaxHistoryquoteData<S>> list) {
+
+    if (list.isEmpty()) {
+      return Set.of();
+    }
+
+    // Determine type from first element
+    S first = list.get(0).getSecurityCurrency();
+    if (first instanceof Security) {
+      return securityJpaRepository.findIdsWithGtNetHistoricalRecv();
+    } else if (first instanceof Currencypair) {
+      return currencypairJpaRepository.findIdsWithGtNetHistoricalRecv();
+    }
+
+    return Set.of();
+  }
+
+  /**
+   * Calculates the fromDate for historyquote request.
+   * Returns the day after the most recent historyquote date, or oldest allowed date if null.
+   */
+  private Date calculateFromDate(Date mostRecentDate) {
+    if (mostRecentDate == null) {
+      // Use globalparametersService for oldest allowed date
+      try {
+        return globalparametersService.getStartFeedDate();
+      } catch (Exception e) {
+        // Fallback to 10 years ago
+        Calendar oldest = Calendar.getInstance();
+        oldest.add(Calendar.YEAR, -10);
+        return oldest.getTime();
+      }
+    }
+
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(mostRecentDate);
+    cal.add(Calendar.DAY_OF_MONTH, 1);
+    return cal.getTime();
+  }
+
+  /**
+   * Builds push payload from connector-fetched data matching wanted instruments.
+   */
+  @SuppressWarnings("unchecked")
+  private <S extends Securitycurrency<S>> HistoryquoteExchangeMsg buildPushPayloadFromConnectorData(
+      List<S> filledByConnector, List<InstrumentHistoryquoteDTO> wantedInstruments) {
+
+    HistoryquoteExchangeMsg pushPayload = new HistoryquoteExchangeMsg();
+
+    for (InstrumentHistoryquoteDTO wanted : wantedInstruments) {
+      Date fromDate = wanted.getWantsDataFromDate();
+      if (fromDate == null) {
+        continue;
+      }
+
+      for (S instrument : filledByConnector) {
+        if (instrument instanceof Security security) {
+          if (matchesSecurity(wanted, security)) {
+            InstrumentHistoryquoteDTO localData = queryLocalSecurityHistoryquote(
+                security.getIsin(), security.getCurrency(), fromDate, getYesterday());
+            if (localData != null && localData.getRecordCount() > 0) {
+              pushPayload.securities.add(localData);
+            }
+          }
+        } else if (instrument instanceof Currencypair pair) {
+          if (matchesCurrencypair(wanted, pair)) {
+            InstrumentHistoryquoteDTO localData = queryLocalCurrencypairHistoryquote(
+                pair.getFromCurrency(), pair.getToCurrency(), fromDate, getYesterday());
+            if (localData != null && localData.getRecordCount() > 0) {
+              pushPayload.currencypairs.add(localData);
+            }
+          }
+        }
+      }
+    }
+
+    return pushPayload;
+  }
+
+  private boolean matchesSecurity(InstrumentHistoryquoteDTO dto, Security security) {
+    return security.getIsin() != null
+        && security.getIsin().equals(dto.getIsin())
+        && security.getCurrency().equals(dto.getCurrency());
+  }
+
+  private boolean matchesCurrencypair(InstrumentHistoryquoteDTO dto, Currencypair pair) {
+    return pair.getFromCurrency().equals(dto.getCurrency())
+        && pair.getToCurrency().equals(dto.getToCurrency());
+  }
+
+  /**
+   * Sends push payload to a supplier.
+   */
+  private void sendPushToSupplier(GTNet supplier, HistoryquoteExchangeMsg pushPayload) {
+    GTNetConfig config = supplier.getGtNetConfig();
+    if (config == null || !config.isAuthorizedRemoteEntry()) {
+      log.debug("Skipping push to unauthorized server: {}", supplier.getDomainRemoteName());
+      return;
+    }
+
+    Integer myGTNetId = GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersService);
+    GTNet myGTNet = gtNetJpaRepository.findById(myGTNetId)
+        .orElseThrow(() -> new IllegalStateException("Local GTNet entry not found: " + myGTNetId));
+
+    MessageEnvelope pushEnvelope = new MessageEnvelope();
+    pushEnvelope.sourceDomain = myGTNet.getDomainRemoteName();
+    pushEnvelope.sourceGtNet = new GTNetPublicDTO(myGTNet);
+    pushEnvelope.serverBusy = myGTNet.isServerBusy();
+    pushEnvelope.messageCode = GTNetMessageCodeType.GT_NET_HISTORYQUOTE_PUSH_SEL_C.getValue();
+    pushEnvelope.timestamp = new Date();
+    pushEnvelope.payload = objectMapper.valueToTree(pushPayload);
+
+    log.info("Pushing {} securities, {} pairs to {}",
+        pushPayload.securities.size(), pushPayload.currencypairs.size(),
+        supplier.getDomainRemoteName());
+
+    SendResult result = baseDataClient.sendToMsgWithStatus(
+        config.getTokenRemote(),
+        supplier.getDomainRemoteName(),
+        pushEnvelope);
+
+    if (!result.serverReachable()) {
+      log.warn("GTNet server {} is unreachable for push", supplier.getDomainRemoteName());
+    }
+  }
+
+  /**
    * Executes the historyquote exchange with remote GTNet suppliers.
    * Tracks "want to receive" responses and pushes data back to interested suppliers.
    */
@@ -217,13 +494,13 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
   }
 
   /**
-   * Queries a remote server and returns both stored data count and "want to receive" markers.
+   * Queries a remote server and returns stored data count, response payload, and "want to receive" markers.
    */
   private QueryResult queryRemoteServerWithWantTracking(GTNet supplier, HistoryquoteExchangeMsg request) {
     GTNetConfig config = supplier.getGtNetConfig();
     if (config == null || !config.isAuthorizedRemoteEntry()) {
       log.debug("Skipping unauthorized server: {}", supplier.getDomainRemoteName());
-      return new QueryResult(0, null);
+      return new QueryResult(0, null, null);
     }
 
     // Get local GTNet entry for source identification
@@ -253,13 +530,13 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
 
     if (!result.serverReachable()) {
       log.warn("GTNet server {} is unreachable", supplier.getDomainRemoteName());
-      return new QueryResult(0, null);
+      return new QueryResult(0, null, null);
     }
 
     MessageEnvelope response = result.response();
     if (response == null || response.payload == null) {
       log.debug("No historyquote data received from {}", supplier.getDomainRemoteName());
-      return new QueryResult(0, null);
+      return new QueryResult(0, null, null);
     }
 
     // Parse response
@@ -268,7 +545,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
 
       if (responsePayload == null) {
         log.debug("Empty response payload from {}", supplier.getDomainRemoteName());
-        return new QueryResult(0, null);
+        return new QueryResult(0, null, null);
       }
 
       int recordCount = responsePayload.getTotalRecordCount();
@@ -293,11 +570,11 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
             responsePayload.getCurrencypairsWantingData());
       }
 
-      return new QueryResult(storedCount, wantToReceive);
+      return new QueryResult(storedCount, responsePayload, wantToReceive);
 
     } catch (JsonProcessingException e) {
       log.error("Failed to parse historyquote response from {}", supplier.getDomainRemoteName(), e);
-      return new QueryResult(0, null);
+      return new QueryResult(0, null, null);
     }
   }
 
@@ -469,14 +746,16 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
   }
 
   /**
-   * Result of querying a remote server, containing both stored record count and "want to receive" markers.
+   * Result of querying a remote server, containing stored record count, response payload, and "want to receive" markers.
    */
   private static class QueryResult {
     final int storedCount;
+    final HistoryquoteExchangeMsg responsePayload;
     final HistoryquoteExchangeMsg wantToReceive;
 
-    QueryResult(int storedCount, HistoryquoteExchangeMsg wantToReceive) {
+    QueryResult(int storedCount, HistoryquoteExchangeMsg responsePayload, HistoryquoteExchangeMsg wantToReceive) {
       this.storedCount = storedCount;
+      this.responsePayload = responsePayload;
       this.wantToReceive = wantToReceive;
     }
   }

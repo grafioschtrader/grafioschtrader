@@ -47,11 +47,13 @@ import grafioschtrader.priceupdate.ThruCalculationHelper;
 import grafioschtrader.priceupdate.historyquote.BaseHistoryquoteThru;
 import grafioschtrader.priceupdate.historyquote.HistoryquoteThruCalculation;
 import grafioschtrader.priceupdate.historyquote.HistoryquoteThruConnector;
+import grafioschtrader.priceupdate.historyquote.HistoryquoteThruGTNet;
 import grafioschtrader.priceupdate.historyquote.IHistoryquoteLoad;
 import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteData;
 import grafioschtrader.priceupdate.intraday.IIntradayLoad;
 import grafioschtrader.priceupdate.intraday.IntradayThruCalculation;
 import grafioschtrader.priceupdate.intraday.IntradayThruConnector;
+import grafioschtrader.service.GTNetHistoryquoteService;
 import grafioschtrader.reports.InstrumentStatisticsSummary;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
@@ -100,6 +102,9 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Autowired
   protected JdbcTemplate jdbcTemplate;
 
+  @Autowired
+  private GTNetHistoryquoteService gtNetHistoryquoteService;
+
   // Circular Dependency -> Lazy
   private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
 
@@ -111,8 +116,10 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
   @PostConstruct
   private void postConstruct() {
-    historyquoteThruConnector = new HistoryquoteThruConnector<>(entityManager, globalparametersService,
-        feedConnectorbeans, this, Security.class);
+    HistoryquoteThruConnector<Security> connectorThru = new HistoryquoteThruConnector<>(entityManager,
+        globalparametersService, feedConnectorbeans, this, Security.class);
+    historyquoteThruConnector = new HistoryquoteThruGTNet<>(connectorThru, gtNetHistoryquoteService,
+        globalparametersService);
     historyquoteThruCalculation = new HistoryquoteThruCalculation<>(securityJpaRepository, historyquoteJpaRepository,
         securityDerivedLinkJpaRepository, globalparametersService, this);
     intradayThruConnector = new IntradayThruConnector<>(securityJpaRepository, globalparametersService,
