@@ -1,6 +1,7 @@
 package grafioschtrader.gtnet.model.msg;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -35,18 +36,39 @@ public class LastpriceExchangeMsg {
       Only populated in GT_NET_LASTPRICE_PUSH_ACK_S responses.""")
   public Integer acceptedCount;
 
+  @Schema(description = """
+      Minimum acceptable timestamp for price data freshness filtering. Prices older than this timestamp
+      should be rejected by the supplier as stale. Calculated by the requester as:
+      current_time - (gt.w.intra.update.timeout.seconds + gt.gtnet.lastprice.delay.seconds).
+      Only populated in GT_NET_LASTPRICE_EXCHANGE_SEL_C requests.""")
+  public Date minAcceptableTimestamp;
+
   public LastpriceExchangeMsg() {
   }
 
   /**
-   * Creates a request payload with instruments to query.
+   * Creates a request payload with instruments to query and freshness threshold.
+   *
+   * @param securities list of security price DTOs to request
+   * @param currencypairs list of currency pair price DTOs to request
+   * @param minAcceptableTimestamp minimum acceptable price timestamp (null means no threshold)
+   * @return configured request message
    */
   public static LastpriceExchangeMsg forRequest(List<InstrumentPriceDTO> securities,
-      List<InstrumentPriceDTO> currencypairs) {
+      List<InstrumentPriceDTO> currencypairs, Date minAcceptableTimestamp) {
     LastpriceExchangeMsg msg = new LastpriceExchangeMsg();
     msg.securities = securities != null ? securities : new ArrayList<>();
     msg.currencypairs = currencypairs != null ? currencypairs : new ArrayList<>();
+    msg.minAcceptableTimestamp = minAcceptableTimestamp;
     return msg;
+  }
+
+  /**
+   * Creates a request payload with instruments to query (no freshness threshold).
+   */
+  public static LastpriceExchangeMsg forRequest(List<InstrumentPriceDTO> securities,
+      List<InstrumentPriceDTO> currencypairs) {
+    return forRequest(securities, currencypairs, null);
   }
 
   /**

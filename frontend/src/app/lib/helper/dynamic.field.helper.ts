@@ -4,6 +4,7 @@ import {InputType} from '../dynamic-form/models/input.type';
 import {AppHelper} from './app.helper';
 import {ValidatorFn, Validators} from '@angular/forms';
 import {ErrorMessageRules, RuleEvent} from '../dynamic-form/error/error.message.rules';
+import {MenuItem} from 'primeng/api';
 
 import {
   email,
@@ -1087,6 +1088,8 @@ export interface FieldOptions {
   calendarConfig?: CalendarConfig;
   /** Function to handle file input changes immediately */
   handleChangeFileInputFN?: (fileList: FileList) => void;
+  /** Context menu items for right-click menu on input fields */
+  contextMenuItems?: MenuItem[];
 }
 
 /**

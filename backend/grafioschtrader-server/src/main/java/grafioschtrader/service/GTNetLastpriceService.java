@@ -229,7 +229,7 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
       return;
     }
 
-    // Build request with unfilled instruments and their current timestamps
+    // Build request with unfilled instruments, their current timestamps, and freshness threshold
     List<InstrumentPriceDTO> securityDTOs = instruments.getUnfilledSecurityDTOs();
     List<InstrumentPriceDTO> currencypairDTOs = instruments.getUnfilledCurrencypairDTOs();
 
@@ -237,7 +237,11 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
       return;
     }
 
-    LastpriceExchangeMsg requestPayload = LastpriceExchangeMsg.forRequest(securityDTOs, currencypairDTOs);
+    // Calculate minimum acceptable timestamp for freshness filtering
+    Date minAcceptableTimestamp = globalparametersService.getGTNetLastpriceMinAcceptableTimestamp();
+
+    LastpriceExchangeMsg requestPayload = LastpriceExchangeMsg.forRequest(securityDTOs, currencypairDTOs,
+        minAcceptableTimestamp);
 
     // Get local GTNet entry for source identification (use findById to eagerly load - async context has no session)
     Integer myGTNetId = GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersService);
@@ -338,22 +342,22 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
 
     log.debug("Querying local push pool (AC_PUSH_OPEN mode)");
 
-    // Query local push pool for securities
+    // Query local push pool for securities (no freshness threshold for own pool)
     List<InstrumentPriceDTO> securityDTOs = instruments.getUnfilledSecurityDTOs();
     if (!securityDTOs.isEmpty()) {
       List<InstrumentPriceDTO> securityPrices = pushOpenLastpriceQueryStrategy.querySecurities(
-          securityDTOs, Collections.emptySet());
+          securityDTOs, Collections.emptySet(), null);
       if (!securityPrices.isEmpty()) {
         instruments.processResponse(securityPrices, null);
         log.debug("Local push pool: found {} security prices", securityPrices.size());
       }
     }
 
-    // Query local push pool for currency pairs
+    // Query local push pool for currency pairs (no freshness threshold for own pool)
     List<InstrumentPriceDTO> currencypairDTOs = instruments.getUnfilledCurrencypairDTOs();
     if (!currencypairDTOs.isEmpty()) {
       List<InstrumentPriceDTO> currencypairPrices = pushOpenLastpriceQueryStrategy.queryCurrencypairs(
-          currencypairDTOs, Collections.emptySet());
+          currencypairDTOs, Collections.emptySet(), null);
       if (!currencypairPrices.isEmpty()) {
         instruments.processResponse(null, currencypairPrices);
         log.debug("Local push pool: found {} currencypair prices", currencypairPrices.size());

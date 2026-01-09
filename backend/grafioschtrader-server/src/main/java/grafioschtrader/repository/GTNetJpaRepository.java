@@ -155,4 +155,31 @@ public interface GTNetJpaRepository
   @Query(nativeQuery = true, name = "GTNet.findHistoryquoteOpenSuppliers")
   List<GTNet> findHistoryquoteOpenSuppliers();
 
+  /**
+   * Counts GTNet entries where at least one GTNetEntity has acceptRequest > 0.
+   * Used to calculate TotalConnections variable for EvalEx expressions in GTNetMessageAnswer rules.
+   *
+   * @return count of GTNet entries with active data exchange capability
+   */
+  @Query("SELECT COUNT(DISTINCT g.idGtNet) FROM GTNet g JOIN g.gtNetEntities e WHERE e.acceptRequest > 0")
+  int countByAnyAcceptRequest();
+
+  /**
+   * Counts GTNet entries where LAST_PRICE entity has acceptRequest > 0.
+   * Used to calculate ConnectionsLastPrice variable for EvalEx expressions in GTNetMessageAnswer rules.
+   *
+   * @return count of GTNet entries accepting LAST_PRICE requests
+   */
+  @Query("SELECT COUNT(DISTINCT g.idGtNet) FROM GTNet g JOIN g.gtNetEntities e WHERE e.entityKind = 0 AND e.acceptRequest > 0")
+  int countByLastPriceAccepting();
+
+  /**
+   * Counts GTNet entries where HISTORICAL_PRICES entity has acceptRequest > 0.
+   * Used to calculate ConnectionsHistorical variable for EvalEx expressions in GTNetMessageAnswer rules.
+   *
+   * @return count of GTNet entries accepting HISTORICAL_PRICES requests
+   */
+  @Query("SELECT COUNT(DISTINCT g.idGtNet) FROM GTNet g JOIN g.gtNetEntities e WHERE e.entityKind = 1 AND e.acceptRequest > 0")
+  int countByHistoricalAccepting();
+
 }

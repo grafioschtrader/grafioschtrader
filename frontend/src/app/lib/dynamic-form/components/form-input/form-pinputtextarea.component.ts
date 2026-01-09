@@ -23,7 +23,7 @@ import {FilterOutPipe} from '../../pipe/FilterOutPipe';
     </textarea>
 
       @if (config.contextMenuItems) {
-        <p-contextMenu [target]="input" [model]="config.contextMenuItems" />
+        <p-contextMenu [target]="input" [model]="config.contextMenuItems" appendTo="body"/>
       }
     </ng-container>
   `,

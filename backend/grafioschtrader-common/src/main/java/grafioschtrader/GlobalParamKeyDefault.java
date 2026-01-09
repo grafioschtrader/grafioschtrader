@@ -46,6 +46,8 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
   /** Default timeout in seconds for security intraday update operations. */
   public static final int DEFAULT_SC_INTRA_UPDATE_TIMEOUT_SECONDS = 300;
   public static final int DEFAULT_W_INTRA_UPDATE_TIMEOUT_SECONDS = 1200;
+  /** Default additional delay in seconds for GTNet lastprice freshness calculation. */
+  public static final int DEFAULT_GTNET_LASTPRICE_DELAY_SECONDS = 300;
   public static final int DEFUALT_MAX_WATCHLIST = 30;
   public static final Date DEFAULT_START_FEED_DATE = new GregorianCalendar(2000, Calendar.JANUARY, 1).getTime();
   public static final int DEFAULT_INTRADAY_OBSERVATION_OR_DAYS_BACK = 60;
@@ -75,6 +77,9 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
       + "sc.intra.update.timeout.seconds";
   public static final String GLOB_KEY_W_INTRA_UPDATE_TIMEOUT_SECONDS = GlobalConstants.GT_PREFIX
       + "w.intra.update.timeout.seconds";
+  /** Additional delay in seconds for GTNet lastprice freshness threshold calculation. */
+  public static final String GLOB_KEY_GTNET_LASTPRICE_DELAY_SECONDS = GlobalConstants.GT_PREFIX
+      + "gtnet.lastprice.delay.seconds";
   public static final String GLOB_KEY_HISTORY_MAX_FILLDAYS_CURRENCY = GlobalConstants.GT_PREFIX
       + "history.max.filldays.currency";
   public static final String GLOB_KEY_INTRADAY_OBSERVATION_OR_DAYS_BACK = GlobalConstants.GT_PREFIX

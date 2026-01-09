@@ -162,6 +162,34 @@ public class GlobalparametersService {
         .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_W_INTRA_UPDATE_TIMEOUT_SECONDS);
   }
 
+  /**
+   * Gets the additional delay in seconds for GTNet last price freshness calculation.
+   *
+   * This value is combined with the watchlist intraday timeout to calculate the minimum acceptable timestamp for GTNet
+   * last price requests. Remote prices older than (current_time - watchlist_timeout - this_delay) will be rejected as
+   * stale.
+   *
+   * @return the delay in seconds, defaults to {@link GlobalParamKeyDefault#DEFAULT_GTNET_LASTPRICE_DELAY_SECONDS}
+   * @see GlobalParamKeyDefault#GLOB_KEY_GTNET_LASTPRICE_DELAY_SECONDS
+   */
+  public int getGTNetLastpriceDelaySeconds() {
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_GTNET_LASTPRICE_DELAY_SECONDS)
+        .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_GTNET_LASTPRICE_DELAY_SECONDS);
+  }
+
+  /**
+   * Calculates the minimum acceptable timestamp for GTNet last price requests.
+   *
+   * The threshold is calculated as: current_time - watchlist_timeout - gtnet_delay. Any price data older than this
+   * threshold should be rejected as stale.
+   *
+   * @return the minimum acceptable timestamp for GTNet prices
+   */
+  public Date getGTNetLastpriceMinAcceptableTimestamp() {
+    int totalDelaySeconds = getWatchlistIntradayUpdateTimeout() + getGTNetLastpriceDelaySeconds();
+    return new Date(System.currentTimeMillis() - (totalDelaySeconds * 1000L));
+  }
+
   public Integer getGTNetMyEntryID() {
     return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_GTNET_MY_ENTRY_ID)
         .map(Globalparameters::getPropertyInt).orElse(null);

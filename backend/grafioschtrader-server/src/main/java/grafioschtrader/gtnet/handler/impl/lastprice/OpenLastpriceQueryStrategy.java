@@ -42,7 +42,8 @@ public class OpenLastpriceQueryStrategy implements LastpriceQueryStrategy {
 
   @Override
   @Transactional
-  public List<InstrumentPriceDTO> querySecurities(List<InstrumentPriceDTO> requested, Set<Integer> sendableIds) {
+  public List<InstrumentPriceDTO> querySecurities(List<InstrumentPriceDTO> requested, Set<Integer> sendableIds,
+      Date minAcceptableTimestamp) {
     List<InstrumentPriceDTO> result = new ArrayList<>();
     if (requested == null || requested.isEmpty()) {
       return result;
@@ -76,8 +77,9 @@ public class OpenLastpriceQueryStrategy implements LastpriceQueryStrategy {
       if (isNewer(req.getTimestamp(), security.getSTimestamp())) {
         updateSecurityFromDTO(security, req);
         // After update, local is now same as request, so nothing newer to return for this one
-      } else if (isNewer(security.getSTimestamp(), req.getTimestamp())) {
-        // Local is newer than request - check if we're allowed to send
+      } else if (isNewer(security.getSTimestamp(), req.getTimestamp())
+          && isFreshEnough(security.getSTimestamp(), minAcceptableTimestamp)) {
+        // Local is newer than request and meets freshness threshold - check if we're allowed to send
         if (sendableIds.isEmpty() || sendableIds.contains(security.getIdSecuritycurrency())) {
           result.add(InstrumentPriceDTO.fromSecurity(security));
         }
@@ -89,7 +91,8 @@ public class OpenLastpriceQueryStrategy implements LastpriceQueryStrategy {
 
   @Override
   @Transactional
-  public List<InstrumentPriceDTO> queryCurrencypairs(List<InstrumentPriceDTO> requested, Set<Integer> sendableIds) {
+  public List<InstrumentPriceDTO> queryCurrencypairs(List<InstrumentPriceDTO> requested, Set<Integer> sendableIds,
+      Date minAcceptableTimestamp) {
     List<InstrumentPriceDTO> result = new ArrayList<>();
     if (requested == null || requested.isEmpty()) {
       return result;
@@ -123,8 +126,9 @@ public class OpenLastpriceQueryStrategy implements LastpriceQueryStrategy {
       if (isNewer(req.getTimestamp(), currencypair.getSTimestamp())) {
         updateCurrencypairFromDTO(currencypair, req);
         // After update, local is now same as request, so nothing newer to return for this one
-      } else if (isNewer(currencypair.getSTimestamp(), req.getTimestamp())) {
-        // Local is newer than request - check if we're allowed to send
+      } else if (isNewer(currencypair.getSTimestamp(), req.getTimestamp())
+          && isFreshEnough(currencypair.getSTimestamp(), minAcceptableTimestamp)) {
+        // Local is newer than request and meets freshness threshold - check if we're allowed to send
         if (sendableIds.isEmpty() || sendableIds.contains(currencypair.getIdSecuritycurrency())) {
           result.add(InstrumentPriceDTO.fromCurrencypair(currencypair));
         }
@@ -142,6 +146,20 @@ public class OpenLastpriceQueryStrategy implements LastpriceQueryStrategy {
       return true;
     }
     return candidate.after(existing);
+  }
+
+  /**
+   * Checks if the local timestamp meets the freshness threshold.
+   *
+   * @param localTimestamp the timestamp to check
+   * @param minAcceptableTimestamp the minimum acceptable timestamp (null means no threshold)
+   * @return true if the timestamp is fresh enough or no threshold is set
+   */
+  private boolean isFreshEnough(Date localTimestamp, Date minAcceptableTimestamp) {
+    if (minAcceptableTimestamp == null || localTimestamp == null) {
+      return true;
+    }
+    return !localTimestamp.before(minAcceptableTimestamp);
   }
 
   private void updateSecurityFromDTO(Security security, InstrumentPriceDTO dto) {
