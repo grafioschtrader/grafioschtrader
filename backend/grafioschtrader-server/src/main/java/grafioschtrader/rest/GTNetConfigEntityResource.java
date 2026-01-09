@@ -54,16 +54,5 @@ public class GTNetConfigEntityResource extends UpdateCreate<GTNetConfigEntity> {
     return updateEntity(entity);
   }
 
-  /**
-   * GTNetConfigEntity doesn't implement TenantBaseID, UserBaseID, or Auditable,
-   * so the update logic falls through to updateSpecialEntity.
-   */
-  @Override
-  protected ResponseEntity<GTNetConfigEntity> updateSpecialEntity(User user, GTNetConfigEntity entity) throws Exception {
-    GTNetConfigEntity existingEntity = gtNetConfigEntityJpaRepository.findById(entity.getId()).orElse(null);
-    if (existingEntity == null) {
-      return ResponseEntity.notFound().build();
-    }
-    return updateSaveEntity(entity, existingEntity);
-  }
+ 
 }

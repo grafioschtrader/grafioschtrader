@@ -50,7 +50,8 @@ public class PushOpenLastpriceQueryStrategy implements LastpriceQueryStrategy {
 
   @Override
   @Transactional
-  public List<InstrumentPriceDTO> querySecurities(List<InstrumentPriceDTO> requested, Set<Integer> sendableIds) {
+  public List<InstrumentPriceDTO> querySecurities(List<InstrumentPriceDTO> requested, Set<Integer> sendableIds,
+      Date minAcceptableTimestamp) {
     List<InstrumentPriceDTO> result = new ArrayList<>();
     if (requested == null || requested.isEmpty()) {
       return result;
@@ -86,14 +87,15 @@ public class PushOpenLastpriceQueryStrategy implements LastpriceQueryStrategy {
     // Track which instruments were found in the pool
     Set<String> foundKeys = new HashSet<>();
 
-    // Match results with requests and filter by timestamp
+    // Match results with requests and filter by timestamp and freshness
     for (GTNetInstrumentSecurity instrument : instruments) {
       String key = instrument.getIsin() + ":" + instrument.getCurrency();
       foundKeys.add(key);
       InstrumentPriceDTO req = requestMap.get(key);
       GTNetLastprice lastprice = lastpriceMap.get(instrument.getIdGtNetInstrument());
 
-      if (req != null && lastprice != null && isNewer(lastprice.getTimestamp(), req.getTimestamp())) {
+      if (req != null && lastprice != null && isNewer(lastprice.getTimestamp(), req.getTimestamp())
+          && isFreshEnough(lastprice.getTimestamp(), minAcceptableTimestamp)) {
         result.add(fromInstrumentAndLastprice(instrument, lastprice));
       }
     }
@@ -126,7 +128,8 @@ public class PushOpenLastpriceQueryStrategy implements LastpriceQueryStrategy {
 
   @Override
   @Transactional
-  public List<InstrumentPriceDTO> queryCurrencypairs(List<InstrumentPriceDTO> requested, Set<Integer> sendableIds) {
+  public List<InstrumentPriceDTO> queryCurrencypairs(List<InstrumentPriceDTO> requested, Set<Integer> sendableIds,
+      Date minAcceptableTimestamp) {
     List<InstrumentPriceDTO> result = new ArrayList<>();
     if (requested == null || requested.isEmpty()) {
       return result;
@@ -162,14 +165,15 @@ public class PushOpenLastpriceQueryStrategy implements LastpriceQueryStrategy {
     // Track which instruments were found in the pool
     Set<String> foundKeys = new HashSet<>();
 
-    // Match results with requests and filter by timestamp
+    // Match results with requests and filter by timestamp and freshness
     for (GTNetInstrumentCurrencypair instrument : instruments) {
       String key = instrument.getFromCurrency() + ":" + instrument.getToCurrency();
       foundKeys.add(key);
       InstrumentPriceDTO req = requestMap.get(key);
       GTNetLastprice lastprice = lastpriceMap.get(instrument.getIdGtNetInstrument());
 
-      if (req != null && lastprice != null && isNewer(lastprice.getTimestamp(), req.getTimestamp())) {
+      if (req != null && lastprice != null && isNewer(lastprice.getTimestamp(), req.getTimestamp())
+          && isFreshEnough(lastprice.getTimestamp(), minAcceptableTimestamp)) {
         result.add(fromInstrumentAndLastprice(instrument, lastprice));
       }
     }
@@ -208,6 +212,20 @@ public class PushOpenLastpriceQueryStrategy implements LastpriceQueryStrategy {
       return true;
     }
     return local.after(requested);
+  }
+
+  /**
+   * Checks if the local timestamp meets the freshness threshold.
+   *
+   * @param localTimestamp the timestamp to check
+   * @param minAcceptableTimestamp the minimum acceptable timestamp (null means no threshold)
+   * @return true if the timestamp is fresh enough or no threshold is set
+   */
+  private boolean isFreshEnough(Date localTimestamp, Date minAcceptableTimestamp) {
+    if (minAcceptableTimestamp == null || localTimestamp == null) {
+      return true;
+    }
+    return !localTimestamp.before(minAcceptableTimestamp);
   }
 
   private InstrumentPriceDTO fromInstrumentAndLastprice(GTNetInstrumentSecurity instrument, GTNetLastprice price) {

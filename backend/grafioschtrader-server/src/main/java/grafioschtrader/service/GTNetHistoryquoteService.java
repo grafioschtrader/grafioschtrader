@@ -314,7 +314,6 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
   /**
    * Gets the set of securitycurrency IDs that have gtNetHistoricalRecv enabled.
    */
-  @SuppressWarnings("unchecked")
   private <S extends Securitycurrency<S>> Set<Integer> getGtNetEnabledIds(
       List<SecurityCurrencyMaxHistoryquoteData<S>> list) {
 
@@ -359,7 +358,6 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
   /**
    * Builds push payload from connector-fetched data matching wanted instruments.
    */
-  @SuppressWarnings("unchecked")
   private <S extends Securitycurrency<S>> HistoryquoteExchangeMsg buildPushPayloadFromConnectorData(
       List<S> filledByConnector, List<InstrumentHistoryquoteDTO> wantedInstruments) {
 

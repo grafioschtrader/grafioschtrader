@@ -42,20 +42,7 @@ public class GTNetResource extends UpdateCreateResource<GTNet> {
   public ResponseEntity<GTNetWithMessages> submitMsg(@Valid @RequestBody final MsgRequest msgRequest) {
     return new ResponseEntity<>(gtNetJpaRepository.submitMsg(msgRequest), HttpStatus.OK);
   }
-
-
-  /**
-   * GTNet doesn't implement TenantBaseID, UserBaseID, or Auditable,
-   * so the update logic falls through to updateSpecialEntity.
-   */
-  @Override
-  protected ResponseEntity<GTNet> updateSpecialEntity(User user, GTNet entity) throws Exception {
-    GTNet existingEntity = gtNetJpaRepository.findById(entity.getId()).orElse(null);
-    if (existingEntity == null) {
-      return ResponseEntity.notFound().build();
-    }
-    return updateSaveEntity(entity, existingEntity);
-  }
+ 
   
   @Override
   protected UpdateCreateJpaRepository<GTNet> getUpdateCreateJpaRepository() {

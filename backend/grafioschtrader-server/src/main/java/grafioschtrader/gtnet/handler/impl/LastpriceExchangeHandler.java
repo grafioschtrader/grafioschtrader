@@ -120,10 +120,10 @@ public class LastpriceExchangeHandler extends AbstractGTNetMessageHandler {
     AcceptRequestTypes acceptMode = lastpriceEntity.get().getAcceptRequest();
     LastpriceQueryStrategy strategy = selectStrategy(acceptMode);
 
-    // Execute queries using the selected strategy
+    // Execute queries using the selected strategy with freshness threshold
     LastpriceExchangeMsg response = new LastpriceExchangeMsg();
-    response.securities = strategy.querySecurities(request.securities, sendableIds);
-    response.currencypairs = strategy.queryCurrencypairs(request.currencypairs, sendableIds);
+    response.securities = strategy.querySecurities(request.securities, sendableIds, request.minAcceptableTimestamp);
+    response.currencypairs = strategy.queryCurrencypairs(request.currencypairs, sendableIds, request.minAcceptableTimestamp);
 
     int responseCount = response.securities.size() + response.currencypairs.size();
     log.info("Responding with {} securities and {} currencypairs to {} (mode: {})",

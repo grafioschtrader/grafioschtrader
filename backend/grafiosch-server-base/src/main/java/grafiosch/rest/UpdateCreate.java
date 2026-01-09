@@ -186,7 +186,7 @@ public abstract class UpdateCreate<T extends BaseID<Integer>> extends DailyLimit
   }
 
   /**
-   * /** Placeholder for special entity update logic. Subclasses can override this to implement custom update behavior
+   * Placeholder for special entity update logic. Subclasses can override this to implement custom update behavior
    * for specific entity types not covered by the general logic.
    *
    * @param user   The user performing the update.
@@ -197,8 +197,13 @@ public abstract class UpdateCreate<T extends BaseID<Integer>> extends DailyLimit
    * 
    */
   protected ResponseEntity<T> updateSpecialEntity(User user, T entity) throws Exception {
-    throw new UnsupportedOperationException("Not supported yet.");
+    T existingEntity = getUpdateCreateJpaRepository().findById(entity.getId()).orElse(null);
+    if (existingEntity == null) {
+      return ResponseEntity.notFound().build();
+    }
+    return updateSaveEntity(entity, existingEntity);
   }
+  
 
   /**
    * Saves the entity (either new or existing) to the repository. Only attributes marked with specified update property
