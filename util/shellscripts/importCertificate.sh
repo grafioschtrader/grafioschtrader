@@ -4,13 +4,17 @@
 # Run this script with a user that has sudo privileges
 
 CERT_DIR=~/build/grafioschtrader/certificate
-CACERTS_PATH="$JAVA_HOME/lib/security/cacerts"
 CACERTS_PASSWORD="changeit"
 
 if [ -z "$JAVA_HOME" ]; then
-  echo "Error: JAVA_HOME is not set."
-  exit 1
+  JAVA_BIN=$(which java)
+  if [ -z "$JAVA_BIN" ]; then
+    echo "Error: Java not found in PATH."
+    exit 1
+  fi
+  JAVA_HOME=$(dirname $(dirname $(readlink -f "$JAVA_BIN")))
 fi
+CACERTS_PATH="$JAVA_HOME/lib/security/cacerts"
 
 if [ ! -f "$CACERTS_PATH" ]; then
   echo "Error: Java cacerts not found at $CACERTS_PATH"

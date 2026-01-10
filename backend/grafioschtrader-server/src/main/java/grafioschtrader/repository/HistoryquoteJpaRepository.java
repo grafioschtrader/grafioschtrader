@@ -3,6 +3,7 @@ package grafioschtrader.repository;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -40,6 +41,25 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   List<SecurityCurrencyIdAndDate> findByIdSecuritycurrency(Integer idSecuritycurrency);
 
   List<Historyquote> findByIdSecuritycurrencyAndDateBetweenOrderByDate(Integer idSecuritycurrency, Date fromDate,
+      Date toDate);
+
+  /**
+   * Retrieves a set of dates for which historical quotes already exist for a given security or currency pair within a
+   * specified date range (exclusive on both ends).
+   * <p>
+   * This method is primarily used to prevent duplicate inserts when filling gaps in historical data. By querying only
+   * the dates (rather than full Historyquote entities), it provides an efficient way to check which dates already have
+   * data before attempting to insert new records.
+   * </p>
+   *
+   * @param idSecuritycurrency The unique identifier of the security or currency pair.
+   * @param fromDate The start date of the range (exclusive - dates after this are included).
+   * @param toDate The end date of the range (exclusive - dates before this are included).
+   * @return A set of dates that already have historical quotes within the specified range. Returns an empty set if no
+   *         quotes exist in the range.
+   */
+  @Query("SELECT h.date FROM Historyquote h WHERE h.idSecuritycurrency = ?1 AND h.date > ?2 AND h.date < ?3")
+  Set<Date> findDatesByIdSecuritycurrencyAndDateBetweenExclusive(Integer idSecuritycurrency, Date fromDate,
       Date toDate);
 
   List<Historyquote> findByIdSecuritycurrencyAndDateGreaterThanOrderByDateAsc(Integer idSecuritycurrency, Date date,
