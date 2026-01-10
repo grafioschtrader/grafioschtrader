@@ -42,7 +42,7 @@ public class GTNetConfigEntity extends BaseID<Integer>  {
      with different priorities can be configured for failover scenarios.""")
   @Column(name = "consumer_usage")
   @PropertyAlwaysUpdatable
-  private byte consumerUsage;
+  private byte consumerUsage = 10;
   
 
   public GTNetExchangeStatusTypes getExchange() {

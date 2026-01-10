@@ -74,6 +74,16 @@ public class DataRequestHandler extends AbstractRequestHandler {
         updateEntityForAccept(remoteGTNet, kind);
       }
       saveRemoteGTNet(remoteGTNet);
+
+      // Also update myGTNet to reflect that this server now offers these entity kinds.
+      // This ensures the serverState is correctly communicated to other servers.
+      GTNet myGTNet = context.getMyGTNet();
+      if (myGTNet != null) {
+        for (GTNetExchangeKindType kind : requestedKinds) {
+          updateMyEntityForAccept(myGTNet, kind);
+        }
+        saveRemoteGTNet(myGTNet);
+      }
     } else if (responseCode == GTNetMessageCodeType.GT_NET_DATA_REQUEST_REJECTED_S) {
       for (GTNetExchangeKindType kind : requestedKinds) {
         updateEntityForReject(remoteGTNet, kind);
@@ -92,6 +102,16 @@ public class DataRequestHandler extends AbstractRequestHandler {
     entity.setServerState(GTNetServerStateTypes.SS_OPEN);
     GTNetConfigEntity configEntity = entity.getOrCreateConfigEntity();
     configEntity.setExchange(configEntity.getExchange().withSend());
+  }
+
+  /**
+   * Updates myGTNet's entity to reflect that this server offers the specified entity kind.
+   * This ensures the serverState is correctly communicated to remote servers via MessageEnvelope.
+   */
+  private void updateMyEntityForAccept(GTNet myGTNet, GTNetExchangeKindType kind) {
+    GTNetEntity entity = getOrCreateEntity(myGTNet, kind);
+    entity.setAcceptRequest(AcceptRequestTypes.AC_OPEN);
+    entity.setServerState(GTNetServerStateTypes.SS_OPEN);
   }
 
   /**

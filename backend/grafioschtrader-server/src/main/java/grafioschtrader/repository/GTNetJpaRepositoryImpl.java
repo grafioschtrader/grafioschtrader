@@ -42,6 +42,7 @@ import grafioschtrader.entities.GTNetEntity;
 import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.entities.GTNetMessage.GTNetMessageParam;
 import grafioschtrader.entities.GTNetMessageAnswer;
+import grafioschtrader.gtnet.AcceptRequestTypes;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.GTNetModelHelper;
@@ -569,6 +570,13 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       gtNetJpaRepository.save(targetGTNet);
       log.info("Created GTNetConfigEntity with SEND capability for {} entity kinds to {}",
           acceptedKinds.size(), targetGTNet.getDomainRemoteName());
+
+      // Also update sourceGTNet (myGTNet) to reflect that this server offers these entity kinds.
+      // This ensures the serverState is correctly communicated to remote servers via MessageEnvelope.
+      for (GTNetExchangeKindType kind : acceptedKinds) {
+        updateMyEntityForAccept(sourceGTNet, kind);
+      }
+      gtNetJpaRepository.save(sourceGTNet);
     }
   }
 
@@ -603,6 +611,16 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       entity.setGtNetConfigEntity(configEntity);
     }
     configEntity.setExchange(configEntity.getExchange().withSend());
+  }
+
+  /**
+   * Updates myGTNet's entity to reflect that this server offers the specified entity kind.
+   * This ensures the serverState is correctly communicated to remote servers via MessageEnvelope.
+   */
+  private void updateMyEntityForAccept(GTNet myGTNet, GTNetExchangeKindType kind) {
+    GTNetEntity entity = myGTNet.getOrCreateEntity(kind);
+    entity.setAcceptRequest(AcceptRequestTypes.AC_OPEN);
+    entity.setServerState(GTNetServerStateTypes.SS_OPEN);
   }
 
   /**

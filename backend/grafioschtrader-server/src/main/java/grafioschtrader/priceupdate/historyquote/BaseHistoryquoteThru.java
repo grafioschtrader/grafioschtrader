@@ -148,7 +148,7 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
         / (1000 * 60 * 60 * 24));
 
     if (diffInDays > 1) {
-      log.info("Catchup historyquote, missing Days: diffInDays={} for Security/Currency securitycurrency={}",
+      log.debug("Catchup historyquote, missing Days: diffInDays={} for Security/Currency securitycurrency={}",
           diffInDays, securitycurrency);
       lastQuoteCalendar.add(Calendar.DATE, 1);
       final S execSecuritycurrency = historyqouteEntityBaseAccess.catchUpSecurityCurrencypairHisotry(securitycurrency,
