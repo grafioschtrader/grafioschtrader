@@ -175,7 +175,7 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
     List<Currencypair> remainingPairs = gtNetInstruments.getUnfilledCurrencypairs();
     remainingPairs.addAll(connectorOnlyCurrencypairs);
 
-    log.info("GTNet exchange complete: {} securities remaining for connector, {} pairs remaining",
+    log.info("GTNet exchange complete: {} securities remaining for connector, {} currency pairs remaining",
         remainingSecurities.size(), remainingPairs.size());
 
     // 7. Fall back to connectors for remaining instruments
