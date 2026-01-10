@@ -7,7 +7,8 @@ CACERTS_PATH="$JAVA_HOME/lib/security/cacerts"
 CACERTS_PASSWORD="changeit"
 
 if [ -d "$CERT_DIR" ]; then
-  find "$CERT_DIR" -maxdepth 1 -type f \( -name "*.crt" -o -name "*.cer" -o -name "*.pem" \) | while read CERT_FILE; do
+  for CERT_FILE in "$CERT_DIR"/*.crt "$CERT_DIR"/*.cer "$CERT_DIR"/*.pem; do
+    [ -f "$CERT_FILE" ] || continue
     CERT_ALIAS=$(basename "$CERT_FILE" | sed 's/\.[^.]*$//')
     if ! keytool -list -keystore "$CACERTS_PATH" -storepass "$CACERTS_PASSWORD" -alias "$CERT_ALIAS" > /dev/null 2>&1; then
       echo "Importing certificate $CERT_ALIAS into Java truststore..."
