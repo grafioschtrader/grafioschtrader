@@ -258,7 +258,7 @@ public class GTNetExchangeLogJpaRepositoryImpl implements GTNetExchangeLogJpaRep
       return "Total";
     }
     return switch (periodType) {
-      case INDIVIDUAL -> date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+      case INDIVIDUAL -> date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
       case DAILY -> date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
       case WEEKLY -> "Week " + date.get(WeekFields.of(Locale.getDefault()).weekOfYear()) + " " + date.getYear();
       case MONTHLY -> date.format(DateTimeFormatter.ofPattern("MMMM yyyy"));

@@ -59,7 +59,6 @@ import grafioschtrader.repository.GTNetSupplierDetailJpaRepository;
 import grafioschtrader.repository.SecurityDerivedLinkJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.search.SecuritycurrencySearch;
-import grafioschtrader.service.GTNetExchangeSyncService;
 import grafioschtrader.types.TaskTypeExtended;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -91,10 +90,7 @@ public class SecurityResource extends UpdateCreateResource<Security> {
 
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
-
-  @Autowired
-  private GTNetExchangeSyncService gtNetExchangeSyncService;
-
+  
   @Operation(summary = "Returns a security by its Id", description = "Only public securities and the user private security will be returned", tags = {
       Security.TABNAME })
   @GetMapping(value = "/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)

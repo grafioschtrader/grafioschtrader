@@ -25,13 +25,13 @@
      	<dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafiosch-base</artifactId>
-	        <version>0.33.12</version>	
+	        <version>0.33.13</version>	
 		</dependency>
 
  		<dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafiosch-server-base</artifactId>
-	        <version>0.33.12</version>	
+	        <version>0.33.13</version>	
 		</dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

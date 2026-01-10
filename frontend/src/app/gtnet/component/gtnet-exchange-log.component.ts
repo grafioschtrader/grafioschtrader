@@ -14,6 +14,9 @@ import {AppSettings} from '../../shared/app.settings';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {ShowRecordConfigBase} from '../../lib/datashowbase/show.record.config.base';
+import {HelpIds} from '../../lib/help/help.ids';
+import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 
 /**
  * Component for displaying GTNet exchange log statistics.
@@ -35,9 +38,11 @@ import {ShowRecordConfigBase} from '../../lib/datashowbase/show.record.config.ba
       [dataKey]="'idGtNet'"
       [expandable]="true"
       [expandedRowTemplate]="expandedContent"
+      [containerClass]="{'data-container-full': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
       [selectionMode]="null"
       [valueGetterFn]="getMainTableValue.bind(this)"
-      [baseLocale]="baseLocale">
+      [baseLocale]="baseLocale"
+      (componentClick)="onComponentClick($event)">
       <h4 caption>{{ titleKey | translate }}</h4>
     </configurable-table>
 
@@ -127,7 +132,7 @@ import {ShowRecordConfigBase} from '../../lib/datashowbase/show.record.config.ba
     }
   `]
 })
-export class GTNetExchangeLogComponent extends TreeTableConfigBase implements OnInit {
+export class GTNetExchangeLogComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {
 
   @Input() entityKind: GTNetExchangeKindType = GTNetExchangeKindType.LAST_PRICE;
   @ViewChild('expandedContent') expandedContent: TemplateRef<any>;
@@ -141,6 +146,7 @@ export class GTNetExchangeLogComponent extends TreeTableConfigBase implements On
 
   constructor(
     private gtNetExchangeLogService: GTNetExchangeLogService,
+    private activePanelService: ActivePanelService,
     private route: ActivatedRoute,
     translateService: TranslateService,
     gps: GlobalparameterService
@@ -219,6 +225,22 @@ export class GTNetExchangeLogComponent extends TreeTableConfigBase implements On
     }
 
     return node.children.map(child => this.convertToTreeNode(child));
+  }
+
+  isActivated(): boolean {
+    return this.activePanelService.isActivated(this);
+  }
+
+  hideContextMenu() {}
+
+  callMeDeactivate(): void {};
+
+  onComponentClick(event): void {
+    this.activePanelService.activatePanel(this);
+  }
+
+  public getHelpContextId(): string {
+    return HelpIds.HELP_GT_NET_EXCHANGE_LOG;
   }
 
   private convertToTreeNode(node: GTNetExchangeLogNode): TreeNode {
