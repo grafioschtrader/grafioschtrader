@@ -1,6 +1,9 @@
 package grafioschtrader.task.exec;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +32,7 @@ import grafioschtrader.types.TaskTypeExtended;
 @Transactional
 public class PriceDividendSplitCalendarUpdateTask implements ITask {
 
+  private static final Logger log = LoggerFactory.getLogger(PriceDividendSplitCalendarUpdateTask.class);
   private static long TIMEOUT_IN_SECONDS = 3600;
 
   @Autowired
@@ -67,7 +71,13 @@ public class PriceDividendSplitCalendarUpdateTask implements ITask {
       securityJpaRepository.catchAllUpSecurityHistoryquote(null);
     }
     historyquotePeriodJpaRepository.updatLastPriceFromHistoricalPeriod();
-    securityJpaRepository.deleteUpdateHistoryQuality();
+    try {
+      securityJpaRepository.deleteUpdateHistoryQuality();
+    } catch (CannotAcquireLockException e) {
+      // Quality metrics update can fail due to concurrent historyquote modifications.
+      // This is non-critical and will be retried on the next scheduled run.
+      log.warn("Skipped historyquote quality update due to concurrent modification - will retry next run");
+    }
     splitCalendarAppender.appendSecuritySplitsUntilToday();
     holdCashaccountDepositJpaRepository.adjustBecauseOfHistoryquotePriceChanges();
     currencypairJpaRepository.createTaskDataChangeOfEmptyHistoryqoute();
