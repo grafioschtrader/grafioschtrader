@@ -60,7 +60,10 @@
       "Bash(powershell.exe -Command \"cd C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\frontend; npm run build 2>&1 | Select-Object -Last 20\")",
       "Bash(mvn compile:*)",
       "Bash(mvn clean:*)",
-      "WebFetch(domain:ezylang.github.io)"
+      "WebFetch(domain:ezylang.github.io)",
+      "Bash(gh issue view:*)",
+      "Bash(gh issue comment:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
