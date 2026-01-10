@@ -3,7 +3,7 @@
 # This script imports all certificates (.crt, .cer, .pem) from the certificate directory
 # Run this script with a user that has sudo privileges
 
-CERT_DIR=~/build/grafioschtrader/certificate
+CERT_DIR=./build/grafioschtrader/certificate
 CACERTS_PASSWORD="changeit"
 
 if [ -z "$JAVA_HOME" ]; then
