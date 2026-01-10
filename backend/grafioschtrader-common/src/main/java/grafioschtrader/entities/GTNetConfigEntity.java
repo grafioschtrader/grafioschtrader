@@ -2,7 +2,7 @@ package grafioschtrader.entities;
 
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.entities.BaseID;
-import grafioschtrader.gtnet.GTNetExchangeStatusTypes;
+import grafioschtrader.gtnet.SupplierConsumerLogTypes;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,39 +18,45 @@ public class GTNetConfigEntity extends BaseID<Integer>  {
   @Id
   @Schema(description = "Primary key, shared with GTNetEntity. References the parent GTNetEntity.")
   @Column(name = "id_gt_net_entity")
-  private Integer idGtNetEntity; 
-  
-  
+  private Integer idGtNetEntity;
+
+
   @Schema(description = """
-      Exchange status for entities with this remote instance. Determines the direction of the
-      data flow: no exchange (0), send only (1), receive only (2), or bidirectional (3). Updated when
-      exchange requests are accepted. Defaults to bidirectional (ES_BOTH).""")
+      Indicates whether data exchange is enabled with this remote instance. When true, bidirectional
+      data exchange is active. Set to true when exchange requests are accepted.""")
   @Column(name = "exchange")
-  private byte exchange = GTNetExchangeStatusTypes.ES_BOTH.getValue();
+  private boolean exchange = true;
   
 
   @Schema(description = """
-      Enables detailed logging of intraday price updates from this remote domain. When true, each price change is
-      recorded in GTNetLastpriceDetailLog, providing an audit trail of which client changed which prices and when.
-      May impact performance when enabled for high-volume providers.""")
-  @Column(name = "use_detail_log")
+      Logging level for this server acting as supplier (receiving requests from remote).
+      SCL_OFF=no logging, SCL_OVERVIEW=exchange statistics, SCL_DETAIL=detailed audit trail.""")
+  @Column(name = "supplier_log")
   @PropertyAlwaysUpdatable
-  private boolean useDetailLog;
-  
+  private byte supplierLog = SupplierConsumerLogTypes.SCL_OVERVIEW.getValue();
+
   @Schema(description = """
-     Priority level for using this remote domain as a supplier. A value of 0 means that this supplier is not used. Values greater than 0 indicate the priority (lower numbers = higher priority). Multiple suppliers
-     with different priorities can be configured for failover scenarios.""")
+      Logging level for this server acting as consumer (sending requests to remote).
+      SCL_OFF=no logging, SCL_OVERVIEW=exchange statistics, SCL_DETAIL=detailed audit trail.""")
+  @Column(name = "consumer_log")
+  @PropertyAlwaysUpdatable
+  private byte consumerLog = SupplierConsumerLogTypes.SCL_OVERVIEW.getValue();
+
+  @Schema(description = """
+      Priority level for using this remote domain as a supplier. A value of 0 means that this supplier is not used.
+      Values greater than 0 indicate the priority (lower numbers = higher priority). Multiple suppliers
+      with different priorities can be configured for failover scenarios.""")
   @Column(name = "consumer_usage")
   @PropertyAlwaysUpdatable
   private byte consumerUsage = 10;
   
 
-  public GTNetExchangeStatusTypes getExchange() {
-    return GTNetExchangeStatusTypes.getGTNetExchangeStatusType(exchange);
+  public boolean isExchange() {
+    return exchange;
   }
 
-  public void setExchange(GTNetExchangeStatusTypes exchange) {
-    this.exchange = exchange.getValue();
+  public void setExchange(boolean exchange) {
+    this.exchange = exchange;
   }
 
   public Integer getIdGtNetEntity() {
@@ -61,12 +67,20 @@ public class GTNetConfigEntity extends BaseID<Integer>  {
     this.idGtNetEntity = idGtNetEntity;
   }
 
-  public boolean isUseDetailLog() {
-    return useDetailLog;
+  public SupplierConsumerLogTypes getSupplierLog() {
+    return SupplierConsumerLogTypes.getSupplierConsumerLogType(supplierLog);
   }
 
-  public void setUseDetailLog(boolean useDetailLog) {
-    this.useDetailLog = useDetailLog;
+  public void setSupplierLog(SupplierConsumerLogTypes supplierLog) {
+    this.supplierLog = supplierLog.getValue();
+  }
+
+  public SupplierConsumerLogTypes getConsumerLog() {
+    return SupplierConsumerLogTypes.getSupplierConsumerLogType(consumerLog);
+  }
+
+  public void setConsumerLog(SupplierConsumerLogTypes consumerLog) {
+    this.consumerLog = consumerLog.getValue();
   }
 
   public byte getConsumerUsage() {

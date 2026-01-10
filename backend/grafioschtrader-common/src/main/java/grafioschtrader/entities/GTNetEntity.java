@@ -62,11 +62,6 @@ public class GTNetEntity extends BaseID<Integer> {
   @Max(value = 999)
   private Short maxLimit = 300;
 
-  @Schema(description = "Enables exchange statistics logging for this entity type. When true, exchange requests and responses are logged to GTNetExchangeLog.")
-  @Column(name = "enable_log")
-  @PropertyAlwaysUpdatable
-  private boolean enableLog;
-
   @Schema(description = "Entity-specific configuration for exchange settings, logging, and consumer usage")
   @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
   @PrimaryKeyJoinColumn(name = "id_gt_net_entity", referencedColumnName = "id_gt_net_entity")
@@ -153,14 +148,6 @@ public class GTNetEntity extends BaseID<Integer> {
 
   public void setMaxLimit(Short maxLimit) {
     this.maxLimit = maxLimit;
-  }
-
-  public boolean isEnableLog() {
-    return enableLog;
-  }
-
-  public void setEnableLog(boolean enableLog) {
-    this.enableLog = enableLog;
   }
 
   @Override

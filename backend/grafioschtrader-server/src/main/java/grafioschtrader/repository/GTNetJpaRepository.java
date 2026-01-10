@@ -59,13 +59,13 @@ public interface GTNetJpaRepository
   GTNet findByDomainRemoteName(String domainRemoteName);
 
   /**
-   * Finds GTNet entries that have any data exchange configured.
-   * Returns entries where at least one GTNetEntity has a GTNetConfigEntity with exchange > 0.
+   * Finds GTNet entries that have data exchange configured.
+   * Returns entries where at least one GTNetEntity has a GTNetConfigEntity with exchange enabled.
    * Used to determine which remote instances should be notified about this server's online/offline status.
    *
    * @return list of GTNet entries with configured data exchange
    */
-  @Query("SELECT DISTINCT g FROM GTNet g JOIN g.gtNetEntities e JOIN e.gtNetConfigEntity c WHERE c.exchange > 0")
+  @Query("SELECT DISTINCT g FROM GTNet g JOIN g.gtNetEntities e JOIN e.gtNetConfigEntity c WHERE c.exchange = true")
   List<GTNet> findWithConfiguredExchange();
 
   /**

@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {GTNetConfigEntity, GTNetEntity, GTNetExchangeKindType, GTNetExchangeStatusTypes} from '../model/gtnet';
+import {GTNetConfigEntity, GTNetEntity, GTNetExchangeKindType, SupplierConsumerLogTypes} from '../model/gtnet';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
@@ -20,7 +20,7 @@ import {GTNetConfigEntityEditComponent} from './gtnet-config-entity-edit.compone
  * Table component for displaying GTNetConfigEntity records within the expandedRow of GTNetSetupTableComponent.
  * Shows entity-specific exchange configuration (exchange status, logging, consumer priority).
  * Only displayed when GTNetConfigEntity exists for a GTNetEntity.
- * Provides context menu for editing useDetailLog and consumerUsage fields.
+ * Provides context menu for editing supplierLog, consumerLog, and consumerUsage fields.
  */
 @Component({
   selector: 'gtnet-config-entity-table',
@@ -94,12 +94,14 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
   ngOnInit(): void {
     this.addColumn(DataType.String, 'entityKind', 'ENTITY', true, false,
       {translateValues: TranslateValue.NORMAL, width: 150});
-    this.addColumn(DataType.Numeric, 'maxLimit', 'GT_NET_MAX_LIMIT', true, false, );
-    this.addColumn(DataType.String, 'exchange', 'LASTPRICE_EXCHANGE', true, false,
-      {translateValues: TranslateValue.NORMAL});
-    this.addColumn(DataType.Boolean, 'useDetailLog', 'LASTPRICE_USE_DETAIL_LOG', true, false,
+    this.addColumn(DataType.Numeric, 'maxLimit', 'GT_NET_MAX_LIMIT', true, false);
+    this.addColumn(DataType.Boolean, 'exchange', 'LASTPRICE_EXCHANGE', true, false,
       {templateName: 'check'});
-    this.addColumn(DataType.NumericInteger, 'consumerUsage', 'LASTPRICE_CONSUMER_USAGE', true, false );
+    this.addColumnFeqH(DataType.String, 'supplierLog', true, false,
+      {translateValues: TranslateValue.NORMAL});
+    this.addColumnFeqH(DataType.String, 'consumerLog', true, false,
+      {translateValues: TranslateValue.NORMAL});
+    this.addColumn(DataType.NumericInteger, 'consumerUsage', 'LASTPRICE_CONSUMER_USAGE', true, false);
 
     this.prepareData();
     this.createTranslatedValueStore(this.configEntities);
@@ -115,17 +117,11 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
 
   private createDisplayEntity(gtNetEntity: GTNetEntity): GTNetConfigEntityDisplay {
     const configEntity = gtNetEntity.gtNetConfigEntity;
-    const entityKindKey = typeof gtNetEntity.entityKind === 'string'
-      ? gtNetEntity.entityKind
-      : GTNetExchangeKindType[gtNetEntity.entityKind];
 
     return {
       ...configEntity,
       entityKind: gtNetEntity.entityKind,
-      maxLimit: gtNetEntity.maxLimit,
-      exchange: typeof configEntity.exchange === 'number'
-        ? GTNetExchangeStatusTypes[configEntity.exchange]
-        : configEntity.exchange
+      maxLimit: gtNetEntity.maxLimit
     };
   }
 
@@ -161,12 +157,12 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
 
 /**
  * Extended interface for display purposes, combining GTNetConfigEntity with entity kind information.
- * The exchange property is overridden to allow string values for translation.
  */
 export interface GTNetConfigEntityDisplay {
   idGtNetEntity: number;
-  exchange: GTNetExchangeStatusTypes | string;
-  useDetailLog: boolean;
+  exchange: boolean;
+  supplierLog: SupplierConsumerLogTypes | string;
+  consumerLog: SupplierConsumerLogTypes | string;
   consumerUsage: number;
   entityKind: GTNetExchangeKindType | string;
   maxLimit?: number;

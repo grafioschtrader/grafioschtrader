@@ -61,10 +61,10 @@ public class DataRevokeHandler extends AbstractAnnouncementHandler {
           entity.setAcceptRequest(AcceptRequestTypes.AC_CLOSED);
           entity.setServerState(GTNetServerStateTypes.SS_CLOSED);
 
-          // Remove RECEIVE capability since they revoked their side
+          // Disable exchange since they revoked their side
           GTNetConfigEntity configEntity = entity.getGtNetConfigEntity();
           if (configEntity != null) {
-            configEntity.setExchange(configEntity.getExchange().withoutReceive());
+            configEntity.setExchange(false);
           }
         });
   }
