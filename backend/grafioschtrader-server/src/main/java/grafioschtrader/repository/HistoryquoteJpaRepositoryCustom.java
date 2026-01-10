@@ -56,10 +56,21 @@ public interface HistoryquoteJpaRepositoryCustom extends BaseRepositoryCustom<Hi
       final Date date, final boolean asTraded);
 
   /**
-   * Create history quotes for weekend and public holidays. 
+   * Fills missing historical quotes for non-trading days (weekends and holidays) between two existing quotes.
+   * <p>
+   * Currency pairs require continuous daily price data for accurate transaction calculations on any calendar day.
+   * This method creates placeholder quotes for dates between two existing quotes, copying price data from the day
+   * before the gap. Each created quote is marked with {@code HistoryquoteCreateType.FILLED_NON_TRADE_DAY}.
+   * </p>
+   * <p>
+   * <b>Concurrency Safety:</b> This method checks for existing dates before inserting to prevent duplicate key
+   * violations when concurrent processes (scheduled EOD updates, user actions) attempt to fill the same gaps.
+   * </p>
    *
-   * @param dayBeforHoleHistoryquote
-   * @param dayAfterHoleHistoryquote
+   * @param dayBeforHoleHistoryquote The historical quote immediately before the gap. Its closing price and other
+   *        values are copied to fill the missing days. Must not be null and must have a valid idSecuritycurrency.
+   * @param dayAfterHoleHistoryquote The historical quote immediately after the gap. Defines the exclusive upper bound
+   *        for the date range to fill. Must not be null.
    */
   void fillMissingPeriodWithHistoryquotes(Historyquote dayBeforHoleHistoryquote, Historyquote dayAfterHoleHistoryquote);
 

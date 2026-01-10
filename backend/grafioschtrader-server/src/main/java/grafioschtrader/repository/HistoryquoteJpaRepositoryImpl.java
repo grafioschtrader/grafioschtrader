@@ -274,21 +274,62 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
     historyquoteJpaRepository.saveAll(toSaveHistoryquotes);
   }
 
+  /**
+   * Fills missing historical quotes for non-trading days (weekends and holidays) between two existing quotes.
+   * <p>
+   * Currency pairs require continuous daily price data for accurate transaction calculations on any calendar day.
+   * This method creates placeholder quotes for dates between two existing quotes, using the closing price from the day
+   * before the gap. Each created quote is marked with {@link HistoryquoteCreateType#FILLED_NON_TRADE_DAY} to
+   * distinguish it from actual trading day data.
+   * </p>
+   * <p>
+   * <b>Concurrency Safety:</b> This method queries the database for existing dates within the target range before
+   * inserting new records. This prevents duplicate key violations ({@code CannotAcquireLockException}) that can occur
+   * when multiple concurrent processes (e.g., scheduled EOD updates and user-triggered actions) attempt to fill the
+   * same gaps simultaneously. The unique constraint on {@code (id_securitycurrency, date)} would otherwise cause
+   * conflicts.
+   * </p>
+   * <p>
+   * <b>Performance Note:</b> The method fetches only date values (not full entities) to efficiently filter out
+   * existing records before batch insertion.
+   * </p>
+   *
+   * @param dayBeforHoleHistoryquote The historical quote immediately before the gap. Its closing price and other
+   *        values are copied to fill the missing days. Must not be null and must have a valid
+   *        {@code idSecuritycurrency}.
+   * @param dayAfterHoleHistoryquote The historical quote immediately after the gap. Defines the exclusive upper bound
+   *        for the date range to fill. Must not be null.
+   */
   @Override
   public void fillMissingPeriodWithHistoryquotes(final Historyquote dayBeforHoleHistoryquote,
       final Historyquote dayAfterHoleHistoryquote) {
-    Date targetDate = DateHelper.setTimeToZeroAndAddDay(dayBeforHoleHistoryquote.getDate(), 1);
+    Integer idSecuritycurrency = dayBeforHoleHistoryquote.getIdSecuritycurrency();
+    Date fromDate = dayBeforHoleHistoryquote.getDate();
+    Date toDate = dayAfterHoleHistoryquote.getDate();
+
+    // Query existing dates to avoid duplicate inserts during concurrent processing
+    Set<Date> existingDates = historyquoteJpaRepository.findDatesByIdSecuritycurrencyAndDateBetweenExclusive(
+        idSecuritycurrency, fromDate, toDate);
+
+    Date targetDate = DateHelper.setTimeToZeroAndAddDay(fromDate, 1);
     List<Historyquote> toCreateHistoryquotes = new ArrayList<>();
-    while (targetDate.getTime() < dayAfterHoleHistoryquote.getDate().getTime()) {
-      final Historyquote historyquote = new Historyquote();
-      historyquote.updateThis(dayBeforHoleHistoryquote);
-      historyquote.setDate(targetDate);
-      historyquote.setCreateType(HistoryquoteCreateType.FILLED_NON_TRADE_DAY);
-      historyquote.setIdSecuritycurrency(dayBeforHoleHistoryquote.getIdSecuritycurrency());
-      toCreateHistoryquotes.add(historyquote);
+
+    while (targetDate.getTime() < toDate.getTime()) {
+      // Only create quote if no record exists for this date
+      if (!existingDates.contains(targetDate)) {
+        final Historyquote historyquote = new Historyquote();
+        historyquote.updateThis(dayBeforHoleHistoryquote);
+        historyquote.setDate(targetDate);
+        historyquote.setCreateType(HistoryquoteCreateType.FILLED_NON_TRADE_DAY);
+        historyquote.setIdSecuritycurrency(idSecuritycurrency);
+        toCreateHistoryquotes.add(historyquote);
+      }
       targetDate = DateHelper.setTimeToZeroAndAddDay(targetDate, 1);
     }
-    historyquoteJpaRepository.saveAll(toCreateHistoryquotes);
+
+    if (!toCreateHistoryquotes.isEmpty()) {
+      historyquoteJpaRepository.saveAll(toCreateHistoryquotes);
+    }
   }
 
   @SuppressWarnings("unchecked")
