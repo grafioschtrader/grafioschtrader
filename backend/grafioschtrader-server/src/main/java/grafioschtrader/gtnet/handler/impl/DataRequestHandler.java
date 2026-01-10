@@ -2,7 +2,6 @@ package grafioschtrader.gtnet.handler.impl;
 
 import java.util.Set;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import grafioschtrader.entities.GTNet;
@@ -16,7 +15,6 @@ import grafioschtrader.gtnet.handler.AbstractRequestHandler;
 import grafioschtrader.gtnet.handler.GTNetMessageContext;
 import grafioschtrader.gtnet.handler.ValidationResult;
 import grafioschtrader.gtnet.model.msg.DataRequestMsg;
-import grafioschtrader.repository.GTNetEntityJpaRepository;
 
 /**
  * Unified handler for GT_NET_DATA_REQUEST_SEL_C messages.
@@ -27,8 +25,7 @@ import grafioschtrader.repository.GTNetEntityJpaRepository;
 @Component
 public class DataRequestHandler extends AbstractRequestHandler {
 
-  @Autowired
-  private GTNetEntityJpaRepository gtNetEntityJpaRepository;
+ 
 
   @Override
   public GTNetMessageCodeType getSupportedMessageCode() {

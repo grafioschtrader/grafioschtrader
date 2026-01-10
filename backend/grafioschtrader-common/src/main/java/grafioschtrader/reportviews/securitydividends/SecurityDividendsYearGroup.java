@@ -205,10 +205,9 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
               .get(securityDividendsPosition.security.getId());
           if (securityMarginOpenTransaction != null) {
       //      System.out.println(year + " " + securityDividendsPosition.security.getName());
-            for (Map.Entry<Integer, MarginTracker> entryValue : securityMarginOpenTransaction.entrySet()) {
+      //      for (Map.Entry<Integer, MarginTracker> entryValue : securityMarginOpenTransaction.entrySet()) {
       //        System.out.println(entryValue.getValue());
-
-            }
+     //       }
           }
         }
 
