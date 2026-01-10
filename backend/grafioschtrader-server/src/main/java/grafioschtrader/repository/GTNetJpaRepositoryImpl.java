@@ -348,15 +348,14 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     GTNetEntity entity = remoteGTNet.getOrCreateEntity(kind);
     entity.setServerState(GTNetServerStateTypes.SS_OPEN);
 
-    GTNetConfigEntity configEntity = entity.getGtNetConfigEntity();
-    if (configEntity == null) {
-      configEntity = new GTNetConfigEntity();
+    if (entity.getGtNetConfigEntity() == null) {
+      GTNetConfigEntity configEntity = new GTNetConfigEntity();
       if (entity.getIdGtNetEntity() != null) {
         configEntity.setIdGtNetEntity(entity.getIdGtNetEntity());
       }
       entity.setGtNetConfigEntity(configEntity);
     }
-    configEntity.setExchange(configEntity.getExchange().withReceive());
+    // Config entity defaults to exchange=true, no need to set explicitly
   }
 
   /**
@@ -462,7 +461,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
   /**
    * Applies side effects for outgoing announcement messages (like revokes).
-   * When we send a revoke, we remove our SEND capability for the specified entity kinds.
+   * When we send a revoke, we disable exchange for the specified entity kinds.
    */
   private void applyOutgoingSideEffects(GTNet targetGTNet, MsgRequest msgRequest) {
     if (msgRequest.messageCode == GTNetMessageCodeType.GT_NET_DATA_REVOKE_SEL_C) {
@@ -471,8 +470,8 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
         targetGTNet.getEntity(kind).ifPresent(entity -> {
           GTNetConfigEntity configEntity = entity.getGtNetConfigEntity();
           if (configEntity != null) {
-            // Remove SEND capability since we're revoking our side
-            configEntity.setExchange(configEntity.getExchange().withoutSend());
+            // Disable exchange since we're revoking our side
+            configEntity.setExchange(false);
           }
         });
       }
@@ -602,15 +601,14 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     GTNetEntity entity = remoteGTNet.getOrCreateEntity(kind);
     entity.setServerState(GTNetServerStateTypes.SS_OPEN);
 
-    GTNetConfigEntity configEntity = entity.getGtNetConfigEntity();
-    if (configEntity == null) {
-      configEntity = new GTNetConfigEntity();
+    if (entity.getGtNetConfigEntity() == null) {
+      GTNetConfigEntity configEntity = new GTNetConfigEntity();
       if (entity.getIdGtNetEntity() != null) {
         configEntity.setIdGtNetEntity(entity.getIdGtNetEntity());
       }
       entity.setGtNetConfigEntity(configEntity);
     }
-    configEntity.setExchange(configEntity.getExchange().withSend());
+    // Config entity defaults to exchange=true, no need to set explicitly
   }
 
   /**

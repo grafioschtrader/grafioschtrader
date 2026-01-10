@@ -16,10 +16,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafioschtrader.entities.GTNet;
+import grafioschtrader.entities.GTNetConfigEntity;
 import grafioschtrader.entities.GTNetEntity;
 import grafioschtrader.entities.GTNetExchangeLog;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetExchangeLogPeriodType;
+import grafioschtrader.gtnet.SupplierConsumerLogTypes;
 import grafioschtrader.gtnet.model.GTNetExchangeLogNodeDTO;
 import grafioschtrader.gtnet.model.GTNetExchangeLogTreeDTO;
 import grafioschtrader.service.GlobalparametersService;
@@ -52,9 +54,17 @@ public class GTNetExchangeLogJpaRepositoryImpl implements GTNetExchangeLogJpaRep
       return;
     }
 
-    // Check if logging is enabled for this entity type
+    // Check if logging is enabled for this entity type and role
     Optional<GTNetEntity> entityOpt = gtNet.getEntity(entityKind);
-    if (entityOpt.isEmpty() || !entityOpt.get().isEnableLog()) {
+    if (entityOpt.isEmpty()) {
+      return;
+    }
+    GTNetConfigEntity config = entityOpt.get().getGtNetConfigEntity();
+    if (config == null) {
+      return;
+    }
+    SupplierConsumerLogTypes logLevel = asSupplier ? config.getSupplierLog() : config.getConsumerLog();
+    if (logLevel == null || !logLevel.isLoggingEnabled()) {
       return;
     }
 

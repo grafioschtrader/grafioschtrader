@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import grafioschtrader.entities.GTNet;
-import grafioschtrader.entities.GTNetConfigEntity;
 import grafioschtrader.entities.GTNetEntity;
 import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.gtnet.AcceptRequestTypes;
@@ -100,8 +99,7 @@ public class DataRequestHandler extends AbstractRequestHandler {
     GTNetEntity entity = getOrCreateEntity(remoteGTNet, kind);
     entity.setAcceptRequest(AcceptRequestTypes.AC_OPEN);
     entity.setServerState(GTNetServerStateTypes.SS_OPEN);
-    GTNetConfigEntity configEntity = entity.getOrCreateConfigEntity();
-    configEntity.setExchange(configEntity.getExchange().withSend());
+    entity.getOrCreateConfigEntity(); // Creates config entity with exchange=true
   }
 
   /**

@@ -24,6 +24,18 @@ export enum AcceptRequestTypes {
 }
 
 /**
+ * Defines logging levels for GTNet exchange operations, separate for supplier and consumer roles.
+ * SCL_OFF: Logging is disabled for this role.
+ * SCL_OVERVIEW: Exchange statistics are recorded to GTNetExchangeLog.
+ * SCL_DETAIL: Includes overview logging plus detailed price change audit trail.
+ */
+export enum SupplierConsumerLogTypes {
+  SCL_OFF = 0,
+  SCL_OVERVIEW = 1,
+  SCL_DETAIL = 2
+}
+
+/**
  * Represents a data type configuration for a specific GTNet connection.
  * Each GTNet can have multiple GTNetEntity entries (one per data type).
  */
@@ -38,11 +50,6 @@ export interface GTNetEntity {
    * For example, 300 for LAST_PRICE means a maximum of 300 instruments per request.
    */
   maxLimit?: number;
-  /**
-   * Enables exchange statistics logging for this entity type.
-   * When true, exchange requests and responses are logged to GTNetExchangeLog.
-   */
-  enableLog?: boolean;
   gtNetConfigEntity?: GTNetConfigEntity;
 }
 
@@ -52,8 +59,9 @@ export interface GTNetEntity {
  */
 export interface GTNetConfigEntity {
   idGtNetEntity: number;
-  exchange: GTNetExchangeStatusTypes | string;
-  useDetailLog: boolean;
+  exchange: boolean;
+  supplierLog: SupplierConsumerLogTypes|string;
+  consumerLog: SupplierConsumerLogTypes|string;
   consumerUsage: number;
 }
 
@@ -126,13 +134,6 @@ export enum GTNetServerOnlineStatusTypes {
   SOS_UNKNOWN = 0,
   SOS_ONLINE = 1,
   SOS_OFFLINE = 2
-}
-
-export enum GTNetExchangeStatusTypes {
-  ES_NO_EXCHANGE = 0,
-  ES_SEND = 1,
-  ES_RECEIVE = 2,
-  ES_BOTH = 3
 }
 
 /**

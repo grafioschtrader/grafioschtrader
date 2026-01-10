@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
-import {GTNetConfigEntity, GTNetExchangeKindType} from '../model/gtnet';
+import {GTNetConfigEntity, GTNetExchangeKindType, SupplierConsumerLogTypes} from '../model/gtnet';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
@@ -9,6 +9,7 @@ import {AppSettings} from '../../shared/app.settings';
 import {GTNetConfigEntityService} from '../service/gtnet.config.entity.service';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
+import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {DialogModule} from 'primeng/dialog';
@@ -17,7 +18,7 @@ import {GTNetConfigEntityDisplay} from './gtnet-config-entity-table.component';
 
 /**
  * Dialog component for editing GTNetConfigEntity.
- * Only allows editing of useDetailLog and consumerUsage fields.
+ * Allows editing of supplierLog, consumerLog, and consumerUsage fields.
  */
 @Component({
   selector: 'gtnet-config-entity-edit',
@@ -56,7 +57,10 @@ export class GTNetConfigEntityEditComponent extends SimpleEntityEditBase<GTNetCo
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
     this.config = [
-      DynamicFieldHelper.createFieldCheckboxHeqF('useDetailLog'),
+      DynamicFieldHelper.createFieldSelectStringHeqF('supplierLog', true,
+        {inputWidth: 200}),
+      DynamicFieldHelper.createFieldSelectStringHeqF('consumerLog', true,
+        {inputWidth: 200}),
       DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'consumerUsage', false, 0, 255,
         {defaultValue: 0}),
       DynamicFieldHelper.createSubmitButton()
@@ -65,15 +69,19 @@ export class GTNetConfigEntityEditComponent extends SimpleEntityEditBase<GTNetCo
   }
 
   protected override initialize(): void {
+    const logTypeOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+      this.translateService, SupplierConsumerLogTypes);
+    this.configObject.supplierLog.valueKeyHtmlOptions = logTypeOptions;
+    this.configObject.consumerLog.valueKeyHtmlOptions = logTypeOptions;
     this.form.transferBusinessObjectToForm(this.gtNetConfigEntity);
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): GTNetConfigEntity {
-
     const entity: GTNetConfigEntity = {
       idGtNetEntity: this.gtNetConfigEntity.idGtNetEntity,
       exchange: this.gtNetConfigEntity.exchange,
-      useDetailLog: value['useDetailLog'],
+      supplierLog: value['supplierLog'],
+      consumerLog: value['consumerLog'],
       consumerUsage: value['consumerUsage']
     };
     return entity;

@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import grafioschtrader.entities.GTNet;
-import grafioschtrader.entities.GTNetConfigEntity;
 import grafioschtrader.entities.GTNetEntity;
 import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.entities.GTNetMessage.GTNetMessageParam;
@@ -72,8 +71,7 @@ public class DataRequestAcceptHandler extends AbstractResponseHandler {
   private void updateEntityForReceive(GTNet remoteGTNet, GTNetExchangeKindType kind) {
     GTNetEntity entity = remoteGTNet.getOrCreateEntity(kind);
     entity.setServerState(GTNetServerStateTypes.SS_OPEN);
-    GTNetConfigEntity configEntity = entity.getOrCreateConfigEntity();
-    configEntity.setExchange(configEntity.getExchange().withReceive());
+    entity.getOrCreateConfigEntity(); // Creates config entity with exchange=true
   }
 
   /**

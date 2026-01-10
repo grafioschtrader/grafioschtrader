@@ -14,7 +14,6 @@ import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.common.PropertyOnlyCreation;
 import grafiosch.entities.BaseID;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
-import grafioschtrader.gtnet.GTNetExchangeStatusTypes;
 import grafioschtrader.gtnet.GTNetServerOnlineStatusTypes;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
@@ -257,27 +256,25 @@ public class GTNet extends BaseID<Integer> {
   // Computed properties for JSON serialization (read-only)
 
   /**
-   * Returns the lastprice exchange status from the LAST_PRICE entity's GTNetConfigEntity. Returns ES_NO_EXCHANGE if no
-   * matching entity or config exists.
+   * Returns whether lastprice exchange is enabled for this GTNet. Returns false if no matching entity or config exists.
    *
-   * @return the lastprice exchange status
+   * @return true if lastprice exchange is enabled
    */
   @JsonProperty("lastpriceExchange")
-  public GTNetExchangeStatusTypes getLastpriceExchange() {
+  public boolean isLastpriceExchange() {
     return getEntity(GTNetExchangeKindType.LAST_PRICE).map(GTNetEntity::getGtNetConfigEntity)
-        .map(GTNetConfigEntity::getExchange).orElse(GTNetExchangeStatusTypes.ES_NO_EXCHANGE);
+        .map(GTNetConfigEntity::isExchange).orElse(false);
   }
 
   /**
-   * Returns the entity exchange status from the HISTORICAL_PRICES entity's GTNetConfigEntity. Returns ES_NO_EXCHANGE if
-   * no matching entity or config exists.
+   * Returns whether historical prices exchange is enabled for this GTNet. Returns false if no matching entity or config exists.
    *
-   * @return the entity exchange status
+   * @return true if historical prices exchange is enabled
    */
   @JsonProperty("entityExchange")
-  public GTNetExchangeStatusTypes getEntityExchange() {
+  public boolean isEntityExchange() {
     return getEntity(GTNetExchangeKindType.HISTORICAL_PRICES).map(GTNetEntity::getGtNetConfigEntity)
-        .map(GTNetConfigEntity::getExchange).orElse(GTNetExchangeStatusTypes.ES_NO_EXCHANGE);
+        .map(GTNetConfigEntity::isExchange).orElse(false);
   }
 
   /**
