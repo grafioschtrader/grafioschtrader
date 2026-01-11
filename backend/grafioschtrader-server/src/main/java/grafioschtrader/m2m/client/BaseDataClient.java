@@ -124,7 +124,7 @@ public class BaseDataClient {
           .retrieve()
           .bodyToMono(MessageEnvelope.class)
           .block();
-
+      log.info("GTNet server reached at {}", targetDomain);
       return SendResult.success(response);
     } catch (WebClientRequestException e) {
       // Connection error - server is unreachable
