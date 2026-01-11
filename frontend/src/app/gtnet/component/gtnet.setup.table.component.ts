@@ -142,7 +142,6 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     this.addColumnFeqH(DataType.Boolean, 'spreadCapability', true, false,
       {templateName: 'check', width: 30});
     this.addColumnFeqH(DataType.NumericInteger, 'dailyRequestLimit', true, false);
-    this.addColumnFeqH(DataType.NumericInteger, 'dailyRequestLimitRemote', true, false);
     this.addColumnFeqH(DataType.String, 'serverOnline', true, false,
       {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.Boolean, 'serverBusy', true, false,

@@ -159,6 +159,10 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     boolean serverBusyChanged = existingEntity != null && existingEntity.isServerBusy() != gtNet.isServerBusy();
     boolean newServerBusyValue = gtNet.isServerBusy();
 
+    // Track settings changes (only for myGTNet)
+    boolean isMyEntry = myInstanceEntry != null && myInstanceEntry.equals(gtNet.getIdGtNet());
+    boolean settingsChanged = isMyEntry && existingEntity != null && hasSettingsChanged(existingEntity, gtNet);
+
     GTNet gtNetNew = RepositoryHelper.saveOnlyAttributes(gtNetJpaRepository, gtNet, existingEntity,
         updatePropertyLevelClasses);
     if (isDomainNameThisMachine(gtNet.getDomainRemoteName())) {
@@ -168,6 +172,11 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     // If serverBusy changed, notify all connected peers
     if (serverBusyChanged) {
       sendServerBusyNotification(gtNetNew, newServerBusyValue);
+    }
+
+    // If settings changed, notify all connected peers
+    if (settingsChanged) {
+      sendSettingsUpdatedNotification(gtNetNew);
     }
 
     return gtNetNew;
@@ -182,6 +191,60 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   private void sendServerBusyNotification(GTNet myGTNet, boolean isBusy) {
     GTNetMessageCodeType messageCode = isBusy ? GTNetMessageCodeType.GT_NET_BUSY_ALL_C
         : GTNetMessageCodeType.GT_NET_RELEASED_BUSY_ALL_C;
+
+    MsgRequest msgRequest = new MsgRequest();
+    msgRequest.messageCode = messageCode;
+    GTNetModelHelper.GTNetMsgRequest gtNetMsgRequest = GTNetModelHelper.getMsgClassByMessageCode(messageCode);
+    List<GTNet> targets = gtNetJpaRepository.findWithConfiguredExchange();
+
+    if (!targets.isEmpty()) {
+      sendAndSaveMsg(myGTNet, targets, gtNetMsgRequest, msgRequest);
+    }
+    // Save broadcast to own entry for visibility
+    saveBroadcastToOwnEntry(myGTNet, msgRequest);
+  }
+
+  /**
+   * Checks if GTNet or GTNetEntity settings have changed that should trigger a broadcast.
+   * Compares dailyRequestLimit and entity-level settings (acceptRequest, serverState, maxLimit).
+   */
+  private boolean hasSettingsChanged(GTNet existing, GTNet updated) {
+    // Check dailyRequestLimit
+    if (!java.util.Objects.equals(existing.getDailyRequestLimit(), updated.getDailyRequestLimit())) {
+      return true;
+    }
+
+    // Check GTNetEntity changes
+    for (GTNetEntity updatedEntity : updated.getGtNetEntities()) {
+      GTNetEntity existingEntity = findMatchingEntity(existing, updatedEntity.getEntityKind());
+      if (existingEntity == null) {
+        return true; // New entity
+      }
+      if (existingEntity.getAcceptRequest() != updatedEntity.getAcceptRequest()
+          || existingEntity.getServerState() != updatedEntity.getServerState()
+          || !java.util.Objects.equals(existingEntity.getMaxLimit(), updatedEntity.getMaxLimit())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Finds a GTNetEntity by entity kind within a GTNet.
+   */
+  private GTNetEntity findMatchingEntity(GTNet gtNet, GTNetExchangeKindType kind) {
+    return gtNet.getGtNetEntities().stream()
+        .filter(e -> e.getEntityKind() == kind)
+        .findFirst()
+        .orElse(null);
+  }
+
+  /**
+   * Sends settings update notification to all peers with configured exchange.
+   * Called when dailyRequestLimit or GTNetEntity settings change for myGTNet.
+   */
+  private void sendSettingsUpdatedNotification(GTNet myGTNet) {
+    GTNetMessageCodeType messageCode = GTNetMessageCodeType.GT_NET_SETTINGS_UPDATED_ALL_C;
 
     MsgRequest msgRequest = new MsgRequest();
     msgRequest.messageCode = messageCode;
@@ -614,10 +677,14 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   /**
    * Updates myGTNet's entity to reflect that this server offers the specified entity kind.
    * This ensures the serverState is correctly communicated to remote servers via MessageEnvelope.
+   * Only sets acceptRequest to AC_OPEN if currently closed - preserves AC_PUSH_OPEN if already set.
    */
   private void updateMyEntityForAccept(GTNet myGTNet, GTNetExchangeKindType kind) {
     GTNetEntity entity = myGTNet.getOrCreateEntity(kind);
-    entity.setAcceptRequest(AcceptRequestTypes.AC_OPEN);
+    // Only upgrade from CLOSED to OPEN, don't downgrade from PUSH_OPEN to OPEN
+    if (!entity.isAccepting()) {
+      entity.setAcceptRequest(AcceptRequestTypes.AC_OPEN);
+    }
     entity.setServerState(GTNetServerStateTypes.SS_OPEN);
   }
 
@@ -970,8 +1037,8 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       }
 
       // Sync the remote's daily request limit (what THEY accept from US)
-      if (!java.util.Objects.equals(sourceGtNet.getDailyRequestLimit(), localRemoteEntry.getDailyRequestLimitRemote())) {
-        localRemoteEntry.setDailyRequestLimitRemote(sourceGtNet.getDailyRequestLimit());
+      if (!java.util.Objects.equals(sourceGtNet.getDailyRequestLimit(), localRemoteEntry.getDailyRequestLimit())) {
+        localRemoteEntry.setDailyRequestLimit(sourceGtNet.getDailyRequestLimit());
         needsSave = true;
       }
 

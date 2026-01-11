@@ -102,10 +102,14 @@ public class DataRequestHandler extends AbstractRequestHandler {
   /**
    * Updates myGTNet's entity to reflect that this server offers the specified entity kind.
    * This ensures the serverState is correctly communicated to remote servers via MessageEnvelope.
+   * Only sets acceptRequest to AC_OPEN if currently closed - preserves AC_PUSH_OPEN if already set.
    */
   private void updateMyEntityForAccept(GTNet myGTNet, GTNetExchangeKindType kind) {
     GTNetEntity entity = getOrCreateEntity(myGTNet, kind);
-    entity.setAcceptRequest(AcceptRequestTypes.AC_OPEN);
+    // Only upgrade from CLOSED to OPEN, don't downgrade from PUSH_OPEN to OPEN
+    if (!entity.isAccepting()) {
+      entity.setAcceptRequest(AcceptRequestTypes.AC_OPEN);
+    }
     entity.setServerState(GTNetServerStateTypes.SS_OPEN);
   }
 

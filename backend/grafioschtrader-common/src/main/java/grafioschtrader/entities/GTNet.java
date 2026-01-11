@@ -95,17 +95,14 @@ public class GTNet extends BaseID<Integer> {
   private boolean spreadCapability;
 
   @Schema(description = """
-      Maximum number of data requests the remote domain can make to this server per day. This limit protects the
-      local server from excessive load. Set to null for unlimited requests. The counter (dailyRequestLimitCount)
+      For myGTNet (local server): Maximum number of data requests any remote domain can make to this server per day.
+      This limit protects the local server from excessive load. Set to null for unlimited requests.
+      For remote entries: The remote server's daily request limit as communicated during handshake or message exchange.
+      This indicates how many requests we can make to them per day. The counter (dailyRequestLimitCount in GTNetConfig)
       tracks usage and resets at UTC midnight.""")
+  @PropertyAlwaysUpdatable
   @Column(name = "daily_req_limit")
   private Integer dailyRequestLimit;
-
-  @Schema(description = """
-      Maximum number of data requests this server can make to the remote domain per day. This value is typically
-      communicated by the remote domain during handshake or negotiation. Set to null if no limit was specified.""")
-  @Column(name = "daily_req_limit_remote")
-  private Integer dailyRequestLimitRemote;
 
   @Schema(description = """
       This flag can be used to control which messages should still be communicated to the recipient.
@@ -187,14 +184,6 @@ public class GTNet extends BaseID<Integer> {
 
   public void setGtNetConfig(GTNetConfig gtNetConfig) {
     this.gtNetConfig = gtNetConfig;
-  }
-
-  public Integer getDailyRequestLimitRemote() {
-    return dailyRequestLimitRemote;
-  }
-
-  public void setDailyRequestLimitRemote(Integer dailyRequestLimitRemote) {
-    this.dailyRequestLimitRemote = dailyRequestLimitRemote;
   }
 
   public boolean isServerBusy() {

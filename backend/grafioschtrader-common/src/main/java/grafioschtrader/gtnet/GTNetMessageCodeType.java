@@ -73,6 +73,8 @@ public enum GTNetMessageCodeType {
   GT_NET_MAINTENANCE_CANCEL_ALL_C((byte) 26),
   /** Cancels a previously announced operation discontinuation */
   GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C((byte) 27),
+  /** Server settings (dailyRequestLimit, acceptRequest, serverState, maxLimit) have been updated. This setting can be changed via the user interface. */
+  GT_NET_SETTINGS_UPDATED_ALL_C((byte) 28),
 
   /** Request for data exchange - entityKinds parameter specifies which data types to request */
   GT_NET_DATA_REQUEST_SEL_RR_C((byte) 50),

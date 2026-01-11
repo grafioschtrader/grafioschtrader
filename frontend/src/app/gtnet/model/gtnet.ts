@@ -88,7 +88,6 @@ export class GTNet implements BaseID {
   timeZone: string = null;
   spreadCapability = true;
   dailyRequestLimit: number = null;
-  dailyRequestLimitRemote: number;
   serverBusy = false;
   serverOnline: number | GTNetServerOnlineStatusTypes = GTNetServerOnlineStatusTypes.SOS_UNKNOWN;
   allowServerCreation = false;
