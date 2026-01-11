@@ -1081,13 +1081,17 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     for (GTNetEntityPublicDTO sourceEntity : sourceEntities) {
       GTNetEntity localEntity = localEntry.getOrCreateEntity(sourceEntity.getEntityKind());
 
-      // Sync acceptRequest and serverState from remote
+      // Sync acceptRequest, serverState, and maxLimit from remote
       if (localEntity.getAcceptRequest() != sourceEntity.getAcceptRequest()) {
         localEntity.setAcceptRequest(sourceEntity.getAcceptRequest());
         changed = true;
       }
       if (localEntity.getServerState() != sourceEntity.getServerState()) {
         localEntity.setServerState(sourceEntity.getServerState());
+        changed = true;
+      }
+      if (!java.util.Objects.equals(localEntity.getMaxLimit(), sourceEntity.getMaxLimit())) {
+        localEntity.setMaxLimit(sourceEntity.getMaxLimit());
         changed = true;
       }
 
