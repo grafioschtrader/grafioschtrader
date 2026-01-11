@@ -174,6 +174,11 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
         updatePropertyLevelClasses);
     if (isDomainNameThisMachine(gtNet.getDomainRemoteName())) {
       globalparametersService.saveGTNetMyEntryID(gtNetNew.getIdGtNet());
+      // Local server is always online - set status if not already set
+      if (gtNetNew.getServerOnline() != GTNetServerOnlineStatusTypes.SOS_ONLINE) {
+        gtNetNew.setServerOnline(GTNetServerOnlineStatusTypes.SOS_ONLINE);
+        gtNetNew = gtNetJpaRepository.save(gtNetNew);
+      }
     }
 
     // If serverBusy changed, notify all connected peers

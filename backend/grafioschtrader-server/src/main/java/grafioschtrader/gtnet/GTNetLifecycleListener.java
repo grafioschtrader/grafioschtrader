@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.types.TaskDataExecPriority;
+import grafioschtrader.entities.GTNet;
 import grafioschtrader.gtnet.model.MsgRequest;
 import grafioschtrader.repository.GTNetJpaRepository;
 import grafioschtrader.service.GlobalparametersService;
@@ -66,6 +67,9 @@ public class GTNetLifecycleListener {
   public void onApplicationReady(ApplicationReadyEvent event) {
     if (checkGTNetIsUsedAndSetup()) {
       try {
+        // Ensure local server shows as online
+        ensureLocalServerOnlineStatus();
+
         log.info("Scheduling GTNet server status check task to run in {} seconds", STARTUP_DELAY_SECONDS);
         TaskDataChange taskDataChange = new TaskDataChange(TaskTypeExtended.GTNET_SERVER_STATUS_CHECK,
             TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusSeconds(STARTUP_DELAY_SECONDS));
@@ -73,6 +77,22 @@ public class GTNetLifecycleListener {
         log.info("GTNet server status check task scheduled successfully");
       } catch (Exception e) {
         log.error("Failed to schedule GTNet server status check task", e);
+      }
+    }
+  }
+
+  /**
+   * Ensures the local GTNet server entry has SOS_ONLINE status.
+   * The local server is always online when the application is running.
+   */
+  private void ensureLocalServerOnlineStatus() {
+    Integer myEntryId = globalparametersService.getGTNetMyEntryID();
+    if (myEntryId != null) {
+      GTNet myGTNet = gtNetJpaRepository.findById(myEntryId).orElse(null);
+      if (myGTNet != null && myGTNet.getServerOnline() != GTNetServerOnlineStatusTypes.SOS_ONLINE) {
+        myGTNet.setServerOnline(GTNetServerOnlineStatusTypes.SOS_ONLINE);
+        gtNetJpaRepository.save(myGTNet);
+        log.info("Set local GTNet server status to ONLINE");
       }
     }
   }
