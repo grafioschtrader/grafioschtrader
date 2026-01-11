@@ -3,7 +3,9 @@ package grafioschtrader.service;
 import java.util.List;
 import java.util.Map;
 
+import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.GTNet;
+import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.gtnet.m2m.model.InstrumentHistoryquoteDTO;
 import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteData;
@@ -22,6 +24,7 @@ public class HistoryquoteExchangeResult<S extends Securitycurrency<S>> {
   private final List<SecurityCurrencyMaxHistoryquoteData<S>> remainingForConnector;
   private final List<SecurityCurrencyMaxHistoryquoteData<S>> filledByGTNet;
   private final Map<GTNet, List<InstrumentHistoryquoteDTO>> wantToReceiveMap;
+  private final Map<String, InstrumentHistoryquoteDTO> receivedHistoryquotes;
 
   /**
    * Creates a new result container.
@@ -29,14 +32,17 @@ public class HistoryquoteExchangeResult<S extends Securitycurrency<S>> {
    * @param remainingForConnector instruments that were not filled by GTNet and need connector fallback
    * @param filledByGTNet instruments that were successfully filled by GTNet
    * @param wantToReceiveMap map of suppliers that want data pushed back, with their requested instruments
+   * @param receivedHistoryquotes map of received historyquote data keyed by instrument identifier
    */
   public HistoryquoteExchangeResult(
       List<SecurityCurrencyMaxHistoryquoteData<S>> remainingForConnector,
       List<SecurityCurrencyMaxHistoryquoteData<S>> filledByGTNet,
-      Map<GTNet, List<InstrumentHistoryquoteDTO>> wantToReceiveMap) {
+      Map<GTNet, List<InstrumentHistoryquoteDTO>> wantToReceiveMap,
+      Map<String, InstrumentHistoryquoteDTO> receivedHistoryquotes) {
     this.remainingForConnector = remainingForConnector;
     this.filledByGTNet = filledByGTNet;
     this.wantToReceiveMap = wantToReceiveMap;
+    this.receivedHistoryquotes = receivedHistoryquotes;
   }
 
   /**
@@ -77,11 +83,39 @@ public class HistoryquoteExchangeResult<S extends Securitycurrency<S>> {
   }
 
   /**
+   * Returns the received historyquote data keyed by instrument identifier.
+   * Key format: "ISIN:Currency" for securities, "FromCurrency:ToCurrency" for pairs.
+   */
+  public Map<String, InstrumentHistoryquoteDTO> getReceivedHistoryquotes() {
+    return receivedHistoryquotes;
+  }
+
+  /**
+   * Gets the received historyquote DTO for a specific instrument.
+   *
+   * @param securitycurrency the security or currency pair
+   * @return the received DTO with historyquote records, or null if not received
+   */
+  public InstrumentHistoryquoteDTO getReceivedDataFor(S securitycurrency) {
+    String key = buildKey(securitycurrency);
+    return key != null ? receivedHistoryquotes.get(key) : null;
+  }
+
+  private String buildKey(S securitycurrency) {
+    if (securitycurrency instanceof Security security) {
+      return security.getIsin() != null ? security.getIsin() + ":" + security.getCurrency() : null;
+    } else if (securitycurrency instanceof Currencypair pair) {
+      return pair.getFromCurrency() + ":" + pair.getToCurrency();
+    }
+    return null;
+  }
+
+  /**
    * Creates an empty result indicating GTNet is disabled or no instruments to process.
    * The original list is passed through as remaining for connector.
    */
   public static <S extends Securitycurrency<S>> HistoryquoteExchangeResult<S> passthrough(
       List<SecurityCurrencyMaxHistoryquoteData<S>> allInstruments) {
-    return new HistoryquoteExchangeResult<>(allInstruments, List.of(), Map.of());
+    return new HistoryquoteExchangeResult<>(allInstruments, List.of(), Map.of(), Map.of());
   }
 }

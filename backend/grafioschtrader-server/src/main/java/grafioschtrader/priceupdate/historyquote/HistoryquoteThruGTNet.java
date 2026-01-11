@@ -10,7 +10,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 
 import grafioschtrader.connector.instrument.IFeedConnector;
+import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Securitycurrency;
+import grafioschtrader.gtnet.m2m.model.HistoryquoteRecordDTO;
+import grafioschtrader.gtnet.m2m.model.InstrumentHistoryquoteDTO;
 import grafioschtrader.reportviews.SecuritycurrencyPositionSummary;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
@@ -46,12 +49,15 @@ public class HistoryquoteThruGTNet<S extends Securitycurrency<S>> implements IHi
   private final HistoryquoteThruConnector<S> connectorThru;
   private final GTNetHistoryquoteService gtNetHistoryquoteService;
   private final GlobalparametersService globalparametersService;
+  private final ISecuritycurrencyService<S> securitycurrencyService;
 
   public HistoryquoteThruGTNet(HistoryquoteThruConnector<S> connectorThru,
-      GTNetHistoryquoteService gtNetHistoryquoteService, GlobalparametersService globalparametersService) {
+      GTNetHistoryquoteService gtNetHistoryquoteService, GlobalparametersService globalparametersService,
+      ISecuritycurrencyService<S> securitycurrencyService) {
     this.connectorThru = connectorThru;
     this.gtNetHistoryquoteService = gtNetHistoryquoteService;
     this.globalparametersService = globalparametersService;
+    this.securitycurrencyService = securitycurrencyService;
   }
 
   @Override
@@ -95,8 +101,9 @@ public class HistoryquoteThruGTNet<S extends Securitycurrency<S>> implements IHi
    *
    * Flow:
    * 1. Query GTNet servers for instruments with gtNetHistoricalRecv enabled
-   * 2. Fall back to connectors for unfilled and non-GTNet instruments
-   * 3. Push connector-fetched data back to interested GTNet suppliers
+   * 2. Save GTNet-filled data through proper connector save flow
+   * 3. Fall back to connectors for unfilled and non-GTNet instruments
+   * 4. Push connector-fetched data back to interested GTNet suppliers
    */
   @Override
   public List<S> fillHistoryquoteForSecuritiesCurrencies(
@@ -109,31 +116,101 @@ public class HistoryquoteThruGTNet<S extends Securitycurrency<S>> implements IHi
 
     log.info("Starting GTNet-integrated historyquote load for {} instruments", historySecurityCurrencyList.size());
 
-    // 1. Query GTNet first
+    // 1. Query GTNet first (returns data WITHOUT storing)
     HistoryquoteExchangeResult<S> gtNetResult = gtNetHistoryquoteService
         .requestHistoryquotesFromBaseThru(historySecurityCurrencyList, currentCalendar);
 
-    // 2. Connector fallback for remaining instruments
+    // 2. Save GTNet-filled data through proper flow
+    List<S> gtNetCatchUp = saveGTNetFilledData(gtNetResult, currentCalendar);
+
+    // 3. Connector fallback for remaining instruments
     List<S> connectorCatchUp = connectorThru.fillHistoryquoteForSecuritiesCurrencies(
         gtNetResult.getRemainingForConnector(), currentCalendar);
 
-    // 3. Push connector-fetched data back to interested suppliers
+    // 4. Push connector-fetched data back to interested suppliers
     if (gtNetResult.hasWantToReceive() && !connectorCatchUp.isEmpty()) {
       gtNetHistoryquoteService.pushConnectorDataToGTNet(connectorCatchUp, gtNetResult.getWantToReceiveMap());
     }
 
     // Combine results: GTNet-filled + connector-filled
-    List<S> allCatchUp = new ArrayList<>();
-
-    // Extract securitycurrency from GTNet-filled data
-    for (SecurityCurrencyMaxHistoryquoteData<S> filled : gtNetResult.getFilledByGTNet()) {
-      allCatchUp.add(filled.getSecurityCurrency());
-    }
+    List<S> allCatchUp = new ArrayList<>(gtNetCatchUp);
     allCatchUp.addAll(connectorCatchUp);
 
     log.info("GTNet-integrated historyquote load complete: {} GTNet filled, {} connector filled",
-        gtNetResult.getFilledByGTNet().size(), connectorCatchUp.size());
+        gtNetCatchUp.size(), connectorCatchUp.size());
 
     return allCatchUp;
+  }
+
+  /**
+   * Saves GTNet-filled historyquote data through the proper connector save flow.
+   *
+   * @param gtNetResult     the result from GTNet exchange containing filled instruments and their data
+   * @param currentCalendar the target end date for historyquote loading
+   * @return list of successfully saved instruments
+   */
+  private List<S> saveGTNetFilledData(HistoryquoteExchangeResult<S> gtNetResult, Calendar currentCalendar) {
+    List<S> savedInstruments = new ArrayList<>();
+
+    for (SecurityCurrencyMaxHistoryquoteData<S> filled : gtNetResult.getFilledByGTNet()) {
+      S securitycurrency = filled.getSecurityCurrency();
+      InstrumentHistoryquoteDTO dto = gtNetResult.getReceivedDataFor(securitycurrency);
+
+      if (dto != null && dto.getRecords() != null && !dto.getRecords().isEmpty()) {
+        try {
+          // Convert DTO records to Historyquote entities
+          List<Historyquote> historyquotes = convertToHistoryquotes(dto.getRecords(),
+              securitycurrency.getIdSecuritycurrency());
+
+          // Calculate dates
+          Date fromDate = filled.getDate() != null ? addOneDay(filled.getDate()) : null;
+          Date toDate = currentCalendar.getTime();
+
+          // Save through connector's proper flow
+          S saved = connectorThru.savePrefetchedHistoryQuotes(securitycurrencyService, securitycurrency, historyquotes,
+              fromDate, toDate);
+
+          if (saved.getRetryHistoryLoad() == 0) {
+            savedInstruments.add(saved);
+          }
+        } catch (Exception e) {
+          log.warn("Failed to save GTNet historyquotes for {}: {}", securitycurrency.getIdSecuritycurrency(),
+              e.getMessage());
+        }
+      }
+    }
+
+    return savedInstruments;
+  }
+
+  /**
+   * Converts HistoryquoteRecordDTOs to Historyquote entities.
+   */
+  private List<Historyquote> convertToHistoryquotes(List<HistoryquoteRecordDTO> records, Integer idSecuritycurrency) {
+    List<Historyquote> historyquotes = new ArrayList<>();
+    for (HistoryquoteRecordDTO record : records) {
+      if (record.getDate() != null && record.getClose() != null) {
+        Historyquote hq = new Historyquote();
+        hq.setIdSecuritycurrency(idSecuritycurrency);
+        hq.setDate(record.getDate());
+        hq.setOpen(record.getOpen());
+        hq.setHigh(record.getHigh());
+        hq.setLow(record.getLow());
+        hq.setClose(record.getClose());
+        hq.setVolume(record.getVolume());
+        historyquotes.add(hq);
+      }
+    }
+    return historyquotes;
+  }
+
+  /**
+   * Adds one day to the given date.
+   */
+  private Date addOneDay(Date date) {
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(date);
+    cal.add(Calendar.DAY_OF_MONTH, 1);
+    return cal.getTime();
   }
 }

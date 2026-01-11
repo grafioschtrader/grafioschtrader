@@ -241,7 +241,8 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
     return new HistoryquoteExchangeResult<>(
         remainingForConnector,
         exchangeSet.getFilledInstruments(),
-        exchangeSet.getWantToReceiveMap());
+        exchangeSet.getWantToReceiveMap(),
+        exchangeSet.getAllReceivedData());
   }
 
   /**
@@ -469,15 +470,21 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
 
   /**
    * Queries remote servers for historical price data and tracks "want to receive" responses.
+   * This method also stores received data directly (used by direct API calls, not by HistoryquoteThruGTNet).
    */
   private int queryRemoteServersWithWantTracking(List<GTNet> suppliers, HistoryquoteExchangeMsg request,
       Map<GTNet, HistoryquoteExchangeMsg> wantToReceiveMap) {
-    int totalReceived = 0;
+    int totalStored = 0;
+    Integer myGTNetId = GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersService);
 
     for (GTNet supplier : suppliers) {
       try {
         QueryResult result = queryRemoteServerWithWantTracking(supplier, request);
-        totalReceived += result.storedCount;
+
+        // Store received data for direct API calls
+        if (result.responsePayload != null) {
+          totalStored += storeReceivedHistoryquotes(result.responsePayload, myGTNetId);
+        }
 
         if (result.wantToReceive != null && result.wantToReceive.hasWantToReceiveMarkers()) {
           wantToReceiveMap.put(supplier, result.wantToReceive);
@@ -488,7 +495,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
       }
     }
 
-    return totalReceived;
+    return totalStored;
   }
 
   /**
@@ -552,13 +559,10 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
       log.info("Received {} historyquote records, {} want-to-receive markers from {}",
           recordCount, wantToReceiveCount, supplier.getDomainRemoteName());
 
-      // Store received data (only the actual data, not want-to-receive markers)
-      int storedCount = storeReceivedHistoryquotes(responsePayload, myGTNetId);
-
-      // Log exchange statistics as consumer
+      // Log exchange statistics as consumer (storage happens later in HistoryquoteThruGTNet)
       int instrumentsSent = request.getTotalInstrumentCount();
       gtNetExchangeLogService.logAsConsumer(supplier, GTNetExchangeKindType.HISTORICAL_PRICES,
-          instrumentsSent, storedCount, recordCount);
+          instrumentsSent, recordCount, recordCount);
 
       // Build want-to-receive response for push back
       HistoryquoteExchangeMsg wantToReceive = null;
@@ -568,7 +572,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
             responsePayload.getCurrencypairsWantingData());
       }
 
-      return new QueryResult(storedCount, responsePayload, wantToReceive);
+      return new QueryResult(recordCount, responsePayload, wantToReceive);
 
     } catch (JsonProcessingException e) {
       log.error("Failed to parse historyquote response from {}", supplier.getDomainRemoteName(), e);

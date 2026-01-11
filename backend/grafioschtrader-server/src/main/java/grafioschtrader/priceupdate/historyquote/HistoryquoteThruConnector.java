@@ -110,6 +110,43 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
     return securitycurrencyService.getJpaRepository().save(securitycurrency);
   }
 
+  /**
+   * Saves pre-fetched historical quotes (e.g., from GTNet) for a security/currency.
+   * This method performs the same entity updates as createHistoryQuotesAndSave but uses provided historyquotes
+   * instead of fetching from a connector.
+   *
+   * @param securitycurrencyService the service for saving
+   * @param securitycurrency        the security or currency pair
+   * @param historyquotes           the pre-fetched historical quotes to save
+   * @param fromDate                the start date of the data range (null for full load)
+   * @param toDate                  the end date of the data range (null for full load)
+   * @return the saved security/currency with updated historyquotes
+   */
+  @Transactional
+  public S savePrefetchedHistoryQuotes(final ISecuritycurrencyService<S> securitycurrencyService, S securitycurrency,
+      final List<Historyquote> historyquotes, final Date fromDate, final Date toDate) {
+
+    if (historyquotes == null || historyquotes.isEmpty()) {
+      return securitycurrency;
+    }
+
+    // Set idSecuritycurrency on each historyquote
+    historyquotes.forEach(hq -> hq.setIdSecuritycurrency(securitycurrency.getIdSecuritycurrency()));
+
+    // Reset retry counter on success
+    securitycurrency.setRetryHistoryLoad((short) 0);
+
+    // Add historyquotes to entity
+    addHistoryquotesToSecurity(securitycurrency, historyquotes, fromDate, toDate);
+
+    // Update full load timestamp if this was a full load
+    if (fromDate == null && toDate == null) {
+      securitycurrency.setFullLoadTimestamp(new Date(System.currentTimeMillis()));
+    }
+
+    return securitycurrencyService.getJpaRepository().save(securitycurrency);
+  }
+
   @Override
   public String getSecuritycurrencyHistoricalDownloadLinkAsUrlStr(S securitycurrency) {
     final IFeedConnector feedConnector = getConnectorHistoricalForSecuritycurrency(securitycurrency);
