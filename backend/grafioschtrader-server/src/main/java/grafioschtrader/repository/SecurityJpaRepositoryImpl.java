@@ -119,7 +119,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     HistoryquoteThruConnector<Security> connectorThru = new HistoryquoteThruConnector<>(entityManager,
         globalparametersService, feedConnectorbeans, this, Security.class);
     historyquoteThruConnector = new HistoryquoteThruGTNet<>(connectorThru, gtNetHistoryquoteService,
-        globalparametersService);
+        globalparametersService, securityJpaRepository);
     historyquoteThruCalculation = new HistoryquoteThruCalculation<>(securityJpaRepository, historyquoteJpaRepository,
         securityDerivedLinkJpaRepository, globalparametersService, this);
     intradayThruConnector = new IntradayThruConnector<>(securityJpaRepository, globalparametersService,

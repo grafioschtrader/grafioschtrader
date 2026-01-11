@@ -38,6 +38,7 @@ public class HistoryquoteExchangeSet<S extends Securitycurrency<S>> {
   private final Map<String, Date> toDates = new HashMap<>();
   private final Set<String> filledKeys = new HashSet<>();
   private final Map<GTNet, List<InstrumentHistoryquoteDTO>> wantToReceiveBySupplier = new HashMap<>();
+  private final Map<String, InstrumentHistoryquoteDTO> receivedData = new HashMap<>();
 
   /**
    * Adds an instrument to the exchange set with its date range.
@@ -97,6 +98,7 @@ public class HistoryquoteExchangeSet<S extends Securitycurrency<S>> {
           String key = dto.getIsin() + ":" + dto.getCurrency();
           if (instruments.containsKey(key) && !filledKeys.contains(key)) {
             markAsFilled(key);
+            receivedData.put(key, dto);
             filledCount++;
           }
         }
@@ -110,6 +112,7 @@ public class HistoryquoteExchangeSet<S extends Securitycurrency<S>> {
           String key = dto.getCurrency() + ":" + dto.getToCurrency();
           if (instruments.containsKey(key) && !filledKeys.contains(key)) {
             markAsFilled(key);
+            receivedData.put(key, dto);
             filledCount++;
           }
         }
@@ -228,5 +231,24 @@ public class HistoryquoteExchangeSet<S extends Securitycurrency<S>> {
    */
   public int getUnfilledCount() {
     return instruments.size() - filledKeys.size();
+  }
+
+  /**
+   * Returns the received historyquote DTO for a specific instrument.
+   *
+   * @param securitycurrency the security or currency pair
+   * @return the received DTO with historyquote records, or null if not received
+   */
+  public InstrumentHistoryquoteDTO getReceivedData(S securitycurrency) {
+    String key = buildKey(securitycurrency);
+    return key != null ? receivedData.get(key) : null;
+  }
+
+  /**
+   * Returns all received historyquote data keyed by instrument identifier.
+   * Key format: "ISIN:Currency" for securities, "FromCurrency:ToCurrency" for pairs.
+   */
+  public Map<String, InstrumentHistoryquoteDTO> getAllReceivedData() {
+    return new HashMap<>(receivedData);
   }
 }

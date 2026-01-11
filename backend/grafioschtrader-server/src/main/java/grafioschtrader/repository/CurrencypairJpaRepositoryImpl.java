@@ -80,7 +80,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
     HistoryquoteThruConnector<Currencypair> connectorThru = new HistoryquoteThruConnector<>(entityManager,
         globalparametersService, feedConnectorbeans, this, Currencypair.class);
     historyquoteThruConnector = new HistoryquoteThruGTNet<>(connectorThru, gtNetHistoryquoteService,
-        globalparametersService);
+        globalparametersService, currencypairJpaRepository);
     intradayThruConnector = new IntradayThruConnector<>(currencypairJpaRepository, globalparametersService,
         feedConnectorbeans, this);
   }
