@@ -1,15 +1,24 @@
 package grafioschtrader.gtnet.handler.impl;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import grafiosch.common.DataHelper;
+import grafiosch.entities.TaskDataChange;
+import grafiosch.repository.TaskDataChangeJpaRepository;
+import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.entities.GTNet;
 import grafioschtrader.entities.GTNetConfig;
 import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.entities.GTNetMessage.GTNetMessageParam;
+import grafioschtrader.entities.GTNetMessageAttempt;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.MessageCategory;
 import grafioschtrader.gtnet.SendReceivedType;
@@ -21,6 +30,8 @@ import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.gtnet.model.msg.FirstHandshakeMsg;
 import grafioschtrader.repository.GTNetConfigJpaRepository;
 import grafioschtrader.repository.GTNetJpaRepository;
+import grafioschtrader.repository.GTNetMessageAttemptJpaRepository;
+import grafioschtrader.types.TaskTypeExtended;
 
 /**
  * Handler for GT_NET_FIRST_HANDSHAKE_S messages (incoming handshake requests).
@@ -42,11 +53,24 @@ import grafioschtrader.repository.GTNetJpaRepository;
 @Component
 public class FirstHandshakeRequestHandler extends AbstractGTNetMessageHandler {
 
+  private static final Logger log = LoggerFactory.getLogger(FirstHandshakeRequestHandler.class);
+
+  /** Message codes for future-oriented messages that need delivery to new partners */
+  private static final List<Byte> ANNOUNCEMENT_MESSAGE_CODES = List.of(
+      GTNetMessageCodeType.GT_NET_MAINTENANCE_ALL_C.getValue(),
+      GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_ALL_C.getValue());
+
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
 
   @Autowired
   private GTNetConfigJpaRepository gtNetConfigJpaRepository;
+
+  @Autowired
+  private GTNetMessageAttemptJpaRepository gtNetMessageAttemptJpaRepository;
+
+  @Autowired
+  private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
 
   @Override
   public GTNetMessageCodeType getSupportedMessageCode() {
@@ -106,9 +130,90 @@ public class FirstHandshakeRequestHandler extends AbstractGTNetMessageHandler {
         GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_ACCEPT_S.getValue(), null, responseParams);
     responseMsg = gtNetMessageJpaRepository.saveMsg(responseMsg);
 
-    // 10. Return response with our GTNet info in payload
+    // 10. Queue pending future-oriented messages for the new partner
+    queuePendingMessagesForNewPartner(context.getMyGTNet(), processedRemoteGTNet);
+
+    // 11. Return response with our GTNet info in payload
     MessageEnvelope response = createResponseEnvelopeWithPayload(context, responseMsg, context.getMyGTNet());
     return new HandlerResult.ImmediateResponse(response);
+  }
+
+  /**
+   * Queues pending future-oriented messages for a newly connected partner.
+   * Finds maintenance and discontinuation messages whose effect dates are still in the future
+   * and creates GTNetMessageAttempt entries for the new remote.
+   *
+   * @param myGTNet       the local GTNet entry
+   * @param newRemoteGTNet the newly connected remote GTNet entry
+   */
+  private void queuePendingMessagesForNewPartner(GTNet myGTNet, GTNet newRemoteGTNet) {
+    // Find all future-oriented announcement messages we sent that are still valid
+    List<GTNetMessage> futureMessages = gtNetMessageJpaRepository.findBySendRecvAndMessageCodeIn(
+        SendReceivedType.SEND.getValue(), ANNOUNCEMENT_MESSAGE_CODES);
+
+    int attemptsCreated = 0;
+    for (GTNetMessage message : futureMessages) {
+      // Skip if message dates are in the past
+      if (isMessageExpired(message)) {
+        continue;
+      }
+
+      // Skip if message was not sent by us (messages under sender's own GTNet ID)
+      if (!message.getIdGtNet().equals(myGTNet.getIdGtNet())) {
+        continue;
+      }
+
+      // Check if attempt already exists for this target
+      if (gtNetMessageAttemptJpaRepository.findByIdGtNetMessageAndIdGtNet(
+          message.getIdGtNetMessage(), newRemoteGTNet.getIdGtNet()).isEmpty()) {
+        GTNetMessageAttempt attempt = new GTNetMessageAttempt(newRemoteGTNet.getIdGtNet(),
+            message.getIdGtNetMessage());
+        gtNetMessageAttemptJpaRepository.save(attempt);
+        attemptsCreated++;
+      }
+    }
+
+    if (attemptsCreated > 0) {
+      log.info("Created {} GTNetMessageAttempt entries for new partner {} after handshake",
+          attemptsCreated, newRemoteGTNet.getDomainRemoteName());
+
+      // Schedule immediate delivery task
+      taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.GTNET_FUTURE_MESSAGE_DELIVERY,
+          TaskDataExecPriority.PRIO_NORMAL));
+    }
+  }
+
+  /**
+   * Checks if a message is expired (its effective date has passed).
+   */
+  private boolean isMessageExpired(GTNetMessage message) {
+    GTNetMessageCodeType codeType = message.getMessageCode();
+
+    if (codeType == GTNetMessageCodeType.GT_NET_MAINTENANCE_ALL_C) {
+      // Check toDateTime
+      GTNetMessageParam toDateTimeParam = message.getGtNetMessageParamMap().get("toDateTime");
+      if (toDateTimeParam != null && toDateTimeParam.getParamValue() != null) {
+        try {
+          LocalDateTime toDateTime = LocalDateTime.parse(toDateTimeParam.getParamValue());
+          return toDateTime.isBefore(LocalDateTime.now());
+        } catch (Exception e) {
+          log.warn("Failed to parse toDateTime for message {}: {}", message.getIdGtNetMessage(), e.getMessage());
+        }
+      }
+    } else if (codeType == GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_ALL_C) {
+      // Check closeStartDate
+      GTNetMessageParam closeStartDateParam = message.getGtNetMessageParamMap().get("closeStartDate");
+      if (closeStartDateParam != null && closeStartDateParam.getParamValue() != null) {
+        try {
+          LocalDate closeStartDate = LocalDate.parse(closeStartDateParam.getParamValue());
+          return closeStartDate.isBefore(LocalDate.now());
+        } catch (Exception e) {
+          log.warn("Failed to parse closeStartDate for message {}: {}", message.getIdGtNetMessage(), e.getMessage());
+        }
+      }
+    }
+
+    return false;
   }
 
   /**
@@ -161,6 +266,8 @@ public class FirstHandshakeRequestHandler extends AbstractGTNetMessageHandler {
       gtNetConfig.setIdGtNet(existing.getIdGtNet());  // Set FK manually
     }
     gtNetConfig.setTokenRemote(theirTokenForUs);
+    // Set handshake timestamp for tracking when connection was established
+    gtNetConfig.setHandshakeTimestamp(LocalDateTime.now());
     gtNetConfig = gtNetConfigJpaRepository.save(gtNetConfig);  // Save config separately
     existing.setGtNetConfig(gtNetConfig);  // Set reference on entity for later use
     return existing;

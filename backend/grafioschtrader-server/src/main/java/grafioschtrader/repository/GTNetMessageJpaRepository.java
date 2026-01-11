@@ -37,4 +37,14 @@ public interface GTNetMessageJpaRepository extends JpaRepository<GTNetMessage, I
    */
   @Query(name = "GTNetMessage.findUnansweredRequests", nativeQuery = true)
   List<Object[]> findUnansweredRequests(byte sendRecv, List<Byte> messageCodes);
+
+  /**
+   * Finds messages by direction and message codes. Used for finding future-oriented broadcast messages.
+   *
+   * @param sendRecv     the message direction (0=SEND, 1=RECEIVED)
+   * @param messageCodes list of message codes to search for
+   * @return list of matching messages
+   */
+  @Query("SELECT m FROM GTNetMessage m WHERE m.sendRecv = ?1 AND m.messageCode IN ?2")
+  List<GTNetMessage> findBySendRecvAndMessageCodeIn(byte sendRecv, List<Byte> messageCodes);
 }

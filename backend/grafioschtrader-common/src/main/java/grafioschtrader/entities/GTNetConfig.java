@@ -76,6 +76,13 @@ public class GTNetConfig extends BaseID<Integer>  {
   @Column(name = "request_violation_count")
   private Byte requestViolationCount = 0;
 
+  @Schema(description = """
+      UTC timestamp when the first successful handshake was completed with this remote domain.
+      Used by the GTNetFutureMessageDeliveryTask to determine which remotes should receive pending
+      future-oriented messages that were created before the handshake completed.""")
+  @Column(name = "handshake_timestamp")
+  private LocalDateTime handshakeTimestamp;
+
   @Override
   public Integer getId() {
     return idGtNet;
@@ -158,5 +165,13 @@ public class GTNetConfig extends BaseID<Integer>  {
     } else if (this.requestViolationCount < 99) {
       this.requestViolationCount = (byte) (this.requestViolationCount + 1);
     }
+  }
+
+  public LocalDateTime getHandshakeTimestamp() {
+    return handshakeTimestamp;
+  }
+
+  public void setHandshakeTimestamp(LocalDateTime handshakeTimestamp) {
+    this.handshakeTimestamp = handshakeTimestamp;
   }
 }

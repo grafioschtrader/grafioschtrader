@@ -108,6 +108,15 @@ public class GTNetMessage extends BaseID<Integer> {
   private Integer replyTo;
 
   @Schema(description = """
+      Reference to the original announcement message that this cancellation message refers to. Only used for
+      cancellation message codes (GT_NET_MAINTENANCE_CANCEL_ALL_C and GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C).
+      Enables the GTNetFutureMessageDeliveryTask to find recipients who received the original announcement and
+      need the cancellation, vs. recipients who haven't received the original and should receive neither.""")
+  @PropertyOnlyCreation
+  @Column(name = "id_original_message")
+  private Integer idOriginalMessage;
+
+  @Schema(description = """
       The message type code from GTNetMessageCodeType enum. Determines the message semantics and expected payload
       structure. Codes ending with '_C' are client-initiated requests; codes ending with '_S' are server responses;
       codes containing '_ALL_' are broadcast to multiple recipients.""")
@@ -220,6 +229,14 @@ public class GTNetMessage extends BaseID<Integer> {
     this.replyTo = replyTo;
   }
 
+  public Integer getIdOriginalMessage() {
+    return idOriginalMessage;
+  }
+
+  public void setIdOriginalMessage(Integer idOriginalMessage) {
+    this.idOriginalMessage = idOriginalMessage;
+  }
+
   public GTNetMessageCodeType getMessageCode() {
     return GTNetMessageCodeType.getGTNetMessageCodeTypeByValue(messageCode);
   }
@@ -307,8 +324,8 @@ public class GTNetMessage extends BaseID<Integer> {
 
     return "GTNetMessage [idGtNetMessage=" + idGtNetMessage + ", idGtNet=" + idGtNet + ", timestamp=" + timestamp
         + ", sendRecv=" + sendRecv + ", idSourceGtNetMessage=" + idSourceGtNetMessage + ", replyTo=" + replyTo
-        + ", messageCode=" + messageCode + ", message=" + message + ", errorMsgCode=" + errorMsgCode + ", hasBeenRead="
-        + hasBeenRead + ", deliveryStatus=" + deliveryStatus + ", waitDaysApply=" + waitDaysApply
-        + ", gtNetMessageParamMap=" + paramMapStr + "]";
+        + ", idOriginalMessage=" + idOriginalMessage + ", messageCode=" + messageCode + ", message=" + message
+        + ", errorMsgCode=" + errorMsgCode + ", hasBeenRead=" + hasBeenRead + ", deliveryStatus=" + deliveryStatus
+        + ", waitDaysApply=" + waitDaysApply + ", gtNetMessageParamMap=" + paramMapStr + "]";
   }
 }

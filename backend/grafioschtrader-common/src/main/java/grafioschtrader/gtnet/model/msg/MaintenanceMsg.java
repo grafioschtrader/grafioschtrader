@@ -2,6 +2,9 @@ package grafioschtrader.gtnet.model.msg;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import grafiosch.BaseConstants;
 import grafiosch.validation.DateRange;
 import grafioschtrader.gtnet.m2m.model.IMsgDetails;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -37,6 +40,7 @@ public class MaintenanceMsg implements IMsgDetails {
       this time.""")
   @NotNull
   @Future
+  @JsonFormat(pattern = BaseConstants.STANDARD_LOCAL_DATE_TIME)
   public LocalDateTime fromDateTime;
 
   @Schema(description = """
@@ -44,5 +48,6 @@ public class MaintenanceMsg implements IMsgDetails {
       normal operation after this time.""")
   @NotNull
   @Future
+  @JsonFormat(pattern = BaseConstants.STANDARD_LOCAL_DATE_TIME)
   public LocalDateTime toDateTime;
 }
