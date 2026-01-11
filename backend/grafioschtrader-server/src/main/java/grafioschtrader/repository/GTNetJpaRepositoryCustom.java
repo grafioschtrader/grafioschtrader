@@ -91,4 +91,16 @@ public interface GTNetJpaRepositoryCustom extends BaseRepositoryCustom<GTNet> {
    * @throws SecurityException if the token is invalid or missing
    */
   void validateIncomingToken(String sourceDomain, String authToken);
+
+  /**
+   * Broadcasts a settings update notification to all GTNet peers with configured exchange.
+   *
+   * Sends GT_NET_SETTINGS_UPDATED_ALL_C to all peers to inform them that this server's settings
+   * (dailyRequestLimit, GTNetEntity.acceptRequest, serverState, maxLimit) have changed.
+   * The message envelope automatically includes the updated sourceGtNet DTO which peers use
+   * to synchronize their local copy of this server's settings.
+   *
+   * This method is called by the background task GTNetSettingsBroadcastTask to avoid blocking the UI.
+   */
+  void broadcastSettingsUpdate();
 }

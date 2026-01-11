@@ -54,6 +54,8 @@ public enum TaskTypeExtended implements ITaskType {
   GTNET_EXCHANGE_LOG_AGGREGATION((byte) 22),
   /** Synchronizes GTNetExchange configurations with GTNet peers to update GTNetSupplierDetail entries. */
   GTNET_EXCHANGE_SYNC((byte) 23),
+  /** Broadcasts settings changes (maxLimit, acceptRequest, serverState, dailyRequestLimit) to all GTNet peers. */
+  GTNET_SETTINGS_BROADCAST((byte) 24),
 
   // Task which used oldValueNumber or oldValueString can not created by the admin
   ///////////////////////////////////////////////////////////////////////////////
