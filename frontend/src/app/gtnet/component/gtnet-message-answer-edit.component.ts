@@ -44,8 +44,8 @@ interface CursorContext {
 const STRING_VARIABLES = ['MyTimezone', 'RemoteTimezone', 'RemoteDomainRemoteName', 'Message'];
 const NUMBER_VARIABLES = [
   'hour', 'dayOfWeek', 'dailyCount', 'dailyLimit',
-  'MyDailyRequestLimit', 'MyDailyRequestLimitRemote', 'MyMaxLimitLastPrice', 'MyMaxLimitHistorical',
-  'RemoteDailyRequestLimit', 'RemoteDailyRequestLimitRemote', 'RemoteMaxLimitLastPrice', 'RemoteMaxLimitHistorical',
+  'MyDailyRequestLimit', 'MyMaxLimitLastPrice', 'MyMaxLimitHistorical',
+  'RemoteDailyRequestLimit', 'RemoteMaxLimitLastPrice', 'RemoteMaxLimitHistorical',
   'TimezoneOffsetHours', 'TotalConnections', 'ConnectionsLastPrice', 'ConnectionsHistorical'
 ];
 
@@ -226,7 +226,6 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
     // My Server variables
     const myServerItems = filterItems([
       createVarItem('MyDailyRequestLimit', 'MY_DAILY_REQUEST_LIMIT_DESC', 'NUMBER'),
-      createVarItem('MyDailyRequestLimitRemote', 'MY_DAILY_REQUEST_LIMIT_REMOTE_DESC', 'NUMBER'),
       createVarItem('MyTimezone', 'MY_TIMEZONE_DESC', 'STRING'),
       createVarItem('MyMaxLimitLastPrice', 'MY_MAX_LIMIT_LAST_PRICE_DESC', 'NUMBER'),
       createVarItem('MyMaxLimitHistorical', 'MY_MAX_LIMIT_HISTORICAL_DESC', 'NUMBER')
@@ -238,7 +237,6 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
     // Remote Server variables
     const remoteServerItems = filterItems([
       createVarItem('RemoteDailyRequestLimit', 'REMOTE_DAILY_REQUEST_LIMIT_DESC', 'NUMBER'),
-      createVarItem('RemoteDailyRequestLimitRemote', 'REMOTE_DAILY_REQUEST_LIMIT_REMOTE_DESC', 'NUMBER'),
       createVarItem('RemoteTimezone', 'REMOTE_TIMEZONE_DESC', 'STRING'),
       createVarItem('RemoteDomainRemoteName', 'REMOTE_DOMAIN_REMOTE_NAME_DESC', 'STRING'),
       createVarItem('RemoteMaxLimitLastPrice', 'REMOTE_MAX_LIMIT_LAST_PRICE_DESC', 'NUMBER'),

@@ -27,9 +27,10 @@ import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-fo
 import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 
 /**
- * Add ar modify a GTNet entity.
- * Almost all attributes can be changed when entering data for your own server. Only certain values can be changed during the update.
- * Other changes must be made using GTNetMessage. Why GTNetMessage? So that this change is communicated to the other instances via GTNet.
+ * Add or modify a GTNet entity.
+ * Almost all attributes can be changed when entering data for your own server. When settings like dailyRequestLimit,
+ * acceptRequest, serverState, or maxLimit are changed during update, these changes are automatically broadcast
+ * to all connected peers via GT_NET_SETTINGS_UPDATED_ALL_C.
  * Only domainRemoteName can be entered for a remote instance. The other values are set by the remote instance via GTNetMessage.
  */
 @Component({
@@ -104,28 +105,24 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
       DynamicFieldHelper.createFieldSelectStringHeqF('historicalPriceRequest', true,
         {
           defaultValue: AcceptRequestTypes[AcceptRequestTypes.AC_OPEN],
-          fieldsetName: this.HISTORICAL_PRICE,
-          disabled: isUpdate
+          fieldsetName: this.HISTORICAL_PRICE
         }),
       DynamicFieldHelper.createFieldSelectStringHeqF('historicalPriceServerState', true,
         {
           defaultValue: GTNetServerStateTypes[GTNetServerStateTypes.SS_OPEN],
-          fieldsetName: this.HISTORICAL_PRICE,
-          disabled: isUpdate
+          fieldsetName: this.HISTORICAL_PRICE
         }),
       DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'historicalMaxLimit', true, 10, 999,
         {defaultValue: 300, fieldsetName: this.HISTORICAL_PRICE}),
       DynamicFieldHelper.createFieldSelectStringHeqF('acceptLastpriceRequest', true,
         {
           defaultValue: AcceptRequestTypes[AcceptRequestTypes.AC_OPEN],
-          fieldsetName: this.LAST_PRICE,
-          disabled: isUpdate
+          fieldsetName: this.LAST_PRICE
         }),
       DynamicFieldHelper.createFieldSelectStringHeqF('lastpriceServerState', true,
         {
           defaultValue: GTNetServerStateTypes[GTNetServerStateTypes.SS_NONE],
-          fieldsetName: this.LAST_PRICE,
-          disabled: isUpdate
+          fieldsetName: this.LAST_PRICE
         }),
       DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'lastpriceMaxLimit', true, 10, 999,
         {defaultValue: 300, fieldsetName: this.LAST_PRICE})
@@ -179,13 +176,8 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
         idGtNetEntity: existingHistorical?.idGtNetEntity,
         idGtNet: gtNet.idGtNet,
         entityKind: GTNetExchangeKindType.HISTORICAL_PRICES,
-        // Use form value if available, otherwise preserve existing (fields are disabled during update)
-        serverState: value['historicalPriceServerState'] !== undefined
-          ? GTNetServerStateTypes[value['historicalPriceServerState']] as any
-          : existingHistorical?.serverState,
-        acceptRequest: value['historicalPriceRequest'] !== undefined
-          ? AcceptRequestTypes[value['historicalPriceRequest']] as any
-          : existingHistorical?.acceptRequest,
+        serverState: GTNetServerStateTypes[value['historicalPriceServerState']] as any,
+        acceptRequest: AcceptRequestTypes[value['historicalPriceRequest']] as any,
         maxLimit: value['historicalMaxLimit'],
       };
       gtNetEntities.push(historicalEntity);
@@ -197,13 +189,8 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
         idGtNetEntity: existingLastPrice?.idGtNetEntity,
         idGtNet: gtNet.idGtNet,
         entityKind: GTNetExchangeKindType.LAST_PRICE,
-        // Use form value if available, otherwise preserve existing (fields are disabled during update)
-        serverState: value['lastpriceServerState'] !== undefined
-          ? GTNetServerStateTypes[value['lastpriceServerState']] as any
-          : existingLastPrice?.serverState,
-        acceptRequest: value['acceptLastpriceRequest'] !== undefined
-          ? AcceptRequestTypes[value['acceptLastpriceRequest']] as any
-          : existingLastPrice?.acceptRequest,
+        serverState: GTNetServerStateTypes[value['lastpriceServerState']] as any,
+        acceptRequest: AcceptRequestTypes[value['acceptLastpriceRequest']] as any,
         maxLimit: value['lastpriceMaxLimit'],
       };
 

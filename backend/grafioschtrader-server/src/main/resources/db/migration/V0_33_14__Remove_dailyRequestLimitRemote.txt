@@ -1,0 +1,6 @@
+-- Remove redundant dailyRequestLimitRemote column from gt_net table
+-- The dailyRequestLimit field now serves dual purpose:
+-- - For myGTNet (local server): Maximum requests any remote can make to us per day
+-- - For remote entries: The remote server's daily limit (how many requests we can make to them)
+
+ALTER TABLE gt_net DROP COLUMN IF EXISTS daily_req_limit_remote;

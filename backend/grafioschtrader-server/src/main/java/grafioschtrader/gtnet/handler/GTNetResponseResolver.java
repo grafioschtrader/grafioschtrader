@@ -35,9 +35,9 @@ import grafioschtrader.service.GlobalparametersService;
  * <ul>
  * <li><b>Time variables:</b> {@code hour} (0-23), {@code dayOfWeek} (1=Monday, 7=Sunday)</li>
  * <li><b>Request counters:</b> {@code dailyCount}, {@code dailyLimit}</li>
- * <li><b>My server:</b> {@code MyDailyRequestLimit}, {@code MyDailyRequestLimitRemote}, {@code MyTimezone},
+ * <li><b>My server:</b> {@code MyDailyRequestLimit}, {@code MyTimezone},
  *     {@code MyMaxLimitLastPrice}, {@code MyMaxLimitHistorical}</li>
- * <li><b>Remote server:</b> {@code RemoteDailyRequestLimit}, {@code RemoteDailyRequestLimitRemote}, {@code RemoteTimezone},
+ * <li><b>Remote server:</b> {@code RemoteDailyRequestLimit}, {@code RemoteTimezone},
  *     {@code RemoteMaxLimitLastPrice}, {@code RemoteMaxLimitHistorical}, {@code RemoteDomainRemoteName}</li>
  * <li><b>Calculated:</b> {@code TimezoneOffsetHours} (decimal hours difference remote - local)</li>
  * <li><b>Connection counts:</b> {@code TotalConnections}, {@code ConnectionsLastPrice}, {@code ConnectionsHistorical}</li>
@@ -177,7 +177,6 @@ public class GTNetResponseResolver {
     if (remoteGTNet != null) {
       ctx.remoteTimezone = remoteGTNet.getTimeZone();
       ctx.remoteDailyRequestLimit = remoteGTNet.getDailyRequestLimit();
-      ctx.remoteDailyRequestLimitRemote = remoteGTNet.getDailyRequestLimitRemote();
       ctx.remoteMaxLimitLastPrice = getMaxLimitForKind(remoteGTNet, GTNetExchangeKindType.LAST_PRICE);
       ctx.remoteMaxLimitHistorical = getMaxLimitForKind(remoteGTNet, GTNetExchangeKindType.HISTORICAL_PRICES);
       ctx.remoteDomainRemoteName = remoteGTNet.getDomainRemoteName();
@@ -195,7 +194,6 @@ public class GTNetResponseResolver {
     if (myGTNet != null) {
       ctx.myTimezone = myGTNet.getTimeZone();
       ctx.myDailyRequestLimit = myGTNet.getDailyRequestLimit();
-      ctx.myDailyRequestLimitRemote = myGTNet.getDailyRequestLimitRemote();
       ctx.myMaxLimitLastPrice = getMaxLimitForKind(myGTNet, GTNetExchangeKindType.LAST_PRICE);
       ctx.myMaxLimitHistorical = getMaxLimitForKind(myGTNet, GTNetExchangeKindType.HISTORICAL_PRICES);
     }
@@ -287,9 +285,6 @@ public class GTNetResponseResolver {
       if (ctx.myDailyRequestLimit != null) {
         expression.with("MyDailyRequestLimit", ctx.myDailyRequestLimit);
       }
-      if (ctx.myDailyRequestLimitRemote != null) {
-        expression.with("MyDailyRequestLimitRemote", ctx.myDailyRequestLimitRemote);
-      }
       if (ctx.myTimezone != null) {
         expression.with("MyTimezone", ctx.myTimezone);
       }
@@ -303,9 +298,6 @@ public class GTNetResponseResolver {
       // Remote server variables
       if (ctx.remoteDailyRequestLimit != null) {
         expression.with("RemoteDailyRequestLimit", ctx.remoteDailyRequestLimit);
-      }
-      if (ctx.remoteDailyRequestLimitRemote != null) {
-        expression.with("RemoteDailyRequestLimitRemote", ctx.remoteDailyRequestLimitRemote);
       }
       if (ctx.remoteTimezone != null) {
         expression.with("RemoteTimezone", ctx.remoteTimezone);
@@ -383,14 +375,12 @@ public class GTNetResponseResolver {
 
     // My (local) server variables
     Integer myDailyRequestLimit;
-    Integer myDailyRequestLimitRemote;
     String myTimezone;
     Short myMaxLimitLastPrice;
     Short myMaxLimitHistorical;
 
     // Remote server variables
     Integer remoteDailyRequestLimit;
-    Integer remoteDailyRequestLimitRemote;
     String remoteTimezone;
     Short remoteMaxLimitLastPrice;
     Short remoteMaxLimitHistorical;
