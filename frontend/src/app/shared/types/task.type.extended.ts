@@ -73,6 +73,9 @@ export enum TaskTypeExtended {
   /** Synchronizes GTNetExchange configurations with GTNet peers to update GTNetSupplierDetail entries. */
   GTNET_EXCHANGE_SYNC = 23,
 
+  /** Broadcasts settings changes (maxLimit, acceptRequest, serverState, dailyRequestLimit) to all GTNet peers. */
+  GTNET_SETTINGS_BROADCAST = 24,
+
   // Update tasks
   UPD_V_0_11_0 = 51,
 

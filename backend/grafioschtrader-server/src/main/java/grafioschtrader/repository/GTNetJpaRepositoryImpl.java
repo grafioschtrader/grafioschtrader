@@ -33,8 +33,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.common.DataHelper;
+import grafiosch.entities.TaskDataChange;
 import grafiosch.repository.BaseRepositoryImpl;
 import grafiosch.repository.RepositoryHelper;
+import grafiosch.repository.TaskDataChangeJpaRepository;
+import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.entities.GTNet;
 import grafioschtrader.entities.GTNetConfig;
 import grafioschtrader.entities.GTNetConfigEntity;
@@ -64,6 +67,7 @@ import grafioschtrader.m2m.GTNetMessageHelper;
 import grafioschtrader.m2m.client.BaseDataClient;
 import grafioschtrader.m2m.client.BaseDataClient.SendResult;
 import grafioschtrader.service.GlobalparametersService;
+import grafioschtrader.types.TaskTypeExtended;
 import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -106,6 +110,9 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   @Autowired
   @Lazy
   private GTNetMessageHandlerRegistry handlerRegistry;
+
+  @Autowired
+  private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
 
   @Override
   @Transactional
@@ -174,9 +181,11 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       sendServerBusyNotification(gtNetNew, newServerBusyValue);
     }
 
-    // If settings changed, notify all connected peers
+    // If settings changed, schedule background task to notify all connected peers
     if (settingsChanged) {
-      sendSettingsUpdatedNotification(gtNetNew);
+      taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.GTNET_SETTINGS_BROADCAST,
+          TaskDataExecPriority.PRIO_NORMAL));
+      log.info("Scheduled GTNet settings broadcast task for immediate execution");
     }
 
     return gtNetNew;
@@ -341,7 +350,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       MsgRequest msgRequest) {
     // Convert map to typed model class for validation and payload serialization
     Object payloadModel = null;
-    if (gtNetMsgRequest.model != null && msgRequest.gtNetMessageParamMap != null
+    if (gtNetMsgRequest != null && gtNetMsgRequest.model != null && msgRequest.gtNetMessageParamMap != null
         && !msgRequest.gtNetMessageParamMap.isEmpty()) {
       payloadModel = convertMapToTypedModel(gtNetMsgRequest.model, msgRequest.gtNetMessageParamMap);
       validateModel(payloadModel);
@@ -352,7 +361,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
           new GTNetMessage(targetGTNet.getIdGtNet(), new Date(), SendReceivedType.SEND.getValue(), msgRequest.replyTo,
               msgRequest.messageCode.getValue(), msgRequest.message, msgRequest.gtNetMessageParamMap));
       MessageEnvelope meResponse = sendMessage(sourceGTNet, targetGTNet, gtNetMessage, payloadModel);
-      if (gtNetMsgRequest.responseExpected && meResponse != null) {
+      if (gtNetMsgRequest != null && gtNetMsgRequest.responseExpected && meResponse != null) {
         // Save received response with idSourceGtNetMessage from remote and replyTo pointing to our request
         GTNetMessage responseMsg = new GTNetMessage(targetGTNet.getIdGtNet(), meResponse.timestamp,
             SendReceivedType.RECEIVED.getValue(), gtNetMessage.getIdGtNetMessage(), meResponse.messageCode,
@@ -1132,6 +1141,16 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     if (expectedToken == null || !expectedToken.equals(authToken)) {
       throw new SecurityException("Invalid authentication token for domain: " + sourceDomain);
     }
+  }
+
+  @Override
+  @Transactional
+  public void broadcastSettingsUpdate() {
+    Integer myEntryId = GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersService);
+    GTNet myGTNet = gtNetJpaRepository.findById(myEntryId).orElseThrow(
+        () -> new IllegalStateException("My GTNet entry not found with ID: " + myEntryId));
+
+    sendSettingsUpdatedNotification(myGTNet);
   }
 
 }
