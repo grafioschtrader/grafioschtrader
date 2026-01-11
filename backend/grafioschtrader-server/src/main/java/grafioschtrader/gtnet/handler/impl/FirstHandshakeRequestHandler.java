@@ -144,10 +144,11 @@ public class FirstHandshakeRequestHandler extends AbstractGTNetMessageHandler {
     if (existing == null) {
       existing = remoteGTNet;
       existing.setIdGtNet(null); // Ensure new entity
+      existing.setGtNetConfig(null); // Clear any config from payload to avoid transient object exception
       existing.getGtNetEntities().forEach(e -> {
-    	  e.setGtNetConfigEntity(null);
-    	  e.setIdGtNet(null);
-    	  e.setIdGtNetEntity(null);
+        e.setGtNetConfigEntity(null);
+        e.setIdGtNet(null);
+        e.setIdGtNetEntity(null);
       });
     }
     // Save GTNet first to get ID

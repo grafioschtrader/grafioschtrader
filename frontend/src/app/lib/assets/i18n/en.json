@@ -32,7 +32,7 @@
   "EDIT_RECORD": "Edit {{i18nRecord}}",
   "EMAIL": "E-Mail",
   "ENABLED": "Enabled",
-  "ENTITY": "Entity",
+  "ENTITY": "information object",
   "ENTITY_NAME": "Information object",
   "ERROR": "Error",
   "EXECUTION_DURATION_IN_SECONDS": "Duration",

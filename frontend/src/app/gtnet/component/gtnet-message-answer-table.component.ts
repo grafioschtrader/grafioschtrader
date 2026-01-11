@@ -45,6 +45,7 @@ import {GTNetMessageCodeType} from '../model/gtnet.message';
       [containerClass]="{'data-container': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
       [showContextMenu]="!!contextMenuItems && contextMenuItems.length > 0"
       [contextMenuItems]="contextMenuItems"
+      [valueGetterFn]="getValueByPath.bind(this)"
       (componentClick)="onComponentClick($event)">
 
       <h4 caption>{{ 'GT_NET_MESSAGE_ANSWER' | translate }}</h4>
