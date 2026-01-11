@@ -102,7 +102,7 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
     gps: GlobalparameterService,
     messageToastService: MessageToastService,
     gtNetMessageAnswerService: GTNetMessageAnswerService) {
-    super(HelpIds.HELP_GT_NET, AppSettings.GT_NET_MESSAGE_ANSWER.toUpperCase(), translateService, gps,
+    super(HelpIds.HELP_GT_NET, AppHelper.toUpperCaseWithUnderscore(AppSettings.GT_NET_MESSAGE_ANSWER), translateService, gps,
       messageToastService, gtNetMessageAnswerService);
   }
 

@@ -94,14 +94,14 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
   ngOnInit(): void {
     this.addColumn(DataType.String, 'entityKind', 'ENTITY', true, false,
       {translateValues: TranslateValue.NORMAL, width: 150});
-    this.addColumn(DataType.Numeric, 'maxLimit', 'GT_NET_MAX_LIMIT', true, false);
-    this.addColumn(DataType.Boolean, 'exchange', 'LASTPRICE_EXCHANGE', true, false,
+    this.addColumn(DataType.NumericInteger, 'maxLimit', 'GT_NET_MAX_LIMIT', true, false);
+    this.addColumnFeqH(DataType.Boolean, 'exchange',  true, false,
       {templateName: 'check'});
     this.addColumnFeqH(DataType.String, 'supplierLog', true, false,
       {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.String, 'consumerLog', true, false,
       {translateValues: TranslateValue.NORMAL});
-    this.addColumn(DataType.NumericInteger, 'consumerUsage', 'LASTPRICE_CONSUMER_USAGE', true, false);
+    this.addColumnFeqH(DataType.NumericInteger, 'consumerUsage',  true, false);
 
     this.prepareData();
     this.createTranslatedValueStore(this.configEntities);
