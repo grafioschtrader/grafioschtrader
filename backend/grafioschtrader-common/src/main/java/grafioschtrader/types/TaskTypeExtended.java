@@ -56,6 +56,8 @@ public enum TaskTypeExtended implements ITaskType {
   GTNET_EXCHANGE_SYNC((byte) 23),
   /** Broadcasts settings changes (maxLimit, acceptRequest, serverState, dailyRequestLimit) to all GTNet peers. */
   GTNET_SETTINGS_BROADCAST((byte) 24),
+  /** Delivers pending future-oriented GTNet messages and handles cleanup. Runs every 5 hours and on message send. */
+  GTNET_FUTURE_MESSAGE_DELIVERY((byte) 25),
 
   // Task which used oldValueNumber or oldValueString can not created by the admin
   ///////////////////////////////////////////////////////////////////////////////

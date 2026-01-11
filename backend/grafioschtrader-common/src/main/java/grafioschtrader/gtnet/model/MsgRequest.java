@@ -55,4 +55,11 @@ public class MsgRequest {
       (ACCEPT/REJECT codes). If set, the requesting domain must wait this many days before submitting another
       request of the same type. 0 means no waiting period.""")
   public Short waitDaysApply;
+
+  @Schema(description = """
+      ID of the original message being cancelled. Only used for cancellation messages
+      (GT_NET_MAINTENANCE_CANCEL_ALL_C, GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C). Links the cancellation
+      to the original announcement message so the system can determine which recipients received the original
+      and which still have pending delivery attempts.""")
+  public Integer idOriginalMessage;
 }

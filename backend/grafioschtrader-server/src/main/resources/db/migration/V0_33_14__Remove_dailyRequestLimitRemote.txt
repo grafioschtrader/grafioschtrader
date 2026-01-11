@@ -1,6 +1,46 @@
 -- Remove redundant dailyRequestLimitRemote column from gt_net table
 -- The dailyRequestLimit field now serves dual purpose:
--- - For myGTNet (local server): Maximum requests any remote can make to us per day
--- - For remote entries: The remote server's daily limit (how many requests we can make to them)
+-- For myGTNet (local server): Maximum requests any remote can make to us per day
+-- For remote entries: The remote server's daily limit (how many requests we can make to them)
 
 ALTER TABLE gt_net DROP COLUMN IF EXISTS daily_req_limit_remote;
+
+-- V0_33_14: Rework GTNet Message Attempt for Future-Oriented Message Delivery
+-- This migration completely reworks the gt_net_message_attempt table to support
+-- per-target delivery tracking for broadcast messages (maintenance, discontinuation).
+-- No data migration is performed as the old retry-tracking data is not relevant
+-- to the new delivery-tracking purpose.
+
+-- Drop existing gt_net_message_attempt table and recreate with new structure
+DROP TABLE IF EXISTS gt_net_message_attempt;
+
+CREATE TABLE gt_net_message_attempt (
+  id_gt_net_message_attempt INT(11) NOT NULL AUTO_INCREMENT,
+  id_gt_net INT(11) NOT NULL COMMENT 'Target GTNet instance to receive the message',
+  id_gt_net_message INT(11) NOT NULL COMMENT 'The broadcast message to deliver',
+  has_send TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Whether delivery succeeded',
+  send_timestamp TIMESTAMP NULL DEFAULT NULL COMMENT 'When successfully delivered (UTC)',
+  PRIMARY KEY (id_gt_net_message_attempt),
+  KEY idx_attempt_message (id_gt_net_message),
+  KEY idx_attempt_gtnet (id_gt_net),
+  KEY idx_attempt_pending (has_send, id_gt_net_message),
+  UNIQUE KEY uk_message_gtnet (id_gt_net_message, id_gt_net),
+  CONSTRAINT fk_attempt_message FOREIGN KEY (id_gt_net_message)
+    REFERENCES gt_net_message (id_gt_net_message) ON DELETE CASCADE,
+  CONSTRAINT fk_attempt_gtnet FOREIGN KEY (id_gt_net)
+    REFERENCES gt_net (id_gt_net) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+  COMMENT='Tracks per-target delivery status for future-oriented GTNet broadcast messages';
+
+ALTER TABLE gt_net_message DROP COLUMN IF EXISTS id_original_message;
+ALTER TABLE gt_net_config DROP COLUMN IF EXISTS handshake_timestamp;
+
+-- Add id_original_message column to gt_net_message for cancellation tracking
+-- This links cancellation messages (26, 27) to their original announcements (24, 25)
+ALTER TABLE gt_net_message ADD COLUMN id_original_message INT(11) NULL  
+  COMMENT 'Reference to original announcement for cancellation messages' AFTER reply_to;
+
+-- Add handshake_timestamp column to gt_net_config
+-- Used to determine which remotes completed handshake after a pending message was created
+ALTER TABLE gt_net_config ADD COLUMN handshake_timestamp TIMESTAMP NULL DEFAULT NULL
+  COMMENT 'UTC timestamp when first successful handshake completed';

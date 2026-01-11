@@ -9,7 +9,9 @@ import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -45,6 +47,7 @@ import grafioschtrader.entities.GTNetEntity;
 import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.entities.GTNetMessage.GTNetMessageParam;
 import grafioschtrader.entities.GTNetMessageAnswer;
+import grafioschtrader.entities.GTNetMessageAttempt;
 import grafioschtrader.gtnet.AcceptRequestTypes;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
@@ -83,6 +86,13 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_SEL_RR_C.getValue(),
       GTNetMessageCodeType.GT_NET_DATA_REQUEST_SEL_RR_C.getValue());
 
+  /** Message codes for future-oriented messages that use background delivery */
+  private static final Set<GTNetMessageCodeType> FUTURE_ORIENTED_MESSAGE_CODES = Set.of(
+      GTNetMessageCodeType.GT_NET_MAINTENANCE_ALL_C,
+      GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_ALL_C,
+      GTNetMessageCodeType.GT_NET_MAINTENANCE_CANCEL_ALL_C,
+      GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C);
+
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
 
@@ -94,6 +104,9 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
   @Autowired
   private GTNetMessageAnswerJpaRepository gtNetMessageAnswerJpaRepository;
+
+  @Autowired
+  private GTNetMessageAttemptJpaRepository gtNetMessageAttemptJpaRepository;
 
   @Autowired
   private GlobalparametersService globalparametersService;
@@ -296,7 +309,10 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     GTNet sourceGTNet = gtNetJpaRepository
         .findById(GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersService)).orElseThrow();
 
-    if (gtNetMsgRequest != null) {
+    // Future-oriented messages use background delivery via GTNetMessageAttempt
+    if (FUTURE_ORIENTED_MESSAGE_CODES.contains(msgRequest.messageCode)) {
+      handleFutureOrientedBroadcast(sourceGTNet, gtNetList, gtNetMsgRequest, msgRequest);
+    } else if (gtNetMsgRequest != null) {
       // Request message - needs model validation and expects response
       sendAndSaveMsg(sourceGTNet, gtNetList, gtNetMsgRequest, msgRequest);
     } else {
@@ -313,6 +329,65 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   }
 
   /**
+   * Handles future-oriented broadcast messages (maintenance, discontinuation, and their cancellations).
+   * Creates a single GTNetMessage under the sender's own entry and GTNetMessageAttempt entries for
+   * each target. Delivery is handled asynchronously by GTNetFutureMessageDeliveryTask.
+   *
+   * @param sourceGTNet     the local GTNet entry (sender)
+   * @param gtNetList       list of target GTNet entries
+   * @param gtNetMsgRequest metadata about the message type including model class
+   * @param msgRequest      the request containing message parameters
+   */
+  private void handleFutureOrientedBroadcast(GTNet sourceGTNet, List<GTNet> gtNetList, GTNetMsgRequest gtNetMsgRequest,
+      MsgRequest msgRequest) {
+    // Validate model if present
+    if (gtNetMsgRequest != null && gtNetMsgRequest.model != null && msgRequest.gtNetMessageParamMap != null
+        && !msgRequest.gtNetMessageParamMap.isEmpty()) {
+      Object payloadModel = convertMapToTypedModel(gtNetMsgRequest.model, msgRequest.gtNetMessageParamMap);
+      validateModel(payloadModel);
+    }
+
+    // Create ONE message under sender's own entry (not per target)
+    GTNetMessage gtNetMessage = new GTNetMessage(sourceGTNet.getIdGtNet(), new Date(), SendReceivedType.SEND.getValue(),
+        msgRequest.replyTo, msgRequest.messageCode.getValue(), msgRequest.message, msgRequest.gtNetMessageParamMap);
+
+    // For cancellation messages, set idOriginalMessage to link to the original announcement
+    if (msgRequest.messageCode == GTNetMessageCodeType.GT_NET_MAINTENANCE_CANCEL_ALL_C
+        || msgRequest.messageCode == GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C) {
+      gtNetMessage.setIdOriginalMessage(msgRequest.idOriginalMessage);
+    }
+
+    gtNetMessage = gtNetMessageJpaRepository.saveMsg(gtNetMessage);
+    log.info("Created future-oriented broadcast message {} (code: {})", gtNetMessage.getIdGtNetMessage(),
+        msgRequest.messageCode);
+
+    // Create GTNetMessageAttempt entries for each target with completed handshake
+    int attemptsCreated = 0;
+    for (GTNet targetGTNet : gtNetList) {
+      // Skip our own entry
+      if (targetGTNet.getIdGtNet().equals(sourceGTNet.getIdGtNet())) {
+        continue;
+      }
+
+      // Only create attempts for targets with completed handshake
+      if (targetGTNet.getGtNetConfig() != null && targetGTNet.getGtNetConfig().getTokenRemote() != null) {
+        GTNetMessageAttempt attempt = new GTNetMessageAttempt(targetGTNet.getIdGtNet(),
+            gtNetMessage.getIdGtNetMessage());
+        gtNetMessageAttemptJpaRepository.save(attempt);
+        attemptsCreated++;
+      }
+    }
+
+    log.info("Created {} GTNetMessageAttempt entries for message {}", attemptsCreated,
+        gtNetMessage.getIdGtNetMessage());
+
+    // Schedule immediate delivery task
+    taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.GTNET_FUTURE_MESSAGE_DELIVERY,
+        TaskDataExecPriority.PRIO_NORMAL));
+    log.info("Scheduled GTNet future message delivery task for immediate execution");
+  }
+
+  /**
    * Saves a copy of a broadcast message under the own server's GTNet entry.
    * This allows administrators to see sent broadcast messages in their own server's message list.
    */
@@ -326,7 +401,9 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     if (msgRequest.messageCode.name().contains(GTNetModelHelper.MESSAGE_TO_ALL)) {
       // All broadcast messages go to servers with configured data exchange
       return switch (msgRequest.messageCode) {
-      case GT_NET_OFFLINE_ALL_C, GT_NET_ONLINE_ALL_C, GT_NET_BUSY_ALL_C, GT_NET_RELEASED_BUSY_ALL_C, GT_NET_MAINTENANCE_ALL_C, GT_NET_OPERATION_DISCONTINUED_ALL_C -> gtNetJpaRepository
+      case GT_NET_OFFLINE_ALL_C, GT_NET_ONLINE_ALL_C, GT_NET_BUSY_ALL_C, GT_NET_RELEASED_BUSY_ALL_C,
+          GT_NET_MAINTENANCE_ALL_C, GT_NET_OPERATION_DISCONTINUED_ALL_C,
+          GT_NET_MAINTENANCE_CANCEL_ALL_C, GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C -> gtNetJpaRepository
           .findWithConfiguredExchange();
       default -> List.of();
       };
@@ -859,8 +936,14 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
             continue;
           }
         } else if (LocalDateTime.class.isAssignableFrom(field.getType())) {
-          // Handle LocalDateTime - parse ISO-8601 string
-          convertedValue = LocalDateTime.parse(value);
+          // Handle LocalDateTime - parse ISO-8601 string (may include 'Z' timezone)
+          if (value.endsWith("Z")) {
+            // ISO-8601 with UTC timezone indicator (e.g., "2026-01-13T14:24:00.000Z")
+            convertedValue = LocalDateTime.ofInstant(Instant.parse(value), ZoneOffset.UTC);
+          } else {
+            // Plain LocalDateTime format (e.g., "2026-01-13T14:24:00")
+            convertedValue = LocalDateTime.parse(value);
+          }
         } else if (field.getType().isEnum()) {
           // Handle single enum value
           convertedValue = Enum.valueOf((Class<Enum>) field.getType(), value);
