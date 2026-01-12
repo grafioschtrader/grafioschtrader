@@ -31,6 +31,7 @@ import grafioschtrader.entities.GTNetConfig;
 import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.entities.GTNetMessage.GTNetMessageParam;
 import grafioschtrader.entities.GTNetMessageAttempt;
+import grafioschtrader.gtnet.DeliveryStatus;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.GTNetModelHelper;
 import grafioschtrader.gtnet.SendReceivedType;
@@ -282,9 +283,13 @@ public class GTNetFutureMessageDeliveryTask implements ITask {
       // Build the payload model for the message
       Object payloadModel = buildPayloadModel(message);
 
+      int successCount = 0;
+      int failCount = 0;
+
       for (GTNetMessageAttempt attempt : attempts) {
         Optional<GTNet> targetOpt = gtNetJpaRepository.findById(attempt.getIdGtNet());
         if (targetOpt.isEmpty()) {
+          failCount++;
           continue;
         }
 
@@ -293,7 +298,7 @@ public class GTNetFutureMessageDeliveryTask implements ITask {
         // Check if handshake is complete (tokenRemote exists)
         if (targetGTNet.getGtNetConfig() == null ||
             targetGTNet.getGtNetConfig().getTokenRemote() == null) {
-          continue;
+          continue; // Not counted as fail - handshake may complete later
         }
 
         boolean success = sendMessageToTarget(myGTNet, targetGTNet, message, payloadModel);
@@ -301,12 +306,44 @@ public class GTNetFutureMessageDeliveryTask implements ITask {
           attempt.markAsSent();
           gtNetMessageAttemptJpaRepository.save(attempt);
           delivered++;
+          successCount++;
           log.info("Delivered message {} to target {}", messageId, targetGTNet.getDomainRemoteName());
+        } else {
+          failCount++;
         }
       }
+
+      // Update deliveryStatus based on results
+      updateMessageDeliveryStatus(message, successCount, failCount, attempts.size());
     }
 
     return delivered;
+  }
+
+  /**
+   * Updates the deliveryStatus on a GTNetMessage based on delivery results.
+   *
+   * @param message      the message to update
+   * @param successCount number of successful deliveries
+   * @param failCount    number of failed deliveries
+   * @param totalAttempts total number of attempts processed
+   */
+  private void updateMessageDeliveryStatus(GTNetMessage message, int successCount, int failCount, int totalAttempts) {
+    DeliveryStatus currentStatus = message.getDeliveryStatus();
+
+    if (successCount > 0 && currentStatus != DeliveryStatus.DELIVERED) {
+      // At least one successful delivery
+      message.setDeliveryStatus(DeliveryStatus.DELIVERED);
+      gtNetMessageJpaRepository.save(message);
+      log.debug("Updated message {} deliveryStatus to DELIVERED (success: {}, fail: {})",
+          message.getIdGtNetMessage(), successCount, failCount);
+    } else if (successCount == 0 && failCount == totalAttempts && failCount > 0) {
+      // All attempts failed
+      message.setDeliveryStatus(DeliveryStatus.FAILED);
+      gtNetMessageJpaRepository.save(message);
+      log.warn("Updated message {} deliveryStatus to FAILED (all {} attempts failed)",
+          message.getIdGtNetMessage(), failCount);
+    }
   }
 
   /**
@@ -324,7 +361,13 @@ public class GTNetFutureMessageDeliveryTask implements ITask {
       String tokenRemote = targetGTNet.getGtNetConfig().getTokenRemote();
       SendResult result = baseDataClient.sendToMsgWithStatus(tokenRemote, targetGTNet.getDomainRemoteName(), envelope);
 
-      return result.serverReachable();
+      if (result.isFailed()) {
+        log.warn("Failed to deliver message {} to {}: httpError={}, statusCode={}, reachable={}",
+            message.getIdGtNetMessage(), targetGTNet.getDomainRemoteName(),
+            result.httpError(), result.httpStatusCode(), result.serverReachable());
+        return false;
+      }
+      return result.isDelivered();
     } catch (Exception e) {
       log.warn("Failed to send message {} to {}: {}", message.getIdGtNetMessage(),
           targetGTNet.getDomainRemoteName(), e.getMessage());

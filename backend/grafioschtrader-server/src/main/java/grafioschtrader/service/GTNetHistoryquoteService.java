@@ -437,8 +437,12 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
         supplier.getDomainRemoteName(),
         pushEnvelope);
 
-    if (!result.serverReachable()) {
-      log.warn("GTNet server {} is unreachable for push", supplier.getDomainRemoteName());
+    if (result.isFailed()) {
+      if (result.httpError()) {
+        log.warn("GTNet server {} returned HTTP error {} for push", supplier.getDomainRemoteName(), result.httpStatusCode());
+      } else {
+        log.warn("GTNet server {} is unreachable for push", supplier.getDomainRemoteName());
+      }
     }
   }
 
@@ -534,8 +538,12 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
         supplier.getDomainRemoteName(),
         requestEnvelope);
 
-    if (!result.serverReachable()) {
-      log.warn("GTNet server {} is unreachable", supplier.getDomainRemoteName());
+    if (result.isFailed()) {
+      if (result.httpError()) {
+        log.warn("GTNet server {} returned HTTP error {}", supplier.getDomainRemoteName(), result.httpStatusCode());
+      } else {
+        log.warn("GTNet server {} is unreachable", supplier.getDomainRemoteName());
+      }
       return new QueryResult(0, null, null);
     }
 
@@ -663,8 +671,13 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
         supplier.getDomainRemoteName(),
         pushEnvelope);
 
-    if (!result.serverReachable()) {
-      log.warn("GTNet server {} is unreachable for push", supplier.getDomainRemoteName());
+    if (result.isFailed()) {
+      if (result.httpError()) {
+        log.warn("GTNet server {} returned HTTP error {} for historical data push",
+            supplier.getDomainRemoteName(), result.httpStatusCode());
+      } else {
+        log.warn("GTNet server {} is unreachable for historical data push", supplier.getDomainRemoteName());
+      }
     }
   }
 
