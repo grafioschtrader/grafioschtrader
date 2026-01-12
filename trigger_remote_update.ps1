@@ -6,7 +6,10 @@
 
 # Configuration - Remote hosts to update
 $RemoteHosts = @(
+    "grafioschtrader.com",
+    "192.168.100.10",
     "192.168.100.16",
+    "192.168.100.86",
     "192.168.100.87"
 )
 
@@ -29,9 +32,9 @@ $Processes = @()
 foreach ($HostName in $RemoteHosts) {
     Write-Host "[STARTING] $HostName..." -ForegroundColor Cyan
 
-    # Start SSH process directly (not via Start-Job)
+    # Start SSH process directly with login shell (loads ~/.profile for Maven PATH)
     $Process = Start-Process -FilePath "ssh" `
-        -ArgumentList "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", "$RemoteUser@$HostName", $RemoteScript `
+        -ArgumentList "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", "$RemoteUser@$HostName", "bash -l -c '$RemoteScript'" `
         -NoNewWindow -PassThru
 
     $Processes += @{

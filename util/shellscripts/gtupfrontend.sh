@@ -18,6 +18,5 @@ if [ $memorytotal -lt 3700 ]
    else
     echo "n n" | ng build --configuration production --base-href /$basehref
    fi
-rm -rf $docroot/${basehref}assets
-rm -f $docroot/${basehref}*
+[ -d "$docroot/$basehref" ] && rm -rf $docroot/${basehref}*
 cp -r $builddir/grafioschtrader/frontend/dist/browser/* $docroot/$basehref
