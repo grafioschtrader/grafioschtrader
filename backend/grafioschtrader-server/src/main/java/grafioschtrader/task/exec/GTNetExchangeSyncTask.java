@@ -2,6 +2,7 @@ package grafioschtrader.task.exec;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,8 +66,11 @@ public class GTNetExchangeSyncTask implements ITask {
     Date lastSyncTimestamp = globalparametersService.getGTNetExchangeSyncTimestamp();
     log.info("Starting GTNet exchange sync (last sync: {})", lastSyncTimestamp);
 
-    // Get all accessible AC_OPEN suppliers
-    List<GTNet> allSuppliers = gtNetJpaRepository.findOpenSuppliers();
+    // Get all accessible AC_OPEN suppliers, excluding own entry to prevent self-communication
+    Integer myEntryId = globalparametersService.getGTNetMyEntryID();
+    List<GTNet> allSuppliers = gtNetJpaRepository.findOpenSuppliers().stream()
+        .filter(peer -> myEntryId == null || !peer.getIdGtNet().equals(myEntryId))
+        .collect(Collectors.toList());
 
     if (allSuppliers.isEmpty()) {
       log.info("No accessible peers configured for exchange sync");

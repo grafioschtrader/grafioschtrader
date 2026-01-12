@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,17 +155,17 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
       queryLocalPushPoolIfPushOpen(gtNetInstruments);
     }
 
-    // 4. Query push-open servers by priority
+    // 4. Query push-open servers by priority (excluding own entry to prevent self-communication)
     if (!gtNetInstruments.isEmpty() && !gtNetInstruments.allFilled()) {
       List<GTNet> pushOpenSuppliers = getSuppliersByPriorityWithRandomization(
-          gtNetJpaRepository.findPushOpenSuppliers(), GTNetExchangeKindType.LAST_PRICE);
+          excludeOwnEntry(gtNetJpaRepository.findPushOpenSuppliers()), GTNetExchangeKindType.LAST_PRICE);
       queryRemoteServers(pushOpenSuppliers, gtNetInstruments);
     }
 
-    // 5. Query open servers for remaining
+    // 5. Query open servers for remaining (excluding own entry to prevent self-communication)
     if (!gtNetInstruments.isEmpty() && !gtNetInstruments.allFilled()) {
       List<GTNet> openSuppliers = getSuppliersByPriorityWithRandomization(
-          gtNetJpaRepository.findOpenSuppliers(), GTNetExchangeKindType.LAST_PRICE);
+          excludeOwnEntry(gtNetJpaRepository.findOpenSuppliers()), GTNetExchangeKindType.LAST_PRICE);
       queryRemoteServers(openSuppliers, gtNetInstruments);
     }
 
@@ -427,6 +428,23 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
 
   private boolean containsCurrencypair(List<Currencypair> list, Currencypair currencypair) {
     return list.stream().anyMatch(cp -> cp.getIdSecuritycurrency().equals(currencypair.getIdSecuritycurrency()));
+  }
+
+  /**
+   * Excludes the local server's own entry from the supplier list.
+   * This prevents the server from attempting to query itself for data, which would fail token validation.
+   *
+   * @param suppliers list of GTNet supplier entries
+   * @return filtered list excluding the local server's entry
+   */
+  private List<GTNet> excludeOwnEntry(List<GTNet> suppliers) {
+    Integer myEntryId = globalparametersService.getGTNetMyEntryID();
+    if (myEntryId == null) {
+      return suppliers;
+    }
+    return suppliers.stream()
+        .filter(supplier -> !supplier.getIdGtNet().equals(myEntryId))
+        .collect(Collectors.toList());
   }
 
   /**
