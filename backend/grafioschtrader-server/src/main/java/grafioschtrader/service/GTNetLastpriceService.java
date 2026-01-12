@@ -122,11 +122,17 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
   private SecurityCurrency executeGTNetExchange(List<Security> securities,
       List<Currencypair> currencypairs, List<Currencypair> currenciesNotInList) {
 
+    long totalStart = System.nanoTime();
+    long stepStart;
+
     // 1. Get IDs of instruments configured for GTNet receive (from both securities and currency pairs)
+    stepStart = System.nanoTime();
     Set<Integer> gtNetEnabledIds = new HashSet<>(securityJpaRepository.findIdsWithGtNetLastpriceRecv());
     gtNetEnabledIds.addAll(currencypairJpaRepository.findIdsWithGtNetLastpriceRecv());
+    log.debug("Step 1 - Get GTNet enabled IDs: {} ms", (System.nanoTime() - stepStart) / 1_000_000);
 
     // 2. Build instrument sets - separate GTNet-enabled from connector-only
+    stepStart = System.nanoTime();
     InstrumentExchangeSet gtNetInstruments = new InstrumentExchangeSet();
     List<Security> connectorOnlySecurities = new ArrayList<>();
     List<Currencypair> connectorOnlyCurrencypairs = new ArrayList<>();
@@ -146,48 +152,62 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
         connectorOnlyCurrencypairs.add(currencypair);
       }
     }
+    log.debug("Step 2 - Build instrument sets: {} ms", (System.nanoTime() - stepStart) / 1_000_000);
 
     log.info("GTNet exchange: {} instruments enabled, {} securities connector-only, {} pairs connector-only",
         gtNetInstruments.getTotalCount(), connectorOnlySecurities.size(), connectorOnlyCurrencypairs.size());
 
     // 3. If local server is AC_PUSH_OPEN, query own push pool first (before contacting remote servers)
-    if (!gtNetInstruments.isEmpty() && !gtNetInstruments.allFilled()) {
+    if (needsFilling(gtNetInstruments)) {
+      stepStart = System.nanoTime();
       queryLocalPushPoolIfPushOpen(gtNetInstruments);
+      log.debug("Step 3 - Query local push pool: {} ms", (System.nanoTime() - stepStart) / 1_000_000);
     }
 
     // 4. Query push-open servers by priority (excluding own entry to prevent self-communication)
-    if (!gtNetInstruments.isEmpty() && !gtNetInstruments.allFilled()) {
+    if (needsFilling(gtNetInstruments)) {
+      stepStart = System.nanoTime();
       List<GTNet> pushOpenSuppliers = getSuppliersByPriorityWithRandomization(
           excludeOwnEntry(gtNetJpaRepository.findPushOpenSuppliers()), GTNetExchangeKindType.LAST_PRICE);
       queryRemoteServers(pushOpenSuppliers, gtNetInstruments);
+      log.debug("Step 4 - Query push-open servers: {} ms", (System.nanoTime() - stepStart) / 1_000_000);
     }
 
     // 5. Query open servers for remaining (excluding own entry to prevent self-communication)
-    if (!gtNetInstruments.isEmpty() && !gtNetInstruments.allFilled()) {
+    if (needsFilling(gtNetInstruments)) {
+      stepStart = System.nanoTime();
       List<GTNet> openSuppliers = getSuppliersByPriorityWithRandomization(
           excludeOwnEntry(gtNetJpaRepository.findOpenSuppliers()), GTNetExchangeKindType.LAST_PRICE);
       queryRemoteServers(openSuppliers, gtNetInstruments);
+      log.debug("Step 5 - Query open servers: {} ms", (System.nanoTime() - stepStart) / 1_000_000);
     }
 
     // 6. Collect unfilled instruments for connector fallback
+    stepStart = System.nanoTime();
     List<Security> remainingSecurities = gtNetInstruments.getUnfilledSecurities();
     remainingSecurities.addAll(connectorOnlySecurities);
 
     List<Currencypair> remainingPairs = gtNetInstruments.getUnfilledCurrencypairs();
     remainingPairs.addAll(connectorOnlyCurrencypairs);
+    log.debug("Step 6 - Collect unfilled instruments: {} ms", (System.nanoTime() - stepStart) / 1_000_000);
 
     log.info("GTNet exchange complete: {} securities remaining for connector, {} currency pairs remaining",
         remainingSecurities.size(), remainingPairs.size());
 
     // 7. Fall back to connectors for remaining instruments
+    stepStart = System.nanoTime();
     currencypairJpaRepository.updateLastPriceByList(currenciesNotInList);
     List<Security> updatedSecurities = securityJpaRepository.updateLastPriceByList(remainingSecurities);
     List<Currencypair> updatedPairs = currencypairJpaRepository.updateLastPriceByList(remainingPairs);
+    log.debug("Step 7 - Connector fallback: {} ms", (System.nanoTime() - stepStart) / 1_000_000);
 
     // 8. If local server is AC_PUSH_OPEN, update push pool with connector-fetched prices
+    stepStart = System.nanoTime();
     updatePushPoolIfPushOpen(updatedSecurities, updatedPairs);
+    log.debug("Step 8 - Update push pool: {} ms", (System.nanoTime() - stepStart) / 1_000_000);
 
-    // Combine with already-filled instruments
+    // 9. Combine with already-filled instruments
+    stepStart = System.nanoTime();
     List<Security> allSecurities = new ArrayList<>(gtNetInstruments.getAllSecurities());
     for (Security s : updatedSecurities) {
       if (!containsSecurity(allSecurities, s)) {
@@ -201,7 +221,9 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
         allPairs.add(cp);
       }
     }
+    log.debug("Step 9 - Combine results: {} ms", (System.nanoTime() - stepStart) / 1_000_000);
 
+    log.debug("Total executeGTNetExchange: {} ms", (System.nanoTime() - totalStart) / 1_000_000);
     return new SecurityCurrency(allSecurities, allPairs);
   }
 
@@ -428,6 +450,10 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
 
   private boolean containsCurrencypair(List<Currencypair> list, Currencypair currencypair) {
     return list.stream().anyMatch(cp -> cp.getIdSecuritycurrency().equals(currencypair.getIdSecuritycurrency()));
+  }
+
+  private boolean needsFilling(InstrumentExchangeSet instruments) {
+    return !instruments.isEmpty() && !instruments.allFilled();
   }
 
   /**
