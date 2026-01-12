@@ -49,16 +49,44 @@ public class BaseDataClient {
 
   /**
    * Result wrapper for M2M message sending operations.
-   * Indicates whether the target server is reachable and provides the response if successful.
+   * Distinguishes between successful delivery, HTTP errors, and network failures.
    */
-  public record SendResult(boolean serverReachable, MessageEnvelope response, boolean serverBusy) {
+  public record SendResult(boolean serverReachable, boolean httpError, int httpStatusCode,
+      MessageEnvelope response, boolean serverBusy) {
 
+    /**
+     * Message was successfully delivered and a response was received.
+     */
     public static SendResult success(MessageEnvelope response) {
-      return new SendResult(true, response, response != null && response.serverBusy);
+      return new SendResult(true, false, 200, response, response != null && response.serverBusy);
     }
 
+    /**
+     * Server is unreachable due to network/connection error.
+     */
     public static SendResult unreachable() {
-      return new SendResult(false, null, false);
+      return new SendResult(false, false, 0, null, false);
+    }
+
+    /**
+     * Server responded with an HTTP error status (4xx, 5xx).
+     */
+    public static SendResult httpError(int statusCode) {
+      return new SendResult(true, true, statusCode, null, false);
+    }
+
+    /**
+     * Returns true if the message was successfully delivered (server reachable and no HTTP error).
+     */
+    public boolean isDelivered() {
+      return serverReachable && !httpError && response != null;
+    }
+
+    /**
+     * Returns true if delivery failed (unreachable or HTTP error).
+     */
+    public boolean isFailed() {
+      return !serverReachable || httpError;
     }
   }
 
@@ -133,7 +161,7 @@ public class BaseDataClient {
     } catch (WebClientResponseException e) {
       // Server responded with an error status (4xx, 5xx) - server is reachable but returned error
       log.warn("GTNet server at {} returned error status {}: {}", targetDomain, e.getStatusCode(), e.getMessage());
-      return SendResult.success(null);
+      return SendResult.httpError(e.getStatusCode().value());
     }
   }
 

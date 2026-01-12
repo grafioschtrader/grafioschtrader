@@ -113,8 +113,12 @@ public class GTNetExchangeSyncService {
     SendResult result = baseDataClient.sendToMsgWithStatus(
         config.getTokenRemote(), peer.getDomainRemoteName(), requestEnvelope);
 
-    if (!result.serverReachable()) {
-      log.warn("Peer {} is unreachable for exchange sync", peer.getDomainRemoteName());
+    if (result.isFailed()) {
+      if (result.httpError()) {
+        log.warn("Peer {} returned HTTP error {} for exchange sync", peer.getDomainRemoteName(), result.httpStatusCode());
+      } else {
+        log.warn("Peer {} is unreachable for exchange sync", peer.getDomainRemoteName());
+      }
       return false;
     }
 

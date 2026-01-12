@@ -289,8 +289,12 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
         supplier.getDomainRemoteName(),
         requestEnvelope);
 
-    if (!result.serverReachable()) {
-      log.warn("GTNet server {} is unreachable", supplier.getDomainRemoteName());
+    if (result.isFailed()) {
+      if (result.httpError()) {
+        log.warn("GTNet server {} returned HTTP error {}", supplier.getDomainRemoteName(), result.httpStatusCode());
+      } else {
+        log.warn("GTNet server {} is unreachable", supplier.getDomainRemoteName());
+      }
       return;
     }
 

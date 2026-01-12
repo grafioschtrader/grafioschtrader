@@ -109,14 +109,16 @@ public class GTNetServerStatusCheckTask implements ITask {
     try {
       SendResult result = GTNetMessageHelper.sendPingWithStatus(baseDataClient, myGTNet, peer);
 
+      // Server is considered online if it's reachable at network level (even if it returns HTTP errors)
       GTNetServerOnlineStatusTypes newStatus = GTNetServerOnlineStatusTypes.fromReachable(result.serverReachable());
       peer.setServerOnline(newStatus);
-      if (result.serverReachable() && result.response() != null) {
-        peer.setServerBusy(result.serverBusy());
-      }
 
-      if (result.serverReachable()) {
+      if (result.isDelivered()) {
+        peer.setServerBusy(result.serverBusy());
         log.debug("Peer {} is online (busy={})", peer.getDomainRemoteName(), peer.isServerBusy());
+      } else if (result.httpError()) {
+        // Server is reachable but returned HTTP error (e.g., 404, 500)
+        log.debug("Peer {} is online but returned HTTP error {}", peer.getDomainRemoteName(), result.httpStatusCode());
       } else {
         log.debug("Peer {} is offline", peer.getDomainRemoteName());
       }

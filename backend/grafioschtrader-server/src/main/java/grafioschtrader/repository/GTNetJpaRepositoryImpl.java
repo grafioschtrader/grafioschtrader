@@ -49,6 +49,7 @@ import grafioschtrader.entities.GTNetMessage.GTNetMessageParam;
 import grafioschtrader.entities.GTNetMessageAnswer;
 import grafioschtrader.entities.GTNetMessageAttempt;
 import grafioschtrader.gtnet.AcceptRequestTypes;
+import grafioschtrader.gtnet.DeliveryStatus;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.GTNetModelHelper;
@@ -458,7 +459,12 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       GTNetMessage gtNetMessage = gtNetMessageJpaRepository.saveMsg(
           new GTNetMessage(targetGTNet.getIdGtNet(), new Date(), SendReceivedType.SEND.getValue(), msgRequest.replyTo,
               msgRequest.messageCode.getValue(), msgRequest.message, msgRequest.gtNetMessageParamMap));
-      MessageEnvelope meResponse = sendMessage(sourceGTNet, targetGTNet, gtNetMessage, payloadModel);
+      SendResult sendResult = sendMessageWithResult(sourceGTNet, targetGTNet, gtNetMessage, payloadModel);
+      MessageEnvelope meResponse = sendResult != null ? sendResult.response() : null;
+
+      // Update deliveryStatus based on send result
+      updateDeliveryStatus(gtNetMessage, sendResult);
+
       if (gtNetMsgRequest != null && gtNetMsgRequest.responseExpected && meResponse != null) {
         // Save received response with idSourceGtNetMessage from remote and replyTo pointing to our request
         GTNetMessage responseMsg = new GTNetMessage(targetGTNet.getIdGtNet(), meResponse.timestamp,
@@ -478,6 +484,21 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       // Apply side effects for outgoing announcement messages
       applyOutgoingSideEffects(targetGTNet, msgRequest);
     }
+  }
+
+  /**
+   * Updates the deliveryStatus on a message based on the send result.
+   */
+  private void updateDeliveryStatus(GTNetMessage message, SendResult sendResult) {
+    if (sendResult == null) {
+      message.setDeliveryStatus(DeliveryStatus.FAILED);
+    } else if (sendResult.isDelivered()) {
+      message.setDeliveryStatus(DeliveryStatus.DELIVERED);
+    } else if (sendResult.isFailed()) {
+      message.setDeliveryStatus(DeliveryStatus.FAILED);
+    }
+    // PENDING status remains if result is unclear (e.g., awaiting retry)
+    gtNetMessageJpaRepository.save(message);
   }
 
   /**
@@ -833,8 +854,11 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       String tokenRemote = targetGTNet.getGtNetConfig() != null ? targetGTNet.getGtNetConfig().getTokenRemote() : null;
       SendResult result = baseDataClient.sendToMsgWithStatus(tokenRemote, targetGTNet.getDomainRemoteName(), meRequest);
 
+      // Update deliveryStatus on the message
+      updateDeliveryStatus(gtNetMessage, result);
+
       // Update target server's status based on response
-      if (result.serverReachable() && result.response() != null) {
+      if (result.isDelivered()) {
         updateRemoteGTNetFromEnvelope(targetGTNet, result.response());
       } else if (!result.serverReachable()) {
         if (targetGTNet.getServerOnline() != GTNetServerOnlineStatusTypes.SOS_OFFLINE) {
@@ -842,6 +866,8 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
           gtNetJpaRepository.save(targetGTNet);
         }
       }
+      // HTTP errors: server is reachable but returned error - don't change online status
+
       return result.response();
     }
     return null;
@@ -992,10 +1018,16 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
   private MessageEnvelope sendMessage(GTNet sourceGTNet, GTNet targetGTNet, GTNetMessage gtNetMessage,
       Object payLoadObject) {
+    SendResult result = sendMessageWithResult(sourceGTNet, targetGTNet, gtNetMessage, payLoadObject);
+    return result != null ? result.response() : null;
+  }
+
+  private SendResult sendMessageWithResult(GTNet sourceGTNet, GTNet targetGTNet, GTNetMessage gtNetMessage,
+      Object payLoadObject) {
     if (gtNetMessage.getMessageCode() != GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_SEL_RR_S
         ? hasOrCreateFirstContact(sourceGTNet, targetGTNet)
         : true) {
-      return sendMessageWithStatusUpdate(sourceGTNet, targetGTNet, gtNetMessage, payLoadObject);
+      return sendMessageWithStatusUpdateResult(sourceGTNet, targetGTNet, gtNetMessage, payLoadObject);
     }
     return null;
   }
@@ -1011,6 +1043,21 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    */
   private MessageEnvelope sendMessageWithStatusUpdate(GTNet sourceGTNet, GTNet targetGTNet, GTNetMessage gtNetMessage,
       Object payLoadObject) {
+    SendResult result = sendMessageWithStatusUpdateResult(sourceGTNet, targetGTNet, gtNetMessage, payLoadObject);
+    return result != null ? result.response() : null;
+  }
+
+  /**
+   * Sends a message to a remote GTNet server and returns the full SendResult.
+   *
+   * @param sourceGTNet   the local GTNet entry (provides serverBusy flag for outgoing envelope)
+   * @param targetGTNet   the remote GTNet entry to send to (will be updated with online/busy status)
+   * @param gtNetMessage  the message to send
+   * @param payLoadObject optional payload object to include
+   * @return the SendResult containing delivery status, response, and error info
+   */
+  private SendResult sendMessageWithStatusUpdateResult(GTNet sourceGTNet, GTNet targetGTNet, GTNetMessage gtNetMessage,
+      Object payLoadObject) {
     MessageEnvelope meRequest = new MessageEnvelope(sourceGTNet, gtNetMessage);
     if (payLoadObject != null) {
       meRequest.payload = objectMapper.convertValue(payLoadObject, JsonNode.class);
@@ -1020,7 +1067,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     SendResult result = baseDataClient.sendToMsgWithStatus(tokenRemote, targetGTNet.getDomainRemoteName(), meRequest);
 
     // Update target server's status based on response
-    if (result.serverReachable() && result.response() != null) {
+    if (result.isDelivered()) {
       updateRemoteGTNetFromEnvelope(targetGTNet, result.response());
     } else if (!result.serverReachable()) {
       // Server unreachable - update online status
@@ -1029,8 +1076,10 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
         gtNetJpaRepository.save(targetGTNet);
       }
     }
+    // Note: HTTP errors (result.httpError()) mean server is reachable but returned error
+    // We don't change online status for HTTP errors - server is technically online
 
-    return result.response();
+    return result;
   }
 
   /**
