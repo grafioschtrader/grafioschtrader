@@ -882,7 +882,12 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
           .saveMsg(new GTNetMessage(targetGTNet.getIdGtNet(), new Date(), SendReceivedType.SEND.getValue(), null,
               GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_SEL_RR_S.getValue(), null, msgMap));
       // Send our GTNet entity in the payload so the receiver can register us
-      MessageEnvelope meResponse = sendMessage(sourceGTNet, targetGTNet, gtNetMessageRequest, sourceGTNet);
+      SendResult sendResult = sendMessageWithResult(sourceGTNet, targetGTNet, gtNetMessageRequest, sourceGTNet);
+      MessageEnvelope meResponse = sendResult != null ? sendResult.response() : null;
+
+      // Update deliveryStatus based on send result
+      updateDeliveryStatus(gtNetMessageRequest, sendResult);
+
       if (meResponse != null
           && meResponse.messageCode == GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_ACCEPT_S.getValue()) {
         // Extract the token they gave us from their response
