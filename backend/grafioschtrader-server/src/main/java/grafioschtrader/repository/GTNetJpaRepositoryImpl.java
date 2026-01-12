@@ -222,7 +222,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     MsgRequest msgRequest = new MsgRequest();
     msgRequest.messageCode = messageCode;
     GTNetModelHelper.GTNetMsgRequest gtNetMsgRequest = GTNetModelHelper.getMsgClassByMessageCode(messageCode);
-    List<GTNet> targets = gtNetJpaRepository.findWithConfiguredExchange();
+    List<GTNet> targets = getRemotePeersWithExchange();
 
     if (!targets.isEmpty()) {
       sendAndSaveMsg(myGTNet, targets, gtNetMsgRequest, msgRequest);
@@ -276,7 +276,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     MsgRequest msgRequest = new MsgRequest();
     msgRequest.messageCode = messageCode;
     GTNetModelHelper.GTNetMsgRequest gtNetMsgRequest = GTNetModelHelper.getMsgClassByMessageCode(messageCode);
-    List<GTNet> targets = gtNetJpaRepository.findWithConfiguredExchange();
+    List<GTNet> targets = getRemotePeersWithExchange();
 
     if (!targets.isEmpty()) {
       sendAndSaveMsg(myGTNet, targets, gtNetMsgRequest, msgRequest);
@@ -399,12 +399,11 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
   private List<GTNet> getTargetDomains(MsgRequest msgRequest) {
     if (msgRequest.messageCode.name().contains(GTNetModelHelper.MESSAGE_TO_ALL)) {
-      // All broadcast messages go to servers with configured data exchange
+      // All broadcast messages go to remote servers with configured data exchange (excludes own entry)
       return switch (msgRequest.messageCode) {
       case GT_NET_OFFLINE_ALL_C, GT_NET_ONLINE_ALL_C, GT_NET_BUSY_ALL_C, GT_NET_RELEASED_BUSY_ALL_C,
           GT_NET_MAINTENANCE_ALL_C, GT_NET_OPERATION_DISCONTINUED_ALL_C,
-          GT_NET_MAINTENANCE_CANCEL_ALL_C, GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C -> gtNetJpaRepository
-          .findWithConfiguredExchange();
+          GT_NET_MAINTENANCE_CANCEL_ALL_C, GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C -> getRemotePeersWithExchange();
       default -> List.of();
       };
     } else {
@@ -412,6 +411,23 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       gtNetJpaRepository.findById(msgRequest.idGTNetTargetDomain).stream().forEach(n -> gtNetList.add(n));
       return gtNetList;
     }
+  }
+
+  /**
+   * Returns all GTNet entries with configured data exchange, excluding the local server's own entry.
+   * This prevents the server from attempting to send messages to itself, which would fail token validation.
+   *
+   * @return list of remote GTNet entries with configured exchange
+   */
+  private List<GTNet> getRemotePeersWithExchange() {
+    Integer myEntryId = globalparametersService.getGTNetMyEntryID();
+    List<GTNet> allPeers = gtNetJpaRepository.findWithConfiguredExchange();
+    if (myEntryId == null) {
+      return allPeers;
+    }
+    return allPeers.stream()
+        .filter(peer -> !peer.getIdGtNet().equals(myEntryId))
+        .collect(Collectors.toList());
   }
 
   // Send Message
