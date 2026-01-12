@@ -238,8 +238,11 @@ public class RestErrorHandler {
   @ExceptionHandler(value = { SecurityException.class })
   @ResponseStatus(HttpStatus.UNAUTHORIZED)
   public ErrorWrapper processSecurityException(final SecurityException ex) {
-    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    userService.incrementRightsLimitCount(user.getIdUser(), UserRightLimitCounter.SECURITY_BREACH);
+    // Only increment breach counter if we have a valid user authentication (not M2M token auth)
+    var authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication != null && authentication.getDetails() instanceof User user) {
+      userService.incrementRightsLimitCount(user.getIdUser(), UserRightLimitCounter.SECURITY_BREACH);
+    }
     ex.printStackTrace();
     final Locale currentLocale = LocaleContextHolder.getLocale();
     return new ErrorWrapper(new SecurityBreachError(messageSource.getMessage(ex.getMessage(), null, currentLocale)));

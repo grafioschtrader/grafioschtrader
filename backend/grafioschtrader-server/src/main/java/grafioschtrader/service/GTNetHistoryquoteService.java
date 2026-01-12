@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -213,15 +214,15 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
 
     log.info("Starting GTNet historyquote exchange for {} instruments", exchangeSet.getTotalCount());
 
-    // Query PUSH_OPEN servers first
+    // Query PUSH_OPEN servers first (excluding own entry to prevent self-communication)
     List<GTNet> pushOpenSuppliers = getSuppliersByPriorityWithRandomization(
-        gtNetJpaRepository.findHistoryquotePushOpenSuppliers(), GTNetExchangeKindType.HISTORICAL_PRICES);
+        excludeOwnEntry(gtNetJpaRepository.findHistoryquotePushOpenSuppliers()), GTNetExchangeKindType.HISTORICAL_PRICES);
     queryRemoteServersForExchangeSet(pushOpenSuppliers, exchangeSet);
 
-    // Query OPEN servers for remaining unfilled
+    // Query OPEN servers for remaining unfilled (excluding own entry to prevent self-communication)
     if (!exchangeSet.allFilled()) {
       List<GTNet> openSuppliers = getSuppliersByPriorityWithRandomization(
-          gtNetJpaRepository.findHistoryquoteOpenSuppliers(), GTNetExchangeKindType.HISTORICAL_PRICES);
+          excludeOwnEntry(gtNetJpaRepository.findHistoryquoteOpenSuppliers()), GTNetExchangeKindType.HISTORICAL_PRICES);
       queryRemoteServersForExchangeSet(openSuppliers, exchangeSet);
     }
 
@@ -449,14 +450,14 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
     int totalReceived = 0;
     Map<GTNet, HistoryquoteExchangeMsg> wantToReceiveMap = new HashMap<>();
 
-    // 1. Query push-open servers by priority
+    // 1. Query push-open servers by priority (excluding own entry to prevent self-communication)
     List<GTNet> pushOpenSuppliers = getSuppliersByPriorityWithRandomization(
-        gtNetJpaRepository.findHistoryquotePushOpenSuppliers(), GTNetExchangeKindType.HISTORICAL_PRICES);
+        excludeOwnEntry(gtNetJpaRepository.findHistoryquotePushOpenSuppliers()), GTNetExchangeKindType.HISTORICAL_PRICES);
     totalReceived += queryRemoteServersWithWantTracking(pushOpenSuppliers, request, wantToReceiveMap);
 
-    // 2. Query open servers for remaining
+    // 2. Query open servers for remaining (excluding own entry to prevent self-communication)
     List<GTNet> openSuppliers = getSuppliersByPriorityWithRandomization(
-        gtNetJpaRepository.findHistoryquoteOpenSuppliers(), GTNetExchangeKindType.HISTORICAL_PRICES);
+        excludeOwnEntry(gtNetJpaRepository.findHistoryquoteOpenSuppliers()), GTNetExchangeKindType.HISTORICAL_PRICES);
     totalReceived += queryRemoteServersWithWantTracking(openSuppliers, request, wantToReceiveMap);
 
     // 3. Push historical data back to servers that expressed "want to receive"
@@ -745,6 +746,23 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
     Calendar cal = Calendar.getInstance();
     cal.add(Calendar.DAY_OF_MONTH, -1);
     return cal.getTime();
+  }
+
+  /**
+   * Excludes the local server's own entry from the supplier list.
+   * This prevents the server from attempting to query itself for data, which would fail token validation.
+   *
+   * @param suppliers list of GTNet supplier entries
+   * @return filtered list excluding the local server's entry
+   */
+  private List<GTNet> excludeOwnEntry(List<GTNet> suppliers) {
+    Integer myEntryId = globalparametersService.getGTNetMyEntryID();
+    if (myEntryId == null) {
+      return suppliers;
+    }
+    return suppliers.stream()
+        .filter(supplier -> !supplier.getIdGtNet().equals(myEntryId))
+        .collect(Collectors.toList());
   }
 
   /**
