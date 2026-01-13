@@ -33,7 +33,6 @@ import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteData;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
-import grafioschtrader.gtnet.PriceType;
 import grafioschtrader.gtnet.m2m.model.GTNetPublicDTO;
 import grafioschtrader.gtnet.m2m.model.HistoryquoteRecordDTO;
 import grafioschtrader.gtnet.m2m.model.InstrumentHistoryquoteDTO;
@@ -226,7 +225,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
     List<Integer> allInstrumentIds = exchangeSet.getAllInstrumentIds();
     if (!allInstrumentIds.isEmpty()) {
       List<GTNetSupplierDetail> supplierDetails = gtNetSupplierDetailJpaRepository
-          .findByPriceTypeAndInstrumentIds(PriceType.HISTORICAL.getValue(), allInstrumentIds);
+          .findByEntityKindAndInstrumentIds(GTNetExchangeKindType.HISTORICAL_PRICES.getValue(), allInstrumentIds);
       filter = new SupplierInstrumentFilter(supplierDetails);
     }
 

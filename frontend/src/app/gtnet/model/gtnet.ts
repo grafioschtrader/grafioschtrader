@@ -148,21 +148,13 @@ export interface GTNetExchangeFields {
 }
 
 /**
- * Enum for price types used in GTNetSupplierDetail
- */
-export enum PriceType {
-  LASTPRICE = 'LASTPRICE',
-  HISTORICAL = 'HISTORICAL'
-}
-
-/**
- * Represents a detail entry for what price types a supplier offers.
+ * Represents a detail entry for what entity kinds a supplier offers.
  */
 export interface GTNetSupplierDetail {
   idGtNetSupplierDetail: number;
   idGtNet: number;
   securitycurrency: any;
-  priceType: PriceType;
+  entityKind: GTNetExchangeKindType;
 }
 
 /**

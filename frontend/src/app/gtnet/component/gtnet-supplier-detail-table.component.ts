@@ -4,9 +4,13 @@ import {GTNetExchangeService} from '../service/gtnet-exchange.service';
 import {GTNetExchangeKindType, GTNetServerStateTypes} from '../model/gtnet';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {ColumnConfig} from '../../lib/datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {ShowRecordConfigBase} from '../../lib/datashowbase/show.record.config.base';
+import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
+import {FilterService} from 'primeng/api';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 
 @Component({
   selector: 'gtnet-supplier-detail-table',
@@ -20,30 +24,34 @@ import {ShowRecordConfigBase} from '../../lib/datashowbase/show.record.config.ba
       [paginator]="false"
       [rows]="100"
       [enableCustomSort]="true"
+      [valueGetterFn]="getValueByPath.bind(this)"
       [contextMenuEnabled]="false">
     </configurable-table>
   `
 })
-export class GTNetSupplierDetailTableComponent implements OnInit {
+export class GTNetSupplierDetailTableComponent extends TableConfigBase implements OnInit {
   @Input() idSecuritycurrency: number;
   /** Discriminator type: 'S' for Security, 'C' for Currencypair */
   @Input() dtype: string;
 
   flattenedData: any[] = [];
-  fields: ColumnConfig[] = [];
 
-  constructor(private gtNetExchangeService: GTNetExchangeService, public translateService: TranslateService) {}
+  constructor(private gtNetExchangeService: GTNetExchangeService,
+  filterService: FilterService, usersettingsService: UserSettingsService,
+  translateService: TranslateService, gps: GlobalparameterService) {
+    super(filterService, usersettingsService, translateService, gps);
+  }
 
   ngOnInit(): void {
-    this.fields = [
-      ShowRecordConfigBase.createColumnConfig(DataType.String, 'gtNet.domainRemoteName', 'GT_NET_REMOTE_DOMAIN'),
-      ShowRecordConfigBase.createColumnConfig(DataType.String, 'serverState', 'GT_NET_ENTITY_SERVER_STATE', true, true,
-        {fieldValueFN: this.getServerStateLabel.bind(this)}),
-      ShowRecordConfigBase.createColumnConfig(DataType.String, 'detail.priceType', 'PRICE_TYPE'),
-      ShowRecordConfigBase.createColumnConfig(DataType.DateTimeNumeric, 'gtNet.gtNetConfig.supplierLastUpdate', 'LAST_UPDATE')
-    ];
-    this.translateHeaders(this.fields);
+    this.addColumnFeqH(DataType.String, 'gtNet.domainRemoteName');
+    this.addColumnFeqH(DataType.String, 'detail.serverState',  true, false, {translateValues: TranslateValue.NORMAL});
+    this.addColumnFeqH(DataType.String, 'detail.entityKind', true, false, {translateValues: TranslateValue.NORMAL});
+    this.addColumnFeqH(DataType.DateTimeNumeric, 'gtNet.gtNetConfig.supplierLastUpdate');
 
+    this.prepareData();
+  }
+
+  private prepareData(): void {
     const observable = this.dtype === 'S'
       ? this.gtNetExchangeService.getSecuritySupplierDetails(this.idSecuritycurrency)
       : this.gtNetExchangeService.getCurrencypairSupplierDetails(this.idSecuritycurrency);
@@ -52,34 +60,30 @@ export class GTNetSupplierDetailTableComponent implements OnInit {
       this.flattenedData = [];
       data.forEach(dto => {
         dto.details.forEach(detail => {
+          const entity = dto.gtNet.gtNetEntities?.find((e: any) => e.entityKind === detail.entityKind);
+
           this.flattenedData.push({
             uniqueId: `${dto.gtNet.idGtNet}-${detail.idGtNetSupplierDetail}`,
             gtNet: dto.gtNet,
             detail: detail
           });
+          detail['serverState'] = entity?.serverState ?? GTNetServerStateTypes.SS_NONE;
         });
+
       });
+      this.createTranslatedValueStore(this.flattenedData);
+      this.translateHeadersAndColumns();
+
     });
   }
 
   getServerStateLabel(data: any, field: ColumnConfig): string {
-    // Get the server state from the appropriate GTNetEntity based on the detail's priceType
+    // Get the server state from the appropriate GTNetEntity based on the detail's entityKind
     const gtNet = data.gtNet;
-    const priceType = data.detail.priceType;
-    const entityKind = priceType === 'HISTORICAL' ? GTNetExchangeKindType.HISTORICAL_PRICES : GTNetExchangeKindType.LAST_PRICE;
+    const entityKind = data.detail.entityKind;
     const entity = gtNet.gtNetEntities?.find((e: any) => e.entityKind === entityKind);
     const state = entity?.serverState ?? GTNetServerStateTypes.SS_NONE;
     return GTNetServerStateTypes[state];
   }
 
-  translateHeaders(fields: ColumnConfig[]): void {
-    const headerKeys = fields.map(f => f.headerKey);
-    this.translateService.get(headerKeys).subscribe(translations => {
-      fields.forEach(f => {
-        if (f.headerKey) {
-          f.headerTranslated = translations[f.headerKey];
-        }
-      });
-    });
-  }
 }
