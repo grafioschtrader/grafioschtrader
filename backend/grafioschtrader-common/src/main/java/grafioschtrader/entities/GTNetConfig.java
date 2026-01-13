@@ -2,8 +2,10 @@ package grafioschtrader.entities;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import grafiosch.entities.BaseID;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
@@ -59,6 +61,7 @@ public class GTNetConfig extends BaseID<Integer>  {
   @Schema(description = """
       Timestamp of the last update when supplier details were fetched from this remote domain.
       Updated through periodic polling or manual triggering.""")
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "supplier_last_update")
   private LocalDateTime supplierLastUpdate;
 

@@ -46,7 +46,7 @@ export class GTNetSupplierDetailTableComponent extends TableConfigBase implement
     this.addColumnFeqH(DataType.String, 'gtNet.domainRemoteName');
     this.addColumnFeqH(DataType.String, 'detail.serverState',  true, false, {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.String, 'detail.entityKind', true, false, {translateValues: TranslateValue.NORMAL});
-    this.addColumnFeqH(DataType.DateTimeNumeric, 'gtNet.gtNetConfig.supplierLastUpdate');
+    this.addColumn(DataType.DateTimeString, 'gtNet.gtNetConfig.supplierLastUpdate', 'SUPPLIER_LAST_UPDATE');
 
     this.prepareData();
   }
@@ -61,7 +61,6 @@ export class GTNetSupplierDetailTableComponent extends TableConfigBase implement
       data.forEach(dto => {
         dto.details.forEach(detail => {
           const entity = dto.gtNet.gtNetEntities?.find((e: any) => e.entityKind === detail.entityKind);
-
           this.flattenedData.push({
             uniqueId: `${dto.gtNet.idGtNet}-${detail.idGtNetSupplierDetail}`,
             gtNet: dto.gtNet,
