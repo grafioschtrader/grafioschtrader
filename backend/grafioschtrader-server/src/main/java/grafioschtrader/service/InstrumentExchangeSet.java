@@ -210,6 +210,57 @@ public class InstrumentExchangeSet {
     return securities.isEmpty() && currencypairs.isEmpty();
   }
 
+  /**
+   * Returns all instrument IDs in this set.
+   * Used for batch loading GTNetSupplierDetail entries.
+   *
+   * @return list of all securitycurrency IDs in this set
+   */
+  public List<Integer> getAllInstrumentIds() {
+    List<Integer> ids = new ArrayList<>();
+    for (Security s : securities.values()) {
+      ids.add(s.getIdSecuritycurrency());
+    }
+    for (Currencypair cp : currencypairs.values()) {
+      ids.add(cp.getIdSecuritycurrency());
+    }
+    return ids;
+  }
+
+  /**
+   * Creates request DTOs for unfilled securities, filtered to only include instruments in the allowed set.
+   * Used when querying AC_OPEN suppliers that only support specific instruments.
+   *
+   * @param allowedIds set of instrument IDs to include in the result
+   * @return list of InstrumentPriceDTO for unfilled securities that are in the allowed set
+   */
+  public List<InstrumentPriceDTO> getUnfilledSecurityDTOsFiltered(Set<Integer> allowedIds) {
+    List<InstrumentPriceDTO> result = new ArrayList<>();
+    for (Map.Entry<String, Security> entry : securities.entrySet()) {
+      if (!filledKeys.contains(entry.getKey()) && allowedIds.contains(entry.getValue().getIdSecuritycurrency())) {
+        result.add(InstrumentPriceDTO.fromSecurity(entry.getValue()));
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Creates request DTOs for unfilled currency pairs, filtered to only include instruments in the allowed set.
+   * Used when querying AC_OPEN suppliers that only support specific instruments.
+   *
+   * @param allowedIds set of instrument IDs to include in the result
+   * @return list of InstrumentPriceDTO for unfilled currency pairs that are in the allowed set
+   */
+  public List<InstrumentPriceDTO> getUnfilledCurrencypairDTOsFiltered(Set<Integer> allowedIds) {
+    List<InstrumentPriceDTO> result = new ArrayList<>();
+    for (Map.Entry<String, Currencypair> entry : currencypairs.entrySet()) {
+      if (!filledKeys.contains(entry.getKey()) && allowedIds.contains(entry.getValue().getIdSecuritycurrency())) {
+        result.add(InstrumentPriceDTO.fromCurrencypair(entry.getValue()));
+      }
+    }
+    return result;
+  }
+
   // Helper methods
 
   private static String buildSecurityKey(String isin, String currency) {

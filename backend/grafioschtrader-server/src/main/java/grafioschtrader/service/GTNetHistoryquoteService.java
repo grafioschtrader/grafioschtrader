@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -25,12 +26,14 @@ import grafioschtrader.entities.GTNetHistoryquote;
 import grafioschtrader.entities.GTNetInstrument;
 import grafioschtrader.entities.GTNetInstrumentCurrencypair;
 import grafioschtrader.entities.GTNetInstrumentSecurity;
+import grafioschtrader.entities.GTNetSupplierDetail;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteData;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
+import grafioschtrader.gtnet.PriceType;
 import grafioschtrader.gtnet.m2m.model.GTNetPublicDTO;
 import grafioschtrader.gtnet.m2m.model.HistoryquoteRecordDTO;
 import grafioschtrader.gtnet.m2m.model.InstrumentHistoryquoteDTO;
@@ -44,6 +47,7 @@ import grafioschtrader.repository.GTNetHistoryquoteJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentCurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentSecurityJpaRepository;
 import grafioschtrader.repository.GTNetJpaRepository;
+import grafioschtrader.repository.GTNetSupplierDetailJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 
@@ -84,6 +88,9 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
 
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
+
+  @Autowired
+  private GTNetSupplierDetailJpaRepository gtNetSupplierDetailJpaRepository;
 
   @Autowired
   private GTNetInstrumentSecurityJpaRepository gtNetInstrumentSecurityJpaRepository;
@@ -214,16 +221,26 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
 
     log.info("Starting GTNet historyquote exchange for {} instruments", exchangeSet.getTotalCount());
 
+    // Load supplier details for filtering AC_OPEN requests
+    SupplierInstrumentFilter filter = null;
+    List<Integer> allInstrumentIds = exchangeSet.getAllInstrumentIds();
+    if (!allInstrumentIds.isEmpty()) {
+      List<GTNetSupplierDetail> supplierDetails = gtNetSupplierDetailJpaRepository
+          .findByPriceTypeAndInstrumentIds(PriceType.HISTORICAL.getValue(), allInstrumentIds);
+      filter = new SupplierInstrumentFilter(supplierDetails);
+    }
+
     // Query PUSH_OPEN servers first (excluding own entry to prevent self-communication)
     List<GTNet> pushOpenSuppliers = getSuppliersByPriorityWithRandomization(
         excludeOwnEntry(gtNetJpaRepository.findHistoryquotePushOpenSuppliers()), GTNetExchangeKindType.HISTORICAL_PRICES);
-    queryRemoteServersForExchangeSet(pushOpenSuppliers, exchangeSet);
+    queryRemoteServersForExchangeSet(pushOpenSuppliers, exchangeSet, null);
 
     // Query OPEN servers for remaining unfilled (excluding own entry to prevent self-communication)
+    // AC_OPEN servers use filtering: only send instruments they are known to support
     if (!exchangeSet.allFilled()) {
       List<GTNet> openSuppliers = getSuppliersByPriorityWithRandomization(
           excludeOwnEntry(gtNetJpaRepository.findHistoryquoteOpenSuppliers()), GTNetExchangeKindType.HISTORICAL_PRICES);
-      queryRemoteServersForExchangeSet(openSuppliers, exchangeSet);
+      queryRemoteServersForExchangeSet(openSuppliers, exchangeSet, filter);
     }
 
     log.info("GTNet historyquote exchange complete: {}/{} instruments filled",
@@ -281,9 +298,13 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
 
   /**
    * Queries remote servers and populates the exchange set with results.
+   *
+   * @param suppliers list of suppliers to query
+   * @param exchangeSet the exchange set tracking instruments
+   * @param filter optional filter for AC_OPEN suppliers (null for AC_PUSH_OPEN)
    */
   private <S extends Securitycurrency<S>> void queryRemoteServersForExchangeSet(
-      List<GTNet> suppliers, HistoryquoteExchangeSet<S> exchangeSet) {
+      List<GTNet> suppliers, HistoryquoteExchangeSet<S> exchangeSet, SupplierInstrumentFilter filter) {
 
     for (GTNet supplier : suppliers) {
       if (exchangeSet.allFilled()) {
@@ -292,9 +313,28 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
 
       try {
         // Build request with unfilled instruments
-        HistoryquoteExchangeMsg request = HistoryquoteExchangeMsg.forRequest(
-            exchangeSet.getUnfilledSecurityDTOs(),
-            exchangeSet.getUnfilledCurrencypairDTOs());
+        List<InstrumentHistoryquoteDTO> securityDTOs;
+        List<InstrumentHistoryquoteDTO> currencypairDTOs;
+
+        if (filter != null) {
+          // AC_OPEN supplier: filter instruments to only those this supplier is known to support
+          Set<Integer> allUnfilledIds = new HashSet<>(exchangeSet.getAllInstrumentIds());
+          Set<Integer> allowedIds = filter.getInstrumentsForSupplier(supplier.getIdGtNet(), allUnfilledIds, false);
+
+          if (allowedIds.isEmpty()) {
+            log.debug("No supported instruments for AC_OPEN supplier {}, skipping", supplier.getDomainRemoteName());
+            continue;
+          }
+
+          securityDTOs = exchangeSet.getUnfilledSecurityDTOsFiltered(allowedIds);
+          currencypairDTOs = exchangeSet.getUnfilledCurrencypairDTOsFiltered(allowedIds);
+        } else {
+          // AC_PUSH_OPEN supplier: send all unfilled instruments (no filtering)
+          securityDTOs = exchangeSet.getUnfilledSecurityDTOs();
+          currencypairDTOs = exchangeSet.getUnfilledCurrencypairDTOs();
+        }
+
+        HistoryquoteExchangeMsg request = HistoryquoteExchangeMsg.forRequest(securityDTOs, currencypairDTOs);
 
         if (request.isEmpty()) {
           continue;
