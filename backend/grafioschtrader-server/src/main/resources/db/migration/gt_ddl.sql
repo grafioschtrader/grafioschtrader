@@ -710,7 +710,7 @@ CREATE TABLE `gt_net_supplier_detail` (
   `id_gt_net_supplier_detail` int(11) NOT NULL AUTO_INCREMENT,
   `id_gt_net` int(11) NOT NULL,
   `id_securitycurrency` int(11) NOT NULL,
-  `price_type` tinyint(1) NOT NULL,
+  `entity_kind` tinyint(1) NOT NULL,
   PRIMARY KEY (`id_gt_net_supplier_detail`),
   KEY `FK_GtNetSupplierDetail_SecurityCurrency` (`id_securitycurrency`),
   KEY `FK_GtNetSupplierDetail` (`id_gt_net`),

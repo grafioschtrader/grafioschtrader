@@ -19,8 +19,8 @@ import grafioschtrader.entities.GTNetConfig;
 import grafioschtrader.entities.GTNetSupplierDetail;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
+import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
-import grafioschtrader.gtnet.PriceType;
 import grafioschtrader.gtnet.m2m.model.GTNetPublicDTO;
 import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.gtnet.model.msg.ExchangeSyncMsg;
@@ -256,13 +256,13 @@ public class GTNetExchangeSyncService {
 
           // Create entry for lastprice if enabled
           if (item.lastpriceSend) {
-            createSupplierDetail(config, sc, PriceType.LASTPRICE);
+            createSupplierDetail(config, sc, GTNetExchangeKindType.LAST_PRICE);
             created++;
           }
 
           // Create entry for historical if enabled
           if (item.historicalSend) {
-            createSupplierDetail(config, sc, PriceType.HISTORICAL);
+            createSupplierDetail(config, sc, GTNetExchangeKindType.HISTORICAL_PRICES);
             created++;
           }
         } catch (Exception e) {
@@ -283,13 +283,13 @@ public class GTNetExchangeSyncService {
    *
    * @param config the GTNet config for the supplier
    * @param sc the security or currency pair
-   * @param priceType the price type (LASTPRICE or HISTORICAL)
+   * @param entityKind the entity kind (LAST_PRICE or HISTORICAL_PRICES)
    */
-  private void createSupplierDetail(GTNetConfig config, Securitycurrency<?> sc, PriceType priceType) {
+  private void createSupplierDetail(GTNetConfig config, Securitycurrency<?> sc, GTNetExchangeKindType entityKind) {
     GTNetSupplierDetail detail = new GTNetSupplierDetail();
     detail.setGtNetConfig(config);
     detail.setSecuritycurrency(sc);
-    detail.setPriceType(priceType);
+    detail.setEntityKind(entityKind);
     gtNetSupplierDetailJpaRepository.save(detail);
   }
 
@@ -330,24 +330,24 @@ public class GTNetExchangeSyncService {
           continue;
         }
 
-        // Handle intraday price type
+        // Handle intraday entity kind
         if (item.lastpriceSend) {
-          if (upsertSupplierDetail(config, sc, PriceType.LASTPRICE)) {
+          if (upsertSupplierDetail(config, sc, GTNetExchangeKindType.LAST_PRICE)) {
             created++;
           }
         } else {
-          if (deleteSupplierDetail(config, sc, PriceType.LASTPRICE)) {
+          if (deleteSupplierDetail(config, sc, GTNetExchangeKindType.LAST_PRICE)) {
             deleted++;
           }
         }
 
-        // Handle historical price type
+        // Handle historical entity kind
         if (item.historicalSend) {
-          if (upsertSupplierDetail(config, sc, PriceType.HISTORICAL)) {
+          if (upsertSupplierDetail(config, sc, GTNetExchangeKindType.HISTORICAL_PRICES)) {
             created++;
           }
         } else {
-          if (deleteSupplierDetail(config, sc, PriceType.HISTORICAL)) {
+          if (deleteSupplierDetail(config, sc, GTNetExchangeKindType.HISTORICAL_PRICES)) {
             deleted++;
           }
         }
@@ -381,8 +381,8 @@ public class GTNetExchangeSyncService {
    *
    * @return true if a new entry was created, false if updated or already exists
    */
-  private boolean upsertSupplierDetail(GTNetConfig config, Securitycurrency<?> sc, PriceType priceType) {
-    Optional<GTNetSupplierDetail> existing = findSupplierDetail(config, sc, priceType);
+  private boolean upsertSupplierDetail(GTNetConfig config, Securitycurrency<?> sc, GTNetExchangeKindType entityKind) {
+    Optional<GTNetSupplierDetail> existing = findSupplierDetail(config, sc, entityKind);
     if (existing.isPresent()) {
       return false; // Already exists, no action needed
     }
@@ -390,7 +390,7 @@ public class GTNetExchangeSyncService {
     GTNetSupplierDetail detail = new GTNetSupplierDetail();
     detail.setGtNetConfig(config);
     detail.setSecuritycurrency(sc);
-    detail.setPriceType(priceType);
+    detail.setEntityKind(entityKind);
     gtNetSupplierDetailJpaRepository.save(detail);
     return true;
   }
@@ -400,8 +400,8 @@ public class GTNetExchangeSyncService {
    *
    * @return true if an entry was deleted
    */
-  private boolean deleteSupplierDetail(GTNetConfig config, Securitycurrency<?> sc, PriceType priceType) {
-    Optional<GTNetSupplierDetail> existing = findSupplierDetail(config, sc, priceType);
+  private boolean deleteSupplierDetail(GTNetConfig config, Securitycurrency<?> sc, GTNetExchangeKindType entityKind) {
+    Optional<GTNetSupplierDetail> existing = findSupplierDetail(config, sc, entityKind);
     if (existing.isPresent()) {
       gtNetSupplierDetailJpaRepository.delete(existing.get());
       return true;
@@ -410,10 +410,10 @@ public class GTNetExchangeSyncService {
   }
 
   /**
-   * Finds a supplier detail by config, securitycurrency, and price type.
+   * Finds a supplier detail by config, securitycurrency, and entity kind.
    */
   private Optional<GTNetSupplierDetail> findSupplierDetail(GTNetConfig config, Securitycurrency<?> sc,
-      PriceType priceType) {
+      GTNetExchangeKindType entityKind) {
     // Use a native query or iterate - for now, we fetch all and filter
     // This could be optimized with a proper repository method
     return gtNetSupplierDetailJpaRepository.findAll().stream()
@@ -421,7 +421,7 @@ public class GTNetExchangeSyncService {
             && d.getGtNetConfig().getIdGtNet().equals(config.getIdGtNet())
             && d.getSecuritycurrency() != null
             && d.getSecuritycurrency().getIdSecuritycurrency().equals(sc.getIdSecuritycurrency())
-            && d.getPriceType() == priceType)
+            && d.getEntityKind() == entityKind)
         .findFirst();
   }
 }

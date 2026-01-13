@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import grafiosch.entities.BaseID;
-import grafioschtrader.gtnet.PriceType;
+import grafioschtrader.gtnet.GTNetExchangeKindType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,10 +18,15 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = GTNetSupplierDetail.TABNAME)
 @Schema(description = """
-    Here are the details of which supplier can provide which price data for a single security or currency pair.
-    This supplier must have given approval for their price data to be used on the local server.
-    A request to the supplier determines which price data and which type of price data they provide.
-    The entities are created here based on this query.""")
+    Records which GT-Net supplier can provide which price data for a specific security or currency pair.
+    This information serves two purposes:
+    1. **Display**: Shows users which suppliers offer data for each instrument
+    2. **Request filtering**: For AC_OPEN suppliers, only instruments with a matching GTNetSupplierDetail entry
+       are included in price data requests. AC_PUSH_OPEN suppliers receive all instruments regardless of
+       these entries.
+
+    Entries are populated automatically by the exchange synchronization background task (job 23), which queries
+    each supplier's available instruments and updates these records accordingly.""")
 public class GTNetSupplierDetail extends BaseID<Integer> {
 
   public static final String TABNAME = "gt_net_supplier_detail";
@@ -42,9 +47,11 @@ public class GTNetSupplierDetail extends BaseID<Integer> {
   @ManyToOne
   private Securitycurrency<?> securitycurrency;
 
-  @Schema(description = "A distinction must be made between whether this setting refers to intraday price data or historical price data.")
-  @Column(name = "price_type")
-  private byte priceType;
+  @Schema(description = """
+      Indicates the type of exchange data: LAST_PRICE (0) for intraday prices or HISTORICAL_PRICES (1) for historical
+      price data. Filtering is applied separately for each entity kind during the respective exchange process.""")
+  @Column(name = "entity_kind")
+  private byte entityKind;
 
   public Integer getIdGtNetSupplierDetail() {
     return idGtNetSupplierDetail;
@@ -74,14 +81,14 @@ public class GTNetSupplierDetail extends BaseID<Integer> {
     this.securitycurrency = securitycurrency;
   }
 
-  @JsonProperty("priceType")
-  public PriceType getPriceType() {
-    return PriceType.getPriceType(priceType);
+  @JsonProperty("entityKind")
+  public GTNetExchangeKindType getEntityKind() {
+    return GTNetExchangeKindType.getGTNetExchangeKindType(entityKind);
   }
 
-  @JsonProperty("priceType")
-  public void setPriceType(PriceType priceType) {
-    this.priceType = priceType.getValue();
+  @JsonProperty("entityKind")
+  public void setEntityKind(GTNetExchangeKindType entityKind) {
+    this.entityKind = entityKind.getValue();
   }
 
   @Override

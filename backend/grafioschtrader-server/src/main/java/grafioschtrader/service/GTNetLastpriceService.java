@@ -26,7 +26,6 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.gtnet.AcceptRequestTypes;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
-import grafioschtrader.gtnet.PriceType;
 import grafioschtrader.gtnet.handler.impl.lastprice.PushOpenLastpriceQueryStrategy;
 import grafioschtrader.gtnet.m2m.model.GTNetPublicDTO;
 import grafioschtrader.gtnet.m2m.model.InstrumentPriceDTO;
@@ -169,7 +168,7 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
     List<Integer> allInstrumentIds = gtNetInstruments.getAllInstrumentIds();
     if (!allInstrumentIds.isEmpty()) {
       List<GTNetSupplierDetail> supplierDetails = gtNetSupplierDetailJpaRepository
-          .findByPriceTypeAndInstrumentIds(PriceType.LASTPRICE.getValue(), allInstrumentIds);
+          .findByEntityKindAndInstrumentIds(GTNetExchangeKindType.LAST_PRICE.getValue(), allInstrumentIds);
       filter = new SupplierInstrumentFilter(supplierDetails);
     }
     log.debug("Step 2b - Load supplier details: {} ms", (System.nanoTime() - stepStart) / 1_000_000);
