@@ -1,5 +1,6 @@
 package grafioschtrader.task.exec;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -7,12 +8,16 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import grafiosch.BaseConstants;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.exceptions.TaskBackgroundException;
+import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.task.ITask;
 import grafiosch.types.ITaskType;
+import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.entities.GTNet;
 import grafioschtrader.repository.GTNetJpaRepository;
 import grafioschtrader.service.GTNetExchangeSyncService;
@@ -22,18 +27,20 @@ import grafioschtrader.types.TaskTypeExtended;
 /**
  * Task that synchronizes GTNetExchange configurations with GTNet peers.
  *
- * This task is triggered by the frontend when the user saves changes to GTNetExchange configurations. It iterates
- * through all accessible AC_OPEN suppliers and synchronizes the exchange configuration with each one.
- * AC_PUSH_OPEN servers are excluded as they use a different synchronization mechanism.
+ * This task supports two execution modes:
+ * <ul>
+ *   <li><b>Incremental mode</b> (idEntity = null): Only syncs changes since last sync timestamp.
+ *       Used after data exchange acceptance.</li>
+ *   <li><b>Full recreation mode</b> (idEntity = 1): Ignores timestamps and recreates all
+ *       GTNetSupplierDetail entries for each peer. Used for daily scheduled sync and frontend-triggered sync.</li>
+ * </ul>
  *
- * <h3>Flow</h3>
- * <ol>
- * <li>Get timestamp from globalparameters indicating last sync time</li>
- * <li>Find all accessible AC_OPEN peers configured for data exchange</li>
- * <li>For each peer, send changed GTNetExchange items and receive their changes</li>
- * <li>Update local GTNetSupplierDetail based on received data</li>
- * <li>Update the sync timestamp in globalparameters</li>
- * </ol>
+ * The task is triggered by:
+ * <ul>
+ *   <li>Daily cron schedule (configured via {@code gt.gtnet.exchange.sync.cron}) - full recreation mode</li>
+ *   <li>Frontend trigger when user manually requests sync - full recreation mode</li>
+ *   <li>After data exchange acceptance - incremental mode</li>
+ * </ul>
  *
  * @see GTNetExchangeSyncService for the core sync logic
  */
@@ -41,6 +48,9 @@ import grafioschtrader.types.TaskTypeExtended;
 public class GTNetExchangeSyncTask implements ITask {
 
   private static final Logger log = LoggerFactory.getLogger(GTNetExchangeSyncTask.class);
+
+  /** Marker value for full recreation mode. When idEntity equals this value, full recreation is performed. */
+  public static final Integer FULL_RECREATION_MODE = 1;
 
   @Autowired
   private GlobalparametersService globalparametersService;
@@ -51,9 +61,28 @@ public class GTNetExchangeSyncTask implements ITask {
   @Autowired
   private GTNetExchangeSyncService exchangeSyncService;
 
+  @Autowired
+  private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
+
   @Override
   public ITaskType getTaskType() {
     return TaskTypeExtended.GTNET_EXCHANGE_SYNC;
+  }
+
+  /**
+   * Daily scheduled method that triggers full recreation sync.
+   * Creates a TaskDataChange with FULL_RECREATION_MODE to be processed asynchronously.
+   */
+  @Scheduled(cron = "${gt.gtnet.exchange.sync.cron}", zone = BaseConstants.TIME_ZONE)
+  public void scheduledGTNetExchangeSync() {
+    taskDataChangeJpaRepository.save(new TaskDataChange(
+        getTaskType(),
+        TaskDataExecPriority.PRIO_NORMAL,
+        LocalDateTime.now(),
+        FULL_RECREATION_MODE,  // idEntity signals full recreation mode
+        null
+    ));
+    log.info("Scheduled GTNet exchange sync task created (full recreation mode)");
   }
 
   @Override
@@ -63,8 +92,11 @@ public class GTNetExchangeSyncTask implements ITask {
       return;
     }
 
+    // Check if full recreation mode is requested
+    boolean fullRecreation = FULL_RECREATION_MODE.equals(taskDataChange.getIdEntity());
+
     Date lastSyncTimestamp = globalparametersService.getGTNetExchangeSyncTimestamp();
-    log.info("Starting GTNet exchange sync (last sync: {})", lastSyncTimestamp);
+    log.info("Starting GTNet exchange sync (fullRecreation={}, last sync: {})", fullRecreation, lastSyncTimestamp);
 
     // Get all accessible AC_OPEN suppliers, excluding own entry to prevent self-communication
     Integer myEntryId = globalparametersService.getGTNetMyEntryID();
@@ -74,7 +106,9 @@ public class GTNetExchangeSyncTask implements ITask {
 
     if (allSuppliers.isEmpty()) {
       log.info("No accessible peers configured for exchange sync");
-      globalparametersService.updateGTNetExchangeSyncTimestamp();
+      if (!fullRecreation) {
+        globalparametersService.updateGTNetExchangeSyncTimestamp();
+      }
       return;
     }
 
@@ -83,7 +117,7 @@ public class GTNetExchangeSyncTask implements ITask {
 
     for (GTNet peer : allSuppliers) {
       try {
-        boolean success = exchangeSyncService.syncWithPeer(peer, lastSyncTimestamp);
+        boolean success = exchangeSyncService.syncWithPeer(peer, lastSyncTimestamp, fullRecreation);
         if (success) {
           successCount++;
         } else {
@@ -96,10 +130,12 @@ public class GTNetExchangeSyncTask implements ITask {
       }
     }
 
-    // Update timestamp after job completion
-    globalparametersService.updateGTNetExchangeSyncTimestamp();
-    log.info("GTNet exchange sync completed: {} successful, {} failed out of {} peers",
-        successCount, failCount, allSuppliers.size());
+    // Update timestamp after job completion (only for incremental mode)
+    if (!fullRecreation) {
+      globalparametersService.updateGTNetExchangeSyncTimestamp();
+    }
+    log.info("GTNet exchange sync completed: {} successful, {} failed out of {} peers (fullRecreation={})",
+        successCount, failCount, allSuppliers.size(), fullRecreation);
   }
 
   @Override

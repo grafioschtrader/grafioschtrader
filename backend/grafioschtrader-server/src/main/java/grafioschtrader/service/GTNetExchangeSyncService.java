@@ -77,22 +77,37 @@ public class GTNetExchangeSyncService {
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   /**
-   * Synchronizes exchange configuration with a single peer.
+   * Synchronizes exchange configuration with a single peer using incremental mode.
    *
    * @param peer the remote GTNet server
    * @param sinceTimestamp only include changes after this timestamp
    * @return true if sync was successful
    */
   public boolean syncWithPeer(GTNet peer, Date sinceTimestamp) {
+    return syncWithPeer(peer, sinceTimestamp, false);
+  }
+
+  /**
+   * Synchronizes exchange configuration with a single peer.
+   *
+   * @param peer the remote GTNet server
+   * @param sinceTimestamp only include changes after this timestamp (ignored in full recreation mode)
+   * @param fullRecreation if true, ignores timestamp and recreates all GTNetSupplierDetail entries for this peer
+   * @return true if sync was successful
+   */
+  public boolean syncWithPeer(GTNet peer, Date sinceTimestamp, boolean fullRecreation) {
     GTNetConfig config = peer.getGtNetConfig();
     if (config == null) {
       log.debug("Skipping peer without config: {}", peer.getDomainRemoteName());
       return false;
     }
 
-    // Build request with local changed items
-    List<ExchangeSyncItem> changedItems = getChangedExchangeItems(sinceTimestamp);
-    ExchangeSyncMsg requestPayload = ExchangeSyncMsg.forRequest(sinceTimestamp, changedItems);
+    // Build request with local items (all items in full recreation mode, changed items otherwise)
+    List<ExchangeSyncItem> itemsToSend = fullRecreation
+        ? getAllExchangeItems()
+        : getChangedExchangeItems(sinceTimestamp);
+    ExchangeSyncMsg requestPayload = ExchangeSyncMsg.forRequest(
+        fullRecreation ? null : sinceTimestamp, itemsToSend);
 
     // Get local GTNet entry
     Integer myGTNetId = GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersService);
@@ -108,7 +123,8 @@ public class GTNetExchangeSyncService {
     requestEnvelope.timestamp = new Date();
     requestEnvelope.payload = objectMapper.valueToTree(requestPayload);
 
-    log.debug("Sending exchange sync to {} with {} items", peer.getDomainRemoteName(), changedItems.size());
+    log.debug("Sending exchange sync to {} with {} items (fullRecreation={})",
+        peer.getDomainRemoteName(), itemsToSend.size(), fullRecreation);
 
     SendResult result = baseDataClient.sendToMsgWithStatus(
         config.getTokenRemote(), peer.getDomainRemoteName(), requestEnvelope);
@@ -128,12 +144,16 @@ public class GTNetExchangeSyncService {
       return true; // Successful but no data
     }
 
-    // Process response - update supplier details
+    // Process response - update or recreate supplier details based on mode
     try {
       ExchangeSyncMsg responsePayload = objectMapper.treeToValue(response.payload, ExchangeSyncMsg.class);
-      updateSupplierDetails(peer, responsePayload.items);
-      log.info("Exchange sync with {} complete: sent {}, received {}",
-          peer.getDomainRemoteName(), changedItems.size(), responsePayload.getItemCount());
+      if (fullRecreation) {
+        recreateSupplierDetails(peer, responsePayload.items);
+      } else {
+        updateSupplierDetails(peer, responsePayload.items);
+      }
+      log.info("Exchange sync with {} complete: sent {}, received {} (fullRecreation={})",
+          peer.getDomainRemoteName(), itemsToSend.size(), responsePayload.getItemCount(), fullRecreation);
       return true;
     } catch (JsonProcessingException e) {
       log.error("Failed to parse exchange sync response from {}", peer.getDomainRemoteName(), e);
@@ -171,6 +191,105 @@ public class GTNetExchangeSyncService {
     }
 
     return items;
+  }
+
+  /**
+   * Gets ALL exchange items with send flags enabled, ignoring timestamps.
+   * Used for full recreation mode where all eligible instruments are synchronized.
+   *
+   * @return list of all exchange sync items with at least one send flag enabled
+   */
+  public List<ExchangeSyncItem> getAllExchangeItems() {
+    List<ExchangeSyncItem> items = new java.util.ArrayList<>();
+
+    // All securities with GTNet send enabled
+    List<Security> allSecurities = securityJpaRepository.findAllWithGtNetSendEnabled();
+    for (Security security : allSecurities) {
+      items.add(ExchangeSyncItem.forSecurity(
+          security.getIsin(), security.getCurrency(),
+          security.isGtNetLastpriceSend(), security.isGtNetHistoricalSend()));
+    }
+
+    // All currency pairs with GTNet send enabled
+    List<Currencypair> allCurrencypairs = currencypairJpaRepository.findAllWithGtNetSendEnabled();
+    for (Currencypair cp : allCurrencypairs) {
+      items.add(ExchangeSyncItem.forCurrencypair(
+          cp.getFromCurrency(), cp.getToCurrency(),
+          cp.isGtNetLastpriceSend(), cp.isGtNetHistoricalSend()));
+    }
+
+    return items;
+  }
+
+  /**
+   * Recreates ALL GTNetSupplierDetail entries for a peer.
+   * Deletes all existing entries first, then creates new ones from response items.
+   * Used for full recreation mode to ensure complete synchronization.
+   *
+   * @param supplier the remote GTNet server that sent the items
+   * @param items the list of exchange sync items from the remote server
+   */
+  @Transactional
+  public void recreateSupplierDetails(GTNet supplier, List<ExchangeSyncItem> items) {
+    GTNetConfig config = supplier.getGtNetConfig();
+    if (config == null) {
+      log.warn("No config found for supplier {}", supplier.getDomainRemoteName());
+      return;
+    }
+
+    // Delete all existing supplier details for this peer
+    gtNetSupplierDetailJpaRepository.deleteByIdGtNet(config.getIdGtNet());
+    log.debug("Deleted existing supplier details for {}", supplier.getDomainRemoteName());
+
+    int created = 0;
+
+    // Create new entries from response items
+    if (items != null) {
+      for (ExchangeSyncItem item : items) {
+        try {
+          Securitycurrency<?> sc = findSecuritycurrency(item);
+          if (sc == null) {
+            log.debug("Instrument not found locally: {}", item.getKey());
+            continue;
+          }
+
+          // Create entry for lastprice if enabled
+          if (item.lastpriceSend) {
+            createSupplierDetail(config, sc, PriceType.LASTPRICE);
+            created++;
+          }
+
+          // Create entry for historical if enabled
+          if (item.historicalSend) {
+            createSupplierDetail(config, sc, PriceType.HISTORICAL);
+            created++;
+          }
+        } catch (Exception e) {
+          log.warn("Failed to create supplier detail for {}: {}", item.getKey(), e.getMessage());
+        }
+      }
+    }
+
+    // Update supplier's last update timestamp
+    config.setSupplierLastUpdate(java.time.LocalDateTime.now());
+    gtNetConfigJpaRepository.save(config);
+
+    log.debug("Recreated supplier details for {}: {} entries created", supplier.getDomainRemoteName(), created);
+  }
+
+  /**
+   * Creates a new GTNetSupplierDetail entry.
+   *
+   * @param config the GTNet config for the supplier
+   * @param sc the security or currency pair
+   * @param priceType the price type (LASTPRICE or HISTORICAL)
+   */
+  private void createSupplierDetail(GTNetConfig config, Securitycurrency<?> sc, PriceType priceType) {
+    GTNetSupplierDetail detail = new GTNetSupplierDetail();
+    detail.setGtNetConfig(config);
+    detail.setSecuritycurrency(sc);
+    detail.setPriceType(priceType);
+    gtNetSupplierDetailJpaRepository.save(detail);
   }
 
   /**

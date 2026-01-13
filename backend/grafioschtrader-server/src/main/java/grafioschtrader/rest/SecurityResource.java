@@ -48,6 +48,7 @@ import grafioschtrader.gtnet.model.GTNetSupplierWithDetails;
 import grafioschtrader.priceupdate.historyquote.HistoryquoteQualityService;
 import grafioschtrader.reports.SecruityTransactionsReport;
 import grafioschtrader.reports.SecruityTransactionsReport.SecruityTransactionsReportOptions;
+import grafioschtrader.task.exec.GTNetExchangeSyncTask;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityIds;
@@ -357,12 +358,13 @@ public class SecurityResource extends UpdateCreateResource<Security> {
     return new ResponseEntity<>(result, HttpStatus.OK);
   }
 
-  @Operation(summary = "Triggers GTNet exchange sync", description = "Creates a background task to sync GTNet exchange configurations with GTNet peers", tags = {
+  @Operation(summary = "Triggers GTNet exchange sync", description = "Creates a background task to sync GTNet exchange configurations with GTNet peers using full recreation mode", tags = {
       Security.TABNAME })
   @PostMapping(value = "/gtnetexchange/triggersync", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> triggerGTNetExchangeSync() {
     taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.GTNET_EXCHANGE_SYNC,
-        TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(), null, null));
+        TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(),
+        GTNetExchangeSyncTask.FULL_RECREATION_MODE, null));
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
