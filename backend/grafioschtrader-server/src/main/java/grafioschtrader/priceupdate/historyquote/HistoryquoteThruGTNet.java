@@ -62,9 +62,16 @@ public class HistoryquoteThruGTNet<S extends Securitycurrency<S>> implements IHi
 
   @Override
   public List<S> catchAllUpSecuritycurrencyHistoryquote(List<Integer> idsStockexchange) {
-    // Delegate to connectorThru which handles the overall flow
-    // The GTNet integration happens in fillHistoryquoteForSecuritiesCurrencies
-    return connectorThru.catchAllUpSecuritycurrencyHistoryquote(idsStockexchange);
+    // First, fill empty historyquotes (no GTNet needed for completely empty instruments)
+    List<S> catchUp = new ArrayList<>(connectorThru.delegateFillEmptyHistoryquote());
+
+    // Get the partial fill data and call OUR fillHistoryquoteForSecuritiesCurrencies (with GTNet integration)
+    HistoryquoteThruConnector.PartialFillData<S> partialFillData = connectorThru.getPartialFillData(idsStockexchange);
+    catchUp.addAll(this.fillHistoryquoteForSecuritiesCurrencies(
+        partialFillData.getHistorySecurityCurrencyList(),
+        partialFillData.getCurrentCalendar()));
+
+    return catchUp;
   }
 
   @Override
