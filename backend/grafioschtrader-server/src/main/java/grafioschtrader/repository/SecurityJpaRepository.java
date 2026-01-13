@@ -59,7 +59,9 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
 
   /**
    * Finds securities modified after the given timestamp for GTNet sync.
+   * Also includes securities where gtNetLastModifiedTime is NULL (never synced before).
    */
+  @Query("SELECT s FROM Security s WHERE (s.gtNetLastModifiedTime > ?1 OR s.gtNetLastModifiedTime IS NULL) AND s.isin IS NOT NULL")
   List<Security> findByGtNetLastModifiedTimeAfterAndIsinIsNotNull(Date timestamp);
 
   /**
