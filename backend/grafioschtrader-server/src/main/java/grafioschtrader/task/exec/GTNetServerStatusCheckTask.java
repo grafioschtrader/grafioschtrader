@@ -12,7 +12,9 @@ import grafiosch.exceptions.TaskBackgroundException;
 import grafiosch.task.ITask;
 import grafiosch.types.ITaskType;
 import grafioschtrader.entities.GTNet;
+import grafioschtrader.entities.GTNetEntity;
 import grafioschtrader.gtnet.GTNetServerOnlineStatusTypes;
+import grafioschtrader.gtnet.GTNetServerStateTypes;
 import grafioschtrader.m2m.GTNetMessageHelper;
 import grafioschtrader.m2m.client.BaseDataClient;
 import grafioschtrader.m2m.client.BaseDataClient.SendResult;
@@ -25,7 +27,13 @@ import grafioschtrader.types.TaskTypeExtended;
  *
  * This task is scheduled to run shortly after application startup (with a 30-second delay) to allow the server to
  * become fully accessible before checking peer status. For each configured GTNet entry (excluding the local server),
- * it sends a ping to determine reachability and updates the serverOnline and serverBusy flags accordingly.
+ * it sends a ping to determine reachability and updates:
+ * <ul>
+ *   <li>{@code GTNet.serverOnline} - Whether the server is reachable</li>
+ *   <li>{@code GTNet.serverBusy} - Whether the server reported it is busy</li>
+ *   <li>{@code GTNetEntity.serverState} - Service availability for each data type (SS_OPEN if online and not busy,
+ *       SS_CLOSED otherwise)</li>
+ * </ul>
  *
  * The 30-second delay ensures that:
  * <ul>
@@ -33,7 +41,6 @@ import grafioschtrader.types.TaskTypeExtended;
  *   <li>Network interfaces are ready</li>
  *   <li>Users can access the UI immediately while status checks happen in the background</li>
  * </ul>
- *
  */
 @Component
 public class GTNetServerStatusCheckTask implements ITask {
@@ -98,6 +105,11 @@ public class GTNetServerStatusCheckTask implements ITask {
 
   /**
    * Sends a ping to the specified peer and updates its online/busy status based on the response.
+   * Also updates the serverState on all GTNetEntity entries:
+   * <ul>
+   *   <li>SS_OPEN: Server is online and not busy</li>
+   *   <li>SS_CLOSED: Server is offline or busy</li>
+   * </ul>
    *
    * @param peer the GTNet peer to check
    * @param myGTNet the local GTNet entry used as the sender
@@ -105,6 +117,7 @@ public class GTNetServerStatusCheckTask implements ITask {
    */
   private boolean checkAndUpdatePeerStatus(GTNet peer, GTNet myGTNet) {
     GTNetServerOnlineStatusTypes previousStatus = peer.getServerOnline();
+    boolean stateChanged = false;
 
     try {
       SendResult result = GTNetMessageHelper.sendPingWithStatus(baseDataClient, myGTNet, peer);
@@ -123,7 +136,11 @@ public class GTNetServerStatusCheckTask implements ITask {
         log.debug("Peer {} is offline", peer.getDomainRemoteName());
       }
 
-      if (previousStatus != newStatus) {
+      // Update serverState on all GTNetEntity entries based on online/busy status
+      GTNetServerStateTypes entityState = determineEntityState(result.serverReachable(), peer.isServerBusy());
+      stateChanged = updateEntityStates(peer, entityState);
+
+      if (previousStatus != newStatus || stateChanged) {
         gtNetJpaRepository.save(peer);
       }
 
@@ -132,10 +149,43 @@ public class GTNetServerStatusCheckTask implements ITask {
       log.warn("Error checking status for peer {}: {}", peer.getDomainRemoteName(), e.getMessage());
       if (previousStatus == GTNetServerOnlineStatusTypes.SOS_ONLINE) {
         peer.setServerOnline(GTNetServerOnlineStatusTypes.SOS_OFFLINE);
+        updateEntityStates(peer, GTNetServerStateTypes.SS_CLOSED);
         gtNetJpaRepository.save(peer);
       }
       return false;
     }
+  }
+
+  /**
+   * Determines the appropriate GTNetServerStateTypes based on server availability.
+   *
+   * @param serverReachable true if the server is reachable at network level
+   * @param serverBusy true if the server reported it is busy
+   * @return SS_OPEN if online and not busy, SS_CLOSED otherwise
+   */
+  private GTNetServerStateTypes determineEntityState(boolean serverReachable, boolean serverBusy) {
+    if (serverReachable && !serverBusy) {
+      return GTNetServerStateTypes.SS_OPEN;
+    }
+    return GTNetServerStateTypes.SS_CLOSED;
+  }
+
+  /**
+   * Updates the serverState on all GTNetEntity entries for the given peer.
+   *
+   * @param peer the GTNet peer whose entities should be updated
+   * @param newState the new serverState to set
+   * @return true if any entity state was changed
+   */
+  private boolean updateEntityStates(GTNet peer, GTNetServerStateTypes newState) {
+    boolean anyChanged = false;
+    for (GTNetEntity entity : peer.getGtNetEntities()) {
+      if (entity.getServerState() != newState) {
+        entity.setServerState(newState);
+        anyChanged = true;
+      }
+    }
+    return anyChanged;
   }
 
   @Override
