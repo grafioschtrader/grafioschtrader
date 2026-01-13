@@ -45,7 +45,9 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
 
   /**
    * Finds currency pairs modified after the given timestamp for GTNet sync.
+   * Also includes currency pairs where gtNetLastModifiedTime is NULL (never synced before).
    */
+  @Query("SELECT c FROM Currencypair c WHERE c.gtNetLastModifiedTime > ?1 OR c.gtNetLastModifiedTime IS NULL")
   List<Currencypair> findByGtNetLastModifiedTimeAfter(Date timestamp);
 
   /**

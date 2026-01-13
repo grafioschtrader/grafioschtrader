@@ -10,6 +10,6 @@ import grafioschtrader.entities.GTNetSupplierDetail;
 
 public interface GTNetSupplierDetailJpaRepository extends JpaRepository<GTNetSupplierDetail, Integer> {
   
-  @Query("SELECT DISTINCT d.securitycurrency.idSecuritycurrency FROM GTNetSupplierDetail d WHERE d.securitycurrency.idSecuritycurrency IN ?1")
+  @Query(value = "SELECT DISTINCT id_securitycurrency FROM gt_net_supplier_detail WHERE id_securitycurrency IN (?1)", nativeQuery = true)
   Set<Integer> findIdSecuritycurrencyWithDetails(List<Integer> ids);
 }
