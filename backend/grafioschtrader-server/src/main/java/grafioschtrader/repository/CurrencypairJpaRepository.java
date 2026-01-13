@@ -51,6 +51,13 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
   List<Currencypair> findByGtNetLastModifiedTimeAfter(Date timestamp);
 
   /**
+   * Finds all currency pairs with GTNet send flags enabled (lastprice or historical).
+   * Used for full recreation mode where all eligible instruments are synchronized.
+   */
+  @Query("SELECT c FROM Currencypair c WHERE c.gtNetLastpriceSend = true OR c.gtNetHistoricalSend = true")
+  List<Currencypair> findAllWithGtNetSendEnabled();
+
+  /**
    * Retrieves all currency pairs with supplier detail count for GTNet exchange configuration.
    */
   @Query("SELECT c, (SELECT COUNT(d) FROM GTNetSupplierDetail d WHERE d.securitycurrency.idSecuritycurrency = c.idSecuritycurrency) FROM Currencypair c ORDER BY c.fromCurrency, c.toCurrency")

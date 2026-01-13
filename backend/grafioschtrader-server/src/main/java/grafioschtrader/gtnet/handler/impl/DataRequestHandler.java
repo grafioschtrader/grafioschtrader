@@ -80,6 +80,9 @@ public class DataRequestHandler extends AbstractRequestHandler {
         }
         saveRemoteGTNet(myGTNet);
       }
+
+      // Trigger exchange sync to synchronize instrument configurations with the newly accepted peer
+      triggerExchangeSyncTask();
     } else if (responseCode == GTNetMessageCodeType.GT_NET_DATA_REQUEST_REJECTED_S) {
       for (GTNetExchangeKindType kind : requestedKinds) {
         updateEntityForReject(remoteGTNet, kind);

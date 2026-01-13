@@ -62,6 +62,9 @@ public class DataRequestAcceptHandler extends AbstractResponseHandler {
     saveRemoteGTNet(remoteGTNet);
     log.info("Created GTNetConfigEntity with RECEIVE capability for {} entity kinds from {}",
         acceptedKinds.size(), context.getSourceDomain());
+
+    // Trigger exchange sync to synchronize instrument configurations with the accepting peer
+    triggerExchangeSyncTask();
   }
 
   /**

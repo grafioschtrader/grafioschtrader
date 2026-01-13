@@ -65,6 +65,13 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   List<Security> findByGtNetLastModifiedTimeAfterAndIsinIsNotNull(Date timestamp);
 
   /**
+   * Finds all securities with GTNet send flags enabled (lastprice or historical).
+   * Used for full recreation mode where all eligible instruments are synchronized.
+   */
+  @Query("SELECT s FROM Security s WHERE s.isin IS NOT NULL AND (s.gtNetLastpriceSend = true OR s.gtNetHistoricalSend = true)")
+  List<Security> findAllWithGtNetSendEnabled();
+
+  /**
    * Executes the `deleteUpdateHistoryQuality` stored procedure to refresh the historyquote_quality metrics for all
    * securities.
    * <p>

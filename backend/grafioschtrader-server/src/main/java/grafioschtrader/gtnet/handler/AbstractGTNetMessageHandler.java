@@ -4,12 +4,17 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import java.time.LocalDateTime;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import grafiosch.entities.TaskDataChange;
+import grafiosch.repository.TaskDataChangeJpaRepository;
+import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.entities.GTNet;
 import grafioschtrader.entities.GTNetConfig;
 import grafioschtrader.entities.GTNetMessage;
@@ -20,6 +25,7 @@ import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.repository.GTNetConfigJpaRepository;
 import grafioschtrader.repository.GTNetJpaRepository;
 import grafioschtrader.repository.GTNetMessageJpaRepository;
+import grafioschtrader.types.TaskTypeExtended;
 
 /**
  * Abstract base class providing common functionality for GTNet message handlers.
@@ -47,6 +53,9 @@ public abstract class AbstractGTNetMessageHandler implements GTNetMessageHandler
 
   @Autowired
   protected GTNetMessageJpaRepository gtNetMessageJpaRepository;
+
+  @Autowired
+  protected TaskDataChangeJpaRepository taskDataChangeJpaRepository;
 
   /**
    * Stores the incoming message in the database.
@@ -144,5 +153,16 @@ public abstract class AbstractGTNetMessageHandler implements GTNetMessageHandler
    */
   protected GTNetConfig saveGTNetConfig(GTNetConfig gtNetConfig) {
     return gtNetConfigJpaRepository.save(gtNetConfig);
+  }
+
+  /**
+   * Triggers the GTNet exchange sync task to synchronize instrument configurations with peers.
+   *
+   * This should be called after mutual acceptance of data exchange to ensure both sides synchronize their
+   * GTNetExchange configurations and populate GTNetSupplierDetail entries.
+   */
+  protected void triggerExchangeSyncTask() {
+    taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.GTNET_EXCHANGE_SYNC,
+        TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(), null, null));
   }
 }
