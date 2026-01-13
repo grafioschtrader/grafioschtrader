@@ -4,8 +4,11 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
+import grafiosch.common.DateHelper;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -191,6 +194,65 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
             + "AND s.retryHistoryLoad < ?1 AND NOT EXISTS (SELECT h FROM s.historyquoteList h)", entityType)
         .setParameter(1, globalparametersService.getMaxHistoryRetry());
     return catchUpEmptyHistoryquote(query.getResultList());
+  }
+
+  /**
+   * Delegation method for decorators to call fillEmptyHistoryquote.
+   * Used by HistoryquoteThruGTNet to properly integrate GTNet into the flow.
+   *
+   * @return list of securities/currencies that were filled from empty state
+   */
+  public List<S> delegateFillEmptyHistoryquote() {
+    return fillEmptyHistoryquote();
+  }
+
+  /**
+   * Gets the list of securities/currencies that need partial history updates.
+   * Used by HistoryquoteThruGTNet to properly integrate GTNet into the flow.
+   *
+   * @param idsStockexchange list of stock exchange IDs to filter by (null = all exchanges)
+   * @return the corrected calendar for EOD date calculation, and the list of instruments needing updates
+   */
+  public PartialFillData<S> getPartialFillData(List<Integer> idsStockexchange) {
+    final Calendar currentCalendar = corretToCalendarForDayAfterUpdate(
+        idsStockexchange == null || idsStockexchange.size() == 0);
+    final List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList = historyquoteEntityAccess
+        .getMaxHistoryquoteResult(globalparametersService.getMaxHistoryRetry(), this, idsStockexchange);
+    return new PartialFillData<>(currentCalendar, historySecurityCurrencyList);
+  }
+
+  /**
+   * Corrects calendar for day-after-update scenarios (Sunday/Monday adjustments).
+   * Exposed for decorator usage.
+   */
+  private Calendar corretToCalendarForDayAfterUpdate(boolean adjustForDayAfterUpd) {
+    final Calendar currentCalendar = DateHelper.getCalendar(new Date());
+    if (adjustForDayAfterUpd && (currentCalendar.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY
+        || currentCalendar.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY)) {
+      currentCalendar.add(Calendar.DATE, currentCalendar.get(Calendar.DAY_OF_WEEK) * -1);
+    }
+    return currentCalendar;
+  }
+
+  /**
+   * Data class holding partial fill information for decorator pattern support.
+   */
+  public static class PartialFillData<S extends Securitycurrency<S>> {
+    private final Calendar currentCalendar;
+    private final List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList;
+
+    public PartialFillData(Calendar currentCalendar, List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList) {
+      this.currentCalendar = currentCalendar;
+      this.historySecurityCurrencyList = historySecurityCurrencyList;
+    }
+
+    public Calendar getCurrentCalendar() {
+      return currentCalendar;
+    }
+
+    public List<SecurityCurrencyMaxHistoryquoteData<S>> getHistorySecurityCurrencyList() {
+      return historySecurityCurrencyList;
+    }
   }
 
   private HistoryquoteDataChange createWithHistoryQuoteWithConnector(
