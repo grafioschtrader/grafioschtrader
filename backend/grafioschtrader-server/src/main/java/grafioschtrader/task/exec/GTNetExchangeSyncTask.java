@@ -1,6 +1,7 @@
 package grafioschtrader.task.exec;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,8 +50,17 @@ public class GTNetExchangeSyncTask implements ITask {
 
   private static final Logger log = LoggerFactory.getLogger(GTNetExchangeSyncTask.class);
 
+  /**
+   * Entity type name for sync mode selection. Used in getAllowedEntities() and
+   * GTNetExchangeSyncEntityIdOptionsProvider to allow admin to choose between sync modes.
+   */
+  public static final String SYNC_MODE_ENTITY = "SyncMode";
+
   /** Marker value for full recreation mode. When idEntity equals this value, full recreation is performed. */
   public static final Integer FULL_RECREATION_MODE = 1;
+
+  /** Marker value for incremental mode. When idEntity equals this value, timestamp-based sync is performed. */
+  public static final Integer INCREMENTAL_MODE = 0;
 
   @Autowired
   private GlobalparametersService globalparametersService;
@@ -79,8 +89,8 @@ public class GTNetExchangeSyncTask implements ITask {
         getTaskType(),
         TaskDataExecPriority.PRIO_NORMAL,
         LocalDateTime.now(),
-        FULL_RECREATION_MODE,  // idEntity signals full recreation mode
-        null
+        FULL_RECREATION_MODE,
+        SYNC_MODE_ENTITY
     ));
     log.info("Scheduled GTNet exchange sync task created (full recreation mode)");
   }
@@ -141,5 +151,11 @@ public class GTNetExchangeSyncTask implements ITask {
   @Override
   public boolean removeAllOtherPendingJobsOfSameTask() {
     return true;
+  }
+
+  @Override
+  public List<String> getAllowedEntities() {
+    // SyncMode entity allows admin to choose between incremental and full recreation modes
+    return Arrays.asList(SYNC_MODE_ENTITY);
   }
 }

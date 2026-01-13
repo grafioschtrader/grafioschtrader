@@ -358,13 +358,19 @@ public class SecurityResource extends UpdateCreateResource<Security> {
     return new ResponseEntity<>(result, HttpStatus.OK);
   }
 
-  @Operation(summary = "Triggers GTNet exchange sync", description = "Creates a background task to sync GTNet exchange configurations with GTNet peers using full recreation mode", tags = {
-      Security.TABNAME })
+  @Operation(summary = "Triggers GTNet exchange sync",
+      description = "Creates a background task to sync GTNet exchange configurations with GTNet peers. "
+          + "Use fullRecreation=true to recreate all supplier details, or false (default) for incremental sync.",
+      tags = { Security.TABNAME })
   @PostMapping(value = "/gtnetexchange/triggersync", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Void> triggerGTNetExchangeSync() {
+  public ResponseEntity<Void> triggerGTNetExchangeSync(
+      @RequestParam(defaultValue = "false") boolean fullRecreation) {
+    Integer modeId = fullRecreation
+        ? GTNetExchangeSyncTask.FULL_RECREATION_MODE
+        : GTNetExchangeSyncTask.INCREMENTAL_MODE;
     taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.GTNET_EXCHANGE_SYNC,
         TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(),
-        GTNetExchangeSyncTask.FULL_RECREATION_MODE, null));
+        modeId, GTNetExchangeSyncTask.SYNC_MODE_ENTITY));
     return new ResponseEntity<>(HttpStatus.OK);
   }
 

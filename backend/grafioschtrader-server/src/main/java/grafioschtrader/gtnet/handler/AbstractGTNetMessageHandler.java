@@ -25,6 +25,7 @@ import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.repository.GTNetConfigJpaRepository;
 import grafioschtrader.repository.GTNetJpaRepository;
 import grafioschtrader.repository.GTNetMessageJpaRepository;
+import grafioschtrader.task.exec.GTNetExchangeSyncTask;
 import grafioschtrader.types.TaskTypeExtended;
 
 /**
@@ -157,12 +158,15 @@ public abstract class AbstractGTNetMessageHandler implements GTNetMessageHandler
 
   /**
    * Triggers the GTNet exchange sync task to synchronize instrument configurations with peers.
+   * Uses incremental mode (timestamp-based) since this is called after data exchange acceptance
+   * and only recent changes need to be synchronized.
    *
    * This should be called after mutual acceptance of data exchange to ensure both sides synchronize their
    * GTNetExchange configurations and populate GTNetSupplierDetail entries.
    */
   protected void triggerExchangeSyncTask() {
     taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.GTNET_EXCHANGE_SYNC,
-        TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(), null, null));
+        TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(),
+        GTNetExchangeSyncTask.INCREMENTAL_MODE, GTNetExchangeSyncTask.SYNC_MODE_ENTITY));
   }
 }
