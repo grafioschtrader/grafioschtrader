@@ -23,4 +23,16 @@ public interface GTNetSupplierDetailJpaRepository extends JpaRepository<GTNetSup
   @Modifying
   @Query("DELETE FROM GTNetSupplierDetail d WHERE d.gtNetConfig.idGtNet = ?1")
   void deleteByIdGtNet(Integer idGtNet);
+
+  /**
+   * Finds all GTNetSupplierDetail entries for given instruments and price type.
+   * Used for filtering instruments when querying AC_OPEN suppliers, ensuring that
+   * only instruments a supplier is known to support are sent in requests.
+   *
+   * @param priceType the price type (0=LASTPRICE, 1=HISTORICAL)
+   * @param idSecuritycurrencies list of instrument IDs to check
+   * @return list of supplier details matching the criteria
+   */
+  @Query("SELECT d FROM GTNetSupplierDetail d WHERE d.priceType = ?1 AND d.securitycurrency.idSecuritycurrency IN ?2")
+  List<GTNetSupplierDetail> findByPriceTypeAndInstrumentIds(byte priceType, List<Integer> idSecuritycurrencies);
 }

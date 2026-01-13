@@ -21,10 +21,12 @@ import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.GTNet;
 import grafioschtrader.entities.GTNetConfig;
 import grafioschtrader.entities.GTNetEntity;
+import grafioschtrader.entities.GTNetSupplierDetail;
 import grafioschtrader.entities.Security;
 import grafioschtrader.gtnet.AcceptRequestTypes;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
+import grafioschtrader.gtnet.PriceType;
 import grafioschtrader.gtnet.handler.impl.lastprice.PushOpenLastpriceQueryStrategy;
 import grafioschtrader.gtnet.m2m.model.GTNetPublicDTO;
 import grafioschtrader.gtnet.m2m.model.InstrumentPriceDTO;
@@ -37,6 +39,7 @@ import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentCurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentSecurityJpaRepository;
 import grafioschtrader.repository.GTNetJpaRepository;
+import grafioschtrader.repository.GTNetSupplierDetailJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 
 /**
@@ -60,6 +63,9 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
 
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
+
+  @Autowired
+  private GTNetSupplierDetailJpaRepository gtNetSupplierDetailJpaRepository;
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
@@ -157,6 +163,17 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
     log.info("GTNet exchange: {} instruments enabled, {} securities connector-only, {} pairs connector-only",
         gtNetInstruments.getTotalCount(), connectorOnlySecurities.size(), connectorOnlyCurrencypairs.size());
 
+    // 2b. Load supplier details for filtering AC_OPEN requests
+    stepStart = System.nanoTime();
+    SupplierInstrumentFilter filter = null;
+    List<Integer> allInstrumentIds = gtNetInstruments.getAllInstrumentIds();
+    if (!allInstrumentIds.isEmpty()) {
+      List<GTNetSupplierDetail> supplierDetails = gtNetSupplierDetailJpaRepository
+          .findByPriceTypeAndInstrumentIds(PriceType.LASTPRICE.getValue(), allInstrumentIds);
+      filter = new SupplierInstrumentFilter(supplierDetails);
+    }
+    log.debug("Step 2b - Load supplier details: {} ms", (System.nanoTime() - stepStart) / 1_000_000);
+
     // 3. If local server is AC_PUSH_OPEN, query own push pool first (before contacting remote servers)
     if (needsFilling(gtNetInstruments)) {
       stepStart = System.nanoTime();
@@ -174,11 +191,12 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
     }
 
     // 5. Query open servers for remaining (excluding own entry to prevent self-communication)
+    // AC_OPEN servers use filtering: only send instruments they are known to support
     if (needsFilling(gtNetInstruments)) {
       stepStart = System.nanoTime();
       List<GTNet> openSuppliers = getSuppliersByPriorityWithRandomization(
           excludeOwnEntry(gtNetJpaRepository.findOpenSuppliers()), GTNetExchangeKindType.LAST_PRICE);
-      queryRemoteServers(openSuppliers, gtNetInstruments);
+      queryRemoteServersFiltered(openSuppliers, gtNetInstruments, filter);
       log.debug("Step 5 - Query open servers: {} ms", (System.nanoTime() - stepStart) / 1_000_000);
     }
 
@@ -228,7 +246,7 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
   }
 
   /**
-   * Queries remote servers for price data.
+   * Queries remote servers for price data (for AC_PUSH_OPEN suppliers - no filtering).
    */
   private void queryRemoteServers(List<GTNet> suppliers, InstrumentExchangeSet instruments) {
     for (GTNet supplier : suppliers) {
@@ -237,7 +255,7 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
       }
 
       try {
-        queryRemoteServer(supplier, instruments);
+        queryRemoteServer(supplier, instruments, null);
       } catch (Exception e) {
         e.printStackTrace();
         log.warn("Failed to query GTNet server {}: {}", supplier.getDomainRemoteName(), e.getMessage());
@@ -245,7 +263,34 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
     }
   }
 
-  private void queryRemoteServer(GTNet supplier, InstrumentExchangeSet instruments) {
+  /**
+   * Queries remote servers with instrument filtering (for AC_OPEN suppliers).
+   * Only sends instruments that the supplier is known to support based on GTNetSupplierDetail.
+   */
+  private void queryRemoteServersFiltered(List<GTNet> suppliers, InstrumentExchangeSet instruments,
+      SupplierInstrumentFilter filter) {
+    for (GTNet supplier : suppliers) {
+      if (instruments.allFilled()) {
+        break;
+      }
+
+      try {
+        queryRemoteServer(supplier, instruments, filter);
+      } catch (Exception e) {
+        e.printStackTrace();
+        log.warn("Failed to query GTNet server {}: {}", supplier.getDomainRemoteName(), e.getMessage());
+      }
+    }
+  }
+
+  /**
+   * Queries a single remote server for price data.
+   *
+   * @param supplier the GTNet supplier to query
+   * @param instruments the instrument exchange set
+   * @param filter optional filter for AC_OPEN suppliers (null for AC_PUSH_OPEN)
+   */
+  private void queryRemoteServer(GTNet supplier, InstrumentExchangeSet instruments, SupplierInstrumentFilter filter) {
     GTNetConfig config = supplier.getGtNetConfig();
     if (config == null || !config.isAuthorizedRemoteEntry()) {
       log.debug("Skipping unauthorized server: {}", supplier.getDomainRemoteName());
@@ -253,8 +298,26 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
     }
 
     // Build request with unfilled instruments, their current timestamps, and freshness threshold
-    List<InstrumentPriceDTO> securityDTOs = instruments.getUnfilledSecurityDTOs();
-    List<InstrumentPriceDTO> currencypairDTOs = instruments.getUnfilledCurrencypairDTOs();
+    List<InstrumentPriceDTO> securityDTOs;
+    List<InstrumentPriceDTO> currencypairDTOs;
+
+    if (filter != null) {
+      // AC_OPEN supplier: filter instruments to only those this supplier is known to support
+      Set<Integer> allUnfilledIds = new HashSet<>(instruments.getAllInstrumentIds());
+      Set<Integer> allowedIds = filter.getInstrumentsForSupplier(supplier.getIdGtNet(), allUnfilledIds, false);
+
+      if (allowedIds.isEmpty()) {
+        log.debug("No supported instruments for AC_OPEN supplier {}, skipping", supplier.getDomainRemoteName());
+        return;
+      }
+
+      securityDTOs = instruments.getUnfilledSecurityDTOsFiltered(allowedIds);
+      currencypairDTOs = instruments.getUnfilledCurrencypairDTOsFiltered(allowedIds);
+    } else {
+      // AC_PUSH_OPEN supplier: send all unfilled instruments (no filtering)
+      securityDTOs = instruments.getUnfilledSecurityDTOs();
+      currencypairDTOs = instruments.getUnfilledCurrencypairDTOs();
+    }
 
     if (securityDTOs.isEmpty() && currencypairDTOs.isEmpty()) {
       return;

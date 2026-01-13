@@ -251,4 +251,68 @@ public class HistoryquoteExchangeSet<S extends Securitycurrency<S>> {
   public Map<String, InstrumentHistoryquoteDTO> getAllReceivedData() {
     return new HashMap<>(receivedData);
   }
+
+  /**
+   * Returns all instrument IDs in this set.
+   * Used for batch loading GTNetSupplierDetail entries.
+   *
+   * @return list of all securitycurrency IDs in this set
+   */
+  public List<Integer> getAllInstrumentIds() {
+    List<Integer> ids = new ArrayList<>();
+    for (SecurityCurrencyMaxHistoryquoteData<S> data : instruments.values()) {
+      ids.add(data.getSecurityCurrency().getIdSecuritycurrency());
+    }
+    return ids;
+  }
+
+  /**
+   * Creates request DTOs for unfilled securities, filtered to only include instruments in the allowed set.
+   * Used when querying AC_OPEN suppliers that only support specific instruments.
+   *
+   * @param allowedIds set of instrument IDs to include in the result
+   * @return list of InstrumentHistoryquoteDTO for unfilled securities that are in the allowed set
+   */
+  public List<InstrumentHistoryquoteDTO> getUnfilledSecurityDTOsFiltered(Set<Integer> allowedIds) {
+    List<InstrumentHistoryquoteDTO> result = new ArrayList<>();
+    for (Map.Entry<String, SecurityCurrencyMaxHistoryquoteData<S>> entry : instruments.entrySet()) {
+      String key = entry.getKey();
+      if (!filledKeys.contains(key)) {
+        S sc = entry.getValue().getSecurityCurrency();
+        if (sc instanceof Security security && allowedIds.contains(security.getIdSecuritycurrency())) {
+          result.add(InstrumentHistoryquoteDTO.forSecurityRequest(
+              security.getIsin(),
+              security.getCurrency(),
+              fromDates.get(key),
+              toDates.get(key)));
+        }
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Creates request DTOs for unfilled currency pairs, filtered to only include instruments in the allowed set.
+   * Used when querying AC_OPEN suppliers that only support specific instruments.
+   *
+   * @param allowedIds set of instrument IDs to include in the result
+   * @return list of InstrumentHistoryquoteDTO for unfilled currency pairs that are in the allowed set
+   */
+  public List<InstrumentHistoryquoteDTO> getUnfilledCurrencypairDTOsFiltered(Set<Integer> allowedIds) {
+    List<InstrumentHistoryquoteDTO> result = new ArrayList<>();
+    for (Map.Entry<String, SecurityCurrencyMaxHistoryquoteData<S>> entry : instruments.entrySet()) {
+      String key = entry.getKey();
+      if (!filledKeys.contains(key)) {
+        S sc = entry.getValue().getSecurityCurrency();
+        if (sc instanceof Currencypair pair && allowedIds.contains(pair.getIdSecuritycurrency())) {
+          result.add(InstrumentHistoryquoteDTO.forCurrencypairRequest(
+              pair.getFromCurrency(),
+              pair.getToCurrency(),
+              fromDates.get(key),
+              toDates.get(key)));
+        }
+      }
+    }
+    return result;
+  }
 }
