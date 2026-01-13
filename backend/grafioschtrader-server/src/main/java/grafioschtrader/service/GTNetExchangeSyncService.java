@@ -95,6 +95,7 @@ public class GTNetExchangeSyncService {
    * @param fullRecreation if true, ignores timestamp and recreates all GTNetSupplierDetail entries for this peer
    * @return true if sync was successful
    */
+  @Transactional
   public boolean syncWithPeer(GTNet peer, Date sinceTimestamp, boolean fullRecreation) {
     GTNetConfig config = peer.getGtNetConfig();
     if (config == null) {
