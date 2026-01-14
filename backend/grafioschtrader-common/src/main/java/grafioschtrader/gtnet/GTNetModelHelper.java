@@ -12,6 +12,7 @@ import grafioschtrader.gtnet.model.msg.DiscontinuedMsg;
 import grafioschtrader.gtnet.model.msg.FirstHandshakeMsg;
 import grafioschtrader.gtnet.model.msg.MaintenanceMsg;
 import grafioschtrader.gtnet.model.msg.RevokeMsg;
+import grafioschtrader.gtnet.model.msg.SecurityLookupMsg;
 import grafioschtrader.gtnet.model.msg.UpdateServerlistRequestMsg;
 
 /**
@@ -84,6 +85,12 @@ public abstract class GTNetModelHelper {
     // Exchange sync - programmatic M2M, uses ExchangeSyncMsg payload for bidirectional config sharing
     msgFormMap.put(GTNetMessageCodeType.GT_NET_EXCHANGE_SYNC_SEL_RR_C, new GTNetMsgRequest(null, true, (byte) 1));
     msgFormMap.put(GTNetMessageCodeType.GT_NET_EXCHANGE_SYNC_RESPONSE_S, new GTNetMsgRequest(null, false, (byte) 1));
+
+    // Security metadata lookup - programmatic M2M, uses SecurityLookupMsg payload
+    msgFormMap.put(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_SEL_C, new GTNetMsgRequest(SecurityLookupMsg.class, true, (byte) 1));
+    msgFormMap.put(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_RESPONSE_S, new GTNetMsgRequest(null, false, (byte) 1));
+    msgFormMap.put(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_NOT_FOUND_S, new GTNetMsgRequest(null, false, (byte) 1));
+    msgFormMap.put(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_REJECTED_S, new GTNetMsgRequest(null, false, (byte) 1));
   }
 
   /**

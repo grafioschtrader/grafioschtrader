@@ -113,7 +113,17 @@ public enum GTNetMessageCodeType {
   /** Acknowledge receipt of pushed historical prices with count of accepted updates */
   GT_NET_HISTORYQUOTE_PUSH_ACK_S((byte) 83),
   /** Response when the request exceeds the configured max_limit for instruments or date range */
-  GT_NET_HISTORYQUOTE_MAX_LIMIT_EXCEEDED_S((byte) 84);
+  GT_NET_HISTORYQUOTE_MAX_LIMIT_EXCEEDED_S((byte) 84),
+
+  // Security metadata lookup messages (90-93)
+  /** Request security metadata by ISIN, currency, and/or ticker symbol from remote server */
+  GT_NET_SECURITY_LOOKUP_SEL_C((byte) 90),
+  /** Response containing matching security metadata */
+  GT_NET_SECURITY_LOOKUP_RESPONSE_S((byte) 91),
+  /** Response when no matching security is found */
+  GT_NET_SECURITY_LOOKUP_NOT_FOUND_S((byte) 92),
+  /** Response when the lookup request is rejected (rate limit, permission, etc.) */
+  GT_NET_SECURITY_LOOKUP_REJECTED_S((byte) 93);
 
 
 

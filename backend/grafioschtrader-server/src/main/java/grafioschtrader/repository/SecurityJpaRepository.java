@@ -94,6 +94,8 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
 
   Security findByTickerSymbolAndCurrency(String tickerSymbol, String currencySecurity);
 
+  List<Security> findByTickerSymbol(String tickerSymbol);
+
   List<Security> findByActiveToDateGreaterThanEqualAndIdTenantPrivateIsNullOrIdTenantPrivateOrderByName(Date date,
       Integer idTenantPrivate);
 
