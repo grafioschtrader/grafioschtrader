@@ -75,4 +75,20 @@ public interface GTNetExchangeLogJpaRepository
       @Param("idGtNet") Integer idGtNet,
       @Param("entityKind") byte entityKind,
       @Param("logAsSupplier") boolean logAsSupplier);
+
+  /**
+   * Calculates aggregated success rates per GTNet supplier for consumer logs within a date range.
+   * Success rate = SUM(entitiesUpdated) / SUM(entitiesSent). Only includes consumer logs (logAsSupplier = false).
+   *
+   * Named query: GTNetExchangeLog.getSupplierSuccessRates
+   * Parameters:
+   * - entityKind - entity kind byte value (0=LAST_PRICE, 1=HISTORICAL_PRICES)
+   * - fromDate - start of period (inclusive)
+   *
+   * @param entityKind the entity kind to filter by
+   * @param fromDate only include logs from this date onwards
+   * @return list of Object[] where [0]=idGtNet (Integer), [1]=successRate (Double)
+   */
+  @Query(nativeQuery = true, name = "GTNetExchangeLog.getSupplierSuccessRates")
+  List<Object[]> getSupplierSuccessRates(@Param("entityKind") byte entityKind, @Param("fromDate") LocalDate fromDate);
 }

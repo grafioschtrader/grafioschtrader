@@ -1,5 +1,6 @@
 package grafioschtrader.service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -35,6 +36,7 @@ import grafioschtrader.m2m.GTNetMessageHelper;
 import grafioschtrader.m2m.client.BaseDataClient;
 import grafioschtrader.m2m.client.BaseDataClient.SendResult;
 import grafioschtrader.repository.CurrencypairJpaRepository;
+import grafioschtrader.repository.GTNetExchangeLogJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentCurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentSecurityJpaRepository;
 import grafioschtrader.repository.GTNetJpaRepository;
@@ -89,6 +91,9 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
 
   @Autowired
   private GTNetExchangeLogService gtNetExchangeLogService;
+
+  @Autowired
+  private GTNetExchangeLogJpaRepository gtNetExchangeLogJpaRepository;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -173,6 +178,13 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
     }
     log.debug("Step 2b - Load supplier details: {} ms", (System.nanoTime() - stepStart) / 1_000_000);
 
+    // 2c. Load success rates for AC_OPEN supplier scoring (past 30 days)
+    LocalDate fromDate = LocalDate.now().minusDays(30);
+    List<Object[]> successRateData = gtNetExchangeLogJpaRepository
+        .getSupplierSuccessRates(GTNetExchangeKindType.LAST_PRICE.getValue(), fromDate);
+    SupplierScoreCalculator scoreCalculator = new SupplierScoreCalculator(successRateData);
+    Set<Integer> requestedInstrumentIds = new HashSet<>(allInstrumentIds);
+
     // 3. If local server is AC_PUSH_OPEN, query own push pool first (before contacting remote servers)
     if (needsFilling(gtNetInstruments)) {
       stepStart = System.nanoTime();
@@ -181,6 +193,7 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
     }
 
     // 4. Query push-open servers by priority (excluding own entry to prevent self-communication)
+    // PUSH_OPEN uses priority+random algorithm (unchanged)
     if (needsFilling(gtNetInstruments)) {
       stepStart = System.nanoTime();
       List<GTNet> pushOpenSuppliers = getSuppliersByPriorityWithRandomization(
@@ -190,11 +203,15 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
     }
 
     // 5. Query open servers for remaining (excluding own entry to prevent self-communication)
-    // AC_OPEN servers use filtering: only send instruments they are known to support
+    // AC_OPEN uses score-based selection: coverage x success_rate, then priority, then random
     if (needsFilling(gtNetInstruments)) {
       stepStart = System.nanoTime();
-      List<GTNet> openSuppliers = getSuppliersByPriorityWithRandomization(
-          excludeOwnEntry(gtNetJpaRepository.findOpenSuppliers()), GTNetExchangeKindType.LAST_PRICE);
+      List<GTNet> openSuppliers = getSuppliersByScoreWithRandomization(
+          excludeOwnEntry(gtNetJpaRepository.findOpenSuppliers()),
+          GTNetExchangeKindType.LAST_PRICE,
+          scoreCalculator,
+          filter,
+          requestedInstrumentIds);
       queryRemoteServersFiltered(openSuppliers, gtNetInstruments, filter);
       log.debug("Step 5 - Query open servers: {} ms", (System.nanoTime() - stepStart) / 1_000_000);
     }

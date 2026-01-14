@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import grafioschtrader.entities.GTNet;
@@ -59,5 +60,38 @@ public abstract class BaseGTNetExchangeService {
         });
 
     return result;
+  }
+
+  /**
+   * Sorts AC_OPEN suppliers using optimized scoring algorithm: coverage x success_rate as primary,
+   * priority as secondary, and random shuffle as tertiary for ties.
+   *
+   * This method provides better supplier selection than priority-only by considering:
+   * - How many of the requested instruments each supplier actually supports (coverage)
+   * - How reliable each supplier has been historically (success rate)
+   *
+   * Note: This method is ONLY for AC_OPEN suppliers. AC_PUSH_OPEN suppliers should continue
+   * using getSuppliersByPriorityWithRandomization().
+   *
+   * @param suppliers list of AC_OPEN suppliers to organize
+   * @param exchangeKind the exchange kind for priority lookup
+   * @param scoreCalculator the pre-initialized score calculator with success rates
+   * @param filter the instrument filter for coverage calculation
+   * @param requestedInstrumentIds the set of instrument IDs being requested
+   * @return list of suppliers sorted by score desc, priority asc, with random shuffle for ties
+   */
+  protected List<GTNet> getSuppliersByScoreWithRandomization(
+      List<GTNet> suppliers,
+      GTNetExchangeKindType exchangeKind,
+      SupplierScoreCalculator scoreCalculator,
+      SupplierInstrumentFilter filter,
+      Set<Integer> requestedInstrumentIds) {
+
+    if (scoreCalculator == null) {
+      // Fallback to priority-only if no score calculator provided
+      return getSuppliersByPriorityWithRandomization(suppliers, exchangeKind);
+    }
+
+    return scoreCalculator.sortSuppliersByScore(suppliers, exchangeKind, filter, requestedInstrumentIds);
   }
 }

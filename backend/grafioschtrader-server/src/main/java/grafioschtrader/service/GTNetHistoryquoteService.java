@@ -1,5 +1,6 @@
 package grafioschtrader.service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -42,6 +43,7 @@ import grafioschtrader.m2m.GTNetMessageHelper;
 import grafioschtrader.m2m.client.BaseDataClient;
 import grafioschtrader.m2m.client.BaseDataClient.SendResult;
 import grafioschtrader.repository.CurrencypairJpaRepository;
+import grafioschtrader.repository.GTNetExchangeLogJpaRepository;
 import grafioschtrader.repository.GTNetHistoryquoteJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentCurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentSecurityJpaRepository;
@@ -117,6 +119,9 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
 
   @Autowired
   private GTNetExchangeLogService gtNetExchangeLogService;
+
+  @Autowired
+  private GTNetExchangeLogJpaRepository gtNetExchangeLogJpaRepository;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -229,16 +234,28 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
       filter = new SupplierInstrumentFilter(supplierDetails);
     }
 
+    // Load success rates for AC_OPEN supplier scoring (past 30 days)
+    LocalDate fromDate = LocalDate.now().minusDays(30);
+    List<Object[]> successRateData = gtNetExchangeLogJpaRepository
+        .getSupplierSuccessRates(GTNetExchangeKindType.HISTORICAL_PRICES.getValue(), fromDate);
+    SupplierScoreCalculator scoreCalculator = new SupplierScoreCalculator(successRateData);
+    Set<Integer> requestedInstrumentIds = new HashSet<>(allInstrumentIds);
+
     // Query PUSH_OPEN servers first (excluding own entry to prevent self-communication)
+    // PUSH_OPEN uses priority+random algorithm (unchanged)
     List<GTNet> pushOpenSuppliers = getSuppliersByPriorityWithRandomization(
         excludeOwnEntry(gtNetJpaRepository.findHistoryquotePushOpenSuppliers()), GTNetExchangeKindType.HISTORICAL_PRICES);
     queryRemoteServersForExchangeSet(pushOpenSuppliers, exchangeSet, null);
 
     // Query OPEN servers for remaining unfilled (excluding own entry to prevent self-communication)
-    // AC_OPEN servers use filtering: only send instruments they are known to support
+    // AC_OPEN uses score-based selection: coverage x success_rate, then priority, then random
     if (!exchangeSet.allFilled()) {
-      List<GTNet> openSuppliers = getSuppliersByPriorityWithRandomization(
-          excludeOwnEntry(gtNetJpaRepository.findHistoryquoteOpenSuppliers()), GTNetExchangeKindType.HISTORICAL_PRICES);
+      List<GTNet> openSuppliers = getSuppliersByScoreWithRandomization(
+          excludeOwnEntry(gtNetJpaRepository.findHistoryquoteOpenSuppliers()),
+          GTNetExchangeKindType.HISTORICAL_PRICES,
+          scoreCalculator,
+          filter,
+          requestedInstrumentIds);
       queryRemoteServersForExchangeSet(openSuppliers, exchangeSet, filter);
     }
 
