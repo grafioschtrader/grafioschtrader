@@ -1,51 +1,62 @@
 package grafioschtrader.gtnet;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import grafioschtrader.connector.instrument.BaseFeedConnector;
-import grafioschtrader.connector.instrument.IFeedConnector;
-import grafioschtrader.entities.Security;
-import grafioschtrader.gtnet.model.ConnectorHint;
-import grafioschtrader.gtnet.model.ConnectorHint.ConnectorCapability;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import grafioschtrader.entities.GTNet;
+import grafioschtrader.entities.GTNetConfig;
+import grafioschtrader.gtnet.m2m.model.GTNetPublicDTO;
+import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.gtnet.model.SecurityGtnetLookupDTO;
 import grafioschtrader.gtnet.model.SecurityGtnetLookupRequest;
 import grafioschtrader.gtnet.model.SecurityGtnetLookupResponse;
+import grafioschtrader.gtnet.model.msg.SecurityLookupMsg;
+import grafioschtrader.gtnet.model.msg.SecurityLookupResponseMsg;
+import grafioschtrader.m2m.GTNetMessageHelper;
+import grafioschtrader.m2m.client.BaseDataClient;
+import grafioschtrader.m2m.client.BaseDataClient.SendResult;
 import grafioschtrader.repository.GTNetJpaRepository;
-import grafioschtrader.repository.SecurityJpaRepository;
+import grafioschtrader.service.GlobalparametersService;
 
 /**
- * Service for looking up security metadata from local database and GTNet peers.
- * Provides functionality to search for securities by ISIN, currency, and ticker symbol,
- * and converts them to instance-agnostic DTOs suitable for GTNet exchange.
+ * Service for looking up security metadata from GTNet peers.
+ * Queries remote GTNet instances that have SECURITY_METADATA exchange enabled
+ * and aggregates results from all responding peers.
  */
 @Service
 public class GTNetSecurityLookupService {
 
-  @Autowired
-  private SecurityJpaRepository securityJpaRepository;
+  private static final Logger log = LoggerFactory.getLogger(GTNetSecurityLookupService.class);
 
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
 
   @Autowired
-  private Map<String, IFeedConnector> feedConnectorMap;
+  private BaseDataClient baseDataClient;
+
+  @Autowired
+  private GlobalparametersService globalparametersService;
+
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   /**
-   * Looks up security metadata matching the given search criteria.
-   * Currently searches only the local database. GTNet peer querying will be added in Phase 3.
+   * Looks up security metadata by querying GTNet peers that support SECURITY_METADATA exchange.
+   * Sends requests to all available peers and aggregates their responses.
    *
-   * @param request the search criteria
-   * @return response containing matching securities and query statistics
+   * @param request the search criteria (ISIN, currency, and/or ticker symbol)
+   * @return response containing matching securities from all responding peers and query statistics
    */
   public SecurityGtnetLookupResponse lookupSecurity(SecurityGtnetLookupRequest request) {
     List<SecurityGtnetLookupDTO> results = new ArrayList<>();
+    List<String> errors = new ArrayList<>();
 
     // Validate request
     if (!request.isValid()) {
@@ -54,209 +65,140 @@ public class GTNetSecurityLookupService {
       return response;
     }
 
-    // Phase 1: Search local database
-    results.addAll(findLocalSecurities(request));
+    // Check if GTNet is enabled
+    if (!globalparametersService.isGTNetEnabled()) {
+      SecurityGtnetLookupResponse response = new SecurityGtnetLookupResponse(results, 0, 0);
+      response.addError("GTNet is not enabled");
+      return response;
+    }
 
-    // TODO Phase 3: Query GTNet peers that support SECURITY_METADATA exchange
+    // Get local GTNet entry for source identification
+    Integer myGTNetId;
+    GTNet myGTNet;
+    try {
+      myGTNetId = GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersService);
+      myGTNet = gtNetJpaRepository.findById(myGTNetId)
+          .orElseThrow(() -> new IllegalStateException("Local GTNet entry not found: " + myGTNetId));
+    } catch (Exception e) {
+      log.error("Failed to get local GTNet entry", e);
+      SecurityGtnetLookupResponse response = new SecurityGtnetLookupResponse(results, 0, 0);
+      response.addError("Local GTNet configuration error: " + e.getMessage());
+      return response;
+    }
+
+    // Find peers that accept SECURITY_METADATA requests and are online
+    List<GTNet> suppliers = gtNetJpaRepository.findSecurityMetadataSuppliers();
+
+    // Exclude own entry to prevent self-communication
+    suppliers = suppliers.stream()
+        .filter(supplier -> !supplier.getIdGtNet().equals(myGTNetId))
+        .toList();
+
+    if (suppliers.isEmpty()) {
+      SecurityGtnetLookupResponse response = new SecurityGtnetLookupResponse(results, 0, 0);
+      response.addError("No GTNet peers available for security metadata lookup");
+      return response;
+    }
+
     int peersQueried = 0;
     int peersResponded = 0;
 
-    return new SecurityGtnetLookupResponse(results, peersQueried, peersResponded);
-  }
+    // Build request payload
+    SecurityLookupMsg requestPayload = new SecurityLookupMsg(
+        request.getIsin(), request.getCurrency(), request.getTickerSymbol());
 
-  /**
-   * Searches the local database for securities matching the criteria.
-   */
-  private List<SecurityGtnetLookupDTO> findLocalSecurities(SecurityGtnetLookupRequest request) {
-    List<Security> securities = new ArrayList<>();
+    // Query each peer
+    for (GTNet supplier : suppliers) {
+      GTNetConfig config = supplier.getGtNetConfig();
+      if (config == null || !config.isAuthorizedRemoteEntry()) {
+        log.debug("Skipping unauthorized server: {}", supplier.getDomainRemoteName());
+        continue;
+      }
 
-    // Search by ISIN and currency (primary)
-    if (request.getIsin() != null && !request.getIsin().isBlank()) {
-      if (request.getCurrency() != null && !request.getCurrency().isBlank()) {
-        Security security = securityJpaRepository.findByIsinAndCurrency(
-            request.getIsin(), request.getCurrency());
-        if (security != null) {
-          securities.add(security);
+      peersQueried++;
+
+      try {
+        // Build MessageEnvelope
+        MessageEnvelope requestEnvelope = new MessageEnvelope();
+        requestEnvelope.sourceDomain = myGTNet.getDomainRemoteName();
+        requestEnvelope.sourceGtNet = new GTNetPublicDTO(myGTNet);
+        requestEnvelope.serverBusy = myGTNet.isServerBusy();
+        requestEnvelope.messageCode = GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_SEL_C.getValue();
+        requestEnvelope.timestamp = new Date();
+        requestEnvelope.payload = objectMapper.valueToTree(requestPayload);
+
+        log.debug("Sending security lookup request to {}", supplier.getDomainRemoteName());
+
+        // Send request
+        SendResult result = baseDataClient.sendToMsgWithStatus(
+            config.getTokenRemote(),
+            supplier.getDomainRemoteName(),
+            requestEnvelope);
+
+        if (result.isFailed()) {
+          if (result.httpError()) {
+            log.warn("GTNet server {} returned HTTP error {}", supplier.getDomainRemoteName(), result.httpStatusCode());
+          } else {
+            log.warn("GTNet server {} is unreachable", supplier.getDomainRemoteName());
+          }
+          continue;
         }
-      } else {
-        securities.addAll(securityJpaRepository.findByIsin(request.getIsin()));
+
+        MessageEnvelope response = result.response();
+        if (response == null) {
+          log.debug("No response from {}", supplier.getDomainRemoteName());
+          continue;
+        }
+
+        peersResponded++;
+
+        // Check response message code
+        GTNetMessageCodeType responseCode = GTNetMessageCodeType.getGTNetMessageCodeTypeByValue(response.messageCode);
+        if (responseCode == GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_NOT_FOUND_S) {
+          log.debug("No matching securities found on {}", supplier.getDomainRemoteName());
+          continue;
+        }
+
+        if (responseCode != GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_RESPONSE_S) {
+          log.warn("Unexpected response code {} from {}", response.messageCode, supplier.getDomainRemoteName());
+          continue;
+        }
+
+        // Parse response payload
+        if (response.payload == null) {
+          log.debug("Empty payload from {}", supplier.getDomainRemoteName());
+          continue;
+        }
+
+        SecurityLookupResponseMsg responsePayload = objectMapper.treeToValue(
+            response.payload, SecurityLookupResponseMsg.class);
+
+        if (responsePayload == null || responsePayload.isEmpty()) {
+          log.debug("No securities in response from {}", supplier.getDomainRemoteName());
+          continue;
+        }
+
+        // Add results with source domain tracking
+        for (SecurityGtnetLookupDTO dto : responsePayload.securities) {
+          dto.setSourceDomain(supplier.getDomainRemoteName());
+          results.add(dto);
+        }
+
+        log.info("Received {} securities from {}", responsePayload.securities.size(), supplier.getDomainRemoteName());
+
+      } catch (Exception e) {
+        log.error("Failed to query GTNet server {}", supplier.getDomainRemoteName(), e);
+        errors.add("Error querying " + supplier.getDomainRemoteName() + ": " + e.getMessage());
       }
     }
 
-    // Search by ticker symbol if ISIN not provided or no results
-    if (securities.isEmpty() && request.getTickerSymbol() != null && !request.getTickerSymbol().isBlank()) {
-      List<Security> byTicker = securityJpaRepository.findByTickerSymbol(request.getTickerSymbol());
-      if (request.getCurrency() != null && !request.getCurrency().isBlank()) {
-        byTicker.stream()
-            .filter(s -> request.getCurrency().equals(s.getCurrency()))
-            .forEach(securities::add);
-      } else {
-        securities.addAll(byTicker);
-      }
-    }
+    SecurityGtnetLookupResponse response = new SecurityGtnetLookupResponse(results, peersQueried, peersResponded);
+    errors.forEach(response::addError);
 
-    // Convert to DTOs
-    return securities.stream()
-        .filter(s -> s.getIdTenantPrivate() == null) // Exclude private securities
-        .map(this::toDTO)
-        .toList();
-  }
+    log.info("Security lookup complete: {} peers queried, {} responded, {} results",
+        peersQueried, peersResponded, results.size());
 
-  /**
-   * Converts a Security entity to an instance-agnostic DTO.
-   */
-  private SecurityGtnetLookupDTO toDTO(Security security) {
-    SecurityGtnetLookupDTO dto = new SecurityGtnetLookupDTO();
-
-    // Identification
-    dto.setIsin(security.getIsin());
-    dto.setCurrency(security.getCurrency());
-    dto.setName(security.getName());
-    dto.setTickerSymbol(security.getTickerSymbol());
-
-    // Asset class (enum values, not IDs)
-    if (security.getAssetClass() != null) {
-      dto.setCategoryType(security.getAssetClass().getCategoryType());
-      dto.setSpecialInvestmentInstrument(security.getAssetClass().getSpecialInvestmentInstrument());
-    }
-
-    // Stock exchange (MIC code for cross-instance mapping)
-    if (security.getStockexchange() != null) {
-      dto.setStockexchangeMic(security.getStockexchange().getMic());
-      dto.setStockexchangeName(security.getStockexchange().getName());
-    }
-
-    // Security properties
-    dto.setDenomination(security.getDenomination());
-    dto.setDistributionFrequency(security.getDistributionFrequency());
-    dto.setLeverageFactor(security.getLeverageFactor());
-    dto.setProductLink(security.getProductLink());
-    dto.setActiveFromDate(security.getActiveFromDate());
-    dto.setActiveToDate(security.getActiveToDate());
-
-    // Build connector hints
-    dto.setConnectorHints(buildConnectorHints(security));
-
-    // Source tracking (null for local, populated for peer responses)
-    dto.setSourceDomain(null);
-
-    return dto;
-  }
-
-  /**
-   * Builds connector hints from a security's connector configuration.
-   * Extracts the connector family from the ID and determines capabilities.
-   */
-  private List<ConnectorHint> buildConnectorHints(Security security) {
-    List<ConnectorHint> hints = new ArrayList<>();
-
-    // History connector
-    if (security.getIdConnectorHistory() != null) {
-      ConnectorHint hint = createConnectorHint(
-          security.getIdConnectorHistory(),
-          security.getUrlHistoryExtend(),
-          ConnectorCapability.HISTORY);
-      if (hint != null) {
-        hints.add(hint);
-      }
-    }
-
-    // Intraday connector
-    if (security.getIdConnectorIntra() != null) {
-      ConnectorHint hint = createConnectorHint(
-          security.getIdConnectorIntra(),
-          security.getUrlIntraExtend(),
-          ConnectorCapability.INTRADAY);
-      if (hint != null) {
-        // Check if already have hint for this connector family
-        hints.stream()
-            .filter(h -> h.getConnectorFamily().equals(hint.getConnectorFamily()))
-            .findFirst()
-            .ifPresentOrElse(
-                existing -> existing.getCapabilities().add(ConnectorCapability.INTRADAY),
-                () -> hints.add(hint));
-      }
-    }
-
-    // Dividend connector
-    if (security.getIdConnectorDividend() != null) {
-      ConnectorHint hint = createConnectorHint(
-          security.getIdConnectorDividend(),
-          security.getUrlDividendExtend(),
-          ConnectorCapability.DIVIDEND);
-      if (hint != null) {
-        hints.stream()
-            .filter(h -> h.getConnectorFamily().equals(hint.getConnectorFamily()))
-            .findFirst()
-            .ifPresentOrElse(
-                existing -> existing.getCapabilities().add(ConnectorCapability.DIVIDEND),
-                () -> hints.add(hint));
-      }
-    }
-
-    // Split connector
-    if (security.getIdConnectorSplit() != null) {
-      ConnectorHint hint = createConnectorHint(
-          security.getIdConnectorSplit(),
-          security.getUrlSplitExtend(),
-          ConnectorCapability.SPLIT);
-      if (hint != null) {
-        hints.stream()
-            .filter(h -> h.getConnectorFamily().equals(hint.getConnectorFamily()))
-            .findFirst()
-            .ifPresentOrElse(
-                existing -> existing.getCapabilities().add(ConnectorCapability.SPLIT),
-                () -> hints.add(hint));
-      }
-    }
-
-    return hints;
-  }
-
-  /**
-   * Creates a connector hint from a connector ID.
-   * Extracts the family name and checks if API key is required.
-   */
-  private ConnectorHint createConnectorHint(String connectorId, String urlExtension,
-                                             ConnectorCapability capability) {
-    if (connectorId == null || connectorId.isBlank()) {
-      return null;
-    }
-
-    // Extract family from connector ID (e.g., "gt.datafeed.yahoo" -> "yahoo")
-    String family = extractConnectorFamily(connectorId);
-    if (family == null) {
-      return null;
-    }
-
-    // Check if connector requires API key
-    boolean requiresApiKey = checkRequiresApiKey(connectorId);
-
-    Set<ConnectorCapability> capabilities = EnumSet.of(capability);
-
-    return new ConnectorHint(family, capabilities, urlExtension, requiresApiKey);
-  }
-
-  /**
-   * Extracts the connector family name from a full connector ID.
-   */
-  private String extractConnectorFamily(String connectorId) {
-    if (connectorId.startsWith(BaseFeedConnector.ID_PREFIX)) {
-      return connectorId.substring(BaseFeedConnector.ID_PREFIX.length());
-    }
-    return connectorId;
-  }
-
-  /**
-   * Checks if a connector requires an API key.
-   */
-  private boolean checkRequiresApiKey(String connectorId) {
-    IFeedConnector connector = feedConnectorMap.get(connectorId);
-    if (connector != null) {
-      // Check if connector has API key field (extends BaseFeedApiKeyConnector)
-      return connector.getClass().getName().contains("ApiKey");
-    }
-    return false;
+    return response;
   }
 
   /**

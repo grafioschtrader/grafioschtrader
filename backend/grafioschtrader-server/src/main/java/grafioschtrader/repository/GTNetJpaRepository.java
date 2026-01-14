@@ -192,4 +192,19 @@ public interface GTNetJpaRepository
          "WHERE e.entityKind = 2 AND e.acceptRequest > 0 AND g.serverOnline = 1")
   int countBySecurityMetadataAcceptingAndOnline();
 
+  /**
+   * Finds domains that accept SECURITY_METADATA requests.
+   * Returns domains where:
+   * <ul>
+   *   <li>SECURITY_METADATA entity has acceptRequest > 0 (AC_OPEN or AC_PUSH_OPEN)</li>
+   *   <li>Server is online (serverOnline = SOS_ONLINE = 1)</li>
+   *   <li>Server is not busy</li>
+   * </ul>
+   *
+   * @return list of domains accepting security metadata requests
+   */
+  @Query("SELECT DISTINCT g FROM GTNet g JOIN g.gtNetEntities e " +
+         "WHERE e.entityKind = 2 AND e.acceptRequest > 0 AND g.serverOnline = 1 AND g.serverBusy = false")
+  List<GTNet> findSecurityMetadataSuppliers();
+
 }
