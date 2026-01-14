@@ -5,6 +5,7 @@ import java.util.Set;
 import org.springframework.stereotype.Component;
 
 import grafioschtrader.entities.GTNet;
+import grafioschtrader.entities.GTNetConfigEntity;
 import grafioschtrader.entities.GTNetEntity;
 import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.gtnet.AcceptRequestTypes;
@@ -66,8 +67,23 @@ public class DataRequestHandler extends AbstractRequestHandler {
     Set<GTNetExchangeKindType> requestedKinds = getRequestedEntityKinds(context);
 
     if (responseCode == GTNetMessageCodeType.GT_NET_DATA_REQUEST_ACCEPT_S) {
+      // Step 1: Create/update GTNetEntity without config entities to get IDs
       for (GTNetExchangeKindType kind : requestedKinds) {
-        updateEntityForAccept(remoteGTNet, kind);
+        GTNetEntity entity = getOrCreateEntity(remoteGTNet, kind);
+        entity.setAcceptRequest(AcceptRequestTypes.AC_OPEN);
+        entity.setServerState(GTNetServerStateTypes.SS_OPEN);
+      }
+      remoteGTNet = saveRemoteGTNet(remoteGTNet);
+
+      // Step 2: Now add GTNetConfigEntity with proper IDs
+      for (GTNetExchangeKindType kind : requestedKinds) {
+        remoteGTNet.getEntity(kind).ifPresent(entity -> {
+          if (entity.getGtNetConfigEntity() == null) {
+            GTNetConfigEntity configEntity = new GTNetConfigEntity();
+            configEntity.setIdGtNetEntity(entity.getIdGtNetEntity());
+            entity.setGtNetConfigEntity(configEntity);
+          }
+        });
       }
       saveRemoteGTNet(remoteGTNet);
 

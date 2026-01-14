@@ -20,7 +20,6 @@ public class GTNetConfigEntity extends BaseID<Integer>  {
   @Column(name = "id_gt_net_entity")
   private Integer idGtNetEntity;
 
-
   @Schema(description = """
       Indicates whether data exchange is enabled with this remote instance. When true, bidirectional
       data exchange is active. Set to true when exchange requests are accepted.""")
