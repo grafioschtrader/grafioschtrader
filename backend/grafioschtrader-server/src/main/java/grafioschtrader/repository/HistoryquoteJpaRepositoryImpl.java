@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -67,6 +68,13 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
     implements HistoryquoteJpaRepositoryCustom {
 
   private static final Logger log = LoggerFactory.getLogger(HistoryquoteJpaRepositoryImpl.class);
+
+  private static final String INSERT_IGNORE_SQL = "INSERT IGNORE INTO historyquote "
+      + "(id_securitycurrency, date, close, open, high, low, volume, create_type, create_modify_time) "
+      + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+
+  @Autowired
+  private JdbcTemplate jdbcTemplate;
 
   @Autowired
   private HistoryquoteJpaRepository historyquoteJpaRepository;
@@ -292,16 +300,17 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
    * gaps simultaneously:
    * <ol>
    * <li>First, it queries existing dates within the target range to avoid obvious duplicates.</li>
-   * <li>Uses native {@code INSERT IGNORE} queries for each record, which silently skip duplicates without throwing
-   * exceptions or marking the transaction for rollback.</li>
+   * <li>Uses {@code JdbcTemplate} directly with {@code INSERT IGNORE} to bypass Hibernate entity management. This
+   * avoids the "Record has changed since last read" errors that can occur on some MariaDB configurations when using
+   * JPA/Hibernate for inserts during concurrent access.</li>
    * </ol>
    * This ensures all valid records are saved even under concurrent access, while gracefully handling duplicates
    * without causing transaction rollback issues.
    * </p>
    * <p>
    * <b>Performance Note:</b> The method fetches only date values (not full entities) to efficiently filter out
-   * existing records. Individual INSERT IGNORE operations are used instead of batch saves to ensure transactional
-   * safety under concurrent access.
+   * existing records. Individual INSERT IGNORE operations via JdbcTemplate are used to ensure compatibility across
+   * different MariaDB configurations.
    * </p>
    *
    * @param dayBeforHoleHistoryquote The historical quote immediately before the gap. Its closing price and other
@@ -340,9 +349,11 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
     if (!toCreateHistoryquotes.isEmpty()) {
       int insertedCount = 0;
       for (Historyquote hq : toCreateHistoryquotes) {
-        insertedCount += historyquoteJpaRepository.insertIgnore(hq.getIdSecuritycurrency(), hq.getDate(),
-            hq.getClose(), hq.getOpen(), hq.getHigh(), hq.getLow(), hq.getVolume(),
-            hq.getCreateType().getValue());
+        // Use JdbcTemplate directly to bypass Hibernate entity management which can cause
+        // "Record has changed since last read" errors on some MariaDB configurations
+        int result = jdbcTemplate.update(INSERT_IGNORE_SQL, hq.getIdSecuritycurrency(), hq.getDate(), hq.getClose(),
+            hq.getOpen(), hq.getHigh(), hq.getLow(), hq.getVolume(), hq.getCreateType().getValue());
+        insertedCount += result;
       }
       int skippedCount = toCreateHistoryquotes.size() - insertedCount;
       if (skippedCount > 0) {
