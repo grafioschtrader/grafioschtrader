@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
 import grafiosch.entities.TaskDataChange;
@@ -24,12 +23,16 @@ import grafioschtrader.types.TaskTypeExtended;
 
 /**
  * It reads the EOD day from external resources and the dividend, split calendars.
- *
+ * <p>
  * Should run on every day but Sunday is not required.
- *
+ * </p>
+ * <p>
+ * <b>Note:</b> This class intentionally does NOT have a class-level @Transactional annotation. Each repository method
+ * manages its own transaction. This prevents a failure in one operation (e.g., concurrent historyquote modification)
+ * from rolling back the entire task and causing UnexpectedRollbackException.
+ * </p>
  */
 @Component
-@Transactional
 public class PriceDividendSplitCalendarUpdateTask implements ITask {
 
   private static final Logger log = LoggerFactory.getLogger(PriceDividendSplitCalendarUpdateTask.class);
