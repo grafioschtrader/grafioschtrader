@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -552,11 +553,33 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    * 
    * @param idSecuritycurrency the ID of the derived security to check for missing data
    * @param maxDate the maximum date to check (inclusive), typically yesterday or current date
-   * @return list of historyquote records from dependency securities for dates where 
+   * @return list of historyquote records from dependency securities for dates where
    *         the derived security is missing data, ordered by date (descending) and dependency ID
    */
   @Query(nativeQuery = true)
   List<Historyquote> getMissingDerivedSecurityEOD(Integer idSecuritycurrency, Date maxDate);
+
+  /**
+   * Inserts a history quote using INSERT IGNORE to silently skip duplicates without throwing exceptions. This is used
+   * for filling non-trading day gaps where concurrent processes may attempt to insert the same records. Unlike
+   * standard JPA save operations, this native query does not mark the transaction for rollback on duplicate key
+   * conflicts.
+   *
+   * @param idSecuritycurrency The security or currency pair identifier.
+   * @param date The date of the history quote.
+   * @param close The closing price.
+   * @param open The opening price (nullable).
+   * @param high The high price (nullable).
+   * @param low The low price (nullable).
+   * @param volume The trading volume (nullable).
+   * @param createType The creation type (e.g., FILLED_NON_TRADE_DAY = 1).
+   * @return The number of rows inserted (1 if inserted, 0 if skipped due to duplicate).
+   */
+  @Modifying
+  @Query(value = "INSERT IGNORE INTO historyquote (id_securitycurrency, date, close, open, high, low, volume, "
+      + "create_type, create_modify_time) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, NOW())", nativeQuery = true)
+  int insertIgnore(Integer idSecuritycurrency, Date date, double close, Double open, Double high, Double low,
+      Long volume, byte createType);
 
   public interface SecurityCurrencyIdAndDate {
     Integer getIdSecuritycurrency();
