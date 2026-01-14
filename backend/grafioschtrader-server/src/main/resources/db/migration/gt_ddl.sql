@@ -693,7 +693,7 @@ DROP TABLE IF EXISTS `gt_net_message_param`;
 CREATE TABLE `gt_net_message_param` (
   `id_gt_net_message` int(11) NOT NULL,
   `param_name` varchar(32) NOT NULL,
-  `param_value` varchar(32) NOT NULL,
+  `param_value` varchar(255) NOT NULL,
   PRIMARY KEY (`id_gt_net_message`,`param_name`),
   CONSTRAINT `FK_GTNetMessageParam_GTNetMessage` FOREIGN KEY (`id_gt_net_message`) REFERENCES `gt_net_message` (`id_gt_net_message`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
