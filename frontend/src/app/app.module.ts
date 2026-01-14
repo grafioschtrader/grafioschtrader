@@ -212,6 +212,7 @@ import {GTNetMessageEditComponent} from './gtnet/component/gtnet-message-edit.co
 import {GTNetMessageService} from './gtnet/service/gtnet.message.service';
 import {GTNetMessageAnswerTableComponent} from './gtnet/component/gtnet-message-answer-table.component';
 import {GTNetMessageAnswerService} from './gtnet/service/gtnet.message.answer.service';
+import {GtnetSecurityLookupService} from './gtnet/service/gtnet-security-lookup.service';
 import {SendRecvTreetableComponent} from './lib/mail/component/send.recv.treetable.component';
 import {MailForwardSettingTableEditComponent} from './lib/mail/component/mail.forward.setting.table.edit.component';
 import {SendRecvForwardTabMenuComponent} from './lib/mail/component/send.recv.forward.tab.menu.component';
@@ -441,7 +442,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     AlgoTopService, AssetclassService, CashaccountService, ChartDataService, ConfirmationService, ConnectorApiKeyService,
     CorrelationSetService, CurrencypairService, DataChangedService, DialogService, DividendService, GlobalparameterService,
     GlobalparameterGTService, GTNetMessageService, TabMenuService, ReleaseNoteService,
-    GTNetMessageAnswerService, GTNetService, HistoryquotePeriodService, HistoryquoteService, HoldingService, ImportTransactionHeadService,
+    GTNetMessageAnswerService, GTNetService, GtnetSecurityLookupService, HistoryquotePeriodService, HistoryquoteService, HoldingService, ImportTransactionHeadService,
     ImportTransactionPlatformService, ImportTransactionPosService, ImportTransactionTemplateService, LoginService,
     MailSendRecvService, MailSendRecvService, MailSettingForwardService, MainDialogService, MessageToastService,
     MultipleRequestToOneService, ParentChildRegisterService, PortfolioService, ProductIconService, ProposeChangeEntityService,

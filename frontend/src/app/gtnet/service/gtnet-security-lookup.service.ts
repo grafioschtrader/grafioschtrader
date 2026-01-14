@@ -35,4 +35,17 @@ export class GtnetSecurityLookupService extends AuthServiceWithLogout<any> {
       this.getHeaders()
     ).pipe(catchError(this.handleError.bind(this)));
   }
+
+  /**
+   * Checks if there are accessible GTNet peers that support SECURITY_METADATA exchange.
+   * Used to determine if the GTNet lookup button should be visible.
+   *
+   * @returns Observable of boolean indicating if accessible peers exist
+   */
+  hasAccessiblePeers(): Observable<boolean> {
+    return this.httpClient.get<boolean>(
+      `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_SECURITY_LOOKUP_KEY}/haspeers`,
+      this.getHeaders()
+    ).pipe(catchError(this.handleError.bind(this)));
+  }
 }

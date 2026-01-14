@@ -8,7 +8,8 @@ import {BaseParam} from '../../lib/entities/base.param';
  */
 export enum GTNetExchangeKindType {
   LAST_PRICE = 0,
-  HISTORICAL_PRICES = 1
+  HISTORICAL_PRICES = 1,
+  SECURITY_METADATA = 2
 }
 
 /**

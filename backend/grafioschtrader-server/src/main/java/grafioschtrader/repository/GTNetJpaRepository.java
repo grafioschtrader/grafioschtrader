@@ -182,4 +182,14 @@ public interface GTNetJpaRepository
   @Query("SELECT COUNT(DISTINCT g.idGtNet) FROM GTNet g JOIN g.gtNetEntities e WHERE e.entityKind = 1 AND e.acceptRequest > 0")
   int countByHistoricalAccepting();
 
+  /**
+   * Counts GTNet entries where SECURITY_METADATA entity has acceptRequest > 0 and server is online.
+   * Used to determine if the GTNet security lookup feature should be available.
+   *
+   * @return count of GTNet entries accepting SECURITY_METADATA requests and online
+   */
+  @Query("SELECT COUNT(DISTINCT g.idGtNet) FROM GTNet g JOIN g.gtNetEntities e " +
+         "WHERE e.entityKind = 2 AND e.acceptRequest > 0 AND g.serverOnline = 1")
+  int countBySecurityMetadataAcceptingAndOnline();
+
 }

@@ -4,6 +4,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,5 +46,21 @@ public class GTNetSecurityLookupResource {
   public ResponseEntity<SecurityGtnetLookupResponse> lookupSecurity(
       @RequestBody SecurityGtnetLookupRequest request) {
     return ResponseEntity.ok(gtNetSecurityLookupService.lookupSecurity(request));
+  }
+
+  /**
+   * Checks if there are accessible GTNet peers that support SECURITY_METADATA exchange.
+   * Used by frontend to determine if the GTNet lookup button should be visible.
+   *
+   * @return true if at least one accessible peer supports security metadata exchange
+   */
+  @Operation(summary = "Check for accessible security lookup peers",
+      description = """
+          Checks if there are any accessible GTNet peers that support security metadata exchange.
+          A peer is accessible if it has SECURITY_METADATA entity with acceptRequest > 0 and is online.""",
+      tags = { RequestGTMappings.GTNETSECURITYLOOKUP })
+  @GetMapping(value = "/haspeers", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<Boolean> hasAccessiblePeers() {
+    return ResponseEntity.ok(gtNetSecurityLookupService.hasAccessibleSecurityMetadataPeers());
   }
 }
