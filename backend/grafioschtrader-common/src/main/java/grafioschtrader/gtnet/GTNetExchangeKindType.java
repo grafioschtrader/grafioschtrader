@@ -2,7 +2,8 @@ package grafioschtrader.gtnet;
 
 public enum GTNetExchangeKindType {
   LAST_PRICE ((byte) 0),
-  HISTORICAL_PRICES ((byte) 1);
+  HISTORICAL_PRICES ((byte) 1),
+  SECURITY_METADATA ((byte) 2);
   
   
   private final Byte value;

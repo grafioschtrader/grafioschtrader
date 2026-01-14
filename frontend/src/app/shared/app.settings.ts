@@ -93,6 +93,7 @@ export class AppSettings {
   public static readonly GT_NET_EXCHANGE_SECURITIES_KEY = 'securities';
   public static readonly GT_NET_EXCHANGE_CURRENCYPAIRS_KEY = 'currencypairs';
   public static readonly GT_NET_MESSAGE_KEY = 'gtnetmessage';
+  public static readonly GT_NET_SECURITY_LOOKUP_KEY = 'gtnetsecuritylookup';
   public static readonly TRADING_DAYS_MINUS_KEY = AppSettings.TRADING_DAYS_MINUS.toLowerCase();
   public static readonly TRADING_DAYS_PLUS_KEY = AppSettings.TRADING_DAYS_PLUS.toLowerCase();
   public static readonly IMPORT_TRANSACTION_HEAD_KEY = AppSettings.IMPORT_TRANSACTION_HEAD.toLowerCase();

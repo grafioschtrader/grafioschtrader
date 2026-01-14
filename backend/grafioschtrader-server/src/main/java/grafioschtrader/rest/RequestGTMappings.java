@@ -69,6 +69,9 @@ public interface RequestGTMappings {
   public static final String GTNETEXCHANGELOG = "gtnetexchangelog";
   public static final String GTNETEXCHANGELOG_MAP = RequestMappings.API + GTNETEXCHANGELOG;
 
+  public static final String GTNETSECURITYLOOKUP = "gtnetsecuritylookup";
+  public static final String GTNETSECURITYLOOKUP_MAP = RequestMappings.API + GTNETSECURITYLOOKUP;
+
   public static final String HISTORYQUOTE_MAP = RequestMappings.API + Historyquote.TABNAME;
 
   public static final String HISTORYQUOTE_PERIOD = "historyquoteperiod";

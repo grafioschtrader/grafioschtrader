@@ -10,6 +10,7 @@ import {ProcessedAction} from '../../lib/types/processed.action';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 import {combineLatest, Observable, Subscription} from 'rxjs';
+import {startWith} from 'rxjs/operators';
 import {Stockexchange} from '../../entities/stockexchange';
 import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
 import {AssetclassService} from '../../assetclass/service/assetclass.service';
@@ -40,6 +41,8 @@ import {FormConfig} from '../../lib/dynamic-form/models/form.config';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 import {DialogModule} from 'primeng/dialog';
 import {TabsModule} from 'primeng/tabs';
+import {GtnetSecurityLookupDialogComponent} from '../../gtnet/component/gtnet-security-lookup-dialog.component';
+import {SecurityGtnetLookupDTO} from '../../gtnet/model/gtnet-security-lookup';
 
 /**
  * Edit a security with possible security split and history quote period
@@ -90,7 +93,16 @@ import {TabsModule} from 'primeng/tabs';
           </p-tabpanel>
         </p-tabpanels>
       </p-tabs>
-    </p-dialog>`,
+    </p-dialog>
+    @if (visibleGtnetLookupDialog) {
+      <gtnet-security-lookup-dialog
+        [visibleDialog]="visibleGtnetLookupDialog"
+        [isin]="configObject?.isin?.formControl?.value"
+        [currency]="configObject?.currency?.formControl?.value"
+        [tickerSymbol]="configObject?.tickerSymbol?.formControl?.value"
+        (closeDialog)="handleCloseGtnetLookupDialog($event)">
+      </gtnet-security-lookup-dialog>
+    }`,
   standalone: true,
   imports: [
     TranslateModule,
@@ -98,7 +110,8 @@ import {TabsModule} from 'primeng/tabs';
     TabsModule,
     DynamicFormComponent,
     SecuritysplitEditTableComponent,
-    SecurityHistoryquotePeriodEditTableComponent
+    SecurityHistoryquotePeriodEditTableComponent,
+    GtnetSecurityLookupDialogComponent
   ]
 })
 export class SecurityEditComponent extends SecuritycurrencyEdit implements OnInit, CallbackValueChanged {
@@ -125,9 +138,13 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   configPeriodPrices: { [name: string]: FieldConfig };
   canHaveSplits = true;
 
+  /** Visibility flag for GTNet security lookup dialog */
+  visibleGtnetLookupDialog = false;
+
   dataLoaded = false;
   private stockexchangeSubscribe: Subscription;
   private distributionFrequencySubscribe: Subscription;
+  private gtnetLookupSubscribe: Subscription;
 
   constructor(private messageToastService: MessageToastService,
     private gpsGT: GlobalparameterGTService,
@@ -149,6 +166,17 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       2, this.helpLinkPeriod.bind(this));
 
     this.config = SecurityEditSupport.getSecurityBaseFieldDefinition(SecurityDerived.Security, this.gps);
+
+    // Add GTNet lookup button after currency field if GTNet is enabled
+    if (this.gps.useGtnet()) {
+      const currencyIndex = this.config.findIndex(fc => fc.field === 'currency');
+      if (currencyIndex >= 0) {
+        this.config.splice(currencyIndex + 1, 0,
+          DynamicFieldHelper.createFunctionButtonFieldName('gtnetLookup', 'GTNET_SECURITY_LOOKUP',
+            () => this.openGtnetLookup(), {fieldsetName: 'BASE_DATA', disabled: true}));
+      }
+    }
+
     this.connectorPriceFieldConfig = SecurityEditSupport.getIntraHistoryFieldDefinition(SecurityDerived.Security, this.gps);
     this.securityEditSupport.connectorDividendConfig = this.securityEditSupport.getDividendFieldDefinition();
     this.securityEditSupport.connectorSplitConfig = this.securityEditSupport.getSplitDefinition();
@@ -265,6 +293,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     this.securityEditSupport.destroy();
     this.stockexchangeSubscribe && this.stockexchangeSubscribe.unsubscribe();
     this.distributionFrequencySubscribe && this.distributionFrequencySubscribe.unsubscribe();
+    this.gtnetLookupSubscribe && this.gtnetLookupSubscribe.unsubscribe();
     super.onHide(event);
   }
 
@@ -276,10 +305,92 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     this.gps.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST_WITHOUT_PRICE_DATA);
   }
 
+  /**
+   * Opens the GTNet security lookup dialog.
+   */
+  openGtnetLookup(): void {
+    this.visibleGtnetLookupDialog = true;
+  }
+
+  /**
+   * Handles the close of the GTNet lookup dialog and applies the selected security data to the form.
+   */
+  handleCloseGtnetLookupDialog(processedActionData: ProcessedActionData): void {
+    this.visibleGtnetLookupDialog = false;
+    if (processedActionData.action === ProcessedAction.CREATED && processedActionData.data) {
+      this.applyGtnetLookupData(processedActionData.data as SecurityGtnetLookupDTO);
+    }
+  }
+
+  /**
+   * Applies data from GTNet lookup to the security form fields.
+   * Maps enum values to local IDs for asset class and stock exchange.
+   */
+  private applyGtnetLookupData(dto: SecurityGtnetLookupDTO): void {
+    // Set direct field values
+    this.configObject.name.formControl.setValue(dto.name);
+    if (dto.tickerSymbol) {
+      this.configObject.tickerSymbol.formControl.setValue(dto.tickerSymbol);
+    }
+    if (dto.distributionFrequency) {
+      this.configObject.distributionFrequency.formControl.setValue(dto.distributionFrequency);
+    }
+    if (dto.denomination) {
+      this.configObject.denomination?.formControl?.setValue(dto.denomination);
+    }
+    if (dto.leverageFactor) {
+      this.configObject.leverageFactor?.formControl?.setValue(dto.leverageFactor);
+    }
+    if (dto.productLink) {
+      this.configObject.productLink?.formControl?.setValue(dto.productLink);
+    }
+
+    // Map asset class by enum values
+    if (dto.categoryType && dto.specialInvestmentInstrument) {
+      const assetclasses = this.configObject.assetClass.referencedDataObject as Assetclass[];
+      const matchingAssetclass = assetclasses?.find(ac =>
+        ac.categoryType === dto.categoryType && ac.specialInvestmentInstrument === dto.specialInvestmentInstrument);
+      if (matchingAssetclass) {
+        this.configObject.assetClass.formControl.setValue(matchingAssetclass.idAssetClass);
+      }
+    }
+
+    // Map stock exchange by MIC code
+    if (dto.stockexchangeMic) {
+      const stockexchanges = this.configObject.stockexchange.referencedDataObject as Stockexchange[];
+      const matchingExchange = stockexchanges?.find(se => se.mic === dto.stockexchangeMic);
+      if (matchingExchange) {
+        this.configObject.stockexchange.formControl.setValue(matchingExchange.idStockexchange);
+      }
+    }
+  }
+
+  /**
+   * Subscribes to form value changes to enable/disable the GTNet lookup button.
+   * Button is enabled when (ISIN or ticker) AND currency are filled.
+   */
+  private valueChangedOnGtnetLookupFields(): void {
+    if (this.configObject.gtnetLookup) {
+      this.gtnetLookupSubscribe = combineLatest([
+        this.configObject.isin.formControl.valueChanges.pipe(
+          startWith(this.configObject.isin.formControl.value)),
+        this.configObject.tickerSymbol.formControl.valueChanges.pipe(
+          startWith(this.configObject.tickerSymbol.formControl.value)),
+        this.configObject.currency.formControl.valueChanges.pipe(
+          startWith(this.configObject.currency.formControl.value))
+      ]).subscribe(([isin, ticker, currency]) => {
+        const hasIdentifier = (isin && isin.trim().length > 0) || (ticker && ticker.trim().length > 0);
+        const hasCurrency = currency && currency.trim().length > 0;
+        this.configObject.gtnetLookup.disabled = !(hasIdentifier && hasCurrency);
+      });
+    }
+  }
+
   protected override loadHelperData(): void {
     this.securityEditSupport.registerValueOnChanged(SecurityDerived.Security, this.configObject);
     this.valueChangedOnStockexchange();
     this.valueChangedOnDistributionFrequency();
+    this.valueChangedOnGtnetLookupFields();
     this.hideVisibleFeedConnectorsFields(this.config, false, FeedIdentifier.SECURITY);
 
     const observables: Observable<Stockexchange[] | ValueKeyHtmlSelectOptions[] | Assetclass[] | IFeedConnector[]
