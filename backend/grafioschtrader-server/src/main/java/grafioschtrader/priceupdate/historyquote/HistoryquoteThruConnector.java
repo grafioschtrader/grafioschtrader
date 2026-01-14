@@ -133,8 +133,14 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
       return securitycurrency;
     }
 
+    // Re-fetch entity to attach it to the current Hibernate session.
+    // The passed entity may have been loaded in a different (now closed) session,
+    // causing LazyInitializationException when accessing historyquoteList.
+    final Integer idSecuritycurrency = securitycurrency.getIdSecuritycurrency();
+    securitycurrency = securitycurrencyService.getJpaRepository().findByIdSecuritycurrency(idSecuritycurrency);
+
     // Set idSecuritycurrency on each historyquote
-    historyquotes.forEach(hq -> hq.setIdSecuritycurrency(securitycurrency.getIdSecuritycurrency()));
+    historyquotes.forEach(hq -> hq.setIdSecuritycurrency(idSecuritycurrency));
 
     // Reset retry counter on success
     securitycurrency.setRetryHistoryLoad((short) 0);
