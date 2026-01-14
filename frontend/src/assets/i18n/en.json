@@ -534,6 +534,7 @@
   "SECURITY_ASSETCLASS_WITH_CASH": "Assetclass with cash",
   "SECURITY_CURRENCY": "Security currency",
   "SECURITY_HISTORY_QUALITY": "Completeness of securities EOD",
+  "SECURITY_METADATA": "Security Metadata",
   "SECURITY_PERIODS_FROM_MAX": "period/s of maximum",
   "SECURITY_SPLITS": "Security splits",
   "SECURITY_SPLITS_FROM_MAX": "Security split/s of maximum",
