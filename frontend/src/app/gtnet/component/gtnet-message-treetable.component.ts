@@ -22,6 +22,7 @@ import {ProcessedAction} from '../../lib/types/processed.action';
 import {GTNetMessageService} from '../service/gtnet.message.service';
 import {AngularSvgIconModule, SvgIconRegistryService} from 'angular-svg-icon';
 import {BaseSettings} from '../../lib/base.settings';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
 
 /**
  * It shows the messages in a tree table.
@@ -168,6 +169,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     this.prepareData();
     this.createTranslateValuesStoreForTranslation(this.rootNode.children);
     this.translateHeadersAndColumns();
+
   }
 
   private prepareData(): void {
@@ -286,6 +288,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
         command: () => this.reverseSelected()
       });
     }
+    TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
 

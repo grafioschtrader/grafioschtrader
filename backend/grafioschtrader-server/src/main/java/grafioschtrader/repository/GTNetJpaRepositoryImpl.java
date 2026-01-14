@@ -754,8 +754,22 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       // When we accept their data request, we will SEND data to them
       // Get the entityKinds from the original request message
       Set<GTNetExchangeKindType> acceptedKinds = getEntityKindsFromOriginalRequest(msgRequest.replyTo);
+
+      // Step 1: Create/update GTNetEntity without config entities to get IDs
       for (GTNetExchangeKindType kind : acceptedKinds) {
-        updateEntityForSend(targetGTNet, kind);
+        GTNetEntity entity = targetGTNet.getOrCreateEntity(kind);
+        entity.setServerState(GTNetServerStateTypes.SS_OPEN);
+      }
+      targetGTNet = gtNetJpaRepository.save(targetGTNet);
+
+      // Step 2: Now add GTNetConfigEntity with proper IDs
+      for (GTNetExchangeKindType kind : acceptedKinds) {
+        GTNetEntity entity = targetGTNet.getEntity(kind).orElse(null);
+        if (entity != null && entity.getGtNetConfigEntity() == null) {
+          GTNetConfigEntity configEntity = new GTNetConfigEntity();
+          configEntity.setIdGtNetEntity(entity.getIdGtNetEntity());
+          entity.setGtNetConfigEntity(configEntity);
+        }
       }
       gtNetJpaRepository.save(targetGTNet);
       log.info("Created GTNetConfigEntity with SEND capability for {} entity kinds to {}",

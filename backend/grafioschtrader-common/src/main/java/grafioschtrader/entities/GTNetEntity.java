@@ -13,7 +13,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
@@ -66,7 +65,6 @@ public class GTNetEntity extends BaseID<Integer> {
   @Schema(description = "Entity-specific configuration for exchange settings, logging, and consumer usage")
   @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
   @PrimaryKeyJoinColumn(name = "id_gt_net_entity", referencedColumnName = "id_gt_net_entity")
-  @MapsId
   private GTNetConfigEntity gtNetConfigEntity;
 
   public GTNetExchangeKindType getEntityKind() {
@@ -129,8 +127,7 @@ public class GTNetEntity extends BaseID<Integer> {
 
   /**
    * Returns the existing GTNetConfigEntity or creates a new one if none exists.
-   * Handles the ID binding required for the @PrimaryKeyJoinColumn relationship:
-   * for persisted entities, sets the config entity's ID; for new entities, JPA cascade handles it.
+   * For persisted entities, sets the config entity's ID; for new entities, the ID must be set after persistence.
    *
    * @return the existing or newly created GTNetConfigEntity
    */
