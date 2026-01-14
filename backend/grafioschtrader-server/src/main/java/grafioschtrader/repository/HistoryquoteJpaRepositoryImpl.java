@@ -16,8 +16,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.CannotAcquireLockException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
@@ -63,6 +67,8 @@ import grafioschtrader.types.TaskTypeExtended;
 
 public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquote>
     implements HistoryquoteJpaRepositoryCustom {
+
+  private static final Logger log = LoggerFactory.getLogger(HistoryquoteJpaRepositoryImpl.class);
 
   @Autowired
   private HistoryquoteJpaRepository historyquoteJpaRepository;
@@ -283,15 +289,20 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
    * distinguish it from actual trading day data.
    * </p>
    * <p>
-   * <b>Concurrency Safety:</b> This method queries the database for existing dates within the target range before
-   * inserting new records. This prevents duplicate key violations ({@code CannotAcquireLockException}) that can occur
-   * when multiple concurrent processes (e.g., scheduled EOD updates and user-triggered actions) attempt to fill the
-   * same gaps simultaneously. The unique constraint on {@code (id_securitycurrency, date)} would otherwise cause
-   * conflicts.
+   * <b>Concurrency Safety:</b> This method employs a two-level strategy to handle race conditions that can occur when
+   * multiple concurrent processes (e.g., scheduled EOD updates and user-triggered actions) attempt to fill the same
+   * gaps simultaneously:
+   * <ol>
+   * <li>First, it queries existing dates within the target range to avoid obvious duplicates.</li>
+   * <li>If a batch insert still fails due to a concurrent insert (indicated by {@code CannotAcquireLockException} or
+   * {@code DataIntegrityViolationException}), it falls back to saving records individually, skipping any that already
+   * exist.</li>
+   * </ol>
+   * This ensures all valid records are saved even under concurrent access, while gracefully handling duplicates.
    * </p>
    * <p>
    * <b>Performance Note:</b> The method fetches only date values (not full entities) to efficiently filter out
-   * existing records before batch insertion.
+   * existing records before batch insertion. The individual save fallback only triggers on concurrent conflicts.
    * </p>
    *
    * @param dayBeforHoleHistoryquote The historical quote immediately before the gap. Its closing price and other
@@ -328,7 +339,40 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
     }
 
     if (!toCreateHistoryquotes.isEmpty()) {
-      historyquoteJpaRepository.saveAll(toCreateHistoryquotes);
+      try {
+        historyquoteJpaRepository.saveAll(toCreateHistoryquotes);
+      } catch (CannotAcquireLockException | DataIntegrityViolationException e) {
+        // Batch save failed due to concurrent insert - fall back to individual saves
+        log.warn("Batch insert failed for security {} due to concurrent modification, retrying individually",
+            idSecuritycurrency);
+        saveHistoryquotesIndividually(toCreateHistoryquotes, idSecuritycurrency);
+      }
+    }
+  }
+
+  /**
+   * Saves history quotes one by one, skipping any that already exist due to concurrent inserts. This method is used as
+   * a fallback when batch saving fails due to race conditions between concurrent processes (e.g., scheduled EOD
+   * updates and user-triggered actions).
+   *
+   * @param historyquotes The list of history quotes to save individually.
+   * @param idSecuritycurrency The security/currency ID for logging purposes.
+   */
+  private void saveHistoryquotesIndividually(List<Historyquote> historyquotes, Integer idSecuritycurrency) {
+    int savedCount = 0;
+    int skippedCount = 0;
+    for (Historyquote hq : historyquotes) {
+      try {
+        historyquoteJpaRepository.save(hq);
+        savedCount++;
+      } catch (CannotAcquireLockException | DataIntegrityViolationException ex) {
+        // Record already exists due to concurrent insert - skip it
+        skippedCount++;
+      }
+    }
+    if (skippedCount > 0) {
+      log.info("Individual save for security {}: saved={}, skipped={} (already existed)",
+          idSecuritycurrency, savedCount, skippedCount);
     }
   }
 
