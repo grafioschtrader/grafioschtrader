@@ -159,7 +159,7 @@ public class GTNetMessage extends BaseID<Integer> {
   @Min(value = 0)
   @Max(value = 9999)
   @Column(name = "wait_days_apply", nullable = false)
-  private Short waitDaysApply;
+  private Short waitDaysApply = 0;
 
   @ElementCollection(fetch = FetchType.EAGER)
   @MapKeyColumn(name = "param_name")

@@ -531,6 +531,7 @@
   "SECURITY_ASSETCLASS_WITH_CASH": "Anlageklassen mit Cash",
   "SECURITY_CURRENCY": "Währung Wertpapier",
   "SECURITY_HISTORY_QUALITY": "Vollständigkeit historischer Wertpapier-Kursdaten",
+  "SECURITY_METADATA": "Wertpapier Metadaten",
   "SECURITY_PERIODS_FROM_MAX": "Perdiod/en von maxmal",
   "SECURITY_SPLITS": "Wertpapier-Split/s",
   "SECURITY_SPLITS_FROM_MAX": "Wertpapier-Split/s von maximal",
