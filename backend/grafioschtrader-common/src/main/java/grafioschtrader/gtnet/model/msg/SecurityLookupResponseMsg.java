@@ -2,6 +2,8 @@ package grafioschtrader.gtnet.model.msg;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import grafioschtrader.gtnet.model.SecurityGtnetLookupDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -25,6 +27,7 @@ public class SecurityLookupResponseMsg {
     this.securities = securities;
   }
 
+  @JsonIgnore
   public boolean isEmpty() {
     return securities == null || securities.isEmpty();
   }
