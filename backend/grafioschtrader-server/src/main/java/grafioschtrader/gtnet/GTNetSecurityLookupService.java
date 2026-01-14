@@ -17,6 +17,7 @@ import grafioschtrader.gtnet.model.ConnectorHint.ConnectorCapability;
 import grafioschtrader.gtnet.model.SecurityGtnetLookupDTO;
 import grafioschtrader.gtnet.model.SecurityGtnetLookupRequest;
 import grafioschtrader.gtnet.model.SecurityGtnetLookupResponse;
+import grafioschtrader.repository.GTNetJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 
 /**
@@ -29,6 +30,9 @@ public class GTNetSecurityLookupService {
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
+
+  @Autowired
+  private GTNetJpaRepository gtNetJpaRepository;
 
   @Autowired
   private Map<String, IFeedConnector> feedConnectorMap;
@@ -253,5 +257,19 @@ public class GTNetSecurityLookupService {
       return connector.getClass().getName().contains("ApiKey");
     }
     return false;
+  }
+
+  /**
+   * Checks if there are accessible GTNet peers that support SECURITY_METADATA exchange.
+   * A peer is considered accessible if:
+   * <ul>
+   *   <li>It has a SECURITY_METADATA entity with acceptRequest > 0</li>
+   *   <li>The server is online (serverOnline = SOS_ONLINE = 1)</li>
+   * </ul>
+   *
+   * @return true if at least one accessible peer supports security metadata exchange
+   */
+  public boolean hasAccessibleSecurityMetadataPeers() {
+    return gtNetJpaRepository.countBySecurityMetadataAcceptingAndOnline() > 0;
   }
 }

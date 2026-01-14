@@ -43,6 +43,7 @@ import {DialogModule} from 'primeng/dialog';
 import {TabsModule} from 'primeng/tabs';
 import {GtnetSecurityLookupDialogComponent} from '../../gtnet/component/gtnet-security-lookup-dialog.component';
 import {SecurityGtnetLookupDTO} from '../../gtnet/model/gtnet-security-lookup';
+import {GtnetSecurityLookupService} from '../../gtnet/service/gtnet-security-lookup.service';
 
 /**
  * Edit a security with possible security split and history quote period
@@ -153,6 +154,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     private securityService: SecurityService,
     private securitysplitService: SecuritysplitService,
     private historyquotePeriodService: HistoryquotePeriodService,
+    private gtnetSecurityLookupService: GtnetSecurityLookupService,
     translateService: TranslateService,
     gps: GlobalparameterService) {
     super(translateService, gps);
@@ -167,13 +169,14 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
 
     this.config = SecurityEditSupport.getSecurityBaseFieldDefinition(SecurityDerived.Security, this.gps);
 
-    // Add GTNet lookup button after currency field if GTNet is enabled
+    // Add GTNet lookup button after currency field if GTNet is enabled (invisible until we check for accessible peers)
     if (this.gps.useGtnet()) {
       const currencyIndex = this.config.findIndex(fc => fc.field === 'currency');
       if (currencyIndex >= 0) {
-        this.config.splice(currencyIndex + 1, 0,
-          DynamicFieldHelper.createFunctionButtonFieldName('gtnetLookup', 'GTNET_SECURITY_LOOKUP',
-            () => this.openGtnetLookup(), {fieldsetName: 'BASE_DATA', disabled: true}));
+        const gtnetButton = DynamicFieldHelper.createFunctionButtonFieldName('gtnetLookup', 'GTNET_SECURITY_LOOKUP',
+          () => this.openGtnetLookup(), {fieldsetName: 'BASE_DATA', disabled: true});
+        gtnetButton.invisible = true; // Initially invisible, will be shown if accessible peers exist
+        this.config.splice(currencyIndex + 1, 0, gtnetButton);
       }
     }
 
@@ -450,7 +453,29 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
         this.securityEditSupport.disableEnableFieldsOnAssetclass(SecurityDerived.Security,
           this.configObject, this.configObject.assetClass.formControl.value);
         this.securityEditSupport.setPrivatePaper(SecurityDerived.Security, isPrivatePaper, this.configObject);
+
+        // Check for accessible GTNet peers and show lookup button if available
+        this.checkGtnetLookupAvailability();
       });
+  }
+
+  /**
+   * Checks if GTNet security lookup is available and shows/hides the button accordingly.
+   * The button is only shown if GTNet is enabled and there are accessible peers.
+   */
+  private checkGtnetLookupAvailability(): void {
+    if (this.configObject.gtnetLookup && this.gps.useGtnet()) {
+      this.gtnetSecurityLookupService.hasAccessiblePeers().subscribe({
+        next: (hasAccessiblePeers) => {
+          // Show button if accessible peers exist
+          AppHelper.invisibleAndHide(this.configObject.gtnetLookup, !hasAccessiblePeers);
+        },
+        error: () => {
+          // Keep button hidden on error
+          AppHelper.invisibleAndHide(this.configObject.gtnetLookup, true);
+        }
+      });
+    }
   }
 
   protected prepareSplitDividendConnector(feedConnectors: IFeedConnector[]): void {
