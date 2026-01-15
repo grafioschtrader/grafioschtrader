@@ -3,7 +3,6 @@ package grafioschtrader.gtnet;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +50,7 @@ public class GTNetSecurityLookupService {
   private GlobalparametersService globalparametersService;
 
   @Autowired
-  private Map<String, IFeedConnector> feedConnectorMap;
+  private List<IFeedConnector> feedConnectors;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -301,12 +300,14 @@ public class GTNetSecurityLookupService {
       return null;
     }
 
-    // Build the full connector ID
-    String connectorId = BaseFeedConnector.ID_PREFIX + connectorFamily;
+    // Build the expected connector ID
+    String expectedId = BaseFeedConnector.ID_PREFIX + connectorFamily;
 
-    // Check if we have this connector locally
-    if (feedConnectorMap.containsKey(connectorId)) {
-      return connectorId;
+    // Search through available connectors
+    for (IFeedConnector connector : feedConnectors) {
+      if (connector.getID().equals(expectedId)) {
+        return expectedId;
+      }
     }
 
     return null;
