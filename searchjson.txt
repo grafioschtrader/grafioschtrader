@@ -1,5 +1,4 @@
-{
-    "securities": [
+ "securities": [
         {
             "isin": "CH1111392994",
             "currency": "CHF",
