@@ -50,6 +50,7 @@ export interface SecurityGtnetLookupDTO {
   // Stock exchange (MIC code for cross-instance mapping)
   stockexchangeMic: string;
   stockexchangeName?: string;
+  stockexchangeLink?: string;
 
   // Connector hints (no API keys exposed)
   connectorHints?: ConnectorHint[];
@@ -74,4 +75,29 @@ export interface SecurityGtnetLookupResponse {
   peersQueried: number;
   peersResponded: number;
   errors?: string[];
+}
+
+/**
+ * Extended DTO with connector match information for display and selection.
+ * Used internally after processing the lookup response.
+ */
+export interface SecurityGtnetLookupWithMatch extends SecurityGtnetLookupDTO {
+  /** Score indicating how well connectors match local configuration (higher is better) */
+  connectorMatchScore: number;
+  /** Matched connector ID for history data */
+  matchedHistoryConnector?: string;
+  /** URL extension for history connector */
+  matchedHistoryUrlExtension?: string;
+  /** Matched connector ID for intraday data */
+  matchedIntraConnector?: string;
+  /** URL extension for intraday connector */
+  matchedIntraUrlExtension?: string;
+  /** Matched connector ID for dividend data */
+  matchedDividendConnector?: string;
+  /** URL extension for dividend connector */
+  matchedDividendUrlExtension?: string;
+  /** Matched connector ID for split data */
+  matchedSplitConnector?: string;
+  /** URL extension for split connector */
+  matchedSplitUrlExtension?: string;
 }

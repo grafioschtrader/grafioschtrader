@@ -103,6 +103,7 @@
   "CONNECTORS": "Connectors",
   "CONNECTOR_CREATED": "Connector created EOD",
   "CONNECTOR_GROUPED": "Connector grouped",
+  "CONNECTOR_MATCH": "Match",
   "CONNECT_GAPS": "Fill gaps",
   "CONNECTIONS_HISTORICAL_DESC": "Count of GTNet entries with active historical price exchange",
   "CONNECTIONS_LAST_PRICE_DESC": "Count of GTNet entries with active last price exchange",

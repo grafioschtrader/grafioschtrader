@@ -102,6 +102,7 @@
   "CONNECTORS": "Konnektoren",
   "CONNECTOR_CREATED": "Konnektor erstellte Kursdaten",
   "CONNECTOR_GROUPED": "Konnektor gruppiert",
+  "CONNECTOR_MATCH": "Treffer",
   "CONNECT_GAPS": "Verbinde Lücken",
   "CONNECTIONS_HISTORICAL_DESC": "Anzahl GTNet-Einträge mit aktivem historischem Preisaustausch",
   "CONNECTIONS_LAST_PRICE_DESC": "Anzahl GTNet-Einträge mit aktivem LP-Austausch",

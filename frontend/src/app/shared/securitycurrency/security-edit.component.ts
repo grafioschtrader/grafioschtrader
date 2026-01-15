@@ -42,7 +42,7 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
 import {DialogModule} from 'primeng/dialog';
 import {TabsModule} from 'primeng/tabs';
 import {GtnetSecurityLookupDialogComponent} from '../../gtnet/component/gtnet-security-lookup-dialog.component';
-import {SecurityGtnetLookupDTO} from '../../gtnet/model/gtnet-security-lookup';
+import {SecurityGtnetLookupWithMatch} from '../../gtnet/model/gtnet-security-lookup';
 import {GtnetSecurityLookupService} from '../../gtnet/service/gtnet-security-lookup.service';
 
 /**
@@ -101,6 +101,7 @@ import {GtnetSecurityLookupService} from '../../gtnet/service/gtnet-security-loo
         [isin]="configObject?.isin?.formControl?.value"
         [currency]="configObject?.currency?.formControl?.value"
         [tickerSymbol]="configObject?.tickerSymbol?.formControl?.value"
+        [feedConnectors]="feedPriceConnectors"
         (closeDialog)="handleCloseGtnetLookupDialog($event)">
       </gtnet-security-lookup-dialog>
     }`,
@@ -321,15 +322,16 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   handleCloseGtnetLookupDialog(processedActionData: ProcessedActionData): void {
     this.visibleGtnetLookupDialog = false;
     if (processedActionData.action === ProcessedAction.CREATED && processedActionData.data) {
-      this.applyGtnetLookupData(processedActionData.data as SecurityGtnetLookupDTO);
+      this.applyGtnetLookupData(processedActionData.data as SecurityGtnetLookupWithMatch);
     }
   }
 
   /**
    * Applies data from GTNet lookup to the security form fields.
    * Maps enum values to local IDs for asset class and stock exchange.
+   * Applies matched connector configurations and URL extensions.
    */
-  private applyGtnetLookupData(dto: SecurityGtnetLookupDTO): void {
+  private applyGtnetLookupData(dto: SecurityGtnetLookupWithMatch): void {
     // Set direct field values
     this.configObject.name.formControl.setValue(dto.name);
     if (dto.tickerSymbol) {
@@ -348,6 +350,17 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       this.configObject.productLink?.formControl?.setValue(dto.productLink);
     }
 
+    // Apply additional fields
+    if (dto.activeFromDate) {
+      this.configObject.activeFromDate?.formControl?.setValue(new Date(dto.activeFromDate));
+    }
+    if (dto.activeToDate) {
+      this.configObject.activeToDate?.formControl?.setValue(new Date(dto.activeToDate));
+    }
+    if (dto.stockexchangeLink) {
+      this.configObject.stockexchangeLink?.formControl?.setValue(dto.stockexchangeLink);
+    }
+
     // Map asset class by enum values
     if (dto.categoryType && dto.specialInvestmentInstrument) {
       const assetclasses = this.configObject.assetClass.referencedDataObject as Assetclass[];
@@ -364,6 +377,46 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       const matchingExchange = stockexchanges?.find(se => se.mic === dto.stockexchangeMic);
       if (matchingExchange) {
         this.configObject.stockexchange.formControl.setValue(matchingExchange.idStockexchange);
+      }
+    }
+
+    // Apply matched connector configurations
+    this.applyMatchedConnectors(dto);
+  }
+
+  /**
+   * Applies matched connector IDs and URL extensions from GTNet lookup.
+   */
+  private applyMatchedConnectors(dto: SecurityGtnetLookupWithMatch): void {
+    // History connector
+    if (dto.matchedHistoryConnector && this.configObject[this.ID_CONNECTOR_HISTORY]) {
+      this.configObject[this.ID_CONNECTOR_HISTORY].formControl.setValue(dto.matchedHistoryConnector);
+      if (dto.matchedHistoryUrlExtension && this.configObject.urlHistoryExtend) {
+        this.configObject.urlHistoryExtend.formControl.setValue(dto.matchedHistoryUrlExtension);
+      }
+    }
+
+    // Intraday connector
+    if (dto.matchedIntraConnector && this.configObject[this.ID_CONNECTOR_INTRA]) {
+      this.configObject[this.ID_CONNECTOR_INTRA].formControl.setValue(dto.matchedIntraConnector);
+      if (dto.matchedIntraUrlExtension && this.configObject.urlIntraExtend) {
+        this.configObject.urlIntraExtend.formControl.setValue(dto.matchedIntraUrlExtension);
+      }
+    }
+
+    // Dividend connector
+    if (dto.matchedDividendConnector && this.configObject[this.securityEditSupport.ID_CONNECTOR_DIVIDEND]) {
+      this.configObject[this.securityEditSupport.ID_CONNECTOR_DIVIDEND].formControl.setValue(dto.matchedDividendConnector);
+      if (dto.matchedDividendUrlExtension && this.configObject.urlDividendExtend) {
+        this.configObject.urlDividendExtend.formControl.setValue(dto.matchedDividendUrlExtension);
+      }
+    }
+
+    // Split connector
+    if (dto.matchedSplitConnector && this.configObject.idConnectorSplit) {
+      this.configObject.idConnectorSplit.formControl.setValue(dto.matchedSplitConnector);
+      if (dto.matchedSplitUrlExtension && this.configObject.urlSplitExtend) {
+        this.configObject.urlSplitExtend.formControl.setValue(dto.matchedSplitUrlExtension);
       }
     }
   }

@@ -1,18 +1,21 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {ButtonModule} from 'primeng/button';
+import {FilterService} from 'primeng/api';
 
-import {ShowRecordConfigBase} from '../../lib/datashowbase/show.record.config.base';
+import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {SecurityGtnetLookupDTO} from '../model/gtnet-security-lookup';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
+import {SecurityGtnetLookupWithMatch} from '../model/gtnet-security-lookup';
 
 /**
  * Table component for displaying security lookup results from GTNet peers.
- * Displays a list of SecurityGtnetLookupDTO entries with single selection support.
+ * Displays a list of SecurityGtnetLookupWithMatch entries with single selection support.
+ * Shows connector match score to indicate how well each result matches local connector configuration.
  * When user selects an entry and clicks "Apply Selected", emits the selected DTO.
  */
 @Component({
@@ -23,7 +26,7 @@ import {SecurityGtnetLookupDTO} from '../model/gtnet-security-lookup';
     <configurable-table
       [data]="securities"
       [fields]="fields"
-      dataKey="isin"
+      dataKey="_uniqueKey"
       [selectionMode]="'single'"
       [(selection)]="selectedSecurity"
       [paginator]="securities.length > 10"
@@ -42,19 +45,30 @@ import {SecurityGtnetLookupDTO} from '../model/gtnet-security-lookup';
     </div>
   `
 })
-export class GtnetSecurityLookupTableComponent extends ShowRecordConfigBase implements OnInit {
+export class GtnetSecurityLookupTableComponent extends TableConfigBase implements OnInit, OnChanges {
 
-  @Input() securities: SecurityGtnetLookupDTO[] = [];
+  @Input() securities: SecurityGtnetLookupWithMatch[] = [];
 
-  @Output() securitySelected = new EventEmitter<SecurityGtnetLookupDTO>();
+  @Output() securitySelected = new EventEmitter<SecurityGtnetLookupWithMatch>();
 
-  selectedSecurity: SecurityGtnetLookupDTO;
+  selectedSecurity: SecurityGtnetLookupWithMatch;
 
-  constructor(translateService: TranslateService, gps: GlobalparameterService) {
-    super(translateService, gps);
+  constructor(filterService: FilterService,
+              usersettingsService: UserSettingsService,
+              translateService: TranslateService,
+              gps: GlobalparameterService) {
+    super(filterService, usersettingsService, translateService, gps);
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['securities'] && this.securities) {
+      this.addUniqueKeys();
+      this.createTranslatedValueStore(this.securities);
+    }
   }
 
   ngOnInit(): void {
+    this.addColumn(DataType.NumericInteger, 'connectorMatchScore', 'CONNECTOR_MATCH', true, false, {width: 80});
     this.addColumnFeqH(DataType.String, 'name', true, false, {width: 200});
     this.addColumn(DataType.String, 'isin', 'ISIN', true, false, {width: 120});
     this.addColumnFeqH(DataType.String, 'currency', true, false, {width: 60});
@@ -64,18 +78,19 @@ export class GtnetSecurityLookupTableComponent extends ShowRecordConfigBase impl
       {width: 100, translateValues: TranslateValue.NORMAL});
     this.addColumn(DataType.String, 'specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT', true, false,
       {width: 120, translateValues: TranslateValue.NORMAL});
-    this.addColumn(DataType.String, 'sourceDomain', 'SOURCE_DOMAIN', true, false, {width: 150});
+    this.addColumn(DataType.String, 'sourceDomain', 'SOURCE_DOMAIN', true, false, {width: 120});
 
-    this.translateHeadersAndColumns();
+    this.prepareTableAndTranslate();
   }
 
   /**
-   * Called when data is loaded to update translated value store.
+   * Adds unique keys to each security for table row identification.
+   * Combines isin, stockexchangeMic, and sourceDomain to create a unique identifier.
    */
-  onDataLoaded(): void {
-    if (this.securities && this.securities.length > 0) {
-      this.createTranslatedValueStore(this.securities);
-    }
+  private addUniqueKeys(): void {
+    this.securities.forEach((security, index) => {
+      (security as any)._uniqueKey = `${security.isin}_${security.stockexchangeMic}_${security.sourceDomain || index}`;
+    });
   }
 
   applySelected(): void {
