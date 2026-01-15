@@ -10,12 +10,11 @@ import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {SecurityGtnetLookupWithMatch} from '../model/gtnet-security-lookup';
+import {SecurityGtnetLookupDTO} from '../model/gtnet-security-lookup';
 
 /**
  * Table component for displaying security lookup results from GTNet peers.
- * Displays a list of SecurityGtnetLookupWithMatch entries with single selection support.
- * Shows connector match score to indicate how well each result matches local connector configuration.
+ * Displays a list of SecurityGtnetLookupDTO entries with single selection support.
  * When user selects an entry and clicks "Apply Selected", emits the selected DTO.
  */
 @Component({
@@ -29,6 +28,7 @@ import {SecurityGtnetLookupWithMatch} from '../model/gtnet-security-lookup';
       dataKey="_uniqueKey"
       [selectionMode]="'single'"
       [(selection)]="selectedSecurity"
+      (rowSelect)="onRowSelect($event)"
       [paginator]="securities.length > 10"
       [rows]="10"
       [enableCustomSort]="true"
@@ -47,11 +47,11 @@ import {SecurityGtnetLookupWithMatch} from '../model/gtnet-security-lookup';
 })
 export class GtnetSecurityLookupTableComponent extends TableConfigBase implements OnInit, OnChanges {
 
-  @Input() securities: SecurityGtnetLookupWithMatch[] = [];
+  @Input() securities: SecurityGtnetLookupDTO[] = [];
 
-  @Output() securitySelected = new EventEmitter<SecurityGtnetLookupWithMatch>();
+  @Output() securitySelected = new EventEmitter<SecurityGtnetLookupDTO>();
 
-  selectedSecurity: SecurityGtnetLookupWithMatch;
+  selectedSecurity: SecurityGtnetLookupDTO;
 
   constructor(filterService: FilterService,
               usersettingsService: UserSettingsService,
@@ -68,7 +68,6 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
   }
 
   ngOnInit(): void {
-    this.addColumn(DataType.NumericInteger, 'connectorMatchScore', 'CONNECTOR_MATCH', true, false, {width: 80});
     this.addColumnFeqH(DataType.String, 'name', true, false, {width: 200});
     this.addColumn(DataType.String, 'isin', 'ISIN', true, false, {width: 120});
     this.addColumnFeqH(DataType.String, 'currency', true, false, {width: 60});
@@ -91,6 +90,14 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
     this.securities.forEach((security, index) => {
       (security as any)._uniqueKey = `${security.isin}_${security.stockexchangeMic}_${security.sourceDomain || index}`;
     });
+  }
+
+  /**
+   * Handles row selection event from the table.
+   * Explicitly sets selectedSecurity to ensure the selection is captured.
+   */
+  onRowSelect(event: any): void {
+    this.selectedSecurity = event.data;
   }
 
   applySelected(): void {
