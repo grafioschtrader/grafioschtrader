@@ -7,17 +7,13 @@ import {MessageModule} from 'primeng/message';
 
 import {GtnetSecurityLookupService} from '../service/gtnet-security-lookup.service';
 import {
-  ConnectorCapability,
-  ConnectorHint,
   SecurityGtnetLookupDTO,
   SecurityGtnetLookupRequest,
-  SecurityGtnetLookupResponse,
-  SecurityGtnetLookupWithMatch
+  SecurityGtnetLookupResponse
 } from '../model/gtnet-security-lookup';
 import {GtnetSecurityLookupTableComponent} from './gtnet-security-lookup-table.component';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
-import {IFeedConnector} from '../../shared/securitycurrency/ifeed.connector';
 
 /**
  * Dialog component for searching and selecting security metadata from GTNet peers.
@@ -58,13 +54,13 @@ import {IFeedConnector} from '../../shared/securitycurrency/ifeed.connector';
           <p-message severity="info" [text]="'GTNET_LOOKUP_NO_RESULTS' | translate"></p-message>
         }
 
-        @if (processedSecurities && processedSecurities.length > 0) {
+        @if (response && response.securities.length > 0) {
           <div class="mb-2 text-secondary">
             {{ 'PEERS_QUERIED' | translate }}: {{ response.peersQueried }} |
             {{ 'PEERS_RESPONDED' | translate }}: {{ response.peersResponded }}
           </div>
           <gtnet-security-lookup-table
-            [securities]="processedSecurities"
+            [securities]="response.securities"
             (securitySelected)="onSecuritySelected($event)">
           </gtnet-security-lookup-table>
         }
@@ -78,14 +74,11 @@ export class GtnetSecurityLookupDialogComponent {
   @Input() isin: string;
   @Input() currency: string;
   @Input() tickerSymbol: string;
-  /** Local feed connectors for matching against GTNet hints */
-  @Input() feedConnectors: IFeedConnector[] = [];
 
   @Output() closeDialog = new EventEmitter<ProcessedActionData>();
 
   loading = false;
   response: SecurityGtnetLookupResponse;
-  processedSecurities: SecurityGtnetLookupWithMatch[] = [];
   errorMessage: string;
 
   /** Flag to prevent double emission when selection closes the dialog */
@@ -100,7 +93,6 @@ export class GtnetSecurityLookupDialogComponent {
     this.selectionHandled = false;
     this.errorMessage = null;
     this.response = null;
-    this.processedSecurities = [];
     this.performSearch();
   }
 
@@ -110,7 +102,7 @@ export class GtnetSecurityLookupDialogComponent {
     }
   }
 
-  onSecuritySelected(security: SecurityGtnetLookupWithMatch): void {
+  onSecuritySelected(security: SecurityGtnetLookupDTO): void {
     this.selectionHandled = true;
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED, security));
     this.visibleDialog = false;
@@ -127,7 +119,6 @@ export class GtnetSecurityLookupDialogComponent {
     this.lookupService.lookupSecurity(request).subscribe({
       next: (response) => {
         this.response = response;
-        this.processedSecurities = this.processAndDeduplicateSecurities(response.securities);
         this.loading = false;
       },
       error: (error) => {
@@ -135,108 +126,5 @@ export class GtnetSecurityLookupDialogComponent {
         this.errorMessage = error.message || 'GTNET_LOOKUP_ERROR';
       }
     });
-  }
-
-  /**
-   * Processes securities by calculating connector match scores and deduplicating.
-   * For securities with the same ISIN+exchange, keeps only the one with the best connector match.
-   */
-  private processAndDeduplicateSecurities(securities: SecurityGtnetLookupDTO[]): SecurityGtnetLookupWithMatch[] {
-    // Calculate match scores and enrich with matched connector info
-    const enrichedSecurities = securities.map(s => this.calculateConnectorMatch(s));
-
-    // Group by ISIN + stockexchangeMic
-    const groups = new Map<string, SecurityGtnetLookupWithMatch[]>();
-    enrichedSecurities.forEach(security => {
-      const key = `${security.isin}_${security.stockexchangeMic}`;
-      const existing = groups.get(key) || [];
-      existing.push(security);
-      groups.set(key, existing);
-    });
-
-    // Keep only the best match from each group
-    const deduplicated: SecurityGtnetLookupWithMatch[] = [];
-    groups.forEach(group => {
-      // Sort by score descending, then by source domain for consistency
-      group.sort((a, b) => {
-        if (b.connectorMatchScore !== a.connectorMatchScore) {
-          return b.connectorMatchScore - a.connectorMatchScore;
-        }
-        return (a.sourceDomain || '').localeCompare(b.sourceDomain || '');
-      });
-      deduplicated.push(group[0]);
-    });
-
-    // Sort final list by score descending, then by name
-    return deduplicated.sort((a, b) => {
-      if (b.connectorMatchScore !== a.connectorMatchScore) {
-        return b.connectorMatchScore - a.connectorMatchScore;
-      }
-      return (a.name || '').localeCompare(b.name || '');
-    });
-  }
-
-  /**
-   * Calculates connector match score for a security based on its hints vs local connectors.
-   * Score is based on: number of matched connectors, with bonus for non-API-key connectors.
-   */
-  private calculateConnectorMatch(security: SecurityGtnetLookupDTO): SecurityGtnetLookupWithMatch {
-    const result: SecurityGtnetLookupWithMatch = {
-      ...security,
-      connectorMatchScore: 0
-    };
-
-    if (!security.connectorHints || security.connectorHints.length === 0) {
-      return result;
-    }
-
-    const localConnectorIds = new Set(this.feedConnectors.map(fc => fc.id));
-
-    for (const hint of security.connectorHints) {
-      // Check if this connector family matches any local connector
-      const matchedConnector = this.feedConnectors.find(fc =>
-        fc.id === hint.connectorFamily || fc.domain === hint.connectorFamily
-      );
-
-      if (matchedConnector) {
-        // Score: 2 points for match without API key requirement, 1 point with API key
-        const score = hint.requiresApiKey ? 1 : 2;
-
-        for (const capability of hint.capabilities) {
-          switch (capability) {
-            case ConnectorCapability.HISTORY:
-              if (!result.matchedHistoryConnector) {
-                result.matchedHistoryConnector = matchedConnector.id;
-                result.matchedHistoryUrlExtension = hint.urlExtensionPattern;
-                result.connectorMatchScore += score;
-              }
-              break;
-            case ConnectorCapability.INTRADAY:
-              if (!result.matchedIntraConnector) {
-                result.matchedIntraConnector = matchedConnector.id;
-                result.matchedIntraUrlExtension = hint.urlExtensionPattern;
-                result.connectorMatchScore += score;
-              }
-              break;
-            case ConnectorCapability.DIVIDEND:
-              if (!result.matchedDividendConnector) {
-                result.matchedDividendConnector = matchedConnector.id;
-                result.matchedDividendUrlExtension = hint.urlExtensionPattern;
-                result.connectorMatchScore += score;
-              }
-              break;
-            case ConnectorCapability.SPLIT:
-              if (!result.matchedSplitConnector) {
-                result.matchedSplitConnector = matchedConnector.id;
-                result.matchedSplitUrlExtension = hint.urlExtensionPattern;
-                result.connectorMatchScore += score;
-              }
-              break;
-          }
-        }
-      }
-    }
-
-    return result;
   }
 }
