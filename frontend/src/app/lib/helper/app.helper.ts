@@ -186,22 +186,32 @@ export class AppHelper {
   /**
    * Makes field visible and enabled.
    * Sets field to visible state and enables form control.
+   * For button fields without formControl, sets the disabled property directly.
    *
    * @param fieldConfig Field configuration to enable and show
    */
   public static enableAndVisibleInput(fieldConfig: FieldConfig): void {
     fieldConfig.invisible = false;
-    fieldConfig.formControl.enable();
+    if (fieldConfig.formControl) {
+      fieldConfig.formControl.enable();
+    } else {
+      fieldConfig.disabled = false;
+    }
   }
 
   /**
    * Makes field invisible and disabled.
    * Sets field to hidden state and disables form control.
+   * For button fields without formControl, sets the disabled property directly.
    *
    * @param fieldConfig Field configuration to disable and hide
    */
   public static disableAndHideInput(fieldConfig: FieldConfig): void {
-    fieldConfig.formControl.disable();
+    if (fieldConfig.formControl) {
+      fieldConfig.formControl.disable();
+    } else {
+      fieldConfig.disabled = true;
+    }
     fieldConfig.invisible = true;
   }
 
