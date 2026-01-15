@@ -3,6 +3,7 @@ package grafioschtrader.gtnet;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,10 +12,14 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.entities.GTNet;
 import grafioschtrader.entities.GTNetConfig;
 import grafioschtrader.gtnet.m2m.model.GTNetPublicDTO;
 import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
+import grafioschtrader.gtnet.model.ConnectorHint;
+import grafioschtrader.gtnet.model.ConnectorHint.ConnectorCapability;
 import grafioschtrader.gtnet.model.SecurityGtnetLookupDTO;
 import grafioschtrader.gtnet.model.SecurityGtnetLookupRequest;
 import grafioschtrader.gtnet.model.SecurityGtnetLookupResponse;
@@ -44,6 +49,9 @@ public class GTNetSecurityLookupService {
 
   @Autowired
   private GlobalparametersService globalparametersService;
+
+  @Autowired
+  private Map<String, IFeedConnector> feedConnectorMap;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -178,9 +186,10 @@ public class GTNetSecurityLookupService {
           continue;
         }
 
-        // Add results with source domain tracking
+        // Add results with source domain tracking and connector matching
         for (SecurityGtnetLookupDTO dto : responsePayload.securities) {
           dto.setSourceDomain(supplier.getDomainRemoteName());
+          matchConnectors(dto);
           results.add(dto);
         }
 
@@ -213,5 +222,93 @@ public class GTNetSecurityLookupService {
    */
   public boolean hasAccessibleSecurityMetadataPeers() {
     return gtNetJpaRepository.countBySecurityMetadataAcceptingAndOnline() > 0;
+  }
+
+  /**
+   * Matches connector hints from a peer against local connectors.
+   * For each capability (HISTORY, INTRADAY, DIVIDEND, SPLIT), finds the first matching local connector
+   * and sets the matched connector ID and URL extension on the DTO.
+   * Also calculates a match score based on how many connectors were matched.
+   *
+   * @param dto the security DTO to process
+   */
+  private void matchConnectors(SecurityGtnetLookupDTO dto) {
+    List<ConnectorHint> hints = dto.getConnectorHints();
+    if (hints == null || hints.isEmpty()) {
+      dto.setConnectorMatchScore(0);
+      return;
+    }
+
+    int matchScore = 0;
+
+    for (ConnectorHint hint : hints) {
+      String localConnectorId = findLocalConnector(hint.getConnectorFamily());
+      if (localConnectorId == null) {
+        continue;
+      }
+
+      // Match each capability
+      if (hint.getCapabilities() != null) {
+        for (ConnectorCapability capability : hint.getCapabilities()) {
+          switch (capability) {
+            case HISTORY:
+              if (dto.getMatchedHistoryConnector() == null) {
+                dto.setMatchedHistoryConnector(localConnectorId);
+                dto.setMatchedHistoryUrlExtension(hint.getUrlExtensionPattern());
+                matchScore++;
+              }
+              break;
+            case INTRADAY:
+              if (dto.getMatchedIntraConnector() == null) {
+                dto.setMatchedIntraConnector(localConnectorId);
+                dto.setMatchedIntraUrlExtension(hint.getUrlExtensionPattern());
+                matchScore++;
+              }
+              break;
+            case DIVIDEND:
+              if (dto.getMatchedDividendConnector() == null) {
+                dto.setMatchedDividendConnector(localConnectorId);
+                dto.setMatchedDividendUrlExtension(hint.getUrlExtensionPattern());
+                matchScore++;
+              }
+              break;
+            case SPLIT:
+              if (dto.getMatchedSplitConnector() == null) {
+                dto.setMatchedSplitConnector(localConnectorId);
+                dto.setMatchedSplitUrlExtension(hint.getUrlExtensionPattern());
+                matchScore++;
+              }
+              break;
+          }
+        }
+      }
+    }
+
+    dto.setConnectorMatchScore(matchScore);
+    log.debug("Connector matching for {}: score={}, history={}, intraday={}, dividend={}, split={}",
+        dto.getIsin(), matchScore, dto.getMatchedHistoryConnector(), dto.getMatchedIntraConnector(),
+        dto.getMatchedDividendConnector(), dto.getMatchedSplitConnector());
+  }
+
+  /**
+   * Finds a local connector matching the given family name.
+   *
+   * @param connectorFamily the connector family (e.g., "six", "yahoo")
+   * @return the full connector ID if found locally, null otherwise
+   */
+  private String findLocalConnector(String connectorFamily) {
+    if (connectorFamily == null || connectorFamily.isBlank()) {
+      return null;
+    }
+
+    // Build the full connector ID
+    String connectorId = BaseFeedConnector.ID_PREFIX + connectorFamily;
+
+    // Check if we have this connector locally
+    if (feedConnectorMap.containsKey(connectorId)) {
+      return connectorId;
+    }
+
+    return null;
   }
 }

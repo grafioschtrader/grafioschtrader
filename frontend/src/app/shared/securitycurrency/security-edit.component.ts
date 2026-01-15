@@ -385,40 +385,38 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
 
   /**
    * Applies matched connector IDs and URL extensions from GTNet lookup.
-   * These fields will be populated by the backend when connector matching is implemented.
+   * These fields are populated by the backend after matching against local connectors.
    */
   private applyMatchedConnectors(dto: SecurityGtnetLookupDTO): void {
-    const matched = dto as any;
-
     // History connector
-    if (matched.matchedHistoryConnector && this.configObject[this.ID_CONNECTOR_HISTORY]) {
-      this.configObject[this.ID_CONNECTOR_HISTORY].formControl.setValue(matched.matchedHistoryConnector);
-      if (matched.matchedHistoryUrlExtension && this.configObject.urlHistoryExtend) {
-        this.configObject.urlHistoryExtend.formControl.setValue(matched.matchedHistoryUrlExtension);
+    if (dto.matchedHistoryConnector && this.configObject[this.ID_CONNECTOR_HISTORY]) {
+      this.configObject[this.ID_CONNECTOR_HISTORY].formControl.setValue(dto.matchedHistoryConnector);
+      if (dto.matchedHistoryUrlExtension && this.configObject.urlHistoryExtend) {
+        this.configObject.urlHistoryExtend.formControl.setValue(dto.matchedHistoryUrlExtension);
       }
     }
 
     // Intraday connector
-    if (matched.matchedIntraConnector && this.configObject[this.ID_CONNECTOR_INTRA]) {
-      this.configObject[this.ID_CONNECTOR_INTRA].formControl.setValue(matched.matchedIntraConnector);
-      if (matched.matchedIntraUrlExtension && this.configObject.urlIntraExtend) {
-        this.configObject.urlIntraExtend.formControl.setValue(matched.matchedIntraUrlExtension);
+    if (dto.matchedIntraConnector && this.configObject[this.ID_CONNECTOR_INTRA]) {
+      this.configObject[this.ID_CONNECTOR_INTRA].formControl.setValue(dto.matchedIntraConnector);
+      if (dto.matchedIntraUrlExtension && this.configObject.urlIntraExtend) {
+        this.configObject.urlIntraExtend.formControl.setValue(dto.matchedIntraUrlExtension);
       }
     }
 
     // Dividend connector
-    if (matched.matchedDividendConnector && this.configObject[this.securityEditSupport.ID_CONNECTOR_DIVIDEND]) {
-      this.configObject[this.securityEditSupport.ID_CONNECTOR_DIVIDEND].formControl.setValue(matched.matchedDividendConnector);
-      if (matched.matchedDividendUrlExtension && this.configObject.urlDividendExtend) {
-        this.configObject.urlDividendExtend.formControl.setValue(matched.matchedDividendUrlExtension);
+    if (dto.matchedDividendConnector && this.configObject[this.securityEditSupport.ID_CONNECTOR_DIVIDEND]) {
+      this.configObject[this.securityEditSupport.ID_CONNECTOR_DIVIDEND].formControl.setValue(dto.matchedDividendConnector);
+      if (dto.matchedDividendUrlExtension && this.configObject.urlDividendExtend) {
+        this.configObject.urlDividendExtend.formControl.setValue(dto.matchedDividendUrlExtension);
       }
     }
 
     // Split connector
-    if (matched.matchedSplitConnector && this.configObject.idConnectorSplit) {
-      this.configObject.idConnectorSplit.formControl.setValue(matched.matchedSplitConnector);
-      if (matched.matchedSplitUrlExtension && this.configObject.urlSplitExtend) {
-        this.configObject.urlSplitExtend.formControl.setValue(matched.matchedSplitUrlExtension);
+    if (dto.matchedSplitConnector && this.configObject.idConnectorSplit) {
+      this.configObject.idConnectorSplit.formControl.setValue(dto.matchedSplitConnector);
+      if (dto.matchedSplitUrlExtension && this.configObject.urlSplitExtend) {
+        this.configObject.urlSplitExtend.formControl.setValue(dto.matchedSplitUrlExtension);
       }
     }
   }

@@ -45,6 +45,9 @@ public class SecurityGtnetLookupDTO {
   @Schema(description = "Stock exchange name as fallback if MIC is not available")
   private String stockexchangeName;
 
+  @Schema(description = "URL link to the security on the stock exchange website")
+  private String stockexchangeLink;
+
   // Connector hints (no API keys exposed)
   @Schema(description = "Hints about which connectors work for this security")
   private List<ConnectorHint> connectorHints;
@@ -71,6 +74,34 @@ public class SecurityGtnetLookupDTO {
   // Source tracking
   @Schema(description = "Domain name of the GTNet peer that provided this data")
   private String sourceDomain;
+
+  // Matched connector fields (populated by receiving instance after matching against local connectors)
+  @Schema(description = "Score indicating how well connectors match local configuration (higher is better)")
+  private Integer connectorMatchScore;
+
+  @Schema(description = "Matched local connector ID for historical price data")
+  private String matchedHistoryConnector;
+
+  @Schema(description = "URL extension for the matched history connector")
+  private String matchedHistoryUrlExtension;
+
+  @Schema(description = "Matched local connector ID for intraday price data")
+  private String matchedIntraConnector;
+
+  @Schema(description = "URL extension for the matched intraday connector")
+  private String matchedIntraUrlExtension;
+
+  @Schema(description = "Matched local connector ID for dividend data")
+  private String matchedDividendConnector;
+
+  @Schema(description = "URL extension for the matched dividend connector")
+  private String matchedDividendUrlExtension;
+
+  @Schema(description = "Matched local connector ID for split data")
+  private String matchedSplitConnector;
+
+  @Schema(description = "URL extension for the matched split connector")
+  private String matchedSplitUrlExtension;
 
   public SecurityGtnetLookupDTO() {
   }
@@ -141,6 +172,14 @@ public class SecurityGtnetLookupDTO {
     this.stockexchangeName = stockexchangeName;
   }
 
+  public String getStockexchangeLink() {
+    return stockexchangeLink;
+  }
+
+  public void setStockexchangeLink(String stockexchangeLink) {
+    this.stockexchangeLink = stockexchangeLink;
+  }
+
   public List<ConnectorHint> getConnectorHints() {
     return connectorHints;
   }
@@ -203,5 +242,77 @@ public class SecurityGtnetLookupDTO {
 
   public void setSourceDomain(String sourceDomain) {
     this.sourceDomain = sourceDomain;
+  }
+
+  public Integer getConnectorMatchScore() {
+    return connectorMatchScore;
+  }
+
+  public void setConnectorMatchScore(Integer connectorMatchScore) {
+    this.connectorMatchScore = connectorMatchScore;
+  }
+
+  public String getMatchedHistoryConnector() {
+    return matchedHistoryConnector;
+  }
+
+  public void setMatchedHistoryConnector(String matchedHistoryConnector) {
+    this.matchedHistoryConnector = matchedHistoryConnector;
+  }
+
+  public String getMatchedHistoryUrlExtension() {
+    return matchedHistoryUrlExtension;
+  }
+
+  public void setMatchedHistoryUrlExtension(String matchedHistoryUrlExtension) {
+    this.matchedHistoryUrlExtension = matchedHistoryUrlExtension;
+  }
+
+  public String getMatchedIntraConnector() {
+    return matchedIntraConnector;
+  }
+
+  public void setMatchedIntraConnector(String matchedIntraConnector) {
+    this.matchedIntraConnector = matchedIntraConnector;
+  }
+
+  public String getMatchedIntraUrlExtension() {
+    return matchedIntraUrlExtension;
+  }
+
+  public void setMatchedIntraUrlExtension(String matchedIntraUrlExtension) {
+    this.matchedIntraUrlExtension = matchedIntraUrlExtension;
+  }
+
+  public String getMatchedDividendConnector() {
+    return matchedDividendConnector;
+  }
+
+  public void setMatchedDividendConnector(String matchedDividendConnector) {
+    this.matchedDividendConnector = matchedDividendConnector;
+  }
+
+  public String getMatchedDividendUrlExtension() {
+    return matchedDividendUrlExtension;
+  }
+
+  public void setMatchedDividendUrlExtension(String matchedDividendUrlExtension) {
+    this.matchedDividendUrlExtension = matchedDividendUrlExtension;
+  }
+
+  public String getMatchedSplitConnector() {
+    return matchedSplitConnector;
+  }
+
+  public void setMatchedSplitConnector(String matchedSplitConnector) {
+    this.matchedSplitConnector = matchedSplitConnector;
+  }
+
+  public String getMatchedSplitUrlExtension() {
+    return matchedSplitUrlExtension;
+  }
+
+  public void setMatchedSplitUrlExtension(String matchedSplitUrlExtension) {
+    this.matchedSplitUrlExtension = matchedSplitUrlExtension;
   }
 }

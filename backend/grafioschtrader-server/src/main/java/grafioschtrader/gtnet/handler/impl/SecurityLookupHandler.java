@@ -164,6 +164,7 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
       dto.setStockexchangeMic(security.getStockexchange().getMic());
       dto.setStockexchangeName(security.getStockexchange().getName());
     }
+    dto.setStockexchangeLink(security.getStockexchangeLink());
 
     // Security properties
     dto.setDenomination(security.getDenomination());

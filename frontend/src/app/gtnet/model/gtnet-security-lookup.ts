@@ -65,6 +65,26 @@ export interface SecurityGtnetLookupDTO {
 
   // Source tracking
   sourceDomain?: string;
+
+  // Matched connector fields (populated by backend after matching against local connectors)
+  /** Score indicating how well connectors match local configuration (higher is better) */
+  connectorMatchScore?: number;
+  /** Matched connector ID for history data */
+  matchedHistoryConnector?: string;
+  /** URL extension for history connector */
+  matchedHistoryUrlExtension?: string;
+  /** Matched connector ID for intraday data */
+  matchedIntraConnector?: string;
+  /** URL extension for intraday connector */
+  matchedIntraUrlExtension?: string;
+  /** Matched connector ID for dividend data */
+  matchedDividendConnector?: string;
+  /** URL extension for dividend connector */
+  matchedDividendUrlExtension?: string;
+  /** Matched connector ID for split data */
+  matchedSplitConnector?: string;
+  /** URL extension for split connector */
+  matchedSplitUrlExtension?: string;
 }
 
 /**
