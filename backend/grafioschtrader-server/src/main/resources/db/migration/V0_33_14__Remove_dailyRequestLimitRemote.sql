@@ -45,12 +45,36 @@ ALTER TABLE gt_net_message ADD COLUMN id_original_message INT(11) NULL
 ALTER TABLE gt_net_config ADD COLUMN handshake_timestamp TIMESTAMP NULL DEFAULT NULL
   COMMENT 'UTC timestamp when first successful handshake completed';
 
--- Rename price_type column to entity_kind in gt_net_supplier_detail table
--- Both columns represent the same concept (LAST_PRICE=0, HISTORICAL_PRICES=1)  
-ALTER TABLE gt_net_supplier_detail CHANGE COLUMN price_type entity_kind TINYINT(1) NOT NULL; 
-
 -- Increase param_value column size to accommodate longer values like security names
 -- The previous varchar(32) was too small for security metadata exchange
-
 ALTER TABLE gt_net_message_param MODIFY param_value VARCHAR(255) NOT NULL;
+
+-- Rename price_type column to entity_kind in gt_net_supplier_detail table
+-- Both columns represent the same concept (LAST_PRICE=0, HISTORICAL_PRICES=1)  
+DELIMITER //
+
+CREATE OR REPLACE PROCEDURE MigrateSupplierDetail()
+BEGIN
+    -- Prüfen, ob die ALTE Spalte noch existiert
+    IF EXISTS (
+        SELECT * FROM INFORMATION_SCHEMA.COLUMNS 
+        WHERE TABLE_NAME = 'gt_net_supplier_detail' 
+        AND COLUMN_NAME = 'price_type' 
+        AND TABLE_SCHEMA = DATABASE()
+    ) THEN
+        ALTER TABLE gt_net_supplier_detail 
+        CHANGE COLUMN price_type entity_kind TINYINT(1) NOT NULL;
+    END IF;
+END //
+
+DELIMITER ;
+
+-- Execude procedure
+CALL MigrateSupplierDetail();
+
+-- Delete procedure
+DROP PROCEDURE IF EXISTS MigrateSupplierDetail;
+ 
+ 
+ 
  

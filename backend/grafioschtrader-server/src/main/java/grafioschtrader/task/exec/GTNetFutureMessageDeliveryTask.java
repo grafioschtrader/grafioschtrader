@@ -36,8 +36,6 @@ import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.GTNetModelHelper;
 import grafioschtrader.gtnet.SendReceivedType;
 import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
-import grafioschtrader.gtnet.model.msg.DiscontinuedMsg;
-import grafioschtrader.gtnet.model.msg.MaintenanceMsg;
 import grafioschtrader.m2m.client.BaseDataClient;
 import grafioschtrader.m2m.client.BaseDataClient.SendResult;
 import grafioschtrader.repository.GTNetConfigJpaRepository;
