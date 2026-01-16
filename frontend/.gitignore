@@ -43,3 +43,6 @@ package-lock.json
 # System Files
 .DS_Store
 Thumbs.db
+
+# Claude Code temporary files
+tmpclaude-*
