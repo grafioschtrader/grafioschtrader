@@ -479,6 +479,8 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
         width: '300px',
         modal: false,
         draggable: true,
+        closable: true,
+        closeOnEscape: true,
         position: 'right',
         data: {fields: this.fields}
       });
