@@ -71,7 +71,8 @@
       "Bash(dir /b \"C:\\\\SoftwareProjekte\\\\Hugos\\\\gt-user-manual\\\\content\\\\admindata\\\\gtnet\\\\exchangelog\")",
       "Bash(pushd:*)",
       "Bash(gh issue list:*)",
-      "Bash(gh issue edit:*)"
+      "Bash(gh issue edit:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
