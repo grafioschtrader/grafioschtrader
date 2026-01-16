@@ -1,4 +1,4 @@
-import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, ElementRef, Injector, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
@@ -133,8 +133,9 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
-    super(filterService, usersettingsService, translateService, gps);
+    usersettingsService: UserSettingsService,
+    injector: Injector) {
+    super(filterService, usersettingsService, translateService, gps, injector);
   }
 
   ngOnInit(): void {

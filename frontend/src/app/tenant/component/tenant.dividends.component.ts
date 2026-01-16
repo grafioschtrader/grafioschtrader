@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, Injector, OnDestroy, OnInit} from '@angular/core';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {SecurityDividendsGrandTotal} from '../../entities/view/securitydividends/security.dividends.grand.total';
 import {ActivatedRoute} from '@angular/router';
@@ -57,8 +57,9 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
-    super(filterService, usersettingsService, translateService, gps);
+              usersettingsService: UserSettingsService,
+              injector: Injector) {
+    super(filterService, usersettingsService, translateService, gps, injector);
   }
 
   get selectedSecurityAccounts(): number {

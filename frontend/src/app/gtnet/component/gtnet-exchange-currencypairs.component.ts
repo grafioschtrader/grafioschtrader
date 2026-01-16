@@ -1,4 +1,4 @@
-import {Component, ViewChild} from '@angular/core';
+import {Component, Injector, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
@@ -206,10 +206,11 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService
+    usersettingsService: UserSettingsService,
+    injector: Injector
   ) {
     super('Currencypair', gtNetExchangeService, confirmationService, messageToastService, activePanelService,
-      dialogService, filterService, translateService, gps, usersettingsService);
+      dialogService, filterService, translateService, gps, usersettingsService, injector);
   }
 
   getTitleKey(): string {

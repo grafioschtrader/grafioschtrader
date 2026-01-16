@@ -1,4 +1,4 @@
-import {Component, Input, OnDestroy} from '@angular/core';
+import {Component, Injector, Input, OnDestroy} from '@angular/core';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {FilterService, MenuItem} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
@@ -207,8 +207,9 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
-    super(filterService, usersettingsService, translateService, gps);
+    usersettingsService: UserSettingsService,
+    injector: Injector) {
+    super(filterService, usersettingsService, translateService, gps, injector);
     this.createDynamicTableDefinition(null, null);
     this.addInstrumentsToCorrelationSet();
   }

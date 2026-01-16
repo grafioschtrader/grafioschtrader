@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, Injector, OnInit} from '@angular/core';
 import {HelpIds} from '../../lib/help/help.ids';
 import {CrudMenuOptions, TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
 import {GTNetMessageAnswer, GTNetMessageAnswerCallParam} from '../model/gtnet.message.answer';
@@ -74,10 +74,11 @@ export class GTNetMessageAnswerTableComponent extends TableCrudSupportMenu<GTNet
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
+    usersettingsService: UserSettingsService,
+    injector: Injector) {
 
     super(AppSettings.GT_NET_MESSAGE_ANSWER, gtNetMessageAnswerService, confirmationService, messageToastService,
-      activePanelService, dialogService, filterService, translateService, gps, usersettingsService,
+      activePanelService, dialogService, filterService, translateService, gps, usersettingsService, injector,
       gps.hasRole(BaseSettings.ROLE_ADMIN) ? TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS : []);
   }
 

@@ -1,4 +1,4 @@
-import {Component, OnDestroy} from '@angular/core';
+import {Component, Injector, OnDestroy} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TranslateModule} from '@ngx-translate/core';
 import {AngularSvgIconModule} from 'angular-svg-icon';
@@ -104,9 +104,10 @@ export class UDFMetadataSecurityTableComponent extends UDFMetaTable<UDFMetadataS
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
+    usersettingsService: UserSettingsService,
+    injector: Injector) {
     super(UDFMetadataSecurity, udfSpecialTypeDisableUserService, uDFMetadataSecurityService, AppSettings.UDF_METADATA_SECURITY, confirmationService, messageToastService,
-      activePanelService, dialogService, filterService, translateService, gps, usersettingsService);
+      activePanelService, dialogService, filterService, translateService, gps, usersettingsService, injector);
     this.addMetadataBaseFields([{field: 'uiOrder', order: 1}]);
   }
 

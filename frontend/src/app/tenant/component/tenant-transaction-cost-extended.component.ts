@@ -1,4 +1,4 @@
-import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {TransactionCostPosition} from '../../entities/view/transactioncost/transaction.cost.position';
 import {TransactionCostGrandSummary} from '../../entities/view/transactioncost/transaction.cost.grand.summary';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
@@ -118,9 +118,10 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
+    usersettingsService: UserSettingsService,
+    injector: Injector) {
     super(parentChildRegisterService, activePanelService, transactionService, confirmationService, messageToastService,
-      filterService, translateService, gps, usersettingsService);
+      filterService, translateService, gps, usersettingsService, injector);
   }
 
   /**

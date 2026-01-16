@@ -1,5 +1,7 @@
+import {Injector} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {FilterService, MenuItem, SelectItem, SortEvent, SortMeta} from 'primeng/api';
+import {DialogService} from 'primeng/dynamicdialog';
 import {UserSettingsService} from '../services/user.settings.service';
 import {Helper} from '../helper/helper';
 import {ColumnConfig} from './column.config';
@@ -11,6 +13,7 @@ import {DataType} from '../dynamic-form/models/data.type';
 import {TableTreetableTotalBase} from './table.treetable.total.base';
 import {BaseSettings} from '../base.settings';
 import {GlobalparameterService} from '../services/globalparameter.service';
+import {ColumnVisibilityDialogComponent} from './column-visibility-dialog.component';
 
 /**
  * Abstract base class for displaying data in PrimeNG table format with comprehensive
@@ -72,12 +75,14 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    * @param usersettingsService - Service for persisting user table preferences
    * @param translateService - Angular translation service
    * @param gps - Global parameter base service for locale and formatting
+   * @param injector - Angular injector for lazy service resolution (DialogService)
    */
   protected constructor(protected filterService: FilterService,
     protected usersettingsService: UserSettingsService,
     translateService: TranslateService,
-    gps: GlobalparameterService) {
-    super(translateService, gps);
+    gps: GlobalparameterService,
+    injector: Injector = null) {
+    super(translateService, gps, injector);
     this.formLocale = gps.getLocale();
   }
 
@@ -430,24 +435,21 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   }
 
   /**
-   * Creates menu items for column show/hide functionality.
-   * Generates menu items allowing users to toggle column visibility.
+   * Creates a single menu item that opens a dialog for column visibility management.
+   * Returns a menu item only if there are toggleable columns available.
    *
-   * @returns Array of menu items for column visibility control
+   * @returns Array containing a single menu item for column visibility dialog, or empty array
    */
   getColumnsShow(): MenuItem[] {
-    const columnsMenuItems: MenuItem[] = [];
-    this.fields.forEach(field => {
-      if (field.changeVisibility) {
-        columnsMenuItems.push({
-          label: field.headerKey,
-          icon: (field.visible) ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY,
-          command: (event) => this.handleHideShowColumn(event, field)
-        });
-      }
-    });
-    // AppHelper.translateMenuItems(columnsMenuItems, this.translateService);
-    return columnsMenuItems;
+    const hasToggleableColumns = this.fields.some(field => field.changeVisibility);
+    if (hasToggleableColumns) {
+      return [{
+        label: 'ON_OFF_COLUMNS' + BaseSettings.DIALOG_MENU_SUFFIX,
+        icon: 'fa fa-columns',
+        command: () => this.openColumnVisibilityDialog()
+      }];
+    }
+    return [];
   }
 
   /**
@@ -461,26 +463,37 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   }
 
   /**
-   * Handles individual column show/hide toggle. Updates column visibility and menu icon when user clicks column toggle.
-   *
-   * @param event - Menu click event
-   * @param field - Column configuration to toggle
+   * Opens a dialog for toggling column visibility.
+   * The dialog shows checkboxes for all columns with changeVisibility enabled.
+   * Changes are applied in real-time as checkboxes are toggled.
    */
-  handleHideShowColumn(event, field: ColumnConfig) {
-    field.visible = !field.visible;
-    event.item.icon = (field.visible) ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY;
-    //  this.changeDetectionStrategy.markForCheck();
+  openColumnVisibilityDialog(): void {
+    if (!this.injector) {
+      console.warn('Injector not available for opening column visibility dialog');
+      return;
+    }
+    const dialogService = this.injector.get(DialogService);
+    this.translateService.get('ON_OFF_COLUMNS').subscribe(header => {
+      dialogService.open(ColumnVisibilityDialogComponent, {
+        header,
+        width: '300px',
+        modal: false,
+        draggable: true,
+        position: 'right',
+        data: {fields: this.fields}
+      });
+    });
   }
 
   /**
    * Gets menu options for column show/hide functionality.
-   * Creates hierarchical menu structure for column visibility management.
+   * Returns the column visibility dialog menu item if toggleable columns exist.
    *
    * @returns Array of menu items with column options, or null if no options available
    */
   getMenuShowOptions(): MenuItem[] {
     const items = this.getColumnsShow();
-    return items.length > 0 ? [{label: 'ON_OFF_COLUMNS', items}] : null;
+    return items.length > 0 ? items : null;
   }
 
   /**

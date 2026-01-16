@@ -1,4 +1,4 @@
-import {Component, OnDestroy} from '@angular/core';
+import {Component, Injector, OnDestroy} from '@angular/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
 import {TradingPlatformPlan} from '../../entities/tradingplatformplan';
@@ -67,9 +67,10 @@ export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<Trad
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+              usersettingsService: UserSettingsService,
+              injector: Injector) {
     super(AppSettings.TRADING_PLATFORM_PLAN, tradingPlatformPlanService, confirmationService, messageToastService,
-      activePanelService, dialogService, filterService, translateService, gps, usersettingsService);
+      activePanelService, dialogService, filterService, translateService, gps, usersettingsService, injector);
 
     this.addColumn(DataType.String, 'platformPlanNameNLS.map.en', 'PLATFORM_PLAN_NAME', true, false,
       {headerSuffix: 'EN', templateName: BaseSettings.OWNER_TEMPLATE});

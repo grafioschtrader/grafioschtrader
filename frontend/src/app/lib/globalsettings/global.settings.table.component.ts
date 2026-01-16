@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, Injector, OnInit} from '@angular/core';
 
 import {TableConfigBase} from '../datashowbase/table.config.base';
 import {Globalparameters} from '../entities/globalparameters';
@@ -81,8 +81,9 @@ export class GlobalSettingsTableComponent extends TableConfigBase implements OnI
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
-    super(filterService, usersettingsService, translateService, gps);
+    usersettingsService: UserSettingsService,
+    injector: Injector) {
+    super(filterService, usersettingsService, translateService, gps, injector);
 
     this.addColumn(DataType.String, this.PROPERTY_NAME, 'PROPERTY_NAME_DESC', true, false,
       {translateValues: TranslateValue.NORMAL, width: 450});

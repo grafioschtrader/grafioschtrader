@@ -1,4 +1,4 @@
-import {Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {TransactionService} from '../service/transaction.service';
@@ -103,9 +103,10 @@ export class TransactionCashaccountTableComponent extends TransactionContextMenu
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
+    usersettingsService: UserSettingsService,
+    injector: Injector) {
     super(parentChildRegisterService, activePanelService, transactionService, confirmationService, messageToastService,
-      filterService, translateService, gps, usersettingsService);
+      filterService, translateService, gps, usersettingsService, injector);
   }
 
   /** Initializes the component by setting up table columns, sorting, and registering with parent-child service */

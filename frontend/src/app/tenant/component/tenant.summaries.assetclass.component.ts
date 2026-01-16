@@ -2,7 +2,7 @@ import {SecurityaccountService} from '../../securityaccount/service/securityacco
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {TransactionCallParam} from '../../transaction/component/transaction.call.parm';
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, Injector, OnDestroy, OnInit} from '@angular/core';
 import {SecurityPositionGrandSummary} from '../../entities/view/security.position.grand.summary';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {ChartDataService} from '../../shared/chart/service/chart.data.service';
@@ -55,9 +55,10 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+              usersettingsService: UserSettingsService,
+              injector: Injector) {
     super(timeSeriesQuotesService, alarmSetupService, activePanelService, messageToastService, securityaccountService,
-      productIconService, activatedRoute, router, chartDataService, filterService, translateService, gps, usersettingsService);
+      productIconService, activatedRoute, router, chartDataService, filterService, translateService, gps, usersettingsService, injector);
     this.securityaccountGroupBase = new SecurityaccountAssetclassCategortypeGroup(translateService, this);
     this.createColumns();
   }

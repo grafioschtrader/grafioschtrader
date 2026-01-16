@@ -1,5 +1,5 @@
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {Directive, EventEmitter, Input, Output} from '@angular/core';
+import {Directive, EventEmitter, Injector, Input, Output} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
@@ -32,8 +32,9 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
     filterService: FilterService,
     usersettingsService: UserSettingsService,
     translateService: TranslateService,
-    gps: GlobalparameterService) {
-    super(filterService, usersettingsService, translateService, gps);
+    gps: GlobalparameterService,
+    injector: Injector) {
+    super(filterService, usersettingsService, translateService, gps, injector);
     this.multiSortMeta.push({field: dataSortKey, order: 1});
   }
 

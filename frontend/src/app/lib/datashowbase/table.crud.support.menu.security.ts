@@ -1,5 +1,5 @@
 import {CrudMenuOptions, TableCrudSupportMenu} from './table.crud.support.menu';
-import {Directive} from '@angular/core';
+import {Directive, Injector} from '@angular/core';
 import {DeleteService} from './delete.service';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {MessageToastService} from '../message/message.toast.service';
@@ -29,9 +29,10 @@ export abstract class TableCrudSupportMenuSecurity<T extends BaseID> extends Tab
               translateService: TranslateService,
               gps: GlobalparameterService,
               usersettingsService: UserSettingsService,
+              injector: Injector,
               crudMenuOptions: CrudMenuOptions[] = TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS) {
     super(entityName, deleteService, confirmationService, messageToastService,
-      activePanelService, dialogService, filterService, translateService, gps, usersettingsService, crudMenuOptions);
+      activePanelService, dialogService, filterService, translateService, gps, usersettingsService, injector, crudMenuOptions);
   }
 
   protected override hasRightsForDeleteEntity(entity: T): boolean {

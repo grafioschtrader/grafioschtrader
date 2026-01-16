@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Injector, Input, OnInit} from '@angular/core';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
@@ -47,9 +47,10 @@ export class WatchlistSecuritysplitTableComponent extends DividendSplitTableBase
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
               gps: GlobalparameterService,
-              iconReg: SvgIconRegistryService) {
+              iconReg: SvgIconRegistryService,
+              injector: Injector) {
     super(filterService, usersettingsService, translateService, gps, iconReg,
-      'idSecuritysplit', WatchlistSecuritysplitTableComponent.SPLIT_DATE, 'SPLIT');
+      'idSecuritysplit', WatchlistSecuritysplitTableComponent.SPLIT_DATE, 'SPLIT', injector);
     this.addColumnFeqH(DataType.DateNumeric, 'splitDate', true, false);
     this.addColumn(DataType.NumericInteger, 'createType', 'C', true, false,
       {fieldValueFN: this.getCreateTypeIcon.bind(this), templateName: 'icon', width: 20});

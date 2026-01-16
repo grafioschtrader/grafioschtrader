@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnInit, ViewChild, ViewContainerRef} from '@angular/core';
+import {ChangeDetectorRef, Component, Injector, OnInit, ViewChild, ViewContainerRef} from '@angular/core';
 import {UserSettingsService} from '../../services/user.settings.service';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
@@ -84,8 +84,9 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
-    super(filterService, usersettingsService, translateService, gps);
+    usersettingsService: UserSettingsService,
+    injector: Injector) {
+    super(filterService, usersettingsService, translateService, gps, injector);
 
     this.addColumnFeqH(DataType.String, 'proposeChangeEntity.entity', true, false,
       {translateValues: TranslateValue.UPPER_CASE});

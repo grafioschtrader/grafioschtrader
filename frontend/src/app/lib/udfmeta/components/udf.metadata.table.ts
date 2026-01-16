@@ -1,3 +1,4 @@
+import {Injector} from '@angular/core';
 import {UDFMetadata, UDFMetadataParam} from '../model/udf.metadata';
 import {ConfirmationService, FilterService, MenuItem, SortMeta} from 'primeng/api';
 import {MessageToastService} from '../../message/message.toast.service';
@@ -58,10 +59,11 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
+    usersettingsService: UserSettingsService,
+    injector: Injector) {
 
     super(entityName, deleteReadAllService, confirmationService, messageToastService,
-      activePanelService, dialogService, filterService, translateService, gps, usersettingsService)
+      activePanelService, dialogService, filterService, translateService, gps, usersettingsService, injector)
   }
 
   /**

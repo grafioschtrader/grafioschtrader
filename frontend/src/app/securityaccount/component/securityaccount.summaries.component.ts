@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, Injector, OnDestroy, OnInit} from '@angular/core';
 import {SecurityaccountTable} from './securityaccountTable';
 import {ActivatedRoute, Params, Router} from '@angular/router';
 import {SecurityPositionGrandSummary} from '../../entities/view/security.position.grand.summary';
@@ -55,9 +55,10 @@ export class SecurityaccountSummariesComponent extends SecurityaccountTable impl
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+              usersettingsService: UserSettingsService,
+              injector: Injector) {
     super(timeSeriesQuotesService, alarmSetupService, activePanelService, messageToastService, securityaccountService,
-      productIconService, activatedRoute, router, chartDataService, filterService, translateService, gps, usersettingsService);
+      productIconService, activatedRoute, router, chartDataService, filterService, translateService, gps, usersettingsService, injector);
     this.createColumns();
   }
 

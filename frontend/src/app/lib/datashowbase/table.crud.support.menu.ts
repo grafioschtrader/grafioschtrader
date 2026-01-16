@@ -1,5 +1,5 @@
 import {TableConfigBase} from './table.config.base';
-import {Directive, OnInit} from '@angular/core';
+import {Directive, Injector, OnInit} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../services/user.settings.service';
 import {AppHelper} from '../helper/app.helper';
@@ -86,6 +86,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
    * @param translateService - Angular translation service
    * @param gps - Global parameter service for locale and permissions
    * @param usersettingsService - Service for persisting user preferences
+   * @param injector - Angular injector for lazy service resolution
    * @param crudMenuOptions - Array of allowed CRUD operations (defaults to all operations)
    */
   protected constructor(protected entityName: string,
@@ -98,9 +99,10 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
     translateService: TranslateService,
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService,
+    injector: Injector,
     private crudMenuOptions: CrudMenuOptions[] = TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS) {
 
-    super(filterService, usersettingsService, translateService, gps);
+    super(filterService, usersettingsService, translateService, gps, injector);
     this.entityNameUpper = AppHelper.toUpperCaseWithUnderscore(this.entityName);
     this.entityKeyName = this.gps.getKeyNameByEntityName(entityName);
   }

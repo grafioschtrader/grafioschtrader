@@ -1,4 +1,4 @@
-import {Component, OnDestroy} from '@angular/core';
+import {Component, Injector, OnDestroy} from '@angular/core';
 import {DialogService} from 'primeng/dynamicdialog';
 import {UDFMetadataGeneral, UDFMetadataGeneralParam} from '../model/udf.metadata';
 import {ConfirmationService, FilterService} from 'primeng/api';
@@ -100,9 +100,10 @@ export class UDFMetadataGeneralTableComponent extends UDFMetaTable<UDFMetadataGe
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
+    usersettingsService: UserSettingsService,
+    injector: Injector) {
     super(UDFMetadataGeneral, udfSpecialTypeDisableUserService, uDFMetadataGeneralService, BaseSettings.UDF_METADATA_GENERAL,
-      confirmationService, messageToastService, activePanelService, dialogService, filterService, translateService, gps, usersettingsService);
+      confirmationService, messageToastService, activePanelService, dialogService, filterService, translateService, gps, usersettingsService, injector);
     this.addMetadataBaseFields([{field: 'entity', order: 1}, {field: 'uiOrder', order: 1}]);
   }
 

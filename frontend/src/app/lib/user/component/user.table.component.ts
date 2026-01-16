@@ -1,5 +1,5 @@
 import {CrudMenuOptions, TableCrudSupportMenu} from '../../datashowbase/table.crud.support.menu';
-import {Component, OnDestroy} from '@angular/core';
+import {Component, Injector, OnDestroy} from '@angular/core';
 
 import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.component';
 import {AngularSvgIconModule} from 'angular-svg-icon';
@@ -128,9 +128,10 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
+    usersettingsService: UserSettingsService,
+    injector: Injector) {
     super(BaseSettings.USER, userAdminService, confirmationService, messageToastService, activePanelService, dialogService,
-      filterService, translateService, gps, usersettingsService, [CrudMenuOptions.ParentControl, CrudMenuOptions.Allow_Edit]);
+      filterService, translateService, gps, usersettingsService, injector, [CrudMenuOptions.ParentControl, CrudMenuOptions.Allow_Edit]);
     UserTableComponent.registerIcons(this.iconReg);
 
     this.addColumn(DataType.NumericInteger, 'idUser', 'ID', true, false, {width: 60});

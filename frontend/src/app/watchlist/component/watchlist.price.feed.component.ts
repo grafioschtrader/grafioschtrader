@@ -1,5 +1,5 @@
 import {WatchlistTable, WatchListType} from './watchlist.table';
-import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from '@angular/core';
 import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {WatchlistService} from '../service/watchlist.service';
@@ -152,11 +152,12 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
     translateService: TranslateService,
     gpsGT: GlobalparameterGTService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
+    usersettingsService: UserSettingsService,
+    injector: Injector) {
     super(WatchListType.PRICE_FEED, AppSettings.WATCHLIST_PRICE_FEED_TABLE_SETTINGS_STORE, dialogService, alarmSetupService,
       timeSeriesQuotesService, dataChangedService, activePanelService, watchlistService, router, activatedRoute, confirmationService,
       messageToastService, productIconService, changeDetectionStrategy, filterService, translateService,
-      gpsGT, gps, usersettingsService, WatchlistTable.SINGLE);
+      gpsGT, gps, usersettingsService, WatchlistTable.SINGLE, injector);
     const date = new Date();
     this.addBaseColumns();
     this.addColumn(DataType.String, 'securitycurrency.idConnectorIntra', 'INTRA_DATA_PROVIDER', true, true,

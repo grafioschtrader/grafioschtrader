@@ -6,7 +6,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {TransactionService} from '../service/transaction.service';
-import {Directive} from '@angular/core';
+import {Directive, Injector} from '@angular/core';
 import {TransactionContextMenu} from './transaction.context.menu';
 import {FilterType} from '../../lib/datashowbase/filter.type';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
@@ -56,9 +56,10 @@ export abstract class TransactionTable extends TransactionContextMenu {
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+              usersettingsService: UserSettingsService,
+              injector: Injector) {
     super(parentChildRegisterService, activePanelService, transactionService, confirmationService, messageToastService,
-      filterService, translateService, gps, usersettingsService);
+      filterService, translateService, gps, usersettingsService, injector);
 
     this.addColumn(DataType.DateNumeric, 'transactionTime', 'DATE', true, false,
       {width: 60, filterType: FilterType.likeDataType});

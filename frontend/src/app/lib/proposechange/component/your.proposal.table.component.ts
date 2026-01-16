@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, Injector} from '@angular/core';
 import {CrudMenuOptions, TableCrudSupportMenu} from '../../datashowbase/table.crud.support.menu';
 import {ProposeChangeEntity} from '../../entities/propose.change.entity';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
@@ -49,9 +49,10 @@ export class YourProposalTableComponent extends TableCrudSupportMenu<ProposeChan
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
+    usersettingsService: UserSettingsService,
+    injector: Injector) {
     super(BaseSettings.PROPOSE_CHANGE_ENTITY, proposeChangeEntityService, confirmationService, messageToastService, activePanelService,
-      dialogService, filterService, translateService, gps, usersettingsService, [CrudMenuOptions.Allow_Delete]);
+      dialogService, filterService, translateService, gps, usersettingsService, injector, [CrudMenuOptions.Allow_Delete]);
 
     this.addColumnFeqH(DataType.String, 'entity', true, false,
       {translateValues: TranslateValue.UPPER_CASE});

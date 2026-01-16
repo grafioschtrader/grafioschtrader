@@ -69,7 +69,8 @@
       "Bash(dir /b \"C:\\\\SoftwareProjekte\\\\Hugos\\\\gt-user-manual\\\\content\\\\admindata\\\\gtnet\")",
       "Bash(dir /b /s \"C:\\\\SoftwareProjekte\\\\Hugos\\\\gt-user-manual\\\\content\\\\admindata\\\\gtnet\\\\setup\")",
       "Bash(dir /b \"C:\\\\SoftwareProjekte\\\\Hugos\\\\gt-user-manual\\\\content\\\\admindata\\\\gtnet\\\\exchangelog\")",
-      "Bash(pushd:*)"
+      "Bash(pushd:*)",
+      "Bash(gh issue list:*)"
     ],
     "deny": [],
     "ask": []

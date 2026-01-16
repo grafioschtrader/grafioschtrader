@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import {Component, Injector, Input} from '@angular/core';
 import {Security} from '../../entities/security';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
@@ -82,8 +82,9 @@ export class SecuritycurrencySearchAndSetTableComponent extends Securitycurrency
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
-    super(filterService, usersettingsService, translateService, gps);
+              usersettingsService: UserSettingsService,
+              injector: Injector) {
+    super(filterService, usersettingsService, translateService, gps, injector);
   }
 
   loadData(securitycurrencySearch: SecuritycurrencySearch): void {

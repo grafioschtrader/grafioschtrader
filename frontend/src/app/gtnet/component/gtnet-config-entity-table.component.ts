@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Injector, Input, OnInit, Output} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {GTNetConfigEntity, GTNetEntity, GTNetExchangeKindType, SupplierConsumerLogTypes} from '../model/gtnet';
@@ -86,9 +86,10 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService
+    usersettingsService: UserSettingsService,
+    injector: Injector
   ) {
-    super(filterService, usersettingsService, translateService, gps);
+    super(filterService, usersettingsService, translateService, gps, injector);
   }
 
   ngOnInit(): void {

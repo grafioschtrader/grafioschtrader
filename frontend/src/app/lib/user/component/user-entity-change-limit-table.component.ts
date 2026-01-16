@@ -1,7 +1,7 @@
 import {TableConfigBase} from '../../datashowbase/table.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../services/globalparameter.service';
-import {Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild} from '@angular/core';
+import {Component, EventEmitter, Injector, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild} from '@angular/core';
 
 import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.component';
 import {AngularSvgIconModule} from 'angular-svg-icon';
@@ -114,8 +114,9 @@ export class UserEntityChangeLimitTableComponent extends TableConfigBase impleme
     filterService: FilterService,
     usersettingsService: UserSettingsService,
     translateService: TranslateService,
-    gps: GlobalparameterService) {
-    super(filterService, usersettingsService, translateService, gps);
+    gps: GlobalparameterService,
+    injector: Injector) {
+    super(filterService, usersettingsService, translateService, gps, injector);
 
     this.addColumn(DataType.String, this.UPPER_CASE_ENTITY_NAME, 'ENTITY_NAME', true, false,
       {translateValues: TranslateValue.NORMAL});

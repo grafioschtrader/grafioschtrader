@@ -1,5 +1,5 @@
 import {TransactionTable} from '../../transaction/component/transaction.table';
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, Injector, OnDestroy, OnInit} from '@angular/core';
 import {PageFirstRowSelectedRow, ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
@@ -84,9 +84,10 @@ export class PortfolioTransactionTableComponent extends TransactionTable impleme
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
+    usersettingsService: UserSettingsService,
+    injector: Injector) {
     super(currencypairService, parentChildRegisterService, activePanelService, transactionService, confirmationService,
-      messageToastService, filterService, translateService, gps, usersettingsService);
+      messageToastService, filterService, translateService, gps, usersettingsService, injector);
   }
 
   /**

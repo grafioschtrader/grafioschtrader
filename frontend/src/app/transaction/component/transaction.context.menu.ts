@@ -6,7 +6,7 @@ import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {TransactionService} from '../service/transaction.service';
 import {TranslateService} from '@ngx-translate/core';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {Directive, EventEmitter, Output, ViewChild} from '@angular/core';
+import {Directive, EventEmitter, Injector, Output, ViewChild} from '@angular/core';
 import {Security} from '../../entities/security';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
@@ -84,8 +84,9 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
-    super(filterService, usersettingsService, translateService, gps);
+              usersettingsService: UserSettingsService,
+              injector: Injector) {
+    super(filterService, usersettingsService, translateService, gps, injector);
     this.pageFirstRowSelectedRow = this.parentChildRegisterService.getRowPosition(null);
   }
 

@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, Injector} from '@angular/core';
 import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
@@ -32,9 +32,10 @@ export class SecuritysplitEditTableComponent extends SplitPeriodTableBase<Securi
               filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
-              gps: GlobalparameterService) {
+              gps: GlobalparameterService,
+              injector: Injector) {
     super('splitDate', 'SECURITY_SPLITS_FROM_MAX', Securitysplit, messageToastService, securitysplitService,
-      filterService, usersettingsService, translateService, gps);
+      filterService, usersettingsService, translateService, gps, injector);
     this.addColumnFeqH(DataType.DateString, 'splitDate', true, false);
     this.addColumn(DataType.NumericInteger, 'createType', 'C', true, false,
       {fieldValueFN: this.getCreateTypeIcon.bind(this), templateName: 'icon', width: 20});

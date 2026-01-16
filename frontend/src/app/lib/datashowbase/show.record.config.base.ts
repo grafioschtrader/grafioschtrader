@@ -1,3 +1,4 @@
+import {Injector} from '@angular/core';
 import {DataType} from '../dynamic-form/models/data.type';
 import {ColumnConfig, OptionalParams} from './column.config';
 import {BaseLocale} from '../dynamic-form/models/base.locale';
@@ -39,9 +40,11 @@ export abstract class ShowRecordConfigBase {
    *
    * @param translateService - Angular translation service for internationalization support
    * @param gps - Global parameter base service providing user locale and formatting preferences
+   * @param injector - Angular injector for lazy service resolution in subclasses
    * @protected
    */
-  protected constructor(protected translateService: TranslateService, protected gps: GlobalparameterService) {
+  protected constructor(protected translateService: TranslateService, protected gps: GlobalparameterService,
+    protected injector: Injector = null) {
     this.baseLocale = {
       language: gps.getUserLang(),
       dateFormat: gps.getCalendarTwoNumberDateFormat().toLocaleLowerCase()
