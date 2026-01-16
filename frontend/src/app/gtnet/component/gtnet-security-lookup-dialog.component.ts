@@ -4,6 +4,7 @@ import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {DialogModule} from 'primeng/dialog';
 import {ProgressSpinnerModule} from 'primeng/progressspinner';
 import {MessageModule} from 'primeng/message';
+import {Subscription} from 'rxjs';
 
 import {GtnetSecurityLookupService} from '../service/gtnet-security-lookup.service';
 import {
@@ -84,6 +85,9 @@ export class GtnetSecurityLookupDialogComponent {
   /** Flag to prevent double emission when selection closes the dialog */
   private selectionHandled = false;
 
+  /** Subscription to the current lookup request, cancelled on dialog close or new search */
+  private lookupSubscription: Subscription;
+
   constructor(
     private lookupService: GtnetSecurityLookupService,
     private translateService: TranslateService
@@ -97,9 +101,19 @@ export class GtnetSecurityLookupDialogComponent {
   }
 
   onHide(): void {
+    this.cancelPendingRequest();
     if (!this.selectionHandled) {
       this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
     }
+  }
+
+  /** Cancels any pending lookup request to prevent stale responses from affecting the UI */
+  private cancelPendingRequest(): void {
+    if (this.lookupSubscription) {
+      this.lookupSubscription.unsubscribe();
+      this.lookupSubscription = null;
+    }
+    this.loading = false;
   }
 
   onSecuritySelected(security: SecurityGtnetLookupDTO): void {
@@ -109,6 +123,9 @@ export class GtnetSecurityLookupDialogComponent {
   }
 
   private performSearch(): void {
+    // Cancel any pending request before starting a new one
+    this.cancelPendingRequest();
+
     const request: SecurityGtnetLookupRequest = {
       isin: this.isin || undefined,
       currency: this.currency || undefined,
@@ -116,7 +133,7 @@ export class GtnetSecurityLookupDialogComponent {
     };
 
     this.loading = true;
-    this.lookupService.lookupSecurity(request).subscribe({
+    this.lookupSubscription = this.lookupService.lookupSecurity(request).subscribe({
       next: (response) => {
         this.response = response;
         this.loading = false;
