@@ -1,4 +1,4 @@
-import {Component, Inject} from '@angular/core';
+import {Component, Inject, Injector} from '@angular/core';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {ProgressStateType, TaskDataChange, TaskDataChangeFormConstraints} from '../types/task.data.change';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
@@ -132,9 +132,10 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
+    usersettingsService: UserSettingsService,
+    injector: Injector) {
     super(BaseSettings.TASK_DATE_CHANGE, taskDataChangeService, confirmationService, messageToastService, activePanelService,
-      dialogService, filterService, translateService, gps, usersettingsService,
+      dialogService, filterService, translateService, gps, usersettingsService, injector,
       gps.hasRole(BaseSettings.ROLE_ADMIN) ? [CrudMenuOptions.Allow_Create,
         CrudMenuOptions.Allow_Delete] : []);
     this.taskTypeEnum = taskTypeEnum;

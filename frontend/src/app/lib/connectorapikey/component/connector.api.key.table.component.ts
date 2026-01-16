@@ -1,4 +1,4 @@
-import {Component, OnDestroy} from '@angular/core';
+import {Component, Injector, OnDestroy} from '@angular/core';
 
 import {DialogService} from 'primeng/dynamicdialog';
 import {TableCrudSupportMenu} from '../../datashowbase/table.crud.support.menu';
@@ -72,9 +72,10 @@ export class ConnectorApiKeyTableComponent extends TableCrudSupportMenu<Connecto
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
+    usersettingsService: UserSettingsService,
+    injector: Injector) {
     super(BaseSettings.CONNECTOR_API_KEY, connectorApiKeyService, confirmationService, messageToastService,
-      activePanelService, dialogService, filterService, translateService, gps, usersettingsService);
+      activePanelService, dialogService, filterService, translateService, gps, usersettingsService, injector);
 
     this.addColumnFeqH(DataType.String, 'idProvider', true, false,
       {fieldValueFN: this.getFeedConnectorReadableName.bind(this)});

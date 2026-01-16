@@ -1,5 +1,5 @@
 import {TimeFrame, WatchlistTable, WatchListType} from './watchlist.table';
-import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from '@angular/core';
 import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {WatchlistService} from '../service/watchlist.service';
@@ -106,11 +106,12 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     translateService: TranslateService,
     gpsGT: GlobalparameterGTService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
+    usersettingsService: UserSettingsService,
+    injector: Injector) {
     super(WatchListType.PERFORMANCE, AppSettings.WATCHLIST_PERFORMANCE_TABLE_SETTINGS_STORE, dialogService, alarmSetupService,
       timeSeriesQuotesService, dataChangedService, activePanelService, watchlistService, router, activatedRoute, confirmationService,
       messageToastService, productIconService, changeDetectionStrategy, filterService, translateService, gpsGT, gps,
-      usersettingsService, WatchlistTable.SINGLE);
+      usersettingsService, WatchlistTable.SINGLE, injector);
     const date = new Date();
 
 

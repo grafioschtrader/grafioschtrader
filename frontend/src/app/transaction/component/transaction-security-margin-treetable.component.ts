@@ -1,4 +1,4 @@
-import {Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
 import {ConfirmationService, FilterService, MenuItem, TreeNode} from 'primeng/api';
 import {TransactionContextMenu} from './transaction.context.menu';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
@@ -162,9 +162,10 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+              usersettingsService: UserSettingsService,
+              injector: Injector) {
     super(parentChildRegisterService, activePanelService, transactionService, confirmationService, messageToastService,
-      filterService, translateService, gps, usersettingsService);
+      filterService, translateService, gps, usersettingsService, injector);
     this.lang = this.gps.getUserLang();
   }
 

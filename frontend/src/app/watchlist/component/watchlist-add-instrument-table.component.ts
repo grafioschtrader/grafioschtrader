@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, Injector} from '@angular/core';
 import {AddInstrumentTable} from './add-instrument-table.component';
 import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
 import {FilterService} from 'primeng/api';
@@ -41,8 +41,9 @@ export class WatchlistAddInstrumentTableComponent extends AddInstrumentTable<Wat
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
-    super(new Watchlist(), dataChangedService, watchlistService, filterService, translateService, gps, usersettingsService);
+              usersettingsService: UserSettingsService,
+              injector: Injector) {
+    super(new Watchlist(), dataChangedService, watchlistService, filterService, translateService, gps, usersettingsService, injector);
   }
 
 }

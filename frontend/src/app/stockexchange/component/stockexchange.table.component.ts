@@ -1,4 +1,4 @@
-import {Component, OnDestroy} from '@angular/core';
+import {Component, Injector, OnDestroy} from '@angular/core';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
@@ -95,9 +95,10 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+              usersettingsService: UserSettingsService,
+              injector: Injector) {
     super(AppSettings.STOCKEXCHANGE, stockexchangeService, confirmationService, messageToastService, activePanelService,
-      dialogService, filterService, translateService, gps, usersettingsService);
+      dialogService, filterService, translateService, gps, usersettingsService, injector);
 
     this.addColumnFeqH(DataType.String, 'mic', true, false, {
       width: 40,

@@ -1,4 +1,4 @@
-import {Component, NgZone, OnDestroy, OnInit} from '@angular/core';
+import {Component, Injector, NgZone, OnDestroy, OnInit} from '@angular/core';
 import {SecurityaccountService} from '../service/securityaccount.service';
 import {ActivatedRoute, Params, Router} from '@angular/router';
 
@@ -68,9 +68,10 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+              usersettingsService: UserSettingsService,
+              injector: Injector) {
     super(timeSeriesQuotesService, alarmSetupService, activePanelService, messageToastService, securityaccountService,
-      productIconService, activatedRoute, router, chartDataService, filterService, translateService, gps, usersettingsService);
+      productIconService, activatedRoute, router, chartDataService, filterService, translateService, gps, usersettingsService, injector);
   }
 
   ngOnInit() {

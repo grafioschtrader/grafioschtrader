@@ -1,4 +1,4 @@
-import {Directive} from '@angular/core';
+import {Directive, Injector} from '@angular/core';
 import {SecurityPositionCurrenyGroupSummary} from '../../entities/view/security.position.curreny.group.summary';
 import {SecurityaccountService} from '../service/securityaccount.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
@@ -62,10 +62,11 @@ export abstract class SecurityaccountTable extends SecurityaccountBaseTable {
                         filterService: FilterService,
                         translateService: TranslateService,
                         gps: GlobalparameterService,
-                        usersettingsService: UserSettingsService) {
+                        usersettingsService: UserSettingsService,
+                        injector: Injector) {
 
     super(timeSeriesQuotesService, alarmSetupService, activePanelService, messageToastService, securityaccountService,
-      productIconService, activatedRoute, router, chartDataService, filterService, translateService, gps, usersettingsService);
+      productIconService, activatedRoute, router, chartDataService, filterService, translateService, gps, usersettingsService, injector);
     this.groupMapping.set(SecurityAccountGroup[SecurityAccountGroup.GROUP_BY_CURRENCY],
       new SecurityaccountCurrencyGroup(this.translateService, this));
     this.groupMapping.set(SecurityAccountGroup[SecurityAccountGroup.GROUP_BY_ASSETCLASS],

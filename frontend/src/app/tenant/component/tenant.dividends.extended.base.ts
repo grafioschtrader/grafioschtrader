@@ -1,3 +1,4 @@
+import {Injector} from '@angular/core';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {FilterService} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
@@ -9,8 +10,9 @@ export class TenantDividendsExtendedBase extends TableConfigBase {
   constructor(filterService: FilterService,
     usersettingsService: UserSettingsService,
     translateService: TranslateService,
-    gps: GlobalparameterService) {
-    super(filterService, usersettingsService, translateService, gps);
+    gps: GlobalparameterService,
+    injector: Injector) {
+    super(filterService, usersettingsService, translateService, gps, injector);
   }
 
   protected addGeneralColumns(currency: string) {

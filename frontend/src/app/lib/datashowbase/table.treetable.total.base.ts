@@ -1,3 +1,4 @@
+import {Injector} from '@angular/core';
 import {ShowRecordConfigBase} from './show.record.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {ColumnConfig, ColumnGroupConfig} from './column.config';
@@ -22,10 +23,12 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    *
    * @param translateService - Angular translation service for internationalization
    * @param gps - Global parameter base service for locale and formatting settings
+   * @param injector - Angular injector for lazy service resolution in subclasses
    */
   protected constructor(translateService: TranslateService,
-    gps: GlobalparameterService) {
-    super(translateService, gps);
+    gps: GlobalparameterService,
+    injector: Injector = null) {
+    super(translateService, gps, injector);
   }
 
   /**

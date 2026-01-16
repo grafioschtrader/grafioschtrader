@@ -1,4 +1,4 @@
-import {Component, OnDestroy} from '@angular/core';
+import {Component, Injector, OnDestroy} from '@angular/core';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
@@ -128,8 +128,9 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
-    super(filterService, usersettingsService, translateService, gps);
+    usersettingsService: UserSettingsService,
+    injector: Injector) {
+    super(filterService, usersettingsService, translateService, gps, injector);
 
     this.supplementCriteria = new SupplementCriteria(true, false);
     SecurityaccountImportTransactionTableComponent.registerIcons(this.iconReg);

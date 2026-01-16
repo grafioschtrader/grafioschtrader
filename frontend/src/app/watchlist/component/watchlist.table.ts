@@ -1,5 +1,5 @@
 import {Security} from '../../entities/security';
-import {ChangeDetectorRef, Directive, OnDestroy, ViewChild} from '@angular/core';
+import {ChangeDetectorRef, Directive, Injector, OnDestroy, ViewChild} from '@angular/core';
 import {ActivatedRoute, Params, Router} from '@angular/router';
 import {WatchlistService} from '../service/watchlist.service';
 import {SecuritycurrencyGroup} from '../../entities/view/securitycurrency.group';
@@ -204,8 +204,9 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     private gpsGT: GlobalparameterGTService,
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService,
-    public selectMultiMode: 'single' | 'multiple' ) {
-    super(filterService, usersettingsService, translateService, gps);
+    public selectMultiMode: 'single' | 'multiple',
+    injector: Injector) {
+    super(filterService, usersettingsService, translateService, gps, injector);
     if (selectMultiMode === WatchlistTable.MULTIPLE) {
       this.singleMultiSelection = [];
     }

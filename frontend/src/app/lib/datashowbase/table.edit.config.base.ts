@@ -1,3 +1,4 @@
+import {Injector} from '@angular/core';
 import {TableConfigBase} from './table.config.base';
 import {FilterService} from 'primeng/api';
 import {UserSettingsService} from '../services/user.settings.service';
@@ -13,8 +14,9 @@ export abstract class TableEditConfigBase extends TableConfigBase {
   protected constructor(filterService: FilterService,
                         usersettingsService: UserSettingsService,
                         translateService: TranslateService,
-                        gps: GlobalparameterService) {
-    super(filterService, usersettingsService, translateService, gps);
+                        gps: GlobalparameterService,
+                        injector: Injector = null) {
+    super(filterService, usersettingsService, translateService, gps, injector);
   }
 
   addEditColumnFeqH(dataType: DataType, field: string, required: boolean,

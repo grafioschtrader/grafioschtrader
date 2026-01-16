@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Injector, Input, OnInit} from '@angular/core';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {FilterService} from 'primeng/api';
 import {TranslateService, TranslateModule} from '@ngx-translate/core';
@@ -27,8 +27,9 @@ export class InstrumentYearPerformanceTableComponent extends TableConfigBase imp
   constructor(filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
-    super(filterService, usersettingsService, translateService, gps);
+              usersettingsService: UserSettingsService,
+              injector: Injector) {
+    super(filterService, usersettingsService, translateService, gps, injector);
   }
 
   ngOnInit(): void {

@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Injector, Input, OnInit} from '@angular/core';
 import {AnnualisedYears} from '../../entities/view/instrument.statistics.result';
 import {FilterService} from 'primeng/api';
 import {TranslateService, TranslateModule} from '@ngx-translate/core';
@@ -30,8 +30,9 @@ export class InstrumentAnnualisedReturnComponent extends TableConfigBase impleme
   constructor(filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
-    super(filterService, usersettingsService, translateService, gps);
+              usersettingsService: UserSettingsService,
+              injector: Injector) {
+    super(filterService, usersettingsService, translateService, gps, injector);
   }
 
   ngOnInit(): void {

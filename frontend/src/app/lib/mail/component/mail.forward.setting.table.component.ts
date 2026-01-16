@@ -1,4 +1,4 @@
-import {Component, OnDestroy} from '@angular/core';
+import {Component, Injector, OnDestroy} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {ConfirmationService, FilterService} from 'primeng/api';
@@ -90,9 +90,10 @@ export class MailForwardSettingTableComponent extends TableCrudSupportMenu<MailS
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
+    usersettingsService: UserSettingsService,
+    injector: Injector) {
     super(BaseSettings.MAIL_SETTING_FORWARD, mailSettingForwardService, confirmationService, messageToastService,
-      activePanelService, dialogService, filterService, translateService, gps, usersettingsService);
+      activePanelService, dialogService, filterService, translateService, gps, usersettingsService, injector);
     this.addColumnFeqH(DataType.String, MailSettingForwardVar.MESSAGE_COM_TYPE, true, false,
       {translateValues: TranslateValue.NORMAL});
     this.addColumnFeqH(DataType.String, MailSettingForwardVar.MESSAGE_TARGET_TYPE, true, false,

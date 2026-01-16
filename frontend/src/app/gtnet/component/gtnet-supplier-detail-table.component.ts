@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Injector, Input, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {GTNetExchangeService} from '../service/gtnet-exchange.service';
 import {GTNetExchangeKindType, GTNetServerStateTypes} from '../model/gtnet';
@@ -38,8 +38,9 @@ export class GTNetSupplierDetailTableComponent extends TableConfigBase implement
 
   constructor(private gtNetExchangeService: GTNetExchangeService,
   filterService: FilterService, usersettingsService: UserSettingsService,
-  translateService: TranslateService, gps: GlobalparameterService) {
-    super(filterService, usersettingsService, translateService, gps);
+  translateService: TranslateService, gps: GlobalparameterService,
+  injector: Injector) {
+    super(filterService, usersettingsService, translateService, gps, injector);
   }
 
   ngOnInit(): void {

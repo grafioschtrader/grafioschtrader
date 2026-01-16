@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from '@angular/core';
 import {DialogService} from 'primeng/dynamicdialog';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {SecurityService} from '../../securitycurrency/service/security.service';
@@ -132,11 +132,12 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
     translateService: TranslateService,
     gpsGT: GlobalparameterGTService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
+    usersettingsService: UserSettingsService,
+    injector: Injector) {
     super(WatchListType.DIVIDEND_SPLIT_FEED, AppSettings.WATCHLIST_DIVIDEND_SPLIT_FEED_TABLE_SETTINGS_STORE,
       dialogService, alarmSetupService, timeSeriesQuotesService, dataChangedService, activePanelService, watchlistService, router,
       activatedRoute, confirmationService, messageToastService, productIconService, changeDetectionStrategy,
-      filterService, translateService, gpsGT, gps, usersettingsService, WatchlistTable.MULTIPLE);
+      filterService, translateService, gpsGT, gps, usersettingsService, WatchlistTable.MULTIPLE, injector);
     this.addBaseColumns();
     this.addColumnFeqH(DataType.String, 'securitycurrency.distributionFrequency', true,
       true, {translateValues: TranslateValue.NORMAL});

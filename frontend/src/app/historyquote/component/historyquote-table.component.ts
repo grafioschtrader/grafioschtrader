@@ -1,4 +1,4 @@
-import {Component, OnDestroy} from '@angular/core';
+import {Component, Injector, OnDestroy} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {Historyquote, HistoryquoteCreateType} from '../../entities/historyquote';
 import {HistoryquoteService} from '../service/historyquote.service';
@@ -199,9 +199,10 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     dialogService: DialogService,
     filterService: FilterService,
     gps: GlobalparameterService,
-    translateService: TranslateService) {
+    translateService: TranslateService,
+    injector: Injector) {
     super(AppSettings.HISTORYQUOTE, historyquoteService, confirmationService, messageToastService, activePanelService,
-      dialogService, filterService, translateService, gps, usersettingsService);
+      dialogService, filterService, translateService, gps, usersettingsService, injector);
 
     HistoryquoteTableComponent.registerIcons(this.iconReg);
     this.addColumnFeqH(DataType.DateString, 'date', true, false,

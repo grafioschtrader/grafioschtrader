@@ -1,6 +1,6 @@
 import {AddInstrumentTable} from '../../watchlist/component/add-instrument-table.component';
 import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
-import {Component} from '@angular/core';
+import {Component, Injector} from '@angular/core';
 import {FilterService} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
@@ -40,8 +40,9 @@ export class CorrelationSetAddInstrumentTableComponent extends AddInstrumentTabl
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
-    super(null, dataChangedService, correlationSetService, filterService, translateService, gps, usersettingsService);
+              usersettingsService: UserSettingsService,
+              injector: Injector) {
+    super(null, dataChangedService, correlationSetService, filterService, translateService, gps, usersettingsService, injector);
   }
 
   /**

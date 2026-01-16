@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Injector, Input, OnInit, Output} from '@angular/core';
 import {FilterService} from 'primeng/api';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
@@ -94,8 +94,9 @@ export class TenantDividendsCashaccountExtendedComponent extends TenantDividends
     filterService: FilterService,
     usersettingsService: UserSettingsService,
     translateService: TranslateService,
-    gps: GlobalparameterService) {
-    super(filterService, usersettingsService, translateService, gps);
+    gps: GlobalparameterService,
+    injector: Injector) {
+    super(filterService, usersettingsService, translateService, gps, injector);
   }
 
   ngOnInit(): void {

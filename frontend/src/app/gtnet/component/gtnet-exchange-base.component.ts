@@ -1,4 +1,4 @@
-import {Directive, OnDestroy, OnInit, ViewChild, inject} from '@angular/core';
+import {Directive, Injector, OnDestroy, OnInit, ViewChild, inject} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {ConfirmationService, FilterService, MenuItem, SortEvent} from 'primeng/api';
 import {DialogService} from 'primeng/dynamicdialog';
@@ -54,10 +54,11 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService
+    usersettingsService: UserSettingsService,
+    injector: Injector
   ) {
     super(entityName, null, confirmationService, messageToastService, activePanelService,
-      dialogService, filterService, translateService, gps, usersettingsService, [CrudMenuOptions.ParentControl]);
+      dialogService, filterService, translateService, gps, usersettingsService, injector, [CrudMenuOptions.ParentControl]);
     this.rowsPerPage = 50;
   }
 

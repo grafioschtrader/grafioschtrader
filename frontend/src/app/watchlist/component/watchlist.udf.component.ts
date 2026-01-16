@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from '@angular/core';
 import {DialogService} from 'primeng/dynamicdialog';
 import {WatchlistTable, WatchListType} from './watchlist.table';
 import {SecurityService} from '../../securitycurrency/service/security.service';
@@ -145,11 +145,12 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
     translateService: TranslateService,
     gpsGT: GlobalparameterGTService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
+    usersettingsService: UserSettingsService,
+    injector: Injector) {
     super(WatchListType.UDF, AppSettings.WATCHLIST_UDF_TABLE_SETTINGS_STORE, dialogService, alarmSetupService,
       timeSeriesQuotesService, dataChangedService, activePanelService, watchlistService, router, activatedRoute, confirmationService,
       messageToastService, productIconService, changeDetectionStrategy, filterService, translateService,
-      gpsGT, gps, usersettingsService, WatchlistTable.SINGLE);
+      gpsGT, gps, usersettingsService, WatchlistTable.SINGLE, injector);
     WatchlistUdfComponent.registerIcons(iconReg);
     this.addBaseColumns();
     this.fdSecurityList = JSON.parse(sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY))

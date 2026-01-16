@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, Injector} from '@angular/core';
 
 import {ImportTransactionTemplate} from '../../entities/import.transaction.template';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
@@ -79,10 +79,11 @@ export class ImportTransactionTemplateTableComponent extends TableCrudSupportMen
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
+    usersettingsService: UserSettingsService,
+    injector: Injector) {
     super(AppSettings.IMPORT_TRANSACTION_TEMPLATE, importTransactionTemplateService, confirmationService,
       messageToastService, activePanelService, dialogService, filterService, translateService, gps,
-      usersettingsService, [CrudMenuOptions.ParentControl, ...TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS]);
+      usersettingsService, injector, [CrudMenuOptions.ParentControl, ...TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS]);
 
     this.addColumnFeqH(DataType.String, 'templatePurpose', true, false, {templateName: BaseSettings.OWNER_TEMPLATE});
     this.addColumnFeqH(DataType.String, 'templateCategory', true, false, {translateValues: TranslateValue.NORMAL});

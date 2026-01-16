@@ -1,4 +1,4 @@
-import {Directive, Input} from '@angular/core';
+import {Directive, Injector, Input} from '@angular/core';
 import {Security} from '../../entities/security';
 import {Currencypair} from '../../entities/currencypair';
 import {TranslateService} from '@ngx-translate/core';
@@ -49,8 +49,9 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
-    super(filterService, usersettingsService, translateService, gps);
+              usersettingsService: UserSettingsService,
+              injector: Injector) {
+    super(filterService, usersettingsService, translateService, gps, injector);
     this.multiSortMeta.push({field: 'name', order: 1});
   }
 

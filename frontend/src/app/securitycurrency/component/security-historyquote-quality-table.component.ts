@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnChanges, Output} from '@angular/core';
+import {Component, EventEmitter, Injector, Input, OnChanges, Output} from '@angular/core';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {SecurityService} from '../service/security.service';
 import {TranslateService} from '@ngx-translate/core';
@@ -60,8 +60,9 @@ export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase i
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
-    super(filterService, usersettingsService, translateService, gps);
+              usersettingsService: UserSettingsService,
+              injector: Injector) {
+    super(filterService, usersettingsService, translateService, gps, injector);
 
     this.addColumnFeqH(DataType.String, 'name', true, false, {width: 250});
     this.addColumnFeqH(DataType.DateString, 'activeFromDate');

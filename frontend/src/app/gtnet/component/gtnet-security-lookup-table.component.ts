@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
+import {Component, EventEmitter, Injector, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {ButtonModule} from 'primeng/button';
@@ -15,6 +15,7 @@ import {SecurityGtnetLookupDTO} from '../model/gtnet-security-lookup';
 /**
  * Table component for displaying security lookup results from GTNet peers.
  * Displays a list of SecurityGtnetLookupDTO entries with single selection support.
+ * Rows are expandable to show connector configuration boxes (History, Intraday, Dividend, Split).
  * When user selects an entry and clicks "Apply Selected", emits the selected DTO.
  */
 @Component({
@@ -34,8 +35,85 @@ import {SecurityGtnetLookupDTO} from '../model/gtnet-security-lookup';
       [enableCustomSort]="true"
       [valueGetterFn]="getValueByPath.bind(this)"
       [contextMenuEnabled]="false"
-      [baseLocale]="baseLocale">
+      [baseLocale]="baseLocale"
+      [expandable]="true"
+      [expandedRowTemplate]="connectorExpansion">
     </configurable-table>
+
+    <ng-template #connectorExpansion let-security>
+      <div class="connector-expansion">
+        <div class="connector-boxes">
+          <!-- History Connector Box -->
+          @if (security.matchedHistoryConnector) {
+            <fieldset class="connector-box">
+              <legend>{{ 'HISTORY_SETTINGS' | translate }}</legend>
+              <div class="connector-row">
+                <span class="connector-label">{{ 'ID_CONNECTOR_HISTORY' | translate }}:</span>
+                <span class="connector-value">{{ security.matchedHistoryConnector }}</span>
+              </div>
+              @if (security.matchedHistoryUrlExtension) {
+                <div class="connector-row">
+                  <span class="connector-label">{{ 'URL_HISTORY_EXTEND' | translate }}:</span>
+                  <span class="connector-value text-break">{{ security.matchedHistoryUrlExtension }}</span>
+                </div>
+              }
+            </fieldset>
+          }
+
+          <!-- Intraday Connector Box -->
+          @if (security.matchedIntraConnector) {
+            <fieldset class="connector-box">
+              <legend>{{ 'INTRA_SETTINGS' | translate }}</legend>
+              <div class="connector-row">
+                <span class="connector-label">{{ 'ID_CONNECTOR_INTRA' | translate }}:</span>
+                <span class="connector-value">{{ security.matchedIntraConnector }}</span>
+              </div>
+              @if (security.matchedIntraUrlExtension) {
+                <div class="connector-row">
+                  <span class="connector-label">{{ 'URL_INTRA_EXTEND' | translate }}:</span>
+                  <span class="connector-value text-break">{{ security.matchedIntraUrlExtension }}</span>
+                </div>
+              }
+            </fieldset>
+          }
+
+          <!-- Dividend Connector Box -->
+          @if (security.matchedDividendConnector) {
+            <fieldset class="connector-box">
+              <legend>{{ 'DIVIDEND_SETTINGS' | translate }}</legend>
+              <div class="connector-row">
+                <span class="connector-label">{{ 'ID_CONNECTOR_DIVIDEND' | translate }}:</span>
+                <span class="connector-value">{{ security.matchedDividendConnector }}</span>
+              </div>
+              @if (security.matchedDividendUrlExtension) {
+                <div class="connector-row">
+                  <span class="connector-label">{{ 'URL_DIVIDEND_EXTEND' | translate }}:</span>
+                  <span class="connector-value text-break">{{ security.matchedDividendUrlExtension }}</span>
+                </div>
+              }
+            </fieldset>
+          }
+
+          <!-- Split Connector Box -->
+          @if (security.matchedSplitConnector) {
+            <fieldset class="connector-box">
+              <legend>{{ 'SPLIT_SETTING' | translate }}</legend>
+              <div class="connector-row">
+                <span class="connector-label">{{ 'ID_CONNECTOR_SPLIT' | translate }}:</span>
+                <span class="connector-value">{{ security.matchedSplitConnector }}</span>
+              </div>
+              @if (security.matchedSplitUrlExtension) {
+                <div class="connector-row">
+                  <span class="connector-label">{{ 'URL_SPLIT_EXTEND' | translate }}:</span>
+                  <span class="connector-value text-break">{{ security.matchedSplitUrlExtension }}</span>
+                </div>
+              }
+            </fieldset>
+          }
+        </div>
+      </div>
+    </ng-template>
+
     <div class="flex justify-content-end mt-3">
       <p-button [label]="'APPLY_SELECTED' | translate"
                 icon="pi pi-check"
@@ -43,7 +121,46 @@ import {SecurityGtnetLookupDTO} from '../model/gtnet-security-lookup';
                 [disabled]="!selectedSecurity">
       </p-button>
     </div>
-  `
+  `,
+  styles: [`
+    .connector-expansion {
+      padding: 0.5rem 1rem;
+      background-color: var(--surface-ground);
+    }
+    .connector-boxes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .connector-box {
+      border: 1px solid var(--surface-border);
+      border-radius: 4px;
+      min-width: 200px;
+      max-width: 300px;
+      padding: 0.5rem;
+      background-color: var(--surface-card);
+    }
+    .connector-box legend {
+      font-weight: bold;
+      font-size: 0.9rem;
+      padding: 0 0.25rem;
+    }
+    .connector-row {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 0.25rem;
+    }
+    .connector-label {
+      font-size: 0.85rem;
+      color: var(--text-color-secondary);
+    }
+    .connector-value {
+      font-size: 0.9rem;
+    }
+    .text-break {
+      word-break: break-all;
+    }
+  `]
 })
 export class GtnetSecurityLookupTableComponent extends TableConfigBase implements OnInit, OnChanges {
 
@@ -56,8 +173,9 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
   constructor(filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
-              gps: GlobalparameterService) {
-    super(filterService, usersettingsService, translateService, gps);
+              gps: GlobalparameterService,
+              injector: Injector) {
+    super(filterService, usersettingsService, translateService, gps, injector);
   }
 
   ngOnChanges(changes: SimpleChanges): void {

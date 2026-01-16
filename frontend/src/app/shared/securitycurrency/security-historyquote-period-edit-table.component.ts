@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, Injector} from '@angular/core';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
@@ -30,9 +30,10 @@ export class SecurityHistoryquotePeriodEditTableComponent extends SplitPeriodTab
               filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
-              gps: GlobalparameterService) {
+              gps: GlobalparameterService,
+              injector: Injector) {
     super('fromDate', 'SECURITY_PERIODS_FROM_MAX', HistoryquotePeriod, messageToastService, historyquotePeriodService,
-      filterService, usersettingsService, translateService, gps);
+      filterService, usersettingsService, translateService, gps, injector);
     this.addColumn(DataType.DateString, 'fromDate', 'FROM_DATE_NEW_PRICE', true, false);
     this.addColumn(DataType.Numeric, 'price', 'CLOSE', true, false);
     this.prepareTableAndTranslate();

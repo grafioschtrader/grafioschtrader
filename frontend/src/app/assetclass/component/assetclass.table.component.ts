@@ -1,4 +1,4 @@
-import {Component, OnDestroy} from '@angular/core';
+import {Component, Injector, OnDestroy} from '@angular/core';
 
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
@@ -83,9 +83,10 @@ export class AssetclassTableComponent extends TableCrudSupportMenuSecurity<Asset
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
+    usersettingsService: UserSettingsService,
+    injector: Injector) {
     super(AppSettings.ASSETCLASS, assetclassService, confirmationService, messageToastService,
-      activePanelService, dialogService, filterService, translateService, gps, usersettingsService);
+      activePanelService, dialogService, filterService, translateService, gps, usersettingsService, injector);
 
     this.addColumn(DataType.String, AppSettings.CATEGORY_TYPE, AppSettings.ASSETCLASS.toUpperCase(), true, false,
       {translateValues: TranslateValue.NORMAL, templateName: BaseSettings.OWNER_TEMPLATE});

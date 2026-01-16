@@ -1,7 +1,7 @@
 import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {SecurityPositionDynamicGroupSummary} from '../../entities/view/security.position.dynamic.group.summary';
-import {Directive, ElementRef, ViewChild} from '@angular/core';
+import {Directive, ElementRef, Injector, ViewChild} from '@angular/core';
 import {SecurityaccountGroupBase} from './securityaccount.group.base';
 import {SecurityPositionCurrenyGroupSummary} from '../../entities/view/security.position.curreny.group.summary';
 import {Subscription} from 'rxjs';
@@ -78,8 +78,9 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    usersettingsService: UserSettingsService) {
-    super(filterService, usersettingsService, translateService, gps);
+    usersettingsService: UserSettingsService,
+    injector: Injector) {
+    super(filterService, usersettingsService, translateService, gps, injector);
     this.untilDate = BusinessHelper.getUntilDateBySessionStorage();
   }
 

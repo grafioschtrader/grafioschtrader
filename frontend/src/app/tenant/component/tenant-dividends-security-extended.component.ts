@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Injector, Input, OnInit, Output} from '@angular/core';
 import {SecurityDividendsPosition} from '../../entities/view/securitydividends/security.dividends.position';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
@@ -111,8 +111,9 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
   constructor(filterService: FilterService,
     usersettingsService: UserSettingsService,
     translateService: TranslateService,
-    gps: GlobalparameterService) {
-    super(filterService, usersettingsService, translateService, gps);
+    gps: GlobalparameterService,
+    injector: Injector) {
+    super(filterService, usersettingsService, translateService, gps, injector);
     this.idTenant = this.gps.getIdTenant();
   }
 

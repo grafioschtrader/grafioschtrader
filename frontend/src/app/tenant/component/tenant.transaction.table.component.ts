@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, Injector, OnInit} from '@angular/core';
 import {PageFirstRowSelectedRow, ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
 import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {TransactionService} from '../../transaction/service/transaction.service';
@@ -74,9 +74,10 @@ export class TenantTransactionTableComponent extends TransactionTable implements
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+              usersettingsService: UserSettingsService,
+              injector: Injector) {
     super(currencypairService, parentChildRegisterService, activePanelService, transactionService, confirmationService,
-      messageToastService, filterService, translateService, gps, usersettingsService);
+      messageToastService, filterService, translateService, gps, usersettingsService, injector);
   }
 
   /**

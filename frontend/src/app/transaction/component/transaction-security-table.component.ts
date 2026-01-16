@@ -1,4 +1,4 @@
-import {Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
 import {SecurityTransactionSummary} from '../../entities/view/security.transaction.summary';
 import {SecurityTransactionPosition} from '../../entities/view/security.transaction.position';
 import {TranslateService} from '@ngx-translate/core';
@@ -92,9 +92,10 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+              usersettingsService: UserSettingsService,
+              injector: Injector) {
     super(parentChildRegisterService, activePanelService, transactionService, confirmationService, messageToastService,
-      filterService, translateService, gps, usersettingsService);
+      filterService, translateService, gps, usersettingsService, injector);
   }
 
   /**

@@ -1,3 +1,4 @@
+import {Injector} from '@angular/core';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
@@ -20,8 +21,9 @@ export abstract class SecuritycurrencySearchTableBase extends TableConfigBase {
   protected constructor(filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
-              gps: GlobalparameterService) {
-    super(filterService, usersettingsService, translateService, gps);
+              gps: GlobalparameterService,
+              injector: Injector) {
+    super(filterService, usersettingsService, translateService, gps, injector);
 
     this.addFieldDefinition();
     this.prepareTableAndTranslate();
