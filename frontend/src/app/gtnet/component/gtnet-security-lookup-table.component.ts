@@ -11,6 +11,7 @@ import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {SecurityGtnetLookupDTO} from '../model/gtnet-security-lookup';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
  * Table component for displaying security lookup results from GTNet peers.
@@ -170,6 +171,9 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
 
   selectedSecurity: SecurityGtnetLookupDTO;
 
+  /** Flag to track if fields have been initialized in ngOnInit */
+  private fieldsInitialized = false;
+
   constructor(filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
@@ -181,7 +185,10 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['securities'] && this.securities) {
       this.addUniqueKeys();
-      this.createTranslatedValueStore(this.securities);
+      // Only create translated value store if fields have been initialized
+      if (this.fieldsInitialized) {
+        this.createTranslatedValueStore(this.securities);
+      }
     }
   }
 
@@ -191,13 +198,19 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
     this.addColumnFeqH(DataType.String, 'currency', true, false, {width: 60});
     this.addColumnFeqH(DataType.String, 'tickerSymbol', true, false, {width: 80});
     this.addColumn(DataType.String, 'stockexchangeName', 'STOCKEXCHANGE', true, false, {width: 150});
-    this.addColumn(DataType.String, 'categoryType', 'ASSETCLASS', true, false,
+    this.addColumn(DataType.String, 'categoryType', AppSettings.ASSETCLASS.toUpperCase(), true, false,
       {width: 100, translateValues: TranslateValue.NORMAL});
     this.addColumn(DataType.String, 'specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT', true, false,
       {width: 120, translateValues: TranslateValue.NORMAL});
     this.addColumn(DataType.String, 'sourceDomain', 'SOURCE_DOMAIN', true, false, {width: 120});
 
     this.prepareTableAndTranslate();
+    this.fieldsInitialized = true;
+
+    // If data was already provided before ngOnInit, create translated value store now
+    if (this.securities?.length > 0) {
+      this.createTranslatedValueStore(this.securities);
+    }
   }
 
   /**
