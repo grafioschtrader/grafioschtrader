@@ -477,7 +477,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
       dialogService.open(ColumnVisibilityDialogComponent, {
         header,
         width: '300px',
-        modal: false,
+        modal: true,
         draggable: true,
         closable: true,
         closeOnEscape: true,
