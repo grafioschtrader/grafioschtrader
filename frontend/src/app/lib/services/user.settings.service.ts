@@ -42,6 +42,10 @@ export class UserSettingsService {
     return (retrievedObject) ? JSON.parse(retrievedObject) : null;
   }
 
+  public removeKey(propertyKey: string): void {
+    localStorage.removeItem(propertyKey);
+  }
+
 }
 
 

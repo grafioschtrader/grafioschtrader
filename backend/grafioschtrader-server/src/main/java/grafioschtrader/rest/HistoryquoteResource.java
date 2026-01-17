@@ -46,6 +46,7 @@ import grafioschtrader.ta.TaFormDefinition;
 import grafioschtrader.ta.TaIndicatorHelper;
 import grafioschtrader.ta.TaIndicators;
 import grafioschtrader.ta.TaTraceIndicatorData;
+import grafioschtrader.ta.indicator.model.ShortMediumInputPeriod;
 import grafioschtrader.ta.indicator.model.ShortMediumLongInputPeriod;
 import grafioschtrader.types.HistoryquoteCreateType;
 import io.swagger.v3.oas.annotations.Operation;
@@ -121,6 +122,12 @@ public class HistoryquoteResource extends UpdateCreateDeleteAudit<Historyquote> 
           ShortMediumLongInputPeriod.class);
       taTraceIndicatorData = historyquoteJpaRepository.getTaWithShortMediumLongInputPeriod(idSecuritycurrency,
           taIndicator, shortMediumLongInputPeriod);
+      break;
+    case RSI:
+      ShortMediumInputPeriod shortMediumInputPeriod = jacksonObjectMapper.readValue(dynamicModel,
+          ShortMediumInputPeriod.class);
+      taTraceIndicatorData = historyquoteJpaRepository.getTaWithShortMediumInputPeriod(idSecuritycurrency, taIndicator,
+          shortMediumInputPeriod);
       break;
     }
     return new ResponseEntity<>(taTraceIndicatorData, HttpStatus.OK);

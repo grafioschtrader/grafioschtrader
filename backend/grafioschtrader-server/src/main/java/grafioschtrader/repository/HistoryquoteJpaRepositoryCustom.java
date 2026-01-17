@@ -18,6 +18,7 @@ import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.ta.TaIndicators;
 import grafioschtrader.ta.TaTraceIndicatorData;
+import grafioschtrader.ta.indicator.model.ShortMediumInputPeriod;
 import grafioschtrader.ta.indicator.model.ShortMediumLongInputPeriod;
 
 public interface HistoryquoteJpaRepositoryCustom extends BaseRepositoryCustom<Historyquote> {
@@ -111,6 +112,30 @@ public interface HistoryquoteJpaRepositoryCustom extends BaseRepositoryCustom<Hi
    */
   List<TaTraceIndicatorData> getTaWithShortMediumLongInputPeriod(Integer idSecuritycurrency, TaIndicators taIndicator,
       ShortMediumLongInputPeriod shortMediumLongInputPeriod);
+
+  /**
+   * Calculates and returns technical analysis (TA) indicator data for a given security or currency pair, based on
+   * specified short and medium calculation periods.
+   * <p>
+   * This method is used for oscillator indicators like RSI that typically use fewer calculation periods than overlay
+   * indicators (SMA/EMA). The short period is required, while the medium period is optional.
+   * </p>
+   * <p>
+   * The method fetches historical closing prices for the instrument, excluding any quotes that were specifically
+   * generated to fill non-trading days (i.e., where createType is 1, corresponding to
+   * HistoryquoteCreateType.FILLED_NON_TRADE_DAY).
+   * </p>
+   *
+   * @param idSecuritycurrency     The unique identifier for the security or currency pair.
+   * @param taIndicator            The technical indicator to calculate (e.g., RSI).
+   * @param shortMediumInputPeriod An object specifying the short (required) and medium (optional) periods for the TA
+   *                               calculation. The medium period can be null to calculate only one indicator line.
+   * @return A list of TaTraceIndicatorData objects, each representing a trace for a calculated indicator over one of
+   *         the specified periods. The list can contain up to two entries, or fewer if the medium period is not
+   *         specified or lacks sufficient data. An empty list is returned if no calculations can be performed.
+   */
+  List<TaTraceIndicatorData> getTaWithShortMediumInputPeriod(Integer idSecuritycurrency, TaIndicators taIndicator,
+      ShortMediumInputPeriod shortMediumInputPeriod);
 
   <S extends Securitycurrency<S>> HistoryquotesWithMissings<S> getHistoryqoutesByIdSecuritycurrencyWithMissing(
       int idSecuritycurrency, boolean isCurrencypair) throws InterruptedException, ExecutionException;

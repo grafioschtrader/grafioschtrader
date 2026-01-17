@@ -58,9 +58,11 @@ export class PlotlyHelper {
     const founds: any = [];
     this.searchArrayInObjectTree(layout, founds);
 
-    founds.forEach(elements => elements.filter(e => e.hasOwnProperty(LABEL)).filter(f => f[LABEL] =
-      f[LABEL].toUpperCase()).map(match => translateService.get(Helper.getValueByPath(match, LABEL)).subscribe(
-      trans => Helper.setValueByPath(match, LABEL, trans))));
+    founds.forEach(elements => elements
+      .filter(e => e && typeof e === 'object' && e.hasOwnProperty(LABEL) && typeof e[LABEL] === 'string')
+      .filter(f => f[LABEL] = f[LABEL].toUpperCase())
+      .map(match => translateService.get(Helper.getValueByPath(match, LABEL)).subscribe(
+        trans => Helper.setValueByPath(match, LABEL, trans))));
   }
 
   private static translateLayoutTitles(translateService: TranslateService, layout: any): void {

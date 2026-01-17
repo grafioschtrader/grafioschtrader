@@ -72,7 +72,9 @@
       "Bash(pushd:*)",
       "Bash(gh issue list:*)",
       "Bash(gh issue edit:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "WebFetch(domain:plotly.com)",
+      "WebFetch(domain:datadave1.medium.com)"
     ],
     "deny": [],
     "ask": []

@@ -59,7 +59,9 @@ import grafioschtrader.ta.TaIndicators;
 import grafioschtrader.ta.TaTraceIndicatorData;
 import grafioschtrader.ta.indicator.calc.CalcAccessIndicator;
 import grafioschtrader.ta.indicator.calc.ExponentialMovingAverage;
+import grafioschtrader.ta.indicator.calc.RelativeStrengthIndex;
 import grafioschtrader.ta.indicator.calc.SimpleMovingAverage;
+import grafioschtrader.ta.indicator.model.ShortMediumInputPeriod;
 import grafioschtrader.ta.indicator.model.ShortMediumLongInputPeriod;
 import grafioschtrader.types.HistoryquoteCreateType;
 import grafioschtrader.types.TaskTypeExtended;
@@ -435,6 +437,33 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
       taTraceIndicatorData
           .add(getTrace(taIndicator, taClass, shortMediumLongInputPeriod.taLongPeriod, historyquoteDateClose));
     }
+    return taTraceIndicatorData;
+  }
+
+  @Override
+  public List<TaTraceIndicatorData> getTaWithShortMediumInputPeriod(Integer idSecuritycurrency,
+      TaIndicators taIndicator, ShortMediumInputPeriod shortMediumInputPeriod) {
+    checkUserAccess(idSecuritycurrency);
+    List<TaTraceIndicatorData> taTraceIndicatorData = new ArrayList<>();
+    List<HistoryquoteDateClose> historyquoteDateClose = historyquoteJpaRepository
+        .findDateCloseByIdSecuritycurrencyAndCreateTypeFalseOrderByDateAsc(idSecuritycurrency);
+    Class<? extends CalcAccessIndicator> taClass = null;
+    if (taIndicator == TaIndicators.RSI) {
+      taClass = RelativeStrengthIndex.class;
+    }
+
+    if (shortMediumInputPeriod.taShortPeriod != null
+        && historyquoteDateClose.size() > shortMediumInputPeriod.taShortPeriod) {
+      taTraceIndicatorData
+          .add(getTrace(taIndicator, taClass, shortMediumInputPeriod.taShortPeriod, historyquoteDateClose));
+    }
+
+    if (shortMediumInputPeriod.taMediumPeriod != null
+        && historyquoteDateClose.size() > shortMediumInputPeriod.taMediumPeriod) {
+      taTraceIndicatorData
+          .add(getTrace(taIndicator, taClass, shortMediumInputPeriod.taMediumPeriod, historyquoteDateClose));
+    }
+
     return taTraceIndicatorData;
   }
 
