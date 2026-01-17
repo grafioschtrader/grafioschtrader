@@ -35,6 +35,7 @@ export class IndicatorEditComponent extends DynamicFieldSimpleEditBase implement
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       6, this.helpLink.bind(this));
+    this.config = [...this.taEditParam.fieldConfig];
   }
 
   submit(values: { [name: string]: any }): void {
@@ -43,9 +44,12 @@ export class IndicatorEditComponent extends DynamicFieldSimpleEditBase implement
   }
 
   protected override initialize(): void {
-    this.config = [...this.taEditParam.fieldConfig];
-    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
-    setTimeout(() => this.form.transferBusinessObjectToForm(this.taEditParam.taDynamicDataModel));
 
+    this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+    // Use requestAnimationFrame to ensure Angular has completed rendering the form controls
+    // before transferring the data model values to the form
+    requestAnimationFrame(() => {
+      this.form.transferBusinessObjectToForm(this.taEditParam.taDynamicDataModel);
+    });
   }
 }

@@ -674,7 +674,12 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     if (menuItem.icon === BaseSettings.ICONNAME_SQUARE_EMTPY) {
       this.loadAndShowIndicatorDataWithMenu(taIndicators, iDef);
     } else {
+      const wasOscillator = iDef.isOscillator;
       this.deleteTaIndicator(iDef);
+      // Replot the chart when turning off an oscillator to remove the subplot layout
+      if (wasOscillator) {
+        this.prepareLoadedDataAndPlot(true);
+      }
     }
   }
 
@@ -699,9 +704,13 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     this.indicatorDefinitions.idSecuritycurrency = this.loadedData[0].idSecuritycurrency;
     this.historyquoteService.getTaWithShortMediumLongInputPeriod(taIndicators, this.indicatorDefinitions.idSecuritycurrency,
       dataModel).subscribe((taTraceIndicatorDataList: TaTraceIndicatorData[]) => {
-      // const iDef: IndicatorDefinition = this.indicatorDefinitions.defMap.get(TaIndicators[taIndicators]);
       iDef.taTraceIndicatorDataList = taTraceIndicatorDataList;
-      this.createTaTrace(iDef);
+      if (iDef.isOscillator) {
+        // Replot the entire chart to include subplot layout for oscillator indicators
+        this.prepareLoadedDataAndPlot(true);
+      } else {
+        this.createTaTrace(iDef);
+      }
     });
   }
 
@@ -741,17 +750,30 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     iDef.taTraceIndicatorDataList.forEach((taTraceIndicatorData: TaTraceIndicatorData) => {
       const foundStartIndex = AppHelper.binarySearch(taTraceIndicatorData.taIndicatorData,
         moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE), this.compareHistoricalFN);
-      Plotly.addTraces(this.chartElement.nativeElement, {
+
+      const trace: any = {
         type: 'scatter',
         mode: 'lines',
         name: `${taTraceIndicatorData.traceName} (${taTraceIndicatorData.period})`,
         x: taTraceIndicatorData.taIndicatorData.slice(foundStartIndex, taTraceIndicatorData.taIndicatorData.length)
           .map(taIndicatorData => taIndicatorData.date),
-        y: taTraceIndicatorData.taIndicatorData.slice(foundStartIndex, taTraceIndicatorData.taIndicatorData.length)
-          .map(taIndicatorData => (this.usePercentage)
-            ? taIndicatorData.value * this.loadedData[0].factor - 100 : taIndicatorData.value),
         line: {width: 1}
-      });
+      };
+
+      if (iDef.isOscillator) {
+        // Oscillator indicators (RSI) display on separate y-axis with 0-100 scale
+        // Use yaxis3 since yaxis2 is reserved for holdings
+        trace.yaxis = 'y3';
+        trace.y = taTraceIndicatorData.taIndicatorData.slice(foundStartIndex, taTraceIndicatorData.taIndicatorData.length)
+          .map(taIndicatorData => taIndicatorData.value);
+      } else {
+        // Overlay indicators (SMA/EMA) follow the price chart
+        trace.y = taTraceIndicatorData.taIndicatorData.slice(foundStartIndex, taTraceIndicatorData.taIndicatorData.length)
+          .map(taIndicatorData => (this.usePercentage)
+            ? taIndicatorData.value * this.loadedData[0].factor - 100 : taIndicatorData.value);
+      }
+
+      Plotly.addTraces(this.chartElement.nativeElement, trace);
       taTraceIndicatorData.traceIndex = this.chartElement.nativeElement.data.length - 1;
     });
   }
@@ -817,10 +839,12 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   private plot(element: any, traces: any, layout: any): void {
     const config = PlotlyLocales.setPlotyLocales(Plotly, this.gps);
     config.modeBarButtonsToRemove = ['lasso2d', 'select2d'];
+    config.modeBarButtonsToAdd = ['drawline', 'drawopenpath', 'drawclosedpath', 'drawcircle', 'drawrect', 'eraseshape'];
     config.displaylogo = false;
     Plotly.purge(this.chartElement.nativeElement);
     Plotly.newPlot(element, traces, layout, config).then(this.attachTooltip.bind(this));
     element.on('plotly_afterplot', this.attachTooltip.bind(this));
+    element.on('plotly_relayout', this.onShapesChanged.bind(this));
 
     PlotlyHelper.registerPlotlyClick(element, this.chartDataPointClicked.bind(this));
     if (!this.subscriptionViewSizeChanged) {
@@ -845,9 +869,45 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     PlotlyHelper.attachTooltip(Plotly, this.legendTooltipMap, this.chartElement);
   }
 
+  /**
+   * Handles shape changes (draw, edit, delete) and persists them to user settings.
+   * Shapes are stored per security/currency pair identified by idSecuritycurrency.
+   */
+  private onShapesChanged(eventData: any): void {
+    if (this.loadedData.length === 1) {
+      const shapes = this.chartElement.nativeElement.layout?.shapes;
+      if (shapes !== undefined) {
+        const storageKey = this.getShapesStorageKey();
+        if (shapes.length > 0) {
+          this.usersettingsService.saveObject(storageKey, shapes);
+        } else {
+          this.usersettingsService.removeKey(storageKey);
+        }
+      }
+    }
+  }
+
+  /**
+   * Retrieves saved shapes for the current security/currency pair from user settings.
+   */
+  private getSavedShapes(): any[] {
+    if (this.loadedData.length === 1) {
+      const storageKey = this.getShapesStorageKey();
+      return this.usersettingsService.retrieveObject(storageKey) || [];
+    }
+    return [];
+  }
+
+  private getShapesStorageKey(): string {
+    return AppSettings.CHART_SHAPES_STORE + this.loadedData[0].idSecuritycurrency;
+  }
+
   private getLayout(holdingLayout): any {
     const dateNative = moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
-    const layout = {
+    // Oscillators can only be displayed when showing a single security
+    const hasOscillator = this.loadedData.length === 1 && this.indicatorDefinitions.hasShownOscillator();
+
+    const layout: any = {
       title: 'LINE_CHART',
       showlegend: true,
       legend: PlotlyHelper.getLegendUnderChart(11),
@@ -865,8 +925,36 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
         range: [this.minValueOfY, this.maxValueOfY],
         ticksuffix: this.usePercentage ? '%' : '',
         type: 'linear'
-      }
+      },
+      newshape: {
+        line: {color: 'cyan', width: 2},
+        fillcolor: 'rgba(0, 255, 255, 0.1)'
+      },
+      shapes: this.getSavedShapes()
     };
+
+    // Configure subplot layout when an oscillator indicator is shown
+    if (hasOscillator) {
+      // Use grid layout with 2 rows
+      layout.grid = {rows: 2, columns: 1, pattern: 'independent', roworder: 'top to bottom'};
+      // Price chart takes 65% height (top)
+      layout.yaxis.domain = [0.35, 1];
+      // RSI/oscillator takes 30% height (bottom), with 5% gap
+      layout.yaxis3 = {
+        domain: [0, 0.3],
+        range: [0, 100],
+        fixedrange: true,
+        dtick: 10,
+        showgrid: true,
+        gridcolor: 'rgba(128, 128, 128, 0.3)'
+      };
+      // Adjust rangeslider to not overlap with RSI panel
+      layout.xaxis.rangeslider.thickness = 0.05;
+    } else {
+      // Reset to full height when no oscillator is shown
+      layout.yaxis.domain = [0, 1];
+    }
+
     if (holdingLayout) {
       Object.assign(layout, holdingLayout);
     }

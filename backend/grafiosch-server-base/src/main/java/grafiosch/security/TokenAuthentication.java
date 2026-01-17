@@ -138,28 +138,53 @@ public abstract class TokenAuthentication {
 
   /**
    * Extracts and validates JWT token from request header to generate authentication.
-   * 
+   *
    * <p>
    * This method processes incoming requests by extracting the JWT token from the standard authentication header and
    * validating it to create an Authentication object. It handles the stateless authentication flow for protected
    * endpoints.
    * </p>
-   * 
+   *
    * <h3>Error Handling:</h3>
    * <p>
    * Returns null for missing, empty, or invalid tokens, allowing security filters to handle unauthenticated requests
-   * appropriately.
+   * appropriately. Invalid or malformed tokens are treated the same as missing tokens to allow public endpoints
+   * (configured with permitAll) to function correctly regardless of token state.
    * </p>
-   * 
+   *
    * @param request HTTP request containing the authentication token header
-   * @return Authentication object if token is valid, null if token is missing or invalid
+   * @param ignoreInvalidToken if true, invalid tokens return null instead of throwing; if false, exceptions propagate
+   * @return Authentication object if token is valid, null if token is missing or (when ignoreInvalidToken) invalid
    */
-  public Authentication generateAuthenticationFromRequest(final HttpServletRequest request) {
+  public Authentication generateAuthenticationFromRequest(final HttpServletRequest request, boolean ignoreInvalidToken) {
     final String token = request.getHeader(AUTH_HEADER_NAME);
     if (token == null || token.isEmpty()) {
       return null;
     }
+    if (ignoreInvalidToken) {
+      try {
+        return jwtTokenHandler.parseUserFromToken(token).map(UserAuthentication::new).orElse(null);
+      } catch (Exception e) {
+        // Invalid token treated as no token - let Spring Security authorization rules decide
+        return null;
+      }
+    }
     return jwtTokenHandler.parseUserFromToken(token).map(UserAuthentication::new).orElse(null);
+  }
+
+  /**
+   * Extracts and validates JWT token from request header to generate authentication.
+   *
+   * <p>
+   * Convenience method that ignores invalid tokens by default, treating them as missing tokens. This allows public
+   * endpoints to function correctly regardless of token state.
+   * </p>
+   *
+   * @param request HTTP request containing the authentication token header
+   * @return Authentication object if token is valid, null if token is missing or invalid
+   */
+  public Authentication generateAuthenticationFromRequest(final HttpServletRequest request) {
+    return generateAuthenticationFromRequest(request, true);
   }
 
   /**

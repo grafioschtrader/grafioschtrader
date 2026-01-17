@@ -172,6 +172,7 @@ export class AppSettings {
 
   // Save others in local storage
   public static readonly TA_INDICATORS_STORE = 'ta_indicator_';
+  public static readonly CHART_SHAPES_STORE = 'chart_shapes_';
   public static readonly DIV_SECURITYACCOUNTS = 'div_securityaccounts';
   public static readonly DIV_CASHACCOUNTS = 'div_cashaccounts';
 
