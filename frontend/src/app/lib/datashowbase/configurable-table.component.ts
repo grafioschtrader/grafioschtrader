@@ -101,6 +101,8 @@ import {BaseLocale} from '../dynamic-form/models/base.locale';
         [stripedRows]="stripedRows"
         [showGridlines]="showGridlines"
         [(expandedRowKeys)]="expandedRowKeys"
+        (onRowExpand)="onRowExpand($event)"
+        (onRowCollapse)="onRowCollapse($event)"
         (onRowSelect)="rowSelect.emit($event)"
         (onRowUnselect)="rowUnselect.emit($event)"
         (onColResize)="colResize.emit($event)">
@@ -547,6 +549,16 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
    */
   expandedRowKeys: { [key: string]: boolean } = {};
 
+  /**
+   * Emits when a row is expanded. Event contains the row data.
+   */
+  @Output() rowExpand = new EventEmitter<{ data: T }>();
+
+  /**
+   * Emits when a row is collapsed. Event contains the row data.
+   */
+  @Output() rowCollapse = new EventEmitter<{ data: T }>();
+
   // ============================================================================
   // Context Menu Configuration
   // ============================================================================
@@ -688,6 +700,26 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
     if (this.customSortFn) {
       this.customSortFn(event);
     }
+  }
+
+  /**
+   * Handles row expand events from PrimeNG table.
+   * Emits the event to parent component for lazy loading support.
+   *
+   * @param event - PrimeNG row expand event containing row data
+   */
+  onRowExpand(event: any): void {
+    this.rowExpand.emit(event);
+  }
+
+  /**
+   * Handles row collapse events from PrimeNG table.
+   * Emits the event to parent component.
+   *
+   * @param event - PrimeNG row collapse event containing row data
+   */
+  onRowCollapse(event: any): void {
+    this.rowCollapse.emit(event);
   }
 
   /**

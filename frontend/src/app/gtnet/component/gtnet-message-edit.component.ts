@@ -89,11 +89,15 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
     } else {
       // Filter message codes: ALL messages for broadcast mode, SEL messages for single target mode
       const filterSuffixes = this.msgCallParam.isAllMessage ? ['_ALL_C']: ['_SEL_RR_C', 'SEL_C', '_ALL_C'];
+      // Exclude discontinued option if one is already open
+      const excludeCodes = this.msgCallParam.idOpenDiscontinuedMessage != null
+        ? ['GT_NET_OPERATION_DISCONTINUED_ALL_C'] : [];
       this.configObject[this.MESSAGE_CODE].valueKeyHtmlOptions =
         SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, GTNetMessageCodeType,
           Object.keys(GTNetMessageCodeType).filter(
               key => !isNaN(Number(GTNetMessageCodeType[key])) &&
-                filterSuffixes.some(suffix => key.endsWith(suffix))
+                filterSuffixes.some(suffix => key.endsWith(suffix)) &&
+                !excludeCodes.includes(key)
             ).map(k => GTNetMessageCodeType[k]),false);
     }
   }

@@ -1,0 +1,20 @@
+-- GTNet message deletion retention configuration
+-- LP = LastPrice message codes (60, 61) retention in days
+-- HP = HistoryPrice message codes (80, 81) retention in days
+-- Valid range for both: 1-10 days
+DELETE FROM globalparameters WHERE property_name = 'gt.gtnet.del.message.recv';
+INSERT INTO globalparameters(property_name, property_string, changed_by_system, input_rule)
+VALUES ('gt.gtnet.del.message.recv', 'LP=1,HP=5', 0, 'pattern:^LP=([1-9]|10),HP=([1-9]|10)$');
+
+-- GTNet log aggregation days configuration
+-- D = Days before aggregating INDIVIDUAL to DAILY
+-- W = Days before aggregating DAILY to WEEKLY
+-- M = Days before aggregating WEEKLY to MONTHLY
+-- Y = Days before aggregating MONTHLY to YEARLY
+DELETE FROM globalparameters WHERE property_name = 'gt.gtnet.log.aggregate.days';
+INSERT INTO globalparameters(property_name, property_string, changed_by_system, input_rule)
+VALUES ('gt.gtnet.log.aggregate.days', 'D=1,W=7,M=30,Y=365', 0, 'pattern:^D=\\d+,W=\\d+,M=\\d+,Y=\\d+$');
+
+
+UPDATE globalparameters SET input_rule = 'pattern:^[A-Z]{3}=[0-8](,[A-Z]{3}=[0-8])*$'
+WHERE property_name = 'gt.currency.precision';

@@ -22,6 +22,7 @@ import grafiosch.entities.User;
 import grafiosch.repository.GlobalparametersJpaRepository;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.GlobalParamKeyDefault;
+import grafioschtrader.common.PropertyStringParser;
 
 /**
  * Service for managing and retrieving global configuration parameters used throughout the GrafioschTrader application.
@@ -265,6 +266,47 @@ public class GlobalparametersService {
     gp.setPropertyDateTime(java.time.LocalDateTime.now());
     gp.setChangedBySystem(true);
     return globalparametersJpaRepository.save(gp);
+  }
+
+  /**
+   * Gets the GTNet message deletion configuration as a PropertyStringParser.
+   *
+   * <p>The configuration format is "LP=days,HP=days" where:
+   * <ul>
+   *   <li>LP: Days after which LastPrice messages (codes 60, 61) are deleted</li>
+   *   <li>HP: Days after which HistoryPrice messages (codes 80, 81) are deleted</li>
+   * </ul>
+   * Valid range for both values is 1-10 days.</p>
+   *
+   * @return PropertyStringParser with LP and HP values
+   * @see GlobalParamKeyDefault#GLOB_KEY_GTNET_DEL_MESSAGE_RECV
+   */
+  public PropertyStringParser getGTNetMessageDeletionConfig() {
+    return PropertyStringParser.parse(
+        globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_GTNET_DEL_MESSAGE_RECV)
+            .map(Globalparameters::getPropertyString)
+            .orElse(GlobalParamKeyDefault.DEFAULT_GTNET_DEL_MESSAGE_RECV));
+  }
+
+  /**
+   * Gets the GTNet log aggregation configuration as a PropertyStringParser.
+   *
+   * <p>The configuration format is "D=days,W=days,M=days,Y=days" where:
+   * <ul>
+   *   <li>D: Days before aggregating INDIVIDUAL to DAILY</li>
+   *   <li>W: Days before aggregating DAILY to WEEKLY</li>
+   *   <li>M: Days before aggregating WEEKLY to MONTHLY</li>
+   *   <li>Y: Days before aggregating MONTHLY to YEARLY</li>
+   * </ul></p>
+   *
+   * @return PropertyStringParser with D, W, M, Y values
+   * @see GlobalParamKeyDefault#GLOB_KEY_GTNET_LOG_AGGREGATE_DAYS
+   */
+  public PropertyStringParser getGTNetLogAggregationConfig() {
+    return PropertyStringParser.parse(
+        globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_GTNET_LOG_AGGREGATE_DAYS)
+            .map(Globalparameters::getPropertyString)
+            .orElse(GlobalParamKeyDefault.DEFAULT_GTNET_LOG_AGGREGATE_DAYS));
   }
 
   /**
