@@ -31,7 +31,11 @@ import grafioschtrader.entities.GTNetMessage;
  * @see GTNetMessage for message storage and threading
  */
 public enum GTNetMessageCodeType {
-  //
+  /**
+   * Lightweight health check used on server startup to verify peer reachability. When a peer receives a ping and
+   * responds, both sides automatically update each other's online status - eliminating the need for an explicit
+   * online announcement message.
+   */
   GT_NET_PING((byte) 0),
 
   /** Remote server wants to exchange data with this server, permission must be granted to do so */
@@ -57,8 +61,6 @@ public enum GTNetMessageCodeType {
    * shut down. Can also be triggered via the user interface.
    **/
   GT_NET_OFFLINE_ALL_C((byte) 20),
-  /** The server has been transferred online. The server may have been restarted. Can also be triggered via the user interface.*/
-  GT_NET_ONLINE_ALL_C((byte) 21),
   /** The system is at full capacity and should no longer be contacted. Only your own status changes should be sent to this server. 
    This setting can be changed via the user interface.
   */

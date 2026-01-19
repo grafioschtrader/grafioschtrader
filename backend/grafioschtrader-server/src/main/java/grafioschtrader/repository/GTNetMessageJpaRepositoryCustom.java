@@ -24,7 +24,7 @@ public interface GTNetMessageJpaRepositoryCustom extends BaseRepositoryCustom<GT
   /**
    * Computes the canDelete flag for each message based on deletion rules.
    * Rules:
-   * - GT_NET_OFFLINE_ALL_C (20) and GT_NET_ONLINE_ALL_C (21): always deletable
+   * - GT_NET_OFFLINE_ALL_C (20): always deletable
    * - Messages with deliveryStatus=FAILED: always deletable
    * - Messages awaiting reply (_RR_ codes with no response in pending maps): NOT deletable
    * - GT_NET_MAINTENANCE_ALL_C (24): deletable if fromDateTime is in the past
