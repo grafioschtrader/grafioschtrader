@@ -65,9 +65,8 @@ public class GTNetMessageJpaRepositoryImpl extends BaseRepositoryImpl<GTNetMessa
       return true;
     }
 
-    // GT_NET_OFFLINE_ALL_C (20) and GT_NET_ONLINE_ALL_C (21): always deletable
-    if (messageCode == GTNetMessageCodeType.GT_NET_OFFLINE_ALL_C
-        || messageCode == GTNetMessageCodeType.GT_NET_ONLINE_ALL_C) {
+    // GT_NET_OFFLINE_ALL_C (20): always deletable
+    if (messageCode == GTNetMessageCodeType.GT_NET_OFFLINE_ALL_C) {
       return true;
     }
 

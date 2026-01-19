@@ -436,7 +436,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     if (msgRequest.messageCode.name().contains(GTNetModelHelper.MESSAGE_TO_ALL)) {
       // All broadcast messages go to remote servers with configured data exchange (excludes own entry)
       return switch (msgRequest.messageCode) {
-      case GT_NET_OFFLINE_ALL_C, GT_NET_ONLINE_ALL_C, GT_NET_BUSY_ALL_C, GT_NET_RELEASED_BUSY_ALL_C,
+      case GT_NET_OFFLINE_ALL_C, GT_NET_BUSY_ALL_C, GT_NET_RELEASED_BUSY_ALL_C,
           GT_NET_MAINTENANCE_ALL_C, GT_NET_OPERATION_DISCONTINUED_ALL_C,
           GT_NET_MAINTENANCE_CANCEL_ALL_C, GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C -> getRemotePeersWithExchange();
       default -> List.of();

@@ -21,14 +21,16 @@ import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.types.TaskTypeExtended;
 
 /**
- * Lifecycle listener for GTNet that publishes online/offline announcements.
+ * Lifecycle listener for GTNet that handles startup and shutdown tasks.
  *
- * When the server starts up, broadcasts GT_NET_ONLINE_ALL_C to all connected peers. When the server shuts down,
- * broadcasts GT_NET_OFFLINE_ALL_C to inform peers the server is going offline.
+ * On startup, schedules a background task to check peer status via ping. When peers respond to pings, both sides
+ * automatically update each other's online status - no explicit online announcement is needed.
+ *
+ * On shutdown, broadcasts GT_NET_OFFLINE_ALL_C to inform peers the server is going offline (immediate notification
+ * is needed since failed pings would take too long to detect).
  *
  * This listener only executes if GTNet is enabled via the {@code gt.use.gtnet} configuration property.
  *
- * @see GTNetMessageCodeType#GT_NET_ONLINE_ALL_C
  * @see GTNetMessageCodeType#GT_NET_OFFLINE_ALL_C
  */
 @Component
