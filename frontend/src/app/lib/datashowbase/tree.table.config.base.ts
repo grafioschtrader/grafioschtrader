@@ -1,7 +1,7 @@
 import {TranslateService} from '@ngx-translate/core';
+import {FilterService, TreeNode} from 'primeng/api';
 import {GlobalparameterService} from '../services/globalparameter.service';
 import {TableTreetableTotalBase} from './table.treetable.total.base';
-import {TreeNode} from 'primeng/api';
 import {TranslateHelper} from '../helper/translate.helper';
 import {BaseSettings} from '../base.settings';
 
@@ -21,9 +21,20 @@ export abstract class TreeTableConfigBase extends TableTreetableTotalBase {
    *
    * @param translateService - Angular translation service for internationalization
    * @param gps - Global parameter service for locale and formatting settings
+   * @param filterService - Optional PrimeNG service for registering custom filters
    */
-  protected constructor(translateService: TranslateService, gps: GlobalparameterService) {
-    super(translateService, gps);
+  protected constructor(translateService: TranslateService, gps: GlobalparameterService, filterService?: FilterService) {
+    super(translateService, gps, null, filterService);
+  }
+
+  /**
+   * Initializes tree table configuration including filtering and translations.
+   * Must be called after column definitions are complete to set up proper filtering
+   * and header translation functionality.
+   */
+  prepareTreeTableAndTranslate(): void {
+    this.initializeFilters();
+    this.translateHeadersAndColumns();
   }
 
   /**

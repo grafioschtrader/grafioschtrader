@@ -1,0 +1,13 @@
+As a first step, I would like to extend SecurityEditComponent with a button that opens another pop-up window when I enter, for example, the ISIN, currency, and possibly also the ticker symbol, from which I could select the appropriate security to fill in my entry. The content of this pop-up would contain a table of the securities received based on consultation with the remote system. From this table, I would select one of the securities offered and transfer this content to my input form.
+
+CH1111392994	
+
+
+Answer:
+1. Yes for portfolios, security accounts, and cash accounts. However, not for asset classes and securities, as these are implemented system-wide and are independent of the tenant. User-defined fields are also irrelevant for the simulated environment. A single watch list with the traded securities should be created during the simulation.
+2. Exactly, a start and end time are defined, and both are in the past.
+3. For the simulation, each day from the start to the end time is simulated.
+4. When the simulation is completed by the background job, the tenant/user who triggered it receives a message via the internal mail system (MailEntity). They can switch to this new tenant within their tenant. Since the tenant generally has several simulations, they can also switch to these. Ultimately, a simulation is similar to a normal tenant. The simulations are created by the TaskDataChange system.
+5. Basically, the user can watch. There is no difference between a real and a simulated portfolio.
+Additional requirements: The user can also start a simulation on their portfolio. The rules are then applied to their portfolio, but again in a simulation environment. For example, what would have happened if I had applied this algorithm to my portfolio in the past, for example from January 1, 2015, to today, January 18, 2026? In this case, the transactions from the initial portfolio would of course also have to be transferred to the simulation portfolio. The user can then compare their portfolio and the simulated portfolio by opening both tenants.
+

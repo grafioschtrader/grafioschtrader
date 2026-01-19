@@ -1,4 +1,4 @@
-import {Component, Injector} from '@angular/core';
+import {Component, Injector, QueryList, ViewChildren} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {CrudMenuOptions, TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
@@ -61,7 +61,8 @@ import {ProcessedActionData} from '../../lib/types/processed.action.data';
       [canExpandFn]="canExpand.bind(this)"
       [ownerHighlightFn]="isMyEntry.bind(this)"
       [valueGetterFn]="getValueByPath.bind(this)"
-      (componentClick)="onComponentClick($event)">
+      (componentClick)="onComponentClick($event)"
+      (rowExpand)="onRowExpand($event)">
 
       <h4 caption>{{ 'GT_NET_NET_AND_MESSAGE' | translate }}
         @if (!gtNetMyEntryId) {
@@ -84,12 +85,18 @@ import {ProcessedActionData} from '../../lib/types/processed.action.data';
           (dataChanged)="onConfigEntityDataChanged($event)">
         </gtnet-config-entity-table>
       }
-      <gtnet-message-treetable [gtNetMessages]="gtNetMessageMap[row.idGtNet]"
-                               [incomingPendingIds]="getIncomingPendingIds(row.idGtNet)"
-                               [outgoingPendingIds]="getOutgoingPendingIds(row.idGtNet)"
-                               [formDefinitions]="formDefinitions"
-                               (dataChanged)="onTreeTableDataChanged($event)">
-      </gtnet-message-treetable>
+      @if (isLoadingMessages(row.idGtNet)) {
+        <div style="padding: 1rem; text-align: center;">
+          <i class="fa fa-spinner fa-spin"></i> {{ 'LOADING' | translate }}...
+        </div>
+      } @else if (gtNetMessageMap[row.idGtNet]?.length) {
+        <gtnet-message-treetable [gtNetMessages]="gtNetMessageMap[row.idGtNet]"
+                                 [incomingPendingIds]="getIncomingPendingIds(row.idGtNet)"
+                                 [outgoingPendingIds]="getOutgoingPendingIds(row.idGtNet)"
+                                 [formDefinitions]="formDefinitions"
+                                 (dataChanged)="onTreeTableDataChanged($event)">
+        </gtnet-message-treetable>
+      }
     </ng-template>
 
     @if (visibleDialog) {
@@ -108,15 +115,25 @@ import {ProcessedActionData} from '../../lib/types/processed.action.data';
   providers: [DialogService]
 })
 export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
+  @ViewChildren(GTNetMessageTreeTableComponent) messageTreeTables: QueryList<GTNetMessageTreeTableComponent>;
+
   minDate: Date = new Date('2000-01-01');
   maxDate: Date = new Date('2099-12-31');
   private readonly domainRemoteName = 'domainRemoteName';
   callParam: GTNetCallParam;
   gtNetList: GTNet[];
   gtNetMyEntryId: number;
-  gtNetMessageMap: { [key: number]: GTNetMessage[] };
+  /** Message count per idGtNet - used to determine if expander should show */
+  gtNetMessageCountMap: { [key: number]: number } = {};
+  /** Cache for loaded messages (lazy loaded when row is expanded) */
+  gtNetMessageMap: { [key: number]: GTNetMessage[] } = {};
+  /** Set of idGtNet values for which messages have been loaded */
+  loadedMessageIds = new Set<number>();
+  /** Set of idGtNet values currently being loaded */
+  loadingMessageIds = new Set<number>();
   outgoingPendingReplies: { [key: number]: number[] };
   incomingPendingReplies: { [key: number]: number[] };
+  idOpenDiscontinuedMessage: number;
   formDefinitions: { [type: string]: ClassDescriptorInputAndShow };
   visibleDialogMsg = false;
   msgCallParam: MsgCallParam;
@@ -182,8 +199,13 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       this.gtNetList = response.gtNetList;
       this.mapGTNetEntityToGTNet();
       this.gtNetMyEntryId = response.gtNetMyEntryId;
+      this.idOpenDiscontinuedMessage = response.idOpenDiscontinuedMessage;
       this.createTranslatedValueStoreAndFilterField(this.gtNetList);
-      this.gtNetMessageMap = response.gtNetMessageMap;
+      this.gtNetMessageCountMap = response.gtNetMessageCountMap || {};
+      // Clear message cache on data refresh
+      this.gtNetMessageMap = {};
+      this.loadedMessageIds.clear();
+      this.loadingMessageIds.clear();
       this.outgoingPendingReplies = response.outgoingPendingReplies;
       this.incomingPendingReplies = response.incomingPendingReplies;
       this.formDefinitions ??= <{ [type: string]: ClassDescriptorInputAndShow }>data[1];
@@ -257,7 +279,8 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   private sendMsg(): void {
     const isAllMessage = !this.selectedEntity;
     const idGTNet = this.selectedEntity?.idGtNet ?? null;
-    this.msgCallParam = new MsgCallParam(this.formDefinitions, idGTNet, null, null, isAllMessage);
+    this.msgCallParam = new MsgCallParam(this.formDefinitions, idGTNet, null, null, isAllMessage, null,
+      this.idOpenDiscontinuedMessage);
     this.visibleDialogMsg = true;
   }
 
@@ -273,7 +296,50 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   }
 
   canExpand(row: GTNet): boolean {
-    return !!(this.gtNetMessageMap && this.gtNetMessageMap[row.idGtNet]?.length);
+    const hasMessages = (this.gtNetMessageCountMap[row.idGtNet] ?? 0) > 0;
+    return hasMessages || this.hasConfigEntity(row);
+  }
+
+  /**
+   * Handles row expansion event - lazy loads messages if not already loaded.
+   */
+  onRowExpand(event: { data: GTNet }): void {
+    const idGtNet = event.data.idGtNet;
+    const hasMessages = (this.gtNetMessageCountMap[idGtNet] ?? 0) > 0;
+
+    // Only load if there are messages and not already loaded or loading
+    if (hasMessages && !this.loadedMessageIds.has(idGtNet) && !this.loadingMessageIds.has(idGtNet)) {
+      this.loadingMessageIds.add(idGtNet);
+      this.gtNetService.getMessagesByIdGtNet(idGtNet).subscribe({
+        next: (messages) => {
+          this.gtNetMessageMap[idGtNet] = messages;
+          this.loadedMessageIds.add(idGtNet);
+          this.loadingMessageIds.delete(idGtNet);
+          // Clear selection in tree table after messages are loaded
+          this.clearTreeTableSelection();
+        },
+        error: () => {
+          this.loadingMessageIds.delete(idGtNet);
+        }
+      });
+    }
+  }
+
+  /**
+   * Clears the selection in all message tree table components.
+   */
+  private clearTreeTableSelection(): void {
+    // Use setTimeout to ensure the tree table component is rendered after data update
+    setTimeout(() => {
+      this.messageTreeTables?.forEach(treeTable => treeTable.clearSelection());
+    });
+  }
+
+  /**
+   * Checks if messages are currently being loaded for a GTNet.
+   */
+  isLoadingMessages(idGtNet: number): boolean {
+    return this.loadingMessageIds.has(idGtNet);
   }
 
   isMyEntry(row: GTNet, field: ColumnConfig): boolean {
@@ -304,11 +370,40 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     return new Set(this.outgoingPendingReplies?.[idGtNet] ?? []);
   }
 
-  /** Handle data changes from the tree table (e.g., reply sent) */
+  /** Handle data changes from the tree table (e.g., reply sent, batch deletion) */
   onTreeTableDataChanged(processedActionData: ProcessedActionData): void {
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
-      this.readData();
+      // Check if this is a deletion with idGtNet - reload only messages for that GTNet
+      if (processedActionData.action === ProcessedAction.DELETED && typeof processedActionData.data === 'number') {
+        const idGtNet = processedActionData.data as number;
+        this.reloadMessagesForGtNet(idGtNet);
+      } else {
+        this.readData();
+      }
     }
+  }
+
+  /**
+   * Reloads messages for a specific GTNet without reloading the entire table.
+   * Used after batch deletion to refresh only the affected messages.
+   */
+  private reloadMessagesForGtNet(idGtNet: number): void {
+    // Mark as not loaded to allow reload
+    this.loadedMessageIds.delete(idGtNet);
+    this.loadingMessageIds.add(idGtNet);
+
+    this.gtNetService.getMessagesByIdGtNet(idGtNet).subscribe({
+      next: (messages) => {
+        this.gtNetMessageMap[idGtNet] = messages;
+        this.loadedMessageIds.add(idGtNet);
+        this.loadingMessageIds.delete(idGtNet);
+        // Clear selection in tree table after messages are loaded
+        this.clearTreeTableSelection();
+      },
+      error: () => {
+        this.loadingMessageIds.delete(idGtNet);
+      }
+    });
   }
 
   /** Handle data changes from the config entity table */

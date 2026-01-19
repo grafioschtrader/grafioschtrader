@@ -2,10 +2,13 @@ package grafioschtrader.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import grafiosch.rest.UpdateCreateJpaRepository;
 import grafiosch.rest.UpdateCreateResource;
 import grafioschtrader.entities.GTNet;
+import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.gtnet.model.GTNetWithMessages;
 import grafioschtrader.gtnet.model.MsgRequest;
 import grafioschtrader.repository.GTNetJpaRepository;
@@ -41,8 +45,22 @@ public class GTNetResource extends UpdateCreateResource<GTNet> {
   public ResponseEntity<GTNetWithMessages> submitMsg(@Valid @RequestBody final MsgRequest msgRequest) {
     return new ResponseEntity<>(gtNetJpaRepository.submitMsg(msgRequest), HttpStatus.OK);
   }
- 
-  
+
+  @Operation(summary = "Returns messages for a specific GTNet domain (lazy loading)", description = "Used when expanding a row in the GTNet setup table", tags = {
+      RequestGTMappings.GTNET })
+  @GetMapping(value = "/messages/{idGtNet}", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<GTNetMessage>> getMessagesByIdGtNet(@PathVariable Integer idGtNet) {
+    return new ResponseEntity<>(gtNetJpaRepository.getMessagesByIdGtNet(idGtNet), HttpStatus.OK);
+  }
+
+  @Operation(summary = "Deletes a batch of GTNet messages", description = "Validates that all messages are deletable and cascade-deletes responses", tags = {
+      RequestGTMappings.GTNET })
+  @PostMapping(value = "/deletemessagebatch", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<Void> deleteMessageBatch(@RequestBody List<Integer> idGtNetMessageList) {
+    gtNetJpaRepository.deleteMessageBatch(idGtNetMessageList);
+    return ResponseEntity.ok().build();
+  }
+
   @Override
   protected UpdateCreateJpaRepository<GTNet> getUpdateCreateJpaRepository() {
     return gtNetJpaRepository;

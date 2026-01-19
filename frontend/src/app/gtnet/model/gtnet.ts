@@ -1,5 +1,4 @@
 import {BaseID} from '../../lib/entities/base.id';
-import {GTNetMessage} from './gtnet.message';
 import {MessageComType} from '../../lib/mail/model/mail.send.recv';
 import {BaseParam} from '../../lib/entities/base.param';
 
@@ -106,6 +105,11 @@ export class GTNet implements BaseID {
 export class MsgRequest {
   public gtNetMessageParamMap: Map<string, BaseParam> | { [key: string]: BaseParam };
   public waitDaysApply: number = null;
+  /**
+   * ID of the original message being cancelled. Only used for cancellation messages
+   * (GT_NET_MAINTENANCE_CANCEL_ALL_C, GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C).
+   */
+  public idOriginalMessage: number = null;
 
   constructor(public idGTNetTargetDomain: number, public replyTo: number, public messageCode: MessageComType | string,
               public message: string) {
@@ -114,13 +118,18 @@ export class MsgRequest {
 
 export interface GTNetWithMessages {
   gtNetList: GTNet[];
-  /** Message history grouped by idGtNet */
-  gtNetMessageMap: { [key: number]: GTNetMessage[] };
+  /** Message count per idGtNet - used to determine if expander should show */
+  gtNetMessageCountMap: { [key: number]: number };
   /** Outgoing pending replies grouped by idGtNet - used for "Answer expected" column */
   outgoingPendingReplies: { [key: number]: number[] };
   /** Incoming pending replies grouped by idGtNet - used for "To be answered" column */
   incomingPendingReplies: { [key: number]: number[] };
   gtNetMyEntryId: number;
+  /**
+   * ID of an open GT_NET_OPERATION_DISCONTINUED_ALL_C message if one exists.
+   * Only one such message can be open at a time per instance.
+   */
+  idOpenDiscontinuedMessage: number;
 }
 
 export enum GTNetServerStateTypes {

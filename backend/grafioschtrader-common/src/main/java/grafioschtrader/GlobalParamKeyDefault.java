@@ -117,6 +117,14 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
   public static final String GLOB_KEY_GTNET_EXCHANGE_SYNC_TIMESTAMP = GlobalConstants.GT_PREFIX + "gtnet.exchange.sync.timestamp";
   /** Default value for GTNet exchange sync timestamp - epoch start means never synced. */
   public static final Date DEFAULT_GTNET_EXCHANGE_SYNC_TIMESTAMP = new Date(0L);
+  /** GTNet message deletion retention (PropertyString: LP=days,HP=days, range 1-10). */
+  public static final String GLOB_KEY_GTNET_DEL_MESSAGE_RECV = GlobalConstants.GT_PREFIX + "gtnet.del.message.recv";
+  /** Default retention: LP (LastPrice codes 60,61) = 1 day, HP (HistoryPrice codes 80,81) = 5 days. */
+  public static final String DEFAULT_GTNET_DEL_MESSAGE_RECV = "LP=1,HP=5";
+  /** GTNet log aggregation days (PropertyString: D=days,W=days,M=days,Y=days). */
+  public static final String GLOB_KEY_GTNET_LOG_AGGREGATE_DAYS = GlobalConstants.GT_PREFIX + "gtnet.log.aggregate.days";
+  /** Default aggregation: D=1 (daily after 1 day), W=7 (weekly after 7 days), M=30 (monthly after 30 days), Y=365 (yearly after 365 days). */
+  public static final String DEFAULT_GTNET_LOG_AGGREGATE_DAYS = "D=1,W=7,M=30,Y=365";
   /** Tenant data entity limits */
   private static final String MAX = "max.";
   public static final String GLOB_KEY_MAX_CASH_ACCOUNT = GlobalConstants.GT_PREFIX + MAX + "cash.account";

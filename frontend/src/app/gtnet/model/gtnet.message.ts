@@ -13,6 +13,7 @@ export class GTNetMessage {
   hasBeenRead: boolean = false;
   deliveryStatus: DeliveryStatus | string = DeliveryStatus.PENDING;
   waitDaysApply: number = 0;
+  canDelete: boolean = false;
 }
 
 export enum DeliveryStatus {
@@ -24,7 +25,8 @@ export enum DeliveryStatus {
 export class MsgCallParam {
   constructor(public formDefinitions: { [type: string]: ClassDescriptorInputAndShow }, public idGTNet: number,
               public replyTo: number, public gtNetMessage: GTNetMessage, public isAllMessage: boolean = false,
-              public validResponseCodes: GTNetMessageCodeType[] = null) {
+              public validResponseCodes: GTNetMessageCodeType[] = null,
+              public idOpenDiscontinuedMessage: number = null) {
   }
 }
 

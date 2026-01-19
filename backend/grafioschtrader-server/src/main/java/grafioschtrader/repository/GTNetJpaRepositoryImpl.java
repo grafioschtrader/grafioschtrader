@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.common.DataHelper;
 import grafiosch.entities.TaskDataChange;
+import grafiosch.exceptions.DataViolationException;
 import grafiosch.repository.BaseRepositoryImpl;
 import grafiosch.repository.RepositoryHelper;
 import grafiosch.repository.TaskDataChangeJpaRepository;
@@ -138,20 +139,42 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   @Override
   @Transactional
   public GTNetWithMessages getAllGTNetsWithMessages() {
-    List<GTNetMessage> gtNetMessages = gtNetMessageJpaRepository.findAllByOrderByIdGtNetAscTimestampDesc();
-
     // Fetch all unanswered requests and group by idGtNet
     Map<Integer, List<Integer>> outgoingPendingReplies = groupPendingByGtNet(
         gtNetMessageJpaRepository.findUnansweredRequests(SendReceivedType.SEND.getValue(), RR_MESSAGE_CODES));
     Map<Integer, List<Integer>> incomingPendingReplies = groupPendingByGtNet(
         gtNetMessageJpaRepository.findUnansweredRequests(SendReceivedType.RECEIVED.getValue(), RR_MESSAGE_CODES));
 
-    // Group messages by idGtNet
-    Map<Integer, List<GTNetMessage>> gtNetMessageMap = gtNetMessages.stream()
-        .collect(Collectors.groupingBy(GTNetMessage::getIdGtNet));
+    // Get message counts per idGtNet (instead of full messages for lazy loading)
+    Map<Integer, Integer> gtNetMessageCountMap = gtNetMessageJpaRepository.countMessagesByIdGtNet();
 
-    return new GTNetWithMessages(gtNetJpaRepository.findAll(), gtNetMessageMap,
-        outgoingPendingReplies, incomingPendingReplies, globalparametersService.getGTNetMyEntryID());
+    // Check for open discontinued message
+    Integer idOpenDiscontinuedMessage = gtNetMessageJpaRepository.findOpenDiscontinuedMessage(
+        SendReceivedType.SEND.getValue(),
+        GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_ALL_C.getValue(),
+        GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C.getValue());
+
+    return new GTNetWithMessages(gtNetJpaRepository.findAll(), gtNetMessageCountMap,
+        outgoingPendingReplies, incomingPendingReplies, globalparametersService.getGTNetMyEntryID(),
+        idOpenDiscontinuedMessage);
+  }
+
+  @Override
+  public List<GTNetMessage> getMessagesByIdGtNet(Integer idGtNet) {
+    List<GTNetMessage> messages = gtNetMessageJpaRepository.findByIdGtNetOrderByTimestampDesc(idGtNet);
+
+    // Fetch pending IDs for canDelete computation
+    Set<Integer> outgoingPendingIds = groupPendingByGtNet(
+        gtNetMessageJpaRepository.findUnansweredRequests(SendReceivedType.SEND.getValue(), RR_MESSAGE_CODES))
+        .getOrDefault(idGtNet, List.of()).stream().collect(Collectors.toSet());
+    Set<Integer> incomingPendingIds = groupPendingByGtNet(
+        gtNetMessageJpaRepository.findUnansweredRequests(SendReceivedType.RECEIVED.getValue(), RR_MESSAGE_CODES))
+        .getOrDefault(idGtNet, List.of()).stream().collect(Collectors.toSet());
+
+    // Compute canDelete flags
+    gtNetMessageJpaRepository.computeCanDeleteFlags(messages, outgoingPendingIds, incomingPendingIds);
+
+    return messages;
   }
 
   /**
@@ -303,6 +326,17 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
   @Override
   public GTNetWithMessages submitMsg(MsgRequest msgRequest) {
+    // Validate that only one GT_NET_OPERATION_DISCONTINUED_ALL_C can be open at a time
+    if (msgRequest.messageCode == GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_ALL_C) {
+      Integer existingOpenDiscontinued = gtNetMessageJpaRepository.findOpenDiscontinuedMessage(
+          SendReceivedType.SEND.getValue(),
+          GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_ALL_C.getValue(),
+          GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C.getValue());
+      if (existingOpenDiscontinued != null) {
+        throw new DataViolationException("messageCode", "gt.gtnet.discontinued.already.open", null);
+      }
+    }
+
     // For response messages, gtNetMsgRequest may be null (responses don't have registered model classes)
     GTNetMsgRequest gtNetMsgRequest = GTNetModelHelper.getMsgClassByMessageCode(msgRequest.messageCode);
 
@@ -1327,6 +1361,23 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
         () -> new IllegalStateException("My GTNet entry not found with ID: " + myEntryId));
 
     sendSettingsUpdatedNotification(myGTNet);
+  }
+
+  @Override
+  @Transactional
+  public void deleteMessageBatch(List<Integer> idGtNetMessageList) {
+    // Fetch all pending IDs for validation
+    Set<Integer> outgoingPendingIds = gtNetMessageJpaRepository.findUnansweredRequests(
+        SendReceivedType.SEND.getValue(), RR_MESSAGE_CODES).stream()
+        .map(row -> ((Number) row[1]).intValue())
+        .collect(Collectors.toSet());
+    Set<Integer> incomingPendingIds = gtNetMessageJpaRepository.findUnansweredRequests(
+        SendReceivedType.RECEIVED.getValue(), RR_MESSAGE_CODES).stream()
+        .map(row -> ((Number) row[1]).intValue())
+        .collect(Collectors.toSet());
+
+    // Delegate to GTNetMessageJpaRepository for actual deletion with validation
+    gtNetMessageJpaRepository.deleteBatch(idGtNetMessageList, outgoingPendingIds, incomingPendingIds);
   }
 
 }

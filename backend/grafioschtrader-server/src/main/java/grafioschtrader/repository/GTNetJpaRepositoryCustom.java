@@ -1,7 +1,10 @@
 package grafioschtrader.repository;
 
+import java.util.List;
+
 import grafiosch.repository.BaseRepositoryCustom;
 import grafioschtrader.entities.GTNet;
+import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.gtnet.model.GTNetWithMessages;
 import grafioschtrader.gtnet.model.MsgRequest;
@@ -32,18 +35,29 @@ public interface GTNetJpaRepositoryCustom extends BaseRepositoryCustom<GTNet> {
   GTNet saveOnlyAttributes(GTNet gtNet) throws Exception;
 
   /**
-   * Retrieves all GTNet domains with their associated message history.
+   * Retrieves all GTNet domains with message counts for lazy loading.
    *
    * Combines multiple queries into a single response for efficient UI rendering:
    * <ul>
    *   <li>All GTNet entries (domains)</li>
-   *   <li>All messages grouped by domain ID</li>
+   *   <li>Message counts per domain (for determining if expander should show)</li>
    *   <li>The local instance's GTNet ID (for highlighting)</li>
    * </ul>
+   *
+   * Messages are loaded lazily via {@link #getMessagesByIdGtNet(Integer)} when expanded.
    *
    * @return combined DTO for the GTNet setup screen
    */
   GTNetWithMessages getAllGTNetsWithMessages();
+
+  /**
+   * Retrieves all messages for a specific GTNet domain.
+   * Used for lazy loading when a row is expanded in the UI.
+   *
+   * @param idGtNet the GTNet domain ID
+   * @return list of messages ordered by timestamp descending (newest first)
+   */
+  List<GTNetMessage> getMessagesByIdGtNet(Integer idGtNet);
 
   /**
    * Submits a message from the UI to one or more remote domains.
@@ -103,4 +117,12 @@ public interface GTNetJpaRepositoryCustom extends BaseRepositoryCustom<GTNet> {
    * This method is called by the background task GTNetSettingsBroadcastTask to avoid blocking the UI.
    */
   void broadcastSettingsUpdate();
+
+  /**
+   * Deletes a batch of GTNet messages along with their cascade-deleted responses.
+   * Validates that all specified messages are deletable before performing deletion.
+   *
+   * @param idGtNetMessageList the IDs of the messages to delete
+   */
+  void deleteMessageBatch(java.util.List<Integer> idGtNetMessageList);
 }

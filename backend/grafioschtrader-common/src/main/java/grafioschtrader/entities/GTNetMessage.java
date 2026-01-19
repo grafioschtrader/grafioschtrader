@@ -29,6 +29,7 @@ import jakarta.persistence.MapKeyColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
@@ -166,6 +167,13 @@ public class GTNetMessage extends BaseID<Integer> {
   @CollectionTable(name = GT_NET_MESSAGE_PARAM, joinColumns = @JoinColumn(name = "id_gt_net_message"))
   private Map<String, GTNetMessageParam> gtNetMessageParamMap = new HashMap<>();
 
+  @Schema(description = """
+      Transient field indicating whether this message can be deleted. Computed by the backend based on message type,
+      delivery status, and whether the message is still awaiting a response. Messages with replyTo set (response messages)
+      should not show a checkbox as they are cascade-deleted with their parent request.""")
+  @Transient
+  private boolean canDelete;
+
   public GTNetMessage() {
   }
 
@@ -296,6 +304,14 @@ public class GTNetMessage extends BaseID<Integer> {
 
   public void setWaitDaysApply(Short waitDaysApply) {
     this.waitDaysApply = waitDaysApply;
+  }
+
+  public boolean isCanDelete() {
+    return canDelete;
+  }
+
+  public void setCanDelete(boolean canDelete) {
+    this.canDelete = canDelete;
   }
 
   @Embeddable
