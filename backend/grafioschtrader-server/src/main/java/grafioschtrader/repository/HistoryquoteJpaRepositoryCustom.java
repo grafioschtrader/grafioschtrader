@@ -10,6 +10,7 @@ import grafiosch.entities.Auditable;
 import grafiosch.entities.User;
 import grafiosch.repository.BaseRepositoryCustom;
 import grafioschtrader.dto.DeleteHistoryquotesSuccess;
+import grafioschtrader.dto.HistoryquoteChartResponse;
 import grafioschtrader.dto.HistoryquotesWithMissings;
 import grafioschtrader.dto.IDateAndClose;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
@@ -82,6 +83,25 @@ public interface HistoryquoteJpaRepositoryCustom extends BaseRepositoryCustom<Hi
   UserAuditable getUserAndCheckSecurityAccess(Integer idSecuritycurrency);
 
   List<IDateAndClose> getHistoryquoteDateClose(Integer idSecuritycurrency);
+
+  /**
+   * Retrieves historical quote data for chart rendering, automatically selecting between OHLC and simple date/close
+   * formats based on data availability.
+   * <p>
+   * This method first checks whether valid OHLC (Open-High-Low-Close) data exists for the security or currency pair
+   * by examining the oldest and youngest historyquote records. If both records have non-null, non-zero open/high/low
+   * values, it returns full OHLC data suitable for candlestick and OHLC charts. Otherwise, it returns simple
+   * date/close data for line charts.
+   * </p>
+   * <p>
+   * The method ensures user access validation before fetching data.
+   * </p>
+   *
+   * @param idSecuritycurrency The unique identifier of the security or currency pair.
+   * @return A HistoryquoteChartResponse containing either OHLC data (when available) or simple date/close data. The
+   *         response includes an ohlcAvailable flag to indicate which format was returned.
+   */
+  HistoryquoteChartResponse getHistoryquoteForChart(Integer idSecuritycurrency);
 
   /**
    * Calculates and returns technical analysis (TA) indicator data for a given security or currency pair, based on

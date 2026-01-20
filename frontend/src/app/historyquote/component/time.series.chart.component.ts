@@ -46,6 +46,9 @@ import {TwoKeyMap} from '../../lib/helper/two.key.map';
 import {Transaction} from '../../entities/transaction';
 import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.helper';
 import {BaseSettings} from '../../lib/base.settings';
+import {ChartType} from '../../shared/types/chart.type';
+import {HistoryquoteOHLC} from '../../entities/projection/historyquote.ohlc';
+import {HistoryquoteChartResponse} from '../../entities/projection/historyquote.chart.response';
 
 declare let Plotly: any;
 
@@ -107,6 +110,13 @@ interface Data {
                   (onChange)="handleChangeCurrency($event)">
         </p-select>
 
+        @if (this.loadedData.length === 1 && ohlcAvailable) {
+          <label>{{ 'CHART_TYPE' | translate }}</label>
+          <p-select [options]="chartTypeOptions" [(ngModel)]="selectedChartType"
+                    (onChange)="handleChangeChartType($event)">
+          </p-select>
+        }
+
       </div>
       <div #chart class="plot-container">
       </div>
@@ -143,6 +153,9 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   contextMenuItems: MenuItem[] = [];
   requestedCurrency = '';
   currenciesOptions: SelectItem[] = [{value: '', label: ''}];
+  selectedChartType: ChartType = ChartType.LINE;
+  chartTypeOptions: SelectItem[] = [];
+  ohlcAvailable: boolean = false;
   // protected paramMap: ParamMap;
   protected transactionPositionList: SecurityTransactionPosition[] = [];
   private minValueOfY: number;
@@ -169,7 +182,20 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     this.dateFormat = gps.getCalendarTwoNumberDateFormat().toLocaleLowerCase();
     //  this.yearRange = `2000:${new Date().getFullYear()}`;
     this.indicatorDefinitions = new IndicatorDefinitions();
+    this.initChartTypeOptions();
+  }
 
+  /**
+   * Initializes the chart type dropdown options with translated labels.
+   */
+  private initChartTypeOptions(): void {
+    this.translateService.get(['LINE_CHART', 'CANDLESTICK_CHART', 'OHLC_CHART']).subscribe(translations => {
+      this.chartTypeOptions = [
+        {value: ChartType.LINE, label: translations['LINE_CHART']},
+        {value: ChartType.CANDLESTICK, label: translations['CANDLESTICK_CHART']},
+        {value: ChartType.OHLC, label: translations['OHLC_CHART']}
+      ];
+    });
   }
 
   get oldestDate(): Date {
@@ -209,6 +235,8 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     }
     if (timeSeriesParams.length === 2) {
       this.usePercentage = true;
+      // Multiple instruments force line chart
+      this.selectedChartType = ChartType.LINE;
     }
 
     for (let i = this.loadedData.length; i < timeSeriesParams.length; i++) {
@@ -219,7 +247,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
           timeSeriesParams[i].idPortfolio, true)
         : this.currencypairService.getTransactionForCurrencyPair(timeSeriesParams[i].idSecuritycurrency, true);
 
-      const historyquoteObservable = this.historyquoteService.getDateCloseByIdSecuritycurrency(timeSeriesParams[i].idSecuritycurrency);
+      const historyquoteObservable = this.historyquoteService.getHistoryquoteForChart(timeSeriesParams[i].idSecuritycurrency);
       const observable: Observable<any>[] = [stsObservable, historyquoteObservable];
       this.addCurrencyCrossRateObservable(timeSeriesParams, timeSeriesParams[i].currencySecurity, observable);
 
@@ -228,11 +256,31 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
           ? new SecurityTransactionSummary(data[0].transactionPositionList, data[0].securityPositionSummary)
           : new CurrencypairWithTransaction(data[0]);
 
-        if ((<HistoryquoteDateClose[]>data[1]).length > 0) {
+        const chartResponse: HistoryquoteChartResponse = data[1];
+        // Extract date/close data from the response
+        let historyquotes: HistoryquoteDateClose[];
+        let ohlcData: HistoryquoteOHLC[] | undefined;
+
+        if (chartResponse.ohlcAvailable && chartResponse.ohlcList) {
+          // Convert OHLC to date/close for line chart compatibility
+          historyquotes = chartResponse.ohlcList.map(ohlc => ({date: ohlc.date, close: ohlc.close}));
+          ohlcData = chartResponse.ohlcList;
+          this.ohlcAvailable = true;
+        } else {
+          historyquotes = chartResponse.dateCloseList || [];
+          ohlcData = undefined;
+          this.ohlcAvailable = false;
+          // Reset to line chart if OHLC not available
+          if (this.selectedChartType !== ChartType.LINE) {
+            this.selectedChartType = ChartType.LINE;
+          }
+        }
+
+        if (historyquotes.length > 0) {
           this.createTodayAsHistoryquote(nameSecuritycurrency.getSecuritycurrency().sTimestamp,
-            nameSecuritycurrency.getSecuritycurrency().sLast, data[1]);
-          this.loadedData.push(new LoadedData(timeSeriesParams[i].idSecuritycurrency, nameSecuritycurrency, data[1],
-            timeSeriesParams[i].currencySecurity));
+            nameSecuritycurrency.getSecuritycurrency().sLast, historyquotes);
+          this.loadedData.push(new LoadedData(timeSeriesParams[i].idSecuritycurrency, nameSecuritycurrency, historyquotes,
+            timeSeriesParams[i].currencySecurity, ohlcData));
           if (observable.length === 3) {
             this.addCrossRateResponse(data[2]);
             this.normalizeSecurityPrice(this.loadedData[this.loadedData.length - 1]);
@@ -303,6 +351,15 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   handleChangeCurrency(event) {
     this.requestedCurrency = event.value;
     this.normalizeAllSecurityPrices();
+    this.prepareLoadedDataAndPlot(true);
+  }
+
+  /**
+   * Handles chart type change from the dropdown.
+   * Replots the chart with the selected chart type.
+   */
+  handleChangeChartType(event): void {
+    this.selectedChartType = event.value;
     this.prepareLoadedDataAndPlot(true);
   }
 
@@ -378,6 +435,84 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
         (this.usePercentage && historyquote.close != null) ? historyquote.close * loadedData.factor - 100 : historyquote.close),
       line: {width: 1},
       connectgaps: this.connectGaps
+    };
+  }
+
+  /**
+   * Creates a candlestick trace for Plotly chart.
+   * Candlestick charts show OHLC data with colored bodies representing price direction.
+   *
+   * @param loadedData The loaded data containing OHLC data
+   * @returns A Plotly candlestick trace object
+   */
+  getCandlestickTrace(loadedData: LoadedData): any {
+    if (!loadedData.ohlcData) {
+      return this.getHistoricalLineTrace(loadedData);
+    }
+
+    let foundStartIndex = Math.abs(AppHelper.binarySearch(loadedData.ohlcData,
+      moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE), this.compareHistoricalFN));
+
+    while (loadedData.ohlcData[foundStartIndex]?.close === null) {
+      foundStartIndex++;
+    }
+
+    loadedData.factor = 100 / (loadedData.ohlcData[foundStartIndex]?.close || 1);
+    if (loadedData.currencySecurity) {
+      this.legendTooltipMap.set(loadedData.nameSecuritycurrency.getName(),
+        loadedData.nameSecuritycurrency.getName() + ' / ' + loadedData.currencySecurity);
+    }
+
+    const slicedData = loadedData.ohlcData.slice(foundStartIndex, loadedData.ohlcData.length);
+    return {
+      type: 'candlestick',
+      name: loadedData.nameSecuritycurrency.getName(),
+      x: slicedData.map(ohlc => ohlc.date),
+      open: slicedData.map(ohlc => ohlc.open),
+      high: slicedData.map(ohlc => ohlc.high),
+      low: slicedData.map(ohlc => ohlc.low),
+      close: slicedData.map(ohlc => ohlc.close),
+      increasing: {line: {color: 'green'}},
+      decreasing: {line: {color: 'red'}}
+    };
+  }
+
+  /**
+   * Creates an OHLC trace for Plotly chart.
+   * OHLC charts show open-high-low-close data as bars with ticks.
+   *
+   * @param loadedData The loaded data containing OHLC data
+   * @returns A Plotly OHLC trace object
+   */
+  getOhlcTrace(loadedData: LoadedData): any {
+    if (!loadedData.ohlcData) {
+      return this.getHistoricalLineTrace(loadedData);
+    }
+
+    let foundStartIndex = Math.abs(AppHelper.binarySearch(loadedData.ohlcData,
+      moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE), this.compareHistoricalFN));
+
+    while (loadedData.ohlcData[foundStartIndex]?.close === null) {
+      foundStartIndex++;
+    }
+
+    loadedData.factor = 100 / (loadedData.ohlcData[foundStartIndex]?.close || 1);
+    if (loadedData.currencySecurity) {
+      this.legendTooltipMap.set(loadedData.nameSecuritycurrency.getName(),
+        loadedData.nameSecuritycurrency.getName() + ' / ' + loadedData.currencySecurity);
+    }
+
+    const slicedData = loadedData.ohlcData.slice(foundStartIndex, loadedData.ohlcData.length);
+    return {
+      type: 'ohlc',
+      name: loadedData.nameSecuritycurrency.getName(),
+      x: slicedData.map(ohlc => ohlc.date),
+      open: slicedData.map(ohlc => ohlc.open),
+      high: slicedData.map(ohlc => ohlc.high),
+      low: slicedData.map(ohlc => ohlc.low),
+      close: slicedData.map(ohlc => ohlc.close),
+      increasing: {line: {color: 'green'}},
+      decreasing: {line: {color: 'red'}}
     };
   }
 
@@ -477,33 +612,39 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   // Helper method to interpolate missing Y values
+  // Supports both line traces (y array) and candlestick/OHLC traces (close array)
   private getInterpolatedYValue(historicalLine: any, foundIndex: number): number {
     const absoluteIndex = Math.abs(foundIndex);
+    // Handle both line traces (y array) and candlestick/OHLC traces (close array)
+    const yValues = historicalLine.y || historicalLine.close;
+    if (!yValues) {
+      return 0;
+    }
     // If value exists, return it directly
-    if (historicalLine.y[absoluteIndex] != null) {
-      return historicalLine.y[absoluteIndex];
+    if (yValues[absoluteIndex] != null) {
+      return yValues[absoluteIndex];
     }
     // Search for the next valid previous value
     let prevIndex = absoluteIndex - 1;
-    while (prevIndex >= 0 && historicalLine.y[prevIndex] == null) {
+    while (prevIndex >= 0 && yValues[prevIndex] == null) {
       prevIndex--;
     }
 
     // Search for the next valid following value
     let nextIndex = absoluteIndex + 1;
-    while (nextIndex < historicalLine.y.length && historicalLine.y[nextIndex] == null) {
+    while (nextIndex < yValues.length && yValues[nextIndex] == null) {
       nextIndex++;
     }
     // Calculate the average value
-    if (prevIndex >= 0 && nextIndex < historicalLine.y.length) {
+    if (prevIndex >= 0 && nextIndex < yValues.length) {
       // Both values found - calculate average
-      return (historicalLine.y[prevIndex] + historicalLine.y[nextIndex]) / 2;
+      return (yValues[prevIndex] + yValues[nextIndex]) / 2;
     } else if (prevIndex >= 0) {
       // Only previous value found
-      return historicalLine.y[prevIndex];
-    } else if (nextIndex < historicalLine.y.length) {
+      return yValues[prevIndex];
+    } else if (nextIndex < yValues.length) {
       // Only following value found
-      return historicalLine.y[nextIndex];
+      return yValues[nextIndex];
     }
     // Fallback: return 0 if no values were found
     return 0;
@@ -828,9 +969,31 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   private createAllQuotesLines(): any[] {
     const traces: any[] = [];
     for (const ld of this.loadedData) {
-      ld.historicalLine = this.getHistoricalLineTrace(ld);
-      this.minValueOfY = Math.min(this.minValueOfY, ...ld.historicalLine.y);
-      this.maxValueOfY = Math.max(this.maxValueOfY, ...ld.historicalLine.y);
+      // Select trace type based on chart type setting
+      // Candlestick/OHLC only available for single instrument with OHLC data
+      if (this.loadedData.length === 1 && this.ohlcAvailable && ld.ohlcData) {
+        switch (this.selectedChartType) {
+          case ChartType.CANDLESTICK:
+            ld.historicalLine = this.getCandlestickTrace(ld);
+            break;
+          case ChartType.OHLC:
+            ld.historicalLine = this.getOhlcTrace(ld);
+            break;
+          default:
+            ld.historicalLine = this.getHistoricalLineTrace(ld);
+        }
+      } else {
+        ld.historicalLine = this.getHistoricalLineTrace(ld);
+      }
+
+      // Calculate Y-axis min/max from close values (for candlestick/OHLC, use high/low)
+      if (ld.historicalLine.type === 'candlestick' || ld.historicalLine.type === 'ohlc') {
+        this.minValueOfY = Math.min(this.minValueOfY, ...ld.historicalLine.low.filter(v => v != null));
+        this.maxValueOfY = Math.max(this.maxValueOfY, ...ld.historicalLine.high.filter(v => v != null));
+      } else {
+        this.minValueOfY = Math.min(this.minValueOfY, ...ld.historicalLine.y);
+        this.maxValueOfY = Math.max(this.maxValueOfY, ...ld.historicalLine.y);
+      }
       traces.push(ld.historicalLine);
     }
     return traces;
@@ -907,8 +1070,21 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     // Oscillators can only be displayed when showing a single security
     const hasOscillator = this.loadedData.length === 1 && this.indicatorDefinitions.hasShownOscillator();
 
+    // Determine chart title based on selected chart type
+    let chartTitle = 'LINE_CHART';
+    if (this.loadedData.length === 1 && this.ohlcAvailable) {
+      switch (this.selectedChartType) {
+        case ChartType.CANDLESTICK:
+          chartTitle = 'CANDLESTICK_CHART';
+          break;
+        case ChartType.OHLC:
+          chartTitle = 'OHLC_CHART';
+          break;
+      }
+    }
+
     const layout: any = {
-      title: 'LINE_CHART',
+      title: chartTitle,
       showlegend: true,
       legend: PlotlyHelper.getLegendUnderChart(11),
       xaxis: {
@@ -1057,7 +1233,7 @@ class LoadedData {
   public historyquotesNorm: HistoryquoteDateClose[];
 
   constructor(public idSecuritycurrency: number, public nameSecuritycurrency: (CurrencypairWithTransaction | SecurityTransactionSummary),
-    public historyquotes: HistoryquoteDateClose[], public currencySecurity: string) {
+    public historyquotes: HistoryquoteDateClose[], public currencySecurity: string, public ohlcData?: HistoryquoteOHLC[]) {
     this.historyquotesNorm = historyquotes;
   }
 }
