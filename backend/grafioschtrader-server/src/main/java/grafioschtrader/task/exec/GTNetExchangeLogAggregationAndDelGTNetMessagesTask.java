@@ -176,16 +176,22 @@ public class GTNetExchangeLogAggregationAndDelGTNetMessagesTask implements ITask
 
     // Delete old LastPrice exchange messages (codes 60, 61)
     Date lpThreshold = Date.from(today.minusDays(lpDays).atStartOfDay(ZoneId.systemDefault()).toInstant());
+    // First delete replies to avoid FK constraint violation on reply_to
+    int lpRepliesDeleted = gtNetMessageJpaRepository.deleteRepliesToOldMessages(LASTPRICE_MESSAGE_CODES, lpThreshold);
     int lpDeleted = gtNetMessageJpaRepository.deleteOldMessagesByCodesAndDate(LASTPRICE_MESSAGE_CODES, lpThreshold);
-    if (lpDeleted > 0) {
-      log.info("Deleted {} LastPrice exchange message rows (codes 60, 61) older than {} days", lpDeleted, lpDays);
+    if (lpRepliesDeleted > 0 || lpDeleted > 0) {
+      log.info("Deleted {} reply rows and {} LastPrice exchange message rows (codes 60, 61) older than {} days",
+          lpRepliesDeleted, lpDeleted, lpDays);
     }
 
     // Delete old HistoryPrice exchange messages (codes 80, 81)
     Date hpThreshold = Date.from(today.minusDays(hpDays).atStartOfDay(ZoneId.systemDefault()).toInstant());
+    // First delete replies to avoid FK constraint violation on reply_to
+    int hpRepliesDeleted = gtNetMessageJpaRepository.deleteRepliesToOldMessages(HISTORYQUOTE_MESSAGE_CODES, hpThreshold);
     int hpDeleted = gtNetMessageJpaRepository.deleteOldMessagesByCodesAndDate(HISTORYQUOTE_MESSAGE_CODES, hpThreshold);
-    if (hpDeleted > 0) {
-      log.info("Deleted {} HistoryPrice exchange message rows (codes 80, 81) older than {} days", hpDeleted, hpDays);
+    if (hpRepliesDeleted > 0 || hpDeleted > 0) {
+      log.info("Deleted {} reply rows and {} HistoryPrice exchange message rows (codes 80, 81) older than {} days",
+          hpRepliesDeleted, hpDeleted, hpDays);
     }
   }
 

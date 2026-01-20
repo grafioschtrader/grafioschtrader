@@ -1,4 +1,4 @@
-import {Component, Inject, Injector} from '@angular/core';
+import {Component, Inject, Injector, OnDestroy} from '@angular/core';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {ProgressStateType, TaskDataChange, TaskDataChangeFormConstraints} from '../types/task.data.change';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
@@ -106,7 +106,9 @@ import {TranslateHelper} from '../../helper/translate.helper';
   imports: [CommonModule, ConfigurableTableComponent, TooltipModule, TranslateModule, TaskDataChangeEditComponent,
     TaskFilterDialogComponent]
 })
-export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataChange> {
+export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataChange> implements OnDestroy {
+
+  private static readonly STORE_KEY = 'u_taskdatachange';
 
   minDate: Date = new Date('2000-01-01');
   maxDate: Date = new Date('2099-12-31');
@@ -141,17 +143,17 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
     this.taskTypeEnum = taskTypeEnum;
 
     this.addColumnFeqH(DataType.NumericInteger, 'idTaskDataChange', true, false);
-    this.addColumnFeqH(DataType.DateTimeSecondString, 'creationTime', true, false);
+    this.addColumnFeqH(DataType.DateTimeSecondString, 'creationTime', true, true);
     this.addColumnFeqH(DataType.NumericShowZero, 'taskAsId', true, false,
       {width: 40, maxFractionDigits: 0, filterType: FilterType.likeDataType});
     this.addColumnFeqH(DataType.String, 'idTask', true, false,
       {translateValues: TranslateValue.NORMAL, width: 300, filterType: FilterType.likeDataType});
-    this.addColumnFeqH(DataType.DateTimeSecondString, 'earliestStartTime', true, false);
+    this.addColumnFeqH(DataType.DateTimeSecondString, 'earliestStartTime', true, true);
     this.addColumnFeqH(DataType.String, 'entity', true, false,
       {translateValues: TranslateValue.UPPER_CASE});
     this.addColumnFeqH(DataType.NumericInteger, 'idEntity', true, false);
-    this.addColumnFeqH(DataType.DateTimeSecondString, 'execStartTime', true, false);
-    this.addColumnFeqH(DataType.String, 'executionPriority', true, false,
+    this.addColumnFeqH(DataType.DateTimeSecondString, 'execStartTime', true, true);
+    this.addColumnFeqH(DataType.String, 'executionPriority', true, true,
       {translateValues: TranslateValue.NORMAL, filterType: FilterType.withOptions});
     this.addColumnFeqH(DataType.DateTimeSecondString, 'execEndTime', true, false);
     this.addColumnFeqH(DataType.String, 'progressStateType', true, false,
@@ -181,7 +183,12 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
     return HelpIds.HELP_TASK_DATA_CHANGE_MONITOR;
   }
 
+  ngOnDestroy(): void {
+    this.writeTableDefinition(TaskDataChangeTableComponent.STORE_KEY);
+  }
+
   protected override initialize(): void {
+    this.readTableDefinition(TaskDataChangeTableComponent.STORE_KEY);
     // Load stored filter from LocalStorage (null means load all)
     this.currentTaskFilter = TaskFilterDialogComponent.getStoredTaskIdsStatic();
     this.taskDataChangeService.getFormConstraints().subscribe((tdcFormConstraints: TaskDataChangeFormConstraints) => {

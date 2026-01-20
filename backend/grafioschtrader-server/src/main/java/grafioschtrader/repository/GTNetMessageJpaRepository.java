@@ -98,8 +98,25 @@ public interface GTNetMessageJpaRepository extends JpaRepository<GTNetMessage, I
   List<GTNetMessage> findByReplyTo(Integer replyTo);
 
   /**
+   * Deletes reply messages that reference old GTNet messages being deleted.
+   * Must be called BEFORE deleteOldMessagesByCodesAndDate to avoid FK constraint violations.
+   * Uses multi-table DELETE to cascade delete associated parameters from gt_net_message_param.
+   *
+   * Named query: GTNetMessage.deleteRepliesToOldMessages
+   *
+   * @param messageCodes list of parent message codes whose replies should be deleted
+   * @param beforeDate delete replies to messages with timestamp before this date
+   * @return number of affected rows (may be greater than deleted messages due to params)
+   */
+  @Transactional
+  @Modifying
+  @Query(nativeQuery = true)
+  int deleteRepliesToOldMessages(List<Byte> messageCodes, Date beforeDate);
+
+  /**
    * Deletes old GTNet messages by message codes and timestamp threshold.
    * Uses multi-table DELETE to cascade delete associated parameters from gt_net_message_param.
+   * IMPORTANT: Call deleteRepliesToOldMessages first to avoid FK constraint violations on reply_to.
    *
    * Named query: GTNetMessage.deleteOldMessagesByCodesAndDate
    *
