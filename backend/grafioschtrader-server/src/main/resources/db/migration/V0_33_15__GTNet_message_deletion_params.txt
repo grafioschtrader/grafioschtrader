@@ -18,3 +18,22 @@ VALUES ('gt.gtnet.log.aggregate.days', 'D=1,W=7,M=30,Y=365', 0, 'pattern:^D=\\d+
 
 UPDATE globalparameters SET input_rule = 'pattern:^[A-Z]{3}=[0-8](,[A-Z]{3}=[0-8])*$'
 WHERE property_name = 'gt.currency.precision';
+
+
+DELETE gp
+FROM gt_net_message_param gp
+JOIN gt_net_message gm
+  ON gp.id_gt_net_message = gm.id_gt_net_message
+WHERE gm.message_code IN (1,50)
+  AND NOT EXISTS (
+    SELECT 1
+    FROM gt_net_message reply
+    WHERE reply.reply_to = gm.id_gt_net_message
+  );
+  DELETE FROM gt_net_message
+WHERE message_code IN (1,50)
+  AND NOT EXISTS (
+    SELECT 1
+    FROM gt_net_message AS reply
+    WHERE reply.reply_to = gt_net_message.id_gt_net_message
+  );
