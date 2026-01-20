@@ -42,7 +42,9 @@ import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.DeleteHistoryquotesSuccess;
+import grafioschtrader.dto.HistoryquoteChartResponse;
 import grafioschtrader.dto.HistoryquoteDateClose;
+import grafioschtrader.dto.HistoryquoteDateOHLC;
 import grafioschtrader.dto.HistoryquotesWithMissings;
 import grafioschtrader.dto.IDateAndClose;
 import grafioschtrader.dto.IHistoryquoteQuality;
@@ -404,6 +406,21 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
       }
     }
 
+  }
+
+  @Override
+  public HistoryquoteChartResponse getHistoryquoteForChart(Integer idSecuritycurrency) {
+    checkUserAccess(idSecuritycurrency);
+    Integer ohlcAvailable = historyquoteJpaRepository.isOhlcAvailable(idSecuritycurrency);
+    if (Integer.valueOf(1).equals(ohlcAvailable)) {
+      List<HistoryquoteDateOHLC> ohlcList = historyquoteJpaRepository
+          .findOhlcByIdSecuritycurrencyOrderByDateAsc(idSecuritycurrency);
+      return new HistoryquoteChartResponse(ohlcList);
+    } else {
+      List<HistoryquoteDateClose> dateCloseList = historyquoteJpaRepository
+          .findDateCloseByIdSecuritycurrencyAndCreateTypeFalseOrderByDateAsc(idSecuritycurrency);
+      return new HistoryquoteChartResponse(dateCloseList, false);
+    }
   }
 
   @Override

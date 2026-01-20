@@ -12,6 +12,7 @@ import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../lib/login/service/log-in.service';
 import {TaFormDefinition, TaTraceIndicatorData} from '../component/indicator.definitions';
+import {HistoryquoteChartResponse} from '../../entities/projection/historyquote.chart.response';
 import {HistoryquoteDateClose} from '../../entities/projection/historyquote.date.close';
 import {IHistoryquoteQuality} from '../../entities/view/ihistoryquote.quality';
 import {SupportedCSVFormats, UploadServiceFunction} from '../../lib/generaldialog/model/file.upload.param';
@@ -36,6 +37,19 @@ export class HistoryquoteService extends AuthServiceWithLogout<Historyquote> imp
   getDateCloseByIdSecuritycurrency(idSecuritycurrency: number): Observable<HistoryquoteDateClose[]> {
     return <Observable<HistoryquoteDateClose[]>>this.httpClient.get(
       `${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/securitycurrency/${idSecuritycurrency}/dateclose`,
+      {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /**
+   * Retrieves chart data for a security or currency pair.
+   * Returns either OHLC data for candlestick/OHLC charts or simple date/close data for line charts.
+   *
+   * @param idSecuritycurrency The ID of the security or currency pair
+   * @returns Observable of HistoryquoteChartResponse containing ohlcAvailable flag and data
+   */
+  getHistoryquoteForChart(idSecuritycurrency: number): Observable<HistoryquoteChartResponse> {
+    return <Observable<HistoryquoteChartResponse>>this.httpClient.get(
+      `${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/securitycurrency/${idSecuritycurrency}/forchart`,
       {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }
 

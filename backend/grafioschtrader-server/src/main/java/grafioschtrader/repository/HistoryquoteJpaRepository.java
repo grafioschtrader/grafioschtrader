@@ -14,6 +14,7 @@ import org.springframework.data.repository.query.Param;
 import grafiosch.common.UpdateQuery;
 import grafiosch.rest.UpdateCreateJpaRepository;
 import grafioschtrader.dto.HistoryquoteDateClose;
+import grafioschtrader.dto.HistoryquoteDateOHLC;
 import grafioschtrader.dto.IDateAndClose;
 import grafioschtrader.dto.IHistoryquoteQuality;
 import grafioschtrader.dto.IMinMaxDateHistoryquote;
@@ -114,6 +115,41 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   @Query(nativeQuery = false)
   List<HistoryquoteDateClose> findDateCloseByIdSecuritycurrencyAndCreateTypeFalseOrderByDateAsc(
       Integer idSecuritycurrency);
+
+  /**
+   * Checks whether valid OHLC (Open-High-Low-Close) data is available for a given security or currency pair. The
+   * check examines both the oldest and youngest historyquote records (excluding filled non-trade day entries) to
+   * verify that open, high, and low values are non-null and non-zero.
+   * <p>
+   * This method is used to determine whether candlestick or OHLC charts can be displayed for the instrument. OHLC
+   * data is considered available only if both boundary records contain valid price data.
+   * </p>
+   *
+   * Named query: Historyquote.isOhlcAvailable
+   *
+   * @param idSecuritycurrency The unique identifier of the security or currency pair to check.
+   * @return Integer 1 if OHLC data is available (both oldest and youngest records have valid open/high/low values),
+   *         0 otherwise. MariaDB/MySQL returns 1/0 for boolean expressions.
+   */
+  @Query(nativeQuery = true)
+  Integer isOhlcAvailable(Integer idSecuritycurrency);
+
+  /**
+   * Retrieves historical OHLC (Open-High-Low-Close) quote data for a specific security or currency pair, ordered by
+   * date. Excludes quotes that were generated to fill non-trading day gaps (createType = 1).
+   * <p>
+   * The results are projected into HistoryquoteDateOHLC objects containing date, open, high, low, and close price
+   * values. This data is used for rendering candlestick and OHLC charts in the frontend.
+   * </p>
+   *
+   * Named query: Historyquote.findOhlcByIdSecuritycurrencyOrderByDateAsc
+   *
+   * @param idSecuritycurrency The unique identifier of the security or currency pair.
+   * @return A list of HistoryquoteDateOHLC objects sorted chronologically. Returns an empty list if no OHLC data
+   *         exists for the given ID.
+   */
+  @Query(nativeQuery = false)
+  List<HistoryquoteDateOHLC> findOhlcByIdSecuritycurrencyOrderByDateAsc(Integer idSecuritycurrency);
 
   /**
    * Calculates and retrieves a data quality report for the End-of-Day (EOD) historical quotes of a specific security.
