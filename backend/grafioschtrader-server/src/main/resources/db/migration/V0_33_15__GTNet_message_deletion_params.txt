@@ -19,21 +19,95 @@ VALUES ('gt.gtnet.log.aggregate.days', 'D=1,W=7,M=30,Y=365', 0, 'pattern:^D=\\d+
 UPDATE globalparameters SET input_rule = 'pattern:^[A-Z]{3}=[0-8](,[A-Z]{3}=[0-8])*$'
 WHERE property_name = 'gt.currency.precision';
 
+  
+-- Remove id_gt_net column from gt_net_instrument table
+-- This column was redundant because each PUSH_OPEN instance has only one instrument pool
+-- and all instruments belong to the local "myGtNet" entry
 
-DELETE gp
-FROM gt_net_message_param gp
-JOIN gt_net_message gm
-  ON gp.id_gt_net_message = gm.id_gt_net_message
-WHERE gm.message_code IN (1,50)
-  AND NOT EXISTS (
-    SELECT 1
-    FROM gt_net_message reply
-    WHERE reply.reply_to = gm.id_gt_net_message
-  );
-  DELETE FROM gt_net_message
-WHERE message_code IN (1,50)
-  AND NOT EXISTS (
-    SELECT 1
-    FROM gt_net_message AS reply
-    WHERE reply.reply_to = gt_net_message.id_gt_net_message
-  );
+-- Check and drop foreign key constraint if it exists
+SET @fk_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+    WHERE CONSTRAINT_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'gt_net_instrument'
+    AND CONSTRAINT_NAME = 'FK_GtNetInstrument_GtNet');
+
+SET @sql = IF(@fk_exists > 0,
+    'ALTER TABLE gt_net_instrument DROP FOREIGN KEY FK_GtNetInstrument_GtNet',
+    'SELECT 1');
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Check and drop index if it exists
+SET @idx_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'gt_net_instrument'
+    AND INDEX_NAME = 'FK_GtNetInstrument_GtNet');
+
+SET @sql = IF(@idx_exists > 0,
+    'ALTER TABLE gt_net_instrument DROP INDEX FK_GtNetInstrument_GtNet',
+    'SELECT 1');
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Check and drop column if it exists
+SET @col_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'gt_net_instrument'
+    AND COLUMN_NAME = 'id_gt_net');
+
+SET @sql = IF(@col_exists > 0,
+    'ALTER TABLE gt_net_instrument DROP COLUMN id_gt_net',
+    'SELECT 1');
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;  
+
+-- Remove id_gt_net column from gt_net_instrument table
+-- This column was redundant because each PUSH_OPEN instance has only one instrument pool
+-- and all instruments belong to the local "myGtNet" entry
+
+-- Check and drop foreign key constraint if it exists
+SET @fk_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+    WHERE CONSTRAINT_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'gt_net_instrument'
+    AND CONSTRAINT_NAME = 'FK_GtNetInstrument_GtNet');
+
+SET @sql = IF(@fk_exists > 0,
+    'ALTER TABLE gt_net_instrument DROP FOREIGN KEY FK_GtNetInstrument_GtNet',
+    'SELECT 1');
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Check and drop index if it exists
+SET @idx_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'gt_net_instrument'
+    AND INDEX_NAME = 'FK_GtNetInstrument_GtNet');
+
+SET @sql = IF(@idx_exists > 0,
+    'ALTER TABLE gt_net_instrument DROP INDEX FK_GtNetInstrument_GtNet',
+    'SELECT 1');
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Check and drop column if it exists
+SET @col_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'gt_net_instrument'
+    AND COLUMN_NAME = 'id_gt_net');
+
+SET @sql = IF(@col_exists > 0,
+    'ALTER TABLE gt_net_instrument DROP COLUMN id_gt_net',
+    'SELECT 1');
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
