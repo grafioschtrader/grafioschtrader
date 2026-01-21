@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafioschtrader.entities.GTNetHistoryquote;
@@ -64,6 +65,23 @@ public interface GTNetHistoryquoteJpaRepository extends JpaRepository<GTNetHisto
    * @return list of historical quotes
    */
   List<GTNetHistoryquote> findByGtNetInstrumentIdGtNetInstrumentIn(List<Integer> instrumentIds);
+
+  /**
+   * Batch query for historical quotes across multiple foreign instruments.
+   * Returns all quotes for the given instrument IDs where the date is greater than or equal to the fromDate.
+   * Results are ordered by instrument ID and date for efficient grouping.
+   *
+   * @param instrumentIds list of GTNet instrument IDs to query
+   * @param fromDate the minimum date (inclusive) for quotes
+   * @return list of GTNetHistoryquotes ordered by instrument ID and date ascending
+   */
+  @Query("""
+      SELECT hq FROM GTNetHistoryquote hq
+      WHERE hq.gtNetInstrument.idGtNetInstrument IN :ids
+        AND hq.date >= :fromDate
+      ORDER BY hq.gtNetInstrument.idGtNetInstrument, hq.date""")
+  List<GTNetHistoryquote> findByInstrumentIdsAndDateGreaterThanEqual(
+      @Param("ids") List<Integer> instrumentIds, @Param("fromDate") Date fromDate);
 
   /**
    * Finds the earliest date with historical data for an instrument.

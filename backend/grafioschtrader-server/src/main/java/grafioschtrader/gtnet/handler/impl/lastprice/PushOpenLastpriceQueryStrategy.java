@@ -19,7 +19,6 @@ import grafioschtrader.gtnet.m2m.model.InstrumentPriceDTO;
 import grafioschtrader.repository.GTNetInstrumentCurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentSecurityJpaRepository;
 import grafioschtrader.repository.GTNetLastpriceJpaRepository;
-import grafioschtrader.service.GlobalparametersService;
 
 /**
  * Strategy for AC_PUSH_OPEN mode: queries GTNetInstrument* and GTNetLastprice tables (shared push pool).
@@ -44,9 +43,6 @@ public class PushOpenLastpriceQueryStrategy implements LastpriceQueryStrategy {
 
   @Autowired
   private GTNetLastpriceJpaRepository gtNetLastpriceJpaRepository;
-
-  @Autowired
-  private GlobalparametersService globalparametersService;
 
   @Override
   @Transactional
@@ -101,24 +97,21 @@ public class PushOpenLastpriceQueryStrategy implements LastpriceQueryStrategy {
     }
 
     // For instruments not found in pool, create new entries if last is not null
-    Integer myGtNetId = globalparametersService.getGTNetMyEntryID();
-    if (myGtNetId != null) {
-      for (Map.Entry<String, InstrumentPriceDTO> entry : requestMap.entrySet()) {
-        if (!foundKeys.contains(entry.getKey())) {
-          InstrumentPriceDTO req = entry.getValue();
-          if (req.getLast() != null) {
-            // Create instrument entry
-            GTNetInstrumentSecurity newInstrument = gtNetInstrumentSecurityJpaRepository
-                .findOrCreateInstrument(req.getIsin(), req.getCurrency(), null, myGtNetId);
+    for (Map.Entry<String, InstrumentPriceDTO> entry : requestMap.entrySet()) {
+      if (!foundKeys.contains(entry.getKey())) {
+        InstrumentPriceDTO req = entry.getValue();
+        if (req.getLast() != null) {
+          // Create instrument entry
+          GTNetInstrumentSecurity newInstrument = gtNetInstrumentSecurityJpaRepository
+              .findOrCreateInstrument(req.getIsin(), req.getCurrency());
 
-            // Create lastprice entry
-            GTNetLastprice newLastprice = new GTNetLastprice();
-            newLastprice.setGtNetInstrument(newInstrument);
-            updateLastpriceFromDTO(newLastprice, req);
-            gtNetLastpriceJpaRepository.save(newLastprice);
+          // Create lastprice entry
+          GTNetLastprice newLastprice = new GTNetLastprice();
+          newLastprice.setGtNetInstrument(newInstrument);
+          updateLastpriceFromDTO(newLastprice, req);
+          gtNetLastpriceJpaRepository.save(newLastprice);
 
-            result.add(req);
-          }
+          result.add(req);
         }
       }
     }
@@ -179,24 +172,21 @@ public class PushOpenLastpriceQueryStrategy implements LastpriceQueryStrategy {
     }
 
     // For instruments not found in pool, create new entries if last is not null
-    Integer myGtNetId = globalparametersService.getGTNetMyEntryID();
-    if (myGtNetId != null) {
-      for (Map.Entry<String, InstrumentPriceDTO> entry : requestMap.entrySet()) {
-        if (!foundKeys.contains(entry.getKey())) {
-          InstrumentPriceDTO req = entry.getValue();
-          if (req.getLast() != null) {
-            // Create instrument entry
-            GTNetInstrumentCurrencypair newInstrument = gtNetInstrumentCurrencypairJpaRepository
-                .findOrCreateInstrument(req.getCurrency(), req.getToCurrency(), null, myGtNetId);
+    for (Map.Entry<String, InstrumentPriceDTO> entry : requestMap.entrySet()) {
+      if (!foundKeys.contains(entry.getKey())) {
+        InstrumentPriceDTO req = entry.getValue();
+        if (req.getLast() != null) {
+          // Create instrument entry
+          GTNetInstrumentCurrencypair newInstrument = gtNetInstrumentCurrencypairJpaRepository
+              .findOrCreateInstrument(req.getCurrency(), req.getToCurrency());
 
-            // Create lastprice entry
-            GTNetLastprice newLastprice = new GTNetLastprice();
-            newLastprice.setGtNetInstrument(newInstrument);
-            updateLastpriceFromDTO(newLastprice, req);
-            gtNetLastpriceJpaRepository.save(newLastprice);
+          // Create lastprice entry
+          GTNetLastprice newLastprice = new GTNetLastprice();
+          newLastprice.setGtNetInstrument(newInstrument);
+          updateLastpriceFromDTO(newLastprice, req);
+          gtNetLastpriceJpaRepository.save(newLastprice);
 
-            result.add(req);
-          }
+          result.add(req);
         }
       }
     }

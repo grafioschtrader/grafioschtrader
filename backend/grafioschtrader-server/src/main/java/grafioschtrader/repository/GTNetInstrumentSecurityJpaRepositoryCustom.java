@@ -33,21 +33,18 @@ public interface GTNetInstrumentSecurityJpaRepositoryCustom {
    * - If a lastprice entry exists with a newer or equal timestamp, skips it
    *
    * @param securities list of securities with updated prices from connectors
-   * @param idGtNet the local GTNet server ID to associate with the entries
    * @return number of lastprice entries inserted or updated
    */
-  int updateFromConnectorFetch(List<Security> securities, Integer idGtNet);
+  int updateFromConnectorFetch(List<Security> securities);
 
   /**
    * Finds or creates an instrument entry for the given security.
-   * If the security exists locally, sets the idSecuritycurrency reference.
+   * The instrument is identified by ISIN and currency.
+   * Locality (whether a matching local security exists) is determined dynamically via JOIN query.
    *
    * @param isin the ISIN code
    * @param currency the currency code
-   * @param idSecuritycurrency the local security ID (may be null for foreign instruments)
-   * @param idGtNet the GTNet server ID
    * @return the existing or newly created instrument
    */
-  GTNetInstrumentSecurity findOrCreateInstrument(String isin, String currency, Integer idSecuritycurrency,
-      Integer idGtNet);
+  GTNetInstrumentSecurity findOrCreateInstrument(String isin, String currency);
 }

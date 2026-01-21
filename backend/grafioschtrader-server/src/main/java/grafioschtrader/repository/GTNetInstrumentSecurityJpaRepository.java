@@ -32,40 +32,27 @@ public interface GTNetInstrumentSecurityJpaRepository
   Optional<GTNetInstrumentSecurity> findByIsinAndCurrency(String isin, String currency);
 
   /**
-   * Finds a security instrument by GTNet server ID, ISIN and currency.
-   *
-   * @param idGtNet the GTNet server ID
-   * @param isin the ISIN code
-   * @param currency the currency code
-   * @return the instrument if found
-   */
-  Optional<GTNetInstrumentSecurity> findByIdGtNetAndIsinAndCurrency(Integer idGtNet, String isin, String currency);
-
-  /**
-   * Finds all security instruments for a specific GTNet server.
-   *
-   * @param idGtNet the GTNet server ID
-   * @return list of security instruments
-   */
-  List<GTNetInstrumentSecurity> findByIdGtNet(Integer idGtNet);
-
-  /**
    * Finds all local security instruments (those that exist in the local database).
+   * Uses a JOIN to determine locality dynamically based on matching ISIN and currency.
    *
-   * @param idGtNet the GTNet server ID
    * @return list of local security instruments
    */
-  @Query("SELECT s FROM GTNetInstrumentSecurity s WHERE s.idGtNet = ?1 AND s.idSecuritycurrency IS NOT NULL")
-  List<GTNetInstrumentSecurity> findLocalInstrumentsByIdGtNet(Integer idGtNet);
+  @Query(nativeQuery = true, value = """
+      SELECT g.* FROM gt_net_instrument_security g
+      JOIN security s ON g.isin = s.isin AND g.currency = s.currency""")
+  List<GTNetInstrumentSecurity> findLocalInstruments();
 
   /**
    * Finds all foreign security instruments (those that do NOT exist in the local database).
+   * Uses a LEFT JOIN to find instruments with no matching local security.
    *
-   * @param idGtNet the GTNet server ID
    * @return list of foreign security instruments
    */
-  @Query("SELECT s FROM GTNetInstrumentSecurity s WHERE s.idGtNet = ?1 AND s.idSecuritycurrency IS NULL")
-  List<GTNetInstrumentSecurity> findForeignInstrumentsByIdGtNet(Integer idGtNet);
+  @Query(nativeQuery = true, value = """
+      SELECT g.* FROM gt_net_instrument_security g
+      LEFT JOIN security s ON g.isin = s.isin AND g.currency = s.currency
+      WHERE s.id_securitycurrency IS NULL""")
+  List<GTNetInstrumentSecurity> findForeignInstruments();
 
   /**
    * Finds security instruments by a list of composite keys (ISIN|currency format).
@@ -76,5 +63,23 @@ public interface GTNetInstrumentSecurityJpaRepository
    */
   @Query("SELECT s FROM GTNetInstrumentSecurity s WHERE CONCAT(s.isin, '|', s.currency) IN :keys")
   List<GTNetInstrumentSecurity> findByIsinCurrencyKeys(@Param("keys") List<String> keys);
+
+  /**
+   * Determines which GTNet security instruments have matching local securities via JOIN.
+   * Returns mapping from GTNet instrument ID to local security ID.
+   *
+   * Uses a native JOIN query to find local securities that match the ISIN and currency
+   * of the given GTNet instruments. This allows dynamic determination of instrument locality
+   * without storing the reference in the GTNetInstrument entity.
+   *
+   * @param instrumentIds list of GTNet instrument IDs to check for locality
+   * @return list of Object[] where [0] = idGtNetInstrument (Integer), [1] = idSecuritycurrency (Integer)
+   */
+  @Query(nativeQuery = true, value = """
+      SELECT g.id_gt_net_instrument, s.id_securitycurrency
+      FROM gt_net_instrument_security g
+      JOIN security s ON g.isin = s.isin AND g.currency = s.currency
+      WHERE g.id_gt_net_instrument IN (:ids)""")
+  List<Object[]> findLocalSecurityMappings(@Param("ids") List<Integer> instrumentIds);
 
 }

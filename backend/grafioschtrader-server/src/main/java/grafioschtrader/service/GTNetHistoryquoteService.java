@@ -75,8 +75,8 @@ import grafioschtrader.repository.SecurityJpaRepository;
  * <h3>Storage Decision</h3>
  * When storing received historical quotes:
  * <ul>
- *   <li>If instrument exists locally (GTNetInstrument.idSecuritycurrency != null): store in historyquote table</li>
- *   <li>If instrument is foreign (GTNetInstrument.idSecuritycurrency == null): store in gt_net_historyquote table</li>
+ *   <li>If instrument exists locally (determined via JOIN to security/currencypair table): store in historyquote table</li>
+ *   <li>If instrument is foreign (no local match): store in gt_net_historyquote table</li>
  * </ul>
  *
  * @see GTNetLastpriceService for intraday price exchange
@@ -536,7 +536,6 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
   private int queryRemoteServersWithWantTracking(List<GTNet> suppliers, HistoryquoteExchangeMsg request,
       Map<GTNet, HistoryquoteExchangeMsg> wantToReceiveMap) {
     int totalStored = 0;
-    Integer myGTNetId = GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersService);
 
     for (GTNet supplier : suppliers) {
       try {
@@ -544,7 +543,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
 
         // Store received data for direct API calls
         if (result.responsePayload != null) {
-          totalStored += storeReceivedHistoryquotes(result.responsePayload, myGTNetId);
+          totalStored += storeReceivedHistoryquotes(result.responsePayload);
         }
 
         if (result.wantToReceive != null && result.wantToReceive.hasWantToReceiveMarkers()) {
@@ -850,77 +849,155 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
   }
 
   /**
-   * Stores received historical quotes in the appropriate tables.
-   * For local instruments (idSecuritycurrency != null): stores in historyquote table
-   * For foreign instruments (idSecuritycurrency == null): stores in gt_net_historyquote table
+   * Stores received historical quotes in the appropriate tables using batch locality lookup.
+   * For local instruments (determined via JOIN): stores in historyquote table
+   * For foreign instruments (no local match): stores in gt_net_historyquote table
    */
-  private int storeReceivedHistoryquotes(HistoryquoteExchangeMsg response, Integer myGTNetId) {
+  private int storeReceivedHistoryquotes(HistoryquoteExchangeMsg response) {
     int storedCount = 0;
 
-    // Store securities
-    if (response.securities != null) {
-      for (InstrumentHistoryquoteDTO dto : response.securities) {
-        storedCount += storeSecurityHistoryquotes(dto, myGTNetId);
-      }
+    // Store securities with batch locality lookup
+    if (response.securities != null && !response.securities.isEmpty()) {
+      storedCount += storeSecurityHistoryquotesBatch(response.securities);
     }
 
-    // Store currency pairs
-    if (response.currencypairs != null) {
-      for (InstrumentHistoryquoteDTO dto : response.currencypairs) {
-        storedCount += storeCurrencypairHistoryquotes(dto, myGTNetId);
-      }
+    // Store currency pairs with batch locality lookup
+    if (response.currencypairs != null && !response.currencypairs.isEmpty()) {
+      storedCount += storeCurrencypairHistoryquotesBatch(response.currencypairs);
     }
 
     return storedCount;
   }
 
-  private int storeSecurityHistoryquotes(InstrumentHistoryquoteDTO dto, Integer myGTNetId) {
-    if (dto.getRecords() == null || dto.getRecords().isEmpty()) {
+  private int storeSecurityHistoryquotesBatch(List<InstrumentHistoryquoteDTO> dtos) {
+    // Find or create instruments for all securities
+    Map<String, GTNetInstrumentSecurity> instrumentMap = new HashMap<>();
+    for (InstrumentHistoryquoteDTO dto : dtos) {
+      if (dto.getRecords() != null && !dto.getRecords().isEmpty() && dto.getIsin() != null && dto.getCurrency() != null) {
+        String key = dto.getIsin() + ":" + dto.getCurrency();
+        if (!instrumentMap.containsKey(key)) {
+          GTNetInstrumentSecurity instrument = gtNetInstrumentSecurityJpaRepository
+              .findByIsinAndCurrency(dto.getIsin(), dto.getCurrency())
+              .orElseGet(() -> gtNetInstrumentSecurityJpaRepository
+                  .findOrCreateInstrument(dto.getIsin(), dto.getCurrency()));
+          instrumentMap.put(key, instrument);
+        }
+      }
+    }
+
+    if (instrumentMap.isEmpty()) {
       return 0;
     }
 
-    // Find or create instrument in pool
-    GTNetInstrumentSecurity instrument = gtNetInstrumentSecurityJpaRepository.findByIsinAndCurrency(
-        dto.getIsin(), dto.getCurrency()).orElse(null);
+    // Determine locality via JOIN
+    List<Integer> instrumentIds = instrumentMap.values().stream()
+        .map(GTNetInstrumentSecurity::getIdGtNetInstrument)
+        .collect(Collectors.toList());
+    Map<Integer, Integer> localityMap = buildLocalityMapFromMappings(
+        gtNetInstrumentSecurityJpaRepository.findLocalSecurityMappings(instrumentIds));
 
-    if (instrument == null) {
-      instrument = gtNetInstrumentSecurityJpaRepository.findOrCreateInstrument(
-          dto.getIsin(), dto.getCurrency(), null, myGTNetId);
+    // Store records for each DTO
+    int storedCount = 0;
+    for (InstrumentHistoryquoteDTO dto : dtos) {
+      if (dto.getRecords() == null || dto.getRecords().isEmpty()) {
+        continue;
+      }
+
+      String key = dto.getIsin() + ":" + dto.getCurrency();
+      GTNetInstrumentSecurity instrument = instrumentMap.get(key);
+      if (instrument == null) {
+        continue;
+      }
+
+      Integer localSecurityId = localityMap.get(instrument.getIdGtNetInstrument());
+      storedCount += storeHistoryquotesForInstrument(instrument, localSecurityId, dto.getRecords());
     }
 
-    return storeHistoryquotesForInstrument(instrument, dto.getRecords());
+    return storedCount;
   }
 
-  private int storeCurrencypairHistoryquotes(InstrumentHistoryquoteDTO dto, Integer myGTNetId) {
-    if (dto.getRecords() == null || dto.getRecords().isEmpty()) {
+  private int storeCurrencypairHistoryquotesBatch(List<InstrumentHistoryquoteDTO> dtos) {
+    // Find or create instruments for all currency pairs
+    Map<String, GTNetInstrumentCurrencypair> instrumentMap = new HashMap<>();
+    for (InstrumentHistoryquoteDTO dto : dtos) {
+      if (dto.getRecords() != null && !dto.getRecords().isEmpty() && dto.getCurrency() != null && dto.getToCurrency() != null) {
+        String key = dto.getCurrency() + ":" + dto.getToCurrency();
+        if (!instrumentMap.containsKey(key)) {
+          GTNetInstrumentCurrencypair instrument = gtNetInstrumentCurrencypairJpaRepository
+              .findByFromCurrencyAndToCurrency(dto.getCurrency(), dto.getToCurrency())
+              .orElseGet(() -> gtNetInstrumentCurrencypairJpaRepository
+                  .findOrCreateInstrument(dto.getCurrency(), dto.getToCurrency()));
+          instrumentMap.put(key, instrument);
+        }
+      }
+    }
+
+    if (instrumentMap.isEmpty()) {
       return 0;
     }
 
-    // Find or create instrument in pool
-    GTNetInstrumentCurrencypair instrument = gtNetInstrumentCurrencypairJpaRepository.findByFromCurrencyAndToCurrency(
-        dto.getCurrency(), dto.getToCurrency()).orElse(null);
+    // Determine locality via JOIN
+    List<Integer> instrumentIds = instrumentMap.values().stream()
+        .map(GTNetInstrumentCurrencypair::getIdGtNetInstrument)
+        .collect(Collectors.toList());
+    Map<Integer, Integer> localityMap = buildLocalityMapFromMappings(
+        gtNetInstrumentCurrencypairJpaRepository.findLocalCurrencypairMappings(instrumentIds));
 
-    if (instrument == null) {
-      instrument = gtNetInstrumentCurrencypairJpaRepository.findOrCreateInstrument(
-          dto.getCurrency(), dto.getToCurrency(), null, myGTNetId);
+    // Store records for each DTO
+    int storedCount = 0;
+    for (InstrumentHistoryquoteDTO dto : dtos) {
+      if (dto.getRecords() == null || dto.getRecords().isEmpty()) {
+        continue;
+      }
+
+      String key = dto.getCurrency() + ":" + dto.getToCurrency();
+      GTNetInstrumentCurrencypair instrument = instrumentMap.get(key);
+      if (instrument == null) {
+        continue;
+      }
+
+      Integer localCurrencypairId = localityMap.get(instrument.getIdGtNetInstrument());
+      storedCount += storeHistoryquotesForInstrument(instrument, localCurrencypairId, dto.getRecords());
     }
 
-    return storeHistoryquotesForInstrument(instrument, dto.getRecords());
+    return storedCount;
   }
 
-  private int storeHistoryquotesForInstrument(GTNetInstrument instrument, List<HistoryquoteRecordDTO> records) {
+  /**
+   * Builds a locality map from the JOIN query results.
+   */
+  private Map<Integer, Integer> buildLocalityMapFromMappings(List<Object[]> mappings) {
+    Map<Integer, Integer> localityMap = new HashMap<>();
+    for (Object[] mapping : mappings) {
+      Integer gtNetInstrumentId = ((Number) mapping[0]).intValue();
+      Integer localId = ((Number) mapping[1]).intValue();
+      localityMap.put(gtNetInstrumentId, localId);
+    }
+    return localityMap;
+  }
+
+  /**
+   * Stores historyquotes for an instrument based on whether it's local or foreign.
+   *
+   * @param instrument the GTNet instrument
+   * @param localSecuritycurrencyId the local security/currencypair ID (null if foreign)
+   * @param records the historyquote records to store
+   * @return number of records stored
+   */
+  private int storeHistoryquotesForInstrument(GTNetInstrument instrument, Integer localSecuritycurrencyId,
+      List<HistoryquoteRecordDTO> records) {
     int storedCount = 0;
 
-    if (instrument.isLocalInstrument()) {
+    if (localSecuritycurrencyId != null) {
       // Store in local historyquote table
       for (HistoryquoteRecordDTO record : records) {
         if (record.getDate() != null && record.getClose() != null) {
           Optional<Historyquote> existing = historyquoteJpaRepository.findByIdSecuritycurrencyAndDate(
-              instrument.getIdSecuritycurrency(), record.getDate());
+              localSecuritycurrencyId, record.getDate());
 
           if (existing.isEmpty()) {
             Historyquote hq = new Historyquote();
-            hq.setIdSecuritycurrency(instrument.getIdSecuritycurrency());
+            hq.setIdSecuritycurrency(localSecuritycurrencyId);
             hq.setDate(record.getDate());
             hq.setOpen(record.getOpen());
             hq.setHigh(record.getHigh());

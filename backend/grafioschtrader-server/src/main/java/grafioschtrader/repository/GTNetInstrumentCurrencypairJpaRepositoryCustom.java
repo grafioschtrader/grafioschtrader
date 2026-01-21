@@ -33,21 +33,18 @@ public interface GTNetInstrumentCurrencypairJpaRepositoryCustom {
    * - If a lastprice entry exists with a newer or equal timestamp, skips it
    *
    * @param currencypairs list of currency pairs with updated prices from connectors
-   * @param idGtNet the local GTNet server ID to associate with the entries
    * @return number of lastprice entries inserted or updated
    */
-  int updateFromConnectorFetch(List<Currencypair> currencypairs, Integer idGtNet);
+  int updateFromConnectorFetch(List<Currencypair> currencypairs);
 
   /**
    * Finds or creates an instrument entry for the given currency pair.
-   * If the currency pair exists locally, sets the idSecuritycurrency reference.
+   * The instrument is identified by from and to currency codes.
+   * Locality (whether a matching local currency pair exists) is determined dynamically via JOIN query.
    *
    * @param fromCurrency the source currency code
    * @param toCurrency the target currency code
-   * @param idSecuritycurrency the local currencypair ID (may be null for foreign instruments)
-   * @param idGtNet the GTNet server ID
    * @return the existing or newly created instrument
    */
-  GTNetInstrumentCurrencypair findOrCreateInstrument(String fromCurrency, String toCurrency,
-      Integer idSecuritycurrency, Integer idGtNet);
+  GTNetInstrumentCurrencypair findOrCreateInstrument(String fromCurrency, String toCurrency);
 }
