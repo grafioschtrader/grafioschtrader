@@ -46,6 +46,19 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
       Date toDate);
 
   /**
+   * Batch query for historical quotes across multiple securities/currency pairs.
+   * Returns all quotes for the given IDs where the date is greater than or equal to the fromDate.
+   * Results are ordered by idSecuritycurrency and date for efficient grouping.
+   *
+   * @param idSecuritycurrencies list of security/currency pair IDs to query
+   * @param fromDate the minimum date (inclusive) for quotes
+   * @return list of historyquotes ordered by idSecuritycurrency and date ascending
+   */
+  @Query("SELECT h FROM Historyquote h WHERE h.idSecuritycurrency IN :ids AND h.date >= :fromDate ORDER BY h.idSecuritycurrency, h.date")
+  List<Historyquote> findByIdSecuritycurrencyInAndDateGreaterThanEqual(
+      @Param("ids") List<Integer> idSecuritycurrencies, @Param("fromDate") Date fromDate);
+
+  /**
    * Retrieves a set of dates for which historical quotes already exist for a given security or currency pair within a
    * specified date range (exclusive on both ends).
    * <p>

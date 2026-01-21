@@ -512,7 +512,7 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
 
     // Update securities in push pool
     if (securities != null && !securities.isEmpty()) {
-      int securityCount = gtNetInstrumentSecurityJpaRepository.updateFromConnectorFetch(securities, myGTNetId);
+      int securityCount = gtNetInstrumentSecurityJpaRepository.updateFromConnectorFetch(securities);
       if (securityCount > 0) {
         log.debug("Updated {} securities in push pool", securityCount);
       }
@@ -520,7 +520,7 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
 
     // Update currency pairs in push pool
     if (currencypairs != null && !currencypairs.isEmpty()) {
-      int currencypairCount = gtNetInstrumentCurrencypairJpaRepository.updateFromConnectorFetch(currencypairs, myGTNetId);
+      int currencypairCount = gtNetInstrumentCurrencypairJpaRepository.updateFromConnectorFetch(currencypairs);
       if (currencypairCount > 0) {
         log.debug("Updated {} currency pairs in push pool", currencypairCount);
       }

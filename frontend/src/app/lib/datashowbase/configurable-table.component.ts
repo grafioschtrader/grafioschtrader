@@ -241,7 +241,7 @@ import {BaseLocale} from '../dynamic-form/models/base.locale';
                     </ng-container>
                   } @else if (field.templateName === 'owner') {
                     <span [pTooltip]="getValue(rowData, field)"
-                          [style]='isOwnerHighlighted(rowData, field) ? "font-weight:500" : null'
+                          [style]='isOwnerHighlighted(rowData, field) ? "font-weight:700" : null'
                           tooltipPosition="top">
                       {{ getValue(rowData, field) }}
                     </span>

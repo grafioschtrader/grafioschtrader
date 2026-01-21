@@ -1,12 +1,12 @@
 package grafioschtrader.gtnet.handler.impl.historyquote;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -18,7 +18,6 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.gtnet.m2m.model.HistoryquoteRecordDTO;
 import grafioschtrader.gtnet.m2m.model.InstrumentHistoryquoteDTO;
 import grafioschtrader.repository.CurrencypairJpaRepository;
-import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 
 /**
@@ -27,26 +26,25 @@ import grafioschtrader.repository.SecurityJpaRepository;
  * Behavior:
  * <ul>
  *   <li>Queries local Security and Currencypair entities to find matching instruments</li>
- *   <li>Queries local historyquote table for the requested date ranges</li>
+ *   <li>Uses batch queries with 10-day threshold optimization for efficient data retrieval</li>
+ *   <li>Filters results by sendableIds - only sends data for allowed instruments</li>
  *   <li>Returns local historical data that matches the request</li>
  *   <li>For instruments where no data is available AND the server WANTS to receive data,
  *       returns a "want to receive" marker with the date from which data is desired</li>
  *   <li>Does NOT interact with GTNetHistoryquote table</li>
  * </ul>
  *
- * Unlike AC_PUSH_OPEN, this mode only shares data from instruments that exist in the local database.
+ * Unlike AC_PUSH_OPEN, this mode only shares data from instruments that exist in the local database,
+ * and must consider sendableIds to filter what can be exchanged.
  */
 @Component
-public class OpenHistoryquoteQueryStrategy implements HistoryquoteQueryStrategy {
+public class OpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStrategy {
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
 
   @Autowired
   private CurrencypairJpaRepository currencypairJpaRepository;
-
-  @Autowired
-  private HistoryquoteJpaRepository historyquoteJpaRepository;
 
   @Override
   @Transactional(readOnly = true)
@@ -57,17 +55,9 @@ public class OpenHistoryquoteQueryStrategy implements HistoryquoteQueryStrategy 
       return result;
     }
 
-    // Build list of valid ISIN+currency tuples
-    List<String[]> tuples = new ArrayList<>();
-    Map<String, InstrumentHistoryquoteDTO> requestMap = new HashMap<>();
-    for (InstrumentHistoryquoteDTO req : requested) {
-      if (req.getIsin() != null && req.getCurrency() != null) {
-        tuples.add(new String[] { req.getIsin(), req.getCurrency() });
-        requestMap.put(req.getIsin() + ":" + req.getCurrency(), req);
-      }
-    }
-
-    if (tuples.isEmpty()) {
+    // Build tuples and request map using base class
+    TuplesAndRequestMap tuplesAndMap = buildSecurityTuplesAndRequestMap(requested);
+    if (tuplesAndMap.tuples().isEmpty()) {
       return result;
     }
 
@@ -75,43 +65,74 @@ public class OpenHistoryquoteQueryStrategy implements HistoryquoteQueryStrategy 
     Set<Integer> receivableIds = securityJpaRepository.findIdsWithGtNetHistoricalRecv();
 
     // Single batch query for all securities
-    List<Security> securities = securityJpaRepository.findByIsinCurrencyTuples(tuples);
+    List<Security> securities = securityJpaRepository.findByIsinCurrencyTuples(tuplesAndMap.tuples());
+
+    if (securities.isEmpty()) {
+      return result;
+    }
+
+    // Separate sendable securities from receive-only
+    List<Security> sendableSecurities = new ArrayList<>();
+    Map<Integer, Security> securityById = new HashMap<>();
 
     for (Security security : securities) {
-      String key = security.getIsin() + ":" + security.getCurrency();
-      InstrumentHistoryquoteDTO req = requestMap.get(key);
-      if (req == null) {
-        continue;
-      }
-
       Integer securityId = security.getIdSecuritycurrency();
+      securityById.put(securityId, security);
 
-      // Check if we're allowed to send this security's data
       boolean canSend = sendableIds.isEmpty() || sendableIds.contains(securityId);
-
-      if (!canSend) {
-        // Cannot send, but check if we WANT to receive data for this instrument
-        if (receivableIds.contains(securityId)) {
-          addWantToReceiveMarkerForSecurity(result, security);
-        }
-        continue;
+      if (canSend) {
+        sendableSecurities.add(security);
+      } else if (receivableIds.contains(securityId)) {
+        // Cannot send, but want to receive - add marker
+        addWantToReceiveMarkerForSecurity(result, security);
       }
+    }
 
-      // Query historyquotes for this security within the requested date range
-      if (req.getFromDate() != null && req.getToDate() != null) {
-        List<Historyquote> quotes = historyquoteJpaRepository
-            .findByIdSecuritycurrencyAndDateBetweenOrderByDate(securityId, req.getFromDate(), req.getToDate());
+    if (sendableSecurities.isEmpty()) {
+      return result;
+    }
 
-        if (!quotes.isEmpty()) {
-          InstrumentHistoryquoteDTO responseDto = new InstrumentHistoryquoteDTO();
-          responseDto.setIsin(security.getIsin());
-          responseDto.setCurrency(security.getCurrency());
-          responseDto.setFromDate(req.getFromDate());
-          responseDto.setToDate(req.getToDate());
-          responseDto.setRecords(convertToRecords(quotes));
-          result.add(responseDto);
+    // Calculate threshold date (10 days ago)
+    Date thresholdDate = addDays(new Date(), -THRESHOLD_DAYS);
+
+    // Determine batch fromDate based on requests
+    Date batchFromDate = determineBatchFromDate(sendableSecurities, tuplesAndMap.requestMap(), thresholdDate,
+        s -> s.getIsin() + ":" + s.getCurrency());
+
+    // Collect security IDs for batch query
+    List<Integer> securityIds = sendableSecurities.stream()
+        .map(Security::getIdSecuritycurrency)
+        .collect(Collectors.toList());
+
+    // Batch query historyquotes
+    List<Historyquote> allQuotes = historyquoteJpaRepository
+        .findByIdSecuritycurrencyInAndDateGreaterThanEqual(securityIds, batchFromDate);
+
+    // Group quotes by idSecuritycurrency for efficient lookup
+    Map<Integer, List<Historyquote>> quotesBySecurityId = allQuotes.stream()
+        .collect(Collectors.groupingBy(Historyquote::getIdSecuritycurrency));
+
+    // Build results for each sendable security
+    for (Security security : sendableSecurities) {
+      String key = security.getIsin() + ":" + security.getCurrency();
+      InstrumentHistoryquoteDTO req = tuplesAndMap.requestMap().get(key);
+
+      if (req != null && req.getFromDate() != null && req.getToDate() != null) {
+        Integer securityId = security.getIdSecuritycurrency();
+        List<Historyquote> quotes = quotesBySecurityId.getOrDefault(securityId, List.of());
+
+        // Filter to requested date range and convert
+        List<HistoryquoteRecordDTO> records = convertHistoryquotes(quotes);
+        records = filterRecordsByDateRange(records, req.getFromDate(), req.getToDate());
+
+        if (!records.isEmpty()) {
+          InstrumentHistoryquoteDTO response = buildSecurityResponse(
+              security.getIsin(), security.getCurrency(), req.getFromDate(), req.getToDate(), records);
+          if (response != null) {
+            result.add(response);
+          }
         } else if (receivableIds.contains(securityId)) {
-          // No quotes available but we want to receive data for this instrument
+          // No quotes available in requested range but we want to receive data
           addWantToReceiveMarkerForSecurity(result, security);
         }
       }
@@ -121,7 +142,7 @@ public class OpenHistoryquoteQueryStrategy implements HistoryquoteQueryStrategy 
   }
 
   /**
-   * Adds a "want to receive" marker for a security if we have any local data.
+   * Adds a "want to receive" marker for a security.
    * The marker indicates the date from which we need historical data.
    */
   private void addWantToReceiveMarkerForSecurity(List<InstrumentHistoryquoteDTO> result, Security security) {
@@ -149,17 +170,9 @@ public class OpenHistoryquoteQueryStrategy implements HistoryquoteQueryStrategy 
       return result;
     }
 
-    // Build list of valid fromCurrency+toCurrency tuples
-    List<String[]> tuples = new ArrayList<>();
-    Map<String, InstrumentHistoryquoteDTO> requestMap = new HashMap<>();
-    for (InstrumentHistoryquoteDTO req : requested) {
-      if (req.getCurrency() != null && req.getToCurrency() != null) {
-        tuples.add(new String[] { req.getCurrency(), req.getToCurrency() });
-        requestMap.put(req.getCurrency() + ":" + req.getToCurrency(), req);
-      }
-    }
-
-    if (tuples.isEmpty()) {
+    // Build tuples and request map using base class
+    TuplesAndRequestMap tuplesAndMap = buildCurrencypairTuplesAndRequestMap(requested);
+    if (tuplesAndMap.tuples().isEmpty()) {
       return result;
     }
 
@@ -167,44 +180,75 @@ public class OpenHistoryquoteQueryStrategy implements HistoryquoteQueryStrategy 
     Set<Integer> receivableIds = currencypairJpaRepository.findIdsWithGtNetHistoricalRecv();
 
     // Single batch query for all currency pairs
-    List<Currencypair> currencypairs = currencypairJpaRepository.findByCurrencyTuples(tuples);
+    List<Currencypair> currencypairs = currencypairJpaRepository.findByCurrencyTuples(tuplesAndMap.tuples());
 
-    for (Currencypair currencypair : currencypairs) {
-      String key = currencypair.getFromCurrency() + ":" + currencypair.getToCurrency();
-      InstrumentHistoryquoteDTO req = requestMap.get(key);
-      if (req == null) {
-        continue;
-      }
+    if (currencypairs.isEmpty()) {
+      return result;
+    }
 
-      Integer pairId = currencypair.getIdSecuritycurrency();
+    // Separate sendable currency pairs from receive-only
+    List<Currencypair> sendablePairs = new ArrayList<>();
+    Map<Integer, Currencypair> pairById = new HashMap<>();
 
-      // Check if we're allowed to send this currency pair's data
+    for (Currencypair pair : currencypairs) {
+      Integer pairId = pair.getIdSecuritycurrency();
+      pairById.put(pairId, pair);
+
       boolean canSend = sendableIds.isEmpty() || sendableIds.contains(pairId);
-
-      if (!canSend) {
-        // Cannot send, but check if we WANT to receive data for this instrument
-        if (receivableIds.contains(pairId)) {
-          addWantToReceiveMarkerForCurrencypair(result, currencypair);
-        }
-        continue;
+      if (canSend) {
+        sendablePairs.add(pair);
+      } else if (receivableIds.contains(pairId)) {
+        // Cannot send, but want to receive - add marker
+        addWantToReceiveMarkerForCurrencypair(result, pair);
       }
+    }
 
-      // Query historyquotes for this currency pair within the requested date range
-      if (req.getFromDate() != null && req.getToDate() != null) {
-        List<Historyquote> quotes = historyquoteJpaRepository
-            .findByIdSecuritycurrencyAndDateBetweenOrderByDate(pairId, req.getFromDate(), req.getToDate());
+    if (sendablePairs.isEmpty()) {
+      return result;
+    }
 
-        if (!quotes.isEmpty()) {
-          InstrumentHistoryquoteDTO responseDto = new InstrumentHistoryquoteDTO();
-          responseDto.setCurrency(currencypair.getFromCurrency());
-          responseDto.setToCurrency(currencypair.getToCurrency());
-          responseDto.setFromDate(req.getFromDate());
-          responseDto.setToDate(req.getToDate());
-          responseDto.setRecords(convertToRecords(quotes));
-          result.add(responseDto);
+    // Calculate threshold date (10 days ago)
+    Date thresholdDate = addDays(new Date(), -THRESHOLD_DAYS);
+
+    // Determine batch fromDate based on requests
+    Date batchFromDate = determineBatchFromDate(sendablePairs, tuplesAndMap.requestMap(), thresholdDate,
+        p -> p.getFromCurrency() + ":" + p.getToCurrency());
+
+    // Collect currency pair IDs for batch query
+    List<Integer> pairIds = sendablePairs.stream()
+        .map(Currencypair::getIdSecuritycurrency)
+        .collect(Collectors.toList());
+
+    // Batch query historyquotes
+    List<Historyquote> allQuotes = historyquoteJpaRepository
+        .findByIdSecuritycurrencyInAndDateGreaterThanEqual(pairIds, batchFromDate);
+
+    // Group quotes by idSecuritycurrency for efficient lookup
+    Map<Integer, List<Historyquote>> quotesByPairId = allQuotes.stream()
+        .collect(Collectors.groupingBy(Historyquote::getIdSecuritycurrency));
+
+    // Build results for each sendable currency pair
+    for (Currencypair pair : sendablePairs) {
+      String key = pair.getFromCurrency() + ":" + pair.getToCurrency();
+      InstrumentHistoryquoteDTO req = tuplesAndMap.requestMap().get(key);
+
+      if (req != null && req.getFromDate() != null && req.getToDate() != null) {
+        Integer pairId = pair.getIdSecuritycurrency();
+        List<Historyquote> quotes = quotesByPairId.getOrDefault(pairId, List.of());
+
+        // Filter to requested date range and convert
+        List<HistoryquoteRecordDTO> records = convertHistoryquotes(quotes);
+        records = filterRecordsByDateRange(records, req.getFromDate(), req.getToDate());
+
+        if (!records.isEmpty()) {
+          InstrumentHistoryquoteDTO response = buildCurrencypairResponse(
+              pair.getFromCurrency(), pair.getToCurrency(), req.getFromDate(), req.getToDate(), records);
+          if (response != null) {
+            result.add(response);
+          }
         } else if (receivableIds.contains(pairId)) {
-          // No quotes available but we want to receive data for this instrument
-          addWantToReceiveMarkerForCurrencypair(result, currencypair);
+          // No quotes available in requested range but we want to receive data
+          addWantToReceiveMarkerForCurrencypair(result, pair);
         }
       }
     }
@@ -213,7 +257,7 @@ public class OpenHistoryquoteQueryStrategy implements HistoryquoteQueryStrategy 
   }
 
   /**
-   * Adds a "want to receive" marker for a currency pair if we have any local data.
+   * Adds a "want to receive" marker for a currency pair.
    * The marker indicates the date from which we need historical data.
    */
   private void addWantToReceiveMarkerForCurrencypair(List<InstrumentHistoryquoteDTO> result, Currencypair currencypair) {
@@ -226,27 +270,4 @@ public class OpenHistoryquoteQueryStrategy implements HistoryquoteQueryStrategy 
     // Note: Currency pairs don't have an activeFromDate like securities
   }
 
-  private List<HistoryquoteRecordDTO> convertToRecords(List<Historyquote> quotes) {
-    List<HistoryquoteRecordDTO> records = new ArrayList<>();
-    for (Historyquote hq : quotes) {
-      records.add(new HistoryquoteRecordDTO(
-          hq.getDate(),
-          hq.getOpen(),
-          hq.getHigh(),
-          hq.getLow(),
-          hq.getClose(),
-          hq.getVolume()));
-    }
-    return records;
-  }
-
-  /**
-   * Adds specified number of days to a date.
-   */
-  private Date addDays(Date date, int days) {
-    Calendar cal = Calendar.getInstance();
-    cal.setTime(date);
-    cal.add(Calendar.DAY_OF_MONTH, days);
-    return cal.getTime();
-  }
 }

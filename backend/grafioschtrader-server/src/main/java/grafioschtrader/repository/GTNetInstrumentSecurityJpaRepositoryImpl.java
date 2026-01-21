@@ -54,8 +54,8 @@ public class GTNetInstrumentSecurityJpaRepositoryImpl implements GTNetInstrument
 
   @Override
   @Transactional
-  public int updateFromConnectorFetch(List<Security> securities, Integer idGtNet) {
-    if (securities == null || securities.isEmpty() || idGtNet == null) {
+  public int updateFromConnectorFetch(List<Security> securities) {
+    if (securities == null || securities.isEmpty()) {
       return 0;
     }
 
@@ -100,8 +100,7 @@ public class GTNetInstrumentSecurityJpaRepositoryImpl implements GTNetInstrument
 
       // Create instrument if it doesn't exist
       if (instrument == null) {
-        instrument = findOrCreateInstrument(security.getIsin(), security.getCurrency(),
-            security.getIdSecuritycurrency(), idGtNet);
+        instrument = findOrCreateInstrument(security.getIsin(), security.getCurrency());
         instrumentMap.put(key, instrument);
         log.debug("Created new instrument pool entry for security ISIN={}", security.getIsin());
       }
@@ -135,27 +134,18 @@ public class GTNetInstrumentSecurityJpaRepositoryImpl implements GTNetInstrument
 
   @Override
   @Transactional
-  public GTNetInstrumentSecurity findOrCreateInstrument(String isin, String currency, Integer idSecuritycurrency,
-      Integer idGtNet) {
+  public GTNetInstrumentSecurity findOrCreateInstrument(String isin, String currency) {
     Optional<GTNetInstrumentSecurity> existing = gtNetInstrumentSecurityJpaRepository
-        .findByIdGtNetAndIsinAndCurrency(idGtNet, isin, currency);
+        .findByIsinAndCurrency(isin, currency);
 
     if (existing.isPresent()) {
-      GTNetInstrumentSecurity instrument = existing.get();
-      // Update idSecuritycurrency if it was null and now we have a local reference
-      if (instrument.getIdSecuritycurrency() == null && idSecuritycurrency != null) {
-        instrument.setIdSecuritycurrency(idSecuritycurrency);
-        return gtNetInstrumentSecurityJpaRepository.save(instrument);
-      }
-      return instrument;
+      return existing.get();
     }
 
     // Create new instrument
     GTNetInstrumentSecurity newInstrument = new GTNetInstrumentSecurity();
-    newInstrument.setIdGtNet(idGtNet);
     newInstrument.setIsin(isin);
     newInstrument.setCurrency(currency);
-    newInstrument.setIdSecuritycurrency(idSecuritycurrency);
     return gtNetInstrumentSecurityJpaRepository.save(newInstrument);
   }
 
