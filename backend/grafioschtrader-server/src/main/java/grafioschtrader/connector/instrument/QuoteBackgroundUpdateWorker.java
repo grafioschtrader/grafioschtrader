@@ -8,8 +8,11 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,9 +23,11 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.entities.HistoryquoteUpdateLog;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
+import grafioschtrader.repository.HistoryquoteUpdateLogJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.StockexchangeJpaRepository;
 import grafioschtrader.service.GlobalparametersService;
@@ -101,6 +106,9 @@ public class QuoteBackgroundUpdateWorker
   @Autowired
   private HistoryquoteJpaRepository historyquoteJpaRepository;
 
+  @Autowired
+  private HistoryquoteUpdateLogJpaRepository historyquoteUpdateLogJpaRepository;
+
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   /** The background thread that runs the update loop */
@@ -172,25 +180,71 @@ public class QuoteBackgroundUpdateWorker
   /**
    * Processes price updates for securities associated with the specified stock exchanges.
    * Retrieves all securities that need historical quote updates for the given exchanges
-   * and logs information about the update process.
-   * 
+   * and logs information about the update process to both the application log and the database.
+   *
    * <p>
-   * This method currently logs information about:
+   * This method performs the following:
    * </p>
    * <ul>
-   *   <li>Stock exchange name and time since closure</li>
-   *   <li>Number of securities to be processed</li>
-   *   <li>Stock exchange index update status</li>
+   *   <li>Creates database log entries for each exchange before starting the update</li>
+   *   <li>Calls the security repository to fetch and update historical quotes</li>
+   *   <li>Groups updated securities by exchange to track per-exchange statistics</li>
+   *   <li>Updates database log entries with final counts and success/failure status</li>
    * </ul>
-   * 
+   *
    * @param stockexchanges list of stock exchanges that are eligible for price updates
    */
   private void updatePriceForStockexchange(List<Stockexchange> stockexchanges) {
-    List<Security> securities = securityJpaRepository
-        .catchAllUpSecurityHistoryquote(stockexchanges.stream().map(Stockexchange::getIdStockexchange).toList());
+    if (stockexchanges.isEmpty()) {
+      return;
+    }
+
+    // Create log entries for each exchange before starting update
+    Map<Integer, HistoryquoteUpdateLog> logEntries = new HashMap<>();
     for (Stockexchange stockexchange : stockexchanges) {
-      log.info("Namen {}, time since close: {}, number of securties {}, stock-Index-upd: {}", stockexchange.getName(),
-          stockexchange.getClosedMinuntes(), securities.size(), getIndexOfStockexchange(stockexchange));
+      HistoryquoteUpdateLog logEntry = new HistoryquoteUpdateLog(
+          stockexchange.getIdStockexchange(),
+          stockexchange.getClosedMinuntes(),
+          0 // securities count will be updated after the query
+      );
+      logEntry = historyquoteUpdateLogJpaRepository.save(logEntry);
+      logEntries.put(stockexchange.getIdStockexchange(), logEntry);
+    }
+
+    try {
+      List<Security> securities = securityJpaRepository
+          .catchAllUpSecurityHistoryquote(stockexchanges.stream().map(Stockexchange::getIdStockexchange).toList());
+
+      // Group securities by exchange to get per-exchange counts
+      Map<Integer, Long> securitiesPerExchange = securities.stream()
+          .collect(Collectors.groupingBy(
+              s -> s.getStockexchange().getIdStockexchange(),
+              Collectors.counting()));
+
+      // Update log entries with results
+      for (Stockexchange stockexchange : stockexchanges) {
+        HistoryquoteUpdateLog logEntry = logEntries.get(stockexchange.getIdStockexchange());
+        int securitiesCount = securitiesPerExchange.getOrDefault(stockexchange.getIdStockexchange(), 0L).intValue();
+        logEntry.setSecuritiesCount(securitiesCount);
+        logEntry.markSuccess(securitiesCount);
+        historyquoteUpdateLogJpaRepository.save(logEntry);
+
+        log.info("Exchange {}: time since close: {} min, securities updated: {}, index-update: {}",
+            stockexchange.getName(), stockexchange.getClosedMinuntes(), securitiesCount,
+            getIndexOfStockexchange(stockexchange));
+      }
+    } catch (Exception e) {
+      // Mark all log entries as failed
+      for (HistoryquoteUpdateLog logEntry : logEntries.values()) {
+        String errorMessage = e.getMessage();
+        if (errorMessage != null && errorMessage.length() > 500) {
+          errorMessage = errorMessage.substring(0, 500);
+        }
+        logEntry.markFailed(errorMessage);
+        historyquoteUpdateLogJpaRepository.save(logEntry);
+      }
+      log.error("Failed to update historical prices for exchanges: {}",
+          stockexchanges.stream().map(Stockexchange::getName).toList(), e);
     }
   }
 
@@ -234,7 +288,7 @@ public class QuoteBackgroundUpdateWorker
         .plus(GlobalConstants.WAIT_AFTER_SE_CLOSE_FOR_UPDATE_IN_MINUTES * -1, ChronoUnit.MINUTES)
         .atOffset(ZoneOffset.UTC).getDayOfWeek();
     if (DayOfWeek.SATURDAY == dayOfWeekNow || DayOfWeek.SUNDAY == dayOfWeekNow) {
-      Instant nextMonday = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY)).atStartOfDay()
+      Instant nextMonday = LocalDate.now(ZoneOffset.UTC).with(TemporalAdjusters.next(DayOfWeek.MONDAY)).atStartOfDay()
           .toInstant(ZoneOffset.UTC);
 
       sleepHours = Duration.between(now, nextMonday).toHours();

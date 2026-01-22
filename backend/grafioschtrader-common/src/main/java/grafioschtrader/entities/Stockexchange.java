@@ -315,9 +315,9 @@ public class Stockexchange extends Auditable implements Serializable {
   @JsonIgnore
   public int getClosedMinuntes() {
     LocalDateTime nowTimeZone = LocalDateTime.now(ZoneId.of(timeZone));
-    int closedMinutes = (int) Duration.between(timeClose, LocalTime.now()).toMinutes()
-        + ZoneId.of(timeZone).getRules().getOffset(Instant.now()).getTotalSeconds() / 60;
+    int closedMinutes = (int) Duration.between(timeClose, nowTimeZone.toLocalTime()).toMinutes();
     closedMinutes = isNowOpenExchange() || closedMinutes > 0 ? closedMinutes : 24 * 60 + closedMinutes;
+    closedMinutes += nowTimeZone.getDayOfWeek() == DayOfWeek.SATURDAY ? 24 * 60 : 0;
     closedMinutes += nowTimeZone.getDayOfWeek() == DayOfWeek.SUNDAY ? 24 * 60 : 0;
     closedMinutes += nowTimeZone.getDayOfWeek() == DayOfWeek.MONDAY && nowTimeZone.toLocalTime().isBefore(timeOpen)
         ? 24 * 60
@@ -327,6 +327,9 @@ public class Stockexchange extends Auditable implements Serializable {
 
   @JsonIgnore
   public boolean mayHavePriceUpdateSinceLastClose() {
+    if (lastDirectPriceUpdate == null) {
+      return true;
+    }
     LocalDateTime nowTimeZone = LocalDateTime.now(ZoneId.of(timeZone));
     ZoneId zoneLocal = ZoneId.of(timeZone);
     LocalDateTime ldpuDateTimeLocal = lastDirectPriceUpdate.atZone(ZoneOffset.UTC).withZoneSameInstant(zoneLocal)
