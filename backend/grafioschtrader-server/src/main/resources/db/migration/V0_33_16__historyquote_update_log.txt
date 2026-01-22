@@ -1,0 +1,15 @@
+CREATE TABLE `historyquote_update_log` (
+  `id_hq_update_log` INT(11) NOT NULL AUTO_INCREMENT,
+  `id_stockexchange` INT(11) NOT NULL,
+  `update_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `minutes_since_close` INT(11) NOT NULL,
+  `securities_count` INT(11) NOT NULL,
+  `securities_updated` INT(11) NOT NULL DEFAULT 0,
+  `update_status` TINYINT(1) NOT NULL DEFAULT 0,
+  `error_message` VARCHAR(500) DEFAULT NULL,
+  PRIMARY KEY (`id_hq_update_log`),
+  KEY `idx_hq_update_stockexchange` (`id_stockexchange`),
+  KEY `idx_hq_update_timestamp` (`update_timestamp`),
+  CONSTRAINT `fk_hq_update_stockexchange` FOREIGN KEY (`id_stockexchange`)
+    REFERENCES `stockexchange` (`id_stockexchange`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
