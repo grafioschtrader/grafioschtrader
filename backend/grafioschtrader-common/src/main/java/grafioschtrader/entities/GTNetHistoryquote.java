@@ -20,19 +20,19 @@ import jakarta.persistence.TemporalType;
  * Historical (EOD) price data for FOREIGN instruments in the GT-Network pool.
  *
  * This entity stores end-of-day OHLCV (Open, High, Low, Close, Volume) data for instruments that do NOT
- * exist in the local database. For instruments that DO exist locally (where {@link GTNetInstrument#isLocalInstrument()}
- * returns true), historical data is stored in the standard {@link Historyquote} table instead.
+ * exist in the local database. For instruments that DO exist locally (determined via JOIN to security/currencypair
+ * tables), historical data is stored in the standard {@link Historyquote} table instead.
  *
  * <h3>When This Table Is Used</h3>
  * <ul>
  *   <li>When receiving historical quotes for an instrument not in our local database</li>
  *   <li>When serving as a PUSH_OPEN provider for instruments received from other GTNet peers</li>
- *   <li>The {@link GTNetInstrument#getIdSecuritycurrency()} will be null for these instruments</li>
+ *   <li>No matching entry exists in security/currencypair table (foreign instrument)</li>
  * </ul>
  *
  * <h3>When Standard Historyquote Is Used Instead</h3>
  * <ul>
- *   <li>When the instrument exists locally ({@link GTNetInstrument#isLocalInstrument()} returns true)</li>
+ *   <li>When the instrument exists locally (JOIN finds a match in security/currencypair table)</li>
  *   <li>Historical quotes go directly to {@link Historyquote} linked by idSecuritycurrency</li>
  *   <li>This avoids data duplication and keeps the local historyquote table as the single source of truth</li>
  * </ul>

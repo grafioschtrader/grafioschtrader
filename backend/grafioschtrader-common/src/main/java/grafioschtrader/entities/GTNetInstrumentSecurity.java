@@ -20,7 +20,7 @@ import jakarta.persistence.Table;
  * <ul>
  *   <li>Used by {@link GTNetLastprice} for intraday price data</li>
  *   <li>Used by {@link GTNetHistoryquote} for historical price data (foreign instruments only)</li>
- *   <li>When {@link #isLocalInstrument()} returns true, historical data goes to {@link Historyquote} instead</li>
+ *   <li>When instrument exists locally (JOIN matches security table), historical data goes to {@link Historyquote} instead</li>
  * </ul>
  *
  * @see GTNetInstrument for base fields and local/foreign distinction

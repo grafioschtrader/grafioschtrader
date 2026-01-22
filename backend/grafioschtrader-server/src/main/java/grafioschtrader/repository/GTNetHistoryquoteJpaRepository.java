@@ -17,7 +17,7 @@ import grafioschtrader.entities.GTNetHistoryquote;
  *
  * Provides access to historical (EOD) price data for FOREIGN instruments in the GTNet pool.
  * This table is only used for instruments that do NOT exist in the local database
- * (where {@link grafioschtrader.entities.GTNetInstrument#isLocalInstrument()} returns false).
+ * (no matching entry exists in security/currencypair table when JOINed).
  *
  * For local instruments, historical data is stored in the standard {@link grafioschtrader.entities.Historyquote}
  * table instead.
