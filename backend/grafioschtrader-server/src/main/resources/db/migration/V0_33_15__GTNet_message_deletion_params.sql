@@ -1,3 +1,4 @@
+-- This script does little but looks complicated because it is idempotent and also supports older MariaDB versions.
 -- GTNet message deletion retention configuration
 -- LP = LastPrice message codes (60, 61) retention in days
 -- HP = HistoryPrice message codes (80, 81) retention in days
