@@ -64,16 +64,16 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
   /**
    * For all securities and currencies it fills their history quote from the youngest entry date until now.
    *
-   * @return
+   * @param idsStockexchange list of stock exchange IDs, or null/empty for global update
+   * @return list of updated securities or currency pairs
    */
   private List<S> particialFillHistoryquote(List<Integer> idsStockexchange) {
-
-    final Calendar currentCalendar = corretToCalendarForDayAfterUpdate(
-        idsStockexchange == null || idsStockexchange.size() == 0);
+    final boolean isExchangeSpecificUpdate = idsStockexchange != null && !idsStockexchange.isEmpty();
+    final Calendar currentCalendar = corretToCalendarForDayAfterUpdate(!isExchangeSpecificUpdate);
     final List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList = historyqouteEntityBaseAccess
         .getMaxHistoryquoteResult(globalparametersService.getMaxHistoryRetry(), this, idsStockexchange);
 
-    return fillHistoryquoteForSecuritiesCurrencies(historySecurityCurrencyList, currentCalendar);
+    return fillHistoryquoteForSecuritiesCurrencies(historySecurityCurrencyList, currentCalendar, isExchangeSpecificUpdate);
   }
 
   /**
@@ -96,10 +96,25 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
   @Override
   public List<S> fillHistoryquoteForSecuritiesCurrencies(
       List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, final Calendar currentCalendar) {
+    return fillHistoryquoteForSecuritiesCurrencies(historySecurityCurrencyList, currentCalendar, false);
+  }
+
+  /**
+   * Updates historical quotes for a list of currency pairs and securities.
+   *
+   * @param historySecurityCurrencyList list of securities/currencies with their maximum historical quote dates
+   * @param currentCalendar current calendar for determining the update range
+   * @param isExchangeSpecificUpdate true if this is an exchange-specific update (allows single-day updates),
+   *                                  false for global daily update (requires more than 1 day difference)
+   * @return list of updated securities or currency pairs
+   */
+  private List<S> fillHistoryquoteForSecuritiesCurrencies(
+      List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, final Calendar currentCalendar,
+      boolean isExchangeSpecificUpdate) {
     final List<S> catchUp = new ArrayList<>();
     ThreadHelper.executeForkJoinPool(
         () -> historySecurityCurrencyList.parallelStream()
-            .forEach(queryObject -> catchUpHistoryquote(queryObject, currentCalendar, catchUp)),
+            .forEach(queryObject -> catchUpHistoryquote(queryObject, currentCalendar, catchUp, isExchangeSpecificUpdate)),
         GlobalConstants.FORK_JOIN_POOL_CORE_MULTIPLIER);
     return catchUp;
   }
@@ -140,14 +155,27 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
     }
   }
 
+  /**
+   * Updates historical quotes for a single security or currency pair if there are missing days.
+   *
+   * @param queryObject the security/currency with its maximum historical quote date
+   * @param untilCalendar the target date to update to
+   * @param catchUp list to add successfully updated securities to
+   * @param isExchangeSpecificUpdate true if this is an exchange-specific update. For exchange-specific updates,
+   *                                  securities are updated if diffInDays >= 1 (allows same-day updates after
+   *                                  exchange closes). For global daily updates, diffInDays must be > 1.
+   */
   private void catchUpHistoryquote(final SecurityCurrencyMaxHistoryquoteData<S> queryObject,
-      final Calendar untilCalendar, final List<S> catchUp) {
+      final Calendar untilCalendar, final List<S> catchUp, boolean isExchangeSpecificUpdate) {
     final S securitycurrency = queryObject.getSecurityCurrency();
     final Calendar lastQuoteCalendar = DateHelper.getCalendar(queryObject.getDate());
     final int diffInDays = (int) ((untilCalendar.getTimeInMillis() - lastQuoteCalendar.getTimeInMillis())
         / (1000 * 60 * 60 * 24));
 
-    if (diffInDays > 1) {
+    // For exchange-specific updates: update if at least 1 day difference (allows today's data after close)
+    // For global daily updates: update only if more than 1 day difference
+    final int minDaysRequired = isExchangeSpecificUpdate ? 1 : 2;
+    if (diffInDays >= minDaysRequired) {
       log.debug("Catchup historyquote, missing Days: diffInDays={} for Security/Currency securitycurrency={}",
           diffInDays, securitycurrency);
       lastQuoteCalendar.add(Calendar.DATE, 1);
