@@ -13,4 +13,6 @@ export interface HistoryquoteOHLC {
   low?: number;
   /** Closing price of the day */
   close?: number;
+  /** Trading volume for the day */
+  volume?: number;
 }

@@ -74,7 +74,7 @@ interface Data {
   template: `
     <div #container class="fullChart" [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
          (click)="onComponentClick($event)" (contextmenu)="onRightClick($event)">
-      <div class="input-w">
+      <div class="input-row">
         <label for="fromDate">{{ 'FROM_DATE' | translate }}</label>
         <p-datepicker #cal appendTo="body"
                       baseZIndex="100"
@@ -94,6 +94,8 @@ interface Data {
         <button type="button" (click)="oldestTrade($event)" title="{{'OLDEST_TRADE_TOOLTIP' | translate}}">
           {{ "OLDEST_TRADE" | translate }}
         </button>
+      </div>
+      <div class="input-row">
         @if (this.loadedData.length === 1) {
           <label>{{ 'HOLDING' | translate }}</label>
           <input type="checkbox" [(ngModel)]="showHolding" (change)="toggleCheckbox($event)">
@@ -104,6 +106,11 @@ interface Data {
 
         <label>{{ 'CONNECT_GAPS' | translate }}</label>
         <input type="checkbox" [(ngModel)]="connectGaps" (change)="toggleCheckbox($event)">
+
+        @if (this.loadedData.length === 1 && volumeAvailable) {
+          <label>{{ 'VOLUME' | translate }}</label>
+          <input type="checkbox" [(ngModel)]="showVolume" (change)="toggleCheckbox($event)">
+        }
 
         <label>{{ 'CURRENCY' | translate }}</label>
         <p-select [options]="currenciesOptions" [(ngModel)]="requestedCurrency"
@@ -116,7 +123,6 @@ interface Data {
                     (onChange)="handleChangeChartType($event)">
           </p-select>
         }
-
       </div>
       <div #chart class="plot-container">
       </div>
@@ -128,7 +134,7 @@ interface Data {
       </indicator-edit>
     }
   `,
-  styles: ['button { border: 0; margin-left: 3px}'],
+  styles: ['button { border: 0; margin-left: 3px} .input-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 4px; }'],
   standalone: false
 })
 export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
@@ -156,6 +162,8 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   selectedChartType: ChartType = ChartType.LINE;
   chartTypeOptions: SelectItem[] = [];
   ohlcAvailable: boolean = false;
+  volumeAvailable: boolean = false;
+  showVolume: boolean = false;
   // protected paramMap: ParamMap;
   protected transactionPositionList: SecurityTransactionPosition[] = [];
   private minValueOfY: number;
@@ -266,10 +274,13 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
           historyquotes = chartResponse.ohlcList.map(ohlc => ({date: ohlc.date, close: ohlc.close}));
           ohlcData = chartResponse.ohlcList;
           this.ohlcAvailable = true;
+          this.volumeAvailable = chartResponse.volumeAvailable ?? false;
         } else {
           historyquotes = chartResponse.dateCloseList || [];
           ohlcData = undefined;
           this.ohlcAvailable = false;
+          this.volumeAvailable = false;
+          this.showVolume = false;
           // Reset to line chart if OHLC not available
           if (this.selectedChartType !== ChartType.LINE) {
             this.selectedChartType = ChartType.LINE;
@@ -371,6 +382,13 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     if (this.showHolding && this.loadedData.length === 1 && this.loadedData[0].currencySecurity) {
       const holdingsData = this.getHoldingTraceForSecurity(<SecurityTransactionSummary>this.loadedData[0].nameSecuritycurrency);
       traces = traces.concat(holdingsData);
+    }
+    // Add volume trace if enabled and available
+    if (this.showVolume && this.loadedData.length === 1 && this.volumeAvailable) {
+      const volumeTrace = this.getVolumeTrace(this.loadedData[0]);
+      if (volumeTrace) {
+        traces.push(volumeTrace);
+      }
     }
     const layout: any = this.getLayout(this.getHoldingLayout());
     this.plot(element, traces, layout);
@@ -513,6 +531,50 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       close: slicedData.map(ohlc => ohlc.close),
       increasing: {line: {color: 'green'}},
       decreasing: {line: {color: 'red'}}
+    };
+  }
+
+  /**
+   * Creates a volume bar chart trace for the subchart.
+   * Volume is displayed as bars below the price chart with color-coding
+   * based on price direction (green for up, red for down).
+   *
+   * @param loadedData The loaded data containing OHLC data with volume
+   * @returns A Plotly bar trace object for volume, or null if no volume data
+   */
+  getVolumeTrace(loadedData: LoadedData): any {
+    if (!loadedData.ohlcData) {
+      return null;
+    }
+
+    let foundStartIndex = Math.abs(AppHelper.binarySearch(loadedData.ohlcData,
+      moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE), this.compareHistoricalFN));
+
+    while (loadedData.ohlcData[foundStartIndex]?.close === null) {
+      foundStartIndex++;
+    }
+
+    const slicedData = loadedData.ohlcData.slice(foundStartIndex);
+
+    // Determine colors based on price direction (green for up, red for down)
+    const colors = slicedData.map((ohlc, index) => {
+      if (index === 0) {
+        return 'rgba(128, 128, 128, 0.6)';
+      }
+      const prevClose = slicedData[index - 1].close || ohlc.open;
+      return (ohlc.close >= prevClose)
+        ? 'rgba(0, 128, 0, 0.6)'   // Green for up
+        : 'rgba(255, 0, 0, 0.6)'; // Red for down
+    });
+
+    return {
+      type: 'bar',
+      name: 'Volume',
+      x: slicedData.map(ohlc => ohlc.date),
+      y: slicedData.map(ohlc => ohlc.volume || 0),
+      yaxis: 'y4',
+      marker: {color: colors},
+      showlegend: true
     };
   }
 
@@ -1069,6 +1131,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     const dateNative = moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
     // Oscillators can only be displayed when showing a single security
     const hasOscillator = this.loadedData.length === 1 && this.indicatorDefinitions.hasShownOscillator();
+    const hasVolume = this.showVolume && this.loadedData.length === 1 && this.volumeAvailable;
 
     // Determine chart title based on selected chart type
     let chartTitle = 'LINE_CHART';
@@ -1109,8 +1172,40 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       shapes: this.getSavedShapes()
     };
 
-    // Configure subplot layout when an oscillator indicator is shown
-    if (hasOscillator) {
+    // Configure subplot layout based on active subcharts
+    if (hasOscillator && hasVolume) {
+      // Price: 50%, Volume: 17%, RSI: 25%, gaps: 8%
+      layout.grid = {rows: 3, columns: 1, pattern: 'independent', roworder: 'top to bottom'};
+      layout.yaxis.domain = [0.50, 1];
+      layout.yaxis4 = {
+        domain: [0.30, 0.47],
+        autorange: true,
+        fixedrange: true,
+        showgrid: true,
+        gridcolor: 'rgba(128, 128, 128, 0.3)'
+      };
+      layout.yaxis3 = {
+        domain: [0, 0.25],
+        range: [0, 100],
+        fixedrange: true,
+        dtick: 10,
+        showgrid: true,
+        gridcolor: 'rgba(128, 128, 128, 0.3)'
+      };
+      layout.xaxis.rangeslider.thickness = 0.03;
+    } else if (hasVolume) {
+      // Price: 70%, Volume: 25%, gap: 5%
+      layout.grid = {rows: 2, columns: 1, pattern: 'independent', roworder: 'top to bottom'};
+      layout.yaxis.domain = [0.30, 1];
+      layout.yaxis4 = {
+        domain: [0, 0.25],
+        autorange: true,
+        fixedrange: true,
+        showgrid: true,
+        gridcolor: 'rgba(128, 128, 128, 0.3)'
+      };
+      layout.xaxis.rangeslider.thickness = 0.04;
+    } else if (hasOscillator) {
       // Use grid layout with 2 rows
       layout.grid = {rows: 2, columns: 1, pattern: 'independent', roworder: 'top to bottom'};
       // Price chart takes 65% height (top)
@@ -1127,7 +1222,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       // Adjust rangeslider to not overlap with RSI panel
       layout.xaxis.rangeslider.thickness = 0.05;
     } else {
-      // Reset to full height when no oscillator is shown
+      // Reset to full height when no subcharts are shown
       layout.yaxis.domain = [0, 1];
     }
 

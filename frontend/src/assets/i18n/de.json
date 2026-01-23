@@ -684,6 +684,7 @@
   "VALUE_SECURITY": "Total Position",
   "VALUE_SECURITY_TOOLTIP": "Total der offenen Position in der entsprechenden Währung",
   "VALUE_TOOLTIP": "Wertpapiere + Barsaldo",
+  "VOLUME": "Volumen",
   "WAIT_DAYS_APPLY": "Wartetage",
   "WAIT_DAYS_APPLY_TOOLTIP": "Wartefrist in Tagen nach einer Ablehnungsantwort. Der Antragsteller muss diese Anzahl von Tagen warten, bevor er einen neuen Antrag stellen kann. 0 bedeutet keine Wartezeit.",
   "WATCHLIST_ADD_PROBLEM_INSTRUMENT": "Kursdaten Probleme hinzufügen",

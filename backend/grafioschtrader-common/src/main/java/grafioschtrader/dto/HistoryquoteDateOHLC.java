@@ -36,24 +36,29 @@ public class HistoryquoteDateOHLC {
   @Schema(description = "Closing price of the day")
   public Double close;
 
+  @Schema(description = "Trading volume for the day")
+  public Long volume;
+
   public HistoryquoteDateOHLC() {
   }
 
   /**
    * Constructs a HistoryquoteDateOHLC from java.sql.Date and price values.
    *
-   * @param date  the trading date (as java.sql.Date from database)
-   * @param open  the opening price
-   * @param high  the highest price
-   * @param low   the lowest price
-   * @param close the closing price
+   * @param date   the trading date (as java.sql.Date from database)
+   * @param open   the opening price
+   * @param high   the highest price
+   * @param low    the lowest price
+   * @param close  the closing price
+   * @param volume the trading volume
    */
-  public HistoryquoteDateOHLC(Date date, Double open, Double high, Double low, Double close) {
+  public HistoryquoteDateOHLC(Date date, Double open, Double high, Double low, Double close, Long volume) {
     this.date = ((java.sql.Date) date).toLocalDate();
     this.open = open;
     this.high = high;
     this.low = low;
     this.close = close;
+    this.volume = volume;
   }
 
   /**
@@ -64,13 +69,15 @@ public class HistoryquoteDateOHLC {
    * @param high      the highest price
    * @param low       the lowest price
    * @param close     the closing price
+   * @param volume    the trading volume
    */
-  public HistoryquoteDateOHLC(LocalDate localDate, Double open, Double high, Double low, Double close) {
+  public HistoryquoteDateOHLC(LocalDate localDate, Double open, Double high, Double low, Double close, Long volume) {
     this.date = localDate;
     this.open = open;
     this.high = high;
     this.low = low;
     this.close = close;
+    this.volume = volume;
   }
 
   public LocalDate getDate() {
@@ -111,5 +118,13 @@ public class HistoryquoteDateOHLC {
 
   public void setClose(Double close) {
     this.close = close;
+  }
+
+  public Long getVolume() {
+    return volume;
+  }
+
+  public void setVolume(Long volume) {
+    this.volume = volume;
   }
 }
