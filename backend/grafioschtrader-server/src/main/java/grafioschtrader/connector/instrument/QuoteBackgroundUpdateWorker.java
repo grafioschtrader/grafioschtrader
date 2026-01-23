@@ -3,11 +3,8 @@ package grafioschtrader.connector.instrument;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -172,11 +169,6 @@ public class QuoteBackgroundUpdateWorker
                 && se.mayHavePriceUpdateSinceLastClose())
             .toList();
         updatePriceForStockexchange(stockexchangesUpd);
-
-        // Re-fetch stockexchanges to get updated lastDirectPriceUpdate values after processing.
-        // Without this, the in-memory objects have stale data and mayHavePriceUpdateSinceLastClose()
-        // returns incorrect results in getCalculatedSleepTimeInMinutes().
-        stockexchanges = stockexchangeJpaRepository.findByNoMarketValueFalse();
         TimeUnit.MINUTES.sleep(getCalculatedSleepTimeInMinutes(stockexchanges));
       } catch (InterruptedException ie) {
         log.info("Backgroud thread was interrupted, Failed to complete operation");
@@ -271,28 +263,20 @@ public class QuoteBackgroundUpdateWorker
 
   /**
    * Calculates the optimal sleep time in minutes before the next update cycle.
-   * Uses intelligent scheduling that adapts to exchange closing times and weekends.
+   * Finds when the next exchange reaches eligibility (close time + wait period).
    *
    * <p>
-   * Sleep time calculation strategy:
+   * For each exchange, calculates when it will next be eligible:
    * </p>
    * <ul>
-   *   <li><strong>Weekdays:</strong> Calculates when the next exchange becomes eligible
-   *       (close time + {@link GlobalConstants#WAIT_AFTER_SE_CLOSE_FOR_UPDATE_IN_MINUTES})
-   *       and sleeps until that time</li>
-   *   <li><strong>Weekends:</strong> Sleep until next Monday (markets typically closed)</li>
-   *   <li><strong>Random variation:</strong> Adds ±10 minutes to avoid predictable query patterns</li>
+   *   <li>If current time is before today's eligibility time → use today's eligibility</li>
+   *   <li>If current time is after today's eligibility time → use tomorrow's eligibility</li>
    * </ul>
    *
    * <p>
-   * An exchange becomes eligible for update when:
+   * The method then sleeps until the soonest eligibility time, with ±10 minutes random
+   * variation to avoid predictable query patterns.
    * </p>
-   * <ol>
-   *   <li>Current time is at least {@link GlobalConstants#WAIT_AFTER_SE_CLOSE_FOR_UPDATE_IN_MINUTES}
-   *       after the exchange's close time</li>
-   *   <li>The exchange may have new price data since its last update
-   *       ({@link Stockexchange#mayHavePriceUpdateSinceLastClose()})</li>
-   * </ol>
    *
    * @param stockexchanges list of all active stock exchanges to consider for scheduling
    * @return the number of minutes to sleep before the next update cycle (minimum 5 minutes)
@@ -300,21 +284,6 @@ public class QuoteBackgroundUpdateWorker
   private long getCalculatedSleepTimeInMinutes(List<Stockexchange> stockexchanges) {
     Instant now = Instant.now();
     Random random = new Random();
-
-    // Check if it's weekend - if so, sleep until Monday
-    DayOfWeek dayOfWeekNow = now.atOffset(ZoneOffset.UTC).getDayOfWeek();
-    if (DayOfWeek.SATURDAY == dayOfWeekNow || DayOfWeek.SUNDAY == dayOfWeekNow) {
-      Instant nextMonday = LocalDate.now(ZoneOffset.UTC)
-          .with(TemporalAdjusters.next(DayOfWeek.MONDAY))
-          .atStartOfDay()
-          .toInstant(ZoneOffset.UTC);
-      long sleepMinutes = Duration.between(now, nextMonday).toMinutes();
-      int randomVariation = random.nextInt(21) - 10;
-      sleepMinutes += randomVariation;
-      log.info("Weekend detected, sleeping {} minutes until Monday (including {}min random variation)",
-          sleepMinutes, randomVariation);
-      return sleepMinutes;
-    }
 
     // Find the next exchange eligibility time
     Instant nextEligibleTime = null;
@@ -329,6 +298,13 @@ public class QuoteBackgroundUpdateWorker
       try {
         ZoneId exchangeZone = ZoneId.of(se.getTimeZone());
         LocalDateTime nowInExchangeZone = LocalDateTime.now(exchangeZone);
+
+        // Skip weekends in the exchange's local timezone
+        DayOfWeek dayOfWeek = nowInExchangeZone.getDayOfWeek();
+        if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
+          continue;
+        }
+
         LocalDateTime closeTimeToday = LocalDateTime.of(nowInExchangeZone.toLocalDate(), se.getTimeClose());
 
         // Calculate eligibility time: close time + wait period
@@ -336,17 +312,11 @@ public class QuoteBackgroundUpdateWorker
             .plusMinutes(GlobalConstants.WAIT_AFTER_SE_CLOSE_FOR_UPDATE_IN_MINUTES);
         Instant eligibleInstant = eligibleTime.atZone(exchangeZone).toInstant();
 
-        // If eligibility time is in the past, check if already updated or calculate for tomorrow
+        // If eligibility time is in the past, calculate for tomorrow
         if (eligibleInstant.isBefore(now) || eligibleInstant.equals(now)) {
-          if (!se.mayHavePriceUpdateSinceLastClose()) {
-            // Already updated today, calculate for tomorrow's eligibility
-            eligibleTime = closeTimeToday.plusDays(1)
-                .plusMinutes(GlobalConstants.WAIT_AFTER_SE_CLOSE_FOR_UPDATE_IN_MINUTES);
-            eligibleInstant = eligibleTime.atZone(exchangeZone).toInstant();
-          } else {
-            // Exchange is currently eligible (will be processed in this cycle), skip
-            continue;
-          }
+          eligibleTime = closeTimeToday.plusDays(1)
+              .plusMinutes(GlobalConstants.WAIT_AFTER_SE_CLOSE_FOR_UPDATE_IN_MINUTES);
+          eligibleInstant = eligibleTime.atZone(exchangeZone).toInstant();
         }
 
         // Track the soonest eligibility time
