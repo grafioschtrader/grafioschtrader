@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS historyquote_update_log;
 CREATE TABLE `historyquote_update_log` (
   `id_hq_update_log` INT(11) NOT NULL AUTO_INCREMENT,
   `id_stockexchange` INT(11) NOT NULL,
