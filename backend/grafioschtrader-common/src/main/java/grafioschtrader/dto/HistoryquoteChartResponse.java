@@ -34,30 +34,41 @@ public class HistoryquoteChartResponse {
       """)
   private List<HistoryquoteDateOHLC> ohlcList;
 
+  @Schema(description = """
+      Indicates whether volume data is available for this security. When true, volume values in ohlcList are populated
+      and the volume subchart can be displayed.
+      """)
+  private boolean volumeAvailable;
+
   public HistoryquoteChartResponse() {
   }
 
   /**
-   * Constructs a response with OHLC data.
+   * Creates a response with OHLC data.
    *
    * @param ohlcList the list of OHLC data points
+   * @return a new HistoryquoteChartResponse with OHLC data
    */
-  public HistoryquoteChartResponse(List<HistoryquoteDateOHLC> ohlcList) {
-    this.ohlcAvailable = true;
-    this.ohlcList = ohlcList;
-    this.dateCloseList = null;
+  public static HistoryquoteChartResponse ofOhlc(List<HistoryquoteDateOHLC> ohlcList) {
+    HistoryquoteChartResponse response = new HistoryquoteChartResponse();
+    response.ohlcAvailable = true;
+    response.ohlcList = ohlcList;
+    response.dateCloseList = null;
+    return response;
   }
 
   /**
-   * Constructs a response with simple date/close data.
+   * Creates a response with simple date/close data.
    *
    * @param dateCloseList the list of date/close data points
-   * @param ohlcAvailable must be false to indicate OHLC is not available
+   * @return a new HistoryquoteChartResponse with date/close data
    */
-  public HistoryquoteChartResponse(List<HistoryquoteDateClose> dateCloseList, boolean ohlcAvailable) {
-    this.ohlcAvailable = ohlcAvailable;
-    this.dateCloseList = dateCloseList;
-    this.ohlcList = null;
+  public static HistoryquoteChartResponse ofDateClose(List<HistoryquoteDateClose> dateCloseList) {
+    HistoryquoteChartResponse response = new HistoryquoteChartResponse();
+    response.ohlcAvailable = false;
+    response.dateCloseList = dateCloseList;
+    response.ohlcList = null;
+    return response;
   }
 
   public boolean isOhlcAvailable() {
@@ -82,5 +93,13 @@ public class HistoryquoteChartResponse {
 
   public void setOhlcList(List<HistoryquoteDateOHLC> ohlcList) {
     this.ohlcList = ohlcList;
+  }
+
+  public boolean isVolumeAvailable() {
+    return volumeAvailable;
+  }
+
+  public void setVolumeAvailable(boolean volumeAvailable) {
+    this.volumeAvailable = volumeAvailable;
   }
 }

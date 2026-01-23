@@ -415,11 +415,15 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
     if (Integer.valueOf(1).equals(ohlcAvailable)) {
       List<HistoryquoteDateOHLC> ohlcList = historyquoteJpaRepository
           .findOhlcByIdSecuritycurrencyOrderByDateAsc(idSecuritycurrency);
-      return new HistoryquoteChartResponse(ohlcList);
+      boolean volumeAvailable = ohlcList.stream()
+          .anyMatch(ohlc -> ohlc.getVolume() != null && ohlc.getVolume() > 0);
+      HistoryquoteChartResponse response = HistoryquoteChartResponse.ofOhlc(ohlcList);
+      response.setVolumeAvailable(volumeAvailable);
+      return response;
     } else {
       List<HistoryquoteDateClose> dateCloseList = historyquoteJpaRepository
           .findDateCloseByIdSecuritycurrencyAndCreateTypeFalseOrderByDateAsc(idSecuritycurrency);
-      return new HistoryquoteChartResponse(dateCloseList, false);
+      return HistoryquoteChartResponse.ofDateClose(dateCloseList);
     }
   }
 

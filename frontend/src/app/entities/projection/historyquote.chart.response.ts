@@ -12,6 +12,11 @@ export interface HistoryquoteChartResponse {
    */
   ohlcAvailable: boolean;
   /**
+   * Indicates whether volume data is available for this security.
+   * When true, volume values in ohlcList are populated and the volume subchart can be displayed.
+   */
+  volumeAvailable?: boolean;
+  /**
    * List of simple date and close price pairs.
    * Populated when ohlcAvailable is false.
    */

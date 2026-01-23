@@ -173,6 +173,10 @@ public class QuoteBackgroundUpdateWorker
             .toList();
         updatePriceForStockexchange(stockexchangesUpd);
 
+        // Re-fetch stockexchanges to get updated lastDirectPriceUpdate values after processing.
+        // Without this, the in-memory objects have stale data and mayHavePriceUpdateSinceLastClose()
+        // returns incorrect results in getCalculatedSleepTimeInMinutes().
+        stockexchanges = stockexchangeJpaRepository.findByNoMarketValueFalse();
         TimeUnit.MINUTES.sleep(getCalculatedSleepTimeInMinutes(stockexchanges));
       } catch (InterruptedException ie) {
         log.info("Backgroud thread was interrupted, Failed to complete operation");

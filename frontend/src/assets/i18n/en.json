@@ -687,6 +687,7 @@
   "VALUE_SECURITY": "Total Position",
   "VALUE_SECURITY_TOOLTIP": "Total of the open position in the corresponding currency",
   "VALUE_TOOLTIP": "Securities + Cash balance",
+  "VOLUME": "Volume",
   "WAIT_DAYS_APPLY": "Wait days",
   "WAIT_DAYS_APPLY_TOOLTIP": "Cooling-off period in days after a rejection response. The requester must wait this many days before submitting another request. 0 means no waiting period.",
   "WATCHLIST_ADD_PROBLEM_INSTRUMENT": "Add price data problems",
