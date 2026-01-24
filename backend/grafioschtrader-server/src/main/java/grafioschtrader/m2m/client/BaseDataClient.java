@@ -11,7 +11,6 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.gtnet.model.msg.ApplicationInfo;
 import grafioschtrader.m2m.rest.GTNetM2MResource;
-import grafioschtrader.repository.GTNetJpaRepositoryImpl;
 import grafioschtrader.rest.RequestGTMappings;
 import io.netty.resolver.ResolvedAddressTypes;
 import reactor.core.publisher.Mono;
@@ -38,9 +37,6 @@ import reactor.netty.http.client.HttpClient;
  * <h3>Error Handling</h3>
  * Currently no explicit error handling - WebClient exceptions will propagate to callers.
  * Future improvements should include retry logic and proper error classification.
- *
- * @see GTNetM2MResource for the receiving endpoint
- * @see GTNetJpaRepositoryImpl#sendMessage for usage context
  */
 @Service
 public class BaseDataClient {

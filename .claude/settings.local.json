@@ -75,7 +75,9 @@
       "Bash(git add:*)",
       "WebFetch(domain:plotly.com)",
       "WebFetch(domain:datadave1.medium.com)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(del \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend\\\\grafioschtrader-server\\\\src\\\\main\\\\java\\\\grafioschtrader\\\\gtnet\\\\handler\\\\impl\\\\BusyAnnouncementHandler.java\")",
+      "Bash(del \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend\\\\grafioschtrader-server\\\\src\\\\main\\\\java\\\\grafioschtrader\\\\gtnet\\\\handler\\\\impl\\\\ReleasedBusyAnnouncementHandler.java\")"
     ],
     "deny": [],
     "ask": []

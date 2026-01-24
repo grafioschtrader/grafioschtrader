@@ -107,16 +107,7 @@ public class DataRequestHandler extends AbstractRequestHandler {
     }
   }
 
-  /**
-   * Updates a GTNetEntity to accept state for the specified entity kind.
-   * When we accept their request, we will SEND data to them.
-   */
-  private void updateEntityForAccept(GTNet remoteGTNet, GTNetExchangeKindType kind) {
-    GTNetEntity entity = getOrCreateEntity(remoteGTNet, kind);
-    entity.setAcceptRequest(AcceptRequestTypes.AC_OPEN);
-    entity.setServerState(GTNetServerStateTypes.SS_OPEN);
-    entity.getOrCreateConfigEntity(); // Creates config entity with exchange=true
-  }
+  
 
   /**
    * Updates myGTNet's entity to reflect that this server offers the specified entity kind.
