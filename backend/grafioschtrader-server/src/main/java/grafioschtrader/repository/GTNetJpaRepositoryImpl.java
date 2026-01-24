@@ -199,10 +199,6 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       baseDataClient.getActuatorInfo(gtNet.getDomainRemoteName());
     }
 
-    // Track serverBusy change before saving
-    boolean serverBusyChanged = existingEntity != null && existingEntity.isServerBusy() != gtNet.isServerBusy();
-    boolean newServerBusyValue = gtNet.isServerBusy();
-
     // Track settings changes (only for myGTNet)
     boolean isMyEntry = myInstanceEntry != null && myInstanceEntry.equals(gtNet.getIdGtNet());
     boolean settingsChanged = isMyEntry && existingEntity != null && hasSettingsChanged(existingEntity, gtNet);
@@ -218,11 +214,6 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       }
     }
 
-    // If serverBusy changed, notify all connected peers
-    if (serverBusyChanged) {
-      sendServerBusyNotification(gtNetNew, newServerBusyValue);
-    }
-
     // If settings changed, schedule background task to notify all connected peers
     if (settingsChanged) {
       taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.GTNET_SETTINGS_BROADCAST,
@@ -234,34 +225,17 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   }
 
   /**
-   * Sends a serverBusy status notification to all peers with configured exchange.
-   *
-   * @param myGTNet the local GTNet entry
-   * @param isBusy  true if server is now busy, false if released
-   */
-  private void sendServerBusyNotification(GTNet myGTNet, boolean isBusy) {
-    GTNetMessageCodeType messageCode = isBusy ? GTNetMessageCodeType.GT_NET_BUSY_ALL_C
-        : GTNetMessageCodeType.GT_NET_RELEASED_BUSY_ALL_C;
-
-    MsgRequest msgRequest = new MsgRequest();
-    msgRequest.messageCode = messageCode;
-    GTNetModelHelper.GTNetMsgRequest gtNetMsgRequest = GTNetModelHelper.getMsgClassByMessageCode(messageCode);
-    List<GTNet> targets = getRemotePeersWithExchange();
-
-    if (!targets.isEmpty()) {
-      sendAndSaveMsg(myGTNet, targets, gtNetMsgRequest, msgRequest);
-    }
-    // Save broadcast to own entry for visibility
-    saveBroadcastToOwnEntry(myGTNet, msgRequest);
-  }
-
-  /**
    * Checks if GTNet or GTNetEntity settings have changed that should trigger a broadcast.
    * Compares dailyRequestLimit and entity-level settings (acceptRequest, serverState, maxLimit).
    */
   private boolean hasSettingsChanged(GTNet existing, GTNet updated) {
     // Check dailyRequestLimit
     if (!java.util.Objects.equals(existing.getDailyRequestLimit(), updated.getDailyRequestLimit())) {
+      return true;
+    }
+
+    // Check serverBusy change
+    if (existing.isServerBusy() != updated.isServerBusy()) {
       return true;
     }
 
@@ -436,8 +410,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     if (msgRequest.messageCode.name().contains(GTNetModelHelper.MESSAGE_TO_ALL)) {
       // All broadcast messages go to remote servers with configured data exchange (excludes own entry)
       return switch (msgRequest.messageCode) {
-      case GT_NET_OFFLINE_ALL_C, GT_NET_BUSY_ALL_C, GT_NET_RELEASED_BUSY_ALL_C,
-          GT_NET_MAINTENANCE_ALL_C, GT_NET_OPERATION_DISCONTINUED_ALL_C,
+      case GT_NET_OFFLINE_ALL_C, GT_NET_MAINTENANCE_ALL_C, GT_NET_OPERATION_DISCONTINUED_ALL_C,
           GT_NET_MAINTENANCE_CANCEL_ALL_C, GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C -> getRemotePeersWithExchange();
       default -> List.of();
       };
@@ -832,23 +805,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     return parseEntityKinds(originalRequest.getGtNetMessageParamMap());
   }
 
-  /**
-   * Updates a GTNetEntity to add SEND capability for the specified entity kind.
-   * When we accept their request, we will SEND data to them.
-   */
-  private void updateEntityForSend(GTNet remoteGTNet, GTNetExchangeKindType kind) {
-    GTNetEntity entity = remoteGTNet.getOrCreateEntity(kind);
-    entity.setServerState(GTNetServerStateTypes.SS_OPEN);
-
-    if (entity.getGtNetConfigEntity() == null) {
-      GTNetConfigEntity configEntity = new GTNetConfigEntity();
-      if (entity.getIdGtNetEntity() != null) {
-        configEntity.setIdGtNetEntity(entity.getIdGtNetEntity());
-      }
-      entity.setGtNetConfigEntity(configEntity);
-    }
-    // Config entity defaults to exchange=true, no need to set explicitly
-  }
+ 
 
   /**
    * Updates myGTNet's entity to reflect that this server offers the specified entity kind.
@@ -1069,12 +1026,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     }
   }
 
-  private MessageEnvelope sendMessage(GTNet sourceGTNet, GTNet targetGTNet, GTNetMessage gtNetMessage,
-      Object payLoadObject) {
-    SendResult result = sendMessageWithResult(sourceGTNet, targetGTNet, gtNetMessage, payLoadObject);
-    return result != null ? result.response() : null;
-  }
-
+ 
   private SendResult sendMessageWithResult(GTNet sourceGTNet, GTNet targetGTNet, GTNetMessage gtNetMessage,
       Object payLoadObject) {
     if (gtNetMessage.getMessageCode() != GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_SEL_RR_S
@@ -1085,21 +1037,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     return null;
   }
 
-  /**
-   * Sends a message to a remote GTNet server and updates the target's online/busy status.
-   *
-   * @param sourceGTNet   the local GTNet entry (provides serverBusy flag for outgoing envelope)
-   * @param targetGTNet   the remote GTNet entry to send to (will be updated with online/busy status)
-   * @param gtNetMessage  the message to send
-   * @param payLoadObject optional payload object to include
-   * @return the response envelope, or null if unreachable
-   */
-  private MessageEnvelope sendMessageWithStatusUpdate(GTNet sourceGTNet, GTNet targetGTNet, GTNetMessage gtNetMessage,
-      Object payLoadObject) {
-    SendResult result = sendMessageWithStatusUpdateResult(sourceGTNet, targetGTNet, gtNetMessage, payLoadObject);
-    return result != null ? result.response() : null;
-  }
-
+  
   /**
    * Sends a message to a remote GTNet server and returns the full SendResult.
    *
@@ -1135,18 +1073,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     return result;
   }
 
-  /**
-   * Sends a ping message to a remote GTNet server and updates its status.
-   *
-   * @param sourceGTNet the local GTNet entry (provides serverBusy and domain info)
-   * @param targetGTNet the remote GTNet entry to ping (will be updated with online/busy status)
-   * @return the response envelope, or null if unreachable
-   */
-  private MessageEnvelope sendPing(GTNet sourceGTNet, GTNet targetGTNet) {
-    GTNetMessage gtNetMessagePing = new GTNetMessage(null, new Date(), SendReceivedType.SEND.getValue(), null,
-        GTNetMessageCodeType.GT_NET_PING.getValue(), null, null);
-    return sendMessageWithStatusUpdate(sourceGTNet, targetGTNet, gtNetMessagePing, null);
-  }
+ 
 
   // Receive Message
   ///////////////////////////////////////////////////////////////////////
@@ -1229,10 +1156,22 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       needsSave = true;
     }
 
-    // Update busy status from envelope
+    // Update busy status from envelope and adjust entity serverState accordingly
     if (localRemoteEntry.isServerBusy() != envelope.serverBusy) {
       localRemoteEntry.setServerBusy(envelope.serverBusy);
       needsSave = true;
+
+      // Update serverState on all entities based on new busy status
+      if (envelope.serverBusy) {
+        // Server is now busy - mark all entities as CLOSED
+        localRemoteEntry.getGtNetEntities().forEach(entity ->
+            entity.setServerState(GTNetServerStateTypes.SS_CLOSED));
+      } else {
+        // Server is no longer busy - restore OPEN state for accepting entities
+        localRemoteEntry.getGtNetEntities().stream()
+            .filter(entity -> entity.isAccepting())
+            .forEach(entity -> entity.setServerState(GTNetServerStateTypes.SS_OPEN));
+      }
     }
 
     // Sync additional fields from sourceGtNet DTO if present

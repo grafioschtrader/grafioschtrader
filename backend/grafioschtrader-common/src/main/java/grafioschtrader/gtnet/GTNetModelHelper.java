@@ -66,8 +66,6 @@ public abstract class GTNetModelHelper {
 
     // Server status announcements - no model, no response expected
     msgFormMap.put(GTNetMessageCodeType.GT_NET_OFFLINE_ALL_C, new GTNetMsgRequest(null, false, (byte) 1));
-    msgFormMap.put(GTNetMessageCodeType.GT_NET_BUSY_ALL_C, new GTNetMsgRequest(null, false, (byte) 1));
-    msgFormMap.put(GTNetMessageCodeType.GT_NET_RELEASED_BUSY_ALL_C, new GTNetMsgRequest(null, false, (byte) 1));
     msgFormMap.put(GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_ALL_C, new GTNetMsgRequest(DiscontinuedMsg.class, false, (byte) 1));
 
     // Cancel announcements - no model, no response expected
