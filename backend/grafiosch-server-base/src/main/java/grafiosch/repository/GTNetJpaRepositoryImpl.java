@@ -50,6 +50,7 @@ import grafiosch.gtnet.DeliveryStatus;
 import grafiosch.gtnet.ExchangeKindTypeRegistry;
 import grafiosch.gtnet.GNetCoreMessageCode;
 import grafiosch.gtnet.GTNetMessageCode;
+import grafiosch.gtnet.GTNetMessageCodeRegistry;
 import grafiosch.gtnet.GTNetModelHelper;
 import grafiosch.gtnet.GTNetModelHelper.GTNetMsgRequest;
 import grafiosch.gtnet.GTNetServerOnlineStatusTypes;
@@ -128,6 +129,9 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
   @Autowired
   private ExchangeKindTypeRegistry exchangeKindTypeRegistry;
+
+  @Autowired
+  private GTNetMessageCodeRegistry messageCodeRegistry;
 
   @Override
   @Transactional
@@ -535,7 +539,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    */
   private void processSynchronousResponsePayload(GTNet myGTNet, MessageEnvelope meResponse, GTNet targetGTNet,
       GTNetMessage gtNetMessage) {
-    GTNetMessageCode responseCode = GNetCoreMessageCode.getMessageCodeByValue(meResponse.messageCode);
+    GTNetMessageCode responseCode = messageCodeRegistry.getByValue(meResponse.messageCode);
 
     if (responseCode == GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_ACCEPT_S) {
       if (meResponse.payload != null && !meResponse.payload.isNull()) {
@@ -1107,7 +1111,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     GTNet myGTNet = gtNetJpaRepository
         .getReferenceById(GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersJpaRepository));
 
-    GTNetMessageCode messageCode = GNetCoreMessageCode.getMessageCodeByValue(me.messageCode);
+    GTNetMessageCode messageCode = messageCodeRegistry.getByValue(me.messageCode);
     if (messageCode == null) {
       log.warn("Unknown message code received: {}", me.messageCode);
       return buildErrorResponse(myGTNet, "UNKNOWN_MESSAGE_CODE", "Unknown message code: " + me.messageCode);
