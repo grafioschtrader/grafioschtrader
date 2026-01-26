@@ -44,4 +44,17 @@ public interface IExchangeKindType {
   default boolean isSyncable() {
     return true;
   }
+
+  /**
+   * Indicates whether this exchange kind supports AC_PUSH_OPEN mode.
+   *
+   * Push-enabled kinds can be configured with AC_PUSH_OPEN to actively receive pushed updates
+   * from remote instances. Kinds that don't support push (like SECURITY_METADATA) can only use
+   * AC_CLOSED or AC_OPEN modes.
+   *
+   * @return true if this kind supports AC_PUSH_OPEN configuration, false otherwise
+   */
+  default boolean supportsPush() {
+    return true;
+  }
 }

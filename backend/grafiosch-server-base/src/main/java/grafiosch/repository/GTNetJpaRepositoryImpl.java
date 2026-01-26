@@ -201,6 +201,9 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     boolean isMyEntry = myInstanceEntry != null && myInstanceEntry.equals(gtNet.getIdGtNet());
     boolean settingsChanged = isMyEntry && existingEntity != null && hasSettingsChanged(existingEntity, gtNet);
 
+    // Validate that AC_PUSH_OPEN is only used for entity kinds that support it
+    validateEntityPushSupport(gtNet);
+
     GTNet gtNetNew = RepositoryHelper.saveOnlyAttributes(gtNetJpaRepository, gtNet, existingEntity,
         updatePropertyLevelClasses);
     if (isDomainNameThisMachine(gtNet.getDomainRemoteName())) {
@@ -251,6 +254,23 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       }
     }
     return false;
+  }
+
+  /**
+   * Validates that AC_PUSH_OPEN is only configured for entity kinds that support push.
+   *
+   * @param gtNet the GTNet to validate
+   * @throws DataViolationException if an entity has AC_PUSH_OPEN but the kind doesn't support it
+   */
+  private void validateEntityPushSupport(GTNet gtNet) {
+    for (GTNetEntity entity : gtNet.getGtNetEntities()) {
+      if (entity.getAcceptRequest() == AcceptRequestTypes.AC_PUSH_OPEN) {
+        IExchangeKindType kind = exchangeKindTypeRegistry.getByValue(entity.getEntityKindValue());
+        if (kind != null && !kind.supportsPush()) {
+          throw new DataViolationException("gt.gtnet.entity.push.not.supported", kind.name());
+        }
+      }
+    }
   }
 
   /**

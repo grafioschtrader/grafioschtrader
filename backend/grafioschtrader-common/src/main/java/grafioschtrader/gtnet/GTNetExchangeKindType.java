@@ -18,6 +18,11 @@ public enum GTNetExchangeKindType implements IExchangeKindType {
     public boolean isSyncable() {
       return false;
     }
+
+    @Override
+    public boolean supportsPush() {
+      return false;
+    }
   };
 
 
