@@ -1,8 +1,13 @@
 package grafiosch.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
+
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.gtnet.AcceptRequestTypes;
 import grafiosch.gtnet.GTNetServerStateTypes;
+import grafiosch.gtnet.IExchangeKindType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -14,6 +19,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
@@ -24,6 +30,24 @@ import jakarta.validation.constraints.Min;
 public class GTNetEntity extends BaseID<Integer> {
 
   public static final String TABNAME = "gt_net_entity";
+
+  /**
+   * Registry for resolving enum names to byte values.
+   * Applications must register their IExchangeKindType enum values during startup.
+   */
+  @Transient
+  private static volatile IExchangeKindType[] exchangeKindTypes;
+
+  /**
+   * Registers the application-specific exchange kind types for JSON deserialization.
+   * This must be called during application startup before any GTNetEntity instances
+   * are deserialized from JSON.
+   *
+   * @param types the array of exchange kind type enum values from the application
+   */
+  public static void registerExchangeKindTypes(IExchangeKindType[] types) {
+    exchangeKindTypes = types;
+  }
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -66,11 +90,11 @@ public class GTNetEntity extends BaseID<Integer> {
   private GTNetConfigEntity gtNetConfigEntity;
 
   /**
-   * Gets the raw byte value of the entity kind.
-   * Applications should define their own interpretation of this value.
+   * Gets the raw byte value of the entity kind for JPA persistence.
    *
    * @return the entity kind as a byte value
    */
+  @JsonIgnore
   public byte getEntityKindValue() {
     return entityKind;
   }
@@ -80,8 +104,58 @@ public class GTNetEntity extends BaseID<Integer> {
    *
    * @param entityKind the entity kind byte value
    */
+  @JsonIgnore
   public void setEntityKindValue(byte entityKind) {
     this.entityKind = entityKind;
+  }
+
+  /**
+   * Gets the entity kind value for JSON serialization.
+   * Returns the byte value which clients can interpret based on their enum definitions.
+   *
+   * @return the entity kind as a byte value
+   */
+  @JsonProperty("entityKind")
+  public byte getEntityKind() {
+    return entityKind;
+  }
+
+  /**
+   * Sets the entity kind from JSON deserialization.
+   * Accepts either a numeric byte value or a string enum name.
+   * When a string is provided, it is resolved using the registered exchange kind types.
+   *
+   * @param value the entity kind as a Number (byte value) or String (enum name)
+   * @throws IllegalArgumentException if the string value cannot be resolved to an exchange kind
+   */
+  @JsonSetter("entityKind")
+  public void setEntityKind(Object value) {
+    if (value instanceof Number number) {
+      this.entityKind = number.byteValue();
+    } else if (value instanceof String name) {
+      this.entityKind = resolveEntityKindFromName(name);
+    } else if (value != null) {
+      throw new IllegalArgumentException("entityKind must be a number or string, got: " + value.getClass());
+    }
+  }
+
+  /**
+   * Resolves an entity kind enum name to its byte value using the registered exchange kind types.
+   *
+   * @param name the enum name (e.g., "HISTORICAL_PRICES")
+   * @return the corresponding byte value
+   * @throws IllegalArgumentException if the name cannot be resolved
+   */
+  private byte resolveEntityKindFromName(String name) {
+    if (exchangeKindTypes != null) {
+      for (IExchangeKindType type : exchangeKindTypes) {
+        if (type.name().equals(name)) {
+          return type.getValue();
+        }
+      }
+    }
+    throw new IllegalArgumentException("Unknown entityKind: " + name
+        + ". Ensure GTNetEntity.registerExchangeKindTypes() was called during application startup.");
   }
 
   public Integer getIdGtNetEntity() {
