@@ -169,9 +169,9 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
       const gtNetEntities: GTNetEntity[] = [];
       const existingEntities = this.callParam.gtNet?.gtNetEntities || [];
 
+      // Backend serializes entityKind as byte (number), compare against enum numeric values
       const existingHistorical = existingEntities.find(e =>
-        e.entityKind === GTNetExchangeKindType.HISTORICAL_PRICES ||
-        e.entityKind === GTNetExchangeKindType[GTNetExchangeKindType.HISTORICAL_PRICES]);
+        e.entityKind === GTNetExchangeKindType.HISTORICAL_PRICES);
       const historicalEntity: GTNetEntity = {
         idGtNetEntity: existingHistorical?.idGtNetEntity,
         idGtNet: gtNet.idGtNet,
@@ -183,8 +183,7 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
       gtNetEntities.push(historicalEntity);
 
       const existingLastPrice = existingEntities.find(e =>
-        e.entityKind === GTNetExchangeKindType.LAST_PRICE ||
-        e.entityKind === GTNetExchangeKindType[GTNetExchangeKindType.LAST_PRICE]);
+        e.entityKind === GTNetExchangeKindType.LAST_PRICE);
       const lastPriceEntity: GTNetEntity = {
         idGtNetEntity: existingLastPrice?.idGtNetEntity,
         idGtNet: gtNet.idGtNet,
