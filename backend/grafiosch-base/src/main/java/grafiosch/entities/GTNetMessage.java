@@ -3,12 +3,14 @@ package grafiosch.entities;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.common.PropertyOnlyCreation;
 import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
 import grafiosch.gtnet.DeliveryStatus;
+import grafiosch.gtnet.GNetCoreMessageCode;
 import grafiosch.gtnet.GTNetMessageCode;
 import grafiosch.gtnet.SendReceivedType;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -61,6 +63,25 @@ public class GTNetMessage extends BaseID<Integer> {
 
   public static final String TABNAME = "gt_net_message";
   public static final String GT_NET_MESSAGE_PARAM = "gt_net_message_param";
+
+  /**
+   * Pluggable resolver for converting message code byte values to their string names. By default, resolves only core
+   * protocol codes (0-54). Application modules can set a custom resolver that also handles app-specific codes (60+).
+   */
+  private static volatile Function<Byte, String> messageCodeResolver = value -> {
+    GTNetMessageCode code = GNetCoreMessageCode.getByValue(value);
+    return code != null ? code.name() : null;
+  };
+
+  /**
+   * Sets a custom message code resolver. Call this during application startup to enable resolution of app-specific
+   * message codes.
+   *
+   * @param resolver function that converts byte value to enum name string
+   */
+  public static void setMessageCodeResolver(Function<Byte, String> resolver) {
+    messageCodeResolver = resolver;
+  }
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -248,6 +269,21 @@ public class GTNetMessage extends BaseID<Integer> {
    */
   public byte getMessageCodeValue() {
     return messageCode;
+  }
+
+  /**
+   * Gets the message code as a string enum name for JSON serialization. Uses the configured resolver to convert the
+   * byte value to the corresponding enum constant name (e.g., "GT_NET_MAINTENANCE_ALL_C"). This transient field enables
+   * the frontend to display translated message code labels.
+   *
+   * @return the enum constant name, or null if the code is not recognized
+   */
+  @Transient
+  @Schema(description = """
+      The message code as a string enum name for display. Converted from the internal byte value to enable frontend
+      translation lookup. Examples: GT_NET_PING, GT_NET_MAINTENANCE_ALL_C, GT_NET_LASTPRICE_EXCHANGE_SEL_C.""")
+  public String getMessageCode() {
+    return messageCodeResolver.apply(messageCode);
   }
 
   /**
