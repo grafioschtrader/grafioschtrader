@@ -267,7 +267,8 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       if (entity.getAcceptRequest() == AcceptRequestTypes.AC_PUSH_OPEN) {
         IExchangeKindType kind = exchangeKindTypeRegistry.getByValue(entity.getEntityKindValue());
         if (kind != null && !kind.supportsPush()) {
-          throw new DataViolationException("gt.gtnet.entity.push.not.supported", kind.name());
+          throw new DataViolationException("acceptRequest", "gt.gtnet.entity.push.not.supported",
+              new Object[] { kind.name() });
         }
       }
     }
