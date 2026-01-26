@@ -2,6 +2,7 @@ import {FilterType} from './filter.type';
 import {ValueLabelHtmlSelectOptions} from './value.label.html.select.options';
 import {BaseFieldDefinition, PropertyEditShare} from '../dynamic-form/models/base.field.definition';
 import {ValidationErrorRule} from '../dynamic-form/models/base.field.fieldgroup.config';
+import {ValueKeyHtmlSelectOptions} from '../dynamic-form/models/value.key.html.select.options';
 
 /**
  * Comprehensive configuration interface for defining table columns and single data field displays.
@@ -185,15 +186,115 @@ export interface ColumnConfig extends BaseFieldDefinition {
 
 
 /**
+ * Enumeration defining input types for inline table cell editing.
+ * Maps to appropriate PrimeNG components or native HTML input elements.
+ * Used by EditableTableComponent to render the correct input control.
+ */
+export enum EditInputType {
+  /** Native HTML text input for string values */
+  Text = 'text',
+  /** Native HTML number input for integer values */
+  Number = 'number',
+  /** Native HTML select (dropdown) for enumerated values */
+  Select = 'select',
+  /** PrimeNG InputNumber component for formatted numeric values */
+  InputNumber = 'inputNumber',
+  /** PrimeNG DatePicker component for date values */
+  DatePicker = 'datePicker',
+  /** PrimeNG Checkbox component for boolean values */
+  Checkbox = 'checkbox',
+  /** Read-only display - cell is not editable even in edit mode */
+  ReadOnly = 'readonly'
+}
+
+/**
  * Configuration interface for editable table columns.
  * Combines property editing capabilities with validation rules to enable
  * in-place table editing functionality. Extends base editing and validation
  * interfaces to provide comprehensive editing support.
  *
- * @extends PropertyEditShare
- * @extends ValidationErrorRule
+ * @extends PropertyEditShare - provides valueKeyHtmlOptions for dropdown options
+ * @extends ValidationErrorRule - provides validation and errors arrays
  */
 export interface ColumnEditConfig extends PropertyEditShare, ValidationErrorRule {
+  /**
+   * Explicit input type for editing. If not set, will be inferred from the column's DataType.
+   * Use this to override the default input type (e.g., use Select instead of Text for a String field).
+   */
+  inputType?: EditInputType;
+
+  /**
+   * Callback to determine if this specific cell is editable for a given row.
+   * If not set, the cell is always editable when the row is in edit mode.
+   * Useful for conditional editability (e.g., ID field editable only for new rows).
+   *
+   * @param row - The data object for the current row
+   * @param field - The column configuration
+   * @returns true if the cell should be editable
+   */
+  canEditFn?: (row: any, field: ColumnConfig) => boolean;
+
+  /**
+   * Declarative approach for dependent dropdowns: field name that this dropdown depends on.
+   * When the parent field value changes, this dropdown's options will be updated.
+   * Use with optionsMap for simple static mappings.
+   */
+  dependsOnField?: string;
+
+  /**
+   * Declarative mapping of parent field values to dropdown options.
+   * Used together with dependsOnField for simple dependent dropdown scenarios.
+   * Key is the parent field value, value is the array of options to display.
+   *
+   * @example
+   * optionsMap: {
+   *   'CATEGORY_A': [{ key: 'A1', value: 'Option A1' }, { key: 'A2', value: 'Option A2' }],
+   *   'CATEGORY_B': [{ key: 'B1', value: 'Option B1' }]
+   * }
+   */
+  optionsMap?: { [parentValue: string]: ValueKeyHtmlSelectOptions[] };
+
+  /**
+   * Callback approach for dependent dropdowns: dynamically provides options based on current row state.
+   * Takes precedence over optionsMap when both are defined.
+   * Use this for complex logic that cannot be expressed as a simple mapping.
+   *
+   * @param row - The data object for the current row
+   * @param field - The column configuration
+   * @returns Array of options to display in the dropdown
+   */
+  optionsProviderFn?: (row: any, field: ColumnConfig) => ValueKeyHtmlSelectOptions[];
+
+  /**
+   * Callback triggered when this field's value changes during editing.
+   * Useful for cascading updates, validation, or updating other fields.
+   *
+   * @param row - The data object for the current row
+   * @param field - The column configuration
+   * @param newValue - The new value that was set
+   */
+  onChangeFn?: (row: any, field: ColumnConfig, newValue: any) => void;
+
+  /** Placeholder text for text/number input fields */
+  placeholder?: string;
+
+  /** Maximum decimal places for InputNumber inputs (overrides column's maxFractionDigits in edit mode) */
+  maxFractionDigits?: number;
+
+  /** Minimum allowed value for number inputs */
+  min?: number;
+
+  /** Maximum allowed value for number inputs */
+  max?: number;
+
+  /** Minimum allowed date for DatePicker inputs */
+  minDate?: Date;
+
+  /** Maximum allowed date for DatePicker inputs */
+  maxDate?: Date;
+
+  /** Maximum character length for text inputs */
+  maxLength?: number;
 }
 
 /**

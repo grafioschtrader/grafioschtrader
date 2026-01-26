@@ -1,21 +1,13 @@
 import {Component, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {FormsModule} from '@angular/forms';
 import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
-import {TableModule} from 'primeng/table';
-import {ContextMenuModule} from 'primeng/contextmenu';
-import {TooltipModule} from 'primeng/tooltip';
-import {InputTextModule} from 'primeng/inputtext';
-import {ButtonModule} from 'primeng/button';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {UserSettingsService} from '../../services/user.settings.service';
 import {MailSettingForwardService} from '../service/mail.setting.forward.service';
 import {
   MailSendForwardDefault,
-  MailSendForwardDefaultConfig,
   MailSettingForward,
   MailSettingForwardVar,
   MessageComType,
@@ -30,122 +22,47 @@ import {AppHelper} from '../../helper/app.helper';
 import {InfoLevelType} from '../../message/info.leve.type';
 import {MessageToastService} from '../../message/message.toast.service';
 import {HelpIds} from '../../help/help.ids';
+import {EditableTableComponent, RowEditSaveEvent} from '../../datashowbase/editable-table.component';
+import {TranslateModule} from '@ngx-translate/core';
 
 /**
- * Editing this information class is very simple. Therefore
- * there is this prototype that uses an implementation of row editing from the PrimeNG table.
- * First conclusion: obviously, the Angular Reactive Form is not supported for row editing.
- * The following negative points were noticed:
- * - Multiple rows can be edited at a given time.
- * - The activation and termination of editing are controlled by the template. A programmatic control would be desirable.
- *   See https://stackoverflow.com/questions/74102652/primeng-table-programmatically-handle-row-editing-psaveeditablerow.
- *
- * Note: This component uses PrimeNG's p-table directly instead of the configurable-table wrapper because it relies on
- * specialized inline row editing features (pEditableRow, p-cellEditor, pSaveEditableRow, pCancelEditableRow) that would
- * be too complex to abstract into a generic table component without losing flexibility.
+ * Component for editing mail forwarding settings using the reusable EditableTableComponent.
+ * Allows users to configure how different message types should be forwarded (internal mail,
+ * external mail, or no forwarding).
  */
 @Component({
   template: `
-    <div class="data-container" (click)="onComponentClick($event)" #cmDiv
-         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
-
-      <p-table [columns]="fields" [value]="mailSettingForwardList" selectionMode="single"
-               [(selection)]="selectedEntity" (onRowSelect)="onRowSelect($event)"
-               (onRowUnselect)="onRowUnselect($event)" dataKey="idMailSettingForward" editMode="row"
-               (sortFunction)="customSort($event)" [customSort]="true"
-               stripedRows showGridlines>
-        <ng-template #header let-fields>
-          <tr>
-            @for (field of fields; track field) {
-              <th [pSortableColumn]="field.field"
-                  [pTooltip]="field.headerTooltipTranslated"
-                  [style.max-width.px]="field.width"
-                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-                {{field.headerTranslated}}
-                <p-sortIcon [field]="field.field"></p-sortIcon>
-              </th>
-            }
-            <th style="width:20%"></th>
-          </tr>
-        </ng-template>
-        <ng-template #body let-elEdit let-columns="fields" let-editing="editing" let-ri="rowIndex">
-          <tr [pEditableRow]="elEdit" [pSelectableRow]="elEdit">
-            @for (field of fields; track field) {
-              <td [style.max-width.px]="field.width"
-                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-
-                <p-cellEditor>
-
-                  <ng-template pTemplate="input">
-                    @if (canEdit(field, elEdit)) {
-                      @switch (field.dataType) {
-                        @case (DataType.String) {
-                          <select #input
-                                  [ngStyle]="{'width': (field.width+1) + 'em'}"
-                                  class="form-control input-sm"
-                                  [(ngModel)]="elEdit[field.field]"
-                                  [id]="field.field">
-                            @for (s of field.cec.valueKeyHtmlOptions; track s) {
-                              <option [value]="s.key"
-                                      [disabled]="s.disabled">
-                                {{ s.value }}
-                              </option>
-                            }
-                          </select>
-                        }
-                        @case (DataType.NumericInteger) {
-                          <input pInputText type="number" [(ngModel)]="elEdit[field.field]">
-                        }
-                      }
-                    } @else {
-                      {{getValueByPath(elEdit, field)}}
-                    }
-                  </ng-template>
-                  <ng-template pTemplate="output">
-                    {{getValueByPath(elEdit, field)}}
-                  </ng-template>
-                </p-cellEditor>
-              </td>
-            }
-            <td>
-              <div class="flex align-items-center justify-content-center gap-2">
-                @if (!editing) {
-                  <button pButton pRipple type="button" pInitEditableRow
-                          pButtonIcon="pi pi-pencil"
-                          (click)="onRowEditInit(elEdit)" class="p-button-rounded p-button-text"></button>
-                }
-                @if (editing) {
-                  <button pButton pRipple type="button" pSaveEditableRow pButtonIcon="pi pi-check"
-                          (click)="onRowEditSave(elEdit)"
-                          class="p-button-rounded p-button-text p-button-success mr-2"></button>
-                }
-                @if (editing) {
-                  <button pButton pRipple type="button" pCancelEditableRow
-                          pButtonIcon="pi pi-times"
-                          (click)="onRowEditCancel(elEdit, ri)"
-                          class="p-button-rounded p-button-text p-button-danger"></button>
-                }
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
-      @if (contextMenuItems) {
-        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
-      }
-    </div>
+    <editable-table
+      [(data)]="mailSettingForwardList"
+      [fields]="fields"
+      dataKey="rowKey"
+      [selectionMode]="'single'"
+      [(selection)]="selectedEntity"
+      [valueGetterFn]="getValueByPath.bind(this)"
+      [baseLocale]="baseLocale"
+      [customSortFn]="customSort.bind(this)"
+      [createNewEntityFn]="createNewEntity.bind(this)"
+      [contextMenuItems]="contextMenuItems"
+      [showContextMenu]="isActivated()"
+      [containerClass]="{'data-container': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+      (rowEditSave)="onRowEditSave($event)"
+      (rowEditCancel)="onRowEditCancel($event)"
+      (rowAdded)="onRowAdded($event)"
+      (rowSelect)="onRowSelect($event)"
+      (rowUnselect)="onRowUnselect($event)"
+      (componentClick)="onComponentClick($event)">
+    </editable-table>
   `,
   standalone: true,
-  imports: [CommonModule, FormsModule, TableModule, ContextMenuModule, TooltipModule, InputTextModule, ButtonModule]
+  imports: [EditableTableComponent, TranslateModule]
 })
 export class MailForwardSettingTableEditComponent extends TableEditConfigBase implements OnInit, IGlobalMenuAttach {
   contextMenuItems: MenuItem[] = [];
-  mailSettingForwardList: MailSettingForward[];
+  mailSettingForwardList: MailSettingForward[] = [];
   selectedEntity: MailSettingForward;
 
-  clonedProducts: { [id: number]: MailSettingForward } = {};
-  private msfdc: MailSendForwardDefaultConfig;
   private mailSendForwardDefault: MailSendForwardDefault;
+  private newRowCounter = 0;
 
   private readonly MAIL_SETTING_FORWARD = 'MAIL_SETTING_FORWARD';
 
@@ -159,19 +76,29 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
               usersettingsService: UserSettingsService) {
     super(filterService, usersettingsService, translateService, gps);
 
+    // Configure MESSAGE_COM_TYPE column
     this.addEditColumnFeqH(DataType.String, MailSettingForwardVar.MESSAGE_COM_TYPE, true,
       {translateValues: TranslateValue.NORMAL, width: 450});
+    const comTypeCol = this.getColumnConfigByField(MailSettingForwardVar.MESSAGE_COM_TYPE);
+    comTypeCol.cec.canEditFn = (row: MailSettingForward) => !row.idMailSettingForward;
+
+    // Configure MESSAGE_TARGET_TYPE column with dependent dropdown
     this.addEditColumnFeqH(DataType.String, MailSettingForwardVar.MESSAGE_TARGET_TYPE, true,
       {translateValues: TranslateValue.NORMAL, width: 450});
+    const targetTypeCol = this.getColumnConfigByField(MailSettingForwardVar.MESSAGE_TARGET_TYPE);
+    targetTypeCol.cec.dependsOnField = MailSettingForwardVar.MESSAGE_COM_TYPE;
+    targetTypeCol.cec.optionsProviderFn = (row: MailSettingForward) => this.getTargetTypeOptions(row);
+
+    // Configure ID_USER_DIRECT column
     this.addEditColumnFeqH(DataType.NumericInteger, MailSettingForwardVar.ID_USER_DIRECT, false);
   }
 
+  // ============================================================================
+  // IGlobalMenuAttach Implementation
+  // ============================================================================
+
   isActivated(): boolean {
     return this.activePanelService.isActivated(this);
-  }
-
-  onComponentClick(event: any): void {
-    this.resetMenu();
   }
 
   hideContextMenu(): void {
@@ -184,6 +111,10 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
     return HelpIds.HELP_MESSAGE_SYSTEM;
   }
 
+  // ============================================================================
+  // Lifecycle
+  // ============================================================================
+
   ngOnInit(): void {
     this.mailSettingForwardService.getSendForwardDefault().subscribe((msfd: MailSendForwardDefault) => {
       this.mailSendForwardDefault = msfd;
@@ -191,97 +122,159 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
     });
   }
 
+  // ============================================================================
+  // Data Loading
+  // ============================================================================
+
   private readData(): void {
     this.mailSettingForwardService.getMailSettingForwardByUser().subscribe((msfList: MailSettingForward[]) => {
-      this.mailSettingForwardList = msfList;
+      this.mailSettingForwardList = msfList.map(msf => {
+        (msf as any).rowKey = msf.idMailSettingForward
+          ? `existing_${msf.idMailSettingForward}`
+          : `new_${this.newRowCounter++}`;
+        return msf;
+      });
 
-      this.getColumnConfigByField(MailSettingForwardVar.MESSAGE_COM_TYPE).cec = {};
-      this.refreshNotSetMessageComType();
-      this.getColumnConfigByField(MailSettingForwardVar.MESSAGE_TARGET_TYPE).cec = {};
-      this.getColumnConfigByField(MailSettingForwardVar.MESSAGE_TARGET_TYPE).cec.valueKeyHtmlOptions =
-        SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
-          MessageTargetType, [], true);
+      this.refreshMessageComTypeOptions();
       this.prepareTableAndTranslate();
       this.createTranslatedValueStoreAndFilterField(this.mailSettingForwardList);
     });
   }
 
+  // ============================================================================
+  // Dropdown Options
+  // ============================================================================
+
+  /** Provides options for MESSAGE_TARGET_TYPE based on selected MESSAGE_COM_TYPE */
+  private getTargetTypeOptions(row: MailSettingForward): any[] {
+    if (row.messageComType != null && this.mailSendForwardDefault) {
+      const msfdc = this.mailSendForwardDefault.mailSendForwardDefaultMapForUser[row.messageComType];
+      if (msfdc) {
+        // Set default value if not already set
+        if (row.messageTargetType == null && msfdc.messageTargetDefaultType != null) {
+          row.messageTargetType = msfdc.messageTargetDefaultType as MessageTargetType;
+        }
+        return SelectOptionsHelper.createHtmlOptionsFromEnum(
+          this.translateService, MessageTargetType, msfdc.mttPossibleTypeSet, false);
+      }
+    }
+    return [];
+  }
+
+  /** Updates available MESSAGE_COM_TYPE options (excludes already used types) */
+  private refreshMessageComTypeOptions(): void {
+    const usedTypes = this.mailSettingForwardList
+      .filter(msf => msf.messageComType != null)
+      .map(msf => MessageComType[MessageComType[msf.messageComType]]);
+
+    const availableTypes = Object.keys(this.mailSendForwardDefault.mailSendForwardDefaultMapForUser)
+      .filter(mct => usedTypes.indexOf(MessageComType[MessageComType[mct]]) === -1);
+
+    this.getColumnConfigByField(MailSettingForwardVar.MESSAGE_COM_TYPE).cec.valueKeyHtmlOptions =
+      SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, MessageComType, availableTypes, false);
+  }
+
+  // ============================================================================
+  // Entity Factory
+  // ============================================================================
+
+  /** Creates a new MailSettingForward entity for inline editing */
+  createNewEntity = (): MailSettingForward => {
+    const entity = new MailSettingForward();
+    (entity as any).rowKey = `new_${this.newRowCounter++}`;
+    return entity;
+  };
+
+  // ============================================================================
+  // Context Menu
+  // ============================================================================
+
+  onComponentClick(event: any): void {
+    this.resetMenu();
+  }
+
   private resetMenu(): void {
-    this.contextMenuItems = this.getEditMenu(this.selectedEntity);
+    this.contextMenuItems = this.getEditMenu();
     this.activePanelService.activatePanel(this, {
       showMenu: null,
       editMenu: this.contextMenuItems
     });
   }
 
-  private getEditMenu(selectedEntity: MailSettingForward): MenuItem[] {
+  private getEditMenu(): MenuItem[] {
     const menuItems: MenuItem[] = [
       {
-        label: 'CREATE|' + this.MAIL_SETTING_FORWARD,
-        command: (e) => this.handleAddEntity(),
-        disabled: this.getColumnConfigByField(MailSettingForwardVar.MESSAGE_COM_TYPE).cec.valueKeyHtmlOptions.length === 0
-      },
-      {
         label: 'DELETE_RECORD|' + this.MAIL_SETTING_FORWARD,
-        command: (e) => this.handleDeleteEntity(selectedEntity),
-        disabled: !selectedEntity
-      }];
+        command: () => this.handleDeleteEntity(this.selectedEntity),
+        disabled: !this.selectedEntity || !this.selectedEntity.idMailSettingForward
+      }
+    ];
     TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
 
-  handleAddEntity(): void {
-    this.mailSettingForwardList.push(new MailSettingForward());
+  // ============================================================================
+  // Edit Event Handlers
+  // ============================================================================
+
+  onRowEditSave(event: RowEditSaveEvent<MailSettingForward>): void {
+    const entity = event.row;
+
+    if (entity.messageComType == null || entity.messageTargetType == null) {
+      this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'REQUIRED_FIELDS_MISSING');
+      return;
+    }
+
+    this.mailSettingForwardService.update(entity).subscribe({
+      next: () => {
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
+          event.isNew ? 'MSG_RECORD_CREATED' : 'MSG_RECORD_SAVED',
+          {i18nRecord: this.MAIL_SETTING_FORWARD});
+        this.readData();
+      }
+    });
   }
 
-  handleDeleteEntity(entity: MailSettingForward) {
+  onRowEditCancel(event: any): void {
+    // Refresh options since a new row might have been cancelled
+    this.refreshMessageComTypeOptions();
+  }
+
+  onRowAdded(event: any): void {
+    // Refresh MESSAGE_COM_TYPE options when a new row is added
+    this.refreshMessageComTypeOptions();
+  }
+
+  // ============================================================================
+  // Selection Handlers
+  // ============================================================================
+
+  onRowSelect(event: any): void {
+    this.resetMenu();
+  }
+
+  onRowUnselect(event: any): void {
+    this.resetMenu();
+  }
+
+  // ============================================================================
+  // Delete Handler
+  // ============================================================================
+
+  private handleDeleteEntity(entity: MailSettingForward): void {
+    if (!entity?.idMailSettingForward) {
+      return;
+    }
+
     AppHelper.confirmationDialog(this.translateService, this.confirmationService,
       'MSG_CONFIRM_DELETE_RECORD|' + this.MAIL_SETTING_FORWARD, () => {
-        this.mailSettingForwardService.deleteEntity(entity.idMailSettingForward).subscribe(response => {
+        this.mailSettingForwardService.deleteEntity(entity.idMailSettingForward).subscribe(() => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
             'MSG_DELETE_RECORD', {i18nRecord: this.MAIL_SETTING_FORWARD});
+          this.selectedEntity = null;
           this.resetMenu();
           this.readData();
         });
       });
   }
-
-  canEdit(columnConfig: ColumnConfig, mailSettingForward: MailSettingForward): boolean {
-    return !(mailSettingForward.idMailSettingForward > 0 && columnConfig.field === MailSettingForwardVar.MESSAGE_COM_TYPE);
-  }
-
-  onRowEditInit(mailSettingForward: MailSettingForward) {
-    this.clonedProducts[mailSettingForward.idMailSettingForward] = Object.assign(new MailSettingForward(), mailSettingForward);
-  }
-
-  onRowEditSave(mailSettingForward: MailSettingForward) {
-    delete this.clonedProducts[mailSettingForward.idMailSettingForward];
-  }
-
-  onRowEditCancel(mailSettingForward: MailSettingForward, index: number) {
-    this.mailSettingForwardList[index] = this.clonedProducts[mailSettingForward.idMailSettingForward];
-    delete this.clonedProducts[mailSettingForward.idMailSettingForward];
-  }
-
-  onRowSelect(event): void {
-    this.msfdc = this.mailSendForwardDefault.mailSendForwardDefaultMapForUser[event.data.messageComType];
-    this.getColumnConfigByField(MailSettingForwardVar.MESSAGE_TARGET_TYPE).cec.valueKeyHtmlOptions =
-      SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
-        MessageTargetType, this.msfdc.mttPossibleTypeSet, false);
-  }
-
-  private refreshNotSetMessageComType(): void {
-    const mctList = this.mailSettingForwardList.map(msfl =>
-      MessageComType[MessageComType[msfl.messageComType]]);
-    const possibleMsgComType = Object.keys(this.mailSendForwardDefault.mailSendForwardDefaultMapForUser).filter(
-      mct => mctList.indexOf(MessageComType[MessageComType[mct]]) === -1);
-    this.getColumnConfigByField(MailSettingForwardVar.MESSAGE_COM_TYPE).cec.valueKeyHtmlOptions =
-      SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
-        MessageComType, possibleMsgComType, false);
-  }
-
-  onRowUnselect(event): void {
-    this.msfdc = null;
-  }
-
 }

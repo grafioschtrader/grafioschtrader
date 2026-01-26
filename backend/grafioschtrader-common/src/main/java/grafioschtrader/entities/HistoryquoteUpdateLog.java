@@ -19,6 +19,8 @@ import jakarta.persistence.Table;
  * Logs the history of stock exchange price updates performed by the QuoteBackgroundUpdateWorker.
  * Each record represents one update attempt for a specific stock exchange, tracking when the update
  * was performed, how many securities were involved, and whether it succeeded or failed.
+ * 
+ * SELECT s.name, hl.* FROM historyquote_update_log hl JOIN stockexchange s ON hl.id_stockexchange = s.id_stockexchange ORDER BY hl.update_timestamp DESC;
  */
 @Schema(description = """
     Logs historical price update operations per stock exchange. Tracks when each exchange was queried for
