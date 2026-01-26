@@ -3,10 +3,10 @@ package grafioschtrader.repository;
 import java.time.LocalDate;
 import java.util.List;
 
-import grafioschtrader.entities.GTNet;
+import grafiosch.entities.GTNet;
+import grafiosch.gtnet.GTNetExchangeLogPeriodType;
+import grafiosch.gtnet.model.GTNetExchangeLogTreeDTO;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
-import grafioschtrader.gtnet.GTNetExchangeLogPeriodType;
-import grafioschtrader.gtnet.model.GTNetExchangeLogTreeDTO;
 
 /**
  * Custom repository methods for GTNet exchange log operations.

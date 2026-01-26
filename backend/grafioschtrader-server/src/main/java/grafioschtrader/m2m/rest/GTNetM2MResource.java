@@ -11,10 +11,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import grafioschtrader.gtnet.GTNetMessageCodeType;
-import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
-import grafioschtrader.repository.GTNetJpaRepository;
-import grafioschtrader.rest.RequestGTMappings;
+import grafiosch.gtnet.GNetCoreMessageCode;
+import grafiosch.gtnet.GTNetMessageCode;
+import grafiosch.gtnet.m2m.model.MessageEnvelope;
+import grafiosch.repository.GTNetJpaRepository;
+import grafiosch.rest.RequestMappings;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -28,8 +29,8 @@ import jakarta.validation.Valid;
  * exists yet.
  */
 @RestController
-@RequestMapping(RequestGTMappings.GTNET_M2M_MAP)
-@Tag(name = RequestGTMappings.GTNET_M2M, description = "Controller for GTNet M2M messages between instances")
+@RequestMapping(RequestMappings.GTNET_M2M_MAP)
+@Tag(name = RequestMappings.GTNET_M2M, description = "Controller for GTNet M2M messages between instances")
 public class GTNetM2MResource {
 
   public static final String AUTHORIZATION_HEADER = "Authorization";
@@ -39,16 +40,16 @@ public class GTNetM2MResource {
 
   @Operation(summary = "Receive and process GTNet message from remote instance",
       description = "Entry point for all M2M communication. Validates token for non-handshake messages.",
-      tags = { RequestGTMappings.GTNET_M2M })
+      tags = { RequestMappings.GTNET_M2M })
   @PostMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<MessageEnvelope> receiveMessage(
       @RequestHeader(value = AUTHORIZATION_HEADER, required = false) String authToken,
       @Valid @RequestBody MessageEnvelope messageEnvelope) throws Exception {
 
-    GTNetMessageCodeType messageCode = GTNetMessageCodeType.getGTNetMessageCodeTypeByValue(messageEnvelope.messageCode);
+    GTNetMessageCode messageCode = GNetCoreMessageCode.getMessageCodeByValue(messageEnvelope.messageCode);
 
     // First handshake doesn't require token validation (no token exists yet)
-    boolean isFirstHandshake = messageCode == GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_SEL_RR_S;
+    boolean isFirstHandshake = messageCode == GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_SEL_RR_S;
 
     if (!isFirstHandshake) {
       // Validate token for all other message types

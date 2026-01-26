@@ -17,11 +17,7 @@ import grafioschtrader.entities.Transaction;
 import grafioschtrader.entities.Watchlist;
 
 public interface RequestGTMappings {
-  public static final String M2M = "_m2m";
-  public static final String M2M_API = "/m2m/";
   public static final String GT = "gt_";
-
-  public static final String ACTUATOR_MAP = RequestMappings.API + "actuator";
 
   public static final String ASSETCLASS_MAP = RequestMappings.API + Assetclass.TABNAME;
 
@@ -47,12 +43,6 @@ public interface RequestGTMappings {
   public static final String DIVIDEND_MAP = RequestMappings.API + Dividend.TABNAME;
 
   public static final String GLOBALPARAMETERS_GT_MAP = RequestMappings.API + GT + Globalparameters.TABNAME;
-
-  public static final String GTNET = "gtnet";
-  public static final String GTNET_MAP = RequestMappings.API + GTNET;
-
-  public static final String GTNET_M2M = GTNET + M2M;
-  public static final String GTNET_M2M_MAP = M2M_API + GTNET;
 
   public static final String GTNET_MESSAGE = "gtnetmessage";
   public static final String GTNET_MESSAGE_MAP = RequestMappings.API + GTNET_MESSAGE;
@@ -102,8 +92,8 @@ public interface RequestGTMappings {
   public static final String STOCKEXCHANGE_MAP = RequestMappings.API + Stockexchange.TABNAME;
 
   public static final String SECURITY_MAP = RequestMappings.API + Security.TABNAME;
-  public static final String SECURITY_M2M = Security.TABNAME + M2M;
-  public static final String SECURITY_M2M_MAP = M2M_API + Security.TABNAME;
+  public static final String SECURITY_M2M = Security.TABNAME + RequestMappings.M2M;
+  public static final String SECURITY_M2M_MAP = RequestMappings.M2M_API + Security.TABNAME;
 
   public static final String SECURITYSPLIT_MAP = RequestMappings.API + Securitysplit.TABNAME;
 

@@ -7,20 +7,21 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import grafiosch.entities.GTNet;
+import grafiosch.entities.GTNetEntity;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.exceptions.TaskBackgroundException;
+import grafiosch.gtnet.GTNetServerOnlineStatusTypes;
+import grafiosch.gtnet.GTNetServerStateTypes;
+import grafiosch.m2m.GTNetMessageHelper;
+import grafiosch.m2m.client.BaseDataClient;
+import grafiosch.m2m.client.BaseDataClient.SendResult;
+import grafiosch.repository.GTNetJpaRepository;
+import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.task.ITask;
 import grafiosch.types.ITaskType;
-import grafioschtrader.entities.GTNet;
-import grafioschtrader.entities.GTNetEntity;
-import grafioschtrader.gtnet.GTNetServerOnlineStatusTypes;
-import grafioschtrader.gtnet.GTNetServerStateTypes;
-import grafioschtrader.m2m.GTNetMessageHelper;
-import grafioschtrader.m2m.client.BaseDataClient;
-import grafioschtrader.m2m.client.BaseDataClient.SendResult;
-import grafioschtrader.repository.GTNetJpaRepository;
+import grafiosch.types.TaskTypeBase;
 import grafioschtrader.service.GlobalparametersService;
-import grafioschtrader.types.TaskTypeExtended;
 
 /**
  * Background task that checks and updates the online/busy status of all configured GTNet servers.
@@ -54,21 +55,24 @@ public class GTNetServerStatusCheckTask implements ITask {
   private GlobalparametersService globalparametersService;
 
   @Autowired
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
+
+  @Autowired
   private BaseDataClient baseDataClient;
 
   @Override
   public ITaskType getTaskType() {
-    return TaskTypeExtended.GTNET_SERVER_STATUS_CHECK;
+    return TaskTypeBase.GTNET_SERVER_STATUS_CHECK;
   }
 
   @Override
   public void doWork(TaskDataChange taskDataChange) throws TaskBackgroundException {
-    if (!globalparametersService.isGTNetEnabled()) {
+    if (!globalparametersJpaRepository.isGTNetEnabled()) {
       log.debug("GTNet is disabled, skipping server status check");
       return;
     }
 
-    Integer myEntryId = globalparametersService.getGTNetMyEntryID();
+    Integer myEntryId = globalparametersJpaRepository.getGTNetMyEntryID();
     if (myEntryId == null) {
       log.info("GTNet my entry ID not configured, skipping server status check");
       return;

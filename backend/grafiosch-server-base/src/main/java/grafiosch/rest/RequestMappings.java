@@ -4,7 +4,9 @@ import grafiosch.entities.Globalparameters;
 import grafiosch.entities.User;
 
 public class RequestMappings {
-
+  public static final String M2M = "_m2m";
+  public static final String M2M_API = "/m2m/";
+  
   public static final String API = "/api/";
   public static final String GLOBALPARAMETERS_MAP = API + Globalparameters.TABNAME;
 
@@ -44,5 +46,20 @@ public class RequestMappings {
   // The is no table for useradmin
   public static final String USERADMIN = "useradmin";
   public static final String USERADMIN_MAP = API + USERADMIN;
+  public static final String GTNET = "gtnet";
+  public static final String GTNET_MAP = API + GTNET;
+  public static final String GTNET_M2M = GTNET + M2M;
+  public static final String GTNET_M2M_MAP = M2M_API + GTNET;
+
+  public static final String GTNET_MESSAGE = "gtnetmessage";
+  public static final String GTNET_MESSAGE_MAP = API + GTNET_MESSAGE;
+
+  public static final String GTNET_MESSAGE_ANSWER = "gtnetmessageanswer";
+  public static final String GTNET_MESSAGE_ANSWER_MAP = API + GTNET_MESSAGE_ANSWER;
+
+  public static final String GTNETCONFIGENTITY = "gtnetconfigentity";
+  public static final String GTNETCONFIGENTITY_MAP = API + GTNETCONFIGENTITY;
+  public static final String ACTUATOR_MAP = API + "actuator";
+ 
 
 }

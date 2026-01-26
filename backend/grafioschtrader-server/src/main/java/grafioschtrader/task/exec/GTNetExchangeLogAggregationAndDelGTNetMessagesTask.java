@@ -15,17 +15,18 @@ import org.springframework.stereotype.Component;
 import grafiosch.BaseConstants;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.exceptions.TaskBackgroundException;
+import grafiosch.gtnet.GTNetExchangeLogPeriodType;
+import grafiosch.repository.GTNetMessageJpaRepository;
+import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.task.ITask;
 import grafiosch.types.ITaskType;
 import grafiosch.types.TaskDataExecPriority;
+import grafiosch.types.TaskTypeBase;
 import grafioschtrader.common.PropertyStringParser;
-import grafioschtrader.gtnet.GTNetExchangeLogPeriodType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.repository.GTNetExchangeLogJpaRepository;
-import grafioschtrader.repository.GTNetMessageJpaRepository;
 import grafioschtrader.service.GlobalparametersService;
-import grafioschtrader.types.TaskTypeExtended;
 
 /**
  * Scheduled task that aggregates GTNet exchange log entries from shorter to longer periods and deletes old messages.
@@ -67,11 +68,14 @@ public class GTNetExchangeLogAggregationAndDelGTNetMessagesTask implements ITask
   private GlobalparametersService globalparametersService;
 
   @Autowired
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
+
+  @Autowired
   private TaskDataChangeJpaRepository taskDataChangeRepository;
 
   @Override
   public ITaskType getTaskType() {
-    return TaskTypeExtended.GTNET_EXCHANGE_LOG_AGGREGATION;
+    return TaskTypeBase.GTNET_EXCHANGE_LOG_AGGREGATION;
   }
 
   /**
@@ -80,7 +84,7 @@ public class GTNetExchangeLogAggregationAndDelGTNetMessagesTask implements ITask
    */
   @Scheduled(cron = "${gt.gtnet.log.aggregation.cron:0 0 3 * * ?}", zone = BaseConstants.TIME_ZONE)
   public void createAggregationTask() {
-    if (!globalparametersService.isGTNetEnabled()) {
+    if (!globalparametersJpaRepository.isGTNetEnabled()) {
       log.debug("GTNet is disabled, skipping log aggregation");
       return;
     }
@@ -91,7 +95,7 @@ public class GTNetExchangeLogAggregationAndDelGTNetMessagesTask implements ITask
 
   @Override
   public void doWork(TaskDataChange taskDataChange) throws TaskBackgroundException {
-    if (!globalparametersService.isGTNetEnabled()) {
+    if (!globalparametersJpaRepository.isGTNetEnabled()) {
       log.debug("GTNet is disabled, skipping log aggregation and message cleanup");
       return;
     }

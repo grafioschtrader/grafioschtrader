@@ -11,24 +11,26 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import grafiosch.entities.GTNet;
+import grafiosch.entities.GTNetConfig;
+import grafiosch.gtnet.GNetCoreMessageCode;
+import grafiosch.gtnet.GTNetMessageCode;
+import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
+import grafiosch.gtnet.m2m.model.MessageEnvelope;
+import grafiosch.gtnet.model.ConnectorHint;
+import grafiosch.gtnet.model.ConnectorHint.ConnectorCapability;
+import grafiosch.m2m.GTNetMessageHelper;
+import grafiosch.m2m.client.BaseDataClient;
+import grafiosch.m2m.client.BaseDataClient.SendResult;
+import grafiosch.repository.GTNetJpaRepository;
+import grafiosch.repository.GlobalparametersJpaRepository;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector;
-import grafioschtrader.entities.GTNet;
-import grafioschtrader.entities.GTNetConfig;
-import grafioschtrader.gtnet.m2m.model.GTNetPublicDTO;
-import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
-import grafioschtrader.gtnet.model.ConnectorHint;
-import grafioschtrader.gtnet.model.ConnectorHint.ConnectorCapability;
 import grafioschtrader.gtnet.model.SecurityGtnetLookupDTO;
 import grafioschtrader.gtnet.model.SecurityGtnetLookupRequest;
 import grafioschtrader.gtnet.model.SecurityGtnetLookupResponse;
 import grafioschtrader.gtnet.model.msg.SecurityLookupMsg;
 import grafioschtrader.gtnet.model.msg.SecurityLookupResponseMsg;
-import grafioschtrader.m2m.GTNetMessageHelper;
-import grafioschtrader.m2m.client.BaseDataClient;
-import grafioschtrader.m2m.client.BaseDataClient.SendResult;
-import grafioschtrader.repository.GTNetJpaRepository;
-import grafioschtrader.service.GlobalparametersService;
 
 /**
  * Service for looking up security metadata from GTNet peers.
@@ -45,9 +47,10 @@ public class GTNetSecurityLookupService {
 
   @Autowired
   private BaseDataClient baseDataClient;
+  
 
   @Autowired
-  private GlobalparametersService globalparametersService;
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Autowired
   private List<IFeedConnector> feedConnectors;
@@ -73,7 +76,7 @@ public class GTNetSecurityLookupService {
     }
 
     // Check if GTNet is enabled
-    if (!globalparametersService.isGTNetEnabled()) {
+    if (!globalparametersJpaRepository.isGTNetEnabled()) {
       SecurityGtnetLookupResponse response = new SecurityGtnetLookupResponse(results, 0, 0);
       response.addError("GTNet is not enabled");
       return response;
@@ -83,7 +86,7 @@ public class GTNetSecurityLookupService {
     Integer myGTNetId;
     GTNet myGTNet;
     try {
-      myGTNetId = GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersService);
+      myGTNetId = GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersJpaRepository);
       myGTNet = gtNetJpaRepository.findById(myGTNetId)
           .orElseThrow(() -> new IllegalStateException("Local GTNet entry not found: " + myGTNetId));
     } catch (Exception e) {
@@ -160,7 +163,7 @@ public class GTNetSecurityLookupService {
         peersResponded++;
 
         // Check response message code
-        GTNetMessageCodeType responseCode = GTNetMessageCodeType.getGTNetMessageCodeTypeByValue(response.messageCode);
+        GTNetMessageCode responseCode = GNetCoreMessageCode.getGTNetMessageCodeTypeByValue(response.messageCode);
         if (responseCode == GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_NOT_FOUND_S) {
           log.debug("No matching securities found on {}", supplier.getDomainRemoteName());
           continue;

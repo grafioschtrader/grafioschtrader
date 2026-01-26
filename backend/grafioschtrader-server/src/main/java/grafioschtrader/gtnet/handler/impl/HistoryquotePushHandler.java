@@ -10,19 +10,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import grafioschtrader.entities.GTNetEntity;
+import grafiosch.entities.GTNetEntity;
+import grafiosch.entities.GTNetMessage;
+import grafiosch.gtnet.MessageCategory;
+import grafiosch.gtnet.handler.AbstractGTNetMessageHandler;
+import grafiosch.gtnet.handler.GTNetMessageContext;
+import grafiosch.gtnet.handler.HandlerResult;
+import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.entities.GTNetHistoryquote;
 import grafioschtrader.entities.GTNetInstrument;
 import grafioschtrader.entities.GTNetInstrumentCurrencypair;
 import grafioschtrader.entities.GTNetInstrumentSecurity;
-import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
-import grafioschtrader.gtnet.MessageCategory;
-import grafioschtrader.gtnet.handler.AbstractGTNetMessageHandler;
-import grafioschtrader.gtnet.handler.GTNetMessageContext;
-import grafioschtrader.gtnet.handler.HandlerResult;
 import grafioschtrader.gtnet.m2m.model.HistoryquoteRecordDTO;
 import grafioschtrader.gtnet.m2m.model.InstrumentHistoryquoteDTO;
 import grafioschtrader.gtnet.model.msg.HistoryquoteExchangeMsg;
@@ -85,17 +86,17 @@ public class HistoryquotePushHandler extends AbstractGTNetMessageHandler {
   }
 
   @Override
-  public HandlerResult handle(GTNetMessageContext context) throws Exception {
+  public HandlerResult<GTNetMessage, MessageEnvelope> handle(GTNetMessageContext context) throws Exception {
     // Validate local GTNet configuration
     if (context.getMyGTNet() == null) {
-      return new HandlerResult.ProcessingError("NO_LOCAL_GTNET", "Local GTNet configuration not found");
+      return new HandlerResult.ProcessingError<>("NO_LOCAL_GTNET", "Local GTNet configuration not found");
     }
 
     // Check if this server accepts historyquote data
-    Optional<GTNetEntity> historyEntity = context.getMyGTNet().getEntity(GTNetExchangeKindType.HISTORICAL_PRICES);
+    Optional<GTNetEntity> historyEntity = context.getMyGTNet().getEntityByKind(GTNetExchangeKindType.HISTORICAL_PRICES.getValue());
     if (historyEntity.isEmpty() || !historyEntity.get().isAccepting()) {
       log.debug("Server not accepting historyquote data pushes");
-      return new HandlerResult.ProcessingError("NOT_ACCEPTING", "This server is not accepting historyquote data");
+      return new HandlerResult.ProcessingError<>("NOT_ACCEPTING", "This server is not accepting historyquote data");
     }
 
     // Store incoming message for logging
@@ -342,12 +343,12 @@ public class HistoryquotePushHandler extends AbstractGTNetMessageHandler {
    * @param acceptedCount number of records accepted
    * @return handler result with ACK response
    */
-  private HandlerResult createAckResponse(GTNetMessageContext context, GTNetMessage storedRequest, int acceptedCount) {
+  private HandlerResult<GTNetMessage, MessageEnvelope> createAckResponse(GTNetMessageContext context, GTNetMessage storedRequest, int acceptedCount) {
     HistoryquoteExchangeMsg ackPayload = HistoryquoteExchangeMsg.forPushAck(acceptedCount);
 
     GTNetMessage responseMsg = storeResponseMessage(context, GTNetMessageCodeType.GT_NET_HISTORYQUOTE_PUSH_ACK_S,
         null, null, storedRequest);
 
-    return new HandlerResult.ImmediateResponse(createResponseEnvelopeWithPayload(context, responseMsg, ackPayload));
+    return new HandlerResult.ImmediateResponse<>(createResponseEnvelopeWithPayload(context, responseMsg, ackPayload));
   }
 }

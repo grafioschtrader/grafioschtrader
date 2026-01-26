@@ -29,38 +29,38 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import grafiosch.entities.Auditable;
+import grafiosch.entities.GTNet;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.entities.User;
+import grafiosch.repository.GTNetJpaRepository;
 import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.rest.UpdateCreateJpaRepository;
 import grafiosch.rest.UpdateCreateResource;
 import grafiosch.types.TaskDataExecPriority;
+import grafiosch.types.TaskTypeBase;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.dto.GTSecuritiyCurrencyExchange;
 import grafioschtrader.dto.HisotryqouteLinearFilledSummary;
 import grafioschtrader.dto.InstrumentStatisticsResult;
 import grafioschtrader.dto.SecurityCurrencypairDerivedLinks;
-import grafioschtrader.entities.GTNet;
 import grafioschtrader.entities.GTNetSupplierDetail;
 import grafioschtrader.entities.Security;
 import grafioschtrader.gtnet.model.GTNetSupplierWithDetails;
 import grafioschtrader.priceupdate.historyquote.HistoryquoteQualityService;
 import grafioschtrader.reports.SecruityTransactionsReport;
 import grafioschtrader.reports.SecruityTransactionsReport.SecruityTransactionsReportOptions;
-import grafioschtrader.task.exec.GTNetExchangeSyncTask;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityIds;
 import grafioschtrader.reportviews.historyquotequality.IHistoryquoteQualityWithSecurityProp;
 import grafioschtrader.reportviews.securityaccount.SecurityOpenPositionPerSecurityaccount;
 import grafioschtrader.reportviews.transaction.SecurityTransactionSummary;
-import grafioschtrader.repository.GTNetJpaRepository;
 import grafioschtrader.repository.GTNetSupplierDetailJpaRepository;
 import grafioschtrader.repository.SecurityDerivedLinkJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.search.SecuritycurrencySearch;
-import grafioschtrader.types.TaskTypeExtended;
+import grafioschtrader.task.exec.GTNetExchangeSyncTask;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -368,7 +368,7 @@ public class SecurityResource extends UpdateCreateResource<Security> {
     Integer modeId = fullRecreation
         ? GTNetExchangeSyncTask.FULL_RECREATION_MODE
         : GTNetExchangeSyncTask.INCREMENTAL_MODE;
-    taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.GTNET_EXCHANGE_SYNC,
+    taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeBase.GTNET_EXCHANGE_SYNC,
         TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(),
         modeId, GTNetExchangeSyncTask.SYNC_MODE_ENTITY));
     return new ResponseEntity<>(HttpStatus.OK);

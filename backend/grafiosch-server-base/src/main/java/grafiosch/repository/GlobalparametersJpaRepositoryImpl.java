@@ -96,6 +96,28 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
   }
 
   @Override
+  public Integer getGTNetMyEntryID() {
+    return globalparametersJpaRepository.findById(GlobalParamKeyBaseDefault.GLOB_KEY_GTNET_MY_ENTRY_ID)
+        .map(Globalparameters::getPropertyInt).orElse(null);
+  }
+  
+  
+  /**
+   * Checks whether GTNet functionality is enabled.
+   *
+   * GTNet is enabled when the global parameter 'gt.gtnet.use' has a non-zero property_int value. If the parameter is not
+   * configured in the database, returns the default value (disabled).
+   *
+   * @return true if GTNet is enabled, false otherwise
+   */
+   @Override
+   public boolean isGTNetEnabled() {
+    return globalparametersJpaRepository.findById(GlobalParamKeyBaseDefault.GLOB_KEY_GTNET_USE)
+        .flatMap(g -> Optional.ofNullable(g.getPropertyInt()))
+        .orElse(GlobalParamKeyBaseDefault.DEFAULT_GTNET_USE) != 0;
+   }
+  
+  @Override
   public int getMaxSecurityBreachCount() {
     return globalparametersJpaRepository.findById(BaseConstants.GLOB_KEY_MAX_SECURITY_BREACH_COUNT)
         .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyBaseDefault.DEFAULT_MAX_SECURITY_BREACH_COUNT);
@@ -176,6 +198,15 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     }
     throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
   }
+  
+  @Override
+  public Globalparameters saveGTNetMyEntryID(Integer idGtNet) {
+    Globalparameters gp = new Globalparameters(GlobalParamKeyBaseDefault.GLOB_KEY_GTNET_MY_ENTRY_ID);
+    gp.setPropertyInt(idGtNet);
+    gp.setChangedBySystem(true);
+    return globalparametersJpaRepository.save(gp);
+  }
+  
 
   /**
    * Validates blob properties before saving by deserializing and checking configuration objects. Uses

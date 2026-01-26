@@ -67,6 +67,21 @@ public class GlobalParamKeyBaseDefault {
   /** Access key for global parameters. Task data preservation period in days before cleanup. */
   public static final String GLOB_KEY_TASK_DATA_DAYS_PRESERVE = BaseConstants.G_PREFIX + "task.data.days.preserve";
 
+  /** The idGTNet for this Server in GTNet */
+  public static final String GNET = BaseConstants.G_PREFIX + "gnet.";
+  public static final String GLOB_KEY_GTNET_MY_ENTRY_ID = GNET + "my.entry.id";
+  
+  /** Flag to enable/disable GTNet functionality. 0 = disabled, non-zero = enabled. */
+  public static final String GLOB_KEY_GTNET_USE = GNET + "use";
+  /** Default value for GTNet enabled flag (disabled by default). */
+  public static final int DEFAULT_GTNET_USE = 0;
+  
+  /** Flag to enable/disable GTNet exchange logging. 0 = disabled, non-zero = enabled. */
+  public static final String GLOB_KEY_GTNET_USE_LOG = GNET + "use.log";
+  /** Default value for GTNet logging enabled flag (disabled by default). */
+  public static final int DEFAULT_GTNET_USE_LOG = 0;
+  
+  
   public GlobalParamKeyBaseDefault() {
     Map<String, MaxDefaultDBValue> defaultLimitMap = Globalparameters.defaultLimitMap;
 

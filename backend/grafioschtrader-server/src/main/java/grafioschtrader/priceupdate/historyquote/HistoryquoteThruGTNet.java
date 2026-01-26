@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 
+import grafiosch.repository.GlobalparametersJpaRepository;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Securitycurrency;
@@ -22,7 +23,6 @@ import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecurityServiceAsyncExectuion;
 import grafioschtrader.repository.SecuritycurrencyService;
 import grafioschtrader.service.GTNetHistoryquoteService;
-import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.service.HistoryquoteExchangeResult;
 
 /**
@@ -48,15 +48,15 @@ public class HistoryquoteThruGTNet<S extends Securitycurrency<S>> implements IHi
 
   private final HistoryquoteThruConnector<S> connectorThru;
   private final GTNetHistoryquoteService gtNetHistoryquoteService;
-  private final GlobalparametersService globalparametersService;
+  private final GlobalparametersJpaRepository globalparametersJpaRepository;
   private final ISecuritycurrencyService<S> securitycurrencyService;
 
   public HistoryquoteThruGTNet(HistoryquoteThruConnector<S> connectorThru,
-      GTNetHistoryquoteService gtNetHistoryquoteService, GlobalparametersService globalparametersService,
+      GTNetHistoryquoteService gtNetHistoryquoteService, GlobalparametersJpaRepository globalparametersJpaRepository,
       ISecuritycurrencyService<S> securitycurrencyService) {
     this.connectorThru = connectorThru;
     this.gtNetHistoryquoteService = gtNetHistoryquoteService;
-    this.globalparametersService = globalparametersService;
+    this.globalparametersJpaRepository = globalparametersJpaRepository;
     this.securitycurrencyService = securitycurrencyService;
   }
 
@@ -116,7 +116,7 @@ public class HistoryquoteThruGTNet<S extends Securitycurrency<S>> implements IHi
   public List<S> fillHistoryquoteForSecuritiesCurrencies(
       List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, Calendar currentCalendar) {
 
-    if (!globalparametersService.isGTNetEnabled() || historySecurityCurrencyList.isEmpty()) {
+    if (!globalparametersJpaRepository.isGTNetEnabled() || historySecurityCurrencyList.isEmpty()) {
       // GTNet disabled - pass through to connector
       return connectorThru.fillHistoryquoteForSecuritiesCurrencies(historySecurityCurrencyList, currentCalendar);
     }

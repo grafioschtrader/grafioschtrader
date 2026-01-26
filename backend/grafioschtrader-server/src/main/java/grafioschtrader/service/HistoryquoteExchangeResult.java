@@ -3,8 +3,8 @@ package grafioschtrader.service;
 import java.util.List;
 import java.util.Map;
 
+import grafiosch.entities.GTNet;
 import grafioschtrader.entities.Currencypair;
-import grafioschtrader.entities.GTNet;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.gtnet.m2m.model.InstrumentHistoryquoteDTO;

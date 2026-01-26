@@ -4,10 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import grafioschtrader.entities.GTNetMessage;
+import grafiosch.entities.GTNetMessage;
+import grafiosch.gtnet.handler.AbstractResponseHandler;
+import grafiosch.gtnet.handler.GTNetMessageContext;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
-import grafioschtrader.gtnet.handler.AbstractResponseHandler;
-import grafioschtrader.gtnet.handler.GTNetMessageContext;
 import grafioschtrader.gtnet.model.msg.HistoryquoteExchangeMsg;
 
 /**

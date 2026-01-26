@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import grafioschtrader.entities.GTNet;
+import grafiosch.entities.GTNet;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 
 /**
@@ -144,7 +144,7 @@ public class SupplierScoreCalculator {
    */
   private byte getConsumerUsage(GTNet supplier, GTNetExchangeKindType exchangeKind) {
     return supplier.getGtNetEntities().stream()
-        .filter(e -> e.getEntityKind() == exchangeKind)
+        .filter(e -> e.getEntityKindValue() == exchangeKind.getValue())
         .findFirst()
         .map(e -> e.getGtNetConfigEntity().getConsumerUsage())
         .orElse((byte) 0);

@@ -50,8 +50,8 @@
 
         <dependency>
 			<groupId>grafioschtrader</groupId>
-			<artifactId>grafiosch-base</artifactId>
-	        <version>0.33.15</version>	
+			<artifactId>grafiosch-server-base</artifactId>
+	        <version>0.33.15</version>
 		</dependency>
 
 		<dependency>

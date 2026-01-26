@@ -12,21 +12,21 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import grafiosch.entities.GTNet;
+import grafiosch.entities.GTNetEntity;
+import grafiosch.entities.GTNetMessage;
+import grafiosch.gtnet.MessageCategory;
+import grafiosch.gtnet.handler.AbstractGTNetMessageHandler;
+import grafiosch.gtnet.handler.GTNetMessageContext;
+import grafiosch.gtnet.handler.HandlerResult;
+import grafiosch.gtnet.m2m.model.MessageEnvelope;
+import grafiosch.gtnet.model.ConnectorHint;
+import grafiosch.gtnet.model.ConnectorHint.ConnectorCapability;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector;
-import grafioschtrader.entities.GTNet;
-import grafioschtrader.entities.GTNetEntity;
-import grafioschtrader.entities.GTNetMessage;
 import grafioschtrader.entities.Security;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
-import grafioschtrader.gtnet.MessageCategory;
-import grafioschtrader.gtnet.handler.AbstractGTNetMessageHandler;
-import grafioschtrader.gtnet.handler.GTNetMessageContext;
-import grafioschtrader.gtnet.handler.HandlerResult;
-import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
-import grafioschtrader.gtnet.model.ConnectorHint;
-import grafioschtrader.gtnet.model.ConnectorHint.ConnectorCapability;
 import grafioschtrader.gtnet.model.SecurityGtnetLookupDTO;
 import grafioschtrader.gtnet.model.msg.SecurityLookupMsg;
 import grafioschtrader.gtnet.model.msg.SecurityLookupResponseMsg;
@@ -62,15 +62,15 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
   }
 
   @Override
-  public HandlerResult handle(GTNetMessageContext context) throws Exception {
+  public HandlerResult<GTNetMessage, MessageEnvelope> handle(GTNetMessageContext context) throws Exception {
     // Validate local GTNet configuration
     GTNet myGTNet = context.getMyGTNet();
     if (myGTNet == null) {
-      return new HandlerResult.ProcessingError("NO_LOCAL_GTNET", "Local GTNet configuration not found");
+      return new HandlerResult.ProcessingError<>("NO_LOCAL_GTNET", "Local GTNet configuration not found");
     }
 
     // Check if this server accepts security metadata requests
-    Optional<GTNetEntity> metadataEntity = myGTNet.getEntity(GTNetExchangeKindType.SECURITY_METADATA);
+    Optional<GTNetEntity> metadataEntity = myGTNet.getEntityByKind(GTNetExchangeKindType.SECURITY_METADATA.getValue());
     if (metadataEntity.isEmpty() || !metadataEntity.get().isAccepting()) {
       log.debug("Server not accepting security metadata requests");
       return createRejectedResponse(context, "NOT_ACCEPTING", "This server is not accepting security metadata requests");
@@ -269,7 +269,7 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
     return false;
   }
 
-  private HandlerResult createSuccessResponse(GTNetMessageContext context, GTNetMessage storedRequest,
+  private HandlerResult<GTNetMessage, MessageEnvelope> createSuccessResponse(GTNetMessageContext context, GTNetMessage storedRequest,
       List<SecurityGtnetLookupDTO> results) {
     GTNetMessage responseMsg = storeResponseMessage(context, GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_RESPONSE_S,
         null, null, storedRequest);
@@ -277,18 +277,18 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
     SecurityLookupResponseMsg responsePayload = new SecurityLookupResponseMsg(results);
 
     MessageEnvelope envelope = createResponseEnvelopeWithPayload(context, responseMsg, responsePayload);
-    return new HandlerResult.ImmediateResponse(envelope);
+    return new HandlerResult.ImmediateResponse<>(envelope);
   }
 
-  private HandlerResult createNotFoundResponse(GTNetMessageContext context, GTNetMessage storedRequest) {
+  private HandlerResult<GTNetMessage, MessageEnvelope> createNotFoundResponse(GTNetMessageContext context, GTNetMessage storedRequest) {
     GTNetMessage responseMsg = storeResponseMessage(context, GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_NOT_FOUND_S,
         null, null, storedRequest);
 
     MessageEnvelope envelope = createResponseEnvelope(context, responseMsg);
-    return new HandlerResult.ImmediateResponse(envelope);
+    return new HandlerResult.ImmediateResponse<>(envelope);
   }
 
-  private HandlerResult createRejectedResponse(GTNetMessageContext context, String errorCode, String message) {
-    return new HandlerResult.ProcessingError(errorCode, message);
+  private HandlerResult<GTNetMessage, MessageEnvelope> createRejectedResponse(GTNetMessageContext context, String errorCode, String message) {
+    return new HandlerResult.ProcessingError<>(errorCode, message);
   }
 }

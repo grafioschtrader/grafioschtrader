@@ -1,0 +1,164 @@
+package grafiosch.entities;
+
+import grafiosch.common.PropertyAlwaysUpdatable;
+import grafiosch.gtnet.AcceptRequestTypes;
+import grafiosch.gtnet.GTNetServerStateTypes;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrimaryKeyJoinColumn;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+
+@Entity
+@Table(name = GTNetEntity.TABNAME)
+@Schema(description = """
+    This defines what can be exchanged with an instance. One entry per exchangeable information object.""")
+public class GTNetEntity extends BaseID<Integer> {
+
+  public static final String TABNAME = "gt_net_entity";
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "id_gt_net_entity")
+  private Integer idGtNetEntity;
+
+  @Schema(description = "Reference to the parent GTNet domain entry")
+  @Column(name = "id_gt_net", nullable = false, insertable = false, updatable = false)
+  private Integer idGtNet;
+
+  @Schema(description = "What type of information is provided? Stored as byte, application defines interpretation.")
+  @Column(name = "entity_kind")
+  private byte entityKind;
+
+  @Schema(description = """
+      Defines how this server handles incoming data exchange requests: AC_CLOSED (no requests),
+      AC_OPEN (accepts requests), or AC_PUSH_OPEN (accepts requests and pushed updates).
+      AC_PUSH_OPEN is only available for certain exchange kinds.""")
+  @Column(name = "accept_request")
+  @PropertyAlwaysUpdatable
+  private byte acceptRequest;
+
+  @Schema(description = """
+      Server state for data sharing. Indicates whether the remote domain is available to provide
+      this kind of data. Uses GTNetServerStateTypes enum values.""")
+  @Column(name = "server_state")
+  private byte serverState;
+
+  @Schema(description = """
+      Maximum number of items that can be transferred in a single request.
+      For example, 300 means a maximum of 300 items per request. Valid range: 10-999.""")
+  @Column(name = "max_limit")
+  @Min(value = 10)
+  @Max(value = 999)
+  private Short maxLimit = 300;
+
+  @Schema(description = "Entity-specific configuration for exchange settings, logging, and consumer usage")
+  @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+  @PrimaryKeyJoinColumn(name = "id_gt_net_entity", referencedColumnName = "id_gt_net_entity")
+  private GTNetConfigEntity gtNetConfigEntity;
+
+  /**
+   * Gets the raw byte value of the entity kind.
+   * Applications should define their own interpretation of this value.
+   *
+   * @return the entity kind as a byte value
+   */
+  public byte getEntityKindValue() {
+    return entityKind;
+  }
+
+  /**
+   * Sets the entity kind using a raw byte value.
+   *
+   * @param entityKind the entity kind byte value
+   */
+  public void setEntityKindValue(byte entityKind) {
+    this.entityKind = entityKind;
+  }
+
+  public Integer getIdGtNetEntity() {
+    return idGtNetEntity;
+  }
+
+  public void setIdGtNetEntity(Integer idGtNetEntity) {
+    this.idGtNetEntity = idGtNetEntity;
+  }
+
+  public AcceptRequestTypes getAcceptRequest() {
+    return AcceptRequestTypes.getAcceptRequestType(acceptRequest);
+  }
+
+  public void setAcceptRequest(AcceptRequestTypes acceptRequest) {
+    this.acceptRequest = acceptRequest.getValue();
+  }
+
+  /**
+   * Checks if this entity accepts incoming data requests.
+   *
+   * @return true if acceptRequest is AC_OPEN or AC_PUSH_OPEN
+   */
+  public boolean isAccepting() {
+    return getAcceptRequest().isAccepting();
+  }
+
+  public GTNetServerStateTypes getServerState() {
+    return GTNetServerStateTypes.getGTNetServerStateType(serverState);
+  }
+
+  public void setServerState(GTNetServerStateTypes serverState) {
+    this.serverState = serverState.getValue();
+  }
+
+  public Integer getIdGtNet() {
+    return idGtNet;
+  }
+
+  public void setIdGtNet(Integer idGtNet) {
+    this.idGtNet = idGtNet;
+  }
+
+  public GTNetConfigEntity getGtNetConfigEntity() {
+    return gtNetConfigEntity;
+  }
+
+  public void setGtNetConfigEntity(GTNetConfigEntity gtNetConfigEntity) {
+    this.gtNetConfigEntity = gtNetConfigEntity;
+  }
+
+  /**
+   * Returns the existing GTNetConfigEntity or creates a new one if none exists.
+   * For persisted entities, sets the config entity's ID; for new entities, the ID must be set after persistence.
+   *
+   * @return the existing or newly created GTNetConfigEntity
+   */
+  public GTNetConfigEntity getOrCreateConfigEntity() {
+    if (gtNetConfigEntity == null) {
+      gtNetConfigEntity = new GTNetConfigEntity();
+      if (idGtNetEntity != null) {
+        gtNetConfigEntity.setIdGtNetEntity(idGtNetEntity);
+      }
+    }
+    return gtNetConfigEntity;
+  }
+
+  public Short getMaxLimit() {
+    return maxLimit;
+  }
+
+  public void setMaxLimit(Short maxLimit) {
+    this.maxLimit = maxLimit;
+  }
+
+  @Override
+  public Integer getId() {
+    return idGtNetEntity;
+  }
+}

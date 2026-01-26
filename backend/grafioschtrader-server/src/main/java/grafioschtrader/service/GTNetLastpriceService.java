@@ -18,28 +18,29 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import grafiosch.entities.GTNet;
+import grafiosch.entities.GTNetConfig;
+import grafiosch.entities.GTNetEntity;
+import grafiosch.gtnet.AcceptRequestTypes;
+import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
+import grafiosch.gtnet.m2m.model.MessageEnvelope;
+import grafiosch.m2m.GTNetMessageHelper;
+import grafiosch.m2m.client.BaseDataClient;
+import grafiosch.m2m.client.BaseDataClient.SendResult;
+import grafiosch.repository.GTNetJpaRepository;
+import grafiosch.repository.GlobalparametersJpaRepository;
 import grafioschtrader.entities.Currencypair;
-import grafioschtrader.entities.GTNet;
-import grafioschtrader.entities.GTNetConfig;
-import grafioschtrader.entities.GTNetEntity;
 import grafioschtrader.entities.GTNetSupplierDetail;
 import grafioschtrader.entities.Security;
-import grafioschtrader.gtnet.AcceptRequestTypes;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.handler.impl.lastprice.PushOpenLastpriceQueryStrategy;
-import grafioschtrader.gtnet.m2m.model.GTNetPublicDTO;
 import grafioschtrader.gtnet.m2m.model.InstrumentPriceDTO;
-import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.gtnet.model.msg.LastpriceExchangeMsg;
-import grafioschtrader.m2m.GTNetMessageHelper;
-import grafioschtrader.m2m.client.BaseDataClient;
-import grafioschtrader.m2m.client.BaseDataClient.SendResult;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetExchangeLogJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentCurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentSecurityJpaRepository;
-import grafioschtrader.repository.GTNetJpaRepository;
 import grafioschtrader.repository.GTNetSupplierDetailJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 
@@ -90,6 +91,9 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
   private GlobalparametersService globalparametersService;
 
   @Autowired
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
+
+  @Autowired
   private GTNetExchangeLogService gtNetExchangeLogService;
 
   @Autowired
@@ -110,7 +114,7 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
       List<Currencypair> currencypairs, List<Currencypair> currenciesNotInList) {
 
     // Check if GTNet is enabled
-    if (!globalparametersService.isGTNetEnabled()) {
+    if (!globalparametersJpaRepository.isGTNetEnabled()) {
       // GTNet disabled - fall back to connectors only
       currencypairJpaRepository.updateLastPriceByList(currenciesNotInList);
       return new SecurityCurrency(
@@ -346,7 +350,7 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
         minAcceptableTimestamp);
 
     // Get local GTNet entry for source identification (use findById to eagerly load - async context has no session)
-    Integer myGTNetId = GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersService);
+    Integer myGTNetId = GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersJpaRepository);
     GTNet myGTNet = gtNetJpaRepository.findById(myGTNetId)
         .orElseThrow(() -> new IllegalStateException("Local GTNet entry not found: " + myGTNetId));
 
@@ -423,7 +427,7 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
    */
   private void queryLocalPushPoolIfPushOpen(InstrumentExchangeSet instruments) {
     // Get local GTNet entry
-    Integer myGTNetId = globalparametersService.getGTNetMyEntryID();
+    Integer myGTNetId = globalparametersJpaRepository.getGTNetMyEntryID();
     if (myGTNetId == null) {
       return;
     }
@@ -436,7 +440,7 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
     GTNet myGTNet = myGTNetOpt.get();
 
     // Check if we have an AC_PUSH_OPEN LAST_PRICE entity
-    Optional<GTNetEntity> lastpriceEntity = myGTNet.getEntity(GTNetExchangeKindType.LAST_PRICE);
+    Optional<GTNetEntity> lastpriceEntity = myGTNet.getEntityByKind(GTNetExchangeKindType.LAST_PRICE.getValue());
     if (lastpriceEntity.isEmpty()) {
       return;
     }
@@ -485,7 +489,7 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
    */
   private void updatePushPoolIfPushOpen(List<Security> securities, List<Currencypair> currencypairs) {
     // Get local GTNet entry
-    Integer myGTNetId = globalparametersService.getGTNetMyEntryID();
+    Integer myGTNetId = globalparametersJpaRepository.getGTNetMyEntryID();
     if (myGTNetId == null) {
       return;
     }
@@ -498,7 +502,7 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
     GTNet myGTNet = myGTNetOpt.get();
 
     // Check if we have an AC_PUSH_OPEN LAST_PRICE entity
-    Optional<GTNetEntity> lastpriceEntity = myGTNet.getEntity(GTNetExchangeKindType.LAST_PRICE);
+    Optional<GTNetEntity> lastpriceEntity = myGTNet.getEntityByKind(GTNetExchangeKindType.LAST_PRICE.getValue());
     if (lastpriceEntity.isEmpty()) {
       return;
     }
@@ -547,7 +551,7 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
    * @return filtered list excluding the local server's entry
    */
   private List<GTNet> excludeOwnEntry(List<GTNet> suppliers) {
-    Integer myEntryId = globalparametersService.getGTNetMyEntryID();
+    Integer myEntryId = globalparametersJpaRepository.getGTNetMyEntryID();
     if (myEntryId == null) {
       return suppliers;
     }

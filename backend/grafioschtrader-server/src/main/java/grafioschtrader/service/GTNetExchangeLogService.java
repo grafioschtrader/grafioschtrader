@@ -3,7 +3,7 @@ package grafioschtrader.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import grafioschtrader.entities.GTNet;
+import grafiosch.entities.GTNet;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.repository.GTNetExchangeLogJpaRepository;
 

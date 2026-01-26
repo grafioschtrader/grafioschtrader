@@ -20,9 +20,16 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import grafiosch.entities.GTNet;
+import grafiosch.entities.GTNetConfig;
+import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
+import grafiosch.gtnet.m2m.model.MessageEnvelope;
+import grafiosch.m2m.GTNetMessageHelper;
+import grafiosch.m2m.client.BaseDataClient;
+import grafiosch.m2m.client.BaseDataClient.SendResult;
+import grafiosch.repository.GTNetJpaRepository;
+import grafiosch.repository.GlobalparametersJpaRepository;
 import grafioschtrader.entities.Currencypair;
-import grafioschtrader.entities.GTNet;
-import grafioschtrader.entities.GTNetConfig;
 import grafioschtrader.entities.GTNetHistoryquote;
 import grafioschtrader.entities.GTNetInstrument;
 import grafioschtrader.entities.GTNetInstrumentCurrencypair;
@@ -31,23 +38,17 @@ import grafioschtrader.entities.GTNetSupplierDetail;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
-import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteData;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
-import grafioschtrader.gtnet.m2m.model.GTNetPublicDTO;
 import grafioschtrader.gtnet.m2m.model.HistoryquoteRecordDTO;
 import grafioschtrader.gtnet.m2m.model.InstrumentHistoryquoteDTO;
-import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.gtnet.model.msg.HistoryquoteExchangeMsg;
-import grafioschtrader.m2m.GTNetMessageHelper;
-import grafioschtrader.m2m.client.BaseDataClient;
-import grafioschtrader.m2m.client.BaseDataClient.SendResult;
+import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteData;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetExchangeLogJpaRepository;
 import grafioschtrader.repository.GTNetHistoryquoteJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentCurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentSecurityJpaRepository;
-import grafioschtrader.repository.GTNetJpaRepository;
 import grafioschtrader.repository.GTNetSupplierDetailJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
@@ -118,6 +119,9 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
   private GlobalparametersService globalparametersService;
 
   @Autowired
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
+
+  @Autowired
   private GTNetExchangeLogService gtNetExchangeLogService;
 
   @Autowired
@@ -135,7 +139,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
    * @return the number of records received and stored
    */
   public int requestHistoryquotesForSecurity(String isin, String currency, Date fromDate, Date toDate) {
-    if (!globalparametersService.isGTNetEnabled()) {
+    if (!globalparametersJpaRepository.isGTNetEnabled()) {
       return 0;
     }
 
@@ -156,7 +160,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
    * @return the number of records received and stored
    */
   public int requestHistoryquotesForCurrencypair(String fromCurrency, String toCurrency, Date fromDate, Date toDate) {
-    if (!globalparametersService.isGTNetEnabled()) {
+    if (!globalparametersJpaRepository.isGTNetEnabled()) {
       return 0;
     }
 
@@ -174,7 +178,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
    * @return the number of records received and stored
    */
   public int requestHistoryquotes(HistoryquoteExchangeMsg request) {
-    if (!globalparametersService.isGTNetEnabled()) {
+    if (!globalparametersJpaRepository.isGTNetEnabled()) {
       return 0;
     }
     return executeHistoryquoteExchange(request);
@@ -196,7 +200,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
       List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, Calendar untilCalendar) {
 
     // Check GTNet enabled
-    if (!globalparametersService.isGTNetEnabled() || historySecurityCurrencyList.isEmpty()) {
+    if (!globalparametersJpaRepository.isGTNetEnabled() || historySecurityCurrencyList.isEmpty()) {
       return HistoryquoteExchangeResult.passthrough(historySecurityCurrencyList);
     }
 
@@ -472,7 +476,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
       return;
     }
 
-    Integer myGTNetId = GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersService);
+    Integer myGTNetId = GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersJpaRepository);
     GTNet myGTNet = gtNetJpaRepository.findById(myGTNetId)
         .orElseThrow(() -> new IllegalStateException("Local GTNet entry not found: " + myGTNetId));
 
@@ -569,7 +573,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
     }
 
     // Get local GTNet entry for source identification
-    Integer myGTNetId = GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersService);
+    Integer myGTNetId = GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersJpaRepository);
     GTNet myGTNet = gtNetJpaRepository.findById(myGTNetId)
         .orElseThrow(() -> new IllegalStateException("Local GTNet entry not found: " + myGTNetId));
 
@@ -704,7 +708,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
     }
 
     // Get local GTNet entry for source identification
-    Integer myGTNetId = GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersService);
+    Integer myGTNetId = GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersJpaRepository);
     GTNet myGTNet = gtNetJpaRepository.findById(myGTNetId)
         .orElseThrow(() -> new IllegalStateException("Local GTNet entry not found: " + myGTNetId));
 
@@ -824,7 +828,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
    * @return filtered list excluding the local server's entry
    */
   private List<GTNet> excludeOwnEntry(List<GTNet> suppliers) {
-    Integer myEntryId = globalparametersService.getGTNetMyEntryID();
+    Integer myEntryId = globalparametersJpaRepository.getGTNetMyEntryID();
     if (myEntryId == null) {
       return suppliers;
     }

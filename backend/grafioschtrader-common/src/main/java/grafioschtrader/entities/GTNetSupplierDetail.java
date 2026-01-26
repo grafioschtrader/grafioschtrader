@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import grafiosch.entities.BaseID;
+import grafiosch.entities.GTNetConfig;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
