@@ -13,7 +13,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfig;
-import grafiosch.gtnet.GNetCoreMessageCode;
 import grafiosch.gtnet.GTNetMessageCode;
 import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
@@ -163,7 +162,7 @@ public class GTNetSecurityLookupService {
         peersResponded++;
 
         // Check response message code
-        GTNetMessageCode responseCode = GNetCoreMessageCode.getGTNetMessageCodeTypeByValue(response.messageCode);
+        GTNetMessageCode responseCode = GTNetMessageCodeType.getMessageCodeByValue(response.messageCode);
         if (responseCode == GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_NOT_FOUND_S) {
           log.debug("No matching securities found on {}", supplier.getDomainRemoteName());
           continue;
