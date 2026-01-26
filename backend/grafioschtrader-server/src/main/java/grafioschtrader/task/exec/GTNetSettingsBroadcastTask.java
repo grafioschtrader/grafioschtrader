@@ -7,11 +7,12 @@ import org.springframework.stereotype.Component;
 
 import grafiosch.entities.TaskDataChange;
 import grafiosch.exceptions.TaskBackgroundException;
+import grafiosch.repository.GTNetJpaRepository;
+import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.task.ITask;
 import grafiosch.types.ITaskType;
-import grafioschtrader.repository.GTNetJpaRepository;
+import grafiosch.types.TaskTypeBase;
 import grafioschtrader.service.GlobalparametersService;
-import grafioschtrader.types.TaskTypeExtended;
 
 /**
  * Background task that broadcasts settings changes to all configured GTNet peers.
@@ -35,19 +36,22 @@ public class GTNetSettingsBroadcastTask implements ITask {
   @Autowired
   private GlobalparametersService globalparametersService;
 
+  @Autowired
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
+
   @Override
   public ITaskType getTaskType() {
-    return TaskTypeExtended.GTNET_SETTINGS_BROADCAST;
+    return TaskTypeBase.GTNET_SETTINGS_BROADCAST;
   }
 
   @Override
   public void doWork(TaskDataChange taskDataChange) throws TaskBackgroundException {
-    if (!globalparametersService.isGTNetEnabled()) {
+    if (!globalparametersJpaRepository.isGTNetEnabled()) {
       log.debug("GTNet is disabled, skipping settings broadcast");
       return;
     }
 
-    Integer myEntryId = globalparametersService.getGTNetMyEntryID();
+    Integer myEntryId = globalparametersJpaRepository.getGTNetMyEntryID();
     if (myEntryId == null) {
       log.info("GTNet my entry ID not configured, skipping settings broadcast");
       return;

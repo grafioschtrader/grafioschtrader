@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import grafioschtrader.entities.GTNet;
+import grafiosch.entities.GTNet;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 
 /**
@@ -43,7 +43,7 @@ public abstract class BaseGTNetExchangeService {
     Map<Byte, List<GTNet>> byPriority = suppliers.stream()
         .collect(Collectors.groupingBy(gtNet -> {
           return gtNet.getGtNetEntities().stream()
-              .filter(e -> e.getEntityKind() == exchangeKind)
+              .filter(e -> e.getEntityKindValue() == exchangeKind.getValue())
               .findFirst()
               .map(e -> e.getGtNetConfigEntity().getConsumerUsage())
               .orElse((byte) 0);

@@ -8,10 +8,7 @@ public class GlobalConstants extends BaseConstants {
 
   /** GT application prefix for configuration parameters. */
   public static final String GT_PREFIX = "gt.";
-
-  /** Prefix for users day entity limits */
-  public static final String GT_LIMIT_DAY = GT_PREFIX + "limit.day.";
-
+  
   public static final String STOCK_EX_MIC_UK = "XLON";
   public static final String STOCK_EX_MIC_NASDAQ = "XNAS";
   public static final String STOCK_EX_MIC_NYSE = "XNYS";
@@ -37,6 +34,9 @@ public class GlobalConstants extends BaseConstants {
   public static final String MC_AUD = "AUD";
   public static final String CC_BTC = "BTC";
 
+  /** Prefix for users day entity limits */
+  public static final String GT_LIMIT_DAY = GT_PREFIX + "limit.day.";
+  
   /** Maximum precision digits for currency exchange rates. */
   public static final int FID_MAX_CURRENCY_EX_RATE_PRECISION = 20;
   

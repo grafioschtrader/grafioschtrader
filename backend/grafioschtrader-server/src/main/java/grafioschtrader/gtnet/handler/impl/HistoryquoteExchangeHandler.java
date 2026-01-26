@@ -9,16 +9,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import grafioschtrader.entities.GTNet;
-import grafioschtrader.entities.GTNetEntity;
-import grafioschtrader.entities.GTNetMessage;
-import grafioschtrader.gtnet.AcceptRequestTypes;
+import grafiosch.entities.GTNet;
+import grafiosch.entities.GTNetEntity;
+import grafiosch.entities.GTNetMessage;
+import grafiosch.gtnet.AcceptRequestTypes;
+import grafiosch.gtnet.MessageCategory;
+import grafiosch.gtnet.handler.AbstractGTNetMessageHandler;
+import grafiosch.gtnet.handler.GTNetMessageContext;
+import grafiosch.gtnet.handler.HandlerResult;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
-import grafioschtrader.gtnet.MessageCategory;
-import grafioschtrader.gtnet.handler.AbstractGTNetMessageHandler;
-import grafioschtrader.gtnet.handler.GTNetMessageContext;
-import grafioschtrader.gtnet.handler.HandlerResult;
 import grafioschtrader.gtnet.handler.impl.historyquote.HistoryquoteQueryStrategy;
 import grafioschtrader.gtnet.handler.impl.historyquote.OpenHistoryquoteQueryStrategy;
 import grafioschtrader.gtnet.handler.impl.historyquote.PushOpenHistoryquoteQueryStrategy;
@@ -71,18 +71,18 @@ public class HistoryquoteExchangeHandler extends AbstractGTNetMessageHandler {
   }
 
   @Override
-  public HandlerResult handle(GTNetMessageContext context) throws Exception {
+  public HandlerResult<GTNetMessage, grafiosch.gtnet.m2m.model.MessageEnvelope> handle(GTNetMessageContext context) throws Exception {
     // Validate request
     GTNet myGTNet = context.getMyGTNet();
     if (myGTNet == null) {
-      return new HandlerResult.ProcessingError("NO_LOCAL_GTNET", "Local GTNet configuration not found");
+      return new HandlerResult.ProcessingError<>("NO_LOCAL_GTNET", "Local GTNet configuration not found");
     }
 
     // Check if this server accepts historyquote requests
-    Optional<GTNetEntity> historyEntity = myGTNet.getEntity(GTNetExchangeKindType.HISTORICAL_PRICES);
+    Optional<GTNetEntity> historyEntity = myGTNet.getEntityByKind(GTNetExchangeKindType.HISTORICAL_PRICES.getValue());
     if (historyEntity.isEmpty() || !historyEntity.get().isAccepting()) {
       log.debug("Server not accepting historyquote requests");
-      return new HandlerResult.ProcessingError("NOT_ACCEPTING", "This server is not accepting historyquote requests");
+      return new HandlerResult.ProcessingError<>("NOT_ACCEPTING", "This server is not accepting historyquote requests");
     }
 
     // Store incoming message for logging
@@ -142,7 +142,7 @@ public class HistoryquoteExchangeHandler extends AbstractGTNetMessageHandler {
         null, null, storedRequest);
 
     // Create response envelope with payload
-    return new HandlerResult.ImmediateResponse(createResponseEnvelopeWithPayload(context, responseMsg, response));
+    return new HandlerResult.ImmediateResponse<>(createResponseEnvelopeWithPayload(context, responseMsg, response));
   }
 
   /**
@@ -159,10 +159,10 @@ public class HistoryquoteExchangeHandler extends AbstractGTNetMessageHandler {
   /**
    * Creates an empty response when no instruments were requested.
    */
-  private HandlerResult createEmptyResponse(GTNetMessageContext context, GTNetMessage storedRequest) {
+  private HandlerResult<GTNetMessage, grafiosch.gtnet.m2m.model.MessageEnvelope> createEmptyResponse(GTNetMessageContext context, GTNetMessage storedRequest) {
     GTNetMessage responseMsg = storeResponseMessage(context, GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_RESPONSE_S,
         null, null, storedRequest);
-    return new HandlerResult.ImmediateResponse(
+    return new HandlerResult.ImmediateResponse<>(
         createResponseEnvelopeWithPayload(context, responseMsg, new HistoryquoteExchangeMsg()));
   }
 
@@ -170,7 +170,7 @@ public class HistoryquoteExchangeHandler extends AbstractGTNetMessageHandler {
    * Handles requests that exceed the configured max_limit.
    * Increments the violation counter for the remote domain and returns an error response.
    */
-  private HandlerResult handleMaxLimitExceeded(GTNetMessageContext context, GTNetMessage storedRequest,
+  private HandlerResult<GTNetMessage, grafiosch.gtnet.m2m.model.MessageEnvelope> handleMaxLimitExceeded(GTNetMessageContext context, GTNetMessage storedRequest,
       int requestedCount, short maxLimit) {
     log.warn("Request from {} exceeded max_limit: {} instruments requested, limit is {}",
         context.getRemoteGTNet() != null ? context.getRemoteGTNet().getDomainRemoteName() : "unknown",
@@ -188,6 +188,6 @@ public class HistoryquoteExchangeHandler extends AbstractGTNetMessageHandler {
     GTNetMessage responseMsg = storeResponseMessage(context,
         GTNetMessageCodeType.GT_NET_HISTORYQUOTE_MAX_LIMIT_EXCEEDED_S, message, null, storedRequest);
 
-    return new HandlerResult.ImmediateResponse(createResponseEnvelope(context, responseMsg));
+    return new HandlerResult.ImmediateResponse<>(createResponseEnvelope(context, responseMsg));
   }
 }

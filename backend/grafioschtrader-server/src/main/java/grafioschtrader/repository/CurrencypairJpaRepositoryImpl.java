@@ -46,10 +46,10 @@ import grafioschtrader.priceupdate.historyquote.HistoryquoteThruGTNet;
 import grafioschtrader.priceupdate.historyquote.IHistoryquoteLoad;
 import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteData;
 import grafioschtrader.priceupdate.intraday.IntradayThruConnector;
-import grafioschtrader.service.GTNetHistoryquoteService;
 import grafioschtrader.reportviews.account.CashaccountPositionSummary;
 import grafioschtrader.search.CurrencyPairSearchBuilder;
 import grafioschtrader.search.SecuritycurrencySearch;
+import grafioschtrader.service.GTNetHistoryquoteService;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.TaskTypeExtended;
 import jakarta.annotation.PostConstruct;
@@ -80,7 +80,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
     HistoryquoteThruConnector<Currencypair> connectorThru = new HistoryquoteThruConnector<>(entityManager,
         globalparametersService, feedConnectorbeans, this, Currencypair.class);
     historyquoteThruConnector = new HistoryquoteThruGTNet<>(connectorThru, gtNetHistoryquoteService,
-        globalparametersService, currencypairJpaRepository);
+        globalparametersJpaRepository, currencypairJpaRepository);
     intradayThruConnector = new IntradayThruConnector<>(currencypairJpaRepository, globalparametersService,
         feedConnectorbeans, this);
   }

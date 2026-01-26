@@ -1,17 +1,33 @@
 package grafioschtrader.gtnet;
 
-public enum GTNetExchangeKindType {
+import grafiosch.gtnet.IExchangeKindType;
+
+/**
+ * Exchange kind types specific to Grafioschtrader.
+ *
+ * Defines the types of data that can be exchanged between GTNet peers, including
+ * intraday prices, historical prices, and security metadata.
+ *
+ * @see IExchangeKindType for the interface contract
+ */
+public enum GTNetExchangeKindType implements IExchangeKindType {
   LAST_PRICE ((byte) 0),
   HISTORICAL_PRICES ((byte) 1),
-  SECURITY_METADATA ((byte) 2);
-  
-  
+  SECURITY_METADATA ((byte) 2) {
+    @Override
+    public boolean isSyncable() {
+      return false;
+    }
+  };
+
+
   private final Byte value;
 
   private GTNetExchangeKindType(final Byte value) {
     this.value = value;
   }
 
+  @Override
   public Byte getValue() {
     return this.value;
   }

@@ -8,14 +8,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import grafioschtrader.entities.GTNet;
-import grafioschtrader.entities.GTNetMessage;
+import grafiosch.entities.GTNet;
+import grafiosch.entities.GTNetMessage;
+import grafiosch.gtnet.MessageCategory;
+import grafiosch.gtnet.handler.AbstractGTNetMessageHandler;
+import grafiosch.gtnet.handler.GTNetMessageContext;
+import grafiosch.gtnet.handler.HandlerResult;
+import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
-import grafioschtrader.gtnet.MessageCategory;
-import grafioschtrader.gtnet.handler.AbstractGTNetMessageHandler;
-import grafioschtrader.gtnet.handler.GTNetMessageContext;
-import grafioschtrader.gtnet.handler.HandlerResult;
-import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.gtnet.model.msg.ExchangeSyncMsg;
 import grafioschtrader.gtnet.model.msg.ExchangeSyncMsg.ExchangeSyncItem;
 import grafioschtrader.service.GTNetExchangeSyncService;
@@ -52,11 +52,11 @@ public class ExchangeSyncHandler extends AbstractGTNetMessageHandler {
   }
 
   @Override
-  public HandlerResult handle(GTNetMessageContext context) throws Exception {
+  public HandlerResult<GTNetMessage, MessageEnvelope> handle(GTNetMessageContext context) throws Exception {
     // Validate request
     GTNet myGTNet = context.getMyGTNet();
     if (myGTNet == null) {
-      return new HandlerResult.ProcessingError("NO_LOCAL_GTNET", "Local GTNet configuration not found");
+      return new HandlerResult.ProcessingError<>("NO_LOCAL_GTNET", "Local GTNet configuration not found");
     }
 
     // Store incoming message for logging/audit trail
@@ -89,16 +89,16 @@ public class ExchangeSyncHandler extends AbstractGTNetMessageHandler {
     GTNetMessage responseMsg = storeResponseMessage(context,
         GTNetMessageCodeType.GT_NET_EXCHANGE_SYNC_RESPONSE_S, null, null, storedRequest);
     MessageEnvelope envelope = createResponseEnvelopeWithPayload(context, responseMsg, response);
-    return new HandlerResult.ImmediateResponse(envelope);
+    return new HandlerResult.ImmediateResponse<>(envelope);
   }
 
   /**
    * Creates an empty response when the request has no payload.
    */
-  private HandlerResult createEmptyResponse(GTNetMessageContext context, GTNetMessage storedRequest) {
+  private HandlerResult<GTNetMessage, MessageEnvelope> createEmptyResponse(GTNetMessageContext context, GTNetMessage storedRequest) {
     GTNetMessage responseMsg = storeResponseMessage(context,
         GTNetMessageCodeType.GT_NET_EXCHANGE_SYNC_RESPONSE_S, null, null, storedRequest);
     MessageEnvelope envelope = createResponseEnvelopeWithPayload(context, responseMsg, new ExchangeSyncMsg());
-    return new HandlerResult.ImmediateResponse(envelope);
+    return new HandlerResult.ImmediateResponse<>(envelope);
   }
 }

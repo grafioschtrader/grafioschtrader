@@ -53,7 +53,6 @@ import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteD
 import grafioschtrader.priceupdate.intraday.IIntradayLoad;
 import grafioschtrader.priceupdate.intraday.IntradayThruCalculation;
 import grafioschtrader.priceupdate.intraday.IntradayThruConnector;
-import grafioschtrader.service.GTNetHistoryquoteService;
 import grafioschtrader.reports.InstrumentStatisticsSummary;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
@@ -64,6 +63,7 @@ import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquot
 import grafioschtrader.rest.RequestGTMappings;
 import grafioschtrader.search.SecuritySearchBuilder;
 import grafioschtrader.search.SecuritycurrencySearch;
+import grafioschtrader.service.GTNetHistoryquoteService;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.HistoryquoteCreateType;
 import grafioschtrader.types.TaskTypeExtended;
@@ -119,7 +119,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     HistoryquoteThruConnector<Security> connectorThru = new HistoryquoteThruConnector<>(entityManager,
         globalparametersService, feedConnectorbeans, this, Security.class);
     historyquoteThruConnector = new HistoryquoteThruGTNet<>(connectorThru, gtNetHistoryquoteService,
-        globalparametersService, securityJpaRepository);
+        globalparametersJpaRepository, securityJpaRepository);
     historyquoteThruCalculation = new HistoryquoteThruCalculation<>(securityJpaRepository, historyquoteJpaRepository,
         securityDerivedLinkJpaRepository, globalparametersService, this);
     intradayThruConnector = new IntradayThruConnector<>(securityJpaRepository, globalparametersService,

@@ -13,17 +13,18 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import grafiosch.BaseConstants;
+import grafiosch.entities.GTNet;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.exceptions.TaskBackgroundException;
+import grafiosch.repository.GTNetJpaRepository;
+import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.task.ITask;
 import grafiosch.types.ITaskType;
 import grafiosch.types.TaskDataExecPriority;
-import grafioschtrader.entities.GTNet;
-import grafioschtrader.repository.GTNetJpaRepository;
+import grafiosch.types.TaskTypeBase;
 import grafioschtrader.service.GTNetExchangeSyncService;
 import grafioschtrader.service.GlobalparametersService;
-import grafioschtrader.types.TaskTypeExtended;
 
 /**
  * Task that synchronizes GTNetExchange configurations with GTNet peers.
@@ -63,6 +64,9 @@ public class GTNetExchangeSyncTask implements ITask {
   public static final Integer INCREMENTAL_MODE = 0;
 
   @Autowired
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
+  
+  @Autowired
   private GlobalparametersService globalparametersService;
 
   @Autowired
@@ -76,7 +80,7 @@ public class GTNetExchangeSyncTask implements ITask {
 
   @Override
   public ITaskType getTaskType() {
-    return TaskTypeExtended.GTNET_EXCHANGE_SYNC;
+    return TaskTypeBase.GTNET_EXCHANGE_SYNC;
   }
 
   /**
@@ -97,7 +101,7 @@ public class GTNetExchangeSyncTask implements ITask {
 
   @Override
   public void doWork(TaskDataChange taskDataChange) throws TaskBackgroundException {
-    if (!globalparametersService.isGTNetEnabled()) {
+    if (!globalparametersJpaRepository.isGTNetEnabled()) {
       log.debug("GTNet is disabled, skipping exchange sync");
       return;
     }
@@ -109,7 +113,7 @@ public class GTNetExchangeSyncTask implements ITask {
     log.info("Starting GTNet exchange sync (fullRecreation={}, last sync: {})", fullRecreation, lastSyncTimestamp);
 
     // Get all accessible AC_OPEN suppliers, excluding own entry to prevent self-communication
-    Integer myEntryId = globalparametersService.getGTNetMyEntryID();
+    Integer myEntryId = globalparametersJpaRepository.getGTNetMyEntryID();
     List<GTNet> allSuppliers = gtNetJpaRepository.findOpenSuppliers().stream()
         .filter(peer -> myEntryId == null || !peer.getIdGtNet().equals(myEntryId))
         .collect(Collectors.toList());

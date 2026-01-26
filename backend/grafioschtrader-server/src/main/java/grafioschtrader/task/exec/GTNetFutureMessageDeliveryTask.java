@@ -20,30 +20,32 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.BaseConstants;
+import grafiosch.entities.GTNet;
+import grafiosch.entities.GTNetConfig;
+import grafiosch.entities.GTNetMessage;
+import grafiosch.entities.GTNetMessage.GTNetMessageParam;
+import grafiosch.entities.GTNetMessageAttempt;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.exceptions.TaskBackgroundException;
+import grafiosch.gtnet.DeliveryStatus;
+import grafiosch.gtnet.GNetCoreMessageCode;
+import grafiosch.gtnet.GTNetMessageCode;
+import grafiosch.gtnet.GTNetModelHelper;
+import grafiosch.gtnet.SendReceivedType;
+import grafiosch.gtnet.m2m.model.MessageEnvelope;
+import grafiosch.m2m.client.BaseDataClient;
+import grafiosch.m2m.client.BaseDataClient.SendResult;
+import grafiosch.repository.GTNetConfigJpaRepository;
+import grafiosch.repository.GTNetJpaRepository;
+import grafiosch.repository.GTNetMessageAttemptJpaRepository;
+import grafiosch.repository.GTNetMessageJpaRepository;
+import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.task.ITask;
 import grafiosch.types.ITaskType;
 import grafiosch.types.TaskDataExecPriority;
-import grafioschtrader.entities.GTNet;
-import grafioschtrader.entities.GTNetConfig;
-import grafioschtrader.entities.GTNetMessage;
-import grafioschtrader.entities.GTNetMessage.GTNetMessageParam;
-import grafioschtrader.entities.GTNetMessageAttempt;
-import grafioschtrader.gtnet.DeliveryStatus;
-import grafioschtrader.gtnet.GTNetMessageCodeType;
-import grafioschtrader.gtnet.GTNetModelHelper;
-import grafioschtrader.gtnet.SendReceivedType;
-import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
-import grafioschtrader.m2m.client.BaseDataClient;
-import grafioschtrader.m2m.client.BaseDataClient.SendResult;
-import grafioschtrader.repository.GTNetConfigJpaRepository;
-import grafioschtrader.repository.GTNetJpaRepository;
-import grafioschtrader.repository.GTNetMessageAttemptJpaRepository;
-import grafioschtrader.repository.GTNetMessageJpaRepository;
+import grafiosch.types.TaskTypeBase;
 import grafioschtrader.service.GlobalparametersService;
-import grafioschtrader.types.TaskTypeExtended;
 
 /**
  * Background task that delivers pending future-oriented GTNet messages and handles cleanup.
@@ -77,15 +79,15 @@ public class GTNetFutureMessageDeliveryTask implements ITask {
 
   /** Message codes for future-oriented messages */
   private static final List<Byte> FUTURE_MESSAGE_CODES = List.of(
-      GTNetMessageCodeType.GT_NET_MAINTENANCE_ALL_C.getValue(),
-      GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_ALL_C.getValue(),
-      GTNetMessageCodeType.GT_NET_MAINTENANCE_CANCEL_ALL_C.getValue(),
-      GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C.getValue());
+      GNetCoreMessageCode.GT_NET_MAINTENANCE_ALL_C.getValue(),
+      GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_ALL_C.getValue(),
+      GNetCoreMessageCode.GT_NET_MAINTENANCE_CANCEL_ALL_C.getValue(),
+      GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C.getValue());
 
   /** Message codes for original announcements (not cancellations) */
   private static final List<Byte> ANNOUNCEMENT_MESSAGE_CODES = List.of(
-      GTNetMessageCodeType.GT_NET_MAINTENANCE_ALL_C.getValue(),
-      GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_ALL_C.getValue());
+      GNetCoreMessageCode.GT_NET_MAINTENANCE_ALL_C.getValue(),
+      GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_ALL_C.getValue());
 
   @Autowired
   private GTNetMessageAttemptJpaRepository gtNetMessageAttemptJpaRepository;
@@ -99,8 +101,9 @@ public class GTNetFutureMessageDeliveryTask implements ITask {
   @Autowired
   private GTNetConfigJpaRepository gtNetConfigJpaRepository;
 
+  
   @Autowired
-  private GlobalparametersService globalparametersService;
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeRepository;
@@ -113,7 +116,7 @@ public class GTNetFutureMessageDeliveryTask implements ITask {
 
   @Override
   public ITaskType getTaskType() {
-    return TaskTypeExtended.GTNET_FUTURE_MESSAGE_DELIVERY;
+    return TaskTypeBase.GTNET_FUTURE_MESSAGE_DELIVERY;
   }
 
   /**
@@ -122,7 +125,7 @@ public class GTNetFutureMessageDeliveryTask implements ITask {
    */
   @Scheduled(cron = "${gt.gtnet.future.message.cron:0 0 */5 * * ?}", zone = BaseConstants.TIME_ZONE)
   public void createDeliveryTask() {
-    if (!globalparametersService.isGTNetEnabled()) {
+    if (!globalparametersJpaRepository.isGTNetEnabled()) {
       log.debug("GTNet is disabled, skipping future message delivery");
       return;
     }
@@ -133,12 +136,12 @@ public class GTNetFutureMessageDeliveryTask implements ITask {
 
   @Override
   public void doWork(TaskDataChange taskDataChange) throws TaskBackgroundException {
-    if (!globalparametersService.isGTNetEnabled()) {
+    if (!globalparametersJpaRepository.isGTNetEnabled()) {
       log.debug("GTNet is disabled, skipping future message delivery");
       return;
     }
 
-    Integer myEntryId = globalparametersService.getGTNetMyEntryID();
+    Integer myEntryId = globalparametersJpaRepository.getGTNetMyEntryID();
     if (myEntryId == null) {
       log.debug("GTNet my entry ID not configured, skipping");
       return;
@@ -214,8 +217,8 @@ public class GTNetFutureMessageDeliveryTask implements ITask {
   private void processCancellationMessages() {
     List<GTNetMessage> cancellationMessages = gtNetMessageJpaRepository.findBySendRecvAndMessageCodeIn(
         SendReceivedType.SEND.getValue(),
-        List.of(GTNetMessageCodeType.GT_NET_MAINTENANCE_CANCEL_ALL_C.getValue(),
-            GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C.getValue()));
+        List.of(GNetCoreMessageCode.GT_NET_MAINTENANCE_CANCEL_ALL_C.getValue(),
+            GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C.getValue()));
 
     for (GTNetMessage cancellation : cancellationMessages) {
       Integer originalMessageId = cancellation.getIdOriginalMessage();
@@ -378,7 +381,7 @@ public class GTNetFutureMessageDeliveryTask implements ITask {
    * Converts message parameters to a Map that can be serialized as JSON payload.
    */
   private Object buildPayloadModel(GTNetMessage message) {
-    GTNetMessageCodeType codeType = message.getMessageCode();
+    GTNetMessageCode codeType = GNetCoreMessageCode.getMessageCodeByValue(message.getMessageCodeValue());
     GTNetModelHelper.GTNetMsgRequest msgRequest = GTNetModelHelper.getMsgClassByMessageCode(codeType);
 
     if (msgRequest == null || msgRequest.model == null) {
@@ -431,9 +434,9 @@ public class GTNetFutureMessageDeliveryTask implements ITask {
    * Checks if a message is expired (its effective date has passed).
    */
   private boolean isMessageExpired(GTNetMessage message) {
-    GTNetMessageCodeType codeType = message.getMessageCode();
+    GTNetMessageCode codeType = GNetCoreMessageCode.getMessageCodeByValue(message.getMessageCodeValue());
 
-    if (codeType == GTNetMessageCodeType.GT_NET_MAINTENANCE_ALL_C) {
+    if (codeType == GNetCoreMessageCode.GT_NET_MAINTENANCE_ALL_C) {
       // Check toDateTime
       GTNetMessageParam toDateTimeParam = message.getGtNetMessageParamMap().get("toDateTime");
       if (toDateTimeParam != null && toDateTimeParam.getParamValue() != null) {
@@ -450,7 +453,7 @@ public class GTNetFutureMessageDeliveryTask implements ITask {
           log.warn("Failed to parse toDateTime for message {}: {}", message.getIdGtNetMessage(), e.getMessage());
         }
       }
-    } else if (codeType == GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_ALL_C) {
+    } else if (codeType == GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_ALL_C) {
       // Check closeStartDate
       GTNetMessageParam closeStartDateParam = message.getGtNetMessageParamMap().get("closeStartDate");
       if (closeStartDateParam != null && closeStartDateParam.getParamValue() != null) {
@@ -470,7 +473,7 @@ public class GTNetFutureMessageDeliveryTask implements ITask {
    * Checks if a message is an announcement (not a cancellation).
    */
   private boolean isAnnouncementMessage(GTNetMessage message) {
-    byte code = message.getMessageCode().getValue();
+    byte code = message.getMessageCodeValue();
     return ANNOUNCEMENT_MESSAGE_CODES.contains(code);
   }
 

@@ -15,15 +15,16 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafioschtrader.entities.GTNet;
-import grafioschtrader.entities.GTNetConfigEntity;
-import grafioschtrader.entities.GTNetEntity;
+import grafiosch.entities.GTNet;
+import grafiosch.entities.GTNetConfigEntity;
+import grafiosch.entities.GTNetEntity;
+import grafiosch.gtnet.GTNetExchangeLogPeriodType;
+import grafiosch.gtnet.SupplierConsumerLogTypes;
+import grafiosch.gtnet.model.GTNetExchangeLogNodeDTO;
+import grafiosch.gtnet.model.GTNetExchangeLogTreeDTO;
+import grafiosch.repository.GTNetJpaRepository;
 import grafioschtrader.entities.GTNetExchangeLog;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
-import grafioschtrader.gtnet.GTNetExchangeLogPeriodType;
-import grafioschtrader.gtnet.SupplierConsumerLogTypes;
-import grafioschtrader.gtnet.model.GTNetExchangeLogNodeDTO;
-import grafioschtrader.gtnet.model.GTNetExchangeLogTreeDTO;
 import grafioschtrader.service.GlobalparametersService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -55,7 +56,7 @@ public class GTNetExchangeLogJpaRepositoryImpl implements GTNetExchangeLogJpaRep
     }
 
     // Check if logging is enabled for this entity type and role
-    Optional<GTNetEntity> entityOpt = gtNet.getEntity(entityKind);
+    Optional<GTNetEntity> entityOpt = gtNet.getEntityByKind(entityKind.getValue());
     if (entityOpt.isEmpty()) {
       return;
     }
@@ -160,7 +161,7 @@ public class GTNetExchangeLogJpaRepositoryImpl implements GTNetExchangeLogJpaRep
     List<GTNet> gtNets = gtNetJpaRepository.findAll();
     for (GTNet gtNet : gtNets) {
       // Check if this GTNet has communication enabled for this entity kind
-      Optional<GTNetEntity> entityOpt = gtNet.getEntity(entityKind);
+      Optional<GTNetEntity> entityOpt = gtNet.getEntityByKind(entityKind.getValue());
       if (entityOpt.isEmpty()) {
         continue;
       }

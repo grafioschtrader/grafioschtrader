@@ -13,24 +13,25 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import grafiosch.entities.GTNet;
+import grafiosch.entities.GTNetConfig;
+import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
+import grafiosch.gtnet.m2m.model.MessageEnvelope;
+import grafiosch.m2m.GTNetMessageHelper;
+import grafiosch.m2m.client.BaseDataClient;
+import grafiosch.m2m.client.BaseDataClient.SendResult;
+import grafiosch.repository.GTNetConfigJpaRepository;
+import grafiosch.repository.GTNetJpaRepository;
+import grafiosch.repository.GlobalparametersJpaRepository;
 import grafioschtrader.entities.Currencypair;
-import grafioschtrader.entities.GTNet;
-import grafioschtrader.entities.GTNetConfig;
 import grafioschtrader.entities.GTNetSupplierDetail;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
-import grafioschtrader.gtnet.m2m.model.GTNetPublicDTO;
-import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.gtnet.model.msg.ExchangeSyncMsg;
 import grafioschtrader.gtnet.model.msg.ExchangeSyncMsg.ExchangeSyncItem;
-import grafioschtrader.m2m.GTNetMessageHelper;
-import grafioschtrader.m2m.client.BaseDataClient;
-import grafioschtrader.m2m.client.BaseDataClient.SendResult;
 import grafioschtrader.repository.CurrencypairJpaRepository;
-import grafioschtrader.repository.GTNetConfigJpaRepository;
-import grafioschtrader.repository.GTNetJpaRepository;
 import grafioschtrader.repository.GTNetSupplierDetailJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 
@@ -69,7 +70,7 @@ public class GTNetExchangeSyncService {
   private CurrencypairJpaRepository currencypairJpaRepository;
 
   @Autowired
-  private GlobalparametersService globalparametersService;
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Autowired
   private BaseDataClient baseDataClient;
@@ -111,7 +112,7 @@ public class GTNetExchangeSyncService {
         fullRecreation ? null : sinceTimestamp, itemsToSend);
 
     // Get local GTNet entry
-    Integer myGTNetId = GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersService);
+    Integer myGTNetId = GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersJpaRepository);
     GTNet myGTNet = gtNetJpaRepository.findById(myGTNetId)
         .orElseThrow(() -> new IllegalStateException("Local GTNet entry not found"));
 

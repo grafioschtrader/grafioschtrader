@@ -117,6 +117,21 @@ public interface GlobalparametersJpaRepositoryCustom {
    */
   List<ValueKeyHtmlSelectOptions> getSupportedLocales();
 
+  Globalparameters saveGTNetMyEntryID(Integer idGtNet);
+  
+  Integer getGTNetMyEntryID();
+  
+  /**
+   * Checks whether GTNet functionality is enabled.
+   *
+   * GTNet is enabled when the global parameter 'gt.gtnet.use' has a non-zero property_int value. If the parameter is not
+   * configured in the database, returns the default value (disabled).
+   *
+   * @return true if GTNet is enabled, false otherwise
+   */
+   boolean isGTNetEnabled(); 
+  
+  
   Globalparameters saveOnlyAttributes(Globalparameters globalparameters) throws Exception;
 
 }

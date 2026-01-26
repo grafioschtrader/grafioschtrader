@@ -2,6 +2,7 @@ package grafioschtrader;
 
 import java.util.TimeZone;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import grafiosch.BaseConstants;
@@ -10,8 +11,13 @@ import grafiosch.entities.MailEntity;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.entities.UDFMetadata;
 import grafiosch.exportdelete.ExportDeleteHelper;
+import grafiosch.gtnet.ExchangeKindTypeRegistry;
+import grafiosch.gtnet.GTNetModelHelper;
 import grafioschtrader.config.TenantConfig;
 import grafioschtrader.exportdelete.MyDataExportDeleteDefinition;
+import grafioschtrader.gtnet.GTNetExchangeKindType;
+import grafioschtrader.gtnet.GTNetMessageCodeType;
+import grafioschtrader.gtnet.model.msg.SecurityLookupMsg;
 import grafioschtrader.types.MailSendForwardDefault;
 import grafioschtrader.types.MessageGTComType;
 import grafioschtrader.types.SubscriptionType;
@@ -32,6 +38,9 @@ import jakarta.annotation.PostConstruct;
  */
 @Component
 public class GTStartUp {
+
+  @Autowired
+  private ExchangeKindTypeRegistry exchangeKindTypeRegistry;
 
   /**
    * Performs comprehensive application initialization tasks after Spring context setup. This method is automatically
@@ -96,6 +105,51 @@ public class GTStartUp {
     ConnectorApiKey.SUBSCRIPTION_REGISTRY.addTypes(SubscriptionType.values());
     MailEntity.MESSAGE_COM_TYPES_REGISTRY.addTypes(MessageGTComType.values());
     ExportDeleteHelper.addExportDefinitions(MyDataExportDeleteDefinition.exportDefinitions);
+
+    // Register GT-specific GTNet message models (60+)
+    registerGTNetMessageModels();
+
+    // Register GT-specific exchange kind types
+    registerExchangeKindTypes();
+  }
+
+  /**
+   * Registers Grafioschtrader-specific exchange kind types for GTNet data exchange.
+   */
+  private void registerExchangeKindTypes() {
+    for (GTNetExchangeKindType kind : GTNetExchangeKindType.values()) {
+      exchangeKindTypeRegistry.registerExchangeKind(kind);
+    }
+  }
+
+  /**
+   * Registers Grafioschtrader-specific GTNet message models for trading-related functionality.
+   *
+   * These message models are for codes 60+ which handle intraday prices, historical quotes,
+   * exchange sync, and security metadata lookup.
+   */
+  private void registerGTNetMessageModels() {
+    // Lastprice exchange - programmatic M2M, not UI-initiated
+    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_SEL_C, null, true, (byte) 1);
+    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_RESPONSE_S, null, false, (byte) 1);
+    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_LASTPRICE_PUSH_SEL_C, null, true, (byte) 1);
+    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_LASTPRICE_PUSH_ACK_S, null, false, (byte) 1);
+
+    // Exchange sync - programmatic M2M
+    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_EXCHANGE_SYNC_SEL_RR_C, null, true, (byte) 1);
+    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_EXCHANGE_SYNC_RESPONSE_S, null, false, (byte) 1);
+
+    // Historyquote exchange - programmatic M2M
+    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_SEL_C, null, true, (byte) 1);
+    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_RESPONSE_S, null, false, (byte) 1);
+    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_PUSH_SEL_C, null, true, (byte) 1);
+    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_PUSH_ACK_S, null, false, (byte) 1);
+
+    // Security metadata lookup - programmatic M2M
+    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_SEL_C, SecurityLookupMsg.class, true, (byte) 1);
+    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_RESPONSE_S, null, false, (byte) 1);
+    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_NOT_FOUND_S, null, false, (byte) 1);
+    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_REJECTED_S, null, false, (byte) 1);
   }
 
 }

@@ -103,16 +103,10 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
   public static final String GLOB_KEY_YOUNGEST_DIVIDEND_APPEND_DATE = GlobalConstants.GT_PREFIX
       + "securitydividend.append.date";
   public static final String GLOB_KEY_UDF_GENERAL_RECREATE = GlobalConstants.GT_PREFIX + "udf.general.recreate";
-  /** The idGTNet for this Server in GTNet */
-  public static final String GLOB_KEY_GTNET_MY_ENTRY_ID = GlobalConstants.GT_PREFIX + "gtnet.my.entry.id";
-  /** Flag to enable/disable GTNet functionality. 0 = disabled, non-zero = enabled. */
-  public static final String GLOB_KEY_GTNET_USE = GlobalConstants.GT_PREFIX + "gtnet.use";
-  /** Default value for GTNet enabled flag (disabled by default). */
-  public static final int DEFAULT_GTNET_USE = 0;
-  /** Flag to enable/disable GTNet exchange logging. 0 = disabled, non-zero = enabled. */
-  public static final String GLOB_KEY_GTNET_USE_LOG = GlobalConstants.GT_PREFIX + "gtnet.use.log";
-  /** Default value for GTNet logging enabled flag (disabled by default). */
-  public static final int DEFAULT_GTNET_USE_LOG = 0;
+  
+  
+  
+  
   /** Timestamp of last GTNet exchange synchronization with peers. */
   public static final String GLOB_KEY_GTNET_EXCHANGE_SYNC_TIMESTAMP = GlobalConstants.GT_PREFIX + "gtnet.exchange.sync.timestamp";
   /** Default value for GTNet exchange sync timestamp - epoch start means never synced. */

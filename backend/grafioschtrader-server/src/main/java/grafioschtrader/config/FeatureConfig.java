@@ -8,6 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import grafiosch.repository.GlobalparametersJpaRepository;
 import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.types.FeatureTypeGT;
 
@@ -18,6 +19,10 @@ public class FeatureConfig {
   @Autowired
   @Lazy
   private GlobalparametersService globalparametersService;
+
+  @Autowired
+  @Lazy
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   private boolean websocket;
   private boolean algo;
@@ -70,6 +75,6 @@ public class FeatureConfig {
    * @return true if GTNet is enabled in the database, false otherwise
    */
   public boolean isGtnet() {
-    return globalparametersService.isGTNetEnabled();
+    return globalparametersJpaRepository.isGTNetEnabled();
   }
 }

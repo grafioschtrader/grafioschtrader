@@ -3,6 +3,7 @@ package grafioschtrader.gtnet.model;
 import java.util.Date;
 import java.util.List;
 
+import grafiosch.gtnet.model.ConnectorHint;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.DistributionFrequency;
 import grafioschtrader.types.SpecialInvestmentInstruments;

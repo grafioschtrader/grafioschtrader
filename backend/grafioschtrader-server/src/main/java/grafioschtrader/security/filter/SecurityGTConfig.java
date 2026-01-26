@@ -110,8 +110,8 @@ public class SecurityGTConfig {
               RequestGTMappings.WATCHLIST_MAP + RequestGTMappings.SECURITY_DATAPROVIDER_DIV_SPLIT_HISTORICAL_RESPONSE
                   + "*")
           .permitAll().requestMatchers(HttpMethod.GET, RequestMappings.API + "actuator/**").permitAll()
-          .requestMatchers(HttpMethod.GET, RequestGTMappings.M2M_API + "**").permitAll()
-          .requestMatchers(HttpMethod.POST, RequestGTMappings.M2M_API + "**").permitAll();
+          .requestMatchers(HttpMethod.GET, RequestMappings.M2M_API + "**").permitAll()
+          .requestMatchers(HttpMethod.POST, RequestMappings.M2M_API + "**").permitAll();
       SecurityConfig.configureGlobalParameters(http);
       authz.requestMatchers(HttpMethod.PUT, RequestGTMappings.TRADINGDAYSPLUS_MAP).hasRole(Role.ADMIN);
     }); // Close authorizeHttpRequests

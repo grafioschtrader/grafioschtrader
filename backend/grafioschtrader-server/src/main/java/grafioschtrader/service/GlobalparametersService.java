@@ -15,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import grafiosch.BaseConstants;
+import grafiosch.GlobalParamKeyBaseDefault;
 import grafiosch.common.DateHelper;
 import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafiosch.entities.Globalparameters;
@@ -191,27 +192,8 @@ public class GlobalparametersService {
     return new Date(System.currentTimeMillis() - (totalDelaySeconds * 1000L));
   }
 
-  public Integer getGTNetMyEntryID() {
-    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_GTNET_MY_ENTRY_ID)
-        .map(Globalparameters::getPropertyInt).orElse(null);
-  }
-
-  /**
-   * Checks whether GTNet functionality is enabled.
-   *
-   * GTNet is enabled when the global parameter 'gt.gtnet.use' has a non-zero property_int value. If the parameter is not
-   * configured in the database, returns the default value (disabled).
-   *
-   * @return true if GTNet is enabled, false otherwise
-   * @see GlobalParamKeyDefault#GLOB_KEY_GTNET_USE
-   * @see GlobalParamKeyDefault#DEFAULT_GTNET_USE
-   */
-  public boolean isGTNetEnabled() {
-    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_GTNET_USE)
-        .flatMap(g -> Optional.ofNullable(g.getPropertyInt()))
-        .orElse(GlobalParamKeyDefault.DEFAULT_GTNET_USE) != 0;
-  }
-
+  
+  
   /**
    * Checks whether GTNet exchange logging is enabled.
    *
@@ -224,17 +206,12 @@ public class GlobalparametersService {
    * @see GlobalParamKeyDefault#DEFAULT_GTNET_USE_LOG
    */
   public boolean isGTNetLogEnabled() {
-    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_GTNET_USE_LOG)
+    return globalparametersJpaRepository.findById(GlobalParamKeyBaseDefault.GLOB_KEY_GTNET_USE_LOG)
         .flatMap(g -> Optional.ofNullable(g.getPropertyInt()))
-        .orElse(GlobalParamKeyDefault.DEFAULT_GTNET_USE_LOG) != 0;
+        .orElse(GlobalParamKeyBaseDefault.DEFAULT_GTNET_USE_LOG) != 0;
   }
 
-  public Globalparameters saveGTNetMyEntryID(Integer idGtNet) {
-    Globalparameters gp = new Globalparameters(GlobalParamKeyDefault.GLOB_KEY_GTNET_MY_ENTRY_ID);
-    gp.setPropertyInt(idGtNet);
-    gp.setChangedBySystem(true);
-    return globalparametersJpaRepository.save(gp);
-  }
+  
 
   /**
    * Gets the timestamp when GTNetExchange was last synchronized with peers.

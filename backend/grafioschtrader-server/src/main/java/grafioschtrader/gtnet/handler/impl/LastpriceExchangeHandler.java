@@ -9,20 +9,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import grafioschtrader.entities.GTNet;
-import grafioschtrader.entities.GTNetEntity;
-import grafioschtrader.entities.GTNetMessage;
-import grafioschtrader.gtnet.AcceptRequestTypes;
+import grafiosch.entities.GTNet;
+import grafiosch.entities.GTNetEntity;
+import grafiosch.entities.GTNetMessage;
+import grafiosch.gtnet.AcceptRequestTypes;
+import grafiosch.gtnet.MessageCategory;
+import grafiosch.gtnet.handler.AbstractGTNetMessageHandler;
+import grafiosch.gtnet.handler.GTNetMessageContext;
+import grafiosch.gtnet.handler.HandlerResult;
+import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
-import grafioschtrader.gtnet.MessageCategory;
-import grafioschtrader.gtnet.handler.AbstractGTNetMessageHandler;
-import grafioschtrader.gtnet.handler.GTNetMessageContext;
-import grafioschtrader.gtnet.handler.HandlerResult;
 import grafioschtrader.gtnet.handler.impl.lastprice.LastpriceQueryStrategy;
 import grafioschtrader.gtnet.handler.impl.lastprice.OpenLastpriceQueryStrategy;
 import grafioschtrader.gtnet.handler.impl.lastprice.PushOpenLastpriceQueryStrategy;
-import grafioschtrader.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.gtnet.model.msg.LastpriceExchangeMsg;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
@@ -71,18 +71,18 @@ public class LastpriceExchangeHandler extends AbstractGTNetMessageHandler {
   }
 
   @Override
-  public HandlerResult handle(GTNetMessageContext context) throws Exception {
+  public HandlerResult<GTNetMessage, MessageEnvelope> handle(GTNetMessageContext context) throws Exception {
     // Validate request
     GTNet myGTNet = context.getMyGTNet();
     if (myGTNet == null) {
-      return new HandlerResult.ProcessingError("NO_LOCAL_GTNET", "Local GTNet configuration not found");
+      return new HandlerResult.ProcessingError<>("NO_LOCAL_GTNET", "Local GTNet configuration not found");
     }
 
     // Check if this server accepts lastprice requests
-    Optional<GTNetEntity> lastpriceEntity = myGTNet.getEntity(GTNetExchangeKindType.LAST_PRICE);
+    Optional<GTNetEntity> lastpriceEntity = myGTNet.getEntityByKind(GTNetExchangeKindType.LAST_PRICE.getValue());
     if (lastpriceEntity.isEmpty() || !lastpriceEntity.get().isAccepting()) {
       log.debug("Server not accepting lastprice requests");
-      return new HandlerResult.ProcessingError("NOT_ACCEPTING", "This server is not accepting lastprice requests");
+      return new HandlerResult.ProcessingError<>("NOT_ACCEPTING", "This server is not accepting lastprice requests");
     }
 
     // Store incoming message for logging
@@ -143,7 +143,7 @@ public class LastpriceExchangeHandler extends AbstractGTNetMessageHandler {
 
     // Create response envelope with payload
     MessageEnvelope envelope = createResponseEnvelopeWithPayload(context, responseMsg, response);
-    return new HandlerResult.ImmediateResponse(envelope);
+    return new HandlerResult.ImmediateResponse<>(envelope);
   }
 
   /**
@@ -160,18 +160,18 @@ public class LastpriceExchangeHandler extends AbstractGTNetMessageHandler {
   /**
    * Creates an empty response when no instruments were requested.
    */
-  private HandlerResult createEmptyResponse(GTNetMessageContext context, GTNetMessage storedRequest) {
+  private HandlerResult<GTNetMessage, MessageEnvelope> createEmptyResponse(GTNetMessageContext context, GTNetMessage storedRequest) {
     GTNetMessage responseMsg = storeResponseMessage(context, GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_RESPONSE_S,
         null, null, storedRequest);
     MessageEnvelope envelope = createResponseEnvelopeWithPayload(context, responseMsg, new LastpriceExchangeMsg());
-    return new HandlerResult.ImmediateResponse(envelope);
+    return new HandlerResult.ImmediateResponse<>(envelope);
   }
 
   /**
    * Handles requests that exceed the configured max_limit.
    * Increments the violation counter for the remote domain and returns an error response.
    */
-  private HandlerResult handleMaxLimitExceeded(GTNetMessageContext context, GTNetMessage storedRequest,
+  private HandlerResult<GTNetMessage, MessageEnvelope> handleMaxLimitExceeded(GTNetMessageContext context, GTNetMessage storedRequest,
       int requestedCount, short maxLimit) {
     log.warn("Request from {} exceeded max_limit: {} instruments requested, limit is {}",
         context.getRemoteGTNet() != null ? context.getRemoteGTNet().getDomainRemoteName() : "unknown",
@@ -190,6 +190,6 @@ public class LastpriceExchangeHandler extends AbstractGTNetMessageHandler {
         GTNetMessageCodeType.GT_NET_LASTPRICE_MAX_LIMIT_EXCEEDED_S, message, null, storedRequest);
 
     MessageEnvelope envelope = createResponseEnvelope(context, responseMsg);
-    return new HandlerResult.ImmediateResponse(envelope);
+    return new HandlerResult.ImmediateResponse<>(envelope);
   }
 }

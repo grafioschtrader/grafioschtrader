@@ -24,6 +24,9 @@ public abstract class BaseConstants {
   /** Global property prefix for system-wide configuration parameters. */
   public static final String G_PREFIX = "g.";
 
+  /** Prefix for users day entity limits */
+  public static final String G_LIMIT_DAY = G_PREFIX + "limit.day.";
+  
   /**
    * Set of valid parameter prefixes for configuration. A dependent application should extend this prefix accordingly.
    * For example, used for the daily user limits of CUD transactions.
