@@ -119,9 +119,24 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
   private createDisplayEntity(gtNetEntity: GTNetEntity): GTNetConfigEntityDisplay {
     const configEntity = gtNetEntity.gtNetConfigEntity;
 
+    // Convert numeric enum values to string names for translation
+    const entityKindName = typeof gtNetEntity.entityKind === 'number'
+      ? GTNetExchangeKindType[gtNetEntity.entityKind]
+      : gtNetEntity.entityKind;
+
+    const supplierLogName = typeof configEntity.supplierLog === 'number'
+      ? SupplierConsumerLogTypes[configEntity.supplierLog]
+      : configEntity.supplierLog;
+
+    const consumerLogName = typeof configEntity.consumerLog === 'number'
+      ? SupplierConsumerLogTypes[configEntity.consumerLog]
+      : configEntity.consumerLog;
+
     return {
       ...configEntity,
-      entityKind: gtNetEntity.entityKind,
+      entityKind: entityKindName,
+      supplierLog: supplierLogName,
+      consumerLog: consumerLogName,
       maxLimit: gtNetEntity.maxLimit
     };
   }

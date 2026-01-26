@@ -62,18 +62,28 @@ export class GTNetSupplierDetailTableComponent extends TableConfigBase implement
       data.forEach(dto => {
         dto.details.forEach(detail => {
           const entity = dto.gtNet.gtNetEntities?.find((e: any) => e.entityKind === detail.entityKind);
+          // Convert numeric enum values to string names for translation
+          const entityKindName = typeof detail.entityKind === 'number'
+            ? GTNetExchangeKindType[detail.entityKind]
+            : detail.entityKind;
+          const serverStateValue = entity?.serverState ?? GTNetServerStateTypes.SS_NONE;
+          const serverStateName = typeof serverStateValue === 'number'
+            ? GTNetServerStateTypes[serverStateValue]
+            : serverStateValue;
+
           this.flattenedData.push({
             uniqueId: `${dto.gtNet.idGtNet}-${detail.idGtNetSupplierDetail}`,
             gtNet: dto.gtNet,
-            detail: detail
+            detail: {
+              ...detail,
+              entityKind: entityKindName,
+              serverState: serverStateName
+            }
           });
-          detail['serverState'] = entity?.serverState ?? GTNetServerStateTypes.SS_NONE;
         });
-
       });
       this.createTranslatedValueStore(this.flattenedData);
       this.translateHeadersAndColumns();
-
     });
   }
 

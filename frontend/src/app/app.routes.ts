@@ -67,6 +67,7 @@ import {WatchlistUdfComponent} from './watchlist/component/watchlist.udf.compone
 import {UDFMetadataGeneralTableComponent} from './lib/udfmeta/components/udf.metadata.general.table.component';
 import {TenantAlertComponent} from './tenant/component/tenant.alert.component';
 import {BaseSettings} from './lib/base.settings';
+import {MailForwardSettingTableEditComponent} from './lib/mail/component/mail.forward.setting.table.edit.component';
 
 
 const APP_ROUTES: Routes = [
@@ -246,7 +247,7 @@ const APP_ROUTES: Routes = [
           {path: BaseSettings.MAIL_SEND_RECV_KEY, component: SendRecvTreetableComponent, canActivate: [authGuard]},
           {
             path: BaseSettings.MAIL_SETTING_FORWARD_KEY,
-            component: MailForwardSettingTableComponent,
+            component: MailForwardSettingTableEditComponent,
             canActivate: [authGuard]
           }
         ]
