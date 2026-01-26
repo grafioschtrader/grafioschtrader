@@ -194,6 +194,7 @@ public interface GTNetJpaRepository extends JpaRepository<GTNet, Integer>,
    * Returns domains where:
    * <ul>
    *   <li>SECURITY_METADATA entity has acceptRequest > 0 (AC_OPEN or AC_PUSH_OPEN)</li>
+   *   <li>SECURITY_METADATA entity has serverState = 1 (SS_OPEN)</li>
    *   <li>Server is online (serverOnline = SOS_ONLINE = 1)</li>
    *   <li>Server is not busy</li>
    * </ul>
@@ -201,7 +202,8 @@ public interface GTNetJpaRepository extends JpaRepository<GTNet, Integer>,
    * @return list of domains accepting security metadata requests
    */
   @Query("SELECT DISTINCT g FROM GTNet g JOIN g.gtNetEntities e " +
-         "WHERE e.entityKind = 2 AND e.acceptRequest > 0 AND g.serverOnline = 1 AND g.serverBusy = false")
+         "WHERE e.entityKind = 2 AND e.acceptRequest > 0 AND e.serverState = 1 " +
+         "AND g.serverOnline = 1 AND g.serverBusy = false")
   List<GTNet> findSecurityMetadataSuppliers();
 
 }

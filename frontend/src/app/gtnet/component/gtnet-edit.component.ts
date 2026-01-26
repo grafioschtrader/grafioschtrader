@@ -179,13 +179,13 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
     entityKindCol.cec = {inputType: EditInputType.ReadOnly};
     this.entityFields.push(entityKindCol);
 
-    // acceptRequest column - Select dropdown
+    // acceptRequest column - Select dropdown with per-row filtering
     const acceptRequestCol = ShowRecordConfigBase.createColumnConfig(
       DataType.String, 'acceptRequest', 'ACCEPT_REQUEST', true, false,
       {translateValues: TranslateValue.NORMAL, width: 150});
     acceptRequestCol.cec = {
       inputType: EditInputType.Select,
-      valueKeyHtmlOptions: this.acceptRequestOptions
+      optionsProviderFn: this.getAcceptRequestOptions.bind(this)
     };
     this.entityFields.push(acceptRequestCol);
 
@@ -327,6 +327,23 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
     }
 
     return value;
+  }
+
+  /**
+   * Provides acceptRequest options based on entity kind.
+   * SECURITY_METADATA does not support AC_PUSH_OPEN mode.
+   */
+  getAcceptRequestOptions(row: any): ValueKeyHtmlSelectOptions[] {
+    const entityKind = row.entityKind;
+    const isSecurityMetadata = entityKind === GTNetExchangeKindType.SECURITY_METADATA
+      || entityKind === GTNetExchangeKindType[GTNetExchangeKindType.SECURITY_METADATA];
+
+    if (isSecurityMetadata) {
+      // Filter out AC_PUSH_OPEN for SECURITY_METADATA
+      return this.acceptRequestOptions.filter(opt =>
+        opt.key !== AcceptRequestTypes[AcceptRequestTypes.AC_PUSH_OPEN]);
+    }
+    return this.acceptRequestOptions;
   }
 
   /**
