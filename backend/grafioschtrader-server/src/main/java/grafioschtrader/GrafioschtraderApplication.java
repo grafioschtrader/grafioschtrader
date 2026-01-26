@@ -20,7 +20,11 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import grafiosch.entities.GTNetMessage;
+import grafiosch.gtnet.GTNetMessageCode;
+import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.test.start.GTforTest;
+import jakarta.annotation.PostConstruct;
 
 //Spring ehcache is not working,
 //@EnableCaching
@@ -49,6 +53,18 @@ public class GrafioschtraderApplication {
   public static void main(final String[] args) {
     // ApplicationContext context =
     SpringApplication.run(GrafioschtraderApplication.class, args);
+  }
+
+  /**
+   * Configures the GTNetMessage code resolver to handle both core protocol codes (0-54) and application-specific codes
+   * (60+). This enables the frontend to display translated message code labels for all message types.
+   */
+  @PostConstruct
+  public void configureGTNetMessageCodeResolver() {
+    GTNetMessage.setMessageCodeResolver(value -> {
+      GTNetMessageCode code = GTNetMessageCodeType.getMessageCodeByValue(value);
+      return code != null ? code.name() : null;
+    });
   }
 
   @Bean
