@@ -225,15 +225,17 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       const acceptRequestName = typeof e.acceptRequest === 'number'
         ? AcceptRequestTypes[e.acceptRequest]
         : e.acceptRequest;
-      if(e.entityKind === GTNetExchangeKindType[GTNetExchangeKindType.LAST_PRICE]) {
+      // Backend serializes entityKind as byte (number), so compare against enum numeric values
+      if (e.entityKind === GTNetExchangeKindType.LAST_PRICE) {
         gtNet['acceptLastpriceRequest'] = acceptRequestName;
         gtNet['lastpriceServerState'] = e.serverState;
         gtNet['lastpriceMaxLimit'] = e.maxLimit;
-      } else {
+      } else if (e.entityKind === GTNetExchangeKindType.HISTORICAL_PRICES) {
         gtNet['historicalPriceRequest'] = acceptRequestName;
         gtNet['historicalPriceServerState'] = e.serverState;
         gtNet['historicalMaxLimit'] = e.maxLimit;
       }
+      // SECURITY_METADATA is not displayed in the main table columns
     }));
   }
 
