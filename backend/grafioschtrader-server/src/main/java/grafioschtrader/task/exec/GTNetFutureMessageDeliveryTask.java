@@ -45,7 +45,6 @@ import grafiosch.task.ITask;
 import grafiosch.types.ITaskType;
 import grafiosch.types.TaskDataExecPriority;
 import grafiosch.types.TaskTypeBase;
-import grafioschtrader.service.GlobalparametersService;
 
 /**
  * Background task that delivers pending future-oriented GTNet messages and handles cleanup.
