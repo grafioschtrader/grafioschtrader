@@ -12,6 +12,7 @@ import grafiosch.entities.TaskDataChange;
 import grafiosch.entities.UDFMetadata;
 import grafiosch.exportdelete.ExportDeleteHelper;
 import grafiosch.gtnet.ExchangeKindTypeRegistry;
+import grafiosch.gtnet.GTNetMessageCodeRegistry;
 import grafiosch.gtnet.GTNetModelHelper;
 import grafioschtrader.config.TenantConfig;
 import grafioschtrader.exportdelete.MyDataExportDeleteDefinition;
@@ -41,6 +42,9 @@ public class GTStartUp {
 
   @Autowired
   private ExchangeKindTypeRegistry exchangeKindTypeRegistry;
+
+  @Autowired
+  private GTNetMessageCodeRegistry messageCodeRegistry;
 
   /**
    * Performs comprehensive application initialization tasks after Spring context setup. This method is automatically
@@ -106,11 +110,24 @@ public class GTStartUp {
     MailEntity.MESSAGE_COM_TYPES_REGISTRY.addTypes(MessageGTComType.values());
     ExportDeleteHelper.addExportDefinitions(MyDataExportDeleteDefinition.exportDefinitions);
 
+    // Register GT-specific GTNet message codes (60+)
+    registerGTNetMessageCodes();
+
     // Register GT-specific GTNet message models (60+)
     registerGTNetMessageModels();
 
     // Register GT-specific exchange kind types
     registerExchangeKindTypes();
+  }
+
+  /**
+   * Registers Grafioschtrader-specific GTNet message codes (60+) to the central registry.
+   * This enables the message code registry to resolve app-specific codes in addition to core codes.
+   */
+  private void registerGTNetMessageCodes() {
+    for (GTNetMessageCodeType code : GTNetMessageCodeType.values()) {
+      messageCodeRegistry.registerMessageCode(code);
+    }
   }
 
   /**
