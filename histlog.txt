@@ -1,3 +1,30 @@
+SELECT s.name, hl.* FROM historyquote_update_log hl JOIN stockexchange s ON hl.id_stockexchange = s.id_stockexchange ORDER BY hl.update_timestamp DESC;
+
+
 name	id_hq_update_log	id_stockexchange	update_timestamp   	minutes_since_close	securities_count	securities_updated	update_status	error_message	
-SIX Swiss Exchange	101	217	2026-01-26 23:11:41	392	6	6	1	NULL	
-SIX Swiss Exchange	89	217	2026-01-26 19:45:00	185	176	176	1	NULL	
+korean stock exchange	140	275	2026-01-27 21:32:21	182	0	0	1	NULL	
+Moscow Exchange (MOEX)	139	244	2026-01-27 21:22:18	753	1	1	1	NULL	
+Tokyo Stock Exchange	135	227	2026-01-27 18:46:30	767	0	0	1	NULL	
+Hong Kong Stock Exchange	136	228	2026-01-27 18:46:30	647	0	0	1	NULL	
+Shanghai Stock Exchange	137	249	2026-01-27 18:46:30	707	0	0	1	NULL	
+Shenzhen Stock Exchange	138	267	2026-01-27 18:46:30	710	0	0	1	NULL	
+Australian Stock Exchange	134	243	2026-01-27 13:01:20	272	3	3	1	NULL	
+New Zealand Stock Exchange	133	242	2026-01-27 11:04:18	440	0	0	1	NULL	
+NYSE Market (Amex)	129	218	2026-01-27 06:39:13	340	4	4	1	NULL	
+NASDAQ Stock Exchange	130	233	2026-01-27 06:39:13	340	9	9	1	NULL	
+Toronto Stock Exchange	131	241	2026-01-27 06:39:13	580	0	0	1	NULL	
+Bolsa institucional de valores	132	271	2026-01-27 06:39:13	580	0	0	1	NULL	
+NYSE Market (Amex)	124	218	2026-01-27 04:05:59	185	76	76	1	NULL	
+NASDAQ Stock Exchange	125	233	2026-01-27 04:05:59	185	84	84	1	NULL	
+BM&FBOVESPA (B3)	126	239	2026-01-27 04:05:59	471	0	0	1	NULL	
+Toronto Stock Exchange	127	241	2026-01-27 04:05:59	425	0	0	1	NULL	
+Bolsa institucional de valores	128	271	2026-01-27 04:05:59	425	0	0	1	NULL	
+London Stock Exchange	117	224	2026-01-27 00:03:56	409	0	0	1	NULL	
+Toronto Stock Exchange	118	241	2026-01-27 00:03:56	183	4	4	1	NULL	
+Stuttgart Stock Exchange	119	245	2026-01-27 00:03:56	184	0	0	1	NULL	
+Euronext Lisbon	120	261	2026-01-27 00:03:56	454	0	0	1	NULL	
+Euronext Dublin	121	265	2026-01-27 00:03:56	454	0	0	1	NULL	
+boerse hamburg - regulierter mar	122	270	2026-01-27 00:03:56	184	0	0	1	NULL	
+Bolsa institucional de valores	123	271	2026-01-27 00:03:56	183	1	1	1	NULL	
+BM&FBOVESPA (B3)	116	239	2026-01-26 23:17:54	182	1	1	1	NULL	
+

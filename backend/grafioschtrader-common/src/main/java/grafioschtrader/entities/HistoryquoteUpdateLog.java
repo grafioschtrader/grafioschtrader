@@ -2,6 +2,7 @@ package grafioschtrader.entities;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -78,7 +79,7 @@ public class HistoryquoteUpdateLog extends BaseID<Integer> implements Serializab
 
   public HistoryquoteUpdateLog(Integer idStockexchange, Integer minutesSinceClose, Integer securitiesCount) {
     this.idStockexchange = idStockexchange;
-    this.updateTimestamp = LocalDateTime.now();
+    this.updateTimestamp = LocalDateTime.now(ZoneOffset.UTC);
     this.minutesSinceClose = minutesSinceClose;
     this.securitiesCount = securitiesCount;
     this.securitiesUpdated = 0;
