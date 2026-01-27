@@ -119,11 +119,26 @@ label {
   }
 }
 
-/* UNUSED - NOT FOUND IN CODEBASE - CAN BE DELETED */
-/*.xflex {
-  box-sizing: border-box;
-}*/
+.p-datatable .p-datatable-tbody > tr > td button.p-button-rounded {
+  padding: 4px 0;
+  width: 1.2rem;
+  height: 1.2rem;
+}
 
+.p-datatable .p-inputtext {
+  font-size: 14px;
+}
+
+/* Pencil-Icon und Edit-Button verkleinern */
+.p-datatable .p-datatable-row-editor-init {
+  width: 1rem;
+  height: 1rem;
+  padding: 2px 0;
+}
+
+.p-datatable .p-datatable-row-editor-init .pi-pencil {
+  font-size: 12px;
+}
 
 .p-datatable thead th {
   text-align: left;

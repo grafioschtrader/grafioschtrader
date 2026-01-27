@@ -360,8 +360,12 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       this.configObject.stockexchangeLink?.formControl?.setValue(dto.stockexchangeLink);
     }
 
-    // Map asset class by enum values
-    if (dto.categoryType && dto.specialInvestmentInstrument) {
+    // Map asset class - prefer backend-matched ID (considers subCategoryNLS), fallback to enum matching
+    if (dto.matchedAssetClassId) {
+      // Backend already matched the asset class including subCategoryNLS consideration
+      this.configObject.assetClass.formControl.setValue(dto.matchedAssetClassId);
+    } else if (dto.categoryType && dto.specialInvestmentInstrument) {
+      // Fallback: match by enum values only
       const assetclasses = this.configObject.assetClass.referencedDataObject as Assetclass[];
       const matchingAssetclass = assetclasses?.find(ac =>
         ac.categoryType === dto.categoryType && ac.specialInvestmentInstrument === dto.specialInvestmentInstrument);

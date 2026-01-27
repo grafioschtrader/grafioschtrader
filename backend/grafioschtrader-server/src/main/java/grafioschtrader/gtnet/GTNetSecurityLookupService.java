@@ -2,7 +2,9 @@ package grafioschtrader.gtnet;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +34,10 @@ import grafioschtrader.gtnet.model.SecurityGtnetLookupRequest;
 import grafioschtrader.gtnet.model.SecurityGtnetLookupResponse;
 import grafioschtrader.gtnet.model.SubCategoryDetector;
 import grafioschtrader.gtnet.model.SubCategoryScheme;
+import grafioschtrader.entities.GTNetSecurityImpPos;
 import grafioschtrader.repository.AssetclassJpaRepository;
+import grafioschtrader.gtnet.model.msg.SecurityBatchLookupMsg;
+import grafioschtrader.gtnet.model.msg.SecurityBatchLookupResponseMsg;
 import grafioschtrader.gtnet.model.msg.SecurityLookupMsg;
 import grafioschtrader.gtnet.model.msg.SecurityLookupResponseMsg;
 
@@ -235,6 +240,187 @@ public class GTNetSecurityLookupService {
   }
 
   /**
+   * Performs batch lookup for multiple securities across all GTNet peers.
+   * Sends a single batch request to each peer containing all positions, reducing network round-trips.
+   * Results are aggregated and grouped by position ID for easy linking.
+   *
+   * @param positions list of import positions to look up (only those with valid ISIN or ticker)
+   * @return map from position ID to list of matching DTOs from all peers
+   */
+  public Map<Integer, List<SecurityGtnetLookupDTO>> lookupSecuritiesBatch(List<GTNetSecurityImpPos> positions) {
+    Map<Integer, List<SecurityGtnetLookupDTO>> resultsByPosition = new HashMap<>();
+
+    if (positions == null || positions.isEmpty()) {
+      return resultsByPosition;
+    }
+
+    // Check if GTNet is enabled
+    if (!globalparametersJpaRepository.isGTNetEnabled()) {
+      log.warn("GTNet is not enabled, batch lookup skipped");
+      return resultsByPosition;
+    }
+
+    // Get local GTNet entry for source identification
+    Integer myGTNetId;
+    GTNet myGTNet;
+    try {
+      myGTNetId = GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersJpaRepository);
+      myGTNet = gtNetJpaRepository.findById(myGTNetId)
+          .orElseThrow(() -> new IllegalStateException("Local GTNet entry not found: " + myGTNetId));
+    } catch (Exception e) {
+      log.error("Failed to get local GTNet entry for batch lookup", e);
+      return resultsByPosition;
+    }
+
+    // Find peers that accept SECURITY_METADATA requests and are online
+    List<GTNet> suppliers = gtNetJpaRepository.findSecurityMetadataSuppliers();
+
+    // Exclude own entry to prevent self-communication
+    suppliers = suppliers.stream()
+        .filter(supplier -> !supplier.getIdGtNet().equals(myGTNetId))
+        .toList();
+
+    if (suppliers.isEmpty()) {
+      log.warn("No GTNet peers available for batch security lookup");
+      return resultsByPosition;
+    }
+
+    // Build batch request payload with mapping from query index to position ID
+    SecurityBatchLookupMsg batchRequest = new SecurityBatchLookupMsg();
+    Map<Integer, Integer> queryIndexToPositionId = new HashMap<>();
+
+    int queryIndex = 0;
+    for (GTNetSecurityImpPos pos : positions) {
+      // Only include positions with valid identifiers
+      boolean hasIsin = pos.getIsin() != null && !pos.getIsin().isBlank();
+      boolean hasTicker = pos.getTickerSymbol() != null && !pos.getTickerSymbol().isBlank();
+
+      if (hasIsin || hasTicker) {
+        SecurityLookupMsg query = new SecurityLookupMsg(pos.getIsin(), pos.getCurrency(), pos.getTickerSymbol());
+        batchRequest.addQuery(query);
+        queryIndexToPositionId.put(queryIndex, pos.getIdGtNetSecurityImpPos());
+        queryIndex++;
+      }
+    }
+
+    if (batchRequest.isEmpty()) {
+      log.debug("No valid positions for batch lookup");
+      return resultsByPosition;
+    }
+
+    log.info("Starting batch lookup for {} positions across {} peers", batchRequest.size(), suppliers.size());
+
+    int peersQueried = 0;
+    int peersResponded = 0;
+
+    // Query each peer with batch request
+    for (GTNet supplier : suppliers) {
+      GTNetConfig config = supplier.getGtNetConfig();
+      if (config == null || !config.isAuthorizedRemoteEntry()) {
+        log.debug("Skipping unauthorized server: {}", supplier.getDomainRemoteName());
+        continue;
+      }
+
+      peersQueried++;
+
+      try {
+        // Build MessageEnvelope
+        MessageEnvelope requestEnvelope = new MessageEnvelope();
+        requestEnvelope.sourceDomain = myGTNet.getDomainRemoteName();
+        requestEnvelope.sourceGtNet = new GTNetPublicDTO(myGTNet);
+        requestEnvelope.serverBusy = myGTNet.isServerBusy();
+        requestEnvelope.messageCode = GTNetMessageCodeType.GT_NET_SECURITY_BATCH_LOOKUP_SEL_C.getValue();
+        requestEnvelope.timestamp = new Date();
+        requestEnvelope.payload = objectMapper.valueToTree(batchRequest);
+
+        log.debug("Sending batch lookup request ({} queries) to {}", batchRequest.size(), supplier.getDomainRemoteName());
+
+        // Send request
+        SendResult result = baseDataClient.sendToMsgWithStatus(
+            config.getTokenRemote(),
+            supplier.getDomainRemoteName(),
+            requestEnvelope);
+
+        if (result.isFailed()) {
+          if (result.httpError()) {
+            log.warn("GTNet server {} returned HTTP error {}", supplier.getDomainRemoteName(), result.httpStatusCode());
+          } else {
+            log.warn("GTNet server {} is unreachable", supplier.getDomainRemoteName());
+          }
+          continue;
+        }
+
+        MessageEnvelope response = result.response();
+        if (response == null) {
+          log.debug("No response from {}", supplier.getDomainRemoteName());
+          continue;
+        }
+
+        peersResponded++;
+
+        // Check response message code
+        GTNetMessageCode responseCode = GTNetMessageCodeType.getMessageCodeByValue(response.messageCode);
+        if (responseCode != GTNetMessageCodeType.GT_NET_SECURITY_BATCH_LOOKUP_RESPONSE_S) {
+          log.warn("Unexpected response code {} from {}", response.messageCode, supplier.getDomainRemoteName());
+          continue;
+        }
+
+        // Parse response payload
+        if (response.payload == null) {
+          log.debug("Empty payload from {}", supplier.getDomainRemoteName());
+          continue;
+        }
+
+        SecurityBatchLookupResponseMsg responsePayload = objectMapper.treeToValue(
+            response.payload, SecurityBatchLookupResponseMsg.class);
+
+        if (responsePayload == null || responsePayload.isEmpty()) {
+          log.debug("No results in batch response from {}", supplier.getDomainRemoteName());
+          continue;
+        }
+
+        // Process results and map back to position IDs
+        int totalResultsFromPeer = 0;
+        for (Map.Entry<Integer, List<SecurityGtnetLookupDTO>> entry : responsePayload.getResults().entrySet()) {
+          Integer qIndex = entry.getKey();
+          Integer positionId = queryIndexToPositionId.get(qIndex);
+
+          if (positionId == null) {
+            log.warn("Received results for unknown query index {} from {}", qIndex, supplier.getDomainRemoteName());
+            continue;
+          }
+
+          List<SecurityGtnetLookupDTO> dtoList = entry.getValue();
+          if (dtoList != null && !dtoList.isEmpty()) {
+            // Process each DTO: set source domain, match connectors and asset classes
+            for (SecurityGtnetLookupDTO dto : dtoList) {
+              dto.setSourceDomain(supplier.getDomainRemoteName());
+              matchConnectors(dto);
+              matchAssetClass(dto);
+            }
+
+            // Add to results for this position
+            resultsByPosition
+                .computeIfAbsent(positionId, k -> new ArrayList<>())
+                .addAll(dtoList);
+            totalResultsFromPeer += dtoList.size();
+          }
+        }
+
+        log.info("Received {} securities from {} for batch lookup", totalResultsFromPeer, supplier.getDomainRemoteName());
+
+      } catch (Exception e) {
+        log.error("Failed to query GTNet server {} for batch lookup", supplier.getDomainRemoteName(), e);
+      }
+    }
+
+    log.info("Batch lookup complete: {} peers queried, {} responded, {} positions with results",
+        peersQueried, peersResponded, resultsByPosition.size());
+
+    return resultsByPosition;
+  }
+
+  /**
    * Matches connector hints from a peer against local connectors.
    * For each capability (HISTORY, INTRADAY, DIVIDEND, SPLIT), finds the first matching local connector
    * and sets the matched connector ID and URL extension on the DTO.
@@ -327,7 +513,7 @@ public class GTNetSecurityLookupService {
   /**
    * Finds a matching local asset class for the given DTO. Matching priority:
    * <ol>
-   *   <li>Exact match: categoryType + specialInvestmentInstrument + subCategoryNLS (fuzzy text match)</li>
+   *   <li>Exact match: categoryType + specialInvestmentInstrument + subCategoryNLS (best similarity score)</li>
    *   <li>Scheme match: categoryType + specialInvestmentInstrument + same categorization scheme</li>
    *   <li>Partial match: categoryType + specialInvestmentInstrument only</li>
    * </ol>
@@ -350,15 +536,16 @@ public class GTNetSecurityLookupService {
 
     SubCategoryScheme dtoScheme = dto.getSubCategoryScheme();
     Assetclass schemeMatch = null;
+    Assetclass bestMatch = null;
+    double bestSimilarity = 0.0;
 
-    // Try exact match with subCategoryNLS text (fuzzy matching)
+    // Find the BEST match with subCategoryNLS text (highest similarity score)
     if (dto.getSubCategoryNLS() != null && !dto.getSubCategoryNLS().isEmpty()) {
       for (Assetclass candidate : candidates) {
-        if (matchesSubCategoryText(candidate, dto.getSubCategoryNLS())) {
-          dto.setMatchedAssetClassId(candidate.getIdAssetClass());
-          dto.setAssetClassMatchType("EXACT");
-          log.debug("Exact asset class match for {}: idAssetClass={}", dto.getIsin(), candidate.getIdAssetClass());
-          return;
+        double similarity = getSubCategorySimilarity(candidate, dto.getSubCategoryNLS());
+        if (similarity >= SubCategoryDetector.SIMILARITY_THRESHOLD && similarity > bestSimilarity) {
+          bestSimilarity = similarity;
+          bestMatch = candidate;
         }
         // Track first candidate with matching scheme for fallback
         if (schemeMatch == null && dtoScheme != null && dtoScheme != SubCategoryScheme.UNKNOWN) {
@@ -368,6 +555,15 @@ public class GTNetSecurityLookupService {
           }
         }
       }
+    }
+
+    // Use the best match if found
+    if (bestMatch != null) {
+      dto.setMatchedAssetClassId(bestMatch.getIdAssetClass());
+      dto.setAssetClassMatchType("EXACT");
+      log.debug("Best asset class match for {}: idAssetClass={}, similarity={}",
+          dto.getIsin(), bestMatch.getIdAssetClass(), bestSimilarity);
+      return;
     }
 
     // Fallback to scheme match (same categorization approach)
@@ -386,25 +582,29 @@ public class GTNetSecurityLookupService {
   }
 
   /**
-   * Checks if the local asset class subcategory text matches any language value from the DTO. Uses Jaro-Winkler
-   * similarity for fuzzy matching (handles typos, plurals, slight variations).
+   * Calculates the maximum similarity score between a local asset class subcategory and the DTO subcategory values.
+   * Compares each language that exists in both and returns the highest similarity score found.
+   *
+   * @return the highest similarity score (0.0 to 1.0), or 0.0 if no comparison was possible
    */
-  private boolean matchesSubCategoryText(Assetclass assetclass, java.util.Map<String, String> dtoSubCategory) {
+  private double getSubCategorySimilarity(Assetclass assetclass, java.util.Map<String, String> dtoSubCategory) {
     MultilanguageString localSubCat = assetclass.getSubCategoryNLS();
     if (localSubCat == null || localSubCat.getMap() == null || localSubCat.getMap().isEmpty()) {
-      return false;
+      return 0.0;
     }
 
-    // Match if any language key has similar value (fuzzy matching with 85% threshold)
+    double maxSimilarity = 0.0;
     for (java.util.Map.Entry<String, String> entry : dtoSubCategory.entrySet()) {
       String localValue = localSubCat.getMap().get(entry.getKey());
-      if (localValue != null && SubCategoryDetector.isSimilar(localValue, entry.getValue())) {
-        log.debug("Fuzzy match found: '{}' ~ '{}' (similarity={})",
-            localValue, entry.getValue(), SubCategoryDetector.getSimilarity(localValue, entry.getValue()));
-        return true;
+      if (localValue != null) {
+        double similarity = SubCategoryDetector.getSimilarity(localValue, entry.getValue());
+        if (similarity > maxSimilarity) {
+          maxSimilarity = similarity;
+          log.debug("Similarity check: '{}' vs '{}' = {}", localValue, entry.getValue(), similarity);
+        }
       }
     }
-    return false;
+    return maxSimilarity;
   }
 
   /**

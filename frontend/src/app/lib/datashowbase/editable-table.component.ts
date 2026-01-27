@@ -677,10 +677,8 @@ export class EditableTableComponent<T = any> implements OnChanges {
 
     // Initialize edit state and start editing (delayed to allow DOM update)
     setTimeout(() => {
-      this.onRowEditInit(newEntity, index);
-      // Note: PrimeNG doesn't support programmatic edit start, so row will need manual click
-      // or we need to find the row element and trigger pInitEditableRow
-    }, 0);
+      this.startEditingRow(newEntity);
+    }, 50);
   }
 
   // ============================================================================
@@ -1009,5 +1007,71 @@ export class EditableTableComponent<T = any> implements OnChanges {
       }
     }
     return allValid;
+  }
+
+  /**
+   * Programmatically initiates editing for a specific row.
+   * Finds the edit button for the row, clicks it, and focuses the first editable cell.
+   *
+   * @param row The row data to start editing
+   */
+  startEditingRow(row: T): void {
+    const rowKey = this.getRowKey(row);
+    const rowIndex = this.data.findIndex(r => this.getRowKey(r) === rowKey);
+
+    if (rowIndex >= 0) {
+      // Initialize edit state
+      this.onRowEditInit(row, rowIndex);
+
+      // PrimeNG Table uses internal state for row editing.
+      // We trigger editing by simulating the pInitEditableRow behavior.
+      if (this.table) {
+        // Use setTimeout to ensure DOM is updated
+        setTimeout(() => {
+          // Find and click the edit button programmatically
+          const tableEl = this.table.el.nativeElement;
+          const rows = tableEl.querySelectorAll('tbody tr');
+          const targetRow = rows[rowIndex];
+          if (targetRow) {
+            const editButton = targetRow.querySelector('[pInitEditableRow]');
+            if (editButton) {
+              (editButton as HTMLElement).click();
+
+              // Focus the first editable input after edit mode is activated
+              setTimeout(() => {
+                this.focusFirstEditableCell(targetRow);
+              }, 50);
+            }
+          }
+        }, 0);
+      }
+    }
+  }
+
+  /**
+   * Focuses the first editable input element in the specified row.
+   *
+   * @param rowElement The HTML row element to search for inputs
+   */
+  private focusFirstEditableCell(rowElement: Element): void {
+    // Find the first visible editable input in the row
+    const editableInputs = rowElement.querySelectorAll(
+      'input:not([type="hidden"]):not([disabled]), ' +
+      'select:not([disabled]), ' +
+      'textarea:not([disabled]), ' +
+      'p-inputNumber input, ' +
+      'p-datepicker input, ' +
+      'p-select select'
+    );
+
+    if (editableInputs.length > 0) {
+      const firstInput = editableInputs[0] as HTMLElement;
+      firstInput.focus();
+
+      // If it's a text input, select all text for easy replacement
+      if (firstInput instanceof HTMLInputElement && firstInput.type === 'text') {
+        firstInput.select();
+      }
+    }
   }
 }

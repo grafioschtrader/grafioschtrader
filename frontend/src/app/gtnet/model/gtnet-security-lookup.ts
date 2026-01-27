@@ -47,6 +47,11 @@ export interface SecurityGtnetLookupDTO {
   categoryType: AssetclassType | string;
   specialInvestmentInstrument: SpecialInvestmentInstruments | string;
 
+  /** Sub-category of asset class in multiple languages (e.g., 'Emerging Markets', 'US Large Cap') */
+  subCategoryNLS?: { [language: string]: string };
+  /** Detected categorization scheme: REGIONAL (geographical) or SECTOR (industry) */
+  subCategoryScheme?: 'REGIONAL' | 'SECTOR' | 'UNKNOWN';
+
   // Stock exchange (MIC code for cross-instance mapping)
   stockexchangeMic: string;
   stockexchangeName?: string;
@@ -85,6 +90,11 @@ export interface SecurityGtnetLookupDTO {
   matchedSplitConnector?: string;
   /** URL extension for split connector */
   matchedSplitUrlExtension?: string;
+
+  /** Matched local asset class ID based on categoryType, specialInvestmentInstrument, and subCategoryNLS */
+  matchedAssetClassId?: number;
+  /** Asset class match type: EXACT (with subCategoryNLS), PARTIAL (categoryType + specialInvestmentInstrument only), SCHEME_MATCH */
+  assetClassMatchType?: 'EXACT' | 'PARTIAL' | 'SCHEME_MATCH';
 }
 
 /**

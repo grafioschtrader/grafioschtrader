@@ -106,13 +106,13 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
     return createSuccessResponse(context, storedRequest, results);
   }
 
-  private boolean isValidRequest(SecurityLookupMsg request) {
+  protected boolean isValidRequest(SecurityLookupMsg request) {
     boolean hasIdentifier = (request.isin != null && !request.isin.isBlank())
         || (request.tickerSymbol != null && !request.tickerSymbol.isBlank());
     return hasIdentifier;
   }
 
-  private List<SecurityGtnetLookupDTO> findLocalSecurities(SecurityLookupMsg request, GTNet remoteGTNet) {
+  protected List<SecurityGtnetLookupDTO> findLocalSecurities(SecurityLookupMsg request, GTNet remoteGTNet) {
     List<Security> securities = new ArrayList<>();
 
     // Search by ISIN and currency (primary)
@@ -146,7 +146,7 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
         .toList();
   }
 
-  private SecurityGtnetLookupDTO toDTO(Security security) {
+  protected SecurityGtnetLookupDTO toDTO(Security security) {
     SecurityGtnetLookupDTO dto = new SecurityGtnetLookupDTO();
 
     // Identification

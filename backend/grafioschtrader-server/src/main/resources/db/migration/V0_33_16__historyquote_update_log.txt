@@ -23,3 +23,29 @@ CREATE TABLE `historyquote_update_log` (
   CONSTRAINT `fk_hq_update_stockexchange` FOREIGN KEY (`id_stockexchange`)
     REFERENCES `stockexchange` (`id_stockexchange`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+-- GTNet Security Import tables for organizing bulk security lookups
+
+-- Header table for grouping security import positions
+CREATE TABLE gt_net_security_imp_head (
+    id_gt_net_security_imp_head INT AUTO_INCREMENT PRIMARY KEY,
+    id_tenant INT NOT NULL,
+    name VARCHAR(40) NOT NULL,
+    note VARCHAR(1000),
+    CONSTRAINT fk_gt_net_sec_imp_head_tenant FOREIGN KEY (id_tenant) REFERENCES tenant(id_tenant)
+);
+
+-- Position table for individual securities to import
+CREATE TABLE gt_net_security_imp_pos (
+    id_gt_net_security_imp_pos INT AUTO_INCREMENT PRIMARY KEY,
+    id_gt_net_security_imp_head INT NOT NULL,
+    isin VARCHAR(12),
+    ticker_symbol VARCHAR(6),
+    currency VARCHAR(3) NOT NULL,
+    id_securitycurrency INT,
+    CONSTRAINT fk_gt_net_sec_imp_pos_head FOREIGN KEY (id_gt_net_security_imp_head)
+        REFERENCES gt_net_security_imp_head(id_gt_net_security_imp_head) ON DELETE CASCADE,
+    CONSTRAINT fk_gt_net_sec_imp_pos_security FOREIGN KEY (id_securitycurrency)
+        REFERENCES security(id_securitycurrency) ON DELETE SET NULL
+);
