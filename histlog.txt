@@ -1,0 +1,3 @@
+name	id_hq_update_log	id_stockexchange	update_timestamp   	minutes_since_close	securities_count	securities_updated	update_status	error_message	
+SIX Swiss Exchange	101	217	2026-01-26 23:11:41	392	6	6	1	NULL	
+SIX Swiss Exchange	89	217	2026-01-26 19:45:00	185	176	176	1	NULL	

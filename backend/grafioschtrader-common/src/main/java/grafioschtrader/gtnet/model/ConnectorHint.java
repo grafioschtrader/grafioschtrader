@@ -1,4 +1,4 @@
-package grafiosch.gtnet.model;
+package grafioschtrader.gtnet.model;
 
 import java.util.Set;
 
