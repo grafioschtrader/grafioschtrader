@@ -98,4 +98,14 @@ public interface AssetclassJpaRepository
   @Query(nativeQuery = true)
   List<Assetclass> getPossibleAssetclassForExistingSecurity(Integer idSecuritycurrency);
 
+  /**
+   * Finds all asset classes matching the given category type and special investment instrument. Used for GTNet asset
+   * class matching where we first find candidates by type, then filter by subCategoryNLS and scheme in Java code.
+   *
+   * @param categoryType               the asset class category type code (byte value of AssetclassType)
+   * @param specialInvestmentInstrument the special investment instrument code (byte value of SpecialInvestmentInstruments)
+   * @return list of matching asset classes
+   */
+  List<Assetclass> findByCategoryTypeAndSpecialInvestmentInstrument(byte categoryType, byte specialInvestmentInstrument);
+
 }

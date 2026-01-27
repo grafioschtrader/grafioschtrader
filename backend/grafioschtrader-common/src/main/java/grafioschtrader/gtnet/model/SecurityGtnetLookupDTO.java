@@ -2,8 +2,8 @@ package grafioschtrader.gtnet.model;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
-import grafiosch.gtnet.model.ConnectorHint;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.DistributionFrequency;
 import grafioschtrader.types.SpecialInvestmentInstruments;
@@ -38,6 +38,12 @@ public class SecurityGtnetLookupDTO {
 
   @Schema(description = "Special investment instrument type (ETF, STOCK, BOND, etc.)")
   private SpecialInvestmentInstruments specialInvestmentInstrument;
+
+  @Schema(description = "Sub-category of asset class in multiple languages (e.g., 'Emerging Markets', 'US Large Cap')")
+  private Map<String, String> subCategoryNLS;
+
+  @Schema(description = "Detected categorization scheme: REGIONAL (geographical) or SECTOR (industry)")
+  private SubCategoryScheme subCategoryScheme;
 
   // Stock exchange (MIC code for cross-instance mapping)
   @Schema(description = "ISO 10383 Market Identifier Code of the stock exchange")
@@ -104,6 +110,12 @@ public class SecurityGtnetLookupDTO {
   @Schema(description = "URL extension for the matched split connector")
   private String matchedSplitUrlExtension;
 
+  @Schema(description = "Matched local asset class ID based on categoryType, specialInvestmentInstrument, and subCategoryNLS")
+  private Integer matchedAssetClassId;
+
+  @Schema(description = "Asset class match type: EXACT (with subCategoryNLS), PARTIAL (categoryType + specialInvestmentInstrument only), SCHEME_MATCH (same categorization scheme)")
+  private String assetClassMatchType;
+
   public SecurityGtnetLookupDTO() {
   }
 
@@ -155,6 +167,22 @@ public class SecurityGtnetLookupDTO {
 
   public void setSpecialInvestmentInstrument(SpecialInvestmentInstruments specialInvestmentInstrument) {
     this.specialInvestmentInstrument = specialInvestmentInstrument;
+  }
+
+  public Map<String, String> getSubCategoryNLS() {
+    return subCategoryNLS;
+  }
+
+  public void setSubCategoryNLS(Map<String, String> subCategoryNLS) {
+    this.subCategoryNLS = subCategoryNLS;
+  }
+
+  public SubCategoryScheme getSubCategoryScheme() {
+    return subCategoryScheme;
+  }
+
+  public void setSubCategoryScheme(SubCategoryScheme subCategoryScheme) {
+    this.subCategoryScheme = subCategoryScheme;
   }
 
   public String getStockexchangeMic() {
@@ -315,5 +343,21 @@ public class SecurityGtnetLookupDTO {
 
   public void setMatchedSplitUrlExtension(String matchedSplitUrlExtension) {
     this.matchedSplitUrlExtension = matchedSplitUrlExtension;
+  }
+
+  public Integer getMatchedAssetClassId() {
+    return matchedAssetClassId;
+  }
+
+  public void setMatchedAssetClassId(Integer matchedAssetClassId) {
+    this.matchedAssetClassId = matchedAssetClassId;
+  }
+
+  public String getAssetClassMatchType() {
+    return assetClassMatchType;
+  }
+
+  public void setAssetClassMatchType(String assetClassMatchType) {
+    this.assetClassMatchType = assetClassMatchType;
   }
 }

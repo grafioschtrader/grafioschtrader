@@ -2,6 +2,7 @@ package grafioschtrader.gtnet.handler.impl;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -15,19 +16,21 @@ import org.springframework.stereotype.Component;
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetEntity;
 import grafiosch.entities.GTNetMessage;
+import grafiosch.entities.MultilanguageString;
 import grafiosch.gtnet.MessageCategory;
 import grafiosch.gtnet.handler.AbstractGTNetMessageHandler;
 import grafiosch.gtnet.handler.GTNetMessageContext;
 import grafiosch.gtnet.handler.HandlerResult;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
-import grafiosch.gtnet.model.ConnectorHint;
-import grafiosch.gtnet.model.ConnectorHint.ConnectorCapability;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.entities.Security;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
+import grafioschtrader.gtnet.model.ConnectorHint;
+import grafioschtrader.gtnet.model.ConnectorHint.ConnectorCapability;
 import grafioschtrader.gtnet.model.SecurityGtnetLookupDTO;
+import grafioschtrader.gtnet.model.SubCategoryDetector;
 import grafioschtrader.gtnet.model.msg.SecurityLookupMsg;
 import grafioschtrader.gtnet.model.msg.SecurityLookupResponseMsg;
 import grafioschtrader.repository.SecurityJpaRepository;
@@ -156,6 +159,15 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
     if (security.getAssetClass() != null) {
       dto.setCategoryType(security.getAssetClass().getCategoryType());
       dto.setSpecialInvestmentInstrument(security.getAssetClass().getSpecialInvestmentInstrument());
+
+      // Sub-category (multilingual text for geographical/sectoral grouping)
+      MultilanguageString subCat = security.getAssetClass().getSubCategoryNLS();
+      if (subCat != null && subCat.getMap() != null && !subCat.getMap().isEmpty()) {
+        Map<String, String> subCatMap = new HashMap<>(subCat.getMap());
+        dto.setSubCategoryNLS(subCatMap);
+        // Detect categorization scheme (regional vs sector)
+        dto.setSubCategoryScheme(SubCategoryDetector.detect(subCatMap));
+      }
     }
 
     // Stock exchange (MIC code for cross-instance mapping)

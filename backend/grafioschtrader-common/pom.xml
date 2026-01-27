@@ -89,6 +89,12 @@
 			<artifactId>commons-lang3</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-text</artifactId>
+			<version>1.14.0</version>
+		</dependency>
+
 		<!-- <dependency> <groupId>net.andreinc.jbvext</groupId> <artifactId>jbvext</artifactId> 
 			<version>0.0.11</version> </dependency> -->
 

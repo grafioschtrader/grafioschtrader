@@ -12,12 +12,11 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.entities.GTNet;
+import grafiosch.entities.MultilanguageString;
 import grafiosch.entities.GTNetConfig;
 import grafiosch.gtnet.GTNetMessageCode;
 import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
-import grafiosch.gtnet.model.ConnectorHint;
-import grafiosch.gtnet.model.ConnectorHint.ConnectorCapability;
 import grafiosch.m2m.GTNetMessageHelper;
 import grafiosch.m2m.client.BaseDataClient;
 import grafiosch.m2m.client.BaseDataClient.SendResult;
@@ -25,9 +24,15 @@ import grafiosch.repository.GTNetJpaRepository;
 import grafiosch.repository.GlobalparametersJpaRepository;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector;
+import grafioschtrader.entities.Assetclass;
+import grafioschtrader.gtnet.model.ConnectorHint;
+import grafioschtrader.gtnet.model.ConnectorHint.ConnectorCapability;
 import grafioschtrader.gtnet.model.SecurityGtnetLookupDTO;
 import grafioschtrader.gtnet.model.SecurityGtnetLookupRequest;
 import grafioschtrader.gtnet.model.SecurityGtnetLookupResponse;
+import grafioschtrader.gtnet.model.SubCategoryDetector;
+import grafioschtrader.gtnet.model.SubCategoryScheme;
+import grafioschtrader.repository.AssetclassJpaRepository;
 import grafioschtrader.gtnet.model.msg.SecurityLookupMsg;
 import grafioschtrader.gtnet.model.msg.SecurityLookupResponseMsg;
 
@@ -53,6 +58,9 @@ public class GTNetSecurityLookupService {
 
   @Autowired
   private List<IFeedConnector> feedConnectors;
+
+  @Autowired
+  private AssetclassJpaRepository assetclassJpaRepository;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -187,10 +195,11 @@ public class GTNetSecurityLookupService {
           continue;
         }
 
-        // Add results with source domain tracking and connector matching
+        // Add results with source domain tracking, connector and asset class matching
         for (SecurityGtnetLookupDTO dto : responsePayload.securities) {
           dto.setSourceDomain(supplier.getDomainRemoteName());
           matchConnectors(dto);
+          matchAssetClass(dto);
           results.add(dto);
         }
 
@@ -313,5 +322,99 @@ public class GTNetSecurityLookupService {
     }
 
     return null;
+  }
+
+  /**
+   * Finds a matching local asset class for the given DTO. Matching priority:
+   * <ol>
+   *   <li>Exact match: categoryType + specialInvestmentInstrument + subCategoryNLS (fuzzy text match)</li>
+   *   <li>Scheme match: categoryType + specialInvestmentInstrument + same categorization scheme</li>
+   *   <li>Partial match: categoryType + specialInvestmentInstrument only</li>
+   * </ol>
+   *
+   * @param dto the security DTO to process
+   */
+  private void matchAssetClass(SecurityGtnetLookupDTO dto) {
+    if (dto.getCategoryType() == null || dto.getSpecialInvestmentInstrument() == null) {
+      return;
+    }
+
+    List<Assetclass> candidates = assetclassJpaRepository.findByCategoryTypeAndSpecialInvestmentInstrument(
+        dto.getCategoryType().getValue(), dto.getSpecialInvestmentInstrument().getValue());
+
+    if (candidates.isEmpty()) {
+      log.debug("No local asset class found for categoryType={}, specialInvestmentInstrument={}",
+          dto.getCategoryType(), dto.getSpecialInvestmentInstrument());
+      return;
+    }
+
+    SubCategoryScheme dtoScheme = dto.getSubCategoryScheme();
+    Assetclass schemeMatch = null;
+
+    // Try exact match with subCategoryNLS text (fuzzy matching)
+    if (dto.getSubCategoryNLS() != null && !dto.getSubCategoryNLS().isEmpty()) {
+      for (Assetclass candidate : candidates) {
+        if (matchesSubCategoryText(candidate, dto.getSubCategoryNLS())) {
+          dto.setMatchedAssetClassId(candidate.getIdAssetClass());
+          dto.setAssetClassMatchType("EXACT");
+          log.debug("Exact asset class match for {}: idAssetClass={}", dto.getIsin(), candidate.getIdAssetClass());
+          return;
+        }
+        // Track first candidate with matching scheme for fallback
+        if (schemeMatch == null && dtoScheme != null && dtoScheme != SubCategoryScheme.UNKNOWN) {
+          SubCategoryScheme candidateScheme = detectLocalScheme(candidate);
+          if (candidateScheme == dtoScheme) {
+            schemeMatch = candidate;
+          }
+        }
+      }
+    }
+
+    // Fallback to scheme match (same categorization approach)
+    if (schemeMatch != null) {
+      dto.setMatchedAssetClassId(schemeMatch.getIdAssetClass());
+      dto.setAssetClassMatchType("SCHEME_MATCH");
+      log.debug("Scheme-based asset class match for {}: idAssetClass={}, scheme={}",
+          dto.getIsin(), schemeMatch.getIdAssetClass(), dtoScheme);
+      return;
+    }
+
+    // Final fallback to first match by categoryType + specialInvestmentInstrument
+    dto.setMatchedAssetClassId(candidates.get(0).getIdAssetClass());
+    dto.setAssetClassMatchType("PARTIAL");
+    log.debug("Partial asset class match for {}: idAssetClass={}", dto.getIsin(), candidates.get(0).getIdAssetClass());
+  }
+
+  /**
+   * Checks if the local asset class subcategory text matches any language value from the DTO. Uses Jaro-Winkler
+   * similarity for fuzzy matching (handles typos, plurals, slight variations).
+   */
+  private boolean matchesSubCategoryText(Assetclass assetclass, java.util.Map<String, String> dtoSubCategory) {
+    MultilanguageString localSubCat = assetclass.getSubCategoryNLS();
+    if (localSubCat == null || localSubCat.getMap() == null || localSubCat.getMap().isEmpty()) {
+      return false;
+    }
+
+    // Match if any language key has similar value (fuzzy matching with 85% threshold)
+    for (java.util.Map.Entry<String, String> entry : dtoSubCategory.entrySet()) {
+      String localValue = localSubCat.getMap().get(entry.getKey());
+      if (localValue != null && SubCategoryDetector.isSimilar(localValue, entry.getValue())) {
+        log.debug("Fuzzy match found: '{}' ~ '{}' (similarity={})",
+            localValue, entry.getValue(), SubCategoryDetector.getSimilarity(localValue, entry.getValue()));
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Detects the categorization scheme of a local asset class.
+   */
+  private SubCategoryScheme detectLocalScheme(Assetclass assetclass) {
+    MultilanguageString subCat = assetclass.getSubCategoryNLS();
+    if (subCat == null || subCat.getMap() == null || subCat.getMap().isEmpty()) {
+      return SubCategoryScheme.UNKNOWN;
+    }
+    return SubCategoryDetector.detect(subCat.getMap());
   }
 }
