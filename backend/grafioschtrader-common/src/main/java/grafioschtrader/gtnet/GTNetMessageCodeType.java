@@ -32,7 +32,7 @@ import grafiosch.gtnet.GTNetModelHelper;
  * <li><b>60-64</b>: Lastprice/intraday price exchange</li>
  * <li><b>70-79</b>: Exchange configuration synchronization</li>
  * <li><b>80-84</b>: Historical price exchange</li>
- * <li><b>90-93</b>: Security metadata lookup</li>
+ * <li><b>90-95</b>: Security metadata lookup (including batch)</li>
  * </ol>
  *
  * @see GNetCoreMessageCode for core protocol messages (0-54)
@@ -71,7 +71,7 @@ public enum GTNetMessageCodeType implements GTNetMessageCode {
   /** Response when the request exceeds the configured max_limit for instruments or date range */
   GT_NET_HISTORYQUOTE_MAX_LIMIT_EXCEEDED_S((byte) 84),
 
-  // Security metadata lookup messages (90-93)
+  // Security metadata lookup messages (90-95)
   /** Request security metadata by ISIN, currency, and/or ticker symbol from remote server */
   GT_NET_SECURITY_LOOKUP_SEL_C((byte) 90),
   /** Response containing matching security metadata */
@@ -79,7 +79,11 @@ public enum GTNetMessageCodeType implements GTNetMessageCode {
   /** Response when no matching security is found */
   GT_NET_SECURITY_LOOKUP_NOT_FOUND_S((byte) 92),
   /** Response when the lookup request is rejected (rate limit, permission, etc.) */
-  GT_NET_SECURITY_LOOKUP_REJECTED_S((byte) 93);
+  GT_NET_SECURITY_LOOKUP_REJECTED_S((byte) 93),
+  /** Request security metadata for multiple securities in a batch from remote server */
+  GT_NET_SECURITY_BATCH_LOOKUP_SEL_C((byte) 94),
+  /** Response containing matching security metadata for batch lookup, grouped by query index */
+  GT_NET_SECURITY_BATCH_LOOKUP_RESPONSE_S((byte) 95);
 
 
 

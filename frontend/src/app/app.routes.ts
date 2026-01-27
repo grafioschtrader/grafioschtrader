@@ -68,6 +68,7 @@ import {UDFMetadataGeneralTableComponent} from './lib/udfmeta/components/udf.met
 import {TenantAlertComponent} from './tenant/component/tenant.alert.component';
 import {BaseSettings} from './lib/base.settings';
 import {MailForwardSettingTableEditComponent} from './lib/mail/component/mail.forward.setting.table.edit.component';
+import {GTNetSecurityImportComponent} from './gtnet/component/gtnet-security-import.component';
 
 
 const APP_ROUTES: Routes = [
@@ -235,6 +236,11 @@ const APP_ROUTES: Routes = [
       {
         path:  AppSettings.UDF_METADATA_SECURITY_KEY,
         component: UDFMetadataSecurityTableComponent,
+        canActivate: [authGuard]
+      },
+      {
+        path: AppSettings.GT_NET_SECURITY_IMPORT_KEY,
+        component: GTNetSecurityImportComponent,
         canActivate: [authGuard]
       },
       // Admin data

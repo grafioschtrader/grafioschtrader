@@ -19,6 +19,7 @@ export const TreeNodeType = {
   TradingPlatformPlan: 'TradingPlatformPlan',
   ImpTransTemplate: 'ImpTransTemplate',
   UDFMetadataSecurity: 'UDFMetadataSecurity',
+  GTNetSecurityImport: 'GTNetSecurityImport',
   NO_MENU: 'NO_MENU'
 } as const;
 

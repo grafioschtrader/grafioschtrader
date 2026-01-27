@@ -44,6 +44,8 @@ public enum TaskTypeExtended implements ITaskType {
   MONITOR_HISTORICAL_PRICE_DATA((byte) 17),
   /** Checks whether a connector for intraday price data may no longer be working. */
   MONITOR_INTRADAY_PRICE_DATA((byte) 18),
+  /** Imports securities from GTNet peers for GTNetSecurityImpHead positions */
+  GTNET_SECURITY_IMPORT_POSITIONS((byte) 20),
   /** Stores the determined values of the user-defined fields of user 0. */
   UDF_USER_0_FILL_PERSISTENT_FIELDS_WITH_VALUES((byte) 19),
   /** Resets retry counters (history and intra) for connector(s) on active instruments. */

@@ -7,7 +7,7 @@ import {FilterService} from 'primeng/api';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {TranslateValue} from '../../lib/datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {SecurityGtnetLookupDTO} from '../model/gtnet-security-lookup';
@@ -174,12 +174,16 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
   /** Flag to track if fields have been initialized in ngOnInit */
   private fieldsInitialized = false;
 
+  /** User's language for subCategoryNLS lookup */
+  private userLang: string;
+
   constructor(filterService: FilterService,
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
               gps: GlobalparameterService,
               injector: Injector) {
     super(filterService, usersettingsService, translateService, gps, injector);
+    this.userLang = gps.getUserLang();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -202,6 +206,8 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
       {width: 100, translateValues: TranslateValue.NORMAL});
     this.addColumn(DataType.String, 'specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT', true, false,
       {width: 120, translateValues: TranslateValue.NORMAL});
+    this.addColumn(DataType.String, 'subCategoryNLS', 'SUB_ASSETCLASS', true, false,
+      {width: 120, fieldValueFN: this.getSubCategoryByLanguage.bind(this)});
     this.addColumn(DataType.String, 'sourceDomain', 'SOURCE_DOMAIN', true, false, {width: 120});
 
     this.prepareTableAndTranslate();
@@ -235,5 +241,23 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
     if (this.selectedSecurity) {
       this.securitySelected.emit(this.selectedSecurity);
     }
+  }
+
+  /**
+   * Extracts the subcategory text for the user's language from subCategoryNLS.
+   * Falls back to any available language if the user's language is not present.
+   */
+  private getSubCategoryByLanguage(dataobject: SecurityGtnetLookupDTO, field: ColumnConfig, valueField: any): string {
+    const subCat = dataobject.subCategoryNLS;
+    if (!subCat) {
+      return '';
+    }
+    // Try user's language first
+    if (subCat[this.userLang]) {
+      return subCat[this.userLang];
+    }
+    // Fallback to any available language
+    const keys = Object.keys(subCat);
+    return keys.length > 0 ? subCat[keys[0]] : '';
   }
 }

@@ -111,7 +111,17 @@ export class BaseDataMainTreeContributor extends MainTreeContributor {
           null
         )
       },
-      udfMetadataGeneralNode
+      udfMetadataGeneralNode,
+      {
+        label: 'GTNET_SECURITY_IMPORT',
+        data: new TypeNodeData(
+          TreeNodeType.GTNetSecurityImport,
+          this.addMainRoute(AppSettings.GT_NET_SECURITY_IMPORT_KEY),
+          null,
+          null,
+          null
+        )
+      }
     ];
   }
 

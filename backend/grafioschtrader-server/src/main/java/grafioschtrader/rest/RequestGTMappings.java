@@ -62,6 +62,12 @@ public interface RequestGTMappings {
   public static final String GTNETSECURITYLOOKUP = "gtnetsecuritylookup";
   public static final String GTNETSECURITYLOOKUP_MAP = RequestMappings.API + GTNETSECURITYLOOKUP;
 
+  public static final String GTNETSECURITYIMPHEAD = "gtnetsecurityimphead";
+  public static final String GTNETSECURITYIMPHEAD_MAP = RequestMappings.API + GTNETSECURITYIMPHEAD;
+
+  public static final String GTNETSECURITYIMPPOS = "gtnetsecurityimppos";
+  public static final String GTNETSECURITYIMPPOS_MAP = RequestMappings.API + GTNETSECURITYIMPPOS;
+
   public static final String HISTORYQUOTE_MAP = RequestMappings.API + Historyquote.TABNAME;
 
   public static final String HISTORYQUOTE_PERIOD = "historyquoteperiod";

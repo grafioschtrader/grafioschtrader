@@ -28,6 +28,14 @@ public interface StockexchangeJpaRepository extends JpaRepository<Stockexchange,
 
   Stockexchange findByName(String name);
 
+  /**
+   * Finds a stock exchange by its Market Identifier Code (MIC).
+   *
+   * @param mic the ISO 10383 Market Identifier Code
+   * @return Optional containing the matching Stockexchange, or empty if not found
+   */
+  Optional<Stockexchange> findByMic(String mic);
+
   @Query(value = "SELECT DISTINCT s.country_code FROM stockexchange s", nativeQuery = true)
   String[] findDistinctCountryCodes();
 
