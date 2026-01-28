@@ -324,24 +324,74 @@ public class Stockexchange extends Auditable implements Serializable {
     return closedMinutes;
   }
 
+  /**
+   * Determines whether there may be new price data available since the last update. This method checks if a trading
+   * session has completed since the last direct price update, indicating that new end-of-day prices might be available.
+   * <p>
+   * The method compares the most recent market close datetime against the last update timestamp, properly handling:
+   * <ul>
+   *   <li>Late close times that result in eligibility windows crossing midnight</li>
+   *   <li>Weekend market closures (Saturday/Sunday)</li>
+   *   <li>Pre-market hours on weekdays</li>
+   * </ul>
+   *
+   * @return true if the most recent market close occurred after the last price update, false otherwise
+   */
   @JsonIgnore
   public boolean mayHavePriceUpdateSinceLastClose() {
     if (lastDirectPriceUpdate == null) {
       return true;
     }
-    LocalDateTime nowTimeZone = LocalDateTime.now(ZoneId.of(timeZone));
+
     ZoneId zoneLocal = ZoneId.of(timeZone);
-    LocalDateTime ldpuDateTimeLocal = lastDirectPriceUpdate.atZone(ZoneOffset.UTC).withZoneSameInstant(zoneLocal)
-        .toLocalDateTime();
-    long minusDays = nowTimeZone.getDayOfWeek() == DayOfWeek.SUNDAY ? 2
-        : nowTimeZone.getDayOfWeek() == DayOfWeek.MONDAY ? 3 : 1;
-    LocalDateTime lastEspectedUpdateDateTime = nowTimeZone.minusDays(minusDays);
-    boolean hasPriceUpdate = lastEspectedUpdateDateTime.toLocalDate().isAfter(ldpuDateTimeLocal.toLocalDate())
-        || lastEspectedUpdateDateTime.toLocalDate().isEqual(ldpuDateTimeLocal.toLocalDate())
-            && lastEspectedUpdateDateTime.toLocalTime().isBefore(timeClose)
-        || nowTimeZone.getDayOfWeek() == DayOfWeek.MONDAY && nowTimeZone.toLocalTime().isAfter(timeClose)
-            && lastDirectPriceUpdate.getDayOfWeek() != DayOfWeek.MONDAY;
-    return hasPriceUpdate;
+    LocalDateTime nowLocal = LocalDateTime.now(zoneLocal);
+
+    // Convert lastDirectPriceUpdate from UTC to exchange's local timezone
+    LocalDateTime ldpuLocal = lastDirectPriceUpdate.atZone(ZoneOffset.UTC)
+        .withZoneSameInstant(zoneLocal).toLocalDateTime();
+
+    // Calculate the most recent market close datetime
+    LocalDateTime mostRecentClose = calculateMostRecentCloseDateTime(nowLocal);
+
+    // If the most recent market close is after the last update, there may be new prices
+    return mostRecentClose.isAfter(ldpuLocal);
+  }
+
+  /**
+   * Calculates the datetime of the most recent market close relative to the given local time. This method properly
+   * handles weekends and determines whether the current time is before or after today's scheduled close.
+   *
+   * @param nowLocal the current datetime in the exchange's local timezone
+   * @return the datetime of the most recent market close
+   */
+  private LocalDateTime calculateMostRecentCloseDateTime(LocalDateTime nowLocal) {
+    LocalDate today = nowLocal.toLocalDate();
+    DayOfWeek dow = today.getDayOfWeek();
+
+    // Handle weekends: most recent close was Friday
+    if (dow == DayOfWeek.SATURDAY) {
+      return LocalDateTime.of(today.minusDays(1), timeClose);
+    }
+    if (dow == DayOfWeek.SUNDAY) {
+      return LocalDateTime.of(today.minusDays(2), timeClose);
+    }
+
+    // Weekday: check if we're past today's close time
+    if (!nowLocal.toLocalTime().isBefore(timeClose)) {
+      // At or after close - most recent close is today
+      return LocalDateTime.of(today, timeClose);
+    }
+
+    // Before close - most recent close was the previous trading day
+    LocalDate previousDay = today.minusDays(1);
+    DayOfWeek prevDow = previousDay.getDayOfWeek();
+    if (prevDow == DayOfWeek.SUNDAY) {
+      previousDay = previousDay.minusDays(2);
+    } else if (prevDow == DayOfWeek.SATURDAY) {
+      previousDay = previousDay.minusDays(1);
+    }
+
+    return LocalDateTime.of(previousDay, timeClose);
   }
 
   @JsonIgnore

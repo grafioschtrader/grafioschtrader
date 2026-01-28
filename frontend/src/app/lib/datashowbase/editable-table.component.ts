@@ -124,6 +124,9 @@ export interface ValidationErrorEvent<T> {
         [stripedRows]="stripedRows"
         [showGridlines]="showGridlines"
         editMode="row"
+        [(expandedRowKeys)]="expandedRowKeys"
+        (onRowExpand)="onRowExpand($event)"
+        (onRowCollapse)="onRowCollapse($event)"
         (onRowSelect)="onRowSelect($event)"
         (onRowUnselect)="onRowUnselect($event)">
 
@@ -135,6 +138,9 @@ export interface ValidationErrorEvent<T> {
         <!-- Header template -->
         <ng-template pTemplate="header" let-columns>
           <tr>
+            @if (expandable) {
+              <th [style.width.px]="expansionColumnWidth"></th>
+            }
             @for (field of columns; track field.field) {
               @if (field.visible) {
                 <th [pSortableColumn]="field.field"
@@ -154,9 +160,20 @@ export interface ValidationErrorEvent<T> {
 
         <!-- Body template with row editing -->
         <ng-template pTemplate="body" let-rowData let-columns="columns"
-                     let-editing="editing" let-ri="rowIndex">
+                     let-editing="editing" let-ri="rowIndex" let-expanded="expanded">
           <tr [pEditableRow]="rowData" [pSelectableRow]="rowData"
               [pContextMenuRow]="contextMenuEnabled ? rowData : null">
+
+            <!-- Expansion toggle cell -->
+            @if (expandable) {
+              <td [style.width.px]="expansionColumnWidth">
+                @if (canExpand(rowData)) {
+                  <a [pRowToggler]="rowData" href="#" (click)="$event.preventDefault()">
+                    <i [ngClass]="expanded ? expandedIcon : collapsedIcon"></i>
+                  </a>
+                }
+              </td>
+            }
 
             @for (field of columns; track field.field) {
               @if (field.visible) {
@@ -242,6 +259,18 @@ export interface ValidationErrorEvent<T> {
               </td>
             }
           </tr>
+        </ng-template>
+
+        <!-- Expanded row template - always present so PrimeNG can find it -->
+        <ng-template #expandedrow let-row let-columns="fields">
+          @if (expandable && expandedRowTemplate) {
+            <tr>
+              <td [attr.colspan]="getExpandedColspan()">
+                <ng-container *ngTemplateOutlet="expandedRowTemplate; context: {$implicit: row}">
+                </ng-container>
+              </td>
+            </tr>
+          }
         </ng-template>
       </p-table>
 
@@ -470,6 +499,28 @@ export class EditableTableComponent<T = any> implements OnChanges {
   @Input() startInEditMode = false;
 
   // ============================================================================
+  // Row Expansion Configuration
+  // ============================================================================
+
+  /** Enable row expansion functionality. When true, adds a toggle column. */
+  @Input() expandable = false;
+
+  /** Template for expanded row content. Receives the row data as context. */
+  @Input() expandedRowTemplate?: TemplateRef<any>;
+
+  /** Callback function to determine if a specific row can be expanded. */
+  @Input() canExpandFn?: (row: T) => boolean;
+
+  /** Width in pixels of the expansion toggle column. */
+  @Input() expansionColumnWidth = 24;
+
+  /** CSS class for the expanded row icon. */
+  @Input() expandedIcon = 'fa fa-fw fa-chevron-circle-down';
+
+  /** CSS class for the collapsed row icon. */
+  @Input() collapsedIcon = 'fa fa-fw fa-chevron-circle-right';
+
+  // ============================================================================
   // Template Customization
   // ============================================================================
 
@@ -501,9 +552,18 @@ export class EditableTableComponent<T = any> implements OnChanges {
   /** Emits when the table container is clicked */
   @Output() componentClick = new EventEmitter<any>();
 
+  /** Emits when a row is expanded. */
+  @Output() rowExpand = new EventEmitter<{ data: T }>();
+
+  /** Emits when a row is collapsed. */
+  @Output() rowCollapse = new EventEmitter<{ data: T }>();
+
   // ============================================================================
   // Internal State
   // ============================================================================
+
+  /** Object tracking which rows are currently expanded. */
+  expandedRowKeys: { [key: string]: boolean } = {};
 
   /** Reference to PrimeNG table component */
   @ViewChild('table') table: Table;
@@ -586,6 +646,11 @@ export class EditableTableComponent<T = any> implements OnChanges {
   /** Handles row edit initialization */
   onRowEditInit(row: T, index: number): void {
     const rowKey = this.getRowKey(row);
+
+    // Collapse the row if it's expanded (avoid UI confusion during editing)
+    if (this.expandedRowKeys[rowKey]) {
+      delete this.expandedRowKeys[rowKey];
+    }
 
     // Clone the row for cancel restoration
     this.clonedRows[rowKey] = { ...row };
@@ -981,6 +1046,43 @@ export class EditableTableComponent<T = any> implements OnChanges {
   /** Handles row unselect events */
   onRowUnselect(event: any): void {
     this.rowUnselect.emit(event);
+  }
+
+  // ============================================================================
+  // Row Expansion Methods
+  // ============================================================================
+
+  /**
+   * Determines if a row can be expanded.
+   * Uses custom function if provided, otherwise allows all rows.
+   */
+  canExpand(row: T): boolean {
+    return this.canExpandFn ? this.canExpandFn(row) : true;
+  }
+
+  /**
+   * Calculates colspan for expanded row content.
+   * Accounts for expansion toggle column and edit buttons column.
+   */
+  getExpandedColspan(): number {
+    let count = this.fields.filter(f => f.visible).length;
+    if (this.expandable) {
+      count++;
+    }
+    if (this.showEditColumn && !this.batchMode) {
+      count++;
+    }
+    return count;
+  }
+
+  /** Handles row expand events from PrimeNG table. */
+  onRowExpand(event: any): void {
+    this.rowExpand.emit(event);
+  }
+
+  /** Handles row collapse events from PrimeNG table. */
+  onRowCollapse(event: any): void {
+    this.rowCollapse.emit(event);
   }
 
   // ============================================================================

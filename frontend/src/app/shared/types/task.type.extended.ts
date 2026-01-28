@@ -76,6 +76,11 @@ export enum TaskTypeExtended {
   /** Broadcasts settings changes (maxLimit, acceptRequest, serverState, dailyRequestLimit) to all GTNet peers. */
   GTNET_SETTINGS_BROADCAST = 24,
 
+  GTNET_FUTURE_MESSAGE_DELIVERY = 25,
+
+  GTNET_SECURITY_IMPORT_POSITIONS = 26,
+
+
   // Update tasks
   UPD_V_0_11_0 = 51,
 

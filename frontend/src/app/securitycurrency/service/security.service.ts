@@ -18,6 +18,7 @@ import {
   IHistoryquoteQualityWithSecurityProp
 } from '../model/historyquote.quality.group';
 import {SecurityCurrencypairDerivedLinks} from '../model/security.currencypair.derived.links';
+import {SecurityDataProviderUrls} from '../model/security.data.provider.urls';
 import {SecurityCurrencyService} from './security.currency.service';
 import {InstrumentStatisticsResult} from '../../entities/view/instrument.statistics.result';
 import moment from 'moment';
@@ -141,6 +142,15 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
   getDerivedInstrumentsLinksForSecurity(idSecuritycurrency: number): Observable<SecurityCurrencypairDerivedLinks> {
     return <Observable<SecurityCurrencypairDerivedLinks>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/`
       + `${idSecuritycurrency}/derivedlinks`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /**
+   * Gets the data provider URLs for a security. Returns URLs for intraday, historical, dividend, and split data.
+   */
+  getDataProviderUrls(idSecuritycurrency: number): Observable<SecurityDataProviderUrls> {
+    return <Observable<SecurityDataProviderUrls>>this.httpClient.get(
+      `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idSecuritycurrency}/dataproviderurls`,
+      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   private getHttpParams(idTransaction: number): HttpParams {

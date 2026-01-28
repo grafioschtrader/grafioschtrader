@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
@@ -57,7 +58,9 @@ import grafioschtrader.reports.InstrumentStatisticsSummary;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
+import grafioschtrader.reportviews.securitycurrency.ISecurityDataProviderUrls;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
+import grafioschtrader.reportviews.securitycurrency.SecurityDataProviderUrls;
 import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotes;
 import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotesResult;
 import grafioschtrader.rest.RequestGTMappings;
@@ -190,7 +193,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   }
 
   @Override
-  @Transactional
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   @Modifying
   public Security catchUpSecurityCurrencypairHisotry(Security security, final Date fromDate, final Date toDate) {
     security = securityJpaRepository.findByIdSecuritycurrency(security.getIdSecuritycurrency());
@@ -253,24 +256,45 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
   @Override
   public void setDividendDownloadLink(SecuritycurrencyPosition<Security> securitycurrencyPosition) {
-    if (securitycurrencyPosition.securitycurrency.getIdConnectorDividend() != null) {
+    setDividendDownloadLink(securitycurrencyPosition.securitycurrency, securitycurrencyPosition);
+  }
+
+  @Override
+  public void setDividendDownloadLink(Security security, ISecurityDataProviderUrls urlHolder) {
+    if (security.getIdConnectorDividend() != null) {
       IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
-          securitycurrencyPosition.securitycurrency.getIdConnectorDividend(), IFeedConnector.FeedSupport.FS_DIVIDEND);
-      securitycurrencyPosition.dividendUrl = ConnectorHelper.canAccessConnectorApiKey(feedConnector)
-          ? feedConnector.getDividendHistoricalDownloadLink(securitycurrencyPosition.securitycurrency)
-          : getDownlinkDivSplitWithApiKey(securitycurrencyPosition.securitycurrency, true);
+          security.getIdConnectorDividend(), IFeedConnector.FeedSupport.FS_DIVIDEND);
+      urlHolder.setDividendUrl(ConnectorHelper.canAccessConnectorApiKey(feedConnector)
+          ? feedConnector.getDividendHistoricalDownloadLink(security)
+          : getDownlinkDivSplitWithApiKey(security, true));
     }
   }
 
   @Override
   public void setSplitDownloadLink(SecuritycurrencyPosition<Security> securitycurrencyPosition) {
-    if (securitycurrencyPosition.securitycurrency.getIdConnectorSplit() != null) {
+    setSplitDownloadLink(securitycurrencyPosition.securitycurrency, securitycurrencyPosition);
+  }
+
+  @Override
+  public void setSplitDownloadLink(Security security, ISecurityDataProviderUrls urlHolder) {
+    if (security.getIdConnectorSplit() != null) {
       IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
-          securitycurrencyPosition.securitycurrency.getIdConnectorSplit(), IFeedConnector.FeedSupport.FS_SPLIT);
-      securitycurrencyPosition.splitUrl = ConnectorHelper.canAccessConnectorApiKey(feedConnector)
-          ? feedConnector.getSplitHistoricalDownloadLink(securitycurrencyPosition.securitycurrency)
-          : getDownlinkDivSplitWithApiKey(securitycurrencyPosition.securitycurrency, false);
+          security.getIdConnectorSplit(), IFeedConnector.FeedSupport.FS_SPLIT);
+      urlHolder.setSplitUrl(ConnectorHelper.canAccessConnectorApiKey(feedConnector)
+          ? feedConnector.getSplitHistoricalDownloadLink(security)
+          : getDownlinkDivSplitWithApiKey(security, false));
     }
+  }
+
+  @Override
+  public SecurityDataProviderUrls getDataProviderUrls(Integer idSecuritycurrency) {
+    Security security = securityJpaRepository.getReferenceById(idSecuritycurrency);
+    SecurityDataProviderUrls urls = new SecurityDataProviderUrls();
+    setSecuritycurrencyHistoricalDownloadLink(security, urls);
+    setSecuritycurrencyIntradayDownloadLink(security, urls);
+    setDividendDownloadLink(security, urls);
+    setSplitDownloadLink(security, urls);
+    return urls;
   }
 
   /**

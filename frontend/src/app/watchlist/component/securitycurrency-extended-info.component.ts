@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
@@ -33,7 +33,7 @@ import {AppHelper} from '../../lib/helper/app.helper';
     ReplacePipe
   ]
 })
-export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseInfoFields implements OnInit {
+export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseInfoFields implements OnInit, OnChanges {
   /** URL for intraday price data feed */
   @Input() intradayUrl: string;
   /** URL for historical price data feed */
@@ -61,6 +61,9 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
     super(watchlistService, securityService, translateService, gps);
   }
 
+  /** Flag to track if fields have been initialized */
+  private fieldsInitialized = false;
+
   /**
    * Initializes the component by setting up field definitions, adding quotation data fields,
    * translating headers and columns, and creating the content model with extended information.
@@ -72,6 +75,25 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
     this.content = new ContentExtendedInfo(this.intradayUrl, this.historicalUrl, this.dividendUrl, this.splitUrl,
       this.securitycurrency);
     this.createTranslatedValueStore([this.content]);
+    this.fieldsInitialized = true;
+  }
+
+  /**
+   * Handles changes to input properties. Updates the content model when URL inputs change
+   * after initial setup, ensuring the display reflects the latest URL values.
+   */
+  ngOnChanges(changes: SimpleChanges): void {
+    if (this.fieldsInitialized && this.content) {
+      const urlChanged = changes['intradayUrl'] || changes['historicalUrl']
+        || changes['dividendUrl'] || changes['splitUrl'];
+      if (urlChanged) {
+        // Update the content object with new URL values
+        (this.content as ContentExtendedInfo).intradayUrl = this.intradayUrl;
+        (this.content as ContentExtendedInfo).historicalUrl = this.historicalUrl;
+        (this.content as ContentExtendedInfo).dividendUrl = this.dividendUrl;
+        (this.content as ContentExtendedInfo).splitUrl = this.splitUrl;
+      }
+    }
   }
 
   /**

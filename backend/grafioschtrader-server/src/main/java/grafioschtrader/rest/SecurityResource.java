@@ -55,6 +55,7 @@ import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityIds;
 import grafioschtrader.reportviews.historyquotequality.IHistoryquoteQualityWithSecurityProp;
 import grafioschtrader.reportviews.securityaccount.SecurityOpenPositionPerSecurityaccount;
+import grafioschtrader.reportviews.securitycurrency.SecurityDataProviderUrls;
 import grafioschtrader.reportviews.transaction.SecurityTransactionSummary;
 import grafioschtrader.repository.GTNetSupplierDetailJpaRepository;
 import grafioschtrader.repository.SecurityDerivedLinkJpaRepository;
@@ -151,6 +152,15 @@ public class SecurityResource extends UpdateCreateResource<Security> {
   @GetMapping(value = "/feedConnectors", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<IFeedConnector>> getFeedConnectors() {
     return new ResponseEntity<>(securityJpaRepository.getFeedConnectors(false), HttpStatus.OK);
+  }
+
+  @Operation(summary = "Returns data provider URLs for a security", description = "Returns URLs for intraday, historical, dividend, and split data providers", tags = {
+      Security.TABNAME })
+  @GetMapping(value = "/{idSecuritycurrency}/dataproviderurls", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<SecurityDataProviderUrls> getDataProviderUrls(
+      @Parameter(description = "The ID of security", required = true) @PathVariable final Integer idSecuritycurrency) {
+    SecurityDataProviderUrls urls = securityJpaRepository.getDataProviderUrls(idSecuritycurrency);
+    return new ResponseEntity<>(urls, HttpStatus.OK);
   }
 
   @Override

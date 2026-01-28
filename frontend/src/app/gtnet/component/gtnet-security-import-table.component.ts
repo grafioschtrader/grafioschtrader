@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
+import {ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TranslateService} from '@ngx-translate/core';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
@@ -10,6 +10,8 @@ import {GlobalparameterService} from '../../lib/services/globalparameter.service
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
+import {TranslateValue} from '../../lib/datashowbase/column.config';
+import {AppSettings} from '../../shared/app.settings';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
@@ -20,6 +22,15 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
 import {GTNetSecurityImpHead} from '../model/gtnet-security-imp-head';
 import {GTNetSecurityImpPos} from '../model/gtnet-security-imp-pos';
 import {GTNetSecurityImpPosService} from '../service/gtnet-security-imp-pos.service';
+import {SecurityService} from '../../securitycurrency/service/security.service';
+import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
+import {SecurityCurrencyHelper} from '../../securitycurrency/service/security.currency.helper';
+import {SecurityDataProviderUrls} from '../../securitycurrency/model/security.data.provider.urls';
+import {SecuritycurrencyExtendedInfoComponent} from '../../watchlist/component/securitycurrency-extended-info.component';
+import {SecurityEditComponent} from '../../shared/securitycurrency/security-edit.component';
+import {Security} from '../../entities/security';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
+import {ProcessedAction} from '../../lib/types/processed.action';
 
 /**
  * Table component for displaying and editing GTNet security import positions.
@@ -40,6 +51,10 @@ import {GTNetSecurityImpPosService} from '../service/gtnet-security-imp-pos.serv
         [createNewEntityFn]="createNewEntity.bind(this)"
         [contextMenuEnabled]="false"
         [containerClass]="''"
+        [expandable]="true"
+        [expandedRowTemplate]="expandedContent"
+        [canExpandFn]="canExpandPosition"
+        (rowExpand)="onRowExpand($event)"
         (rowEditSave)="onRowEditSave($event)"
         (rowSelect)="onRowSelect($event)"
         (rowUnselect)="onRowUnselect($event)">
@@ -48,9 +63,29 @@ import {GTNetSecurityImpPosService} from '../service/gtnet-security-imp-pos.serv
         <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
       }
     </div>
+
+    <!-- Expanded row content template -->
+    <ng-template #expandedContent let-position>
+      <securitycurrency-extended-info
+        [securitycurrency]="position.security"
+        [feedConnectorsKV]="feedConnectorsKV"
+        [intradayUrl]="getUrlForPosition(position, 'intradayUrl')"
+        [historicalUrl]="getUrlForPosition(position, 'historicalUrl')"
+        [dividendUrl]="getUrlForPosition(position, 'dividendUrl')"
+        [splitUrl]="getUrlForPosition(position, 'splitUrl')">
+      </securitycurrency-extended-info>
+    </ng-template>
+
+    <!-- Security Edit Dialog -->
+    @if (visibleEditSecurityDialog) {
+      <security-edit (closeDialog)="handleCloseEditSecurityDialog($event)"
+                     [securityCurrencypairCallParam]="securityCurrencypairCallParam"
+                     [visibleEditSecurityDialog]="visibleEditSecurityDialog">
+      </security-edit>
+    }
   `,
   standalone: true,
-  imports: [CommonModule, EditableTableComponent, ContextMenuModule]
+  imports: [CommonModule, EditableTableComponent, ContextMenuModule, SecuritycurrencyExtendedInfoComponent, SecurityEditComponent]
 })
 export class GTNetSecurityImportTableComponent extends TableEditConfigBase implements OnInit {
 
@@ -63,16 +98,30 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
   selectedPosition: GTNetSecurityImpPos;
   contextMenuItems: MenuItem[] = [];
 
+  /** Controls visibility of the security edit dialog */
+  visibleEditSecurityDialog = false;
+  /** Security parameter for the edit dialog */
+  securityCurrencypairCallParam: Security;
+
   private readonly ENTITY_NAME = 'GTNET_SECURITY_IMP_POS';
 
   private currencyOptions: ValueKeyHtmlSelectOptions[] = [];
   private newRowCounter = 0;
+
+  /** Map of feed connector IDs to human-readable names */
+  feedConnectorsKV: { [id: string]: string } = {};
+
+  /** Cache of data provider URLs keyed by security ID */
+  private dataProviderUrlsCache: { [idSecuritycurrency: number]: SecurityDataProviderUrls } = {};
 
   constructor(
     private gtNetSecurityImpPosService: GTNetSecurityImpPosService,
     private globalparameterGTService: GlobalparameterGTService,
     private messageToastService: MessageToastService,
     private confirmationService: ConfirmationService,
+    private securityService: SecurityService,
+    private currencypairService: CurrencypairService,
+    private cdr: ChangeDetectorRef,
     filterService: FilterService,
     usersettingsService: UserSettingsService,
     translateService: TranslateService,
@@ -93,9 +142,24 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
 
     // Security name column (read-only, shows linked security if any)
     this.addColumn(DataType.String, 'security.name', 'LINKED_SECURITY', true, true, {width: 200});
+
+    // Asset class columns (read-only, shows linked security's asset class)
+    this.addColumn(DataType.String, 'security.assetClass.categoryType', AppSettings.ASSETCLASS.toUpperCase(), true, true,
+      {translateValues: TranslateValue.NORMAL, width: 60});
+    this.addColumn(DataType.String, 'security.assetClass.specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT', true, true,
+      {translateValues: TranslateValue.NORMAL, width: 80});
+    this.addColumn(DataType.String, 'security.assetClass.subCategoryNLS.map.' + gps.getUserLang(),
+      'SUB_ASSETCLASS', true, true, {width: 100});
   }
 
   ngOnInit(): void {
+    // Load feed connectors for SecuritycurrencyExtendedInfoComponent
+    SecurityCurrencyHelper.loadAllConnectors(
+      this.securityService,
+      this.currencypairService,
+      this.feedConnectorsKV
+    );
+
     // Load currency options
     this.globalparameterGTService.getCurrencies().subscribe((currencies: ValueKeyHtmlSelectOptions[]) => {
       this.currencyOptions = currencies;
@@ -103,6 +167,42 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
       currencyCol.cec.valueKeyHtmlOptions = this.currencyOptions;
       this.prepareTableAndTranslate();
     });
+  }
+
+  /**
+   * Determines if a position row can be expanded.
+   * Only positions with a linked Security can show detailed info.
+   */
+  canExpandPosition = (position: GTNetSecurityImpPos): boolean => {
+    return position.security != null;
+  };
+
+  /**
+   * Handles row expand event to fetch data provider URLs.
+   * Stores fetched URLs directly on the position for proper change detection.
+   */
+  onRowExpand(event: { data: GTNetSecurityImpPos }): void {
+    const position = event.data;
+    if (position.security?.idSecuritycurrency && !(position as any).dataProviderUrls) {
+      this.securityService.getDataProviderUrls(position.security.idSecuritycurrency).subscribe(
+        (urls: SecurityDataProviderUrls) => {
+          // Store URLs directly on position for change detection
+          (position as any).dataProviderUrls = urls;
+          // Also cache for potential reuse
+          this.dataProviderUrlsCache[position.security.idSecuritycurrency] = urls;
+          // Trigger change detection to update the template bindings
+          this.cdr.markForCheck();
+        }
+      );
+    }
+  }
+
+  /**
+   * Gets a specific URL from the position's stored URLs.
+   */
+  getUrlForPosition(position: GTNetSecurityImpPos, urlType: keyof SecurityDataProviderUrls): string | null {
+    const urls = (position as any).dataProviderUrls as SecurityDataProviderUrls;
+    return urls ? urls[urlType] : null;
   }
 
   /**
@@ -124,6 +224,8 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
               : `new_${this.newRowCounter++}`;
             return pos;
           });
+          // Create translated value store for asset class enum columns
+          this.createTranslatedValueStore(this.positions);
           this.updateContextMenu();
           this.positionChanged.emit();
         }
@@ -243,10 +345,38 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
         disabled: !this.selectedPosition || !this.selectedPosition.idGtNetSecurityImpPos,
         command: () => this.handleDeletePosition()
       });
+      menuItems.push({separator: true});
+      menuItems.push({
+        label: 'EDIT|' + AppSettings.SECURITY.toUpperCase() + BaseSettings.DIALOG_MENU_SUFFIX,
+        disabled: !this.selectedPosition?.security,
+        command: () => this.handleEditSecurity()
+      });
     }
 
     TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
+  }
+
+  /**
+   * Opens the security edit dialog for the selected position's linked security.
+   */
+  handleEditSecurity(): void {
+    if (this.selectedPosition?.security) {
+      this.securityCurrencypairCallParam = this.selectedPosition.security;
+      this.visibleEditSecurityDialog = true;
+    }
+  }
+
+  /**
+   * Handles security edit dialog close event.
+   * Reloads positions if the security was updated to reflect any changes.
+   */
+  handleCloseEditSecurityDialog(processedActionData: ProcessedActionData): void {
+    this.visibleEditSecurityDialog = false;
+    if (processedActionData.action === ProcessedAction.UPDATED) {
+      // Reload positions to get updated security data
+      this.loadPositions(this.selectedHead);
+    }
   }
 
   /**

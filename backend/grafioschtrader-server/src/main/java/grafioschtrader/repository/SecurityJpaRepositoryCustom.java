@@ -14,7 +14,9 @@ import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
+import grafioschtrader.reportviews.securitycurrency.ISecurityDataProviderUrls;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
+import grafioschtrader.reportviews.securitycurrency.SecurityDataProviderUrls;
 import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotesResult;
 import grafioschtrader.search.SecuritycurrencySearch;
 
@@ -236,6 +238,30 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    * @param securitycurrencyPosition The security position object on which the split download URL should be set.
    */
   void setSplitDownloadLink(SecuritycurrencyPosition<Security> securitycurrencyPosition);
+
+  /**
+   * Sets the dividend download link on the provided URL holder object.
+   *
+   * @param security  The security for which to generate the dividend download link.
+   * @param urlHolder The object implementing ISecurityDataProviderUrls to receive the URL.
+   */
+  void setDividendDownloadLink(Security security, ISecurityDataProviderUrls urlHolder);
+
+  /**
+   * Sets the split download link on the provided URL holder object.
+   *
+   * @param security  The security for which to generate the split download link.
+   * @param urlHolder The object implementing ISecurityDataProviderUrls to receive the URL.
+   */
+  void setSplitDownloadLink(Security security, ISecurityDataProviderUrls urlHolder);
+
+  /**
+   * Retrieves all data provider URLs for a security. This includes intraday, historical, dividend, and split URLs.
+   *
+   * @param idSecuritycurrency The ID of the security.
+   * @return A SecurityDataProviderUrls object containing all available URLs.
+   */
+  SecurityDataProviderUrls getDataProviderUrls(Integer idSecuritycurrency);
 
   /**
    * Retrieves statistical results for a security within a given date range.
