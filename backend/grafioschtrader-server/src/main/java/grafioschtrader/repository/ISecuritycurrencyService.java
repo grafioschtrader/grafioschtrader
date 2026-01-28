@@ -8,6 +8,7 @@ import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Securitycurrency;
+import grafioschtrader.reportviews.securitycurrency.ISecurityDataProviderUrls;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
 
 /**
@@ -33,6 +34,22 @@ public interface ISecuritycurrencyService<S extends Securitycurrency<S>> extends
    * @param securitycurrencyPosition The security or currency position for which to set the historical download link.
    */
   void setSecuritycurrencyHistoricalDownloadLink(SecuritycurrencyPosition<S> securitycurrencyPosition);
+
+  /**
+   * Sets the intraday data download link on the provided URL holder object.
+   *
+   * @param securitycurrency The security or currency pair for which to generate the intraday download link.
+   * @param urlHolder        The object implementing ISecurityDataProviderUrls to receive the URL.
+   */
+  void setSecuritycurrencyIntradayDownloadLink(S securitycurrency, ISecurityDataProviderUrls urlHolder);
+
+  /**
+   * Sets the historical data download link on the provided URL holder object.
+   *
+   * @param securitycurrency The security or currency pair for which to generate the historical download link.
+   * @param urlHolder        The object implementing ISecurityDataProviderUrls to receive the URL.
+   */
+  void setSecuritycurrencyHistoricalDownloadLink(S securitycurrency, ISecurityDataProviderUrls urlHolder);
 
   /**
    * Retrieves a list of all available feed connectors for financial data.

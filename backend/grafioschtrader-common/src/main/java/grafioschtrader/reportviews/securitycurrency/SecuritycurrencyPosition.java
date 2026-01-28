@@ -5,7 +5,7 @@ import java.util.Date;
 import grafioschtrader.entities.Securitycurrency;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-public class SecuritycurrencyPosition<T extends Securitycurrency<T>> {
+public class SecuritycurrencyPosition<T extends Securitycurrency<T>> implements ISecurityDataProviderUrls {
 
   public SecuritycurrencyPosition(T securitycurrency) {
     super();
@@ -49,4 +49,45 @@ public class SecuritycurrencyPosition<T extends Securitycurrency<T>> {
   @Schema(description = "Youngest historical data")
   public Date youngestHistoryDate;
 
+  // ISecurityDataProviderUrls implementation
+
+  @Override
+  public String getIntradayUrl() {
+    return intradayUrl;
+  }
+
+  @Override
+  public void setIntradayUrl(String intradayUrl) {
+    this.intradayUrl = intradayUrl;
+  }
+
+  @Override
+  public String getHistoricalUrl() {
+    return historicalUrl;
+  }
+
+  @Override
+  public void setHistoricalUrl(String historicalUrl) {
+    this.historicalUrl = historicalUrl;
+  }
+
+  @Override
+  public String getDividendUrl() {
+    return dividendUrl;
+  }
+
+  @Override
+  public void setDividendUrl(String dividendUrl) {
+    this.dividendUrl = dividendUrl;
+  }
+
+  @Override
+  public String getSplitUrl() {
+    return splitUrl;
+  }
+
+  @Override
+  public void setSplitUrl(String splitUrl) {
+    this.splitUrl = splitUrl;
+  }
 }

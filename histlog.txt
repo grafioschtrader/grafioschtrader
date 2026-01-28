@@ -1,30 +1,29 @@
 SELECT s.name, hl.* FROM historyquote_update_log hl JOIN stockexchange s ON hl.id_stockexchange = s.id_stockexchange ORDER BY hl.update_timestamp DESC;
 
-
 name	id_hq_update_log	id_stockexchange	update_timestamp   	minutes_since_close	securities_count	securities_updated	update_status	error_message	
-korean stock exchange	140	275	2026-01-27 21:32:21	182	0	0	1	NULL	
-Moscow Exchange (MOEX)	139	244	2026-01-27 21:22:18	753	1	1	1	NULL	
-Tokyo Stock Exchange	135	227	2026-01-27 18:46:30	767	0	0	1	NULL	
-Hong Kong Stock Exchange	136	228	2026-01-27 18:46:30	647	0	0	1	NULL	
-Shanghai Stock Exchange	137	249	2026-01-27 18:46:30	707	0	0	1	NULL	
-Shenzhen Stock Exchange	138	267	2026-01-27 18:46:30	710	0	0	1	NULL	
-Australian Stock Exchange	134	243	2026-01-27 13:01:20	272	3	3	1	NULL	
-New Zealand Stock Exchange	133	242	2026-01-27 11:04:18	440	0	0	1	NULL	
-NYSE Market (Amex)	129	218	2026-01-27 06:39:13	340	4	4	1	NULL	
-NASDAQ Stock Exchange	130	233	2026-01-27 06:39:13	340	9	9	1	NULL	
-Toronto Stock Exchange	131	241	2026-01-27 06:39:13	580	0	0	1	NULL	
-Bolsa institucional de valores	132	271	2026-01-27 06:39:13	580	0	0	1	NULL	
-NYSE Market (Amex)	124	218	2026-01-27 04:05:59	185	76	76	1	NULL	
-NASDAQ Stock Exchange	125	233	2026-01-27 04:05:59	185	84	84	1	NULL	
-BM&FBOVESPA (B3)	126	239	2026-01-27 04:05:59	471	0	0	1	NULL	
-Toronto Stock Exchange	127	241	2026-01-27 04:05:59	425	0	0	1	NULL	
-Bolsa institucional de valores	128	271	2026-01-27 04:05:59	425	0	0	1	NULL	
-London Stock Exchange	117	224	2026-01-27 00:03:56	409	0	0	1	NULL	
-Toronto Stock Exchange	118	241	2026-01-27 00:03:56	183	4	4	1	NULL	
-Stuttgart Stock Exchange	119	245	2026-01-27 00:03:56	184	0	0	1	NULL	
-Euronext Lisbon	120	261	2026-01-27 00:03:56	454	0	0	1	NULL	
-Euronext Dublin	121	265	2026-01-27 00:03:56	454	0	0	1	NULL	
-boerse hamburg - regulierter mar	122	270	2026-01-27 00:03:56	184	0	0	1	NULL	
-Bolsa institucional de valores	123	271	2026-01-27 00:03:56	183	1	1	1	NULL	
-BM&FBOVESPA (B3)	116	239	2026-01-26 23:17:54	182	1	1	1	NULL	
+NYSE Market (Amex)	164	218	2026-01-28 06:46:17	347	76	76	1	NULL	
+Bolsa institucional de valores	167	271	2026-01-28 06:46:17	587	1	1	1	NULL	
+Toronto Stock Exchange	166	241	2026-01-28 06:46:17	587	4	4	1	NULL	
+NASDAQ Stock Exchange	165	233	2026-01-28 06:46:17	347	83	83	1	NULL	
+BM&FBOVESPA (B3)	163	239	2026-01-28 04:01:14	467	1	1	1	NULL	
+Euronext Dublin	161	265	2026-01-28 00:00:09	451	3	3	1	NULL	
+Stuttgart Stock Exchange	159	245	2026-01-28 00:00:09	181	0	0	1	NULL	
+boerse hamburg - regulierter mar	162	270	2026-01-28 00:00:09	181	0	0	1	NULL	
+London Stock Exchange	158	224	2026-01-28 00:00:09	406	7	7	1	NULL	
+Euronext Lisbon	160	261	2026-01-28 00:00:09	451	1	1	1	NULL	
+Brussels Stock Exchange	156	264	2026-01-27 23:12:03	402	0	0	1	NULL	
+Warsaw Stock Exchange	155	247	2026-01-27 23:12:03	443	0	0	1	NULL	
+Frankfurt Stock Exchange	157	268	2026-01-27 23:12:03	403	0	0	1	NULL	
+Paris Euronext 	144	221	2026-01-27 23:12:02	393	1	1	1	NULL	
+Milano Borsa Italiana	146	223	2026-01-27 23:12:02	393	0	0	1	NULL	
+Copenhagen Stock Exchange	151	234	2026-01-27 23:12:02	433	0	0	1	NULL	
+Oslo Stock Exchange	150	232	2026-01-27 23:12:02	403	0	0	1	NULL	
+Bolsa de Madrid	145	222	2026-01-27 23:12:02	398	0	0	1	NULL	
+Zürcher Kantonalbank	153	237	2026-01-27 23:12:02	393	0	0	1	NULL	
+Xetra	143	220	2026-01-27 23:12:02	403	4	4	1	NULL	
+Amsterdam Stock Exchange	154	238	2026-01-27 23:12:02	393	1	1	1	NULL	
+Stockholm OMX	149	231	2026-01-27 23:12:02	403	0	0	1	NULL	
+Vienna Stock Exchange	148	226	2026-01-27 23:12:02	383	0	0	1	NULL	
+SIX Swiss Exchange	142	217	2026-01-27 23:12:02	393	7	7	1	NULL	
+Berlin Stock Exchange	152	236	2026-01-27 23:12:02	253	0	0	1	NULL	
 

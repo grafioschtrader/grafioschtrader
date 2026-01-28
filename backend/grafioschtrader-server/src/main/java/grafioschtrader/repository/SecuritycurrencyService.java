@@ -39,6 +39,7 @@ import grafioschtrader.priceupdate.intraday.IIntradayEntityAccess;
 import grafioschtrader.priceupdate.intraday.IIntradayLoad;
 import grafioschtrader.reportviews.SecuritycurrencyPositionSummary;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
+import grafioschtrader.reportviews.securitycurrency.ISecurityDataProviderUrls;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
 import grafioschtrader.service.GlobalparametersService;
 import jakarta.persistence.EntityManager;
@@ -106,8 +107,13 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
 
   @Override
   public void setSecuritycurrencyHistoricalDownloadLink(final SecuritycurrencyPosition<S> securitycurrencyPosition) {
-    securitycurrencyPosition.historicalUrl = getHistorquoteLoad(securitycurrencyPosition.securitycurrency)
-        .getSecuritycurrencyHistoricalDownloadLinkAsUrlStr(securitycurrencyPosition.securitycurrency);
+    setSecuritycurrencyHistoricalDownloadLink(securitycurrencyPosition.securitycurrency, securitycurrencyPosition);
+  }
+
+  @Override
+  public void setSecuritycurrencyHistoricalDownloadLink(S securitycurrency, ISecurityDataProviderUrls urlHolder) {
+    urlHolder.setHistoricalUrl(getHistorquoteLoad(securitycurrency)
+        .getSecuritycurrencyHistoricalDownloadLinkAsUrlStr(securitycurrency));
   }
 
   protected S updateLastPriceSecurityCurrency(final S securitycurrency, final short maxIntraRetry,
@@ -118,8 +124,12 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
 
   @Override
   public void setSecuritycurrencyIntradayDownloadLink(final SecuritycurrencyPosition<S> securitycurrencyPosition) {
-    securitycurrencyPosition.intradayUrl = intradayThruConnector
-        .getSecuritycurrencyIntraDownloadLinkAsUrlStr(securitycurrencyPosition.securitycurrency);
+    setSecuritycurrencyIntradayDownloadLink(securitycurrencyPosition.securitycurrency, securitycurrencyPosition);
+  }
+
+  @Override
+  public void setSecuritycurrencyIntradayDownloadLink(S securitycurrency, ISecurityDataProviderUrls urlHolder) {
+    urlHolder.setIntradayUrl(intradayThruConnector.getSecuritycurrencyIntraDownloadLinkAsUrlStr(securitycurrency));
   }
 
   ////////////////////////////////////////////////////////////////
