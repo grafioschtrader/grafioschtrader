@@ -13,11 +13,11 @@ import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.ImportDataRequired;
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.common.PropertyOnlyCreation;
 import grafiosch.entities.ProposeTransientTransfer;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.common.ImportDataRequired;
 import grafioschtrader.types.HistoryquoteCreateType;
 import grafiosch.validation.AfterEqual;
 import io.swagger.v3.oas.annotations.media.Schema;

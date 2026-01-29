@@ -1,5 +1,7 @@
 package grafioschtrader.entities;
 
+import grafiosch.common.ImportDataRequired;
+import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.entities.BaseID;
 import grafioschtrader.validation.ValidCurrencyCode;
 import grafioschtrader.validation.ValidISIN;
@@ -47,6 +49,7 @@ public class GTNetSecurityImpPos extends BaseID<Integer> {
   @Schema(description = """
       International Securities Identification Number (ISIN) for the security.
       Either ISIN or ticker symbol (or both) should be provided for lookup.""")
+  @PropertyAlwaysUpdatable
   @ValidISIN
   @Size(max = 12)
   @Column(name = "isin")
@@ -55,11 +58,14 @@ public class GTNetSecurityImpPos extends BaseID<Integer> {
   @Schema(description = """
       Stock ticker symbol for the security. Either ISIN or ticker symbol (or both)
       should be provided for lookup. Maximum 6 characters.""")
+  @PropertyAlwaysUpdatable
   @Size(max = 6)
   @Column(name = "ticker_symbol")
   private String tickerSymbol;
 
   @Schema(description = "ISO 4217 currency code for the security (3 characters, e.g., 'USD', 'EUR').")
+  @PropertyAlwaysUpdatable
+  @ImportDataRequired
   @NotNull
   @ValidCurrencyCode
   @Size(min = 3, max = 3)

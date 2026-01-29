@@ -2,6 +2,9 @@ package grafioschtrader.repository;
 
 import java.util.List;
 
+import org.springframework.web.multipart.MultipartFile;
+
+import grafioschtrader.dto.UploadHistoryquotesSuccess;
 import grafioschtrader.entities.GTNetSecurityImpPos;
 
 /**
@@ -36,4 +39,17 @@ public interface GTNetSecurityImpPosJpaRepositoryCustom {
    * @return number of deleted records
    */
   int deleteWithTenantCheck(Integer id, Integer idTenant);
+
+  /**
+   * Uploads and processes a CSV file containing GTNet security import positions.
+   * Skips duplicates (same ISIN + currency within the same head).
+   *
+   * @param idGtNetSecurityImpHead the header ID to associate positions with
+   * @param uploadFiles array of uploaded CSV files (only first file is processed)
+   * @param idTenant the tenant ID for access verification
+   * @return upload result statistics
+   * @throws Exception if file processing fails
+   */
+  UploadHistoryquotesSuccess uploadCSV(Integer idGtNetSecurityImpHead, MultipartFile[] uploadFiles,
+      Integer idTenant) throws Exception;
 }

@@ -171,7 +171,7 @@
   "UI_SHOW_MY_PROPERTY": "Entity ownership visible",
   "UNTIL_DATE": "To date",
   "UPLOAD": "Upload",
-  "UPLOAD_HISTORYQUOTE_SUCCESS": "Successfully imported: {{success}}<br>Not overwritten: {{notOverridden}}<br>UInvalid values: {{validationErrors}}<br>Duplicates in import file: {{duplicatedInImport}}<br>Outside the date boundaries: {{outOfDateRange}}",
+  "UPLOAD_SUCCESS": "Successfully imported: {{success}}<br>Not overwritten: {{notOverridden}}<br>Invalid values: {{validationErrors}}<br>Duplicates in import file: {{duplicatedInImport}}<br>Outside the date boundaries: {{outOfDateRange}}",
   "USER": "User settings",
   "USER_CHANGE_OWNER_ENTITIES": "Change entity owner",
   "USER_CURRENT_OWNER": "Current owner",
