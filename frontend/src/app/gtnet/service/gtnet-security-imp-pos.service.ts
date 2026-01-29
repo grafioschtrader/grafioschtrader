@@ -10,6 +10,7 @@ import {MessageToastService} from '../../lib/message/message.toast.service';
 import {BaseSettings} from '../../lib/base.settings';
 import {AppSettings} from '../../shared/app.settings';
 import {GTNetSecurityImpPos} from '../model/gtnet-security-imp-pos';
+import {UploadHistoryquotesSuccess, UploadServiceFunction} from '../../lib/generaldialog/model/file.upload.param';
 
 /**
  * Service for managing GTNet security import positions.
@@ -17,7 +18,7 @@ import {GTNetSecurityImpPos} from '../model/gtnet-security-imp-pos';
  */
 @Injectable()
 export class GTNetSecurityImpPosService extends AuthServiceWithLogout<GTNetSecurityImpPos>
-  implements DeleteService {
+  implements DeleteService, UploadServiceFunction {
 
   constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
     super(loginService, httpClient, messageToastService);
@@ -89,5 +90,23 @@ export class GTNetSecurityImpPosService extends AuthServiceWithLogout<GTNetSecur
       `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_SECURITY_IMP_POS_KEY}/${id}`,
       this.getHeaders()
     ).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /**
+   * Uploads a CSV file containing GTNet security import positions.
+   * Implements UploadServiceFunction interface.
+   *
+   * @param idGtNetSecurityImpHead the header ID to associate positions with
+   * @param formData FormData containing the CSV file
+   * @returns Observable of upload result statistics
+   */
+  uploadFiles(idGtNetSecurityImpHead: number, formData: FormData): Observable<UploadHistoryquotesSuccess> {
+    return this.httpClient
+      .post<UploadHistoryquotesSuccess>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_SECURITY_IMP_POS_KEY}/head/${idGtNetSecurityImpHead}/upload`,
+        formData,
+        this.getMultipartHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 }

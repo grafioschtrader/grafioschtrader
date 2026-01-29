@@ -138,6 +138,25 @@ export abstract class ShowRecordConfigBase {
    *
    * @param dataType - The data type for formatting and display
    * @param field - The property name used to access data from objects
+   * @param visible - Whether the column is initially visible (default: true)
+   * @param changeVisibility - Whether users can toggle column visibility (default: true)
+   * @param optionalParams - Additional configuration options
+   * @returns A fully configured ColumnConfig object
+   * @static
+   */
+  public static createColumnConfigFeqH(dataType: DataType, field: string,
+    visible: boolean = true, changeVisibility: boolean = true, optionalParams?: OptionalParams): ColumnConfig {
+     return this.createColumnConfig(dataType, field, AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(field),
+       visible, changeVisibility, optionalParams );
+  }
+
+
+  /**
+   * Creates a column configuration object with the specified parameters.
+   * Static factory method for creating column configurations without adding them to a fields array.
+   *
+   * @param dataType - The data type for formatting and display
+   * @param field - The property name used to access data from objects
    * @param headerKey - The translation key for the column header
    * @param visible - Whether the column is initially visible (default: true)
    * @param changeVisibility - Whether users can toggle column visibility (default: true)

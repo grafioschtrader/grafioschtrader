@@ -83,9 +83,7 @@ import {Helper} from '../../lib/helper/helper';
         </editable-table>
 
         <div style="margin-top: 1rem; text-align: right;">
-          <button pButton type="button" [label]="'SAVE' | translate"
-                  icon="pi pi-check" (click)="submitAll()">
-          </button>
+          <p-button [label]="'SAVE' | translate" icon="pi pi-check" (click)="submitAll()" />
         </div>
       }
     </p-dialog>
@@ -180,8 +178,8 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
     this.entityFields.push(entityKindCol);
 
     // acceptRequest column - Select dropdown with per-row filtering
-    const acceptRequestCol = ShowRecordConfigBase.createColumnConfig(
-      DataType.String, 'acceptRequest', 'ACCEPT_REQUEST', true, false,
+    const acceptRequestCol = ShowRecordConfigBase.createColumnConfigFeqH(
+      DataType.String, 'acceptRequest',  true, false,
       {translateValues: TranslateValue.NORMAL, width: 150});
     acceptRequestCol.cec = {
       inputType: EditInputType.Select,
@@ -190,8 +188,8 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
     this.entityFields.push(acceptRequestCol);
 
     // serverState column - Select dropdown
-    const serverStateCol = ShowRecordConfigBase.createColumnConfig(
-      DataType.String, 'serverState', 'SERVER_STATE', true, false,
+    const serverStateCol = ShowRecordConfigBase.createColumnConfigFeqH(
+      DataType.String, 'serverState', true, false,
       {translateValues: TranslateValue.NORMAL, width: 150});
     serverStateCol.cec = {
       inputType: EditInputType.Select,
@@ -201,7 +199,7 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
 
     // maxLimit column - Number input
     const maxLimitCol = ShowRecordConfigBase.createColumnConfig(
-      DataType.NumericInteger, 'maxLimit', 'MAX_LIMIT', true, false,
+      DataType.NumericInteger, 'maxLimit', 'GT_NET_MAX_LIMIT', true, false,
       {width: 100});
     maxLimitCol.cec = {
       inputType: EditInputType.Number,

@@ -13,7 +13,6 @@ import {CommonModule} from '@angular/common';
 import {DynamicFormLayoutComponent} from './dynamic-form-layout.component';
 import {ErrorMessageComponent} from './error-message.compoent';
 import {ButtonModule} from 'primeng/button';
-import {Ripple} from 'primeng/ripple';
 import {DynamicFieldDirective} from '../../components/dynamic-field/dynamic-field.directive';
 
 /**
@@ -70,8 +69,7 @@ import {DynamicFieldDirective} from '../../components/dynamic-field/dynamic-fiel
         <!-- Buttons -->
         <div [class.ui-widget-content]="!formConfig.nonModal">
           @if (formConfig.helpLinkFN) {
-            <button pButton pRipple type="button" icon="pi pi-question"
-                    (click)="helpLink($event)" class="p-button-rounded"></button>
+            <p-button icon="pi pi-question" [rounded]="true" (click)="helpLink($event)" />
           }
           <div class="float-end">
             @for (field of buttons; track field) {
@@ -94,7 +92,6 @@ import {DynamicFieldDirective} from '../../components/dynamic-field/dynamic-fiel
     DynamicFormLayoutComponent,
     ErrorMessageComponent,
     ButtonModule,
-    Ripple,
     DynamicFieldDirective
   ],
   standalone: true

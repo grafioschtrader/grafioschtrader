@@ -15,9 +15,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import grafiosch.entities.User;
+import grafioschtrader.dto.UploadHistoryquotesSuccess;
 import grafioschtrader.entities.GTNetSecurityImpPos;
 import grafioschtrader.repository.GTNetSecurityImpPosJpaRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -76,5 +79,21 @@ public class GTNetSecurityImpPosResource {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     gtNetSecurityImpPosJpaRepository.deleteWithTenantCheck(id, user.getIdTenant());
     return ResponseEntity.noContent().build();
+  }
+
+  @Operation(summary = "Upload CSV file with GTNet security import positions",
+      description = """
+          Imports positions from a CSV file. Expected columns: isin, tickerSymbol, currency.
+          Uses semicolon as separator. First row must be column headers.
+          Duplicates (same ISIN + currency in same head) are skipped.""",
+      tags = { RequestGTMappings.GTNETSECURITYIMPPOS })
+  @PostMapping(value = "/head/{idGtNetSecurityImpHead}/upload", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<UploadHistoryquotesSuccess> uploadCSV(
+      @PathVariable final Integer idGtNetSecurityImpHead,
+      @RequestParam("file") MultipartFile[] uploadFiles) throws Exception {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    return new ResponseEntity<>(
+        gtNetSecurityImpPosJpaRepository.uploadCSV(idGtNetSecurityImpHead, uploadFiles, user.getIdTenant()),
+        HttpStatus.OK);
   }
 }

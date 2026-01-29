@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 
 import {ProcessedActionData} from '../../types/processed.action.data';
 import {ProcessedAction} from '../../types/processed.action';
@@ -72,6 +72,7 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
   constructor(public translateService: TranslateService,
               private messageToastService: MessageToastService,
               private userSettingsService: UserSettingsService,
+              private cdr: ChangeDetectorRef,
               gps: GlobalparameterService) {
     super(null, gps);
   }
@@ -145,7 +146,7 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
           const uhs: UploadHistoryquotesSuccess = response;
           this.messageToastService.showMessageI18nEnableHtml(uhs.validationErrors + uhs.notOverridden > 0 ?
             uhs.duplicatedInImport > 0 ? InfoLevelType.WARNING : InfoLevelType.ERROR
-            : InfoLevelType.SUCCESS, 'UPLOAD_HISTORYQUOTE_SUCCESS', uhs);
+            : InfoLevelType.SUCCESS, 'UPLOAD_SUCCESS', uhs);
         }
         this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED));
       }, error: () => this.configObject.submit.disabled = false});
@@ -195,12 +196,12 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
         SelectOptionsHelper.createHtmlOptionsFromStringArray(this.fileUploadParam.supportedCSVFormats.decimalSeparators);
       this.configObject.dateFormat.valueKeyHtmlOptions =
         SelectOptionsHelper.createHtmlOptionsFromStringArray(this.fileUploadParam.supportedCSVFormats.dateFormats);
-
       const supportedCSVFormat: SupportedCSVFormat = this.userSettingsService.retrieveObject(this.fileUploadParam.persistenceCSVKey);
       this.valueChangedOnDecimalSeparator();
       if (supportedCSVFormat) {
         this.form.transferBusinessObjectToForm(supportedCSVFormat);
       }
+      this.cdr.detectChanges();
     }
   }
 

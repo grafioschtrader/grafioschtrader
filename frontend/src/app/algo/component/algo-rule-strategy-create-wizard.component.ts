@@ -23,15 +23,15 @@ import {StepComponent} from '../../lib/wizard/component/step.component';
       <pe-steps [(activeIndex)]="activeIndex" styleClass="steps-custom">
         <pe-step label="First Step">
           Step 1
-          <button pButton label="Go" (click)="next()"></button>
+          <p-button label="Go" (click)="next()" />
         </pe-step>
         <pe-step label="2nd Step">
           Step 2
-          <button pButton label="Go" (click)="next()"></button>
+          <p-button label="Go" (click)="next()" />
         </pe-step>
         <pe-step label="3 Step">
           Step 3
-          <button pButton label="Ok" (click)="ok()"></button>
+          <p-button label="Ok" (click)="ok()" />
         </pe-step>
       </pe-steps>
 

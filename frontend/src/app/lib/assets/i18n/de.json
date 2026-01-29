@@ -171,7 +171,7 @@
   "UI_SHOW_MY_PROPERTY": "Entitätsbesitzung sichtbar",
   "UNTIL_DATE": "Bis Datum",
   "UPLOAD": "Hochladen",
-  "UPLOAD_HISTORYQUOTE_SUCCESS": "Erfolgreich importiert: {{success}}<br>Nicht überschrieben: {{notOverridden}}<br>Ungültige Werte: {{validationErrors}}<br>Doppelte in Importdatei: {{duplicatedInImport}}<br>Ausserhalb der Datumsgrenzen: {{outOfDateRange}}",
+  "UPLOAD_SUCCESS": "Erfolgreich importiert: {{success}}<br>Nicht überschrieben: {{notOverridden}}<br>Ungültige Werte: {{validationErrors}}<br>Doppelte in Importdatei: {{duplicatedInImport}}<br>Ausserhalb der Datumsgrenzen: {{outOfDateRange}}",
   "USER": "Benutzer Einstellungen",
   "USER_CHANGE_OWNER_ENTITIES": "Besitzer von Entitäten ändern",
   "USER_CURRENT_OWNER": "Aktueller Besitzer",

@@ -31,6 +31,9 @@ import {SecurityEditComponent} from '../../shared/securitycurrency/security-edit
 import {Security} from '../../entities/security';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
+import {FileUploadParam} from '../../lib/generaldialog/model/file.upload.param';
+import {UploadFileDialogComponent} from '../../lib/generaldialog/component/upload-file-dialog.component';
+import {AppHelpIds} from '../../shared/help/help.ids';
 
 /**
  * Table component for displaying and editing GTNet security import positions.
@@ -83,9 +86,17 @@ import {ProcessedAction} from '../../lib/types/processed.action';
                      [visibleEditSecurityDialog]="visibleEditSecurityDialog">
       </security-edit>
     }
+
+    <!-- CSV Upload Dialog -->
+    @if (visibleUploadDialog) {
+      <upload-file-dialog [visibleDialog]="visibleUploadDialog"
+                          [fileUploadParam]="fileUploadParam"
+                          (closeDialog)="handleCloseUploadDialog($event)">
+      </upload-file-dialog>
+    }
   `,
   standalone: true,
-  imports: [CommonModule, EditableTableComponent, ContextMenuModule, SecuritycurrencyExtendedInfoComponent, SecurityEditComponent]
+  imports: [CommonModule, EditableTableComponent, ContextMenuModule, SecuritycurrencyExtendedInfoComponent, SecurityEditComponent, UploadFileDialogComponent]
 })
 export class GTNetSecurityImportTableComponent extends TableEditConfigBase implements OnInit {
 
@@ -102,6 +113,11 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
   visibleEditSecurityDialog = false;
   /** Security parameter for the edit dialog */
   securityCurrencypairCallParam: Security;
+
+  /** Controls visibility of the CSV upload dialog */
+  visibleUploadDialog = false;
+  /** Configuration for the file upload dialog */
+  fileUploadParam: FileUploadParam;
 
   private readonly ENTITY_NAME = 'GTNET_SECURITY_IMP_POS';
 
@@ -341,6 +357,11 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
         command: () => this.handleAddNewRow()
       });
       menuItems.push({
+        label: 'UPLOAD_CSV|' + this.ENTITY_NAME + BaseSettings.DIALOG_MENU_SUFFIX,
+        icon: 'pi pi-upload',
+        command: () => this.handleUploadCSV()
+      });
+      menuItems.push({
         label: 'DELETE_RECORD|' + this.ENTITY_NAME,
         disabled: !this.selectedPosition || !this.selectedPosition.idGtNetSecurityImpPos,
         command: () => this.handleDeletePosition()
@@ -375,6 +396,33 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
     this.visibleEditSecurityDialog = false;
     if (processedActionData.action === ProcessedAction.UPDATED) {
       // Reload positions to get updated security data
+      this.loadPositions(this.selectedHead);
+    }
+  }
+
+  /**
+   * Opens the CSV upload dialog for importing positions from file.
+   */
+  handleUploadCSV(): void {
+    this.fileUploadParam = new FileUploadParam(
+      AppHelpIds.HELP_GT_NET,
+      null,
+      '.csv',
+      'UPLOAD_CSV_GTNET_SECURITY_IMP_POS',
+      false,
+      this.gtNetSecurityImpPosService,
+      this.selectedHead.idGtNetSecurityImpHead
+    );
+    this.visibleUploadDialog = true;
+  }
+
+  /**
+   * Handles upload dialog close event.
+   * Reloads positions if upload was successful.
+   */
+  handleCloseUploadDialog(processedActionData: ProcessedActionData): void {
+    this.visibleUploadDialog = false;
+    if (processedActionData.action === ProcessedAction.UPDATED) {
       this.loadPositions(this.selectedHead);
     }
   }
