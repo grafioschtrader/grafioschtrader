@@ -94,7 +94,8 @@
       "Bash(del \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend\\\\grafioschtrader-server\\\\src\\\\main\\\\java\\\\grafioschtrader\\\\gtnet\\\\handler\\\\impl\\\\UpdateServerlistRequestHandler.java\")",
       "Bash(del \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend\\\\grafioschtrader-server\\\\src\\\\main\\\\java\\\\grafioschtrader\\\\gtnet\\\\handler\\\\impl\\\\ServerlistResponseHandler.java\")",
       "Bash(del \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend\\\\grafioschtrader-server\\\\src\\\\main\\\\java\\\\grafioschtrader\\\\gtnet\\\\handler\\\\impl\\\\FirstHandshakeRequestHandler.java\")",
-      "Bash(mysql:*)"
+      "Bash(mysql:*)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []

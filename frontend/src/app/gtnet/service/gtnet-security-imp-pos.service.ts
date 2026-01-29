@@ -109,4 +109,18 @@ export class GTNetSecurityImpPosService extends AuthServiceWithLogout<GTNetSecur
       )
       .pipe(catchError(this.handleError.bind(this)));
   }
+
+  /**
+   * Deletes the linked security from a position.
+   * The position remains and can be queried again via GTNet.
+   *
+   * @param idGtNetSecurityImpPos the position ID
+   * @returns Observable of the updated position with security set to null
+   */
+  deleteLinkedSecurity(idGtNetSecurityImpPos: number): Observable<GTNetSecurityImpPos> {
+    return this.httpClient.delete<GTNetSecurityImpPos>(
+      `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_SECURITY_IMP_POS_KEY}/${idGtNetSecurityImpPos}/security`,
+      this.getHeaders()
+    ).pipe(catchError(this.handleError.bind(this)));
+  }
 }

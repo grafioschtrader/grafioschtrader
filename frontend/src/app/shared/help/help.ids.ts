@@ -56,6 +56,7 @@ export const AppHelpIds: Record<string, string> = {
   HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_GROUP: 'basedata/imptranstemplate',
   HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_TEMPLATE: 'basedata/imptranstemplate/createimptranstemplate',
   HELP_BASEDATA_UDF_METADATA_SECURITY: 'basedata/udfmetadata/instruments',
+  HELP_BASEDATA_GT_NET_IMPORT_SECURITY: 'basedata/gtnetsecurityimport',
 
   // Admin data (application-specific extensions)
   HELP_TRADING_CALENDAR: 'admindata/tradingcalendar',
@@ -65,5 +66,6 @@ export const AppHelpIds: Record<string, string> = {
   HELP_GT_NET_AUTOANSWER: HelpIds.HELP_MESSAGE_SYSTEM +  '/gtnet/autoanswer',
   HELP_GT_NET_EXCHANGE: HelpIds.HELP_MESSAGE_SYSTEM +  '/gtnet/exchange',
   HELP_GT_NET_EXCHANGE_LOG: HelpIds.HELP_MESSAGE_SYSTEM +  '/gtnet/exchangelog'
+
 
 };

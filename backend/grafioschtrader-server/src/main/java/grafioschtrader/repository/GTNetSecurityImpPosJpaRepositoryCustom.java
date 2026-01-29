@@ -52,4 +52,22 @@ public interface GTNetSecurityImpPosJpaRepositoryCustom {
    */
   UploadHistoryquotesSuccess uploadCSV(Integer idGtNetSecurityImpHead, MultipartFile[] uploadFiles,
       Integer idTenant) throws Exception;
+
+  /**
+   * Deletes the linked security from a position and removes it from the system.
+   * The position itself remains and can be queried again via GTNet.
+   *
+   * <p>This operation:
+   * <ol>
+   *   <li>Unlinks the security from the position (sets security reference to null)</li>
+   *   <li>Deletes all history quotes for the security</li>
+   *   <li>Deletes the security entity from the database</li>
+   * </ol>
+   *
+   * @param idGtNetSecurityImpPos the position ID
+   * @param idTenant the tenant ID for access verification
+   * @return the updated position with security set to null
+   * @throws SecurityException if tenant doesn't have access or position has no linked security
+   */
+  GTNetSecurityImpPos deleteLinkedSecurity(Integer idGtNetSecurityImpPos, Integer idTenant);
 }
