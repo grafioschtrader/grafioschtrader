@@ -96,4 +96,18 @@ public class GTNetSecurityImpPosResource {
         gtNetSecurityImpPosJpaRepository.uploadCSV(idGtNetSecurityImpHead, uploadFiles, user.getIdTenant()),
         HttpStatus.OK);
   }
+
+  @Operation(summary = "Delete the linked security from a position",
+      description = """
+          Removes the link between a position and its security, then deletes the security
+          and its history quotes from the system. The position remains and can be queried
+          again via GTNet. Use this when the imported security does not match the desired result.""",
+      tags = { RequestGTMappings.GTNETSECURITYIMPPOS })
+  @DeleteMapping(value = "/{id}/security", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<GTNetSecurityImpPos> deleteLinkedSecurity(@PathVariable final Integer id) {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    return new ResponseEntity<>(
+        gtNetSecurityImpPosJpaRepository.deleteLinkedSecurity(id, user.getIdTenant()),
+        HttpStatus.OK);
+  }
 }

@@ -44,6 +44,9 @@ public class GTNetSecurityImpPosJpaRepositoryImpl implements GTNetSecurityImpPos
   private SecurityJpaRepository securityJpaRepository;
 
   @Autowired
+  private HistoryquoteJpaRepository historyquoteJpaRepository;
+
+  @Autowired
   private Validator validator;
 
   @Override
@@ -240,5 +243,42 @@ public class GTNetSecurityImpPosJpaRepositoryImpl implements GTNetSecurityImpPos
     String isinKey = isin != null ? isin.toUpperCase().trim() : "";
     String currencyKey = currency != null ? currency.toUpperCase().trim() : "";
     return isinKey + "|" + currencyKey;
+  }
+
+  @Override
+  @Transactional
+  public GTNetSecurityImpPos deleteLinkedSecurity(Integer idGtNetSecurityImpPos, Integer idTenant) {
+    Optional<GTNetSecurityImpPos> posOpt = gtNetSecurityImpPosJpaRepository.findById(idGtNetSecurityImpPos);
+    if (posOpt.isEmpty()) {
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
+    }
+
+    GTNetSecurityImpPos position = posOpt.get();
+
+    // Verify tenant has access through the header
+    GTNetSecurityImpHead header = gtNetSecurityImpHeadJpaRepository
+        .findByIdGtNetSecurityImpHeadAndIdTenant(position.getIdGtNetSecurityImpHead(), idTenant);
+    if (header == null) {
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
+    }
+
+    // Verify position has a linked security
+    if (position.getSecurity() == null) {
+      throw new DataViolationException("security", "gt.net.security.not.linked", null);
+    }
+
+    Integer idSecuritycurrency = position.getSecurity().getIdSecuritycurrency();
+
+    // Unlink security from position
+    position.setSecurity(null);
+    gtNetSecurityImpPosJpaRepository.save(position);
+
+    // Delete history quotes for the security
+    historyquoteJpaRepository.removeAllSecurityHistoryquote(idSecuritycurrency);
+
+    // Delete the security
+    securityJpaRepository.deleteById(idSecuritycurrency);
+
+    return position;
   }
 }

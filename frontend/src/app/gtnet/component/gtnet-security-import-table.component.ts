@@ -34,6 +34,9 @@ import {ProcessedAction} from '../../lib/types/processed.action';
 import {FileUploadParam} from '../../lib/generaldialog/model/file.upload.param';
 import {UploadFileDialogComponent} from '../../lib/generaldialog/component/upload-file-dialog.component';
 import {AppHelpIds} from '../../shared/help/help.ids';
+import {HelpIds} from '../../lib/help/help.ids';
+import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 
 /**
  * Table component for displaying and editing GTNet security import positions.
@@ -98,7 +101,7 @@ import {AppHelpIds} from '../../shared/help/help.ids';
   standalone: true,
   imports: [CommonModule, EditableTableComponent, ContextMenuModule, SecuritycurrencyExtendedInfoComponent, SecurityEditComponent, UploadFileDialogComponent]
 })
-export class GTNetSecurityImportTableComponent extends TableEditConfigBase implements OnInit {
+export class GTNetSecurityImportTableComponent extends TableEditConfigBase implements OnInit, IGlobalMenuAttach {
 
   @ViewChild('editableTable') editableTable: EditableTableComponent<GTNetSecurityImpPos>;
 
@@ -130,7 +133,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
   /** Cache of data provider URLs keyed by security ID */
   private dataProviderUrlsCache: { [idSecuritycurrency: number]: SecurityDataProviderUrls } = {};
 
-  constructor(
+  constructor(private activePanelService: ActivePanelService,
     private gtNetSecurityImpPosService: GTNetSecurityImpPosService,
     private globalparameterGTService: GlobalparameterGTService,
     private messageToastService: MessageToastService,
@@ -229,7 +232,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
   loadPositions(head: GTNetSecurityImpHead): void {
     this.selectedHead = head;
     this.selectedPosition = null;
-    this.updateContextMenu();
+    this.resetMenu();
 
     if (head) {
       this.gtNetSecurityImpPosService.getByHead(head.idGtNetSecurityImpHead).subscribe(
@@ -242,7 +245,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
           });
           // Create translated value store for asset class enum columns
           this.createTranslatedValueStore(this.positions);
-          this.updateContextMenu();
+          this.resetMenu();
           this.positionChanged.emit();
         }
       );
@@ -253,10 +256,24 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
   }
 
   /**
-   * Handles component click to refresh context menu.
+   * Handles component click to refresh context menu and register with main menu bar.
    */
   onComponentClick(event: any): void {
-    this.updateContextMenu();
+    this.resetMenu();
+  }
+
+  public getHelpContextId(): string {
+    return AppHelpIds.HELP_BASEDATA_GT_NET_IMPORT_SECURITY;
+  }
+
+  isActivated(): boolean {
+    return this.activePanelService.isActivated(this);
+  }
+
+  hideContextMenu(): void {
+  };
+
+  callMeDeactivate(): void {
   }
 
   /**
@@ -332,7 +349,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
    * Handles row selection.
    */
   onRowSelect(event: any): void {
-    this.updateContextMenu();
+    this.resetMenu();
     this.positionChanged.emit();
   }
 
@@ -340,7 +357,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
    * Handles row unselection.
    */
   onRowUnselect(event: any): void {
-    this.updateContextMenu();
+    this.resetMenu();
     this.positionChanged.emit();
   }
 
@@ -371,6 +388,11 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
         label: 'EDIT|' + AppSettings.SECURITY.toUpperCase() + BaseSettings.DIALOG_MENU_SUFFIX,
         disabled: !this.selectedPosition?.security,
         command: () => this.handleEditSecurity()
+      });
+      menuItems.push({
+        label: 'DELETE_LINKED_SECURITY',
+        disabled: !this.selectedPosition?.security,
+        command: () => this.handleDeleteLinkedSecurity()
       });
     }
 
@@ -405,7 +427,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
    */
   handleUploadCSV(): void {
     this.fileUploadParam = new FileUploadParam(
-      AppHelpIds.HELP_GT_NET,
+      AppHelpIds.HELP_BASEDATA_GT_NET_IMPORT_SECURITY,
       null,
       '.csv',
       'UPLOAD_CSV_GTNET_SECURITY_IMP_POS',
@@ -455,9 +477,51 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
   }
 
   /**
-   * Updates the context menu based on current selection state.
+   * Handles deletion of the linked security from the selected position.
+   * The position remains and can be queried again via GTNet.
    */
-  private updateContextMenu(): void {
-    this.contextMenuItems = this.prepareEditMenu();
+  private handleDeleteLinkedSecurity(): void {
+    if (!this.selectedPosition?.idGtNetSecurityImpPos || !this.selectedPosition?.security) {
+      return;
+    }
+
+    AppHelper.confirmationDialog(
+      this.translateService,
+      this.confirmationService,
+      'MSG_CONFIRM_DELETE_LINKED_SECURITY',
+      () => {
+        this.gtNetSecurityImpPosService.deleteLinkedSecurity(this.selectedPosition.idGtNetSecurityImpPos).subscribe(
+          (updatedPosition: GTNetSecurityImpPos) => {
+            this.messageToastService.showMessageI18n(
+              InfoLevelType.SUCCESS,
+              'MSG_LINKED_SECURITY_DELETED'
+            );
+            // Update the position in the list
+            const index = this.positions.findIndex(p => p.idGtNetSecurityImpPos === updatedPosition.idGtNetSecurityImpPos);
+            if (index >= 0) {
+              this.positions[index] = updatedPosition;
+              (this.positions[index] as any).rowKey = `existing_${updatedPosition.idGtNetSecurityImpPos}`;
+            }
+            this.selectedPosition = updatedPosition;
+            this.resetMenu();
+            this.positionChanged.emit();
+          }
+        );
+      }
+    );
   }
+
+  /**
+   * Updates the context menu and registers menu items with the main menu bar.
+   * This method must be called from onComponentClick, onRowSelect, and onRowUnselect
+   * to ensure menu items appear both in the context menu and the application's main menu bar.
+   */
+  private resetMenu(): void {
+    this.contextMenuItems = this.prepareEditMenu();
+    this.activePanelService.activatePanel(this, {
+      showMenu: null,
+      editMenu: this.contextMenuItems
+    });
+  }
+
 }
