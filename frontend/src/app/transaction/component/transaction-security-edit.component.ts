@@ -733,16 +733,17 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   private getAndSetQuotationSecurity(security: Security): void {
     if (this.transactionCallParam.transactionType === TransactionType.ACCUMULATE ||
       this.transactionCallParam.transactionType === TransactionType.REDUCE) {
-
-      const transactionTime: number = +this.configObject.transactionTime.formControl.value;
-      if (transactionTime > security.sTimestamp || moment(transactionTime).isSame(new Date(), 'day')) {
-        if (security.sLast) {
-          this.setValueToControl(this.configObject.quotation, security.sLast);
-        }
-      } else {
-        if (this.historyquoteCheck.hasChanged(security.idSecuritycurrency, transactionTime)) {
-          BusinessHelper.setHistoryquoteCloseToFormControl(this.messageToastService, this.historyquoteService, this.gps,
-            transactionTime, security.idSecuritycurrency, true, this.configObject.quotation.formControl);
+      if(!this.transactionCallParam.transaction) {
+        const transactionTime: number = +this.configObject.transactionTime.formControl.value;
+        if (transactionTime > security.sTimestamp || moment(transactionTime).isSame(new Date(), 'day')) {
+          if (security.sLast) {
+            this.setValueToControl(this.configObject.quotation, security.sLast);
+          }
+        } else {
+          if (this.historyquoteCheck.hasChanged(security.idSecuritycurrency, transactionTime)) {
+            BusinessHelper.setHistoryquoteCloseToFormControl(this.messageToastService, this.historyquoteService, this.gps,
+              transactionTime, security.idSecuritycurrency, true, this.configObject.quotation.formControl);
+          }
         }
       }
     }

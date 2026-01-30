@@ -67,9 +67,9 @@ public interface IHistoryquoteLoad<S extends Securitycurrency<S>> {
 
   /**
    * Updates historical quotes for a list of currency pairs and securities.
-   * 
+   *
    * <p>Fills missing historical data without checking for retry attempts.
-   * Any previous retry indicators are ignored.</p>
+   * Any previous retry indicators are ignored. Uses global update mode (requires 2+ days difference).</p>
    *
    * @param historySecurityCurrencyList list of securities/currencies with their maximum historical quote dates
    * @param currentCalendar current calendar for determining the update range
@@ -77,6 +77,22 @@ public interface IHistoryquoteLoad<S extends Securitycurrency<S>> {
    */
   List<S> fillHistoryquoteForSecuritiesCurrencies(
       List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, final Calendar currentCalendar);
+
+  /**
+   * Updates historical quotes for a list of currency pairs and securities with explicit update mode.
+   *
+   * <p>Fills missing historical data without checking for retry attempts.
+   * Any previous retry indicators are ignored.</p>
+   *
+   * @param historySecurityCurrencyList list of securities/currencies with their maximum historical quote dates
+   * @param currentCalendar current calendar for determining the update range
+   * @param isExchangeSpecificUpdate true for exchange-specific updates (requires 1+ day difference),
+   *                                  false for global daily updates (requires 2+ days difference)
+   * @return list of updated securities or currency pairs
+   */
+  List<S> fillHistoryquoteForSecuritiesCurrencies(
+      List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, final Calendar currentCalendar,
+      boolean isExchangeSpecificUpdate);
 
   /**
    * Asynchronously reloads the complete historical price data for a security.

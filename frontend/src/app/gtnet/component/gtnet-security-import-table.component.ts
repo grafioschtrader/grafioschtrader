@@ -429,7 +429,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
     this.fileUploadParam = new FileUploadParam(
       AppHelpIds.HELP_BASEDATA_GT_NET_IMPORT_SECURITY,
       null,
-      '.csv',
+      'csv',
       'UPLOAD_CSV_GTNET_SECURITY_IMP_POS',
       false,
       this.gtNetSecurityImpPosService,
