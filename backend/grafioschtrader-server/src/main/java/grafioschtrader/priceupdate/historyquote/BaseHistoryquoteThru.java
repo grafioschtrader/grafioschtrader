@@ -104,16 +104,8 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
     return fillHistoryquoteForSecuritiesCurrencies(historySecurityCurrencyList, currentCalendar, false);
   }
 
-  /**
-   * Updates historical quotes for a list of currency pairs and securities.
-   *
-   * @param historySecurityCurrencyList list of securities/currencies with their maximum historical quote dates
-   * @param currentCalendar current calendar for determining the update range
-   * @param isExchangeSpecificUpdate true if this is an exchange-specific update (allows single-day updates),
-   *                                  false for global daily update (requires more than 1 day difference)
-   * @return list of updated securities or currency pairs
-   */
-  private List<S> fillHistoryquoteForSecuritiesCurrencies(
+  @Override
+  public List<S> fillHistoryquoteForSecuritiesCurrencies(
       List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, final Calendar currentCalendar,
       boolean isExchangeSpecificUpdate) {
     final List<S> catchUp = new ArrayList<>();

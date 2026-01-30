@@ -65,11 +65,15 @@ public class HistoryquoteThruGTNet<S extends Securitycurrency<S>> implements IHi
     // First, fill empty historyquotes (no GTNet needed for completely empty instruments)
     List<S> catchUp = new ArrayList<>(connectorThru.delegateFillEmptyHistoryquote());
 
+    // Determine if this is an exchange-specific update (allows 1-day updates after exchange close)
+    final boolean isExchangeSpecificUpdate = idsStockexchange != null && !idsStockexchange.isEmpty();
+
     // Get the partial fill data and call OUR fillHistoryquoteForSecuritiesCurrencies (with GTNet integration)
     HistoryquoteThruConnector.PartialFillData<S> partialFillData = connectorThru.getPartialFillData(idsStockexchange);
     catchUp.addAll(this.fillHistoryquoteForSecuritiesCurrencies(
         partialFillData.getHistorySecurityCurrencyList(),
-        partialFillData.getCurrentCalendar()));
+        partialFillData.getCurrentCalendar(),
+        isExchangeSpecificUpdate));
 
     return catchUp;
   }
@@ -105,20 +109,38 @@ public class HistoryquoteThruGTNet<S extends Securitycurrency<S>> implements IHi
 
   /**
    * Fills historical quotes for securities/currencies with GTNet integration.
+   * Uses global update mode (requires 2+ days difference).
+   */
+  @Override
+  public List<S> fillHistoryquoteForSecuritiesCurrencies(
+      List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, Calendar currentCalendar) {
+    return fillHistoryquoteForSecuritiesCurrencies(historySecurityCurrencyList, currentCalendar, false);
+  }
+
+  /**
+   * Fills historical quotes for securities/currencies with GTNet integration.
    *
    * Flow:
    * 1. Query GTNet servers for instruments with gtNetHistoricalRecv enabled
    * 2. Save GTNet-filled data through proper connector save flow
    * 3. Fall back to connectors for unfilled and non-GTNet instruments
    * 4. Push connector-fetched data back to interested GTNet suppliers
+   *
+   * @param historySecurityCurrencyList list of securities/currencies with their maximum historical quote dates
+   * @param currentCalendar current calendar for determining the update range
+   * @param isExchangeSpecificUpdate true for exchange-specific updates (requires 1+ day difference),
+   *                                  false for global daily updates (requires 2+ days difference)
+   * @return list of updated securities or currency pairs
    */
   @Override
   public List<S> fillHistoryquoteForSecuritiesCurrencies(
-      List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, Calendar currentCalendar) {
+      List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, Calendar currentCalendar,
+      boolean isExchangeSpecificUpdate) {
 
     if (!globalparametersJpaRepository.isGTNetEnabled() || historySecurityCurrencyList.isEmpty()) {
-      // GTNet disabled - pass through to connector
-      return connectorThru.fillHistoryquoteForSecuritiesCurrencies(historySecurityCurrencyList, currentCalendar);
+      // GTNet disabled - pass through to connector with correct flag
+      return connectorThru.fillHistoryquoteForSecuritiesCurrencies(historySecurityCurrencyList, currentCalendar,
+          isExchangeSpecificUpdate);
     }
 
     log.info("Starting GTNet-integrated historyquote load for {} instruments", historySecurityCurrencyList.size());
@@ -130,9 +152,9 @@ public class HistoryquoteThruGTNet<S extends Securitycurrency<S>> implements IHi
     // 2. Save GTNet-filled data through proper flow
     List<S> gtNetCatchUp = saveGTNetFilledData(gtNetResult, currentCalendar);
 
-    // 3. Connector fallback for remaining instruments
+    // 3. Connector fallback for remaining instruments with correct flag
     List<S> connectorCatchUp = connectorThru.fillHistoryquoteForSecuritiesCurrencies(
-        gtNetResult.getRemainingForConnector(), currentCalendar);
+        gtNetResult.getRemainingForConnector(), currentCalendar, isExchangeSpecificUpdate);
 
     // 4. Push connector-fetched data back to interested suppliers
     if (gtNetResult.hasWantToReceive() && !connectorCatchUp.isEmpty()) {
