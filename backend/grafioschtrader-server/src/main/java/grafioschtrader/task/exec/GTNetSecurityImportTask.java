@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,9 +15,20 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.common.DateHelper;
+import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.TaskDataChange;
+import grafiosch.entities.User;
+import grafiosch.entities.UserEntityChangeCount;
+import grafiosch.entities.UserEntityChangeCount.UserEntityChangeCountId;
+import grafiosch.entities.projection.UserCountLimit;
+import grafiosch.exceptions.TaskBackgroundException;
+import grafiosch.repository.GlobalparametersJpaRepository;
+import grafiosch.repository.UserEntityChangeCountJpaRepository;
+import grafiosch.repository.UserJpaRepository;
 import grafiosch.task.ITask;
 import grafiosch.types.ITaskType;
+import grafiosch.types.OperationType;
+import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.GTNetSecurityImpHead;
 import grafioschtrader.entities.GTNetSecurityImpPos;
@@ -68,6 +80,17 @@ public class GTNetSecurityImportTask implements ITask {
   @Autowired
   private StockexchangeJpaRepository stockexchangeJpaRepository;
 
+  @Autowired
+  private UserJpaRepository userJpaRepository;
+
+  @Autowired
+  private UserEntityChangeCountJpaRepository userEntityChangeCountJpaRepository;
+
+  @Autowired
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
+
+  private static final String ENTITY_NAME_GTNET_SECURITY_IMPORT = "GTNetSecurityImport";
+
   @Override
   public ITaskType getTaskType() {
     return TaskTypeExtended.GTNET_SECURITY_IMPORT_POSITIONS;
@@ -80,9 +103,21 @@ public class GTNetSecurityImportTask implements ITask {
 
   @Override
   @Transactional
-  public void doWork(TaskDataChange taskDataChange) {
+  public void doWork(TaskDataChange taskDataChange) throws TaskBackgroundException {
     Integer idHead = taskDataChange.getIdEntity();
     log.info("Starting GTNet security import for head ID: {}", idHead);
+
+    // Extract user ID from task parameters (stored in oldValueNumber)
+    Integer idCreatedByUser = null;
+    User user = null;
+    if (taskDataChange.getOldValueNumber() != null) {
+      idCreatedByUser = taskDataChange.getOldValueNumber().intValue();
+      user = userJpaRepository.findById(idCreatedByUser).orElse(null);
+      log.debug("Using user ID {} for created_by field", idCreatedByUser);
+    }
+
+    // Check if user is a limited editing user (subject to daily limits)
+    boolean isLimitedUser = user != null && UserAccessHelper.isLimitedEditingUser(user);
 
     // 1. Load header to get tenant ID
     GTNetSecurityImpHead head = gtNetSecurityImpHeadJpaRepository.findById(idHead).orElse(null);
@@ -109,9 +144,11 @@ public class GTNetSecurityImportTask implements ITask {
     int created = 0;
     int linked = 0;
     int failed = 0;
+    int processed = 0;
 
     // 4. Process each position
     for (GTNetSecurityImpPos pos : positions) {
+      processed++;
       try {
         List<SecurityGtnetLookupDTO> matches = lookupResults.get(pos.getIdGtNetSecurityImpPos());
 
@@ -141,19 +178,35 @@ public class GTNetSecurityImportTask implements ITask {
           continue;
         }
 
+        // Check daily limit for limited users before creating new security
+        if (isLimitedUser && isLimitExceeded(user)) {
+          int remaining = positions.size() - processed;
+          log.warn("Daily limit exceeded for user {}. Created: {}, Linked: {}, Remaining: {}",
+              idCreatedByUser, created, linked, remaining);
+          throw new TaskBackgroundException("GTNET_IMPORT_LIMIT_EXCEEDED", false);
+        }
+
         // Create new security
-        Security newSecurity = createSecurityFromDTO(bestMatch, head.getIdTenant());
+        Security newSecurity = createSecurityFromDTO(bestMatch, head.getIdTenant(), idCreatedByUser);
         if (newSecurity != null) {
           pos.setSecurity(newSecurity);
           gtNetSecurityImpPosJpaRepository.save(pos);
           log.debug("Created and linked new security {} to position {}",
               newSecurity.getIdSecuritycurrency(), pos.getIdGtNetSecurityImpPos());
           created++;
+
+          // Log the security creation for limit tracking
+          if (idCreatedByUser != null) {
+            logSecurityCreation(idCreatedByUser);
+          }
         } else {
           log.warn("Failed to create security for position ID={}", pos.getIdGtNetSecurityImpPos());
           failed++;
         }
 
+      } catch (TaskBackgroundException tbe) {
+        // Re-throw TaskBackgroundException to be handled by BackgroundWorker
+        throw tbe;
       } catch (Exception e) {
         log.error("Error processing position ID={}: {}", pos.getIdGtNetSecurityImpPos(), e.getMessage(), e);
         failed++;
@@ -241,9 +294,10 @@ public class GTNetSecurityImportTask implements ITask {
    *
    * @param dto the lookup result DTO containing security metadata
    * @param idTenant the tenant ID for the security (null for public securities)
+   * @param idCreatedByUser the user ID to set as created_by (Spring audit doesn't work in background tasks)
    * @return the created and persisted Security, or null if required data is missing
    */
-  private Security createSecurityFromDTO(SecurityGtnetLookupDTO dto, Integer idTenant) {
+  private Security createSecurityFromDTO(SecurityGtnetLookupDTO dto, Integer idTenant, Integer idCreatedByUser) {
     // Find asset class
     Assetclass assetclass = findOrCreateAssetclass(dto);
     if (assetclass == null) {
@@ -305,6 +359,11 @@ public class GTNetSecurityImportTask implements ITask {
         ? dto.getActiveToDate()
         : DateHelper.getDateFromLocalDate(LocalDate.of(2099, 12, 31)));
 
+    // Set created_by manually (Spring audit doesn't work in background tasks)
+    if (idCreatedByUser != null) {
+      security.setCreatedBy(idCreatedByUser);
+    }
+
     // Save and return
     return securityJpaRepository.save(security);
   }
@@ -355,5 +414,39 @@ public class GTNetSecurityImportTask implements ITask {
     // Fallback to first available stock exchange (should not normally happen)
     List<Stockexchange> all = stockexchangeJpaRepository.findAllByOrderByNameAsc();
     return all.isEmpty() ? null : all.get(0);
+  }
+
+  /**
+   * Checks if the user has reached their daily limit for GTNet security imports.
+   * Only applies to users with ROLE_LIMIT_EDIT role.
+   *
+   * @param user the user performing the import
+   * @return true if limit is exceeded and no more securities can be created, false otherwise
+   */
+  private boolean isLimitExceeded(User user) {
+    Optional<UserCountLimit> userCountLimitOpt = userEntityChangeCountJpaRepository
+        .getCudTransactionAndUserLimit(user.getIdUser(), ENTITY_NAME_GTNET_SECURITY_IMPORT);
+
+    if (userCountLimitOpt.isPresent()) {
+      Integer limit = userCountLimitOpt.get().getDayLimit() != null
+          ? userCountLimitOpt.get().getDayLimit()
+          : globalparametersJpaRepository.getMaxValueByKey(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_GTNETSECURITYIMPORT);
+      int cudTransaction = userCountLimitOpt.get().getCudTrans();
+      return cudTransaction >= limit;
+    }
+    return false;
+  }
+
+  /**
+   * Logs a security creation operation for daily limit tracking.
+   *
+   * @param idUser the ID of the user who created the security
+   */
+  private void logSecurityCreation(Integer idUser) {
+    UserEntityChangeCount userEntityChangeCount = userEntityChangeCountJpaRepository
+        .findById(new UserEntityChangeCountId(idUser, new Date(), ENTITY_NAME_GTNET_SECURITY_IMPORT))
+        .orElse(new UserEntityChangeCount(new UserEntityChangeCountId(idUser, new Date(), ENTITY_NAME_GTNET_SECURITY_IMPORT)));
+    userEntityChangeCount.incrementCounter(OperationType.ADD);
+    userEntityChangeCountJpaRepository.save(userEntityChangeCount);
   }
 }

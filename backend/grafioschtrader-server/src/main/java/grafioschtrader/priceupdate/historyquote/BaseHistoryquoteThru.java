@@ -1,6 +1,10 @@
 package grafioschtrader.priceupdate.historyquote;
 
 import java.text.ParseException;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -16,6 +20,7 @@ import grafioschtrader.common.ThreadHelper;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
+import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.priceupdate.BaseQuoteThru;
 import grafioschtrader.reportviews.SecuritycurrencyPositionSummary;
 import grafioschtrader.repository.SecurityServiceAsyncExectuion;
@@ -156,10 +161,48 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
   }
 
   /**
+   * Gets the current date in the exchange's local timezone for a security or currency pair.
+   * For securities, uses the stockexchange's configured timezone. For currency pairs, falls back
+   * to system default timezone.
+   *
+   * @param securitycurrency the security or currency pair
+   * @param adjustForWeekend if true, adjusts Sunday/Monday back to previous Friday
+   * @return the current date in the appropriate timezone
+   */
+  private LocalDate getCurrentLocalDateForSecurityCurrency(S securitycurrency, boolean adjustForWeekend) {
+    ZoneId zoneId = ZoneId.systemDefault();
+
+    if (securitycurrency instanceof Security security) {
+      Stockexchange stockexchange = security.getStockexchange();
+      if (stockexchange != null && stockexchange.getTimeZone() != null) {
+        try {
+          zoneId = ZoneId.of(stockexchange.getTimeZone());
+        } catch (Exception e) {
+          log.warn("Invalid timezone '{}' for stockexchange, using system default", stockexchange.getTimeZone());
+        }
+      }
+    }
+
+    LocalDate currentDate = LocalDate.now(zoneId);
+
+    if (adjustForWeekend) {
+      DayOfWeek dayOfWeek = currentDate.getDayOfWeek();
+      if (dayOfWeek == DayOfWeek.SUNDAY) {
+        currentDate = currentDate.minusDays(2); // Back to Friday
+      } else if (dayOfWeek == DayOfWeek.MONDAY) {
+        currentDate = currentDate.minusDays(3); // Back to Friday
+      }
+    }
+
+    return currentDate;
+  }
+
+  /**
    * Updates historical quotes for a single security or currency pair if there are missing days.
+   * Uses the exchange's local timezone for date calculations to correctly determine if updates are needed.
    *
    * @param queryObject the security/currency with its maximum historical quote date
-   * @param untilCalendar the target date to update to
+   * @param untilCalendar the fallback target date (used for logging compatibility, actual date is timezone-aware)
    * @param catchUp list to add successfully updated securities to
    * @param isExchangeSpecificUpdate true if this is an exchange-specific update. For exchange-specific updates,
    *                                  securities are updated if diffInDays >= 1 (allows same-day updates after
@@ -168,9 +211,13 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
   private void catchUpHistoryquote(final SecurityCurrencyMaxHistoryquoteData<S> queryObject,
       final Calendar untilCalendar, final List<S> catchUp, boolean isExchangeSpecificUpdate) {
     final S securitycurrency = queryObject.getSecurityCurrency();
-    final Calendar lastQuoteCalendar = DateHelper.getCalendar(queryObject.getDate());
-    final int diffInDays = (int) ((untilCalendar.getTimeInMillis() - lastQuoteCalendar.getTimeInMillis())
-        / (1000 * 60 * 60 * 24));
+
+    // Get current date in the exchange's local timezone
+    final LocalDate currentDateInExchangeZone = getCurrentLocalDateForSecurityCurrency(
+        securitycurrency, !isExchangeSpecificUpdate);
+    final LocalDate lastQuoteDate = DateHelper.getLocalDate(queryObject.getDate());
+
+    final long diffInDays = ChronoUnit.DAYS.between(lastQuoteDate, currentDateInExchangeZone);
 
     // For exchange-specific updates: update if at least 1 day difference (allows today's data after close)
     // For global daily updates: update only if more than 1 day difference
@@ -178,9 +225,9 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
     if (diffInDays >= minDaysRequired) {
       log.debug("Catchup historyquote, missing Days: diffInDays={} for Security/Currency securitycurrency={}",
           diffInDays, securitycurrency);
-      lastQuoteCalendar.add(Calendar.DATE, 1);
+      final LocalDate fromDate = lastQuoteDate.plusDays(1);
       final S execSecuritycurrency = historyqouteEntityBaseAccess.catchUpSecurityCurrencypairHisotry(securitycurrency,
-          lastQuoteCalendar.getTime(), untilCalendar.getTime());
+          DateHelper.getDateFromLocalDate(fromDate), DateHelper.getDateFromLocalDate(currentDateInExchangeZone));
       if (execSecuritycurrency.getRetryHistoryLoad() == 0) {
         catchUp.add(execSecuritycurrency);
       }

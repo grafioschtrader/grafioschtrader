@@ -23,7 +23,8 @@ public interface GTNetSecurityImpHeadJpaRepositoryCustom extends BaseRepositoryC
    *
    * @param idGtNetSecurityImpHead the import header ID
    * @param idTenant the tenant ID for verification
+   * @param idUser the user ID to set as created_by on imported securities
    * @return true if a new job was queued, false if a pending job already exists
    */
-  boolean queueImportJobIfNotExists(Integer idGtNetSecurityImpHead, Integer idTenant);
+  boolean queueImportJobIfNotExists(Integer idGtNetSecurityImpHead, Integer idTenant, Integer idUser);
 }

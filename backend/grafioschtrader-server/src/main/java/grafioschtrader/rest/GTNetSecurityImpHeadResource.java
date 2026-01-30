@@ -60,7 +60,7 @@ public class GTNetSecurityImpHeadResource extends UpdateCreateDeleteWithTenantRe
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
 
     boolean queued = gtNetSecurityImpHeadJpaRepository.queueImportJobIfNotExists(
-        idGtNetSecurityImpHead, user.getIdTenant());
+        idGtNetSecurityImpHead, user.getIdTenant(), user.getIdUser());
 
     Map<String, Object> response = new HashMap<>();
     response.put("queued", queued);

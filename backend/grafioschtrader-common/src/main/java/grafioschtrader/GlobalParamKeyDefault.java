@@ -153,6 +153,8 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
 
   public static final String GLOB_KEY_LIMIT_DAY_UDFMETADATASEUCIRTY = GlobalConstants.GT_LIMIT_DAY
       + UDFMetadataSecurity.class.getSimpleName();
+  public static final String GLOB_KEY_LIMIT_DAY_GTNETSECURITYIMPORT = GlobalConstants.GT_LIMIT_DAY
+      + "GTNetSecurityImport";
   public static final String GLOB_KEY_SOURCE_DEMO_ID_TENANT_DE = GlobalConstants.GT_PREFIX + "source.demo.idtenant.de";
   public static final String GLOB_KEY_SOURCE_DEMO_ID_TENANT_EN = GlobalConstants.GT_PREFIX + "source.demo.idtenant.en";
 
@@ -181,6 +183,7 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_TRADINGPLATFORMPLAN, new MaxDefaultDBValue(3));
 
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_UDFMETADATASEUCIRTY, new MaxDefaultDBValue(20));
+    defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_GTNETSECURITYIMPORT, new MaxDefaultDBValue(150));
 
     // TODO Other entities -> otherwise null pointer exception
 
