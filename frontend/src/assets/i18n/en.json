@@ -334,7 +334,7 @@
   "GTNET_SYNC_MODE_INCREMENTAL": "Incremental (since last sync)",
   "GTNET_EXCHANGE_SYNC": "Synchronize GTNet instrument configurations",
   "GTNET_IMPORT_JOB_ALREADY_PENDING": "An import job is already pending for this import set",
-  "GTNET_IMPORT_JOB_QUEUED": "Security import job has been queued",
+  "GTNET_IMPORT_JOB_QUEUED": "Security import job has been queued. Check background jobs for status - this view is not updated automatically.",
   "GTNET_IMPORT_SECURITIES_JOB": "Import securities from GTNet",
   "GTNET_LOOKUP_ERROR": "Error searching for security metadata",
   "GTNET_LOOKUP_NO_RESULTS": "No matching securities found",

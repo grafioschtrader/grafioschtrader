@@ -332,7 +332,7 @@
   "GTNET_SYNC_MODE_INCREMENTAL": "Inkrementell (seit letzter Synchronisation)",
   "GTNET_EXCHANGE_SYNC": "GTNet Instrumentenkonfigurationen synchronisieren",
   "GTNET_IMPORT_JOB_ALREADY_PENDING": "Ein Importauftrag ist bereits für dieses Importset ausstehend",
-  "GTNET_IMPORT_JOB_QUEUED": "Wertpapier-Importauftrag wurde in die Warteschlange gestellt",
+  "GTNET_IMPORT_JOB_QUEUED": "Wertpapier-Importauftrag wurde in die Warteschlange gestellt. Prüfen Sie die Hintergrund-Jobs für den Status - diese Ansicht wird nicht automatisch aktualisiert.",
   "GTNET_IMPORT_SECURITIES_JOB": "Wertpapiere von GTNet importieren",
   "GTNET_LOOKUP_ERROR": "Fehler bei der Suche nach Wertpapiermetadaten",
   "GTNET_LOOKUP_NO_RESULTS": "Keine passenden Wertpapiere gefunden",
