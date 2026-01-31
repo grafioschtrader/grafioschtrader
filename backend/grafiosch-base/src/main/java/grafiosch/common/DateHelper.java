@@ -164,11 +164,15 @@ public class DateHelper {
 
   /**
    * Converts a {@link Date} object to a {@link LocalDate} object using the system's default time zone.
+   * Handles both {@link java.util.Date} and {@link java.sql.Date} instances correctly.
    *
    * @param date The Date object to convert.
    * @return The corresponding LocalDate object.
    */
   public static LocalDate getLocalDate(Date date) {
+    if (date instanceof java.sql.Date sqlDate) {
+      return sqlDate.toLocalDate();
+    }
     Instant instant = date.toInstant();
     ZonedDateTime zdt = instant.atZone(ZoneId.systemDefault());
     return zdt.toLocalDate();
