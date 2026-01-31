@@ -1,5 +1,7 @@
 package grafioschtrader.entities;
 
+import java.util.List;
+
 import grafiosch.common.ImportDataRequired;
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.entities.BaseID;
@@ -16,6 +18,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -79,6 +82,13 @@ public class GTNetSecurityImpPos extends BaseID<Integer> {
   @JoinColumn(name = "id_securitycurrency")
   private Security security;
 
+  @Schema(description = """
+      List of gaps (mismatches) identified during the last GTNet import attempt.
+      Transient field populated when loading positions for display. Contains details about
+      what didn't match (asset class, connectors) when the import couldn't create a security.""")
+  @Transient
+  private List<GTNetSecurityImpGap> gaps;
+
   public GTNetSecurityImpPos() {
     super();
   }
@@ -137,6 +147,14 @@ public class GTNetSecurityImpPos extends BaseID<Integer> {
 
   public void setSecurity(Security security) {
     this.security = security;
+  }
+
+  public List<GTNetSecurityImpGap> getGaps() {
+    return gaps;
+  }
+
+  public void setGaps(List<GTNetSecurityImpGap> gaps) {
+    this.gaps = gaps;
   }
 
   @Override
