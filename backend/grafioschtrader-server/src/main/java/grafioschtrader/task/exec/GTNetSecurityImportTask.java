@@ -1,6 +1,7 @@
 package grafioschtrader.task.exec;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
@@ -16,12 +17,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.common.DateHelper;
 import grafiosch.common.UserAccessHelper;
+import grafiosch.entities.GTNet;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.entities.User;
 import grafiosch.entities.UserEntityChangeCount;
 import grafiosch.entities.UserEntityChangeCount.UserEntityChangeCountId;
 import grafiosch.entities.projection.UserCountLimit;
 import grafiosch.exceptions.TaskBackgroundException;
+import grafiosch.repository.GTNetJpaRepository;
 import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.repository.UserEntityChangeCountJpaRepository;
 import grafiosch.repository.UserJpaRepository;
@@ -30,18 +33,23 @@ import grafiosch.types.ITaskType;
 import grafiosch.types.OperationType;
 import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.entities.Assetclass;
+import grafioschtrader.entities.GTNetSecurityImpGap;
 import grafioschtrader.entities.GTNetSecurityImpHead;
 import grafioschtrader.entities.GTNetSecurityImpPos;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.gtnet.GTNetSecurityLookupService;
+import grafioschtrader.gtnet.model.ConnectorHint;
+import grafioschtrader.gtnet.model.ConnectorHint.ConnectorCapability;
 import grafioschtrader.gtnet.model.SecurityGtnetLookupDTO;
 import grafioschtrader.repository.AssetclassJpaRepository;
+import grafioschtrader.repository.GTNetSecurityImpGapJpaRepository;
 import grafioschtrader.repository.GTNetSecurityImpHeadJpaRepository;
 import grafioschtrader.repository.GTNetSecurityImpPosJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.StockexchangeJpaRepository;
 import grafioschtrader.types.DistributionFrequency;
+import grafioschtrader.types.GapCodeType;
 import grafioschtrader.types.TaskTypeExtended;
 
 /**
@@ -67,6 +75,12 @@ public class GTNetSecurityImportTask implements ITask {
 
   @Autowired
   private GTNetSecurityImpPosJpaRepository gtNetSecurityImpPosJpaRepository;
+
+  @Autowired
+  private GTNetSecurityImpGapJpaRepository gtNetSecurityImpGapJpaRepository;
+
+  @Autowired
+  private GTNetJpaRepository gtNetJpaRepository;
 
   @Autowired
   private GTNetSecurityLookupService gtNetSecurityLookupService;
@@ -150,6 +164,9 @@ public class GTNetSecurityImportTask implements ITask {
     for (GTNetSecurityImpPos pos : positions) {
       processed++;
       try {
+        // Delete any existing gaps for this position (clean slate for re-import)
+        gtNetSecurityImpGapJpaRepository.deleteByIdGtNetSecurityImpPos(pos.getIdGtNetSecurityImpPos());
+
         List<SecurityGtnetLookupDTO> matches = lookupResults.get(pos.getIdGtNetSecurityImpPos());
 
         if (matches == null || matches.isEmpty()) {
@@ -166,6 +183,9 @@ public class GTNetSecurityImportTask implements ITask {
           failed++;
           continue;
         }
+
+        // Record gaps for the best match (what didn't match even though a result was found)
+        recordGapsForMatch(pos.getIdGtNetSecurityImpPos(), bestMatch);
 
         // Check if security already exists locally
         Security existingSecurity = findExistingSecurity(bestMatch);
@@ -448,5 +468,133 @@ public class GTNetSecurityImportTask implements ITask {
         .orElse(new UserEntityChangeCount(new UserEntityChangeCountId(idUser, new Date(), ENTITY_NAME_GTNET_SECURITY_IMPORT)));
     userEntityChangeCount.incrementCounter(OperationType.ADD);
     userEntityChangeCountJpaRepository.save(userEntityChangeCount);
+  }
+
+  /**
+   * Records gaps (mismatches) for a lookup result. Gap records document what didn't match between
+   * the remote peer's data and local configuration.
+   *
+   * <p>Gaps are recorded for:
+   * <ul>
+   *   <li>Asset class mismatch: when the asset class match type is not EXACT</li>
+   *   <li>Connector gaps: when the remote peer has a connector hint but no local connector was matched</li>
+   * </ul>
+   *
+   * @param idGtNetSecurityImpPos the position ID to record gaps for
+   * @param dto the lookup result DTO containing match information
+   */
+  private void recordGapsForMatch(Integer idGtNetSecurityImpPos, SecurityGtnetLookupDTO dto) {
+    // Resolve GTNet ID from source domain
+    Integer idGtNet = resolveGtNetId(dto.getSourceDomain());
+    if (idGtNet == null) {
+      log.warn("Could not resolve GTNet ID for domain: {}", dto.getSourceDomain());
+      return;
+    }
+
+    List<GTNetSecurityImpGap> gaps = new ArrayList<>();
+
+    // Check for asset class mismatch
+    if (dto.getMatchedAssetClassId() == null || !"EXACT".equals(dto.getAssetClassMatchType())) {
+      String assetClassMessage = buildAssetClassMessage(dto);
+      gaps.add(new GTNetSecurityImpGap(idGtNetSecurityImpPos, idGtNet, GapCodeType.ASSET_CLASS, assetClassMessage));
+      log.debug("Asset class gap for position {}: {}", idGtNetSecurityImpPos, assetClassMessage);
+    }
+
+    // Check for connector gaps based on hints
+    if (dto.getConnectorHints() != null) {
+      for (ConnectorHint hint : dto.getConnectorHints()) {
+        if (hint.getCapabilities() != null) {
+          // Check INTRADAY connector
+          if (hint.getCapabilities().contains(ConnectorCapability.INTRADAY)
+              && dto.getMatchedIntraConnector() == null) {
+            String message = hint.getConnectorFamily();
+            gaps.add(new GTNetSecurityImpGap(idGtNetSecurityImpPos, idGtNet, GapCodeType.INTRADAY_CONNECTOR, message));
+            log.debug("Intraday connector gap for position {}: {}", idGtNetSecurityImpPos, message);
+          }
+
+          // Check HISTORY connector
+          if (hint.getCapabilities().contains(ConnectorCapability.HISTORY)
+              && dto.getMatchedHistoryConnector() == null) {
+            String message = hint.getConnectorFamily();
+            gaps.add(new GTNetSecurityImpGap(idGtNetSecurityImpPos, idGtNet, GapCodeType.HISTORY_CONNECTOR, message));
+            log.debug("History connector gap for position {}: {}", idGtNetSecurityImpPos, message);
+          }
+
+          // Check DIVIDEND connector
+          if (hint.getCapabilities().contains(ConnectorCapability.DIVIDEND)
+              && dto.getMatchedDividendConnector() == null) {
+            String message = hint.getConnectorFamily();
+            gaps.add(new GTNetSecurityImpGap(idGtNetSecurityImpPos, idGtNet, GapCodeType.DIVIDEND_CONNECTOR, message));
+            log.debug("Dividend connector gap for position {}: {}", idGtNetSecurityImpPos, message);
+          }
+
+          // Check SPLIT connector
+          if (hint.getCapabilities().contains(ConnectorCapability.SPLIT)
+              && dto.getMatchedSplitConnector() == null) {
+            String message = hint.getConnectorFamily();
+            gaps.add(new GTNetSecurityImpGap(idGtNetSecurityImpPos, idGtNet, GapCodeType.SPLIT_CONNECTOR, message));
+            log.debug("Split connector gap for position {}: {}", idGtNetSecurityImpPos, message);
+          }
+        }
+      }
+    }
+
+    if (!gaps.isEmpty()) {
+      gtNetSecurityImpGapJpaRepository.saveAll(gaps);
+      log.info("Recorded {} gaps for position {}", gaps.size(), idGtNetSecurityImpPos);
+    }
+  }
+
+  /**
+   * Resolves the GTNet ID from a domain name.
+   *
+   * @param domainRemoteName the domain name to look up
+   * @return the GTNet ID, or null if not found
+   */
+  private Integer resolveGtNetId(String domainRemoteName) {
+    if (domainRemoteName == null || domainRemoteName.isBlank()) {
+      return null;
+    }
+    GTNet gtNet = gtNetJpaRepository.findByDomainRemoteName(domainRemoteName);
+    return gtNet != null ? gtNet.getIdGtNet() : null;
+  }
+
+  /**
+   * Builds a human-readable message describing the expected asset class configuration.
+   *
+   * @param dto the lookup result DTO
+   * @return a message in format "categoryType / subCategory / specialInvestmentInstrument"
+   */
+  private String buildAssetClassMessage(SecurityGtnetLookupDTO dto) {
+    StringBuilder sb = new StringBuilder();
+
+    // Category type
+    if (dto.getCategoryType() != null) {
+      sb.append(dto.getCategoryType().name());
+    } else {
+      sb.append("?");
+    }
+    sb.append(" / ");
+
+    // Sub-category (use English if available)
+    if (dto.getSubCategoryNLS() != null && !dto.getSubCategoryNLS().isEmpty()) {
+      String subCategory = dto.getSubCategoryNLS().get("en");
+      if (subCategory == null) {
+        subCategory = dto.getSubCategoryNLS().values().iterator().next();
+      }
+      sb.append(subCategory);
+    } else {
+      sb.append("?");
+    }
+    sb.append(" / ");
+
+    // Special investment instrument
+    if (dto.getSpecialInvestmentInstrument() != null) {
+      sb.append(dto.getSpecialInvestmentInstrument().name());
+    } else {
+      sb.append("?");
+    }
+
+    return sb.toString();
   }
 }

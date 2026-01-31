@@ -3,11 +3,8 @@ UPDATE globalparameters SET property_name = 'g.gnet.use' WHERE property_name = '
 UPDATE globalparameters SET property_name = 'g.gnet.use.log' WHERE property_name = 'gt.gtnet.use.log';
 
 
-
-
-
-
 DROP TABLE IF EXISTS historyquote_update_log;
+
 CREATE TABLE `historyquote_update_log` (
   `id_hq_update_log` INT(11) NOT NULL AUTO_INCREMENT,
   `id_stockexchange` INT(11) NOT NULL,
@@ -25,7 +22,11 @@ CREATE TABLE `historyquote_update_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
+
 -- GTNet Security Import tables for organizing bulk security lookups
+DROP TABLE IF EXISTS gt_net_security_imp_gap;
+DROP TABLE IF EXISTS gt_net_security_imp_pos;
+DROP TABLE IF EXISTS gt_net_security_imp_head;
 
 -- Header table for grouping security import positions
 CREATE TABLE gt_net_security_imp_head (
@@ -49,3 +50,22 @@ CREATE TABLE gt_net_security_imp_pos (
     CONSTRAINT fk_gt_net_sec_imp_pos_security FOREIGN KEY (id_securitycurrency)
         REFERENCES security(id_securitycurrency) ON DELETE SET NULL
 );
+
+
+-- Create table for recording import gaps when GTNet security matching fails
+CREATE TABLE `gt_net_security_imp_gap` (
+  `id_gt_net_security_imp_gap` int(11) NOT NULL AUTO_INCREMENT,
+  `id_gt_net_security_imp_pos` int(11) NOT NULL,
+  `id_gt_net` int(11) NOT NULL,
+  `gap_code` tinyint(2) NOT NULL,
+  `gap_message` varchar(1000) NOT NULL,
+  PRIMARY KEY (`id_gt_net_security_imp_gap`),
+  KEY `FK_GTNetSecurityImpGap_GTNetSecurityImpPos` (`id_gt_net_security_imp_pos`),
+  KEY `FK_GTNetSecurityImpGap_GTNet` (`id_gt_net`),
+  CONSTRAINT `FK_GTNetSecurityImpGap_GTNetSecurityImpPos`
+    FOREIGN KEY (`id_gt_net_security_imp_pos`)
+    REFERENCES `gt_net_security_imp_pos` (`id_gt_net_security_imp_pos`) ON DELETE CASCADE,
+  CONSTRAINT `FK_GTNetSecurityImpGap_GTNet`
+    FOREIGN KEY (`id_gt_net`)
+    REFERENCES `gt_net` (`id_gt_net`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

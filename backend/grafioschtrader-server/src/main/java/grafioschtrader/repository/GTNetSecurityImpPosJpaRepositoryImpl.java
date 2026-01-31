@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -21,6 +22,7 @@ import grafiosch.common.FieldColumnMapping;
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.dto.UploadHistoryquotesSuccess;
+import grafioschtrader.entities.GTNetSecurityImpGap;
 import grafioschtrader.entities.GTNetSecurityImpHead;
 import grafioschtrader.entities.GTNetSecurityImpPos;
 import grafioschtrader.entities.Security;
@@ -41,6 +43,9 @@ public class GTNetSecurityImpPosJpaRepositoryImpl implements GTNetSecurityImpPos
   private GTNetSecurityImpHeadJpaRepository gtNetSecurityImpHeadJpaRepository;
 
   @Autowired
+  private GTNetSecurityImpGapJpaRepository gtNetSecurityImpGapJpaRepository;
+
+  @Autowired
   private SecurityJpaRepository securityJpaRepository;
 
   @Autowired
@@ -58,7 +63,27 @@ public class GTNetSecurityImpPosJpaRepositoryImpl implements GTNetSecurityImpPos
     if (header == null) {
       return Collections.emptyList();
     }
-    return gtNetSecurityImpPosJpaRepository.findByIdGtNetSecurityImpHead(idGtNetSecurityImpHead);
+    List<GTNetSecurityImpPos> positions = gtNetSecurityImpPosJpaRepository
+        .findByIdGtNetSecurityImpHead(idGtNetSecurityImpHead);
+
+    // Populate gaps for positions without linked security
+    if (!positions.isEmpty()) {
+      List<Integer> positionIds = positions.stream()
+          .map(GTNetSecurityImpPos::getIdGtNetSecurityImpPos)
+          .collect(Collectors.toList());
+      List<GTNetSecurityImpGap> allGaps = gtNetSecurityImpGapJpaRepository.findByIdGtNetSecurityImpPosIn(positionIds);
+
+      // Group gaps by position ID
+      Map<Integer, List<GTNetSecurityImpGap>> gapsByPosition = allGaps.stream()
+          .collect(Collectors.groupingBy(GTNetSecurityImpGap::getIdGtNetSecurityImpPos));
+
+      // Assign gaps to each position
+      for (GTNetSecurityImpPos pos : positions) {
+        pos.setGaps(gapsByPosition.getOrDefault(pos.getIdGtNetSecurityImpPos(), Collections.emptyList()));
+      }
+    }
+
+    return positions;
   }
 
   @Override

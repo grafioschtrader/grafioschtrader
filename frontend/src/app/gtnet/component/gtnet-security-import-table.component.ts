@@ -37,6 +37,9 @@ import {AppHelpIds} from '../../shared/help/help.ids';
 import {HelpIds} from '../../lib/help/help.ids';
 import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
+import {GTNetSecurityImpGapTableComponent} from './gtnet-security-imp-gap-table.component';
+import {GTNetService} from '../service/gtnet.service';
+import {GTNet} from '../model/gtnet';
 
 /**
  * Table component for displaying and editing GTNet security import positions.
@@ -72,14 +75,21 @@ import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.ser
 
     <!-- Expanded row content template -->
     <ng-template #expandedContent let-position>
-      <securitycurrency-extended-info
-        [securitycurrency]="position.security"
-        [feedConnectorsKV]="feedConnectorsKV"
-        [intradayUrl]="getUrlForPosition(position, 'intradayUrl')"
-        [historicalUrl]="getUrlForPosition(position, 'historicalUrl')"
-        [dividendUrl]="getUrlForPosition(position, 'dividendUrl')"
-        [splitUrl]="getUrlForPosition(position, 'splitUrl')">
-      </securitycurrency-extended-info>
+      @if (position.security) {
+        <securitycurrency-extended-info
+          [securitycurrency]="position.security"
+          [feedConnectorsKV]="feedConnectorsKV"
+          [intradayUrl]="getUrlForPosition(position, 'intradayUrl')"
+          [historicalUrl]="getUrlForPosition(position, 'historicalUrl')"
+          [dividendUrl]="getUrlForPosition(position, 'dividendUrl')"
+          [splitUrl]="getUrlForPosition(position, 'splitUrl')">
+        </securitycurrency-extended-info>
+      } @else if (position.gaps?.length > 0) {
+        <gtnet-security-imp-gap-table
+          [gaps]="position.gaps"
+          [gtNetsMap]="gtNetsMap">
+        </gtnet-security-imp-gap-table>
+      }
     </ng-template>
 
     <!-- Security Edit Dialog -->
@@ -99,7 +109,7 @@ import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.ser
     }
   `,
   standalone: true,
-  imports: [CommonModule, EditableTableComponent, ContextMenuModule, SecuritycurrencyExtendedInfoComponent, SecurityEditComponent, UploadFileDialogComponent]
+  imports: [CommonModule, EditableTableComponent, ContextMenuModule, SecuritycurrencyExtendedInfoComponent, SecurityEditComponent, UploadFileDialogComponent, GTNetSecurityImpGapTableComponent]
 })
 export class GTNetSecurityImportTableComponent extends TableEditConfigBase implements OnInit, IGlobalMenuAttach {
 
@@ -130,11 +140,15 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
   /** Map of feed connector IDs to human-readable names */
   feedConnectorsKV: { [id: string]: string } = {};
 
+  /** Map of GTNet IDs to GTNet entities for displaying domain names in gap table */
+  gtNetsMap: Map<number, GTNet> = new Map();
+
   /** Cache of data provider URLs keyed by security ID */
   private dataProviderUrlsCache: { [idSecuritycurrency: number]: SecurityDataProviderUrls } = {};
 
   constructor(private activePanelService: ActivePanelService,
     private gtNetSecurityImpPosService: GTNetSecurityImpPosService,
+    private gtNetService: GTNetService,
     private globalparameterGTService: GlobalparameterGTService,
     private messageToastService: MessageToastService,
     private confirmationService: ConfirmationService,
@@ -179,6 +193,11 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
       this.feedConnectorsKV
     );
 
+    // Load GTNets for displaying domain names in gap table
+    this.gtNetService.getAllGTNetsWithMessages().subscribe(result => {
+      this.gtNetsMap = new Map(result.gtNetList.map(gtNet => [gtNet.idGtNet, gtNet]));
+    });
+
     // Load currency options
     this.globalparameterGTService.getCurrencies().subscribe((currencies: ValueKeyHtmlSelectOptions[]) => {
       this.currencyOptions = currencies;
@@ -190,10 +209,11 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
 
   /**
    * Determines if a position row can be expanded.
-   * Only positions with a linked Security can show detailed info.
+   * Positions with a linked Security show security details.
+   * Positions with gaps (but no security) show gap information.
    */
   canExpandPosition = (position: GTNetSecurityImpPos): boolean => {
-    return position.security != null;
+    return position.security != null || (position.gaps != null && position.gaps.length > 0);
   };
 
   /**
