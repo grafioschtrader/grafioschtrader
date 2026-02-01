@@ -213,7 +213,7 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
         return;
       }
       const idGtNet = msg.idGtNet;
-      const isReceived = msg.sendRecv === 'RECEIVED' || msg.sendRecv === SendReceivedType.RECEIVE;
+      const isReceived = msg.sendRecv === 'RECEIVED' || msg.sendRecv === 'RECEIVE' || msg.sendRecv === SendReceivedType.RECEIVE;
       if (isReceived) {
         // Incoming message I need to answer (can be root or reply)
         this.incomingPendingReplies[idGtNet] ??= [];

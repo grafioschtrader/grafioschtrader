@@ -297,7 +297,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   private expandNodesWithUnreadMessages(nodes: TreeNode[], nodeMap: Map<number, TreeNode>): void {
     nodes?.forEach(node => {
       const msg: GTNetMessage = node.data;
-      const isReceived = msg.sendRecv === 'RECEIVED' || msg.sendRecv === SendReceivedType.RECEIVE;
+      const isReceived = msg.sendRecv === 'RECEIVED' || msg.sendRecv === 'RECEIVE' || msg.sendRecv === SendReceivedType.RECEIVE;
       if (isReceived && !msg.hasBeenRead) {
         // Mark parent nodes as expanded
         if (msg.replyTo) {
@@ -325,7 +325,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
       return;
     }
     const msg: GTNetMessage = node.data;
-    const isReceived = msg.sendRecv === 'RECEIVED' || msg.sendRecv === SendReceivedType.RECEIVE;
+    const isReceived = msg.sendRecv === 'RECEIVED' || msg.sendRecv === 'RECEIVE' || msg.sendRecv === SendReceivedType.RECEIVE;
 
     // Mark as read if it's a received message that hasn't been read
     if (isReceived && !msg.hasBeenRead) {
@@ -389,7 +389,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
 
   /**
    * Checks if the selected message can be replied to:
-   * - Must be an incoming message (sendRecv === 'RECEIVED' or SendReceivedType.RECEIVE)
+   * - Must be an incoming message (sendRecv === 'RECEIVED', 'RECEIVE', or SendReceivedType.RECEIVE)
    * - Must be a pending (unanswered) request
    * - Must have valid response codes defined
    */
@@ -398,7 +398,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     if (!msg) {
       return false;
     }
-    const isIncoming = msg.sendRecv === 'RECEIVED' || msg.sendRecv === SendReceivedType.RECEIVE;
+    const isIncoming = msg.sendRecv === 'RECEIVED' || msg.sendRecv === 'RECEIVE' || msg.sendRecv === SendReceivedType.RECEIVE;
     const isPending = this.incomingPendingIds?.has(msg.idGtNetMessage) ?? false;
     const validResponses = getValidResponseCodes(msg.messageCode);
     return isIncoming && isPending && validResponses.length > 0;
