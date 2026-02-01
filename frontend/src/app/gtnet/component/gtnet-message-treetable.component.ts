@@ -390,8 +390,9 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   /**
    * Checks if the selected message can be replied to:
    * - Must be an incoming message (sendRecv === 'RECEIVED', 'RECEIVE', or SendReceivedType.RECEIVE)
-   * - Must be a pending (unanswered) request
    * - Must have valid response codes defined
+   * - For admin messages: always allow reply (supports ongoing conversations)
+   * - For other messages: must be pending (unanswered request)
    */
   private canReplyToSelected(): boolean {
     const msg: GTNetMessage = this.selectedNode?.data;
@@ -399,9 +400,25 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
       return false;
     }
     const isIncoming = msg.sendRecv === 'RECEIVED' || msg.sendRecv === 'RECEIVE' || msg.sendRecv === SendReceivedType.RECEIVE;
-    const isPending = this.incomingPendingIds?.has(msg.idGtNetMessage) ?? false;
     const validResponses = getValidResponseCodes(msg.messageCode);
-    return isIncoming && isPending && validResponses.length > 0;
+    if (!isIncoming || validResponses.length === 0) {
+      return false;
+    }
+    // For admin messages, always allow reply to incoming messages (supports ongoing conversations)
+    if (this.isAdminMessageCode(msg.messageCode)) {
+      return true;
+    }
+    // For other message types, require pending status
+    const isPending = this.incomingPendingIds?.has(msg.idGtNetMessage) ?? false;
+    return isPending;
+  }
+
+  /**
+   * Checks if the message code is an admin message type.
+   */
+  private isAdminMessageCode(messageCode: GTNetMessageCodeType | string): boolean {
+    const codeName = typeof messageCode === 'string' ? messageCode : GTNetMessageCodeType[messageCode];
+    return codeName?.startsWith('GT_NET_ADMIN_MESSAGE') ?? false;
   }
 
   private replyToSelected(): void {
