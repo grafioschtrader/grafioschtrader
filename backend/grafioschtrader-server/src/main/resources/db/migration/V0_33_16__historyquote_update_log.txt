@@ -118,3 +118,6 @@ DROP PROCEDURE IF EXISTS DropConstraintsSafe;
 -- 3. Drop the column if it exists
 -- This syntax is natively supported in MariaDB 10.0.2+
 ALTER TABLE mail_send_recv DROP COLUMN IF EXISTS id_gt_net;
+
+DELETE FROM globalparameters WHERE property_name = 'gt.limit.day.Security';
+INSERT INTO globalparameters (property_name, property_int) VALUES ('gt.limit.day.Security', 50);

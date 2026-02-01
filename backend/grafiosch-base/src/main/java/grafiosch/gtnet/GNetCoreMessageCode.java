@@ -154,4 +154,24 @@ public enum GNetCoreMessageCode implements GTNetMessageCode {
     }
     return null;
   }
+
+  /**
+   * Looks up a message code by its name. First tries GNetCoreMessageCode, then falls back
+   * to the provided app-specific enum class.
+   *
+   * @param name the enum constant name to look up
+   * @return the corresponding GTNetMessageCode, or null if not found
+   */
+  public static GTNetMessageCode getByName(String name) {
+    if (name == null) {
+      return null;
+    }
+    // First try core message codes
+    try {
+      return GNetCoreMessageCode.valueOf(name);
+    } catch (IllegalArgumentException e) {
+      // Not a core code, will try app-specific codes below
+    }
+    return null;
+  }
 }

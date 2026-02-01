@@ -96,6 +96,22 @@ public class GTNetMessageCodeRegistry {
   }
 
   /**
+   * Looks up a message code by its enum constant name.
+   *
+   * @param name the enum constant name to look up (e.g., "GT_NET_ADMIN_MESSAGE_SEL_C")
+   * @return the corresponding GTNetMessageCode, or null if not found
+   */
+  public GTNetMessageCode getByName(String name) {
+    if (name == null) {
+      return null;
+    }
+    return codesByValue.values().stream()
+        .filter(code -> code.name().equals(name))
+        .findFirst()
+        .orElse(null);
+  }
+
+  /**
    * Returns the valid response codes for a given request code.
    *
    * @param requestCode the request message code (must be an _RR_ type)

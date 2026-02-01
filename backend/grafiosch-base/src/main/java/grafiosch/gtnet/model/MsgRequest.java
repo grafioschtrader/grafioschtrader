@@ -3,7 +3,6 @@ package grafiosch.gtnet.model;
 import java.util.Map;
 
 import grafiosch.entities.GTNetMessage.GTNetMessageParam;
-import grafiosch.gtnet.GTNetMessageCode;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -36,10 +35,11 @@ public class MsgRequest {
   public Integer replyTo;
 
   @Schema(description = """
-      The type of message to send. Determines the expected gtNetMessageParamMap structure and whether a
-      synchronous response is expected. Must be a client-initiated code (ending with '_C'). Can be either
-      a core protocol code (GNetCoreMessageCode) or an app-specific code (GTNetMessageCodeType).""")
-  public GTNetMessageCode messageCode;
+      The type of message to send as a string (enum name). Determines the expected gtNetMessageParamMap
+      structure and whether a synchronous response is expected. Must be a client-initiated code
+      (ending with '_C'). Can be either a core protocol code (GNetCoreMessageCode) or an app-specific
+      code (GTNetMessageCodeType). Example: "GT_NET_ADMIN_MESSAGE_SEL_C".""")
+  public String messageCode;
 
   @Schema(description = """
       Typed parameters specific to the selected messageCode. Structure must match the model class registered
