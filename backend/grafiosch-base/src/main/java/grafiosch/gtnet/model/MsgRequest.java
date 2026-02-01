@@ -63,4 +63,11 @@ public class MsgRequest {
       to the original announcement message so the system can determine which recipients received the original
       and which still have pending delivery attempts.""")
   public Integer idOriginalMessage;
+
+  @Schema(description = """
+      Visibility level for admin messages. Controls who can see the message:
+      ALL_USERS = visible to everyone, ADMIN_ONLY = visible only to administrators.
+      For admin messages (GT_NET_ADMIN_MESSAGE_*), this field should be set.
+      Value is the enum name as a string (e.g., "ADMIN_ONLY").""")
+  public String visibility;
 }

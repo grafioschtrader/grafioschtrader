@@ -208,4 +208,13 @@ public class GTNetMessageContext {
   public ObjectMapper getObjectMapper() {
     return objectMapper;
   }
+
+  /**
+   * Returns the visibility level for the message.
+   *
+   * @return the visibility byte value (0 = ALL_USERS, 1 = ADMIN_ONLY)
+   */
+  public byte getVisibility() {
+    return request.visibility;
+  }
 }

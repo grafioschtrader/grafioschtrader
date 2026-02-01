@@ -60,6 +60,8 @@ public abstract class AbstractGTNetMessageHandler implements GTNetMessageHandler
     GTNetMessage message = new GTNetMessage(idGtNet, context.getTimestamp(), SendReceivedType.RECEIVED.getValue(), null,
         context.getMessageCodeValue(), context.getMessage(), context.getParams());
     message.setIdSourceGtNetMessage(context.getIdSourceGtNetMessage());
+    // Set visibility from incoming envelope (for admin messages)
+    message.setVisibilityValue(context.getVisibility());
 
     return gtNetMessageJpaRepository.saveMsg(message);
   }
