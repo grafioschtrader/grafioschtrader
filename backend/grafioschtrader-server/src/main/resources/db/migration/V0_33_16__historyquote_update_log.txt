@@ -121,3 +121,7 @@ ALTER TABLE mail_send_recv DROP COLUMN IF EXISTS id_gt_net;
 
 DELETE FROM globalparameters WHERE property_name = 'gt.limit.day.Security';
 INSERT INTO globalparameters (property_name, property_int) VALUES ('gt.limit.day.Security', 50);
+
+ALTER TABLE gt_net_message
+MODIFY COLUMN `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
+

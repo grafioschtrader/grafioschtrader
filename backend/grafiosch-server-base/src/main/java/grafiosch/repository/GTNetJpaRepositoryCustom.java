@@ -7,6 +7,7 @@ import grafiosch.entities.GTNetMessage;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.gtnet.model.GTNetWithMessages;
 import grafiosch.gtnet.model.MsgRequest;
+import grafiosch.gtnet.model.MultiTargetMsgRequest;
 
 /**
  * Custom repository interface for complex GTNet operations not covered by Spring Data JPA.
@@ -124,4 +125,23 @@ public interface GTNetJpaRepositoryCustom extends BaseRepositoryCustom<GTNet> {
    * @param idGtNetMessageList the IDs of the messages to delete
    */
   void deleteMessageBatch(List<Integer> idGtNetMessageList);
+
+  /**
+   * Submits an admin message to multiple selected targets via background delivery.
+   *
+   * <p>
+   * Unlike {@link #submitMsg(MsgRequest)} which sends immediately, this method creates a single
+   * GTNetMessage and queues delivery via GTNetMessageAttempt entries for each target. The actual
+   * delivery is handled by the GTNetAdminMessageDeliveryTask background job.
+   * </p>
+   *
+   * <p>
+   * This is used when an administrator selects multiple peers via checkboxes in the
+   * GTNetAdminMessagesComponent and sends an admin message to all of them.
+   * </p>
+   *
+   * @param multiTargetMsgRequest the message details including list of target domain IDs
+   * @return updated GTNetWithMessages for UI refresh
+   */
+  GTNetWithMessages submitMsgToMultiple(MultiTargetMsgRequest multiTargetMsgRequest);
 }

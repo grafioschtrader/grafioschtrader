@@ -20,6 +20,9 @@ public enum TaskTypeBase implements ITaskType {
   /** Delivers pending future-oriented GTNet messages and handles cleanup. Runs every 5 hours and on message send. */
   GTNET_FUTURE_MESSAGE_DELIVERY((byte) 25),
 
+  /** Delivers pending GTNet admin messages to multiple targets. Created when admin sends message via multi-select. */
+  GTNET_ADMIN_MESSAGE_DELIVERY((byte) 26),
+
   // Task which used oldValueNumber or oldValueString can not created by the admin
   ///////////////////////////////////////////////////////////////////////////////
   /** Moves shared entities from one user to another user by changing field created_by */

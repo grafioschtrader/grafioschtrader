@@ -65,12 +65,10 @@ public enum GNetCoreMessageCode implements GTNetMessageCode {
   GT_NET_OFFLINE_ALL_C((byte) 20),
 
   // Admin messages (30-34)
+  // Note: byte value 31 was used by GT_NET_ADMIN_MESSAGE_ALL_C (deprecated) - do not reuse
 
-  /** Admin message sent to a specific GTNet domain (targeted) */
+  /** Admin message sent to a specific GTNet domain (targeted or multi-target via background job) */
   GT_NET_ADMIN_MESSAGE_SEL_C((byte) 30),
-
-  /** Admin message broadcast to all authorized GTNet domains */
-  GT_NET_ADMIN_MESSAGE_ALL_C((byte) 31),
 
   /** Server is in maintenance mode during time period */
   GT_NET_MAINTENANCE_ALL_C((byte) 24),
