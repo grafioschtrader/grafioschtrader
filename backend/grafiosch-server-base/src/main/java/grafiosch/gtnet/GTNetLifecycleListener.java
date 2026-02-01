@@ -113,7 +113,7 @@ public class GTNetLifecycleListener {
       try {
         log.info("Publishing GT_NET_OFFLINE_ALL_C to all peers");
         MsgRequest msgRequest = new MsgRequest();
-        msgRequest.messageCode = GNetCoreMessageCode.GT_NET_OFFLINE_ALL_C;
+        msgRequest.messageCode = GNetCoreMessageCode.GT_NET_OFFLINE_ALL_C.name();
         gtNetJpaRepository.submitMsg(msgRequest);
         log.info("Successfully published offline announcement to GTNet peers");
       } catch (Exception e) {

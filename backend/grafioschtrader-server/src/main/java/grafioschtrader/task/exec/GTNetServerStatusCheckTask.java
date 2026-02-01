@@ -21,7 +21,6 @@ import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.task.ITask;
 import grafiosch.types.ITaskType;
 import grafiosch.types.TaskTypeBase;
-import grafioschtrader.service.GlobalparametersService;
 
 /**
  * Background task that checks and updates the online/busy status of all configured GTNet servers.
@@ -50,9 +49,7 @@ public class GTNetServerStatusCheckTask implements ITask {
 
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
-
-  @Autowired
-  private GlobalparametersService globalparametersService;
+ 
 
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;

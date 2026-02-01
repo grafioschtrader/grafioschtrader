@@ -294,15 +294,15 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     GTNetMessageCode messageCode = GNetCoreMessageCode.GT_NET_SETTINGS_UPDATED_ALL_C;
 
     MsgRequest msgRequest = new MsgRequest();
-    msgRequest.messageCode = messageCode;
+    msgRequest.messageCode = messageCode.name();
     GTNetModelHelper.GTNetMsgRequest gtNetMsgRequest = GTNetModelHelper.getMsgClassByMessageCode(messageCode);
     List<GTNet> targets = getRemotePeersWithExchange();
 
     if (!targets.isEmpty()) {
-      sendAndSaveMsg(myGTNet, targets, gtNetMsgRequest, msgRequest);
+      sendAndSaveMsg(myGTNet, targets, gtNetMsgRequest, msgRequest, messageCode);
     }
     // Save broadcast to own entry for visibility
-    saveBroadcastToOwnEntry(myGTNet, msgRequest);
+    saveBroadcastToOwnEntry(myGTNet, msgRequest, messageCode);
   }
 
   static boolean isDomainNameThisMachine(String domainName)
@@ -322,8 +322,15 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
   @Override
   public GTNetWithMessages submitMsg(MsgRequest msgRequest) {
+    // Resolve message code from string to enum
+    GTNetMessageCode messageCode = messageCodeRegistry.getByName(msgRequest.messageCode);
+    if (messageCode == null) {
+      throw new DataViolationException("messageCode", "gt.gtnet.invalid.message.code",
+          new Object[] { msgRequest.messageCode });
+    }
+
     // Validate that only one GT_NET_OPERATION_DISCONTINUED_ALL_C can be open at a time
-    if (msgRequest.messageCode == GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_ALL_C) {
+    if (messageCode == GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_ALL_C) {
       Integer existingOpenDiscontinued = gtNetMessageJpaRepository.findOpenDiscontinuedMessage(
           SendReceivedType.SEND.getValue(), GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_ALL_C.getValue(),
           GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C.getValue());
@@ -333,26 +340,26 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     }
 
     // For response messages, gtNetMsgRequest may be null (responses don't have registered model classes)
-    GTNetMsgRequest gtNetMsgRequest = GTNetModelHelper.getMsgClassByMessageCode(msgRequest.messageCode);
+    GTNetMsgRequest gtNetMsgRequest = GTNetModelHelper.getMsgClassByMessageCode(messageCode);
 
-    List<GTNet> gtNetList = getTargetDomains(msgRequest);
+    List<GTNet> gtNetList = getTargetDomains(msgRequest, messageCode);
     GTNet sourceGTNet = gtNetJpaRepository
         .findById(GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersJpaRepository)).orElseThrow();
 
     // Future-oriented messages use background delivery via GTNetMessageAttempt
-    if (FUTURE_ORIENTED_MESSAGE_CODES.contains(msgRequest.messageCode)) {
-      handleFutureOrientedBroadcast(sourceGTNet, gtNetList, gtNetMsgRequest, msgRequest);
+    if (FUTURE_ORIENTED_MESSAGE_CODES.contains(messageCode)) {
+      handleFutureOrientedBroadcast(sourceGTNet, gtNetList, gtNetMsgRequest, msgRequest, messageCode);
     } else if (gtNetMsgRequest != null) {
       // Request message - needs model validation and expects response
-      sendAndSaveMsg(sourceGTNet, gtNetList, gtNetMsgRequest, msgRequest);
+      sendAndSaveMsg(sourceGTNet, gtNetList, gtNetMsgRequest, msgRequest, messageCode);
     } else {
       // Response message - no model validation needed, just send the reply
-      sendResponseMsg(sourceGTNet, gtNetList, msgRequest);
+      sendResponseMsg(sourceGTNet, gtNetList, msgRequest, messageCode);
     }
 
     // For broadcast messages, save a copy under own server entry for visibility
-    if (msgRequest.messageCode.name().contains(GTNetModelHelper.MESSAGE_TO_ALL)) {
-      saveBroadcastToOwnEntry(sourceGTNet, msgRequest);
+    if (messageCode.name().contains(GTNetModelHelper.MESSAGE_TO_ALL)) {
+      saveBroadcastToOwnEntry(sourceGTNet, msgRequest, messageCode);
     }
 
     return this.getAllGTNetsWithMessages();
@@ -367,9 +374,10 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    * @param gtNetList       list of target GTNet entries
    * @param gtNetMsgRequest metadata about the message type including model class
    * @param msgRequest      the request containing message parameters
+   * @param messageCode     the resolved message code enum
    */
   private void handleFutureOrientedBroadcast(GTNet sourceGTNet, List<GTNet> gtNetList, GTNetMsgRequest gtNetMsgRequest,
-      MsgRequest msgRequest) {
+      MsgRequest msgRequest, GTNetMessageCode messageCode) {
     // Validate model if present
     if (gtNetMsgRequest != null && gtNetMsgRequest.model != null && msgRequest.gtNetMessageParamMap != null
         && !msgRequest.gtNetMessageParamMap.isEmpty()) {
@@ -379,17 +387,17 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
     // Create ONE message under sender's own entry (not per target)
     GTNetMessage gtNetMessage = new GTNetMessage(sourceGTNet.getIdGtNet(), new Date(), SendReceivedType.SEND.getValue(),
-        msgRequest.replyTo, msgRequest.messageCode.getValue(), msgRequest.message, msgRequest.gtNetMessageParamMap);
+        msgRequest.replyTo, messageCode.getValue(), msgRequest.message, msgRequest.gtNetMessageParamMap);
 
     // For cancellation messages, set idOriginalMessage to link to the original announcement
-    if (msgRequest.messageCode == GNetCoreMessageCode.GT_NET_MAINTENANCE_CANCEL_ALL_C
-        || msgRequest.messageCode == GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C) {
+    if (messageCode == GNetCoreMessageCode.GT_NET_MAINTENANCE_CANCEL_ALL_C
+        || messageCode == GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C) {
       gtNetMessage.setIdOriginalMessage(msgRequest.idOriginalMessage);
     }
 
     gtNetMessage = gtNetMessageJpaRepository.saveMsg(gtNetMessage);
     log.info("Created future-oriented broadcast message {} (code: {})", gtNetMessage.getIdGtNetMessage(),
-        msgRequest.messageCode);
+        messageCode);
 
     // Create GTNetMessageAttempt entries for each target with completed handshake
     int attemptsCreated = 0;
@@ -421,17 +429,16 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    * Saves a copy of a broadcast message under the own server's GTNet entry. This allows administrators to see sent
    * broadcast messages in their own server's message list.
    */
-  private void saveBroadcastToOwnEntry(GTNet sourceGTNet, MsgRequest msgRequest) {
+  private void saveBroadcastToOwnEntry(GTNet sourceGTNet, MsgRequest msgRequest, GTNetMessageCode messageCode) {
     gtNetMessageJpaRepository
         .saveMsg(new GTNetMessage(sourceGTNet.getIdGtNet(), new Date(), SendReceivedType.SEND.getValue(), null,
-            msgRequest.messageCode.getValue(), msgRequest.message, msgRequest.gtNetMessageParamMap));
+            messageCode.getValue(), msgRequest.message, msgRequest.gtNetMessageParamMap));
   }
 
-  private List<GTNet> getTargetDomains(MsgRequest msgRequest) {
-    if (msgRequest.messageCode.name().contains(GTNetModelHelper.MESSAGE_TO_ALL)) {
+  private List<GTNet> getTargetDomains(MsgRequest msgRequest, GTNetMessageCode messageCode) {
+    if (messageCode.name().contains(GTNetModelHelper.MESSAGE_TO_ALL)) {
       // All broadcast messages go to remote servers with configured data exchange (excludes own entry)
-      GTNetMessageCode code = msgRequest.messageCode;
-      if (code == GNetCoreMessageCode.GT_NET_OFFLINE_ALL_C || FUTURE_ORIENTED_MESSAGE_CODES.contains(code)) {
+      if (messageCode == GNetCoreMessageCode.GT_NET_OFFLINE_ALL_C || FUTURE_ORIENTED_MESSAGE_CODES.contains(messageCode)) {
         return getRemotePeersWithExchange();
       }
       return List.of();
@@ -470,9 +477,10 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    * @param gtNetList       list of target GTNet entries to send to
    * @param gtNetMsgRequest metadata about the message type including model class
    * @param msgRequest      the request containing message parameters
+   * @param messageCode     the resolved message code enum
    */
   private void sendAndSaveMsg(GTNet sourceGTNet, List<GTNet> gtNetList, GTNetMsgRequest gtNetMsgRequest,
-      MsgRequest msgRequest) {
+      MsgRequest msgRequest, GTNetMessageCode messageCode) {
     // Convert map to typed model class for validation and payload serialization
     Object payloadModel = null;
     if (gtNetMsgRequest != null && gtNetMsgRequest.model != null && msgRequest.gtNetMessageParamMap != null
@@ -484,7 +492,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     for (GTNet targetGTNet : gtNetList) {
       GTNetMessage gtNetMessage = gtNetMessageJpaRepository.saveMsg(
           new GTNetMessage(targetGTNet.getIdGtNet(), new Date(), SendReceivedType.SEND.getValue(), msgRequest.replyTo,
-              msgRequest.messageCode.getValue(), msgRequest.message, msgRequest.gtNetMessageParamMap));
+              messageCode.getValue(), msgRequest.message, msgRequest.gtNetMessageParamMap));
       SendResult sendResult = sendMessageWithResult(sourceGTNet, targetGTNet, gtNetMessage, payloadModel);
       MessageEnvelope meResponse = sendResult != null ? sendResult.response() : null;
 
@@ -508,7 +516,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       }
 
       // Apply side effects for outgoing announcement messages
-      applyOutgoingSideEffects(targetGTNet, msgRequest);
+      applyOutgoingSideEffects(targetGTNet, msgRequest, messageCode);
     }
   }
 
@@ -681,8 +689,8 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    * Applies side effects for outgoing announcement messages (like revokes). When we send a revoke, we disable exchange
    * for the specified entity kinds.
    */
-  private void applyOutgoingSideEffects(GTNet targetGTNet, MsgRequest msgRequest) {
-    if (msgRequest.messageCode == GNetCoreMessageCode.GT_NET_DATA_REVOKE_SEL_C) {
+  private void applyOutgoingSideEffects(GTNet targetGTNet, MsgRequest msgRequest, GTNetMessageCode messageCode) {
+    if (messageCode == GNetCoreMessageCode.GT_NET_DATA_REVOKE_SEL_C) {
       Set<IExchangeKindType> revokedKinds = parseEntityKinds(msgRequest.gtNetMessageParamMap);
       for (IExchangeKindType kind : revokedKinds) {
         targetGTNet.getEntityByKind(kind.getValue()).ifPresent(entity -> {
@@ -733,8 +741,10 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    * @param sourceGTNet the local GTNet entry
    * @param gtNetList   list of target GTNet entries (typically just one - the original requester)
    * @param msgRequest  the request containing the response message code, replyTo, optional message, and waitDaysApply
+   * @param messageCode the resolved message code enum
    */
-  private void sendResponseMsg(GTNet sourceGTNet, List<GTNet> gtNetList, MsgRequest msgRequest) {
+  private void sendResponseMsg(GTNet sourceGTNet, List<GTNet> gtNetList, MsgRequest msgRequest,
+      GTNetMessageCode messageCode) {
     // Look up the original request message to get the requester's original message ID
     Integer replyToSourceId = null;
     if (msgRequest.replyTo != null) {
@@ -746,7 +756,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
     for (GTNet targetGTNet : gtNetList) {
       GTNetMessage gtNetMessage = new GTNetMessage(targetGTNet.getIdGtNet(), new Date(),
-          SendReceivedType.SEND.getValue(), msgRequest.replyTo, msgRequest.messageCode.getValue(), msgRequest.message,
+          SendReceivedType.SEND.getValue(), msgRequest.replyTo, messageCode.getValue(), msgRequest.message,
           null);
       // Set waitDaysApply if provided by admin
       if (msgRequest.waitDaysApply != null) {
@@ -755,11 +765,11 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       gtNetMessage = gtNetMessageJpaRepository.saveMsg(gtNetMessage);
 
       // Apply side effects for specific response codes
-      applyManualResponseSideEffects(sourceGTNet, targetGTNet, msgRequest);
+      applyManualResponseSideEffects(sourceGTNet, targetGTNet, msgRequest, messageCode);
 
       // Send the response with replyToSourceId so the receiver can link it to their original request
       // Include payload for specific response codes
-      Object payload = buildManualResponsePayload(sourceGTNet, targetGTNet, msgRequest.messageCode);
+      Object payload = buildManualResponsePayload(sourceGTNet, targetGTNet, messageCode);
       sendResponseMessage(sourceGTNet, targetGTNet, gtNetMessage, replyToSourceId, payload);
     }
   }
@@ -767,8 +777,9 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   /**
    * Applies side effects for manual responses that require state changes.
    */
-  private void applyManualResponseSideEffects(GTNet sourceGTNet, GTNet targetGTNet, MsgRequest msgRequest) {
-    GTNetMessageCode responseCode = msgRequest.messageCode;
+  private void applyManualResponseSideEffects(GTNet sourceGTNet, GTNet targetGTNet, MsgRequest msgRequest,
+      GTNetMessageCode messageCode) {
+    GTNetMessageCode responseCode = messageCode;
 
     if (responseCode == GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_ACCEPT_S) {
       // Grant server list access to this remote
