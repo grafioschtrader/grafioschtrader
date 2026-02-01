@@ -176,10 +176,22 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
 
       this.createTranslatedValueStoreAndFilterField(this.gtNetList);
 
+      // Save previously expanded row IDs before clearing
+      const previouslyLoadedIds = new Set(this.loadedMessageIds);
+
       // Clear message cache on data refresh
       this.gtNetMessageMap = {};
       this.loadedMessageIds.clear();
       this.loadingMessageIds.clear();
+
+      // Re-populate messages for previously expanded rows
+      previouslyLoadedIds.forEach(idGtNet => {
+        const messages = this.allAdminMessages.filter(msg => msg.idGtNet === idGtNet);
+        if (messages.length > 0) {
+          this.gtNetMessageMap[idGtNet] = messages;
+          this.loadedMessageIds.add(idGtNet);
+        }
+      });
 
       this.prepareTableAndTranslate();
     });
