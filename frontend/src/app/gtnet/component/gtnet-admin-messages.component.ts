@@ -187,7 +187,8 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
 
   /**
    * Calculates pending replies from admin messages grouped by idGtNet.
-   * A message is pending if it has valid response codes and hasn't been replied to yet.
+   * For admin messages, any incoming message (root or reply) that hasn't been replied to
+   * is considered pending, allowing ongoing back-and-forth conversations.
    */
   private calculatePendingReplies(): void {
     this.incomingPendingReplies = {};
@@ -202,10 +203,6 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
     });
 
     this.allAdminMessages.forEach(msg => {
-      // Only root messages (not replies) can be pending
-      if (msg.replyTo != null) {
-        return;
-      }
       // Check if this message type supports replies
       const validResponses = getValidResponseCodes(msg.messageCode);
       if (validResponses.length === 0) {
@@ -218,11 +215,11 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
       const idGtNet = msg.idGtNet;
       const isReceived = msg.sendRecv === 'RECEIVED' || msg.sendRecv === SendReceivedType.RECEIVE;
       if (isReceived) {
-        // Incoming message I need to answer
+        // Incoming message I need to answer (can be root or reply)
         this.incomingPendingReplies[idGtNet] ??= [];
         this.incomingPendingReplies[idGtNet].push(msg.idGtNetMessage);
       } else {
-        // Outgoing message awaiting response
+        // Outgoing message awaiting response (can be root or reply)
         this.outgoingPendingReplies[idGtNet] ??= [];
         this.outgoingPendingReplies[idGtNet].push(msg.idGtNetMessage);
       }

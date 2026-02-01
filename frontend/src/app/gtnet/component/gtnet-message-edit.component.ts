@@ -241,15 +241,18 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
   }
 
   submit(value: { [name: string]: any }): void {
+    // Get messageCode from form control directly (disabled controls are excluded from value)
+    const messageCode = value[this.MESSAGE_CODE] ?? this.configObject[this.MESSAGE_CODE].formControl.value;
     const msgRequest = new MsgRequest(this.msgCallParam.idGTNet, this.msgCallParam.replyTo,
-      value[this.MESSAGE_CODE], value.message,);
+      messageCode, value.message,);
     msgRequest.gtNetMessageParamMap = this.getMessageParam(value);
     if (value.waitDaysApply != null) {
       msgRequest.waitDaysApply = value.waitDaysApply;
     }
-    // Include visibility if field is visible (admin messages)
-    if (value[this.VISIBILITY] != null) {
-      msgRequest.visibility = value[this.VISIBILITY];
+    // Include visibility - get from form control if disabled (disabled controls are excluded from value)
+    const visibility = value[this.VISIBILITY] ?? this.configObject[this.VISIBILITY].formControl.value;
+    if (visibility != null && !this.configObject[this.VISIBILITY].invisible) {
+      msgRequest.visibility = visibility;
     }
     this.gtNetService.submitMsg(msgRequest).subscribe({
       next: (gtNetWithMessages: GTNetWithMessages) => {
