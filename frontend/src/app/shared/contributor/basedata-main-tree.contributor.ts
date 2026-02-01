@@ -10,6 +10,7 @@ import {AppSettings} from '../app.settings';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {LibDataMainTreeContributor} from '../../lib/maintree/contributor/lib-data-main-tree.contributor';
 import {BaseSettings} from '../../lib/base.settings';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 
 /**
  * Contributor for Base Data nodes (AssetClass, StockExchange, etc.)
@@ -20,7 +21,7 @@ export class BaseDataMainTreeContributor extends MainTreeContributor {
 
   private rootNode: TreeNode;
 
-  constructor(private translateService: TranslateService) {
+  constructor(private translateService: TranslateService, private globalParamService: GlobalparameterService) {
     super();
   }
 
@@ -111,8 +112,10 @@ export class BaseDataMainTreeContributor extends MainTreeContributor {
           null
         )
       },
-      udfMetadataGeneralNode,
-      {
+      udfMetadataGeneralNode
+    ];
+    if (this.globalParamService.useGtnet()) {
+      this.rootNode.children.push({
         label: 'GTNET_SECURITY_IMPORT',
         data: new TypeNodeData(
           TreeNodeType.GTNetSecurityImport,
@@ -121,8 +124,8 @@ export class BaseDataMainTreeContributor extends MainTreeContributor {
           null,
           null
         )
-      }
-    ];
+      });
+    }
   }
 
   private getUDFMetadataSecurityChild(): TreeNode {
