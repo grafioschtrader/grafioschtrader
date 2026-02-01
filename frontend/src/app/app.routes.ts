@@ -52,6 +52,8 @@ import {GlobalSettingsTableComponent} from './lib/globalsettings/global.settings
 import {TaskDataChangeTableComponent} from './lib/taskdatamonitor/component/task.data.change.table.component';
 import {ConnectorApiKeyTableComponent} from './lib/connectorapikey/component/connector.api.key.table.component';
 import {GTNetSetupTableComponent} from './gtnet/component/gtnet.setup.table.component';
+import {GTNetTabMenuComponent} from './gtnet/component/gtnet-tabmenu.component';
+import {GTNetAdminMessagesComponent} from './gtnet/component/gtnet-admin-messages.component';
 import {GTNetExchangeLogTabMenuComponent} from './gtnet/component/gtnet-exchange-log-tabmenu.component';
 import {GTNetExchangeLogComponent} from './gtnet/component/gtnet-exchange-log.component';
 import {GTNetMessageAnswerTableComponent} from './gtnet/component/gtnet-message-answer-table.component';
@@ -274,9 +276,21 @@ const APP_ROUTES: Routes = [
         canActivate: [authGuard]
       },
       {
-        path: AppSettings.GT_NET_KEY,
-        component: GTNetSetupTableComponent,
-        canActivate: [authGuard]
+        path: AppSettings.GT_NET_TAB_MENU_KEY,
+        component: GTNetTabMenuComponent,
+        canActivate: [authGuard],
+        children: [
+          {
+            path: AppSettings.GT_NET_SETUP_KEY,
+            component: GTNetSetupTableComponent,
+            canActivate: [authGuard]
+          },
+          {
+            path: AppSettings.GT_NET_ADMIN_MESSAGES_KEY,
+            component: GTNetAdminMessagesComponent,
+            canActivate: [adminGuard]
+          }
+        ]
       },
       {
         path: AppSettings.GT_NET_MESSAGE_ANSWER_KEY,

@@ -10,10 +10,22 @@ export class GTNetMessage {
   messageCode: GTNetMessageCodeType | string = null;
   gtNetMessageParamMap: Map<string, BaseParam> | { [key: string]: BaseParam };
   message: string = null;
+  visibility: MessageVisibility | string = MessageVisibility.ALL_USERS;
   hasBeenRead: boolean = false;
   deliveryStatus: DeliveryStatus | string = DeliveryStatus.PENDING;
   waitDaysApply: number = 0;
   canDelete: boolean = false;
+}
+
+/**
+ * Visibility levels for GTNet admin messages.
+ * Controls who can see a message:
+ * - ALL_USERS (0): visible to everyone
+ * - ADMIN_ONLY (1): visible only to administrators
+ */
+export enum MessageVisibility {
+  ALL_USERS = 0,
+  ADMIN_ONLY = 1
 }
 
 export enum DeliveryStatus {
@@ -23,10 +35,24 @@ export enum DeliveryStatus {
 }
 
 export class MsgCallParam {
+  /**
+   * Pre-selected message code for the dialog. Used by admin messages component
+   * to default to admin message codes.
+   */
+  public preselectedMessageCode: GTNetMessageCodeType = null;
+
+  /**
+   * If true, admin message codes (GT_NET_ADMIN_MESSAGE_*) are excluded from the dropdown.
+   * Used when calling from GTNetSetupTableComponent to ensure admin messages are only
+   * sent from the dedicated GTNetAdminMessagesComponent.
+   */
+  public excludeAdminMessages: boolean = false;
+
   constructor(public formDefinitions: { [type: string]: ClassDescriptorInputAndShow }, public idGTNet: number,
               public replyTo: number, public gtNetMessage: GTNetMessage, public isAllMessage: boolean = false,
               public validResponseCodes: GTNetMessageCodeType[] = null,
-              public idOpenDiscontinuedMessage: number = null) {
+              public idOpenDiscontinuedMessage: number = null,
+              public parentVisibility: MessageVisibility = null) {
   }
 }
 
@@ -55,6 +81,10 @@ export enum GTNetMessageCodeType {
   GT_NET_MAINTENANCE_CANCEL_ALL_C = 26,
   GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C = 27,
   GT_NET_SETTINGS_UPDATED_ALL_C = 28,
+
+  // Admin messages (30–34)
+  GT_NET_ADMIN_MESSAGE_SEL_C = 30,
+  GT_NET_ADMIN_MESSAGE_ALL_C = 31,
 
   // Data exchange (50–59)
   GT_NET_DATA_REQUEST_SEL_RR_C = 50,

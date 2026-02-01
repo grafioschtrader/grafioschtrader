@@ -123,7 +123,7 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
       label: 'GT_NET_NET_AND_MESSAGE',
       data: new TypeNodeData(
         TreeNodeType.NO_MENU,
-        this.addMainRoute(AppSettings.GT_NET_KEY),
+        this.addMainRoute(AppSettings.GT_NET_TAB_MENU_KEY),
         null,
         null,
         null

@@ -59,11 +59,6 @@ public interface MailSendRecvDTO {
   public LocalDateTime getSendRecvTime();
 
   @Schema(description = """
-      Identifier for the GT network instance in distributed setups. This tracks which system instance the message 
-      originated from or is destined for in multi-instance deployments. NOT USED YET.""")
-  public Integer getIdGtNet();
-
-  @Schema(description = """
       Display name of the target role for role-based messages. This provides a human-readable role name for UI 
       display purposes when the message is addressed to a role rather than an individual user.""")
   public Byte getReplyToRolePrivate();

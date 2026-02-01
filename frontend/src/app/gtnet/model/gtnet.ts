@@ -110,6 +110,11 @@ export class MsgRequest {
    * (GT_NET_MAINTENANCE_CANCEL_ALL_C, GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C).
    */
   public idOriginalMessage: number = null;
+  /**
+   * Visibility level for admin messages. Controls who can see the message:
+   * ALL_USERS = visible to everyone, ADMIN_ONLY = visible only to administrators.
+   */
+  public visibility: string = null;
 
   constructor(public idGTNetTargetDomain: number, public replyTo: number, public messageCode: MessageComType | string,
               public message: string) {

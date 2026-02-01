@@ -15,6 +15,7 @@ package grafiosch.gtnet;
  *   <li><b>1-4</b>: Handshake protocol</li>
  *   <li><b>10-13</b>: Server list exchange</li>
  *   <li><b>20-28</b>: Status announcements (offline, maintenance, discontinued)</li>
+ *   <li><b>30-34</b>: Admin-to-admin messaging</li>
  *   <li><b>50-54</b>: Data exchange negotiation</li>
  *   <li><b>60+</b>: Reserved for application-specific messages</li>
  * </ul>
@@ -62,6 +63,14 @@ public enum GNetCoreMessageCode implements GTNetMessageCode {
 
   /** Server has gone offline - may restart or shut down */
   GT_NET_OFFLINE_ALL_C((byte) 20),
+
+  // Admin messages (30-34)
+
+  /** Admin message sent to a specific GTNet domain (targeted) */
+  GT_NET_ADMIN_MESSAGE_SEL_C((byte) 30),
+
+  /** Admin message broadcast to all authorized GTNet domains */
+  GT_NET_ADMIN_MESSAGE_ALL_C((byte) 31),
 
   /** Server is in maintenance mode during time period */
   GT_NET_MAINTENANCE_ALL_C((byte) 24),

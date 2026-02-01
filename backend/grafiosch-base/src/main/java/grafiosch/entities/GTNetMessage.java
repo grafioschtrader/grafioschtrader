@@ -12,6 +12,7 @@ import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
 import grafiosch.gtnet.DeliveryStatus;
 import grafiosch.gtnet.GNetCoreMessageCode;
 import grafiosch.gtnet.GTNetMessageCode;
+import grafiosch.gtnet.MessageVisibility;
 import grafiosch.gtnet.SendReceivedType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.CollectionTable;
@@ -148,6 +149,15 @@ public class GTNetMessage extends BaseID<Integer> {
   @PropertyOnlyCreation
   @Column(name = "message")
   private String message;
+
+  @Schema(description = """
+      Visibility level for this message. Controls who can see the message:
+      ALL_USERS (0) = visible to everyone, ADMIN_ONLY (1) = visible only to administrators.
+      Thread visibility rules: replies to ADMIN_ONLY threads are forced to ADMIN_ONLY,
+      replies to ALL_USERS threads can be either visibility level.""")
+  @PropertyOnlyCreation
+  @Column(name = "visibility")
+  private byte visibility = MessageVisibility.ALL_USERS.getValue();
 
   @Schema(description = """
       Error message code for failed operations. Contains the i18n key (not yet translated) that describes what went
@@ -312,6 +322,42 @@ public class GTNetMessage extends BaseID<Integer> {
     this.message = message;
   }
 
+  /**
+   * Gets the visibility level for this message.
+   *
+   * @return the MessageVisibility enum value
+   */
+  public MessageVisibility getVisibility() {
+    return MessageVisibility.getByValue(visibility);
+  }
+
+  /**
+   * Sets the visibility level for this message.
+   *
+   * @param visibility the MessageVisibility enum value
+   */
+  public void setVisibility(MessageVisibility visibility) {
+    this.visibility = visibility.getValue();
+  }
+
+  /**
+   * Gets the raw byte value of the visibility.
+   *
+   * @return the visibility byte value
+   */
+  public byte getVisibilityValue() {
+    return visibility;
+  }
+
+  /**
+   * Sets the visibility using a raw byte value.
+   *
+   * @param visibility the visibility byte value
+   */
+  public void setVisibilityValue(byte visibility) {
+    this.visibility = visibility;
+  }
+
   public String getErrorMsgCode() {
     return errorMsgCode;
   }
@@ -391,7 +437,8 @@ public class GTNetMessage extends BaseID<Integer> {
     return "GTNetMessage [idGtNetMessage=" + idGtNetMessage + ", idGtNet=" + idGtNet + ", timestamp=" + timestamp
         + ", sendRecv=" + sendRecv + ", idSourceGtNetMessage=" + idSourceGtNetMessage + ", replyTo=" + replyTo
         + ", idOriginalMessage=" + idOriginalMessage + ", messageCode=" + messageCode + ", message=" + message
-        + ", errorMsgCode=" + errorMsgCode + ", hasBeenRead=" + hasBeenRead + ", deliveryStatus=" + deliveryStatus
-        + ", waitDaysApply=" + waitDaysApply + ", gtNetMessageParamMap=" + paramMapStr + "]";
+        + ", visibility=" + visibility + ", errorMsgCode=" + errorMsgCode + ", hasBeenRead=" + hasBeenRead
+        + ", deliveryStatus=" + deliveryStatus + ", waitDaysApply=" + waitDaysApply
+        + ", gtNetMessageParamMap=" + paramMapStr + "]";
   }
 }

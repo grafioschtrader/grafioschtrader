@@ -3,7 +3,7 @@ import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {DeliveryStatus, getReverseCode, getValidResponseCodes, GTNetMessage, GTNetMessageCodeType, MsgCallParam, SendReceivedType} from '../model/gtnet.message';
+import {DeliveryStatus, getReverseCode, getValidResponseCodes, GTNetMessage, GTNetMessageCodeType, MessageVisibility, MsgCallParam, SendReceivedType} from '../model/gtnet.message';
 import {MsgRequest} from '../model/gtnet';
 import {GTNetService} from '../service/gtnet.service';
 import {FilterService, MenuItem, TreeNode} from 'primeng/api';
@@ -228,6 +228,8 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
       {translateValues: TranslateValue.NORMAL, filterType: FilterType.withOptions});
     this.addColumnFeqH(DataType.String, 'message', true, false,
       {filterType: FilterType.likeDataType});
+    this.addColumnFeqH(DataType.String, 'visibility', true, false,
+      {translateValues: TranslateValue.NORMAL, filterType: FilterType.withOptions, width: 100});
     this.addColumnFeqH(DataType.Boolean, 'hasBeenRead', true, false, {templateName: 'check', width: 60});
     this.prepareData();
     this.createTranslateValuesStoreForTranslation(this.rootNode.children);
@@ -400,15 +402,32 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   private replyToSelected(): void {
     const msg: GTNetMessage = this.selectedNode.data;
     const validResponses = getValidResponseCodes(msg.messageCode);
+    // Get parent's visibility for inheritance rules
+    const parentVisibility = this.getParentVisibility(msg);
     this.msgCallParam = new MsgCallParam(
       this.formDefinitions,
       msg.idGtNet,
       msg.idGtNetMessage,
       null,
       false,
-      validResponses
+      validResponses,
+      null,
+      parentVisibility
     );
     this.visibleDialogMsg = true;
+  }
+
+  /**
+   * Gets the visibility of the thread root message for inheritance rules.
+   * If the message being replied to is itself a reply, we traverse up to find the root.
+   * For simplicity, we use the immediate parent's visibility - backend will enforce
+   * the full inheritance rule.
+   */
+  private getParentVisibility(msg: GTNetMessage): MessageVisibility {
+    const visibilityValue = typeof msg.visibility === 'string'
+      ? MessageVisibility[msg.visibility as keyof typeof MessageVisibility]
+      : msg.visibility;
+    return visibilityValue ?? MessageVisibility.ALL_USERS;
   }
 
   /**
