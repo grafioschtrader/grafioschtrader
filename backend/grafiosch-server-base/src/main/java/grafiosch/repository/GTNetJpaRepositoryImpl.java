@@ -1376,20 +1376,8 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     GTNet sourceGTNet = gtNetJpaRepository
         .findById(GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersJpaRepository)).orElseThrow();
 
-    // Create ONE message under sender's own entry (not per target)
-    GTNetMessage gtNetMessage = new GTNetMessage(sourceGTNet.getIdGtNet(), new Date(), SendReceivedType.SEND.getValue(),
-        null, GNetCoreMessageCode.GT_NET_ADMIN_MESSAGE_SEL_C.getValue(), multiTargetMsgRequest.message,
-        multiTargetMsgRequest.gtNetMessageParamMap);
-
-    // Set visibility from request
-    applyVisibility(gtNetMessage, multiTargetMsgRequest.visibility);
-
-    gtNetMessage = gtNetMessageJpaRepository.saveMsg(gtNetMessage);
-    log.info("Created admin message {} for multi-target delivery to {} targets",
-        gtNetMessage.getIdGtNetMessage(), multiTargetMsgRequest.idGTNetTargetDomains.size());
-
-    // Create GTNetMessageAttempt entries for each target with completed handshake
-    int attemptsCreated = 0;
+    // Create one GTNetMessage per target (same as single-target sending)
+    int messagesCreated = 0;
     for (Integer targetIdGtNet : multiTargetMsgRequest.idGTNetTargetDomains) {
       // Skip our own entry
       if (targetIdGtNet.equals(sourceGTNet.getIdGtNet())) {
@@ -1402,23 +1390,36 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
         continue;
       }
 
-      // Only create attempts for targets with completed handshake
-      if (targetGTNet.getGtNetConfig() != null && targetGTNet.getGtNetConfig().getTokenRemote() != null) {
-        GTNetMessageAttempt attempt = new GTNetMessageAttempt(targetIdGtNet, gtNetMessage.getIdGtNetMessage());
-        gtNetMessageAttemptJpaRepository.save(attempt);
-        attemptsCreated++;
-      } else {
+      // Only create message for targets with completed handshake
+      if (targetGTNet.getGtNetConfig() == null || targetGTNet.getGtNetConfig().getTokenRemote() == null) {
         log.warn("Target GTNet {} has no completed handshake, skipping", targetIdGtNet);
+        continue;
       }
+
+      // Create message for this target (id_gt_net = target's ID)
+      GTNetMessage gtNetMessage = new GTNetMessage(targetIdGtNet, new Date(), SendReceivedType.SEND.getValue(),
+          null, GNetCoreMessageCode.GT_NET_ADMIN_MESSAGE_SEL_C.getValue(), multiTargetMsgRequest.message,
+          multiTargetMsgRequest.gtNetMessageParamMap);
+      applyVisibility(gtNetMessage, multiTargetMsgRequest.visibility);
+      gtNetMessage = gtNetMessageJpaRepository.saveMsg(gtNetMessage);
+
+      // Create GTNetMessageAttempt for background delivery
+      GTNetMessageAttempt attempt = new GTNetMessageAttempt(targetIdGtNet, gtNetMessage.getIdGtNetMessage());
+      gtNetMessageAttemptJpaRepository.save(attempt);
+      messagesCreated++;
+
+      log.info("Created admin message {} for target {}", gtNetMessage.getIdGtNetMessage(),
+          targetGTNet.getDomainRemoteName());
     }
 
-    log.info("Created {} GTNetMessageAttempt entries for admin message {}", attemptsCreated,
-        gtNetMessage.getIdGtNetMessage());
+    log.info("Created {} admin messages for multi-target delivery", messagesCreated);
 
     // Schedule immediate delivery task
-    taskDataChangeJpaRepository
-        .save(new TaskDataChange(TaskTypeBase.GTNET_ADMIN_MESSAGE_DELIVERY, TaskDataExecPriority.PRIO_NORMAL));
-    log.info("Scheduled GTNet admin message delivery task for immediate execution");
+    if (messagesCreated > 0) {
+      taskDataChangeJpaRepository
+          .save(new TaskDataChange(TaskTypeBase.GTNET_ADMIN_MESSAGE_DELIVERY, TaskDataExecPriority.PRIO_NORMAL));
+      log.info("Scheduled GTNet admin message delivery task for immediate execution");
+    }
 
     return this.getAllGTNetsWithMessages();
   }
