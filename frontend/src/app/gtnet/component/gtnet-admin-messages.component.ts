@@ -3,7 +3,7 @@ import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
 import {GTNet, GTNetWithMessages, MsgRequest} from '../model/gtnet';
-import {GTNetMessage, GTNetMessageCodeType, MessageVisibility, MsgCallParam} from '../model/gtnet.message';
+import {getValidResponseCodes, GTNetMessage, GTNetMessageCodeType, MessageVisibility, MsgCallParam, SendReceivedType} from '../model/gtnet.message';
 import {GTNetService} from '../service/gtnet.service';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {MessageToastService} from '../../lib/message/message.toast.service';
@@ -60,6 +60,7 @@ import {ProcessedActionData} from '../../lib/types/processed.action.data';
       [canExpandFn]="canExpand.bind(this)"
       [ownerHighlightFn]="isMyEntry.bind(this)"
       [valueGetterFn]="getValueByPath.bind(this)"
+      [contextMenuAppendTo]="'body'"
       (componentClick)="onComponentClick($event)"
       (rowExpand)="onRowExpand($event)">
 
@@ -186,27 +187,44 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
 
   /**
    * Calculates pending replies from admin messages grouped by idGtNet.
-   * Filters messages that expect a reply based on message code conventions.
+   * A message is pending if it has valid response codes and hasn't been replied to yet.
    */
   private calculatePendingReplies(): void {
     this.incomingPendingReplies = {};
     this.outgoingPendingReplies = {};
 
+    // Build a set of message IDs that have been replied to
+    const repliedToIds = new Set<number>();
     this.allAdminMessages.forEach(msg => {
-      // Messages that expect a reply (incoming for remote, outgoing for local)
-      const codeStr = typeof msg.messageCode === 'string' ? msg.messageCode : GTNetMessageCodeType[msg.messageCode];
-      if (codeStr?.endsWith('_RR_C') && msg.replyTo == null) {
-        // Check if this message needs a reply
-        const idGtNet = msg.idGtNet;
-        // If message is from remote (not my entry), it's incoming pending
-        // If message is from me, it's outgoing pending (waiting for answer)
-        if (msg.idGtNet !== this.gtNetMyEntryId) {
-          this.incomingPendingReplies[idGtNet] ??= [];
-          this.incomingPendingReplies[idGtNet].push(msg.idGtNetMessage);
-        } else {
-          this.outgoingPendingReplies[idGtNet] ??= [];
-          this.outgoingPendingReplies[idGtNet].push(msg.idGtNetMessage);
-        }
+      if (msg.replyTo != null) {
+        repliedToIds.add(msg.replyTo);
+      }
+    });
+
+    this.allAdminMessages.forEach(msg => {
+      // Only root messages (not replies) can be pending
+      if (msg.replyTo != null) {
+        return;
+      }
+      // Check if this message type supports replies
+      const validResponses = getValidResponseCodes(msg.messageCode);
+      if (validResponses.length === 0) {
+        return;
+      }
+      // Skip if already replied to
+      if (repliedToIds.has(msg.idGtNetMessage)) {
+        return;
+      }
+      const idGtNet = msg.idGtNet;
+      const isReceived = msg.sendRecv === 'RECEIVED' || msg.sendRecv === SendReceivedType.RECEIVE;
+      if (isReceived) {
+        // Incoming message I need to answer
+        this.incomingPendingReplies[idGtNet] ??= [];
+        this.incomingPendingReplies[idGtNet].push(msg.idGtNetMessage);
+      } else {
+        // Outgoing message awaiting response
+        this.outgoingPendingReplies[idGtNet] ??= [];
+        this.outgoingPendingReplies[idGtNet].push(msg.idGtNetMessage);
       }
     });
   }
