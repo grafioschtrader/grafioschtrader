@@ -18,6 +18,7 @@ import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetMessage;
 import grafiosch.gtnet.model.GTNetWithMessages;
 import grafiosch.gtnet.model.MsgRequest;
+import grafiosch.gtnet.model.MultiTargetMsgRequest;
 import grafiosch.repository.GTNetJpaRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -42,6 +43,14 @@ public class GTNetResource extends UpdateCreateResource<GTNet> {
   @PostMapping(value = "/submitmsg", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<GTNetWithMessages> submitMsg(@Valid @RequestBody final MsgRequest msgRequest) {
     return new ResponseEntity<>(gtNetJpaRepository.submitMsg(msgRequest), HttpStatus.OK);
+  }
+
+  @Operation(summary = "Client sends an admin message to multiple selected targets", description = "Creates one message and queues delivery to all selected targets via background job", tags = {
+      RequestMappings.GTNET })
+  @PostMapping(value = "/submitmsgmulti", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<GTNetWithMessages> submitMsgToMultiple(
+      @Valid @RequestBody final MultiTargetMsgRequest multiTargetMsgRequest) {
+    return new ResponseEntity<>(gtNetJpaRepository.submitMsgToMultiple(multiTargetMsgRequest), HttpStatus.OK);
   }
 
   @Operation(summary = "Returns messages for a specific GTNet domain (lazy loading)", description = "Used when expanding a row in the GTNet setup table", tags = {

@@ -20,6 +20,7 @@ import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {GTNetService} from '../service/gtnet.service';
 import {GTNetWithMessages, MsgRequest} from '../model/gtnet';
+import {MultiTargetMsgRequest} from '../model/multi-target-msg-request';
 import {BaseSettings} from '../../lib/base.settings';
 import {DialogModule} from 'primeng/dialog';
 import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
@@ -243,27 +244,45 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
   submit(value: { [name: string]: any }): void {
     // Get messageCode from form control directly (disabled controls are excluded from value)
     const messageCode = value[this.MESSAGE_CODE] ?? this.configObject[this.MESSAGE_CODE].formControl.value;
-    const msgRequest = new MsgRequest(this.msgCallParam.idGTNet, this.msgCallParam.replyTo,
-      messageCode, value.message,);
-    msgRequest.gtNetMessageParamMap = this.getMessageParam(value);
-    if (value.waitDaysApply != null) {
-      msgRequest.waitDaysApply = value.waitDaysApply;
-    }
+
     // Include visibility - get from form control if disabled (disabled controls are excluded from value)
     const visibility = value[this.VISIBILITY] ?? this.configObject[this.VISIBILITY].formControl.value;
-    if (visibility != null && !this.configObject[this.VISIBILITY].invisible) {
-      msgRequest.visibility = visibility;
+    const gtNetMessageParamMap = this.getMessageParam(value);
+
+    // Multi-target mode: use submitMsgToMultiple for batch delivery
+    if (this.msgCallParam.targetIds?.length > 0) {
+      const multiRequest = new MultiTargetMsgRequest(this.msgCallParam.targetIds, value.message, visibility);
+      multiRequest.gtNetMessageParamMap = gtNetMessageParamMap;
+
+      this.gtNetService.submitMsgToMultiple(multiRequest).subscribe({
+        next: (gtNetWithMessages: GTNetWithMessages) => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'GT_NET_ADMIN_MESSAGE_QUEUED',
+            {count: this.msgCallParam.targetIds.length});
+          this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED, gtNetWithMessages));
+        }, error: () => this.configObject.submit.disabled = false
+      });
+    } else {
+      // Single-target or reply mode: use standard submitMsg
+      const msgRequest = new MsgRequest(this.msgCallParam.idGTNet, this.msgCallParam.replyTo,
+        messageCode, value.message);
+      msgRequest.gtNetMessageParamMap = gtNetMessageParamMap;
+      if (value.waitDaysApply != null) {
+        msgRequest.waitDaysApply = value.waitDaysApply;
+      }
+      if (visibility != null && !this.configObject[this.VISIBILITY].invisible) {
+        msgRequest.visibility = visibility;
+      }
+      this.gtNetService.submitMsg(msgRequest).subscribe({
+        next: (gtNetWithMessages: GTNetWithMessages) => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'GT_NET_MESSAGE'});
+          this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED, gtNetWithMessages));
+        }, error: () => this.configObject.submit.disabled = false
+      });
     }
-    this.gtNetService.submitMsg(msgRequest).subscribe({
-      next: (gtNetWithMessages: GTNetWithMessages) => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'GT_NET_MESSAGE'});
-        this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED, gtNetWithMessages));
-      }, error: () => this.configObject.submit.disabled = false
-    });
   }
 
-  private getMessageParam(value: { [name: string]: any }): Map<string, BaseParam> | { [key: string]: BaseParam } {
-    const gtNetMessageParamMap: Map<string, BaseParam> | { [key: string]: BaseParam } = {};
+  private getMessageParam(value: { [name: string]: any }): { [key: string]: BaseParam } {
+    const gtNetMessageParamMap: { [key: string]: BaseParam } = {};
     const valuesFlatten = Helper.flattenObject(value);
     this.classDescriptorInputAndShows && this.classDescriptorInputAndShows.fieldDescriptorInputAndShows.forEach(fDIAS => {
       let paramValue = valuesFlatten[fDIAS.fieldName];

@@ -2,6 +2,7 @@ import {Injectable} from '@angular/core';
 import {AuthServiceWithLogout} from '../../lib/login/service/base.auth.service.with.logout';
 import {GTNet, GTNetWithMessages, MsgRequest} from '../model/gtnet';
 import {GTNetMessage} from '../model/gtnet.message';
+import {MultiTargetMsgRequest} from '../model/multi-target-msg-request';
 import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {Observable} from 'rxjs/internal/Observable';
 import {AppSettings} from '../../shared/app.settings';
@@ -32,6 +33,19 @@ export class GTNetService extends AuthServiceWithLogout<GTNet> implements Servic
   submitMsg(msgRequest: MsgRequest): Observable<GTNetWithMessages> {
     return <Observable<GTNetWithMessages>>this.httpClient.post(`${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_KEY}/submitmsg`,
       msgRequest, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /**
+   * Sends an admin message to multiple selected targets via background delivery.
+   * Creates one message and queues delivery to all selected targets.
+   *
+   * @param multiTargetMsgRequest the request containing list of target IDs and message
+   * @returns the updated GTNetWithMessages for UI refresh
+   */
+  submitMsgToMultiple(multiTargetMsgRequest: MultiTargetMsgRequest): Observable<GTNetWithMessages> {
+    return <Observable<GTNetWithMessages>>this.httpClient.post(
+      `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_KEY}/submitmsgmulti`,
+      multiTargetMsgRequest, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   /**

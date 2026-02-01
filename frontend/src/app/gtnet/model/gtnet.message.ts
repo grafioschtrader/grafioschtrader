@@ -48,6 +48,12 @@ export class MsgCallParam {
    */
   public excludeAdminMessages: boolean = false;
 
+  /**
+   * List of target GTNet IDs for multi-target admin messages.
+   * When set, the edit dialog will use submitMsgToMultiple() instead of submitMsg().
+   */
+  public targetIds: number[] = null;
+
   constructor(public formDefinitions: { [type: string]: ClassDescriptorInputAndShow }, public idGTNet: number,
               public replyTo: number, public gtNetMessage: GTNetMessage, public isAllMessage: boolean = false,
               public validResponseCodes: GTNetMessageCodeType[] = null,
@@ -83,8 +89,8 @@ export enum GTNetMessageCodeType {
   GT_NET_SETTINGS_UPDATED_ALL_C = 28,
 
   // Admin messages (30–34)
+  // Note: value 31 was used by GT_NET_ADMIN_MESSAGE_ALL_C (deprecated) - do not reuse
   GT_NET_ADMIN_MESSAGE_SEL_C = 30,
-  GT_NET_ADMIN_MESSAGE_ALL_C = 31,
 
   // Data exchange (50–59)
   GT_NET_DATA_REQUEST_SEL_RR_C = 50,
@@ -134,9 +140,6 @@ export const RESPONSE_CODE_MAP: { [key: number]: GTNetMessageCodeType[] } = {
   // Admin messages can be replied to with another admin message
   [GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_SEL_C]: [
     GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_SEL_C
-  ],
-  [GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_ALL_C]: [
-    GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_SEL_C
   ]
 };
 
@@ -173,8 +176,7 @@ export function getReverseCode(messageCode: GTNetMessageCodeType | string): GTNe
  * These are typically informal messages where delayed application doesn't make sense.
  */
 export const HIDE_WAIT_DAYS_APPLY_CODES: Set<GTNetMessageCodeType> = new Set([
-  GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_SEL_C,
-  GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_ALL_C
+  GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_SEL_C
 ]);
 
 /** Checks if the waitDaysApply field should be shown for a given message code */

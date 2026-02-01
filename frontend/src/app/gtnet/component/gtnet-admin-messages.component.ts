@@ -2,7 +2,7 @@ import {Component, Injector, QueryList, ViewChildren} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
-import {GTNet, GTNetWithMessages, MsgRequest} from '../model/gtnet';
+import {GTNet, GTNetWithMessages} from '../model/gtnet';
 import {getValidResponseCodes, GTNetMessage, GTNetMessageCodeType, MessageVisibility, MsgCallParam, SendReceivedType} from '../model/gtnet.message';
 import {GTNetService} from '../service/gtnet.service';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
@@ -48,10 +48,11 @@ import {ProcessedActionData} from '../../lib/types/processed.action.data';
   ],
   template: `
     <configurable-table
-      [data]="gtNetList"
+      [data]="getFilteredGtNetList()"
       [fields]="fields"
       [dataKey]="'idGtNet'"
-      [(selection)]="selectedEntity"
+      [selectionMode]="'multiple'"
+      [(selection)]="selectedEntities"
       [contextMenuItems]="contextMenuItems"
       [showContextMenu]="true"
       [containerClass]="{'data-container-full': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
@@ -103,6 +104,8 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
   private readonly domainRemoteName = 'domainRemoteName';
   gtNetList: GTNet[] = [];
   gtNetMyEntryId: number;
+  /** Selected entities for multi-select checkbox mode */
+  selectedEntities: GTNet[] = [];
   /** Message count per idGtNet from admin message counts */
   gtNetMessageCountMap: { [key: number]: number } = {};
   /** Cache for loaded admin messages (lazy loaded when row is expanded) */
@@ -240,7 +243,7 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
 
   override onComponentClick(event): void {
     if (!event[GTNetMessageTreeTableComponent.consumedGT]) {
-      this.resetMenu(this.selectedEntity);
+      this.resetMenu(this.selectedEntities?.length > 0 ? this.selectedEntities[0] : null);
     }
   }
 
@@ -248,31 +251,27 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
     const menuItems: MenuItem[] = [];
     menuItems.push({
       label: 'GT_NET_ADMIN_MESSAGE_SEND', command: (e) => this.sendAdminMsg(),
-      disabled: !this.canSendMessage()
+      disabled: this.selectedEntities.length === 0
     });
     return menuItems;
   }
 
   /**
-   * Checks if sending an admin message is possible:
-   * - With selection: target must not be my own entry
-   * - Without selection: can send broadcast admin message
+   * Returns the list of GTNet entries filtered for multi-select:
+   * - Excludes the local server's own entry
+   * - Only includes entries with completed handshake (gtNetConfig exists)
    */
-  private canSendMessage(): boolean {
-    if (this.selectedEntity) {
-      return this.selectedEntity.idGtNet !== this.gtNetMyEntryId;
-    }
-    return true;
+  getFilteredGtNetList(): GTNet[] {
+    return this.gtNetList.filter(gtNet =>
+      gtNet.idGtNet !== this.gtNetMyEntryId && gtNet.gtNetConfig != null
+    );
   }
 
   private sendAdminMsg(): void {
-    const isAllMessage = !this.selectedEntity;
-    const idGTNet = this.selectedEntity?.idGtNet ?? null;
-    this.msgCallParam = new MsgCallParam(this.formDefinitions, idGTNet, null, null, isAllMessage, null, null);
-    // Pre-select admin message code
-    this.msgCallParam.preselectedMessageCode = isAllMessage
-      ? GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_ALL_C
-      : GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_SEL_C;
+    const targetIds = this.selectedEntities.map(e => e.idGtNet);
+    this.msgCallParam = new MsgCallParam(this.formDefinitions, null, null, null, false, null, null);
+    this.msgCallParam.targetIds = targetIds;
+    this.msgCallParam.preselectedMessageCode = GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_SEL_C;
     this.visibleDialogMsg = true;
   }
 

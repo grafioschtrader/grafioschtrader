@@ -67,6 +67,7 @@ import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.gtnet.model.GTNetWithMessages;
 import grafiosch.gtnet.model.MsgRequest;
+import grafiosch.gtnet.model.MultiTargetMsgRequest;
 import grafiosch.gtnet.model.msg.FirstHandshakeMsg;
 import grafiosch.m2m.GTNetMessageHelper;
 import grafiosch.m2m.client.BaseDataClient;
@@ -1363,6 +1364,63 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
     // Delegate to GTNetMessageJpaRepository for actual deletion with validation
     gtNetMessageJpaRepository.deleteBatch(idGtNetMessageList, outgoingPendingIds, incomingPendingIds);
+  }
+
+  @Override
+  @Transactional
+  public GTNetWithMessages submitMsgToMultiple(MultiTargetMsgRequest multiTargetMsgRequest) {
+    if (multiTargetMsgRequest.idGTNetTargetDomains == null || multiTargetMsgRequest.idGTNetTargetDomains.isEmpty()) {
+      throw new DataViolationException("idGTNetTargetDomains", "gt.gtnet.multi.target.empty", null);
+    }
+
+    GTNet sourceGTNet = gtNetJpaRepository
+        .findById(GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersJpaRepository)).orElseThrow();
+
+    // Create ONE message under sender's own entry (not per target)
+    GTNetMessage gtNetMessage = new GTNetMessage(sourceGTNet.getIdGtNet(), new Date(), SendReceivedType.SEND.getValue(),
+        null, GNetCoreMessageCode.GT_NET_ADMIN_MESSAGE_SEL_C.getValue(), multiTargetMsgRequest.message,
+        multiTargetMsgRequest.gtNetMessageParamMap);
+
+    // Set visibility from request
+    applyVisibility(gtNetMessage, multiTargetMsgRequest.visibility);
+
+    gtNetMessage = gtNetMessageJpaRepository.saveMsg(gtNetMessage);
+    log.info("Created admin message {} for multi-target delivery to {} targets",
+        gtNetMessage.getIdGtNetMessage(), multiTargetMsgRequest.idGTNetTargetDomains.size());
+
+    // Create GTNetMessageAttempt entries for each target with completed handshake
+    int attemptsCreated = 0;
+    for (Integer targetIdGtNet : multiTargetMsgRequest.idGTNetTargetDomains) {
+      // Skip our own entry
+      if (targetIdGtNet.equals(sourceGTNet.getIdGtNet())) {
+        continue;
+      }
+
+      GTNet targetGTNet = gtNetJpaRepository.findById(targetIdGtNet).orElse(null);
+      if (targetGTNet == null) {
+        log.warn("Target GTNet {} not found, skipping", targetIdGtNet);
+        continue;
+      }
+
+      // Only create attempts for targets with completed handshake
+      if (targetGTNet.getGtNetConfig() != null && targetGTNet.getGtNetConfig().getTokenRemote() != null) {
+        GTNetMessageAttempt attempt = new GTNetMessageAttempt(targetIdGtNet, gtNetMessage.getIdGtNetMessage());
+        gtNetMessageAttemptJpaRepository.save(attempt);
+        attemptsCreated++;
+      } else {
+        log.warn("Target GTNet {} has no completed handshake, skipping", targetIdGtNet);
+      }
+    }
+
+    log.info("Created {} GTNetMessageAttempt entries for admin message {}", attemptsCreated,
+        gtNetMessage.getIdGtNetMessage());
+
+    // Schedule immediate delivery task
+    taskDataChangeJpaRepository
+        .save(new TaskDataChange(TaskTypeBase.GTNET_ADMIN_MESSAGE_DELIVERY, TaskDataExecPriority.PRIO_NORMAL));
+    log.info("Scheduled GTNet admin message delivery task for immediate execution");
+
+    return this.getAllGTNetsWithMessages();
   }
 
 }
