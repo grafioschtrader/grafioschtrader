@@ -77,6 +77,7 @@ import {ProcessedActionData} from '../../lib/types/processed.action.data';
                                  [incomingPendingIds]="getIncomingPendingIds(row.idGtNet)"
                                  [outgoingPendingIds]="getOutgoingPendingIds(row.idGtNet)"
                                  [formDefinitions]="formDefinitions"
+                                 [showFilter]="false"
                                  (dataChanged)="onTreeTableDataChanged($event)">
         </gtnet-message-treetable>
       } @else {
