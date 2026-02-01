@@ -180,9 +180,27 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       this.translateService, this.classDescriptorInputAndShows,
       '', false);
 
+    // Preserve current visibility state before recreating form controls
+    const currentVisibility = this.configObject?.[this.VISIBILITY]?.formControl?.value;
+    const visibilityWasDisabled = this.configObject?.[this.VISIBILITY]?.formControl?.disabled ?? false;
+    const visibilityWasInvisible = this.configObject?.[this.VISIBILITY]?.invisible ?? true;
+    const visibilityOptions = this.configObject?.[this.VISIBILITY]?.valueKeyHtmlOptions;
+
     // Keep messageCode, visibility, waitDaysApply (first 3), add dynamic fields, then message and submit (last 2)
     this.config = [...this.config.slice(0, 3), ...fieldConfig, ...this.config.slice(-2)];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+
+    // Restore visibility field state after form recreation
+    if (visibilityOptions) {
+      this.configObject[this.VISIBILITY].valueKeyHtmlOptions = visibilityOptions;
+    }
+    if (currentVisibility != null) {
+      this.configObject[this.VISIBILITY].formControl.setValue(currentVisibility);
+    }
+    if (visibilityWasDisabled) {
+      this.configObject[this.VISIBILITY].formControl.disable();
+    }
+    this.configObject[this.VISIBILITY].invisible = visibilityWasInvisible;
 
     if (this.msgCallParam.gtNetMessage) {
       setTimeout(() => this.setExistingModel());
