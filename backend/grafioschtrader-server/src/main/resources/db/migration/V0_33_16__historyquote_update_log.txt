@@ -69,3 +69,52 @@ CREATE TABLE `gt_net_security_imp_gap` (
     FOREIGN KEY (`id_gt_net`)
     REFERENCES `gt_net` (`id_gt_net`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+
+-- Add visibility column for admin-to-admin messaging in GTNet
+-- Visibility: 0 = ALL_USERS (default), 1 = ADMIN_ONLY
+ALTER TABLE gt_net_message DROP COLUMN IF EXISTS visibility;
+ALTER TABLE gt_net_message ADD COLUMN visibility TINYINT(1) NOT NULL DEFAULT 0 AFTER message;
+
+DELIMITER //
+
+-- We use a Stored Procedure to handle the conditional logic, 
+-- as MariaDB doesn't support 'IF EXISTS' for Constraints and Indexes.
+CREATE OR REPLACE PROCEDURE DropConstraintsSafe()
+BEGIN
+    -- 1. Drop Foreign Key if it exists
+    -- We check the information_schema to see if the constraint is active
+    IF EXISTS (
+        SELECT 1 FROM information_schema.TABLE_CONSTRAINTS 
+        WHERE CONSTRAINT_SCHEMA = DATABASE() 
+        AND TABLE_NAME = 'mail_send_recv' 
+        AND CONSTRAINT_NAME = 'FK_MailSendRecv_GtNet' 
+        AND CONSTRAINT_TYPE = 'FOREIGN KEY'
+    ) THEN
+        ALTER TABLE mail_send_recv DROP FOREIGN KEY FK_MailSendRecv_GtNet;
+    END IF;
+
+    -- 2. Drop Index if it exists
+    -- Statistics table stores information about all indexes
+    IF EXISTS (
+        SELECT 1 FROM information_schema.STATISTICS 
+        WHERE TABLE_SCHEMA = DATABASE() 
+        AND TABLE_NAME = 'mail_send_recv' 
+        AND INDEX_NAME = 'FK_MailInOut_GtNet'
+    ) THEN
+        ALTER TABLE mail_send_recv DROP INDEX FK_MailInOut_GtNet;
+    END IF;
+END //
+
+DELIMITER ;
+
+-- Execute the logic defined above
+CALL DropConstraintsSafe();
+
+-- Clean up: Remove the procedure after execution
+DROP PROCEDURE IF EXISTS DropConstraintsSafe;
+
+-- 3. Drop the column if it exists
+-- This syntax is natively supported in MariaDB 10.0.2+
+ALTER TABLE mail_send_recv DROP COLUMN IF EXISTS id_gt_net;

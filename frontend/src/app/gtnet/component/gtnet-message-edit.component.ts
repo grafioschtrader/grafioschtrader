@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {GTNetMessageCodeType, MsgCallParam} from '../model/gtnet.message';
+import {GTNetMessageCodeType, MessageVisibility, MsgCallParam} from '../model/gtnet.message';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
@@ -50,6 +50,7 @@ import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-fo
 export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit {
   @Input() msgCallParam: MsgCallParam;
   private readonly MESSAGE_CODE = 'messageCode';
+  private readonly VISIBILITY = 'visibility';
   private classDescriptorInputAndShows: ClassDescriptorInputAndShow;
   messageCodeSubscription: Subscription;
 
@@ -65,6 +66,7 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       4, this.helpLink.bind(this));
     this.config = [
       DynamicFieldHelper.createFieldSelectStringHeqF(this.MESSAGE_CODE, true),
+      DynamicFieldHelper.createFieldSelectStringHeqF(this.VISIBILITY, false, {invisible: true}),
       DynamicFieldHelper.createFieldInputNumberHeqF('waitDaysApply', false, 4, 0, false, {invisible: true}),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('message', BaseSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton('SEND')
@@ -75,6 +77,7 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
   protected override initialize(): void {
     this.configObject[this.MESSAGE_CODE].formControl.enable();
     this.valueChangedOnMessageCode();
+    this.initializeVisibilityField();
     if (this.msgCallParam.validResponseCodes?.length) {
       // Response mode: only show valid response codes for the request
       this.configObject[this.MESSAGE_CODE].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
@@ -90,8 +93,12 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       // Filter message codes: ALL messages for broadcast mode, SEL messages for single target mode
       const filterSuffixes = this.msgCallParam.isAllMessage ? ['_ALL_C']: ['_SEL_RR_C', 'SEL_C', '_ALL_C'];
       // Exclude discontinued option if one is already open
-      const excludeCodes = this.msgCallParam.idOpenDiscontinuedMessage != null
+      const excludeCodes: string[] = this.msgCallParam.idOpenDiscontinuedMessage != null
         ? ['GT_NET_OPERATION_DISCONTINUED_ALL_C'] : [];
+      // Exclude admin messages when called from GTNetSetupTableComponent
+      if (this.msgCallParam.excludeAdminMessages) {
+        excludeCodes.push('GT_NET_ADMIN_MESSAGE_SEL_C', 'GT_NET_ADMIN_MESSAGE_ALL_C');
+      }
       this.configObject[this.MESSAGE_CODE].valueKeyHtmlOptions =
         SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, GTNetMessageCodeType,
           Object.keys(GTNetMessageCodeType).filter(
@@ -99,6 +106,45 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
                 filterSuffixes.some(suffix => key.endsWith(suffix)) &&
                 !excludeCodes.includes(key)
             ).map(k => GTNetMessageCodeType[k]),false);
+
+      // Pre-select message code if provided (e.g., from admin messages component)
+      if (this.msgCallParam.preselectedMessageCode != null) {
+        const codeKey = GTNetMessageCodeType[this.msgCallParam.preselectedMessageCode];
+        this.configObject[this.MESSAGE_CODE].formControl.setValue(codeKey);
+      }
+    }
+  }
+
+  /**
+   * Initializes the visibility field based on context:
+   * - New thread (no replyTo): Show visibility dropdown with ALL_USERS and ADMIN_ONLY options
+   * - Reply to ADMIN_ONLY thread: Force to ADMIN_ONLY, field disabled
+   * - Reply to ALL_USERS thread: Show dropdown, default to ALL_USERS
+   */
+  private initializeVisibilityField(): void {
+    // Set up visibility options
+    this.configObject[this.VISIBILITY].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+      this.translateService, MessageVisibility,
+      [MessageVisibility[MessageVisibility.ALL_USERS], MessageVisibility[MessageVisibility.ADMIN_ONLY]], false);
+
+    if (this.msgCallParam.replyTo != null && this.msgCallParam.parentVisibility != null) {
+      // Reply mode - check parent visibility
+      if (this.msgCallParam.parentVisibility === MessageVisibility.ADMIN_ONLY) {
+        // Parent is ADMIN_ONLY: force reply to ADMIN_ONLY, disable field
+        this.configObject[this.VISIBILITY].formControl.setValue(MessageVisibility[MessageVisibility.ADMIN_ONLY]);
+        this.configObject[this.VISIBILITY].formControl.disable();
+        this.configObject[this.VISIBILITY].invisible = false;
+      } else {
+        // Parent is ALL_USERS: allow choice, default to ALL_USERS
+        this.configObject[this.VISIBILITY].formControl.setValue(MessageVisibility[MessageVisibility.ALL_USERS]);
+        this.configObject[this.VISIBILITY].formControl.enable();
+        this.configObject[this.VISIBILITY].invisible = false;
+      }
+    } else {
+      // New thread - default to ADMIN_ONLY for admin messages, visibility shown when admin message selected
+      this.configObject[this.VISIBILITY].formControl.setValue(MessageVisibility[MessageVisibility.ADMIN_ONLY]);
+      this.configObject[this.VISIBILITY].formControl.enable();
+      // Visibility will be shown/hidden based on message code selection
     }
   }
 
@@ -106,7 +152,22 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
     this.messageCodeSubscription = this.configObject[this.MESSAGE_CODE].formControl.valueChanges.subscribe(
       (messageCode: GTNetMessageCodeType) => {
         this.createViewFromSelectedEnum(messageCode);
+        this.updateVisibilityFieldDisplay(messageCode);
       });
+  }
+
+  /**
+   * Shows the visibility field for admin message codes, hides it otherwise.
+   * Admin message codes: GT_NET_ADMIN_MESSAGE_SEL_C, GT_NET_ADMIN_MESSAGE_ALL_C
+   */
+  private updateVisibilityFieldDisplay(messageCode: GTNetMessageCodeType | string): void {
+    // Don't override visibility display if we're in reply mode (already handled)
+    if (this.msgCallParam.replyTo != null && this.msgCallParam.parentVisibility != null) {
+      return;
+    }
+    const codeName = typeof messageCode === 'string' ? messageCode : GTNetMessageCodeType[messageCode];
+    const isAdminMessage = codeName?.startsWith('GT_NET_ADMIN_MESSAGE') ?? false;
+    this.configObject[this.VISIBILITY].invisible = !isAdminMessage;
   }
 
   private createViewFromSelectedEnum(gtNetMessageCodeType: string | GTNetMessageCodeType): void {
@@ -119,7 +180,8 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       this.translateService, this.classDescriptorInputAndShows,
       '', false);
 
-    this.config = [this.config[0], ...fieldConfig, ...this.config.slice(-2)];
+    // Keep messageCode, visibility, waitDaysApply (first 3), add dynamic fields, then message and submit (last 2)
+    this.config = [...this.config.slice(0, 3), ...fieldConfig, ...this.config.slice(-2)];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
 
     if (this.msgCallParam.gtNetMessage) {
@@ -142,6 +204,10 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
     msgRequest.gtNetMessageParamMap = this.getMessageParam(value);
     if (value.waitDaysApply != null) {
       msgRequest.waitDaysApply = value.waitDaysApply;
+    }
+    // Include visibility if field is visible (admin messages)
+    if (value[this.VISIBILITY] != null) {
+      msgRequest.visibility = value[this.VISIBILITY];
     }
     this.gtNetService.submitMsg(msgRequest).subscribe({
       next: (gtNetWithMessages: GTNetWithMessages) => {

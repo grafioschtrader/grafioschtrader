@@ -283,6 +283,8 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     const idGTNet = this.selectedEntity?.idGtNet ?? null;
     this.msgCallParam = new MsgCallParam(this.formDefinitions, idGTNet, null, null, isAllMessage, null,
       this.idOpenDiscontinuedMessage);
+    // Exclude admin messages - they should only be sent from GTNetAdminMessagesComponent
+    this.msgCallParam.excludeAdminMessages = true;
     this.visibleDialogMsg = true;
   }
 

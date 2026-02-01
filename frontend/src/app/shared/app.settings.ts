@@ -85,6 +85,9 @@ export class AppSettings {
   public static readonly GT_NET_EXCHANGE_LOG_LASTPRICE_KEY = 'lastprice';
   public static readonly GT_NET_EXCHANGE_LOG_HISTORICAL_KEY = 'historical';
   public static readonly GT_NET_KEY = 'gtnet';
+  public static readonly GT_NET_TAB_MENU_KEY = 'gtnettabmenu';
+  public static readonly GT_NET_SETUP_KEY = 'gtnetsetup';
+  public static readonly GT_NET_ADMIN_MESSAGES_KEY = 'gtnetadminmessages';
   public static readonly GT_NET_CONFIG_ENTITY = 'GTNetConfigEntity';
   public static readonly GT_NET_CONFIG_ENTITY_KEY = 'gtnetconfigentity';
   public static readonly GT_NET_MESSAGE_ANSWER = 'GTNetMessageAnswer';

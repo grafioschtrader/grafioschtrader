@@ -140,4 +140,46 @@ public interface GTNetMessageJpaRepository extends GTNetMessageJpaRepositoryBase
             row -> ((Long) row[1]).intValue()
         ));
   }
+
+  /**
+   * Finds all admin messages (with specific visibility) ordered by idGtNet and timestamp.
+   * Used for the admin messages tab to display messages filtered by visibility level.
+   *
+   * @param visibility the visibility level (0 = ALL_USERS, 1 = ADMIN_ONLY)
+   * @return list of messages with the specified visibility, ordered by idGtNet ASC, timestamp DESC
+   */
+  List<GTNetMessage> findByVisibilityOrderByIdGtNetAscTimestampDesc(byte visibility);
+
+  /**
+   * Counts admin messages grouped by idGtNet for a specific visibility level.
+   * Used for badge counts in the admin messages tab.
+   * Returns list of Object[] where [0] = idGtNet (Integer), [1] = count (Long).
+   *
+   * @param visibility the visibility level (0 = ALL_USERS, 1 = ADMIN_ONLY)
+   * @return list of [idGtNet, count] pairs for messages with the specified visibility
+   */
+  @Query("SELECT m.idGtNet, COUNT(m) FROM GTNetMessage m WHERE m.visibility = ?1 GROUP BY m.idGtNet")
+  List<Object[]> countMessagesGroupedByIdGtNetAndVisibility(byte visibility);
+
+  /**
+   * Converts the visibility-filtered count query result to a Map for efficient lookup.
+   *
+   * @param visibility the visibility level (0 = ALL_USERS, 1 = ADMIN_ONLY)
+   * @return Map with idGtNet as key and message count as value
+   */
+  default Map<Integer, Integer> countMessagesByIdGtNetAndVisibility(byte visibility) {
+    return countMessagesGroupedByIdGtNetAndVisibility(visibility).stream()
+        .collect(Collectors.toMap(
+            row -> (Integer) row[0],
+            row -> ((Long) row[1]).intValue()
+        ));
+  }
+
+  /**
+   * Finds a message by its ID. Used for visibility enforcement when saving replies.
+   *
+   * @param idGtNetMessage the message ID
+   * @return the message, or null if not found
+   */
+  GTNetMessage findByIdGtNetMessage(Integer idGtNetMessage);
 }

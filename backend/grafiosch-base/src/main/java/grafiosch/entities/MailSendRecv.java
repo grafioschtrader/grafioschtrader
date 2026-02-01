@@ -55,10 +55,7 @@ public class MailSendRecv extends BaseID<Integer> {
   @Column(name = "id_role_to")
   private Integer idRoleTo;
 
-  // TODO It belongs to grafioschtrader
-  @Schema(description = "Exchange of a message beyond this instance")
-  @Column(name = "id_gt_net")
-  private Integer idGtNet;
+ 
 
   @Schema(description = "The subject of this message")
   @NotNull
@@ -198,15 +195,7 @@ public class MailSendRecv extends BaseID<Integer> {
   public void setSendRecvTime(LocalDateTime sendRecvTime) {
     this.sendRecvTime = sendRecvTime;
   }
-
-  public Integer getIdGtNet() {
-    return idGtNet;
-  }
-
-  public void setIdGtNet(Integer idGtNet) {
-    this.idGtNet = idGtNet;
-  }
-
+  
   public ReplyToRolePrivateType getReplyToRolePrivate() {
     return replyToRolePrivate == null ? ReplyToRolePrivateType.REPLY_NORMAL
         : ReplyToRolePrivateType.getReplyToRolePrivateTypeByValue(replyToRolePrivate);

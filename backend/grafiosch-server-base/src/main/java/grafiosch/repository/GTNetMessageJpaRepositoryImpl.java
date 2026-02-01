@@ -14,6 +14,7 @@ import grafiosch.exceptions.DataViolationException;
 import grafiosch.gtnet.DeliveryStatus;
 import grafiosch.gtnet.GNetCoreMessageCode;
 import grafiosch.gtnet.GTNetMessageCode;
+import grafiosch.gtnet.MessageVisibility;
 
 public class GTNetMessageJpaRepositoryImpl extends BaseRepositoryImpl<GTNetMessage>
     implements GTNetMessageJpaRepositoryCustom {
@@ -24,7 +25,27 @@ public class GTNetMessageJpaRepositoryImpl extends BaseRepositoryImpl<GTNetMessa
   @Override
   public GTNetMessage saveMsg(GTNetMessage gtNetMessage) {
     gtNetMessage.checkAndUpdateSomeValues();
+    enforceVisibilityInheritance(gtNetMessage);
     return gtNetMessageJpaRepository.save(gtNetMessage);
+  }
+
+  /**
+   * Enforces visibility inheritance rules for reply messages.
+   * When saving a reply (replyTo is not null), checks the parent's visibility:
+   * - If parent is ADMIN_ONLY, force reply to ADMIN_ONLY (cannot downgrade)
+   * - If parent is ALL_USERS, allow either visibility (user's choice)
+   *
+   * @param gtNetMessage the message being saved
+   */
+  private void enforceVisibilityInheritance(GTNetMessage gtNetMessage) {
+    if (gtNetMessage.getReplyTo() == null) {
+      return;
+    }
+    GTNetMessage parent = gtNetMessageJpaRepository.findByIdGtNetMessage(gtNetMessage.getReplyTo());
+    if (parent != null && parent.getVisibility() == MessageVisibility.ADMIN_ONLY) {
+      // Force reply to inherit ADMIN_ONLY visibility - cannot downgrade to ALL_USERS
+      gtNetMessage.setVisibility(MessageVisibility.ADMIN_ONLY);
+    }
   }
 
   @Override
