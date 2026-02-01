@@ -265,7 +265,7 @@ export class AppHelper {
         case DataType.DateTimeNumeric:
           return moment(+dataobject).format(gps.getTimeDateFormatForTable());
         case DataType.DateTimeString:
-          return moment(dataobject).format(gps.getTimeDateFormatForTable());
+          return moment.utc(dataobject).local().format(gps.getTimeDateFormatForTable());
         case DataType.DateTimeSecondString:
           return moment.utc(dataobject).local().format(gps.getTimeSecondDateFormatForTable());
         default:
