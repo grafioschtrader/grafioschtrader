@@ -56,6 +56,7 @@ import grafiosch.gtnet.GTNetModelHelper.GTNetMsgRequest;
 import grafiosch.gtnet.GTNetServerOnlineStatusTypes;
 import grafiosch.gtnet.GTNetServerStateTypes;
 import grafiosch.gtnet.IExchangeKindType;
+import grafiosch.gtnet.MessageVisibility;
 import grafiosch.gtnet.SendReceivedType;
 import grafiosch.gtnet.handler.GTNetMessageContext;
 import grafiosch.gtnet.handler.GTNetMessageHandler;
@@ -430,9 +431,11 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    * broadcast messages in their own server's message list.
    */
   private void saveBroadcastToOwnEntry(GTNet sourceGTNet, MsgRequest msgRequest, GTNetMessageCode messageCode) {
-    gtNetMessageJpaRepository
-        .saveMsg(new GTNetMessage(sourceGTNet.getIdGtNet(), new Date(), SendReceivedType.SEND.getValue(), null,
-            messageCode.getValue(), msgRequest.message, msgRequest.gtNetMessageParamMap));
+    GTNetMessage gtNetMessage = new GTNetMessage(sourceGTNet.getIdGtNet(), new Date(), SendReceivedType.SEND.getValue(),
+        null, messageCode.getValue(), msgRequest.message, msgRequest.gtNetMessageParamMap);
+    // Set visibility from request (for admin messages)
+    applyVisibility(gtNetMessage, msgRequest.visibility);
+    gtNetMessageJpaRepository.saveMsg(gtNetMessage);
   }
 
   private List<GTNet> getTargetDomains(MsgRequest msgRequest, GTNetMessageCode messageCode) {
@@ -490,9 +493,11 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     }
 
     for (GTNet targetGTNet : gtNetList) {
-      GTNetMessage gtNetMessage = gtNetMessageJpaRepository.saveMsg(
-          new GTNetMessage(targetGTNet.getIdGtNet(), new Date(), SendReceivedType.SEND.getValue(), msgRequest.replyTo,
-              messageCode.getValue(), msgRequest.message, msgRequest.gtNetMessageParamMap));
+      GTNetMessage gtNetMessage = new GTNetMessage(targetGTNet.getIdGtNet(), new Date(), SendReceivedType.SEND.getValue(),
+          msgRequest.replyTo, messageCode.getValue(), msgRequest.message, msgRequest.gtNetMessageParamMap);
+      // Set visibility from request (for admin messages)
+      applyVisibility(gtNetMessage, msgRequest.visibility);
+      gtNetMessage = gtNetMessageJpaRepository.saveMsg(gtNetMessage);
       SendResult sendResult = sendMessageWithResult(sourceGTNet, targetGTNet, gtNetMessage, payloadModel);
       MessageEnvelope meResponse = sendResult != null ? sendResult.response() : null;
 
@@ -757,11 +762,13 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     for (GTNet targetGTNet : gtNetList) {
       GTNetMessage gtNetMessage = new GTNetMessage(targetGTNet.getIdGtNet(), new Date(),
           SendReceivedType.SEND.getValue(), msgRequest.replyTo, messageCode.getValue(), msgRequest.message,
-          null);
+          msgRequest.gtNetMessageParamMap);
       // Set waitDaysApply if provided by admin
       if (msgRequest.waitDaysApply != null) {
         gtNetMessage.setWaitDaysApply(msgRequest.waitDaysApply);
       }
+      // Set visibility from request (for admin messages)
+      applyVisibility(gtNetMessage, msgRequest.visibility);
       gtNetMessage = gtNetMessageJpaRepository.saveMsg(gtNetMessage);
 
       // Apply side effects for specific response codes
@@ -1055,6 +1062,22 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     Set<ConstraintViolation<Object>> violations = validator.validate(model);
     if (!violations.isEmpty()) {
       throw new ConstraintViolationException(violations);
+    }
+  }
+
+  /**
+   * Applies visibility from a string enum name to a GTNetMessage.
+   *
+   * @param message    the message to update
+   * @param visibility the visibility as enum name string (e.g., "ADMIN_ONLY"), or null
+   */
+  private void applyVisibility(GTNetMessage message, String visibility) {
+    if (visibility != null && !visibility.isBlank()) {
+      try {
+        message.setVisibility(MessageVisibility.valueOf(visibility));
+      } catch (IllegalArgumentException e) {
+        log.warn("Invalid visibility value '{}', using default", visibility);
+      }
     }
   }
 

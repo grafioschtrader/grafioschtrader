@@ -83,6 +83,12 @@ public class MessageEnvelope {
       for REJECT response codes.""")
   public Short waitDaysApply;
 
+  @Schema(description = """
+      Visibility level for the message. Controls who can see the message on the receiving end:
+      0 = ALL_USERS (visible to everyone), 1 = ADMIN_ONLY (visible only to administrators).
+      Primarily used for admin-to-admin messages.""")
+  public byte visibility;
+
   public MessageEnvelope() {
   }
 
@@ -107,5 +113,6 @@ public class MessageEnvelope {
     this.serverBusy = serverBusy;
     this.sourceGtNet = new GTNetPublicDTO(sourceGtNet);
     this.waitDaysApply = gtNetMsg.getWaitDaysApply();
+    this.visibility = gtNetMsg.getVisibilityValue();
   }
 }
