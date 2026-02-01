@@ -80,6 +80,15 @@ label {
   overflow: visible;
 }
 
+
+.p-datatable p-select .p-select-label {
+     padding: 1px 4px !important;
+   }
+
+.p-datatable p-select .p-select-dropdown {
+  padding: 0 4px !important;
+}
+
 /**
 * Primeng Calendar with calendar button
  */

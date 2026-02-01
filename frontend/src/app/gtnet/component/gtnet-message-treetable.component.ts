@@ -75,7 +75,7 @@ import {FilterType} from '../../lib/datashowbase/filter.type';
                 </th>
               }
             </tr>
-            @if (hasFilter) {
+            @if (showFilter && hasFilter) {
               <tr>
                 <th></th>
                 @for (field of fields; track field) {
@@ -165,6 +165,8 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   @Input() incomingPendingIds: Set<number>;
   @Input() outgoingPendingIds: Set<number>;
   @Input() formDefinitions: { [type: string]: ClassDescriptorInputAndShow };
+  /** Controls whether the filter row is displayed. Default is true. */
+  @Input() showFilter: boolean = true;
   @Output() dataChanged = new EventEmitter<ProcessedActionData>();
   @ViewChild('cm') contextMenu: any;
   @ViewChild('tt') treeTable: TreeTable;
@@ -313,9 +315,12 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   }
 
   /**
-   * Called when a tree node is selected. Marks received messages as read.
+   * Called when a tree node is selected. Marks received messages as read and updates context menu.
    */
   onSelectionChange(node: TreeNode): void {
+    // Update context menu items based on new selection
+    this.setMenuItemsToActivePanel();
+
     if (!node?.data) {
       return;
     }
