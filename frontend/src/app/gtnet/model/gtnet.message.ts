@@ -130,6 +130,13 @@ export const RESPONSE_CODE_MAP: { [key: number]: GTNetMessageCodeType[] } = {
   [GTNetMessageCodeType.GT_NET_DATA_REQUEST_SEL_RR_C]: [
     GTNetMessageCodeType.GT_NET_DATA_REQUEST_ACCEPT_S,
     GTNetMessageCodeType.GT_NET_DATA_REQUEST_REJECTED_S
+  ],
+  // Admin messages can be replied to with another admin message
+  [GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_SEL_C]: [
+    GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_SEL_C
+  ],
+  [GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_ALL_C]: [
+    GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_SEL_C
   ]
 };
 
@@ -159,4 +166,21 @@ export function getReverseCode(messageCode: GTNetMessageCodeType | string): GTNe
     ? GTNetMessageCodeType[messageCode as keyof typeof GTNetMessageCodeType]
     : messageCode;
   return REVERSE_CODE_MAP[codeValue] ?? null;
+}
+
+/**
+ * Set of message codes that should NOT show the waitDaysApply field.
+ * These are typically informal messages where delayed application doesn't make sense.
+ */
+export const HIDE_WAIT_DAYS_APPLY_CODES: Set<GTNetMessageCodeType> = new Set([
+  GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_SEL_C,
+  GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_ALL_C
+]);
+
+/** Checks if the waitDaysApply field should be shown for a given message code */
+export function shouldShowWaitDaysApply(messageCode: GTNetMessageCodeType | string): boolean {
+  const codeValue = typeof messageCode === 'string'
+    ? GTNetMessageCodeType[messageCode as keyof typeof GTNetMessageCodeType]
+    : messageCode;
+  return !HIDE_WAIT_DAYS_APPLY_CODES.has(codeValue);
 }

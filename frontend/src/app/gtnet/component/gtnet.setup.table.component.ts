@@ -61,6 +61,7 @@ import {ProcessedActionData} from '../../lib/types/processed.action.data';
       [canExpandFn]="canExpand.bind(this)"
       [ownerHighlightFn]="isMyEntry.bind(this)"
       [valueGetterFn]="getValueByPath.bind(this)"
+      [contextMenuAppendTo]="'body'"
       (componentClick)="onComponentClick($event)"
       (rowExpand)="onRowExpand($event)">
 

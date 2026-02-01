@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {GTNetMessageCodeType, MessageVisibility, MsgCallParam} from '../model/gtnet.message';
+import {GTNetMessageCodeType, MessageVisibility, MsgCallParam, shouldShowWaitDaysApply} from '../model/gtnet.message';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
@@ -83,8 +83,19 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       this.configObject[this.MESSAGE_CODE].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
         this.translateService, GTNetMessageCodeType,
         this.msgCallParam.validResponseCodes.map(code => GTNetMessageCodeType[code]), false);
-      // Show waitDaysApply field in response mode
-      this.configObject.waitDaysApply.invisible = false;
+
+      // If only one response code available, auto-select it and disable the dropdown
+      if (this.msgCallParam.validResponseCodes.length === 1) {
+        const singleCode = this.msgCallParam.validResponseCodes[0];
+        const codeKey = GTNetMessageCodeType[singleCode];
+        this.configObject[this.MESSAGE_CODE].formControl.setValue(codeKey);
+        this.configObject[this.MESSAGE_CODE].formControl.disable();
+        // Show waitDaysApply only if configured for this message type
+        this.configObject.waitDaysApply.invisible = !shouldShowWaitDaysApply(singleCode);
+      } else {
+        // Multiple response codes - waitDaysApply visibility will be updated when code is selected
+        this.configObject.waitDaysApply.invisible = true;
+      }
     } else if (this.msgCallParam.gtNetMessage) {
       this.configObject[this.MESSAGE_CODE].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
         GTNetMessageCodeType, [GTNetMessageCodeType[this.msgCallParam.gtNetMessage.messageCode]], false);
@@ -153,7 +164,20 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       (messageCode: GTNetMessageCodeType) => {
         this.createViewFromSelectedEnum(messageCode);
         this.updateVisibilityFieldDisplay(messageCode);
+        this.updateWaitDaysApplyDisplay(messageCode);
       });
+  }
+
+  /**
+   * Shows/hides the waitDaysApply field based on message code.
+   * Only shown in response mode for message types that support delayed application.
+   */
+  private updateWaitDaysApplyDisplay(messageCode: GTNetMessageCodeType | string): void {
+    // Only relevant in response mode
+    if (!this.msgCallParam.validResponseCodes?.length) {
+      return;
+    }
+    this.configObject.waitDaysApply.invisible = !shouldShowWaitDaysApply(messageCode);
   }
 
   /**
