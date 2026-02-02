@@ -283,7 +283,7 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
   }
 
   public override getHelpContextId(): string {
-    return HelpIds.HELP_GT_NET;
+    return HelpIds.HELP_GT_NET_ADMIN_MGS;
   }
 
   handleCloseDialogMsg(processedActionData: ProcessedActionData): void {

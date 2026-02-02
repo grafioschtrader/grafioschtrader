@@ -1,4 +1,4 @@
-package grafioschtrader.task.exec;
+package grafiosch.task.exec;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +12,7 @@ import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.task.ITask;
 import grafiosch.types.ITaskType;
 import grafiosch.types.TaskTypeBase;
-import grafioschtrader.service.GlobalparametersService;
+
 
 /**
  * Background task that broadcasts settings changes to all configured GTNet peers.
@@ -33,8 +33,6 @@ public class GTNetSettingsBroadcastTask implements ITask {
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
 
-  @Autowired
-  private GlobalparametersService globalparametersService;
 
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;

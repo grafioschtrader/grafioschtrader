@@ -97,7 +97,8 @@
       "Bash(mysql:*)",
       "Bash(dir:*)",
       "Bash(npx eslint:*)",
-      "Bash(npx ng lint:*)"
+      "Bash(npx ng lint:*)",
+      "Bash(hugo:*)"
     ],
     "deny": [],
     "ask": []

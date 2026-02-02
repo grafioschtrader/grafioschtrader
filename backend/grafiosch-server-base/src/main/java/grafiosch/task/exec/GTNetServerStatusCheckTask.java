@@ -1,4 +1,4 @@
-package grafioschtrader.task.exec;
+package grafiosch.task.exec;
 
 import java.util.List;
 
@@ -49,7 +49,7 @@ public class GTNetServerStatusCheckTask implements ITask {
 
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
- 
+
 
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
