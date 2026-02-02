@@ -256,8 +256,13 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
 
       this.gtNetService.submitMsgToMultiple(multiRequest).subscribe({
         next: (gtNetWithMessages: GTNetWithMessages) => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'GT_NET_ADMIN_MESSAGE_QUEUED',
-            {count: this.msgCallParam.targetIds.length});
+          // Single target: sent synchronously, multiple targets: queued for background delivery
+          if (this.msgCallParam.targetIds.length === 1) {
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'GT_NET_ADMIN_MESSAGE_SENT');
+          } else {
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'GT_NET_ADMIN_MESSAGE_QUEUED',
+              {count: this.msgCallParam.targetIds.length});
+          }
           this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED, gtNetWithMessages));
         }, error: () => this.configObject.submit.disabled = false
       });
