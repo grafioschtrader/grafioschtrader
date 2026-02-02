@@ -1182,9 +1182,9 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     case HandlerResult.ImmediateResponse(var response) -> addServerBusyToResponse((MessageEnvelope) response, myGTNet);
     case HandlerResult.AwaitingManualResponse(var msg) -> {
       log.info("Message {} from {} awaiting manual response", messageCode, me.sourceDomain);
-      yield null;
+      yield buildAckResponse(myGTNet);
     }
-    case HandlerResult.NoResponseNeeded() -> null;
+    case HandlerResult.NoResponseNeeded() -> buildAckResponse(myGTNet);
     case HandlerResult.ProcessingError(var errorCode, var message) -> {
       log.error("Error processing message {}: {} - {}", messageCode, errorCode, message);
       yield buildErrorResponse(myGTNet, errorCode, message);
@@ -1321,6 +1321,17 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     errorMsg.setErrorMsgCode(errorCode);
     MessageEnvelope errorEnvelope = new MessageEnvelope(myGTNet, errorMsg);
     return errorEnvelope;
+  }
+
+  /**
+   * Builds a minimal acknowledgment response envelope for messages that don't require a semantic response
+   * (announcements, one-way messages). The sender can confirm delivery by receiving this envelope.
+   * Uses GT_NET_PING as a lightweight ack code since it's already defined for status/health purposes.
+   */
+  private MessageEnvelope buildAckResponse(GTNet myGTNet) {
+    GTNetMessage ackMsg = new GTNetMessage(null, new Date(), SendReceivedType.ANSWER.getValue(), null,
+        GNetCoreMessageCode.GT_NET_PING.getValue(), null, null);
+    return new MessageEnvelope(myGTNet, ackMsg);
   }
 
   @Override
