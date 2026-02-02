@@ -288,7 +288,7 @@ const APP_ROUTES: Routes = [
           {
             path: AppSettings.GT_NET_ADMIN_MESSAGES_KEY,
             component: GTNetAdminMessagesComponent,
-            canActivate: [adminGuard]
+            canActivate: [authGuard]
           }
         ]
       },

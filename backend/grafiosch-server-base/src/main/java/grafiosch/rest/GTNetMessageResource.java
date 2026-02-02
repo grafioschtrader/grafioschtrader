@@ -8,7 +8,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,9 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.UserAccessHelper;
 import grafiosch.dynamic.model.ClassDescriptorInputAndShow;
 import grafiosch.entities.GTNetMessage;
-import grafiosch.entities.Role;
+import grafiosch.entities.User;
 import grafiosch.gtnet.GTNetMessageCode;
 import grafiosch.gtnet.GTNetModelHelper;
 import grafiosch.gtnet.MessageVisibility;
@@ -51,23 +52,35 @@ public class GTNetMessageResource extends UpdateCreateDeleteAudit<GTNetMessage> 
     return ResponseEntity.ok().build();
   }
 
-  @Operation(summary = "Returns all admin-only messages", description = "Returns messages with ADMIN_ONLY visibility. Requires ROLE_ADMIN.", tags = {
+  @Operation(summary = "Returns admin messages (messageCode=30) based on user role", description = "For admins: returns both ALL_USERS and ADMIN_ONLY messages. For non-admins: returns only ALL_USERS messages.", tags = {
       RequestMappings.GTNET_MESSAGE })
   @GetMapping(value = "/admin", produces = APPLICATION_JSON_VALUE)
-  @PreAuthorize("hasRole('" + Role.ADMIN + "')")
   public ResponseEntity<List<GTNetMessage>> getAdminMessages() {
-    List<GTNetMessage> adminMessages = gtNetMessageJpaRepository
-        .findByVisibilityOrderByIdGtNetAscTimestampDesc(MessageVisibility.ADMIN_ONLY.getValue());
-    return new ResponseEntity<>(adminMessages, HttpStatus.OK);
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    List<GTNetMessage> messages;
+
+    if (UserAccessHelper.isAdmin(user)) {
+      messages = gtNetMessageJpaRepository.findAdminMessagesForAdmin();
+    } else {
+      messages = gtNetMessageJpaRepository
+          .findAdminMessagesByVisibility(MessageVisibility.ALL_USERS.getValue());
+    }
+    return new ResponseEntity<>(messages, HttpStatus.OK);
   }
 
-  @Operation(summary = "Returns admin message counts per GTNet domain", description = "Returns counts of ADMIN_ONLY messages grouped by idGtNet. Requires ROLE_ADMIN.", tags = {
+  @Operation(summary = "Returns admin message (messageCode=30) counts per GTNet domain based on user role", description = "For admins: returns counts for both ALL_USERS and ADMIN_ONLY messages. For non-admins: returns counts for only ALL_USERS messages.", tags = {
       RequestMappings.GTNET_MESSAGE })
   @GetMapping(value = "/admin/count", produces = APPLICATION_JSON_VALUE)
-  @PreAuthorize("hasRole('" + Role.ADMIN + "')")
   public ResponseEntity<Map<Integer, Integer>> getAdminMessageCounts() {
-    Map<Integer, Integer> counts = gtNetMessageJpaRepository
-        .countMessagesByIdGtNetAndVisibility(MessageVisibility.ADMIN_ONLY.getValue());
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    Map<Integer, Integer> counts;
+
+    if (UserAccessHelper.isAdmin(user)) {
+      counts = gtNetMessageJpaRepository.countAdminMessagesForAdmin();
+    } else {
+      counts = gtNetMessageJpaRepository
+          .countAdminMessagesByVisibility(MessageVisibility.ALL_USERS.getValue());
+    }
     return new ResponseEntity<>(counts, HttpStatus.OK);
   }
 

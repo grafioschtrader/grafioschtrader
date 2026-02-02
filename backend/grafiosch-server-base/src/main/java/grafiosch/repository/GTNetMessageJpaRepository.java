@@ -142,24 +142,63 @@ public interface GTNetMessageJpaRepository extends GTNetMessageJpaRepositoryBase
   }
 
   /**
-   * Finds all admin messages (with specific visibility) ordered by idGtNet and timestamp.
+   * Finds all admin messages (messageCode=30) with specific visibility, ordered by idGtNet and timestamp.
    * Used for the admin messages tab to display messages filtered by visibility level.
    *
+   * @param messageCode the message code (30 = GT_NET_ADMIN_MESSAGE_SEL_C)
    * @param visibility the visibility level (0 = ALL_USERS, 1 = ADMIN_ONLY)
-   * @return list of messages with the specified visibility, ordered by idGtNet ASC, timestamp DESC
+   * @return list of admin messages with the specified visibility, ordered by idGtNet ASC, timestamp DESC
    */
-  List<GTNetMessage> findByVisibilityOrderByIdGtNetAscTimestampDesc(byte visibility);
+  @Query("SELECT m FROM GTNetMessage m WHERE m.messageCode = ?1 AND m.visibility = ?2 ORDER BY m.idGtNet ASC, m.timestamp DESC")
+  List<GTNetMessage> findAdminMessagesByCodeAndVisibility(byte messageCode, byte visibility);
 
   /**
-   * Counts admin messages grouped by idGtNet for a specific visibility level.
+   * Convenience method to find admin messages (messageCode=30) with specific visibility.
+   *
+   * @param visibility the visibility level (0 = ALL_USERS, 1 = ADMIN_ONLY)
+   * @return list of admin messages with the specified visibility
+   */
+  default List<GTNetMessage> findAdminMessagesByVisibility(byte visibility) {
+    return findAdminMessagesByCodeAndVisibility(
+        grafiosch.gtnet.GNetCoreMessageCode.GT_NET_ADMIN_MESSAGE_SEL_C.getValue(),
+        visibility);
+  }
+
+  /**
+   * Finds all admin messages (messageCode=30) for administrators (both ALL_USERS and ADMIN_ONLY visibility).
+   * Used for the admin messages tab when an admin user is viewing.
+   *
+   * @param messageCode the message code (30 = GT_NET_ADMIN_MESSAGE_SEL_C)
+   * @param allUsersVisibility the ALL_USERS visibility value (0)
+   * @param adminOnlyVisibility the ADMIN_ONLY visibility value (1)
+   * @return list of admin messages with either visibility, ordered by idGtNet ASC, timestamp DESC
+   */
+  @Query("SELECT m FROM GTNetMessage m WHERE m.messageCode = ?1 AND m.visibility IN (?2, ?3) ORDER BY m.idGtNet ASC, m.timestamp DESC")
+  List<GTNetMessage> findAdminMessagesForAdmin(byte messageCode, byte allUsersVisibility, byte adminOnlyVisibility);
+
+  /**
+   * Convenience method to find all admin messages (messageCode=30) for administrators using enum values.
+   *
+   * @return list of admin messages with ALL_USERS or ADMIN_ONLY visibility, ordered by idGtNet ASC, timestamp DESC
+   */
+  default List<GTNetMessage> findAdminMessagesForAdmin() {
+    return findAdminMessagesForAdmin(
+        grafiosch.gtnet.GNetCoreMessageCode.GT_NET_ADMIN_MESSAGE_SEL_C.getValue(),
+        grafiosch.gtnet.MessageVisibility.ALL_USERS.getValue(),
+        grafiosch.gtnet.MessageVisibility.ADMIN_ONLY.getValue());
+  }
+
+  /**
+   * Counts admin messages (messageCode=30) grouped by idGtNet for a specific visibility level.
    * Used for badge counts in the admin messages tab.
    * Returns list of Object[] where [0] = idGtNet (Integer), [1] = count (Long).
    *
+   * @param messageCode the message code (30 = GT_NET_ADMIN_MESSAGE_SEL_C)
    * @param visibility the visibility level (0 = ALL_USERS, 1 = ADMIN_ONLY)
-   * @return list of [idGtNet, count] pairs for messages with the specified visibility
+   * @return list of [idGtNet, count] pairs for admin messages with the specified visibility
    */
-  @Query("SELECT m.idGtNet, COUNT(m) FROM GTNetMessage m WHERE m.visibility = ?1 GROUP BY m.idGtNet")
-  List<Object[]> countMessagesGroupedByIdGtNetAndVisibility(byte visibility);
+  @Query("SELECT m.idGtNet, COUNT(m) FROM GTNetMessage m WHERE m.messageCode = ?1 AND m.visibility = ?2 GROUP BY m.idGtNet")
+  List<Object[]> countAdminMessagesGroupedByIdGtNetAndVisibility(byte messageCode, byte visibility);
 
   /**
    * Converts the visibility-filtered count query result to a Map for efficient lookup.
@@ -167,8 +206,40 @@ public interface GTNetMessageJpaRepository extends GTNetMessageJpaRepositoryBase
    * @param visibility the visibility level (0 = ALL_USERS, 1 = ADMIN_ONLY)
    * @return Map with idGtNet as key and message count as value
    */
-  default Map<Integer, Integer> countMessagesByIdGtNetAndVisibility(byte visibility) {
-    return countMessagesGroupedByIdGtNetAndVisibility(visibility).stream()
+  default Map<Integer, Integer> countAdminMessagesByVisibility(byte visibility) {
+    return countAdminMessagesGroupedByIdGtNetAndVisibility(
+        grafiosch.gtnet.GNetCoreMessageCode.GT_NET_ADMIN_MESSAGE_SEL_C.getValue(),
+        visibility
+    ).stream()
+        .collect(Collectors.toMap(
+            row -> (Integer) row[0],
+            row -> ((Long) row[1]).intValue()
+        ));
+  }
+
+  /**
+   * Counts admin messages (messageCode=30) grouped by idGtNet for administrators (both ALL_USERS and ADMIN_ONLY visibility).
+   * Returns list of Object[] where [0] = idGtNet (Integer), [1] = count (Long).
+   *
+   * @param messageCode the message code (30 = GT_NET_ADMIN_MESSAGE_SEL_C)
+   * @param allUsersVisibility the ALL_USERS visibility value (0)
+   * @param adminOnlyVisibility the ADMIN_ONLY visibility value (1)
+   * @return list of [idGtNet, count] pairs for admin messages with either visibility
+   */
+  @Query("SELECT m.idGtNet, COUNT(m) FROM GTNetMessage m WHERE m.messageCode = ?1 AND m.visibility IN (?2, ?3) GROUP BY m.idGtNet")
+  List<Object[]> countAdminMessagesGroupedByIdGtNetForAdmin(byte messageCode, byte allUsersVisibility, byte adminOnlyVisibility);
+
+  /**
+   * Convenience method to count admin messages (messageCode=30) for administrators using enum values.
+   *
+   * @return Map with idGtNet as key and message count as value
+   */
+  default Map<Integer, Integer> countAdminMessagesForAdmin() {
+    return countAdminMessagesGroupedByIdGtNetForAdmin(
+        grafiosch.gtnet.GNetCoreMessageCode.GT_NET_ADMIN_MESSAGE_SEL_C.getValue(),
+        grafiosch.gtnet.MessageVisibility.ALL_USERS.getValue(),
+        grafiosch.gtnet.MessageVisibility.ADMIN_ONLY.getValue()
+    ).stream()
         .collect(Collectors.toMap(
             row -> (Integer) row[0],
             row -> ((Long) row[1]).intValue()
