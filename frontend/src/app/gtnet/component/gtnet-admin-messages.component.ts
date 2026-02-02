@@ -121,6 +121,8 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
   msgCallParam: MsgCallParam;
   /** All admin messages loaded from backend */
   private allAdminMessages: GTNetMessage[] = [];
+  /** Whether current user has admin role (only admins can send admin messages) */
+  private isUserAdmin: boolean;
 
   constructor(private gtNetService: GTNetService,
     private gtNetMessageService: GTNetMessageService,
@@ -137,6 +139,8 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
     // No CRUD options - this is a read-only view for GTNet entities
     super(AppSettings.GT_NET, gtNetService, confirmationService, messageToastService, activePanelService,
       dialogService, filterService, translateService, gps, usersettingsService, injector, []);
+
+    this.isUserAdmin = gps.hasRole(BaseSettings.ROLE_ADMIN);
 
     this.addColumnFeqH(DataType.String, this.domainRemoteName, true, false,
       {width: 200, templateName: 'owner'});
@@ -249,10 +253,13 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
 
   public override getEditMenuItems(): MenuItem[] {
     const menuItems: MenuItem[] = [];
-    menuItems.push({
-      label: 'GT_NET_ADMIN_MESSAGE_SEND', command: (e) => this.sendAdminMsg(),
-      disabled: this.selectedEntities.length === 0
-    });
+    // Only admins can send admin messages
+    if (this.isUserAdmin) {
+      menuItems.push({
+        label: 'GT_NET_ADMIN_MESSAGE_SEND', command: (e) => this.sendAdminMsg(),
+        disabled: this.selectedEntities.length === 0
+      });
+    }
     return menuItems;
   }
 

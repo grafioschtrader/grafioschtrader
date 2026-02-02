@@ -1,0 +1,5 @@
+2026-02-01 22:47:11.130  WARN 726058 --- [       Thread-9] g.t.exec.GTNetAdminMessageDeliveryTask   : Failed to send admin message 3029 to https://grafioschtrader.info: JSON decoding error: Cannot deserialize value of type `byte` from String "HISTORICAL_PRICES": not a valid `byte` value
+
+
+SELECT * FROM `gt_net_message` WHERE id_gt_net_message = 3029;
+3029	11	2026-02-01 21:43:25	0	NULL	NULL	NULL	30	Super Tag von grafioschtrader.com	1	NULL	0	0	2	
