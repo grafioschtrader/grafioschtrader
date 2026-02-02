@@ -1,4 +1,4 @@
-package grafioschtrader.task.exec;
+package grafiosch.task.exec;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -100,7 +100,7 @@ public class GTNetFutureMessageDeliveryTask implements ITask {
   @Autowired
   private GTNetConfigJpaRepository gtNetConfigJpaRepository;
 
-  
+
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
 
