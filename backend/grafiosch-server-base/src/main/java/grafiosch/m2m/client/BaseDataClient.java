@@ -50,27 +50,39 @@ public class BaseDataClient {
    * Distinguishes between successful delivery, HTTP errors, and network failures.
    */
   public record SendResult(boolean serverReachable, boolean httpError, int httpStatusCode,
-      MessageEnvelope response, boolean serverBusy) {
+      MessageEnvelope response, boolean serverBusy, String errorMessage) {
 
     /**
      * Message was successfully delivered and a response was received.
      */
     public static SendResult success(MessageEnvelope response) {
-      return new SendResult(true, false, 200, response, response != null && response.serverBusy);
+      return new SendResult(true, false, 200, response, response != null && response.serverBusy, null);
     }
 
     /**
      * Server is unreachable due to network/connection error.
      */
     public static SendResult unreachable() {
-      return new SendResult(false, false, 0, null, false);
+      return new SendResult(false, false, 0, null, false, null);
     }
 
     /**
      * Server responded with an HTTP error status (4xx, 5xx).
+     *
+     * @param statusCode the HTTP status code
+     * @param errorMessage the error response body from the server, if available
      */
+    public static SendResult httpError(int statusCode, String errorMessage) {
+      return new SendResult(true, true, statusCode, null, false, errorMessage);
+    }
+
+    /**
+     * Server responded with an HTTP error status (4xx, 5xx).
+     * @deprecated Use {@link #httpError(int, String)} to capture error details.
+     */
+    @Deprecated
     public static SendResult httpError(int statusCode) {
-      return new SendResult(true, true, statusCode, null, false);
+      return httpError(statusCode, null);
     }
 
     /**
@@ -150,7 +162,12 @@ public class BaseDataClient {
           .retrieve()
           .bodyToMono(MessageEnvelope.class)
           .block();
-      log.info("GTNet server reached at {}", targetDomain);
+
+      if (response == null) {
+        log.warn("GTNet server at {} returned 2xx but empty/null response body", targetDomain);
+      } else {
+        log.info("GTNet server reached at {}", targetDomain);
+      }
       return SendResult.success(response);
     } catch (WebClientRequestException e) {
       // Connection error - server is unreachable
@@ -158,8 +175,10 @@ public class BaseDataClient {
       return SendResult.unreachable();
     } catch (WebClientResponseException e) {
       // Server responded with an error status (4xx, 5xx) - server is reachable but returned error
-      log.warn("GTNet server at {} returned error status {}: {}", targetDomain, e.getStatusCode(), e.getMessage());
-      return SendResult.httpError(e.getStatusCode().value());
+      String errorBody = e.getResponseBodyAsString();
+      log.warn("GTNet server at {} returned error status {}: {} - Body: {}",
+          targetDomain, e.getStatusCode(), e.getMessage(), errorBody);
+      return SendResult.httpError(e.getStatusCode().value(), errorBody);
     }
   }
 

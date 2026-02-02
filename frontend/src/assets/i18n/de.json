@@ -286,6 +286,7 @@
   "GT_NET_ADMIN_MESSAGE_QUEUED": "Admin-Nachricht für {{count}} Empfänger in die Warteschlange gestellt",
   "GT_NET_ADMIN_MESSAGE_SEL_C": "Admin-Nachricht",
   "GT_NET_ADMIN_MESSAGE_SEND": "Admin-Nachricht senden",
+  "GT_NET_ADMIN_MESSAGE_SENT": "Admin-Nachricht erfolgreich gesendet",
   "GT_NET_ADMIN_MESSAGES": "Admin-Nachrichten",
   "GT_NET_COMM_REQUIREMENT": "Die Kommunikation mit anderen Teilnehmern bedingt die Eintragung Ihres GT-Server. Dabei muss Ihr Server von aussen erreichbar sein.",
   "GT_NET_COMM_REQUIREMENT_REMOTE": "Nun müssen Sie noch eine weitere erreichbare Instanz für die Kommunikation erfassen.",

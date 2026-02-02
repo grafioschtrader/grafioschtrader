@@ -287,6 +287,7 @@
   "GT_NET_ADMIN_MESSAGE_QUEUED": "Admin message queued for {{count}} recipient(s)",
   "GT_NET_ADMIN_MESSAGE_SEL_C": "Admin message",
   "GT_NET_ADMIN_MESSAGE_SEND": "Send admin message",
+  "GT_NET_ADMIN_MESSAGE_SENT": "Admin message sent successfully",
   "GT_NET_ADMIN_MESSAGES": "Admin Messages",
   "GT_NET_COMM_REQUIREMENT": "The communication with other participants requires the registration of your GT-Server. Your server must be accessible from outside.",
   "GT_NET_COMM_REQUIREMENT_REMOTE": "Now you need to enter another accessible instance for communication.",

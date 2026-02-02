@@ -1,4 +1,4 @@
-package grafioschtrader.task.exec;
+package grafiosch.task.exec;
 
 import java.util.List;
 import java.util.Map;
@@ -210,12 +210,19 @@ public class GTNetAdminMessageDeliveryTask implements ITask {
       SendResult result = baseDataClient.sendToMsgWithStatus(tokenRemote, targetGTNet.getDomainRemoteName(), envelope);
 
       if (result.isFailed()) {
-        log.warn("Failed to deliver admin message {} to {}: httpError={}, statusCode={}, reachable={}",
+        log.warn("Failed to deliver admin message {} to {}: httpError={}, statusCode={}, reachable={}, errorMsg={}",
             message.getIdGtNetMessage(), targetGTNet.getDomainRemoteName(),
-            result.httpError(), result.httpStatusCode(), result.serverReachable());
+            result.httpError(), result.httpStatusCode(), result.serverReachable(), result.errorMessage());
         return false;
       }
-      return result.isDelivered();
+
+      if (!result.isDelivered()) {
+        log.warn("Admin message {} to {} not delivered: server reachable but response was null or invalid",
+            message.getIdGtNetMessage(), targetGTNet.getDomainRemoteName());
+        return false;
+      }
+
+      return true;
     } catch (Exception e) {
       log.warn("Failed to send admin message {} to {}: {}", message.getIdGtNetMessage(),
           targetGTNet.getDomainRemoteName(), e.getMessage());
