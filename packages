@@ -4,6 +4,11 @@ grafiosch.dto
 grafiosch
 grafiosch.entities
 grafiosch.entities.projection
+grafiosch.gtnet
+grafiosch.gtnet.model
+grafiosch.gtnet.model.msg
+grafiosch.gtnet.m2m.model
+grafiosch.gtnet.handler
 grafiosch.usertask
 grafiosch.common
 grafiosch.dynamic.model
@@ -12,10 +17,13 @@ grafiosch.error
 grafiosch.validation
 grafiosch.rest
 grafiosch.rest.helper
+grafiosch.m2m.client
+grafiosch.m2m
 grafiosch.service
 grafiosch.security
 grafiosch.security.filter
 grafiosch.exportdelete
+grafiosch.gtnet.handler.impl
 grafiosch.config
 grafiosch.task
 grafiosch.task.exec
@@ -36,8 +44,8 @@ grafioschtrader.platformimport.csv
 grafioschtrader.platformimport.pdf
 grafioschtrader.gtnet.model
 grafioschtrader.gtnet.model.msg
-grafioschtrader.gtnet
 grafioschtrader.gtnet.m2m.model
+grafioschtrader.gtnet
 grafioschtrader.common
 grafioschtrader.algo
 grafioschtrader.algo.strategy.model
@@ -89,8 +97,6 @@ grafioschtrader.connector.instrument.swissfunddata
 grafioschtrader.connector.instrument.fxubc
 grafioschtrader.rest
 grafioschtrader.m2m.rest
-grafioschtrader.m2m.client
-grafioschtrader.m2m
 grafioschtrader.priceupdate
 grafioschtrader.priceupdate.historyquote
 grafioschtrader.priceupdate.intraday
@@ -105,9 +111,8 @@ grafioschtrader.platform.swissquote
 grafioschtrader.security.filter
 grafioschtrader.security
 grafioschtrader.exportdelete
-grafioschtrader.gtnet.handler
-grafioschtrader.gtnet.handler.impl
 grafioschtrader.gtnet.handler.impl.lastprice
+grafioschtrader.gtnet.handler.impl
 grafioschtrader.gtnet.handler.impl.historyquote
 grafioschtrader.test.start
 grafioschtrader.config

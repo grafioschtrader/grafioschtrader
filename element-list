@@ -10,9 +10,17 @@ grafiosch.entities.projection
 grafiosch.error
 grafiosch.exceptions
 grafiosch.exportdelete
+grafiosch.gtnet
+grafiosch.gtnet.handler
+grafiosch.gtnet.handler.impl
+grafiosch.gtnet.m2m.model
+grafiosch.gtnet.model
+grafiosch.gtnet.model.msg
 grafiosch.integration.entities
 grafiosch.integration.repository
 grafiosch.integration.rest
+grafiosch.m2m
+grafiosch.m2m.client
 grafiosch.repository
 grafiosch.rest
 grafiosch.rest.helper
@@ -72,7 +80,6 @@ grafioschtrader.entities
 grafioschtrader.entities.projection
 grafioschtrader.exportdelete
 grafioschtrader.gtnet
-grafioschtrader.gtnet.handler
 grafioschtrader.gtnet.handler.impl
 grafioschtrader.gtnet.handler.impl.historyquote
 grafioschtrader.gtnet.handler.impl.lastprice
@@ -80,8 +87,6 @@ grafioschtrader.gtnet.m2m.model
 grafioschtrader.gtnet.model
 grafioschtrader.gtnet.model.msg
 grafioschtrader.instrument
-grafioschtrader.m2m
-grafioschtrader.m2m.client
 grafioschtrader.m2m.rest
 grafioschtrader.platform
 grafioschtrader.platform.cornertrader
