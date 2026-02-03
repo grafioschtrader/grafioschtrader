@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.web.multipart.MultipartFile;
 
 import grafioschtrader.dto.UploadHistoryquotesSuccess;
+import grafioschtrader.entities.GTNetSecurityImpHead;
 import grafioschtrader.entities.GTNetSecurityImpPos;
 
 /**
@@ -70,4 +71,20 @@ public interface GTNetSecurityImpPosJpaRepositoryCustom {
    * @throws SecurityException if tenant doesn't have access or position has no linked security
    */
   GTNetSecurityImpPos deleteLinkedSecurity(Integer idGtNetSecurityImpPos, Integer idTenant);
+
+  /**
+   * Creates GTNet security import positions from an import transaction head.
+   * Reads ImportTransactionPos entries where security is null and (isin or symbolImp exists),
+   * then creates corresponding GTNetSecurityImpPos entries. Can create a new header or add to an existing one.
+   * Skips duplicates (same ISIN + currency) and entries with invalid data.
+   *
+   * @param idTransactionHead the import transaction head ID to read positions from
+   * @param idGtNetSecurityImpHead optional existing header ID to add positions to (null to create new)
+   * @param headName name for new header (required if idGtNetSecurityImpHead is null)
+   * @param idTenant the tenant ID for access verification
+   * @return the GTNet security import header (existing or newly created)
+   * @throws SecurityException if tenant doesn't have access to the import transaction head
+   */
+  GTNetSecurityImpHead createFromImportTransactionHead(Integer idTransactionHead, Integer idGtNetSecurityImpHead,
+      String headName, Integer idTenant);
 }

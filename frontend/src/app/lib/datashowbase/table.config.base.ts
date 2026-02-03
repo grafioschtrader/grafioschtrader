@@ -293,6 +293,12 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
       let result = null;
       do {
         const columnConfig = this.getColumnConfigByField(validSortMeta[i].field);
+        // Skip sorting if column config not found (can happen during initialization)
+        if (!columnConfig) {
+          result = 0;
+          i++;
+          continue;
+        }
         const isDirectAccess = columnConfig.translateValues || columnConfig.fieldValueFN;
         const value1 = isDirectAccess ? this.getValueByPath(data1, columnConfig)
           : Helper.getValueByPath(data1, columnConfig.field);

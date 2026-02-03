@@ -59,7 +59,7 @@ export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implem
         // Handle special import transaction parameter
         if (params[AppSettings.SUCCESS_FAILED_IMP_TRANS]) {
           this.successFailedImportTransParam = params[AppSettings.SUCCESS_FAILED_IMP_TRANS];
-          this.navigateTo(AppSettings.SECURITYACCOUNT_IMPORT_KEY);
+          this.navigateTo(AppSettings.SECURITYACCOUNT_IMPORT_TAB_MENU_KEY);
         } else {
           this.handleNormalNavigation();
         }
@@ -104,7 +104,7 @@ export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implem
    * @param tab - The tab to check
    */
   isTabDisabled(tab: TabItem): boolean {
-    if (tab.route === AppSettings.SECURITYACCOUNT_IMPORT_KEY) {
+    if (tab.route === AppSettings.SECURITYACCOUNT_IMPORT_TAB_MENU_KEY) {
       return this.isImportDisabled();
     }
     return false;
@@ -118,8 +118,8 @@ export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implem
         icon: ''
       },
       {
-        label: 'IMPORT_TRANSACTION',
-        route: AppSettings.SECURITYACCOUNT_IMPORT_KEY,
+        label: 'IMPORT',
+        route: AppSettings.SECURITYACCOUNT_IMPORT_TAB_MENU_KEY,
         icon: ''
       }
     ];

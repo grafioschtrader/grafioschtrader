@@ -7,6 +7,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.BaseConstants;
@@ -84,6 +85,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   @Basic(optional = false)
   @Column(name = "transaction_time")
   @Temporal(TemporalType.TIMESTAMP)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   private Date transactionTime;
 
   @Schema(description = "Transferred after transactions, if set.")

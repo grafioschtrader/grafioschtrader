@@ -784,6 +784,32 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
     });
   }
 
+  @Override
+  @Transactional
+  public int assignSecurityToMatchingImportPositions(Security security) {
+    if (security == null || security.getIsin() == null || security.getCurrency() == null) {
+      return 0;
+    }
+
+    List<ImportTransactionPos> matchingPositions = importTransactionPosJpaRepository
+        .findByIsinAndCurrencyWithNoSecurity(security.getIsin(), security.getCurrency());
+
+    if (matchingPositions.isEmpty()) {
+      return 0;
+    }
+
+    log.info("Auto-assigning security {} (ISIN={}, currency={}) to {} import positions",
+        security.getIdSecuritycurrency(), security.getIsin(), security.getCurrency(), matchingPositions.size());
+
+    for (ImportTransactionPos itp : matchingPositions) {
+      itp.setSecurityRemoveFromFlag(security);
+      setCheckReadyForSingleTransaction(itp);
+    }
+
+    importTransactionPosJpaRepository.saveAll(matchingPositions);
+    return matchingPositions.size();
+  }
+
   /**
    * Data holder class that links a successfully created transaction with its corresponding import position.
    * This class serves as a return type for transaction creation operations, providing both the

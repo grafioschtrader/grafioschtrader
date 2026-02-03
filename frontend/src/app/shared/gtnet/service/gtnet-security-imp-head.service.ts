@@ -3,13 +3,13 @@ import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {catchError} from 'rxjs/operators';
 
-import {AuthServiceWithLogout} from '../../lib/login/service/base.auth.service.with.logout';
-import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
-import {DeleteService} from '../../lib/datashowbase/delete.service';
-import {LoginService} from '../../lib/login/service/log-in.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {BaseSettings} from '../../lib/base.settings';
-import {AppSettings} from '../../shared/app.settings';
+import {AuthServiceWithLogout} from '../../../lib/login/service/base.auth.service.with.logout';
+import {ServiceEntityUpdate} from '../../../lib/edit/service.entity.update';
+import {DeleteService} from '../../../lib/datashowbase/delete.service';
+import {LoginService} from '../../../lib/login/service/log-in.service';
+import {MessageToastService} from '../../../lib/message/message.toast.service';
+import {BaseSettings} from '../../../lib/base.settings';
+import {AppSettings} from '../../app.settings';
 import {GTNetSecurityImpHead} from '../model/gtnet-security-imp-head';
 
 /**
@@ -64,11 +64,17 @@ export class GTNetSecurityImpHeadService extends AuthServiceWithLogout<GTNetSecu
    * If a job is already pending for this header, no new job is created.
    *
    * @param idGtNetSecurityImpHead the header ID
+   * @param idTransactionHead optional import transaction head ID; if provided, the task will auto-assign
+   *                          linked securities to matching ImportTransactionPos entries
    * @returns Observable with job queue result (queued: true if new job created, false if already pending)
    */
-  queueImportJob(idGtNetSecurityImpHead: number): Observable<{queued: boolean, idGtNetSecurityImpHead: number}> {
+  queueImportJob(idGtNetSecurityImpHead: number, idTransactionHead?: number): Observable<{queued: boolean, idGtNetSecurityImpHead: number}> {
+    let url = `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_SECURITY_IMP_HEAD_KEY}/${idGtNetSecurityImpHead}/importjob`;
+    if (idTransactionHead != null) {
+      url += `?idTransactionHead=${idTransactionHead}`;
+    }
     return this.httpClient.post<{queued: boolean, idGtNetSecurityImpHead: number}>(
-      `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_SECURITY_IMP_HEAD_KEY}/${idGtNetSecurityImpHead}/importjob`,
+      url,
       {},
       this.getHeaders()
     ).pipe(catchError(this.handleError.bind(this)));

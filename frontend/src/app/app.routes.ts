@@ -28,10 +28,11 @@ import {TenantTransactionTableComponent} from './tenant/component/tenant.transac
 import {PortfolioTransactionTableComponent} from './portfolio/component/portfolio.transaction.table.component';
 import {CashaccountEditComponent} from './cashaccount/component/cashaccount-edit.component';
 import {SecurityaccountTabMenuComponent} from './securityaccount/component/securityaccount.tab.menu.component';
+import {SecurityaccountImportTabMenuComponent} from './imptransaction/component/securityaccount-import-tab-menu.component';
 import {LoginComponent} from './lib/login/component/login.component';
 import {
   SecurityaccountImportTransactionComponent
-} from './securityaccount/component/securityaccount.import.transaction.component';
+} from './imptransaction/component/securityaccount.import.transaction.component';
 import {ImportTransactionTemplateComponent} from './imptranstemplate/component/import.transaction.template.component';
 import {ProposeChangeTabMenuComponent} from './lib/proposechange/component/propose.change.tab.menu.component';
 import {RequestForYouTableComponent} from './lib/proposechange/component/request.for.you.table.component';
@@ -70,7 +71,7 @@ import {UDFMetadataGeneralTableComponent} from './lib/udfmeta/components/udf.met
 import {TenantAlertComponent} from './tenant/component/tenant.alert.component';
 import {BaseSettings} from './lib/base.settings';
 import {MailForwardSettingTableEditComponent} from './lib/mail/component/mail.forward.setting.table.edit.component';
-import {GTNetSecurityImportComponent} from './gtnet/component/gtnet-security-import.component';
+import {GTNetSecurityImportComponent} from './shared/gtnet/component/gtnet-security-import.component';
 
 
 const APP_ROUTES: Routes = [
@@ -152,8 +153,19 @@ const APP_ROUTES: Routes = [
             canActivate: [authGuard]
           },
           {
-            path: AppSettings.SECURITYACCOUNT_IMPORT_KEY + '/:id', component: SecurityaccountImportTransactionComponent,
-            canActivate: [authGuard]
+            path: AppSettings.SECURITYACCOUNT_IMPORT_TAB_MENU_KEY + '/:id',
+            component: SecurityaccountImportTabMenuComponent,
+            canActivate: [authGuard],
+            children: [
+              {
+                path: AppSettings.SECURITYACCOUNT_IMPORT_KEY + '/:id', component: SecurityaccountImportTransactionComponent,
+                canActivate: [authGuard]
+              },
+              {
+                path: AppSettings.SECURITYACCOUNT_GTNET_IMPORT_KEY + '/:id', component: GTNetSecurityImportComponent,
+                canActivate: [authGuard]
+              }
+            ]
           }
         ]
       },

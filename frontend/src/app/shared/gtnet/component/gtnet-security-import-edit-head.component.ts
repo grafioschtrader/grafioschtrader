@@ -1,14 +1,14 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 
-import {HelpIds} from '../../lib/help/help.ids';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {BaseSettings} from '../../lib/base.settings';
+import {HelpIds} from '../../../lib/help/help.ids';
+import {GlobalparameterService} from '../../../lib/services/globalparameter.service';
+import {MessageToastService} from '../../../lib/message/message.toast.service';
+import {SimpleEntityEditBase} from '../../../lib/edit/simple.entity.edit.base';
+import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
+import {TranslateHelper} from '../../../lib/helper/translate.helper';
+import {AppHelper} from '../../../lib/helper/app.helper';
+import {BaseSettings} from '../../../lib/base.settings';
 
 import {GTNetSecurityImpHead} from '../model/gtnet-security-imp-head';
 import {GTNetSecurityImpHeadService} from '../service/gtnet-security-imp-head.service';

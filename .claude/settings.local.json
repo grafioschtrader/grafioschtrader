@@ -98,7 +98,8 @@
       "Bash(dir:*)",
       "Bash(npx eslint:*)",
       "Bash(npx ng lint:*)",
-      "Bash(hugo:*)"
+      "Bash(hugo:*)",
+      "Bash(gh pr list:*)"
     ],
     "deny": [],
     "ask": []

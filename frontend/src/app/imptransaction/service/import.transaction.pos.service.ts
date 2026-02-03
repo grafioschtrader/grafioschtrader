@@ -7,7 +7,7 @@ import {Observable} from 'rxjs';
 import {AppSettings} from '../../shared/app.settings';
 import {DeleteService} from '../../lib/datashowbase/delete.service';
 import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
-import {CombineTemplateAndImpTransPos} from '../component/combine.template.and.imp.trans.pos';
+import {CombineTemplateAndImpTransPos} from '../../securityaccount/component/combine.template.and.imp.trans.pos';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../lib/login/service/log-in.service';
 import {BaseSettings} from '../../lib/base.settings';

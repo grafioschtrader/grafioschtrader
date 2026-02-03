@@ -2,7 +2,7 @@ import {Component, Input, OnInit} from '@angular/core';
 import {SingleRecordConfigBase} from '../../lib/datashowbase/single.record.config.base';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {TranslateService} from '@ngx-translate/core';
-import {CombineTemplateAndImpTransPos} from './combine.template.and.imp.trans.pos';
+import {CombineTemplateAndImpTransPos} from '../../securityaccount/component/combine.template.and.imp.trans.pos';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ImportSettings} from './import.settings';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
@@ -15,7 +15,7 @@ import {AppHelper} from '../../lib/helper/app.helper';
  */
 @Component({
     selector: 'securityaccount-import-extended-info',
-    templateUrl: '../view/securityaccount.import.extended.info.html',
+    templateUrl: '../../securityaccount/view/securityaccount.import.extended.info.html',
     standalone: false
 })
 export class SecurityaccountImportExtendedInfoComponent extends SingleRecordConfigBase implements OnInit {

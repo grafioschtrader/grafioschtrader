@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import grafiosch.entities.User;
 import grafioschtrader.dto.UploadHistoryquotesSuccess;
+import grafioschtrader.entities.GTNetSecurityImpHead;
 import grafioschtrader.entities.GTNetSecurityImpPos;
 import grafioschtrader.repository.GTNetSecurityImpPosJpaRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -108,6 +109,26 @@ public class GTNetSecurityImpPosResource {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(
         gtNetSecurityImpPosJpaRepository.deleteLinkedSecurity(id, user.getIdTenant()),
+        HttpStatus.OK);
+  }
+
+  @Operation(summary = "Create positions from import transaction head",
+      description = """
+          Creates GTNet security import positions from an import transaction head.
+          Reads ImportTransactionPos entries where security is null and (ISIN or symbol exists),
+          then creates corresponding GTNetSecurityImpPos entries. Can add to an existing header
+          (if idGtNetSecurityImpHead is provided) or create a new header (using headName).
+          Duplicates (same ISIN + currency) are skipped.""",
+      tags = { RequestGTMappings.GTNETSECURITYIMPPOS })
+  @PostMapping(value = "/fromimport/{idTransactionHead}", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<GTNetSecurityImpHead> createFromImportTransactionHead(
+      @PathVariable final Integer idTransactionHead,
+      @RequestParam(required = false) final Integer idGtNetSecurityImpHead,
+      @RequestParam(required = false) final String headName) {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    return new ResponseEntity<>(
+        gtNetSecurityImpPosJpaRepository.createFromImportTransactionHead(
+            idTransactionHead, idGtNetSecurityImpHead, headName, user.getIdTenant()),
         HttpStatus.OK);
   }
 }

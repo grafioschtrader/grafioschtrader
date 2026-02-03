@@ -46,6 +46,7 @@ import grafioschtrader.repository.AssetclassJpaRepository;
 import grafioschtrader.repository.GTNetSecurityImpGapJpaRepository;
 import grafioschtrader.repository.GTNetSecurityImpHeadJpaRepository;
 import grafioschtrader.repository.GTNetSecurityImpPosJpaRepository;
+import grafioschtrader.repository.ImportTransactionPosJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.StockexchangeJpaRepository;
 import grafioschtrader.types.DistributionFrequency;
@@ -103,6 +104,9 @@ public class GTNetSecurityImportTask implements ITask {
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
 
+  @Autowired
+  private ImportTransactionPosJpaRepository importTransactionPosJpaRepository;
+
   private static final String ENTITY_NAME_GTNET_SECURITY_IMPORT = "GTNetSecurityImport";
 
   @Override
@@ -121,26 +125,14 @@ public class GTNetSecurityImportTask implements ITask {
     Integer idHead = taskDataChange.getIdEntity();
     log.info("Starting GTNet security import for head ID: {}", idHead);
 
-    // Extract user ID from task parameters (stored in oldValueNumber)
-    Integer idCreatedByUser = null;
-    User user = null;
-    if (taskDataChange.getOldValueNumber() != null) {
-      idCreatedByUser = taskDataChange.getOldValueNumber().intValue();
-      user = userJpaRepository.findById(idCreatedByUser).orElse(null);
-      log.debug("Using user ID {} for created_by field", idCreatedByUser);
-    }
+    ImportContext ctx = buildImportContext(taskDataChange);
 
-    // Check if user is a limited editing user (subject to daily limits)
-    boolean isLimitedUser = user != null && UserAccessHelper.isLimitedEditingUser(user);
-
-    // 1. Load header to get tenant ID
     GTNetSecurityImpHead head = gtNetSecurityImpHeadJpaRepository.findById(idHead).orElse(null);
     if (head == null) {
       log.error("GTNetSecurityImpHead not found for ID: {}", idHead);
       return;
     }
 
-    // 2. Load positions without linked security
     List<GTNetSecurityImpPos> positions = gtNetSecurityImpPosJpaRepository
         .findByIdGtNetSecurityImpHeadAndSecurityIsNull(idHead);
 
@@ -151,90 +143,163 @@ public class GTNetSecurityImportTask implements ITask {
 
     log.info("Processing {} unmatched positions", positions.size());
 
-    // 3. Perform batch lookup
     Map<Integer, List<SecurityGtnetLookupDTO>> lookupResults =
         gtNetSecurityLookupService.lookupSecuritiesBatch(positions);
 
-    int created = 0;
-    int linked = 0;
-    int failed = 0;
-    int processed = 0;
+    int[] counters = {0, 0, 0, 0}; // created, linked, failed, processed
 
-    // 4. Process each position
     for (GTNetSecurityImpPos pos : positions) {
-      processed++;
-      try {
-        // Delete any existing gaps for this position (clean slate for re-import)
-        gtNetSecurityImpGapJpaRepository.deleteByIdGtNetSecurityImpPos(pos.getIdGtNetSecurityImpPos());
-
-        List<SecurityGtnetLookupDTO> matches = lookupResults.get(pos.getIdGtNetSecurityImpPos());
-
-        if (matches == null || matches.isEmpty()) {
-          log.debug("No matches found for position ID={}, ISIN={}, ticker={}",
-              pos.getIdGtNetSecurityImpPos(), pos.getIsin(), pos.getTickerSymbol());
-          failed++;
-          continue;
-        }
-
-        // Select best match
-        SecurityGtnetLookupDTO bestMatch = selectBestMatch(matches);
-        if (bestMatch == null) {
-          log.debug("Could not select best match for position ID={}", pos.getIdGtNetSecurityImpPos());
-          failed++;
-          continue;
-        }
-
-        // Record gaps for the best match (what didn't match even though a result was found)
-        recordGapsForMatch(pos.getIdGtNetSecurityImpPos(), bestMatch);
-
-        // Check if security already exists locally
-        Security existingSecurity = findExistingSecurity(bestMatch);
-        if (existingSecurity != null) {
-          pos.setSecurity(existingSecurity);
-          gtNetSecurityImpPosJpaRepository.save(pos);
-          log.debug("Linked existing security {} to position {}",
-              existingSecurity.getIdSecuritycurrency(), pos.getIdGtNetSecurityImpPos());
-          linked++;
-          continue;
-        }
-
-        // Check daily limit for limited users before creating new security
-        if (isLimitedUser && isLimitExceeded(user)) {
-          int remaining = positions.size() - processed;
-          log.warn("Daily limit exceeded for user {}. Created: {}, Linked: {}, Remaining: {}",
-              idCreatedByUser, created, linked, remaining);
-          throw new TaskBackgroundException("GTNET_IMPORT_LIMIT_EXCEEDED", false);
-        }
-
-        // Create new security
-        Security newSecurity = createSecurityFromDTO(bestMatch, head.getIdTenant(), idCreatedByUser);
-        if (newSecurity != null) {
-          pos.setSecurity(newSecurity);
-          gtNetSecurityImpPosJpaRepository.save(pos);
-          log.debug("Created and linked new security {} to position {}",
-              newSecurity.getIdSecuritycurrency(), pos.getIdGtNetSecurityImpPos());
-          created++;
-
-          // Log the security creation for limit tracking
-          if (idCreatedByUser != null) {
-            logSecurityCreation(idCreatedByUser);
-          }
-        } else {
-          log.warn("Failed to create security for position ID={}", pos.getIdGtNetSecurityImpPos());
-          failed++;
-        }
-
-      } catch (TaskBackgroundException tbe) {
-        // Re-throw TaskBackgroundException to be handled by BackgroundWorker
-        throw tbe;
-      } catch (Exception e) {
-        log.error("Error processing position ID={}: {}", pos.getIdGtNetSecurityImpPos(), e.getMessage(), e);
-        failed++;
-      }
+      counters[3]++;
+      processPosition(pos, lookupResults, head, ctx, counters, positions.size());
     }
 
     log.info("GTNet security import completed for head {}: {} created, {} linked, {} failed",
-        idHead, created, linked, failed);
+        idHead, counters[0], counters[1], counters[2]);
+  }
+
+  /**
+   * Builds the import context from task parameters.
+   */
+  private ImportContext buildImportContext(TaskDataChange taskDataChange) {
+    ImportContext ctx = new ImportContext();
+
+    if (taskDataChange.getOldValueNumber() != null) {
+      ctx.idCreatedByUser = taskDataChange.getOldValueNumber().intValue();
+      ctx.user = userJpaRepository.findById(ctx.idCreatedByUser).orElse(null);
+      log.debug("Using user ID {} for created_by field", ctx.idCreatedByUser);
+    }
+
+    ctx.isLimitedUser = ctx.user != null && UserAccessHelper.isLimitedEditingUser(ctx.user);
+    ctx.fromImport = taskDataChange.getOldValueString() != null && !taskDataChange.getOldValueString().isEmpty();
+
+    if (ctx.fromImport) {
+      log.info("Import context detected (idTransactionHead={}), will auto-update matching ImportTransactionPos entries",
+          taskDataChange.getOldValueString());
+    }
+
+    return ctx;
+  }
+
+  /**
+   * Processes a single position: finds matches, links or creates security.
+   *
+   * @param pos the position to process
+   * @param lookupResults batch lookup results keyed by position ID
+   * @param head the import head containing tenant info
+   * @param ctx the import context with user and flags
+   * @param counters array of [created, linked, failed, processed]
+   * @param totalPositions total number of positions for limit calculation
+   */
+  private void processPosition(GTNetSecurityImpPos pos, Map<Integer, List<SecurityGtnetLookupDTO>> lookupResults,
+      GTNetSecurityImpHead head, ImportContext ctx, int[] counters, int totalPositions) throws TaskBackgroundException {
+    try {
+      gtNetSecurityImpGapJpaRepository.deleteByIdGtNetSecurityImpPos(pos.getIdGtNetSecurityImpPos());
+
+      List<SecurityGtnetLookupDTO> matches = lookupResults.get(pos.getIdGtNetSecurityImpPos());
+
+      if (matches == null || matches.isEmpty()) {
+        log.debug("No matches found for position ID={}, ISIN={}, ticker={}",
+            pos.getIdGtNetSecurityImpPos(), pos.getIsin(), pos.getTickerSymbol());
+        counters[2]++;
+        return;
+      }
+
+      SecurityGtnetLookupDTO bestMatch = selectBestMatch(matches);
+      if (bestMatch == null) {
+        log.debug("Could not select best match for position ID={}", pos.getIdGtNetSecurityImpPos());
+        counters[2]++;
+        return;
+      }
+
+      recordGapsForMatch(pos.getIdGtNetSecurityImpPos(), bestMatch);
+
+      Security existingSecurity = findExistingSecurity(bestMatch);
+      if (existingSecurity != null) {
+        linkExistingSecurity(pos, existingSecurity, ctx);
+        counters[1]++;
+        return;
+      }
+
+      checkAndEnforceDailyLimit(ctx, counters, totalPositions);
+      createAndLinkNewSecurity(pos, bestMatch, head, ctx, counters);
+
+    } catch (TaskBackgroundException tbe) {
+      throw tbe;
+    } catch (Exception e) {
+      log.error("Error processing position ID={}: {}", pos.getIdGtNetSecurityImpPos(), e.getMessage(), e);
+      counters[2]++;
+    }
+  }
+
+  /**
+   * Links an existing security to a position and auto-assigns to import positions if applicable.
+   */
+  private void linkExistingSecurity(GTNetSecurityImpPos pos, Security security, ImportContext ctx) {
+    pos.setSecurity(security);
+    gtNetSecurityImpPosJpaRepository.save(pos);
+    log.debug("Linked existing security {} to position {}", security.getIdSecuritycurrency(), pos.getIdGtNetSecurityImpPos());
+
+    if (ctx.fromImport) {
+      int updated = importTransactionPosJpaRepository.assignSecurityToMatchingImportPositions(security);
+      if (updated > 0) {
+        log.info("Auto-assigned linked security {} to {} ImportTransactionPos entries",
+            security.getIdSecuritycurrency(), updated);
+      }
+    }
+  }
+
+  /**
+   * Checks daily limit for limited users and throws exception if exceeded.
+   */
+  private void checkAndEnforceDailyLimit(ImportContext ctx, int[] counters, int totalPositions)
+      throws TaskBackgroundException {
+    if (ctx.isLimitedUser && isLimitExceeded(ctx.user)) {
+      int remaining = totalPositions - counters[3];
+      log.warn("Daily limit exceeded for user {}. Created: {}, Linked: {}, Remaining: {}",
+          ctx.idCreatedByUser, counters[0], counters[1], remaining);
+      throw new TaskBackgroundException("GTNET_IMPORT_LIMIT_EXCEEDED", false);
+    }
+  }
+
+  /**
+   * Creates a new security from the DTO, links it to the position, and handles limit tracking.
+   */
+  private void createAndLinkNewSecurity(GTNetSecurityImpPos pos, SecurityGtnetLookupDTO bestMatch,
+      GTNetSecurityImpHead head, ImportContext ctx, int[] counters) {
+    Security newSecurity = createSecurityFromDTO(bestMatch, head.getIdTenant(), ctx.idCreatedByUser);
+
+    if (newSecurity != null) {
+      pos.setSecurity(newSecurity);
+      gtNetSecurityImpPosJpaRepository.save(pos);
+      log.debug("Created and linked new security {} to position {}",
+          newSecurity.getIdSecuritycurrency(), pos.getIdGtNetSecurityImpPos());
+      counters[0]++;
+
+      if (ctx.idCreatedByUser != null) {
+        logSecurityCreation(ctx.idCreatedByUser);
+      }
+
+      if (ctx.fromImport) {
+        int updated = importTransactionPosJpaRepository.assignSecurityToMatchingImportPositions(newSecurity);
+        if (updated > 0) {
+          log.info("Auto-assigned created security {} to {} ImportTransactionPos entries",
+              newSecurity.getIdSecuritycurrency(), updated);
+        }
+      }
+    } else {
+      log.warn("Failed to create security for position ID={}", pos.getIdGtNetSecurityImpPos());
+      counters[2]++;
+    }
+  }
+
+  /**
+   * Holds context information for an import operation.
+   */
+  private static class ImportContext {
+    Integer idCreatedByUser;
+    User user;
+    boolean isLimitedUser;
+    boolean fromImport;
   }
 
   /**
@@ -318,14 +383,12 @@ public class GTNetSecurityImportTask implements ITask {
    * @return the created and persisted Security, or null if required data is missing
    */
   private Security createSecurityFromDTO(SecurityGtnetLookupDTO dto, Integer idTenant, Integer idCreatedByUser) {
-    // Find asset class
     Assetclass assetclass = findOrCreateAssetclass(dto);
     if (assetclass == null) {
       log.warn("Could not find asset class for security {}", dto.getIsin());
       return null;
     }
 
-    // Find stock exchange
     Stockexchange stockexchange = findStockexchange(dto);
     if (stockexchange == null) {
       log.warn("Could not find stock exchange for security {}", dto.getIsin());
@@ -333,18 +396,27 @@ public class GTNetSecurityImportTask implements ITask {
     }
 
     Security security = new Security();
-
-    // Basic identification
     security.setName(dto.getName());
     security.setIsin(dto.getIsin());
     security.setTickerSymbol(dto.getTickerSymbol());
     security.setCurrency(dto.getCurrency());
-
-    // Asset class and stock exchange
     security.setAssetClass(assetclass);
     security.setStockexchange(stockexchange);
 
-    // Connector settings
+    applyConnectorSettings(security, dto);
+    applyOptionalProperties(security, dto);
+
+    if (idCreatedByUser != null) {
+      security.setCreatedBy(idCreatedByUser);
+    }
+
+    return securityJpaRepository.save(security);
+  }
+
+  /**
+   * Applies connector settings from DTO to security.
+   */
+  private void applyConnectorSettings(Security security, SecurityGtnetLookupDTO dto) {
     if (dto.getMatchedHistoryConnector() != null) {
       security.setIdConnectorHistory(dto.getMatchedHistoryConnector());
       security.setUrlHistoryExtend(dto.getMatchedHistoryUrlExtension());
@@ -361,31 +433,22 @@ public class GTNetSecurityImportTask implements ITask {
       security.setIdConnectorSplit(dto.getMatchedSplitConnector());
       security.setUrlSplitExtend(dto.getMatchedSplitUrlExtension());
     }
+  }
 
-    // Other properties
+  /**
+   * Applies optional properties and dates from DTO to security.
+   */
+  private void applyOptionalProperties(Security security, SecurityGtnetLookupDTO dto) {
     security.setDenomination(dto.getDenomination());
     security.setProductLink(dto.getProductLink());
     security.setStockexchangeLink(dto.getStockexchangeLink());
     security.setLeverageFactor(dto.getLeverageFactor() != null ? dto.getLeverageFactor() : 1.0f);
     security.setDistributionFrequency(dto.getDistributionFrequency() != null
-        ? dto.getDistributionFrequency()
-        : DistributionFrequency.DF_NONE);
-
-    // Active dates
+        ? dto.getDistributionFrequency() : DistributionFrequency.DF_NONE);
     security.setActiveFromDate(dto.getActiveFromDate() != null
-        ? dto.getActiveFromDate()
-        : new Date());
+        ? dto.getActiveFromDate() : new Date());
     security.setActiveToDate(dto.getActiveToDate() != null
-        ? dto.getActiveToDate()
-        : DateHelper.getDateFromLocalDate(LocalDate.of(2099, 12, 31)));
-
-    // Set created_by manually (Spring audit doesn't work in background tasks)
-    if (idCreatedByUser != null) {
-      security.setCreatedBy(idCreatedByUser);
-    }
-
-    // Save and return
-    return securityJpaRepository.save(security);
+        ? dto.getActiveToDate() : DateHelper.getDateFromLocalDate(LocalDate.of(2099, 12, 31)));
   }
 
   /**
@@ -484,7 +547,6 @@ public class GTNetSecurityImportTask implements ITask {
    * @param dto the lookup result DTO containing match information
    */
   private void recordGapsForMatch(Integer idGtNetSecurityImpPos, SecurityGtnetLookupDTO dto) {
-    // Resolve GTNet ID from source domain
     Integer idGtNet = resolveGtNetId(dto.getSourceDomain());
     if (idGtNet == null) {
       log.warn("Could not resolve GTNet ID for domain: {}", dto.getSourceDomain());
@@ -493,55 +555,51 @@ public class GTNetSecurityImportTask implements ITask {
 
     List<GTNetSecurityImpGap> gaps = new ArrayList<>();
 
-    // Check for asset class mismatch
     if (dto.getMatchedAssetClassId() == null || !"EXACT".equals(dto.getAssetClassMatchType())) {
       String assetClassMessage = buildAssetClassMessage(dto);
       gaps.add(new GTNetSecurityImpGap(idGtNetSecurityImpPos, idGtNet, GapCodeType.ASSET_CLASS, assetClassMessage));
       log.debug("Asset class gap for position {}: {}", idGtNetSecurityImpPos, assetClassMessage);
     }
 
-    // Check for connector gaps based on hints
-    if (dto.getConnectorHints() != null) {
-      for (ConnectorHint hint : dto.getConnectorHints()) {
-        if (hint.getCapabilities() != null) {
-          // Check INTRADAY connector
-          if (hint.getCapabilities().contains(ConnectorCapability.INTRADAY)
-              && dto.getMatchedIntraConnector() == null) {
-            String message = hint.getConnectorFamily();
-            gaps.add(new GTNetSecurityImpGap(idGtNetSecurityImpPos, idGtNet, GapCodeType.INTRADAY_CONNECTOR, message));
-            log.debug("Intraday connector gap for position {}: {}", idGtNetSecurityImpPos, message);
-          }
-
-          // Check HISTORY connector
-          if (hint.getCapabilities().contains(ConnectorCapability.HISTORY)
-              && dto.getMatchedHistoryConnector() == null) {
-            String message = hint.getConnectorFamily();
-            gaps.add(new GTNetSecurityImpGap(idGtNetSecurityImpPos, idGtNet, GapCodeType.HISTORY_CONNECTOR, message));
-            log.debug("History connector gap for position {}: {}", idGtNetSecurityImpPos, message);
-          }
-
-          // Check DIVIDEND connector
-          if (hint.getCapabilities().contains(ConnectorCapability.DIVIDEND)
-              && dto.getMatchedDividendConnector() == null) {
-            String message = hint.getConnectorFamily();
-            gaps.add(new GTNetSecurityImpGap(idGtNetSecurityImpPos, idGtNet, GapCodeType.DIVIDEND_CONNECTOR, message));
-            log.debug("Dividend connector gap for position {}: {}", idGtNetSecurityImpPos, message);
-          }
-
-          // Check SPLIT connector
-          if (hint.getCapabilities().contains(ConnectorCapability.SPLIT)
-              && dto.getMatchedSplitConnector() == null) {
-            String message = hint.getConnectorFamily();
-            gaps.add(new GTNetSecurityImpGap(idGtNetSecurityImpPos, idGtNet, GapCodeType.SPLIT_CONNECTOR, message));
-            log.debug("Split connector gap for position {}: {}", idGtNetSecurityImpPos, message);
-          }
-        }
-      }
-    }
+    collectConnectorGaps(gaps, idGtNetSecurityImpPos, idGtNet, dto);
 
     if (!gaps.isEmpty()) {
       gtNetSecurityImpGapJpaRepository.saveAll(gaps);
       log.info("Recorded {} gaps for position {}", gaps.size(), idGtNetSecurityImpPos);
+    }
+  }
+
+  /**
+   * Checks connector hints and adds gaps for unmatched connectors.
+   */
+  private void collectConnectorGaps(List<GTNetSecurityImpGap> gaps, Integer idPos, Integer idGtNet,
+      SecurityGtnetLookupDTO dto) {
+    if (dto.getConnectorHints() == null) {
+      return;
+    }
+    for (ConnectorHint hint : dto.getConnectorHints()) {
+      if (hint.getCapabilities() == null) {
+        continue;
+      }
+      checkConnectorGap(gaps, idPos, idGtNet, hint, ConnectorCapability.INTRADAY,
+          dto.getMatchedIntraConnector(), GapCodeType.INTRADAY_CONNECTOR);
+      checkConnectorGap(gaps, idPos, idGtNet, hint, ConnectorCapability.HISTORY,
+          dto.getMatchedHistoryConnector(), GapCodeType.HISTORY_CONNECTOR);
+      checkConnectorGap(gaps, idPos, idGtNet, hint, ConnectorCapability.DIVIDEND,
+          dto.getMatchedDividendConnector(), GapCodeType.DIVIDEND_CONNECTOR);
+      checkConnectorGap(gaps, idPos, idGtNet, hint, ConnectorCapability.SPLIT,
+          dto.getMatchedSplitConnector(), GapCodeType.SPLIT_CONNECTOR);
+    }
+  }
+
+  /**
+   * Adds a gap if the hint has the capability but no connector was matched.
+   */
+  private void checkConnectorGap(List<GTNetSecurityImpGap> gaps, Integer idPos, Integer idGtNet,
+      ConnectorHint hint, ConnectorCapability capability, String matchedConnector, GapCodeType gapCode) {
+    if (hint.getCapabilities().contains(capability) && matchedConnector == null) {
+      gaps.add(new GTNetSecurityImpGap(idPos, idGtNet, gapCode, hint.getConnectorFamily()));
+      log.debug("{} gap for position {}: {}", gapCode, idPos, hint.getConnectorFamily());
     }
   }
 

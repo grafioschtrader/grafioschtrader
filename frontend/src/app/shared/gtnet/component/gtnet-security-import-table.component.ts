@@ -4,42 +4,42 @@ import {TranslateService} from '@ngx-translate/core';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {ContextMenuModule} from 'primeng/contextmenu';
 
-import {TableEditConfigBase} from '../../lib/datashowbase/table.edit.config.base';
-import {EditableTableComponent, RowEditSaveEvent} from '../../lib/datashowbase/editable-table.component';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {TranslateValue} from '../../lib/datashowbase/column.config';
-import {AppSettings} from '../../shared/app.settings';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
-import {BaseSettings} from '../../lib/base.settings';
+import {TableEditConfigBase} from '../../../lib/datashowbase/table.edit.config.base';
+import {EditableTableComponent, RowEditSaveEvent} from '../../../lib/datashowbase/editable-table.component';
+import {GlobalparameterService} from '../../../lib/services/globalparameter.service';
+import {UserSettingsService} from '../../../lib/services/user.settings.service';
+import {MessageToastService} from '../../../lib/message/message.toast.service';
+import {DataType} from '../../../lib/dynamic-form/models/data.type';
+import {TranslateValue} from '../../../lib/datashowbase/column.config';
+import {AppSettings} from '../../app.settings';
+import {TranslateHelper} from '../../../lib/helper/translate.helper';
+import {AppHelper} from '../../../lib/helper/app.helper';
+import {InfoLevelType} from '../../../lib/message/info.leve.type';
+import {ValueKeyHtmlSelectOptions} from '../../../lib/dynamic-form/models/value.key.html.select.options';
+import {BaseSettings} from '../../../lib/base.settings';
 
-import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
+import {GlobalparameterGTService} from '../../../gtservice/globalparameter.gt.service';
 import {GTNetSecurityImpHead} from '../model/gtnet-security-imp-head';
 import {GTNetSecurityImpPos} from '../model/gtnet-security-imp-pos';
 import {GTNetSecurityImpPosService} from '../service/gtnet-security-imp-pos.service';
-import {SecurityService} from '../../securitycurrency/service/security.service';
-import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
-import {SecurityCurrencyHelper} from '../../securitycurrency/service/security.currency.helper';
-import {SecurityDataProviderUrls} from '../../securitycurrency/model/security.data.provider.urls';
-import {SecuritycurrencyExtendedInfoComponent} from '../../watchlist/component/securitycurrency-extended-info.component';
-import {SecurityEditComponent} from '../../shared/securitycurrency/security-edit.component';
-import {Security} from '../../entities/security';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {FileUploadParam} from '../../lib/generaldialog/model/file.upload.param';
-import {UploadFileDialogComponent} from '../../lib/generaldialog/component/upload-file-dialog.component';
-import {AppHelpIds} from '../../shared/help/help.ids';
-import {HelpIds} from '../../lib/help/help.ids';
-import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
+import {SecurityService} from '../../../securitycurrency/service/security.service';
+import {CurrencypairService} from '../../../securitycurrency/service/currencypair.service';
+import {SecurityCurrencyHelper} from '../../../securitycurrency/service/security.currency.helper';
+import {SecurityDataProviderUrls} from '../../../securitycurrency/model/security.data.provider.urls';
+import {SecuritycurrencyExtendedInfoComponent} from '../../../watchlist/component/securitycurrency-extended-info.component';
+import {SecurityEditComponent} from '../../securitycurrency/security-edit.component';
+import {Security} from '../../../entities/security';
+import {ProcessedActionData} from '../../../lib/types/processed.action.data';
+import {ProcessedAction} from '../../../lib/types/processed.action';
+import {FileUploadParam} from '../../../lib/generaldialog/model/file.upload.param';
+import {UploadFileDialogComponent} from '../../../lib/generaldialog/component/upload-file-dialog.component';
+import {AppHelpIds} from '../../help/help.ids';
+import {HelpIds} from '../../../lib/help/help.ids';
+import {IGlobalMenuAttach} from '../../../lib/mainmenubar/component/iglobal.menu.attach';
+import {ActivePanelService} from '../../../lib/mainmenubar/service/active.panel.service';
 import {GTNetSecurityImpGapTableComponent} from './gtnet-security-imp-gap-table.component';
-import {GTNetService} from '../service/gtnet.service';
-import {GTNet} from '../model/gtnet';
+import {GTNetService} from '../../../gtnet/service/gtnet.service';
+import {GTNet} from '../../../gtnet/model/gtnet';
 
 /**
  * Table component for displaying and editing GTNet security import positions.
@@ -61,6 +61,7 @@ import {GTNet} from '../model/gtnet';
         [contextMenuEnabled]="false"
         [containerClass]="''"
         [expandable]="true"
+        [contextMenuAppendTo]="'body'"
         [expandedRowTemplate]="expandedContent"
         [canExpandFn]="canExpandPosition"
         (rowExpand)="onRowExpand($event)"

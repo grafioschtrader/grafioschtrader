@@ -1,4 +1,4 @@
-import {BaseID} from '../../lib/entities/base.id';
+import {BaseID} from '../../../lib/entities/base.id';
 
 /**
  * Header entity for organizing GTNet security import operations. Groups multiple security

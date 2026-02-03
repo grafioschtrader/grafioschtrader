@@ -14,7 +14,7 @@ import {ProcessedAction} from '../../lib/types/processed.action';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {CombineTemplateAndImpTransPos} from './combine.template.and.imp.trans.pos';
+import {CombineTemplateAndImpTransPos} from '../../securityaccount/component/combine.template.and.imp.trans.pos';
 import {toClipboard} from 'copee';
 import {ImportSettings} from './import.settings';
 import {Transaction} from '../../entities/transaction';
@@ -139,7 +139,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
 
     this.addColumn(DataType.String, 'fileTypeIcon', AppSettings.INSTRUMENT_HEADER, true, false,
       {fieldValueFN: this.getFileTypeIcon.bind(this), templateName: 'icon', width: 25});
-    this.addColumn(DataType.DateString, ImportSettings.IMPORT_TRANSACTION_POS + 'transactionTime', 'DATE', true, false, {width: 60});
+    this.addColumn(DataType.DateNumeric, ImportSettings.IMPORT_TRANSACTION_POS + 'transactionTime', 'DATE', true, false, {width: 120});
     this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'transactionType', 'TRANSACTION_TYPE_IMP', true, false,
       {width: 60, translateValues: TranslateValue.NORMAL});
     this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'cashaccount.name', AppSettings.CASHACCOUNT.toUpperCase(),
