@@ -1,6 +1,6 @@
 {
   "name": "grafioschtrader-client",
-  "version": "0.33.15",
+  "version": "0.33.16",
   "license": "Apache-2.0",
   "scripts": {
     "ng": "ng",
