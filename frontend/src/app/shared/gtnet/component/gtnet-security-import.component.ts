@@ -1,19 +1,21 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {ActivatedRoute, Params} from '@angular/router';
 import {TranslateService} from '@ngx-translate/core';
 import {ConfirmationService, MenuItem} from 'primeng/api';
 
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {HelpIds} from '../../lib/help/help.ids';
-import {SingleRecordMasterViewBase} from '../../lib/masterdetail/component/single.record.master.view.base';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {BaseSettings} from '../../lib/base.settings';
+import {ActivePanelService} from '../../../lib/mainmenubar/service/active.panel.service';
+import {AppSettings} from '../../app.settings';
+import {HelpIds} from '../../../lib/help/help.ids';
+import {SingleRecordMasterViewBase} from '../../../lib/masterdetail/component/single.record.master.view.base';
+import {MessageToastService} from '../../../lib/message/message.toast.service';
+import {InfoLevelType} from '../../../lib/message/info.leve.type';
+import {GlobalparameterService} from '../../../lib/services/globalparameter.service';
+import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
+import {TranslateHelper} from '../../../lib/helper/translate.helper';
+import {SelectOptionsHelper} from '../../../lib/helper/select.options.helper';
+import {ProcessedActionData} from '../../../lib/types/processed.action.data';
+import {ProcessedAction} from '../../../lib/types/processed.action';
+import {BaseSettings} from '../../../lib/base.settings';
 
 import {GTNetSecurityImpHead} from '../model/gtnet-security-imp-head';
 import {GTNetSecurityImpPos} from '../model/gtnet-security-imp-pos';
@@ -34,7 +36,7 @@ import {GTNetSecurityImportTableComponent} from './gtnet-security-import-table.c
       </dynamic-form>
 
       @if (contextMenuItems) {
-        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems" appendTo="body"></p-contextMenu>
       }
       <br/>
       <gtnet-security-import-table
@@ -58,10 +60,15 @@ export class GTNetSecurityImportComponent
   implements OnInit, OnDestroy {
 
   private static readonly MAIN_FIELD = 'idGtNetSecurityImpHead';
+  private static readonly STORAGE_KEY_SELECTED_HEAD = 'selectedGtNetSecurityImpHead';
 
   @ViewChild(GTNetSecurityImportTableComponent) tableComponent: GTNetSecurityImportTableComponent;
 
+  /** Import transaction head ID passed from transaction import context */
+  private idTransactionHead: number = null;
+
   constructor(
+    private activatedRoute: ActivatedRoute,
     private gtNetSecurityImpHeadService: GTNetSecurityImpHeadService,
     gps: GlobalparameterService,
     confirmationService: ConfirmationService,
@@ -101,6 +108,20 @@ export class GTNetSecurityImportComponent
   }
 
   ngOnInit(): void {
+    // Subscribe to route params to read idTransactionHead (passed from transaction import context)
+    this.activatedRoute.params.subscribe((params: Params) => {
+      if (params[AppSettings.ID_TRANSACTION_HEAD]) {
+        this.idTransactionHead = Number(params[AppSettings.ID_TRANSACTION_HEAD]);
+      }
+    });
+
+    // Also check localStorage for idTransactionHead (set by import transaction component)
+    const storedIdTransactionHead = localStorage.getItem(AppSettings.ID_TRANSACTION_HEAD);
+    if (storedIdTransactionHead) {
+      this.idTransactionHead = Number(storedIdTransactionHead);
+      localStorage.removeItem(AppSettings.ID_TRANSACTION_HEAD);  // Clear after reading
+    }
+
     // Use setTimeout to ensure dynamic-form has created the form controls
     setTimeout(() => {
       this.valueChangedMainField();
@@ -118,8 +139,25 @@ export class GTNetSecurityImportComponent
           heads,
           true
         );
+
+      // Restore selection from localStorage if no entity is selected
+      if (!this.selectedEntity) {
+        const savedHeadId = localStorage.getItem(GTNetSecurityImportComponent.STORAGE_KEY_SELECTED_HEAD);
+        if (savedHeadId) {
+          this.selectedEntity = this.entityList.find(h => h.idGtNetSecurityImpHead === Number(savedHeadId));
+        }
+      }
       this.setFieldValues();
     });
+  }
+
+  protected override setFieldValues(): void {
+    super.setFieldValues();
+    // Save selection to localStorage
+    if (this.selectedEntity?.idGtNetSecurityImpHead) {
+      localStorage.setItem(GTNetSecurityImportComponent.STORAGE_KEY_SELECTED_HEAD,
+        String(this.selectedEntity.idGtNetSecurityImpHead));
+    }
   }
 
   setChildData(selectedEntity: GTNetSecurityImpHead): void {
@@ -162,19 +200,23 @@ export class GTNetSecurityImportComponent
 
   /**
    * Triggers the background import job for the selected header.
+   * If idTransactionHead is available (from import context), passes it to auto-assign securities
+   * to matching ImportTransactionPos entries after successful import.
    */
   private triggerImportJob(): void {
     if (!this.selectedEntity) {
       return;
     }
 
-    this.gtNetSecurityImpHeadService.queueImportJob(this.selectedEntity.idGtNetSecurityImpHead)
-      .subscribe({
-        next: (result) => {
-          const msgKey = result.queued ? 'GTNET_IMPORT_JOB_QUEUED' : 'GTNET_IMPORT_JOB_ALREADY_PENDING';
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, msgKey);
-        }
-      });
+    this.gtNetSecurityImpHeadService.queueImportJob(
+      this.selectedEntity.idGtNetSecurityImpHead,
+      this.idTransactionHead  // Pass context if available
+    ).subscribe({
+      next: (result) => {
+        const msgKey = result.queued ? 'GTNET_IMPORT_JOB_QUEUED' : 'GTNET_IMPORT_JOB_ALREADY_PENDING';
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, msgKey);
+      }
+    });
   }
 
   onPositionChanged(): void {

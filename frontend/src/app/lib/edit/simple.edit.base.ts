@@ -35,7 +35,11 @@ export abstract class SimpleEditBase extends FormBase {
   }
 
   onHide(event): void {
-    this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
+    // Only emit when visibleDialog is still true (user initiated close).
+    // Prevents double emission when parent sets visibleDialog to false.
+    if (this.visibleDialog) {
+      this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
+    }
   }
 
   protected abstract initialize(): void;

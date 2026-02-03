@@ -78,7 +78,7 @@ export enum TaskTypeExtended {
 
   GTNET_FUTURE_MESSAGE_DELIVERY = 25,
 
-  GTNET_SECURITY_IMPORT_POSITIONS = 26,
+  GTNET_SECURITY_IMPORT_POSITIONS = 27,
 
 
   // Update tasks

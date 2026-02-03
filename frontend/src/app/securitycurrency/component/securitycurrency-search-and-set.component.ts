@@ -18,7 +18,7 @@ import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-fo
 @Component({
     selector: 'securitycurrency-search-and-set',
     template: `
-      <p-dialog header="{{'SET_SECURITY' | translate}}" [(visible)]="visibleDialog" appendTo="body"
+      <p-dialog header="{{'SET_SECURITY' | translate}}" [visible]="visibleDialog"
                 [style]="{width: '720px'}" [resizable]="false"
                 (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
           <p class="big-size">{{'SEARCH_DIALOG_HELP' | translate}}</p>
@@ -57,7 +57,11 @@ export class SecuritycurrencySearchAndSetComponent extends SecuritycurrencySearc
   }
 
   onHide(event) {
-    this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
+    // Only emit when visibleDialog is still true (user initiated close).
+    // Prevents double emission when parent sets visibleDialog to false.
+    if (this.visibleDialog) {
+      this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
+    }
   }
 
   setSecurity(security: Security | CurrencypairWatchlist): void {

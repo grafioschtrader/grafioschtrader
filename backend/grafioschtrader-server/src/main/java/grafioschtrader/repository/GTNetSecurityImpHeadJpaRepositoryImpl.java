@@ -57,7 +57,8 @@ public class GTNetSecurityImpHeadJpaRepositoryImpl extends BaseRepositoryImpl<GT
 
   @Override
   @Transactional
-  public boolean queueImportJobIfNotExists(Integer idGtNetSecurityImpHead, Integer idTenant, Integer idUser) {
+  public boolean queueImportJobIfNotExists(Integer idGtNetSecurityImpHead, Integer idTenant, Integer idUser,
+      Integer idTransactionHead) {
     // Verify the header belongs to the tenant
     GTNetSecurityImpHead head = gtNetSecurityImpHeadJpaRepository
         .findByIdGtNetSecurityImpHeadAndIdTenant(idGtNetSecurityImpHead, idTenant);
@@ -86,6 +87,12 @@ public class GTNetSecurityImpHeadJpaRepositoryImpl extends BaseRepositoryImpl<GT
     // Store user ID for created_by field on imported securities
     if (idUser != null) {
       task.setOldValueNumber(idUser.doubleValue());
+    }
+
+    // Store import transaction head ID to indicate this came from import flow
+    // When set, the task will auto-assign securities to matching ImportTransactionPos entries
+    if (idTransactionHead != null) {
+      task.setOldValueString(idTransactionHead.toString());
     }
 
     taskDataChangeJpaRepository.save(task);

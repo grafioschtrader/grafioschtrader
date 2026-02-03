@@ -3,14 +3,15 @@ import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {catchError} from 'rxjs/operators';
 
-import {AuthServiceWithLogout} from '../../lib/login/service/base.auth.service.with.logout';
-import {DeleteService} from '../../lib/datashowbase/delete.service';
-import {LoginService} from '../../lib/login/service/log-in.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {BaseSettings} from '../../lib/base.settings';
-import {AppSettings} from '../../shared/app.settings';
+import {AuthServiceWithLogout} from '../../../lib/login/service/base.auth.service.with.logout';
+import {DeleteService} from '../../../lib/datashowbase/delete.service';
+import {LoginService} from '../../../lib/login/service/log-in.service';
+import {MessageToastService} from '../../../lib/message/message.toast.service';
+import {BaseSettings} from '../../../lib/base.settings';
+import {AppSettings} from '../../app.settings';
 import {GTNetSecurityImpPos} from '../model/gtnet-security-imp-pos';
-import {UploadHistoryquotesSuccess, UploadServiceFunction} from '../../lib/generaldialog/model/file.upload.param';
+import {GTNetSecurityImpHead} from '../model/gtnet-security-imp-head';
+import {UploadHistoryquotesSuccess, UploadServiceFunction} from '../../../lib/generaldialog/model/file.upload.param';
 
 /**
  * Service for managing GTNet security import positions.
@@ -122,5 +123,30 @@ export class GTNetSecurityImpPosService extends AuthServiceWithLogout<GTNetSecur
       `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_SECURITY_IMP_POS_KEY}/${idGtNetSecurityImpPos}/security`,
       this.getHeaders()
     ).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /**
+   * Creates GTNet security import positions from an import transaction head.
+   * Reads ImportTransactionPos entries directly from the backend.
+   *
+   * @param idTransactionHead the import transaction head ID to read positions from
+   * @param idGtNetSecurityImpHead optional existing header ID to add positions to
+   * @param headName name for new header (required if idGtNetSecurityImpHead is not provided)
+   * @returns Observable of the GTNet security import header (existing or newly created)
+   */
+  createFromImportTransactionHead(idTransactionHead: number, idGtNetSecurityImpHead?: number,
+                                  headName?: string): Observable<GTNetSecurityImpHead> {
+    let params = new URLSearchParams();
+    if (idGtNetSecurityImpHead != null) {
+      params.set('idGtNetSecurityImpHead', String(idGtNetSecurityImpHead));
+    }
+    if (headName) {
+      params.set('headName', headName);
+    }
+    const queryString = params.toString();
+    const url = `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_SECURITY_IMP_POS_KEY}/fromimport/${idTransactionHead}`
+      + (queryString ? `?${queryString}` : '');
+    return this.httpClient.post<GTNetSecurityImpHead>(url, null, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 }

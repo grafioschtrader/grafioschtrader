@@ -17,7 +17,7 @@ import {OptionalParameters, TimeSeriesQuotesService} from '../../historyquote/se
 import {
   ImportTransactionHeadService,
   SuccessFailedDirectImportTransaction
-} from '../service/import.transaction.head.service';
+} from '../../imptransaction/service/import.transaction.head.service';
 
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {AppSettings} from '../../shared/app.settings';

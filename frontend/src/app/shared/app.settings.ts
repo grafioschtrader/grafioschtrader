@@ -138,7 +138,9 @@ export class AppSettings {
   public static readonly PROPOSE_CHANGE_TAB_MENU_KEY = 'proposeChangeTabMenu';
   public static readonly PORTFOLIO_TAB_MENU_KEY = 'portfolioTabMenu';
   public static readonly SECURITYACCOUNT_TAB_MENU_KEY = 'securityaccountTabMenu';
+  public static readonly SECURITYACCOUNT_IMPORT_TAB_MENU_KEY = 'securityaccountImportTabMenu';
   public static readonly SECURITYACCOUNT_IMPORT_KEY = 'securityaccountImport';
+  public static readonly SECURITYACCOUNT_GTNET_IMPORT_KEY = 'securityaccountGtnetImport';
   public static readonly DIVIDENDS_ROUTER_KEY = 'portfolioDividens';
   public static readonly TRANSACTION_COST_KEY = 'portfoliotranscost';
   public static readonly STRATEGY_KEY = 'strategy';
@@ -190,6 +192,7 @@ export class AppSettings {
   // Some definitions of property names which are used in more than one class
   public static readonly VALUE_SECURITY_MAIN_CURRENCY_FIELD = 'accountValueSecurityMC';
   public static readonly SUCCESS_FAILED_IMP_TRANS = 'successFailedDirectImpTran';
+  public static readonly ID_TRANSACTION_HEAD = 'idTransactionHead';
   public static readonly VALUE_SECURITY_ACCOUNT_HEADER = 'ACCOUNT_RELEVANT';
 
   public static readonly DIVIDEND_SETTINGS = 'DIVIDEND_SETTINGS';

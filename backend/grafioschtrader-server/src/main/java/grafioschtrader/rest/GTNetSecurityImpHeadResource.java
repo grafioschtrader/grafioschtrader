@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import grafiosch.entities.User;
@@ -53,14 +54,18 @@ public class GTNetSecurityImpHeadResource extends UpdateCreateDeleteWithTenantRe
   @Operation(summary = "Queue background job to import securities from GTNet",
       description = """
           Creates a background task to query GTNet peers and create securities for all positions without
-          a linked security. If a job is already pending for this import header, no new job is created.""",
+          a linked security. If a job is already pending for this import header, no new job is created.
+          If idTransactionHead is provided, the task will auto-assign linked securities to matching
+          ImportTransactionPos entries after successful import.""",
       tags = { RequestGTMappings.GTNETSECURITYIMPHEAD })
   @PostMapping(value = "/{idGtNetSecurityImpHead}/importjob", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Map<String, Object>> queueImportJob(@PathVariable Integer idGtNetSecurityImpHead) {
+  public ResponseEntity<Map<String, Object>> queueImportJob(
+      @PathVariable Integer idGtNetSecurityImpHead,
+      @RequestParam(required = false) Integer idTransactionHead) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
 
     boolean queued = gtNetSecurityImpHeadJpaRepository.queueImportJobIfNotExists(
-        idGtNetSecurityImpHead, user.getIdTenant(), user.getIdUser());
+        idGtNetSecurityImpHead, user.getIdTenant(), user.getIdUser(), idTransactionHead);
 
     Map<String, Object> response = new HashMap<>();
     response.put("queued", queued);

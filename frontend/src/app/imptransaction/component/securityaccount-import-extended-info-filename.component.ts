@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {CombineTemplateAndImpTransPos} from './combine.template.and.imp.trans.pos';
+import {CombineTemplateAndImpTransPos} from '../../securityaccount/component/combine.template.and.imp.trans.pos';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {SingleRecordConfigBase} from '../../lib/datashowbase/single.record.config.base';
@@ -12,7 +12,7 @@ import {AppSettings} from '../../shared/app.settings';
  */
 @Component({
     selector: 'securityaccount-import-extended-info-filename',
-    templateUrl: '../view/securityaccount.import.extended.info.html',
+    templateUrl: '../../securityaccount/view/securityaccount.import.extended.info.html',
     standalone: false
 })
 export class SecurityaccountImportExtendedInfoFilenameComponent extends SingleRecordConfigBase implements OnInit {

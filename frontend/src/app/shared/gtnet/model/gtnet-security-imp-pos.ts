@@ -1,5 +1,5 @@
-import {BaseID} from '../../lib/entities/base.id';
-import {Security} from '../../entities/security';
+import {BaseID} from '../../../lib/entities/base.id';
+import {Security} from '../../../entities/security';
 import {GTNetSecurityImpGap} from './gtnet-security-imp-gap';
 
 /**

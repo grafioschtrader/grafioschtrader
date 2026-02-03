@@ -16,12 +16,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import grafiosch.BaseConstants;
 import grafiosch.common.CSVImportHelper;
 import grafiosch.common.FieldColumnMapping;
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.dto.UploadHistoryquotesSuccess;
+import grafioschtrader.entities.ImportTransactionPos;
 import grafioschtrader.entities.GTNetSecurityImpGap;
 import grafioschtrader.entities.GTNetSecurityImpHead;
 import grafioschtrader.entities.GTNetSecurityImpPos;
@@ -35,6 +39,8 @@ import jakarta.validation.Validator;
  * All operations verify tenant access through the parent header entity.
  */
 public class GTNetSecurityImpPosJpaRepositoryImpl implements GTNetSecurityImpPosJpaRepositoryCustom {
+
+  private static final Logger LOG = LoggerFactory.getLogger(GTNetSecurityImpPosJpaRepositoryImpl.class);
 
   @Autowired
   private GTNetSecurityImpPosJpaRepository gtNetSecurityImpPosJpaRepository;
@@ -50,6 +56,9 @@ public class GTNetSecurityImpPosJpaRepositoryImpl implements GTNetSecurityImpPos
 
   @Autowired
   private HistoryquoteJpaRepository historyquoteJpaRepository;
+
+  @Autowired
+  private ImportTransactionPosJpaRepository importTransactionPosJpaRepository;
 
   @Autowired
   private Validator validator;
@@ -305,5 +314,130 @@ public class GTNetSecurityImpPosJpaRepositoryImpl implements GTNetSecurityImpPos
     securityJpaRepository.deleteById(idSecuritycurrency);
 
     return position;
+  }
+
+  @Override
+  @Transactional
+  public GTNetSecurityImpHead createFromImportTransactionHead(Integer idTransactionHead,
+      Integer idGtNetSecurityImpHead, String headName, Integer idTenant) {
+
+    List<ImportTransactionPos> missingSecurityPositions = findMissingSecurityPositions(idTransactionHead, idTenant);
+    GTNetSecurityImpHead header = getOrCreateHeader(idGtNetSecurityImpHead, headName, idTenant);
+    List<GTNetSecurityImpPos> positionsToSave = buildPositionsToSave(missingSecurityPositions, header);
+
+    if (!positionsToSave.isEmpty()) {
+      gtNetSecurityImpPosJpaRepository.saveAll(positionsToSave);
+      LOG.info("Saved {} GTNet positions for header {}", positionsToSave.size(), header.getIdGtNetSecurityImpHead());
+    } else {
+      LOG.warn("No valid positions to save for header {}", header.getIdGtNetSecurityImpHead());
+    }
+
+    return header;
+  }
+
+  private List<ImportTransactionPos> findMissingSecurityPositions(Integer idTransactionHead, Integer idTenant) {
+    List<ImportTransactionPos> importPositions = importTransactionPosJpaRepository
+        .findByIdTransactionHeadAndIdTenant(idTransactionHead, idTenant);
+
+    LOG.info("Found {} import positions for head {}", importPositions.size(), idTransactionHead);
+
+    if (importPositions.isEmpty()) {
+      throw new DataViolationException(null, "gt.net.import.no.positions.found", null);
+    }
+
+    List<ImportTransactionPos> missingSecurityPositions = importPositions.stream()
+        .filter(pos -> pos.getSecurity() == null)
+        .filter(pos -> hasValidIdentifier(pos.getIsin()) || hasValidIdentifier(pos.getSymbolImp()))
+        .collect(Collectors.toList());
+
+    LOG.info("Found {} positions with missing security and valid identifiers", missingSecurityPositions.size());
+
+    if (missingSecurityPositions.isEmpty()) {
+      throw new DataViolationException(null, "gt.net.import.no.missing.securities", null);
+    }
+
+    return missingSecurityPositions;
+  }
+
+  private GTNetSecurityImpHead getOrCreateHeader(Integer idGtNetSecurityImpHead, String headName, Integer idTenant) {
+    if (idGtNetSecurityImpHead != null) {
+      GTNetSecurityImpHead header = gtNetSecurityImpHeadJpaRepository
+          .findByIdGtNetSecurityImpHeadAndIdTenant(idGtNetSecurityImpHead, idTenant);
+      if (header == null) {
+        throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
+      }
+      return header;
+    }
+
+    if (headName == null || headName.trim().isEmpty()) {
+      throw new DataViolationException("headName", "gt.net.security.imp.head.name.required", null);
+    }
+
+    GTNetSecurityImpHead header = new GTNetSecurityImpHead();
+    header.setName(headName.trim());
+    header.setIdTenant(idTenant);
+    return gtNetSecurityImpHeadJpaRepository.save(header);
+  }
+
+  private List<GTNetSecurityImpPos> buildPositionsToSave(List<ImportTransactionPos> importPositions,
+      GTNetSecurityImpHead header) {
+    Set<String> existingKeys = gtNetSecurityImpPosJpaRepository
+        .findByIdGtNetSecurityImpHead(header.getIdGtNetSecurityImpHead())
+        .stream()
+        .map(pos -> createDuplicateKey(pos.getIsin(), pos.getCurrency()))
+        .collect(Collectors.toSet());
+
+    Set<String> processedKeys = new HashSet<>();
+    List<GTNetSecurityImpPos> positionsToSave = new ArrayList<>();
+
+    for (ImportTransactionPos importPos : importPositions) {
+      GTNetSecurityImpPos pos = createPositionFromImport(importPos, header, existingKeys, processedKeys);
+      if (pos != null) {
+        positionsToSave.add(pos);
+      }
+    }
+
+    return positionsToSave;
+  }
+
+  private GTNetSecurityImpPos createPositionFromImport(ImportTransactionPos importPos, GTNetSecurityImpHead header,
+      Set<String> existingKeys, Set<String> processedKeys) {
+    String isin = normalizeValue(importPos.getIsin());
+    String tickerSymbol = normalizeValue(importPos.getSymbolImp());
+    if (tickerSymbol != null && tickerSymbol.length() > 6) {
+      tickerSymbol = null;
+    }
+    String currency = normalizeValue(importPos.getCurrencySecurity());
+    if (currency == null) {
+      currency = normalizeValue(importPos.getCurrencyAccount());
+    }
+
+    if ((isin == null && tickerSymbol == null) || currency == null) {
+      return null;
+    }
+
+    String key = createDuplicateKey(isin, currency);
+    if (existingKeys.contains(key) || processedKeys.contains(key)) {
+      return null;
+    }
+
+    GTNetSecurityImpPos pos = new GTNetSecurityImpPos(header.getIdGtNetSecurityImpHead(), isin, tickerSymbol, currency);
+    if (!validator.validate(pos).isEmpty()) {
+      return null;
+    }
+
+    processedKeys.add(key);
+    return pos;
+  }
+
+  private boolean hasValidIdentifier(String value) {
+    return value != null && !value.trim().isEmpty();
+  }
+
+  private String normalizeValue(String value) {
+    if (value == null || value.trim().isEmpty()) {
+      return null;
+    }
+    return value.toUpperCase().trim();
   }
 }

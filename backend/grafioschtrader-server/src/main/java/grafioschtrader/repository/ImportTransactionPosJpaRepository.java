@@ -59,4 +59,25 @@ public interface ImportTransactionPosJpaRepository
   @Query(nativeQuery = true)
   Integer[][] getIdTransactionPosWithPossibleTransactionByIdTransactionHead(Integer idTransactionHead);
 
+  //@formatter:off
+  /**
+   * Finds import transaction positions that match the given ISIN and currency but have no security assigned.
+   * Used to auto-assign securities after GTNet import successfully links or creates a security.
+   * <p>
+   * Currency matching logic:
+   * <ul>
+   *   <li>Matches against <code>currency_security</code> if present</li>
+   *   <li>Falls back to <code>currency_account</code> if <code>currency_security</code> is null</li>
+   * </ul>
+   *
+   * Named query: ImportTransactionPos.findByIsinAndCurrencyWithNoSecurity
+   *
+   * @param isin the ISIN to match
+   * @param currency the currency to match against
+   * @return list of import transaction positions without assigned security matching the ISIN and currency
+   */
+  //@formatter:on
+  @Query(nativeQuery = true)
+  List<ImportTransactionPos> findByIsinAndCurrencyWithNoSecurity(String isin, String currency);
+
 }

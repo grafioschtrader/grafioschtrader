@@ -350,7 +350,7 @@ export interface ValidationErrorEvent<T> {
 
       <!-- Context Menu -->
       @if (contextMenuEnabled && showContextMenu) {
-        <p-contextMenu [target]="cmDiv" [model]="computedContextMenuItems"></p-contextMenu>
+        <p-contextMenu [target]="cmDiv" [model]="computedContextMenuItems" [appendTo]="contextMenuAppendTo"></p-contextMenu>
       }
     </div>
   `
@@ -442,6 +442,15 @@ export class EditableTableComponent<T = any> implements OnChanges {
 
   /** Controls visibility of the context menu */
   @Input() showContextMenu = false;
+
+  /**
+   * Determines where to append the context menu in the DOM.
+   * Set to 'body' for nested tables to ensure proper positioning in the X-Y coordinate system.
+   * When null, the context menu is appended to its parent container (default behavior).
+   *
+   * Usage: [contextMenuAppendTo]="'body'" for nested tables
+   */
+  @Input() contextMenuAppendTo: string | null = null;
 
   // ============================================================================
   // Value Display Configuration

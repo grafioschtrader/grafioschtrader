@@ -72,17 +72,21 @@ import {TenantTransactionCostExtendedComponent} from './tenant/component/tenant-
 import {SecuritysplitEditTableComponent} from './shared/securitycurrency/securitysplit-edit-table.component';
 import {PortfolioEditDynamicComponent} from './portfolio/component/portfolio.edit.dynamic.component';
 import {SecurityaccountTabMenuComponent} from './securityaccount/component/securityaccount.tab.menu.component';
-import {ImportTransactionHeadService} from './securityaccount/service/import.transaction.head.service';
+import {SecurityaccountImportTabMenuComponent} from './imptransaction/component/securityaccount-import-tab-menu.component';
+import {ImportTransactionHeadService} from './imptransaction/service/import.transaction.head.service';
 import {UploadFileDialogComponent} from './lib/generaldialog/component/upload-file-dialog.component';
 import {
   SecurityaccountImportTransactionEditHeadComponent
-} from './securityaccount/component/securityaccount-import-transaction-edit-head.component';
+} from './imptransaction/component/securityaccount-import-transaction-edit-head.component';
 import {
   SecurityaccountImportTransactionComponent
-} from './securityaccount/component/securityaccount.import.transaction.component';
+} from './imptransaction/component/securityaccount.import.transaction.component';
+import {
+  GTNetImportHeadSelectDialogComponent
+} from './imptransaction/component/gtnet-import-head-select-dialog.component';
 import {
   SecurityaccountImportTransactionTableComponent
-} from './securityaccount/component/securityaccount-import-transaction-table.component';
+} from './imptransaction/component/securityaccount-import-transaction-table.component';
 import {ImportTransactionTemplateComponent} from './imptranstemplate/component/import.transaction.template.component';
 import {ImportTransactionTemplateService} from './imptranstemplate/service/import.transaction.template.service';
 import {ImportTransactionPlatformService} from './imptranstemplate/service/import.transaction.platform.service';
@@ -104,13 +108,13 @@ import {
 import {
   TemplateFormCheckDialogResultFailedComponent
 } from './imptranstemplate/component/template-form-check-dialog-result-failed.component';
-import {ImportTransactionPosService} from './securityaccount/service/import.transaction.pos.service';
+import {ImportTransactionPosService} from './imptransaction/service/import.transaction.pos.service';
 import {
   SecurityaccountImportSetCashaccountComponent
-} from './securityaccount/component/securityaccount-import-set-cashaccount.component';
+} from './imptransaction/component/securityaccount-import-set-cashaccount.component';
 import {
   SecurityaccountImportExtendedInfoComponent
-} from './securityaccount/component/securityaccount-import-extended-info.component';
+} from './imptransaction/component/securityaccount-import-extended-info.component';
 import {ToastrModule} from 'ngx-toastr';
 import {ProposeChangeEntityService} from './lib/proposechange/service/propose.change.entity.service';
 import {setupProposeChangeEntityHandlers} from './shared/changerequest/propose.change.entity.handlers.setup';
@@ -137,7 +141,7 @@ import {ActuatorService} from './lib/services/actuator.service';
 import {MultiTranslateHttpLoader} from './lib/translator/multi.translate.http.loader';
 import {
   SecurityaccountImportExtendedInfoFilenameComponent
-} from './securityaccount/component/securityaccount-import-extended-info-filename.component';
+} from './imptransaction/component/securityaccount-import-extended-info-filename.component';
 import {TradingCalendarGlobalComponent} from './tradingcalendar/component/trading.calendar.global.component';
 import {FullyearcalendarLibComponent} from './lib/fullyearcalendar/fullyearcalendar-lib.component';
 import {TradingDaysPlusService} from './tradingcalendar/service/trading.days.plus.service';
@@ -213,11 +217,11 @@ import {GTNetMessageService} from './gtnet/service/gtnet.message.service';
 import {GTNetMessageAnswerTableComponent} from './gtnet/component/gtnet-message-answer-table.component';
 import {GTNetMessageAnswerService} from './gtnet/service/gtnet.message.answer.service';
 import {GtnetSecurityLookupService} from './gtnet/service/gtnet-security-lookup.service';
-import {GTNetSecurityImpHeadService} from './gtnet/service/gtnet-security-imp-head.service';
-import {GTNetSecurityImpPosService} from './gtnet/service/gtnet-security-imp-pos.service';
-import {GTNetSecurityImportComponent} from './gtnet/component/gtnet-security-import.component';
-import {GTNetSecurityImportEditHeadComponent} from './gtnet/component/gtnet-security-import-edit-head.component';
-import {GTNetSecurityImportTableComponent} from './gtnet/component/gtnet-security-import-table.component';
+import {GTNetSecurityImpHeadService} from './shared/gtnet/service/gtnet-security-imp-head.service';
+import {GTNetSecurityImpPosService} from './shared/gtnet/service/gtnet-security-imp-pos.service';
+import {GTNetSecurityImportComponent} from './shared/gtnet/component/gtnet-security-import.component';
+import {GTNetSecurityImportEditHeadComponent} from './shared/gtnet/component/gtnet-security-import-edit-head.component';
+import {GTNetSecurityImportTableComponent} from './shared/gtnet/component/gtnet-security-import-table.component';
 import {SendRecvTreetableComponent} from './lib/mail/component/send.recv.treetable.component';
 import {MailForwardSettingTableEditComponent} from './lib/mail/component/mail.forward.setting.table.edit.component';
 import {SendRecvForwardTabMenuComponent} from './lib/mail/component/send.recv.forward.tab.menu.component';
@@ -296,6 +300,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     SecurityaccountImportExtendedInfoFilenameComponent, SecurityaccountImportSetCashaccountComponent,
     SecurityaccountImportTransactionComponent, SecurityaccountImportTransactionEditHeadComponent,
     SecurityaccountImportTransactionTableComponent,
+    SecurityaccountImportTabMenuComponent,
     SecurityaccountTabMenuComponent,
     SecurityHistoryquoteQualityTableComponent,
     SecurityHistoryquoteQualityTreetableComponent,
@@ -306,6 +311,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     TenantTransactionCostComponent,
     TenantTransactionCostExtendedComponent, TimeSeriesChartComponent,
     TradingCalendarOtherExchangeDynamicComponent,
+    GTNetImportHeadSelectDialogComponent,
     GTNetSecurityImportComponent,
     GTNetSecurityImportEditHeadComponent
   ],

@@ -11,7 +11,7 @@ import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {CombineTemplateAndImpTransPos} from './combine.template.and.imp.trans.pos';
+import {CombineTemplateAndImpTransPos} from '../../securityaccount/component/combine.template.and.imp.trans.pos';
 import {AppSettings} from '../../shared/app.settings';
 
 /**
@@ -20,7 +20,7 @@ import {AppSettings} from '../../shared/app.settings';
 @Component({
     selector: 'securityaccount-import-set-cashaccount',
     template: `
-    <p-dialog header="{{'CASHACCOUNT' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'CASHACCOUNT' | translate}}" [visible]="visibleDialog"
               [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

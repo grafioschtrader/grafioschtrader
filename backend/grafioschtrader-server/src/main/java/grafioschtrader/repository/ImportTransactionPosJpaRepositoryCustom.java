@@ -6,6 +6,7 @@ import java.util.Map;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.entities.ImportTransactionHead;
 import grafioschtrader.entities.ImportTransactionPos;
+import grafioschtrader.entities.Security;
 import grafioschtrader.platformimport.CombineTemplateAndImpTransPos;
 import grafioschtrader.repository.ImportTransactionPosJpaRepositoryImpl.SavedImpPosAndTransaction;
 
@@ -235,8 +236,25 @@ public interface ImportTransactionPosJpaRepositoryCustom {
    * Resets the transaction reference for an import position when the associated transaction is deleted. This method
    * maintains data consistency by clearing import position links when their corresponding transactions are removed from
    * the system.
-   * 
+   *
    * @param idTransaction The ID of the deleted transaction to unlink from import positions
    */
   void setTrasactionIdToNullWhenExists(Integer idTransaction);
+
+  /**
+   * Assigns a security to all import transaction positions that match by ISIN and currency but have no security
+   * assigned yet. This method is called after GTNet import successfully links or creates a security, to automatically
+   * update matching import positions so they become ready for transaction creation.
+   *
+   * <p>
+   * For each matching position:
+   * <ul>
+   *   <li>Assigns the security using {@link ImportTransactionPos#setSecurityRemoveFromFlag(Security)}</li>
+   *   <li>Validates and updates readiness status via {@link #setCheckReadyForSingleTransaction(ImportTransactionPos)}</li>
+   * </ul>
+   *
+   * @param security the security to assign to matching positions; if null or missing ISIN/currency, returns 0
+   * @return the number of import positions that were updated
+   */
+  int assignSecurityToMatchingImportPositions(Security security);
 }

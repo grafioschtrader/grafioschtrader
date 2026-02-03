@@ -49,7 +49,7 @@ public enum TaskTypeExtended implements ITaskType {
   /** Resets retry counters (history and intra) for connector(s) on active instruments. */
   RESET_CONNECTOR_RETRY_COUNTERS((byte) 21),
   /** Imports securities from GTNet peers for GTNetSecurityImpHead positions */
-  GTNET_SECURITY_IMPORT_POSITIONS((byte) 26),
+  GTNET_SECURITY_IMPORT_POSITIONS((byte) 27),
   
 
   // Task which used oldValueNumber or oldValueString can not created by the admin

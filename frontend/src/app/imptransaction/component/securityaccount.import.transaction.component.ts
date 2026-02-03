@@ -20,7 +20,7 @@ import {ImportTransactionTemplateService} from '../../imptranstemplate/service/i
 import {ImportTransactionTemplate} from '../../entities/import.transaction.template';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {CombineTemplateAndImpTransPos} from './combine.template.and.imp.trans.pos';
+import {CombineTemplateAndImpTransPos} from '../../securityaccount/component/combine.template.and.imp.trans.pos';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {plainToInstance} from 'class-transformer';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
@@ -46,7 +46,7 @@ import {BaseSettings} from '../../lib/base.settings';
       </dynamic-form>
 
       @if (contextMenuItems) {
-        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
+        <p-contextMenu [target]="cmDiv" [model]="contextMenuItems" appendTo="body"></p-contextMenu>
       }
       <br/>
       <securityaccount-import-transaction-table></securityaccount-import-transaction-table>
@@ -67,6 +67,15 @@ import {BaseSettings} from '../../lib/base.settings';
         (closeDialog)="handleCloseImportUploadDialog($event)">
       </upload-file-dialog>
     }
+
+    @if (visibleGtnetHeadSelectDialog) {
+      <gtnet-import-head-select-dialog
+        [visibleDialog]="visibleGtnetHeadSelectDialog"
+        [suggestedHeadName]="suggestedGtnetHeadName"
+        [idTransactionHead]="selectedEntity?.idTransactionHead"
+        (closeDialog)="handleCloseGtnetHeadSelectDialog($event)">
+      </gtnet-import-head-select-dialog>
+    }
   `,
   standalone: false
 })
@@ -75,6 +84,7 @@ export class SecurityaccountImportTransactionComponent
   implements OnInit, OnDestroy, ParentChildRowSelection<CombineTemplateAndImpTransPos> {
 
   private static readonly MAIN_FIELD = 'idTransactionHead';
+  private static readonly STORAGE_KEY_SELECTED_HEAD = 'selectedImportTransactionHead';
 
   // Access child component
   @ViewChild(SecurityaccountImportTransactionTableComponent, {static: true}) sitdc: SecurityaccountImportTransactionTableComponent;
@@ -82,10 +92,12 @@ export class SecurityaccountImportTransactionComponent
   // Child Dialogs
   visibleImportEditHeadDialog = false;
   visibleUploadFileDialog = false;
+  visibleGtnetHeadSelectDialog = false;
   fileUploadParam: FileUploadParam;
   // callParam: CallParam;
   importTransactionTemplates: ImportTransactionTemplate[];
   successFailedDirectImportTransaction: SuccessFailedDirectImportTransaction;
+  suggestedGtnetHeadName = '';
 
   securityAccount: Securityaccount;
 
@@ -147,8 +159,25 @@ export class SecurityaccountImportTransactionComponent
           this.selectedEntity = this.entityList.find(imporTtransactionHead =>
             imporTtransactionHead.idTransactionHead === this.successFailedDirectImportTransaction.idTransactionHead);
         }
+
+        // Restore selection from localStorage if no entity is selected
+        if (!this.selectedEntity) {
+          const savedHeadId = localStorage.getItem(SecurityaccountImportTransactionComponent.STORAGE_KEY_SELECTED_HEAD);
+          if (savedHeadId) {
+            this.selectedEntity = this.entityList.find(h => h.idTransactionHead === Number(savedHeadId));
+          }
+        }
         this.setFieldValues();
       });
+  }
+
+  protected override setFieldValues(): void {
+    super.setFieldValues();
+    // Save selection to localStorage
+    if (this.selectedEntity?.idTransactionHead) {
+      localStorage.setItem(SecurityaccountImportTransactionComponent.STORAGE_KEY_SELECTED_HEAD,
+        String(this.selectedEntity.idTransactionHead));
+    }
   }
 
   setChildData(selectedEntity: ImportTransactionHead): void {
@@ -174,6 +203,13 @@ export class SecurityaccountImportTransactionComponent
       label: 'UPLOAD_TXT_FROM_GT_TRANSFORM' + BaseSettings.DIALOG_MENU_SUFFIX,
       disabled: !this.selectedEntity,
       command: (event) => this.handleUploadFiles(null, this.selectedEntity, 'UPLOAD_TXT_FROM_GT_TRANSFORM', 'txt', false)
+    });
+
+    menuItems.push({separator: true});
+    menuItems.push({
+      label: 'CREATE_GTNET_IMPORT_FROM_MISSING' + BaseSettings.DIALOG_MENU_SUFFIX,
+      disabled: !this.gps.useGtnet() || !this.hasMissingSecurities(),
+      command: () => this.handleCreateGtnetImportFromMissing()
     });
 
     // Add menu items of child data table
@@ -234,6 +270,38 @@ export class SecurityaccountImportTransactionComponent
 
   protected prepareCallParam(entity: ImportTransactionHead): void {
     this.callParam.thisObject = entity;
+  }
+
+  /**
+   * Checks if there are import positions with missing securities that have ISIN or ticker symbol.
+   */
+  private hasMissingSecurities(): boolean {
+    return this.childEntityList?.some(ctaitp =>
+      ctaitp.importTransactionPos.security === null &&
+      (ctaitp.importTransactionPos.isin || ctaitp.importTransactionPos.symbolImp)
+    ) ?? false;
+  }
+
+  /**
+   * Opens the GTNet import head selection dialog.
+   * The backend reads missing securities directly from ImportTransactionPos.
+   */
+  handleCreateGtnetImportFromMissing(): void {
+    this.suggestedGtnetHeadName = this.selectedEntity?.name || '';
+    this.visibleGtnetHeadSelectDialog = true;
+  }
+
+  /**
+   * Handles closing of the GTNet import head selection dialog.
+   * If positions were created successfully, stores the idTransactionHead in localStorage
+   * so the GTNet import tab can use it for auto-assigning securities.
+   */
+  handleCloseGtnetHeadSelectDialog(processedActionData: ProcessedActionData): void {
+    this.visibleGtnetHeadSelectDialog = false;
+    if (processedActionData.action === ProcessedAction.CREATED && this.selectedEntity) {
+      // Store idTransactionHead for the GTNet tab to read
+      localStorage.setItem(AppSettings.ID_TRANSACTION_HEAD, String(this.selectedEntity.idTransactionHead));
+    }
   }
 
 }
