@@ -169,6 +169,10 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
     this.activePanelService.activatePanel(this, {editMenu: this.contextMenuItems, showMenu: this.prepareShowMenu()});
   }
 
+  protected reSetHelpId(helpId: string): void {
+    this.helpId = helpId;
+  }
+
   public getHelpContextId(): string {
     return this.helpId;
   }

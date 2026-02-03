@@ -78,7 +78,7 @@ export class GTNetSecurityImportComponent
   ) {
     super(
       gps,
-      HelpIds.HELP_BASEDATA_GTNET,
+      HelpIds.HELP_BASEDATA_GT_NET_IMPORT_SECURITY,
       GTNetSecurityImportComponent.MAIN_FIELD,
       'GTNET_SECURITY_IMP_HEAD',
       gtNetSecurityImpHeadService,
@@ -112,6 +112,7 @@ export class GTNetSecurityImportComponent
     this.activatedRoute.params.subscribe((params: Params) => {
       if (params[AppSettings.ID_TRANSACTION_HEAD]) {
         this.idTransactionHead = Number(params[AppSettings.ID_TRANSACTION_HEAD]);
+        this.reSetHelpId(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT_GTNET);
       }
     });
 

@@ -11,7 +11,8 @@ export const AppHelpIds: Record<string, string> = {
   HELP_PORTFOLIO: 'tenantportfolio/portfolio',
   HELP_PORTFOLIO_ACCOUNT: 'tenantportfolio/cashaccount',
   HELP_PORTFOLIO_SECURITYACCOUNT: 'tenantportfolio/securityaccounts',
-  HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT: 'tenantportfolio/securityaccounts/transactionimport',
+  HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT: 'tenantportfolio/securityaccounts/transactionimport/viewtransactionimport',
+  HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT_GTNET: 'tenantportfolio/securityaccounts/transactionimport/securityimportfortransaction',
 
   // Tenant and  Portfolios / Reports
   HELP_PORTFOLIOS: 'reportportfolio',
