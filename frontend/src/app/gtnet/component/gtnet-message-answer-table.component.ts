@@ -99,7 +99,7 @@ export class GTNetMessageAnswerTableComponent extends TableCrudSupportMenu<GTNet
   }
 
   public override getHelpContextId(): string {
-    return HelpIds.HELP_GT_NET;
+    return HelpIds.HELP_GT_NET_AUTOANSWER;
   }
 
   override prepareCallParam(entity: GTNetMessageAnswer): void {
