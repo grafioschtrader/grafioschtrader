@@ -1,7 +1,9 @@
 import {Component, Input, OnInit} from '@angular/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
+import {DialogModule} from 'primeng/dialog';
+
 import {HelpIds} from '../../lib/help/help.ids';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {TranslateService} from '@ngx-translate/core';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ImportTransactionHeadService} from '../service/import.transaction.head.service';
 import {ImportTransactionHead} from '../../entities/import.transaction.head';
@@ -10,6 +12,7 @@ import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {Securityaccount} from '../../entities/securityaccount';
 import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {BaseSettings} from '../../lib/base.settings';
 
@@ -26,7 +29,8 @@ import {BaseSettings} from '../../lib/base.settings';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`,
-  standalone: false
+  standalone: true,
+  imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class SecurityaccountImportTransactionEditHeadComponent extends SimpleEntityEditBase<ImportTransactionHead> implements OnInit {
 

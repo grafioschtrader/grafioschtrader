@@ -1,17 +1,19 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {HelpIds} from '../../lib/help/help.ids';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslatePipe, TranslateService} from '@ngx-translate/core';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {TaEditParam, TaEditReturn} from './indicator.definitions';
 import {DynamicFieldSimpleEditBase} from '../../lib/edit/dynamic.field.simple.edit.base.directive';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
+import {Dialog} from 'primeng/dialog';
+import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 
 @Component({
-    selector: 'indicator-edit',
-    template: `
+  selector: 'indicator-edit',
+  template: `
     <p-dialog header="{{'DEFINITION' | translate}}: {{taEditParam.taIndicators | translate}}"
               [(visible)]="visibleDialog"
               [style]="{width: '400px'}"
@@ -22,7 +24,8 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`,
-    standalone: false
+  standalone: true,
+  imports: [Dialog, DynamicFormComponent, TranslatePipe]
 })
 export class IndicatorEditComponent extends DynamicFieldSimpleEditBase implements OnInit {
   @Input() taEditParam: TaEditParam;

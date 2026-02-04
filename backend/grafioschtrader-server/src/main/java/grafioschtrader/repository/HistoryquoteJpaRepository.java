@@ -630,6 +630,16 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   int insertIgnore(Integer idSecuritycurrency, Date date, double close, Double open, Double high, Double low,
       Long volume, byte createType);
 
+  /**
+   * Retrieves the minimum date, maximum date, and total count of historical quotes for a given security or currency
+   * pair. Used by GTNet coverage queries to determine which peer has the longest historical data coverage.
+   *
+   * @param idSecuritycurrency the ID of the security or currency pair
+   * @return array of [minDate, maxDate, count], or [null, null, 0] if no data exists
+   */
+  @Query("SELECT MIN(h.date), MAX(h.date), COUNT(h) FROM Historyquote h WHERE h.idSecuritycurrency = ?1")
+  Object[] findMinMaxDateAndCount(Integer idSecuritycurrency);
+
   public interface SecurityCurrencyIdAndDate {
     Integer getIdSecuritycurrency();
 

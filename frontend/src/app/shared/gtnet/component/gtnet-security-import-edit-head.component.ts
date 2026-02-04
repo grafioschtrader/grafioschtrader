@@ -1,11 +1,13 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
+import {DialogModule} from 'primeng/dialog';
 
 import {HelpIds} from '../../../lib/help/help.ids';
 import {GlobalparameterService} from '../../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../../lib/message/message.toast.service';
 import {SimpleEntityEditBase} from '../../../lib/edit/simple.entity.edit.base';
 import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
+import {DynamicFormModule} from '../../../lib/dynamic-form/dynamic-form.module';
 import {TranslateHelper} from '../../../lib/helper/translate.helper';
 import {AppHelper} from '../../../lib/helper/app.helper';
 import {BaseSettings} from '../../../lib/base.settings';
@@ -29,7 +31,8 @@ import {GTNetSecurityImpHeadService} from '../service/gtnet-security-imp-head.se
       </dynamic-form>
     </p-dialog>
   `,
-  standalone: false
+  standalone: true,
+  imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class GTNetSecurityImportEditHeadComponent extends SimpleEntityEditBase<GTNetSecurityImpHead> implements OnInit {
 

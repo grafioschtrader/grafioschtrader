@@ -1,14 +1,17 @@
 import {Component, Input, OnInit} from '@angular/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
+import {DialogModule} from 'primeng/dialog';
+
 import {AppHelper} from '../../lib/helper/app.helper';
 import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
 import {HelpIds} from '../../lib/help/help.ids';
-import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {ImportTransactionPosService} from '../service/import.transaction.pos.service';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {CombineTemplateAndImpTransPos} from '../../securityaccount/component/combine.template.and.imp.trans.pos';
@@ -18,8 +21,8 @@ import {AppSettings} from '../../shared/app.settings';
  * Dialog to assign a cash account to an imported transaction position.
  */
 @Component({
-    selector: 'securityaccount-import-set-cashaccount',
-    template: `
+  selector: 'securityaccount-import-set-cashaccount',
+  template: `
     <p-dialog header="{{'CASHACCOUNT' | translate}}" [visible]="visibleDialog"
               [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
@@ -28,7 +31,8 @@ import {AppSettings} from '../../shared/app.settings';
                     (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>`,
-    standalone: false
+  standalone: true,
+  imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class SecurityaccountImportSetCashaccountComponent extends SimpleEditBase implements OnInit {
   @Input() idSecuritycashAccount: number;

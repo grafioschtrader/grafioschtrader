@@ -1,12 +1,13 @@
 import {AfterViewInit, Component, OnInit} from '@angular/core';
-import {TenantEditComponent} from './tenant.edit.component';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {TenantService} from '../service/tenant.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {Tenant} from '../../entities/tenant';
-import {LoginService} from '../../lib/login/service/log-in.service';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
+import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
+import {LoginService} from '../../lib/login/service/log-in.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {TenantService} from '../service/tenant.service';
+import {TenantEditComponent} from './tenant.edit.component';
 
 /**
  * Edit tenant fields on a full page layout used for a new tenant.
@@ -24,7 +25,8 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
       </div>
     </div>
   `,
-  standalone: false
+  standalone: true,
+  imports: [TranslateModule, DynamicFormComponent]
 })
 export class TenantEditFullPageComponent extends TenantEditComponent implements OnInit, AfterViewInit {
 

@@ -113,8 +113,6 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
       messageToastService, productIconService, changeDetectionStrategy, filterService, translateService, gpsGT, gps,
       usersettingsService, WatchlistTable.SINGLE, injector);
     const date = new Date();
-
-
     this.timeFrames.push(new TimeFrame('THIS_WEEK', moment().weekday()));
     this.timeFrames.push(new TimeFrame('DAYS_30', 30));
     this.timeFrames.push(new TimeFrame('DAYS_90', 90));
@@ -122,7 +120,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.timeFrames.push(new TimeFrame('YEAR_1', moment(date).diff(moment(date).subtract(1, 'years'), 'days')));
     this.timeFrames.push(new TimeFrame('YEAR_2', moment(date).diff(moment(date).subtract(2, 'years'), 'days')));
     this.timeFrames.push(new TimeFrame('YEAR_3', moment(date).diff(moment(date).subtract(3, 'years'), 'days')));
-    this.choosenTimeFrame = this.timeFrames[0];
+    this.choosenTimeFrame = this.restoreTimeFrame();
     this.addBaseColumns();
     this.addColumn(DataType.String, 'securitycurrency.assetClass.categoryType', AppSettings.ASSETCLASS.toUpperCase(), true, true,
       {translateValues: TranslateValue.NORMAL, width: 60});
@@ -172,6 +170,8 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
 
   ngOnInit(): void {
     this.init();
+    this.hideShowColumnByFileHeader('TIME_FRAME_ANNUAL', this.choosenTimeFrame.days > 600);
+    this.updateTimeFrameTooltips();
     this.getWatchlistWithoutUpdate();
   }
 
@@ -241,10 +241,45 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
    */
   private handleTimeFrame(event, timeFrame: TimeFrame, childMenuItems: MenuItem[]) {
     this.choosenTimeFrame = timeFrame;
+    this.usersettingsService.saveSingleValue(AppSettings.WATCHLIST_PERFORMANCE_TIMEFRAME_STORE, timeFrame.name);
     childMenuItems.forEach(menuItem => menuItem.icon = AppSettings.ICONNAME_CIRCLE_EMTPY);
     event.item.icon = AppSettings.ICONNAME_CIRCLE_CHECK;
     this.hideShowColumnByFileHeader('TIME_FRAME_ANNUAL', timeFrame.days > 600);
+    this.updateTimeFrameTooltips();
     this.updateAllPrice();
+  }
+
+  /**
+   * Restores the previously selected time frame from localStorage.
+   * Falls back to first time frame if no saved selection or saved name doesn't match.
+   */
+  private restoreTimeFrame(): TimeFrame {
+    const savedName: string = this.usersettingsService.readSingleValue(AppSettings.WATCHLIST_PERFORMANCE_TIMEFRAME_STORE);
+    if (savedName) {
+      const found = this.timeFrames.find(tf => tf.name === savedName);
+      if (found) {
+        return found;
+      }
+    }
+    return this.timeFrames[0];
+  }
+
+  /**
+   * Updates the tooltips for TIME_FRAME and TIME_FRAME_ANNUAL columns with the translated time frame name.
+   */
+  private updateTimeFrameTooltips(): void {
+    this.translateService.get([this.choosenTimeFrame.name, 'TIME_FRAME_TOOLTIP', 'TIME_FRAME_ANNUAL_TOOLTIP'])
+      .subscribe(translations => {
+        const translatedTimeFrame = translations[this.choosenTimeFrame.name];
+        const timeFrameColumn = this.getColumnConfigByHeader('TIME_FRAME');
+        if (timeFrameColumn) {
+          timeFrameColumn.headerTooltipTranslated = translations['TIME_FRAME_TOOLTIP'].replace('{{timeFrame}}', translatedTimeFrame);
+        }
+        const timeFrameAnnualColumn = this.getColumnConfigByHeader('TIME_FRAME_ANNUAL');
+        if (timeFrameAnnualColumn) {
+          timeFrameAnnualColumn.headerTooltipTranslated = translations['TIME_FRAME_ANNUAL_TOOLTIP'].replace('{{timeFrame}}', translatedTimeFrame);
+        }
+      });
   }
 
 }

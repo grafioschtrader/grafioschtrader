@@ -11,7 +11,7 @@ import {HistoryquoteService} from '../service/historyquote.service';
 import {ActivatedRoute} from '@angular/router';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {ViewSizeChangedService} from '../../lib/layout/service/view.size.changed.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslatePipe, TranslateService} from '@ngx-translate/core';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {HelpIds} from '../../lib/help/help.ids';
 import {CurrencypairWithTransaction} from '../../entities/view/currencypair.with.transaction';
@@ -49,6 +49,12 @@ import {BaseSettings} from '../../lib/base.settings';
 import {ChartType} from '../../shared/types/chart.type';
 import {HistoryquoteOHLC} from '../../entities/projection/historyquote.ohlc';
 import {HistoryquoteChartResponse} from '../../entities/projection/historyquote.chart.response';
+import {NgClass} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {DatePicker} from 'primeng/datepicker';
+import {Select} from 'primeng/select';
+import {ContextMenu} from 'primeng/contextmenu';
+import {IndicatorEditComponent} from './indicator-edit.component';
 
 declare let Plotly: any;
 
@@ -135,7 +141,8 @@ interface Data {
     }
   `,
   styles: ['button { border: 0; margin-left: 3px} .input-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 4px; }'],
-  standalone: false
+  standalone: true,
+  imports: [NgClass, FormsModule, DatePicker, Select, ContextMenu, TranslatePipe, IndicatorEditComponent]
 })
 export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   @ViewChild('container', {static: true}) container: ElementRef;

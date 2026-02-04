@@ -185,6 +185,7 @@ export class AppSettings {
   public static readonly CHART_SHAPES_STORE = 'chart_shapes_';
   public static readonly DIV_SECURITYACCOUNTS = 'div_securityaccounts';
   public static readonly DIV_CASHACCOUNTS = 'div_cashaccounts';
+  public static readonly WATCHLIST_PERFORMANCE_TIMEFRAME_STORE = 'u_watchlist_performance_timeframe_1';
 
 
 

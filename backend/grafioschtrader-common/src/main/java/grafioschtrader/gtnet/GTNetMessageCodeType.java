@@ -31,7 +31,7 @@ import grafiosch.gtnet.GTNetModelHelper;
  * <li><b>0-54</b>: Core protocol messages - defined in {@link GNetCoreMessageCode}</li>
  * <li><b>60-64</b>: Lastprice/intraday price exchange</li>
  * <li><b>70-79</b>: Exchange configuration synchronization</li>
- * <li><b>80-84</b>: Historical price exchange</li>
+ * <li><b>80-89</b>: Historical price exchange (including coverage queries)</li>
  * <li><b>90-95</b>: Security metadata lookup (including batch)</li>
  * </ol>
  *
@@ -59,7 +59,7 @@ public enum GTNetMessageCodeType implements GTNetMessageCode {
   /** Response containing remote's changed exchange entries for bidirectional sync */
   GT_NET_EXCHANGE_SYNC_RESPONSE_S((byte) 71),
 
-  // Historyquote exchange messages (80-84)
+  // Historyquote exchange messages (80-89)
   /** Request historical prices from remote server for date range, includes local date coverage info */
   GT_NET_HISTORYQUOTE_EXCHANGE_SEL_C((byte) 80),
   /** Response containing historical prices for requested dates */
@@ -70,6 +70,10 @@ public enum GTNetMessageCodeType implements GTNetMessageCode {
   GT_NET_HISTORYQUOTE_PUSH_ACK_S((byte) 83),
   /** Response when the request exceeds the configured max_limit for instruments or date range */
   GT_NET_HISTORYQUOTE_MAX_LIMIT_EXCEEDED_S((byte) 84),
+  /** Request coverage metadata (min/max dates) for instruments without fetching actual price data */
+  GT_NET_HISTORYQUOTE_COVERAGE_SEL_C((byte) 85),
+  /** Response containing coverage date ranges per instrument for peer selection */
+  GT_NET_HISTORYQUOTE_COVERAGE_RESPONSE_S((byte) 86),
 
   // Security metadata lookup messages (90-95)
   /** Request security metadata by ISIN, currency, and/or ticker symbol from remote server */

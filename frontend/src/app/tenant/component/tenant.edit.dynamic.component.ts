@@ -1,15 +1,16 @@
 import {Component, OnInit} from '@angular/core';
-import {TenantEditComponent} from './tenant.edit.component';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {TenantService} from '../service/tenant.service';
 import {TranslateService} from '@ngx-translate/core';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {Tenant} from '../../entities/tenant';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {Tenant} from '../../entities/tenant';
+import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
+import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
+import {InfoLevelType} from '../../lib/message/info.leve.type';
+import {MessageToastService} from '../../lib/message/message.toast.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {ProcessedAction} from '../../lib/types/processed.action';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
+import {TenantService} from '../service/tenant.service';
+import {TenantEditComponent} from './tenant.edit.component';
 
 /**
  * Dialog for change the existing tenant properties. It can also show only the currency, this is used
@@ -22,7 +23,8 @@ import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
                     (submitBt)="submit($event)">
       </dynamic-form>
   `,
-    standalone: false
+  standalone: true,
+  imports: [DynamicFormComponent]
 })
 export class TenantEditDynamicComponent extends TenantEditComponent implements OnInit {
   onlyCurrency: boolean;

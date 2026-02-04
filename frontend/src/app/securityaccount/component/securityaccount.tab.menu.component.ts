@@ -1,12 +1,13 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
-import { ActivatedRoute, Params, Router } from '@angular/router';
-import { AppSettings } from '../../shared/app.settings';
-import { Securityaccount } from '../../entities/securityaccount';
-import { Subscription } from 'rxjs';
+import {Component, OnInit, OnDestroy} from '@angular/core';
+import {TranslatePipe, TranslateService} from '@ngx-translate/core';
+import {ActivatedRoute, Params, Router, RouterOutlet} from '@angular/router';
+import {AppSettings} from '../../shared/app.settings';
+import {Securityaccount} from '../../entities/securityaccount';
+import {Subscription} from 'rxjs';
 import {BaseTabMenuComponent} from '../../lib/tabmenu/component/base.tab.menu.component';
 import {TabItem} from '../../lib/types/tab.item';
 import {BaseSettings} from '../../lib/base.settings';
+import {Tabs, TabList, Tab} from 'primeng/tabs';
 
 /**
  * Tab menu for security account.
@@ -30,7 +31,8 @@ import {BaseSettings} from '../../lib/base.settings';
       <router-outlet></router-outlet>
     </div>
   `,
-  standalone: false
+  standalone: true,
+  imports: [Tabs, TabList, Tab, RouterOutlet, TranslatePipe]
 })
 export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implements OnInit, OnDestroy {
   private routeParamSubscribe: Subscription;

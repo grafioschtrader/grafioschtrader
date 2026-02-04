@@ -1,7 +1,9 @@
 import {Component, OnInit, OnDestroy} from '@angular/core';
-import {ActivatedRoute, Params, Router} from '@angular/router';
-import {TranslateService} from '@ngx-translate/core';
+import {CommonModule} from '@angular/common';
+import {ActivatedRoute, Params, Router, RouterModule} from '@angular/router';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {Subscription} from 'rxjs';
+import {TabsModule} from 'primeng/tabs';
 
 import {AppSettings} from '../../shared/app.settings';
 import {Securityaccount} from '../../entities/securityaccount';
@@ -31,7 +33,8 @@ import {GlobalparameterService} from '../../lib/services/globalparameter.service
       <router-outlet></router-outlet>
     </div>
   `,
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, RouterModule, TabsModule, TranslateModule]
 })
 export class SecurityaccountImportTabMenuComponent implements OnInit, OnDestroy {
   tabs: TabItem[] = [];
