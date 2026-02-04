@@ -55,7 +55,6 @@ import grafioschtrader.service.GTNetHistoricalImportService.PeerSelection;
 import grafioschtrader.gtnet.model.msg.HistoryquoteCoverageResponseMsg;
 import grafioschtrader.types.DistributionFrequency;
 import grafioschtrader.types.GapCodeType;
-import grafioschtrader.types.HistoryquoteImportStatus;
 import grafioschtrader.types.TaskTypeExtended;
 import grafioschtrader.entities.Historyquote;
 
@@ -293,8 +292,7 @@ public class GTNetSecurityImportTask implements ITask {
   }
 
   /**
-   * Creates a new security from the DTO, links it to the position, tracks metadata source,
-   * and adds to pending historical imports list.
+   * Creates a new security from the DTO, links it to the position, and adds to pending historical imports list.
    */
   private void createAndLinkNewSecurity(GTNetSecurityImpPos pos, SecurityGtnetLookupDTO bestMatch,
       GTNetSecurityImpHead head, ImportContext ctx, int[] counters,
@@ -303,14 +301,6 @@ public class GTNetSecurityImportTask implements ITask {
 
     if (newSecurity != null) {
       pos.setSecurity(newSecurity);
-
-      // Track which GTNet peer provided the metadata
-      GTNet metadataSource = resolveGtNet(bestMatch.getSourceDomain());
-      if (metadataSource != null) {
-        pos.setGtNetMetadata(metadataSource);
-      }
-      pos.setHistoryquoteImportStatus(HistoryquoteImportStatus.PENDING);
-
       gtNetSecurityImpPosJpaRepository.save(pos);
       log.debug("Created and linked new security {} to position {}",
           newSecurity.getIdSecuritycurrency(), pos.getIdGtNetSecurityImpPos());
@@ -662,19 +652,6 @@ public class GTNetSecurityImportTask implements ITask {
   }
 
   /**
-   * Resolves the GTNet entity from a domain name.
-   *
-   * @param domainRemoteName the domain name to look up
-   * @return the GTNet entity, or null if not found
-   */
-  private GTNet resolveGtNet(String domainRemoteName) {
-    if (domainRemoteName == null || domainRemoteName.isBlank()) {
-      return null;
-    }
-    return gtNetJpaRepository.findByDomainRemoteName(domainRemoteName);
-  }
-
-  /**
    * Builds a human-readable message describing the expected asset class configuration.
    *
    * @param dto the lookup result DTO
@@ -722,7 +699,6 @@ public class GTNetSecurityImportTask implements ITask {
    *   <li>Selects the peer with the longest historical coverage</li>
    *   <li>Fetches historical data from the selected peer (message code 80)</li>
    *   <li>Falls back to connector if no GTNet peer has data</li>
-   *   <li>Updates the position with import status and metadata</li>
    * </ol>
    *
    * @param pendingPositions list of positions with newly created securities needing historical data
@@ -771,11 +747,6 @@ public class GTNetSecurityImportTask implements ITask {
 
           if (!quotes.isEmpty()) {
             historyquoteJpaRepository.saveAll(quotes);
-            pos.setGtNetHistoryquote(bestPeer.peer);
-            pos.setHistoryquoteMinDate(bestPeer.minDate);
-            pos.setHistoryquoteMaxDate(bestPeer.maxDate);
-            pos.setHistoryquoteImportStatus(HistoryquoteImportStatus.GTNET_LOADED);
-            gtNetSecurityImpPosJpaRepository.save(pos);
             gtnetLoaded++;
             log.debug("Loaded {} historyquotes from GTNet for security {}",
                 quotes.size(), security.getIdSecuritycurrency());
@@ -785,22 +756,17 @@ public class GTNetSecurityImportTask implements ITask {
 
         // Fallback to connector
         if (gtNetHistoricalImportService.fallbackToConnector(security)) {
-          pos.setHistoryquoteImportStatus(HistoryquoteImportStatus.CONNECTOR_LOADED);
           connectorLoaded++;
           log.debug("Loaded historyquotes via connector fallback for security {}",
               security.getIdSecuritycurrency());
         } else {
-          pos.setHistoryquoteImportStatus(HistoryquoteImportStatus.FAILED);
           failed++;
           log.debug("Failed to load historyquotes for security {}", security.getIdSecuritycurrency());
         }
-        gtNetSecurityImpPosJpaRepository.save(pos);
 
       } catch (Exception e) {
         log.warn("Error importing historical data for security {}: {}",
             security.getIdSecuritycurrency(), e.getMessage());
-        pos.setHistoryquoteImportStatus(HistoryquoteImportStatus.FAILED);
-        gtNetSecurityImpPosJpaRepository.save(pos);
         failed++;
       }
     }

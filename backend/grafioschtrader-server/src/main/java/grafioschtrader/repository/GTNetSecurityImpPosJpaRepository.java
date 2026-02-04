@@ -40,24 +40,4 @@ public interface GTNetSecurityImpPosJpaRepository
   @Transactional
   @Modifying
   void deleteByIdGtNetSecurityImpHead(Integer idGtNetSecurityImpHead);
-
-  /**
-   * Finds positions by header ID and historyquote import status. Used to track positions that need historical data
-   * loading or to retrieve statistics on import outcomes.
-   *
-   * @param idGtNetSecurityImpHead the header ID
-   * @param historyquoteStatus     the status value (see HistoryquoteImportStatus enum)
-   * @return list of positions matching the criteria
-   */
-  List<GTNetSecurityImpPos> findByIdGtNetSecurityImpHeadAndHistoryquoteStatus(Integer idGtNetSecurityImpHead,
-      byte historyquoteStatus);
-
-  /**
-   * Finds all positions that have a linked security but are pending historical data import. Used by the import task to
-   * identify positions that need GTNet historical data loading after security creation.
-   *
-   * @return list of positions with security but pending historyquote import
-   */
-  @Query("SELECT p FROM GTNetSecurityImpPos p WHERE p.security IS NOT NULL AND p.historyquoteStatus = 0")
-  List<GTNetSecurityImpPos> findPendingHistoricalImport();
 }
