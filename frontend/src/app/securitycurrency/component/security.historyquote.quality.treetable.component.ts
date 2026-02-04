@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslatePipe, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {SecurityService} from '../service/security.service';
 import {
@@ -20,7 +20,13 @@ import {plainToInstance} from 'class-transformer';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {SecurityIdWithCurrency} from './security-historyquote-quality-table.component';
+import {SecurityHistoryquoteQualityTableComponent, SecurityIdWithCurrency} from './security-historyquote-quality-table.component';
+import {NgClass} from '@angular/common';
+import {Panel} from 'primeng/panel';
+import {Select} from 'primeng/select';
+import {FormsModule} from '@angular/forms';
+import {TreeTableModule} from 'primeng/treetable';
+import {ContextMenu} from 'primeng/contextmenu';
 
 /**
  * Shows the quality of historical price data per stock exchange or data provider.
@@ -87,7 +93,11 @@ import {SecurityIdWithCurrency} from './security-historyquote-quality-table.comp
       }
     </div>
   `,
-  standalone: false
+  standalone: true,
+  imports: [
+    NgClass, TranslatePipe, Panel, Select, FormsModule,
+    TreeTableModule, ContextMenu, SecurityHistoryquoteQualityTableComponent
+  ]
 })
 export class SecurityHistoryquoteQualityTreetableComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {
 

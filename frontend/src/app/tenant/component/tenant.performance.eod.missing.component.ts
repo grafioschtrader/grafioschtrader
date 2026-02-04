@@ -1,26 +1,34 @@
+import {CommonModule} from '@angular/common';
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {CalendarNavigation} from '../../tradingcalendar/component/calendar.navigation';
-import {RangeSelectDays} from '../../lib/fullyearcalendar/Interface/range.select.days';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {TranslateService} from '@ngx-translate/core';
-import {MenuItem} from 'primeng/api';
-import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
-import {HelpIds} from '../../lib/help/help.ids';
-import {HoldingService} from '../../performanceperiod/service/holding.service';
-import {MissingQuotesWithSecurities} from '../model/missing.quotes.with.securities';
-import {Security} from '../../entities/security';
-import moment from 'moment';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {Subscription} from 'rxjs';
+import {FormsModule} from '@angular/forms';
 import {Router} from '@angular/router';
-import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
-import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
-import {ProcessedAction} from '../../lib/types/processed.action';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
+import moment from 'moment';
+import {MenuItem} from 'primeng/api';
+import {ButtonModule} from 'primeng/button';
+import {ContextMenuModule} from 'primeng/contextmenu';
+import {PanelModule} from 'primeng/panel';
+import {SelectModule} from 'primeng/select';
+import {Subscription} from 'rxjs';
 import {Historyquote} from '../../entities/historyquote';
-import {BusinessHelper} from '../../shared/helper/business.helper';
+import {Security} from '../../entities/security';
+import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
 import {BaseSettings} from '../../lib/base.settings';
+import {FullyearcalendarLibComponent} from '../../lib/fullyearcalendar/fullyearcalendar-lib.component';
+import {RangeSelectDays} from '../../lib/fullyearcalendar/Interface/range.select.days';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
+import {HelpIds} from '../../lib/help/help.ids';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
+import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {ProcessedAction} from '../../lib/types/processed.action';
+import {HoldingService} from '../../performanceperiod/service/holding.service';
+import {BusinessHelper} from '../../shared/helper/business.helper';
+import {CalendarNavigation} from '../../tradingcalendar/component/calendar.navigation';
+import {MissingQuotesWithSecurities} from '../model/missing.quotes.with.securities';
+import {TenantPerformanceEodMissingTableComponent} from './tenant-performance-eod-missing-table.component';
 
 /**
  * Displays an annual calendar with a table of missing EOD courses.
@@ -69,7 +77,12 @@ import {BaseSettings} from '../../lib/base.settings';
       }
     </div>
   `,
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule, FormsModule, TranslateModule,
+    PanelModule, SelectModule, ButtonModule, ContextMenuModule,
+    FullyearcalendarLibComponent, TenantPerformanceEodMissingTableComponent
+  ]
 })
 export class TenantPerformanceEodMissingComponent extends CalendarNavigation implements IGlobalMenuAttach, OnInit, OnDestroy {
   missingQuotesWithSecurities: MissingQuotesWithSecurities;

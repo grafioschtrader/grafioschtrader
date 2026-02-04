@@ -1,24 +1,28 @@
+import {CommonModule} from '@angular/common';
 import {Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {TransactionCostPosition} from '../../entities/view/transactioncost/transaction.cost.position';
-import {TransactionCostGrandSummary} from '../../entities/view/transactioncost/transaction.cost.grand.summary';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {TranslateService} from '@ngx-translate/core';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {TransactionContextMenu} from '../../transaction/component/transaction.context.menu';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {TransactionService} from '../../transaction/service/transaction.service';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {SecurityService} from '../../securitycurrency/service/security.service';
-import {Transaction} from '../../entities/transaction';
-import {Security} from '../../entities/security';
-import {TransactionCallParam} from '../../transaction/component/transaction.call.parm';
-import {ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {Table} from 'primeng/table';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
+import {ContextMenuModule} from 'primeng/contextmenu';
+import {Table, TableModule} from 'primeng/table';
+import {TooltipModule} from 'primeng/tooltip';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
+import {Security} from '../../entities/security';
+import {Transaction} from '../../entities/transaction';
+import {TransactionCostGrandSummary} from '../../entities/view/transactioncost/transaction.cost.grand.summary';
+import {TransactionCostPosition} from '../../entities/view/transactioncost/transaction.cost.position';
+import {SecurityService} from '../../securitycurrency/service/security.service';
 import {AppSettings} from '../../shared/app.settings';
+import {ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
+import {TransactionCallParam} from '../../transaction/component/transaction.call.parm';
+import {TransactionContextMenu} from '../../transaction/component/transaction.context.menu';
+import {TransactionSecurityEditComponent} from '../../transaction/component/transaction-security-edit.component';
+import {TransactionService} from '../../transaction/service/transaction.service';
 
 /**
  * Component that displays transaction cost positions in a tabular format with support for editing security transactions.
@@ -74,7 +78,11 @@ import {AppSettings} from '../../shared/app.settings';
       </transaction-security-edit>
     }
   `,
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule, TranslateModule, TableModule,
+    ContextMenuModule, TooltipModule, TransactionSecurityEditComponent
+  ]
 })
 export class TenantTransactionCostExtendedComponent extends TransactionContextMenu implements OnInit, OnDestroy {
   /** Array of transaction cost positions to be displayed in the table */

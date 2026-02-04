@@ -1,26 +1,29 @@
+import {CommonModule} from '@angular/common';
 import {Component, ElementRef, Injector, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
-import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {TranslateService} from '@ngx-translate/core';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
+import {FilterService, MenuItem} from 'primeng/api';
+import {TableModule} from 'primeng/table';
 import {Subscription} from 'rxjs';
 import {TransactionCostGrandSummary} from '../../entities/view/transactioncost/transaction.cost.grand.summary';
 import {TransactionCostGroupSummary} from '../../entities/view/transactioncost/transaction.cost.group.summary';
-import {ColumnConfig, ColumnGroupConfig} from '../../lib/datashowbase/column.config';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {AppSettings} from '../../shared/app.settings';
-import {ChartDataService} from '../../shared/chart/service/chart.data.service';
-import {ChartTrace, PlotlyHelper} from '../../shared/chart/plotly.helper';
 import {TransactionCostPosition} from '../../entities/view/transactioncost/transaction.cost.position';
-import {HelpIds} from '../../lib/help/help.ids';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {FilterService, MenuItem} from 'primeng/api';
 import {BaseSettings} from '../../lib/base.settings';
+import {ColumnConfig, ColumnGroupConfig} from '../../lib/datashowbase/column.config';
+import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
+import {HelpIds} from '../../lib/help/help.ids';
+import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
+import {PortfolioService} from '../../portfolio/service/portfolio.service';
+import {AppSettings} from '../../shared/app.settings';
+import {ChartTrace, PlotlyHelper} from '../../shared/chart/plotly.helper';
+import {ChartDataService} from '../../shared/chart/service/chart.data.service';
+import {TenantTransactionCostExtendedComponent} from './tenant-transaction-cost-extended.component';
 
 
 /**
@@ -100,7 +103,8 @@ import {BaseSettings} from '../../lib/base.settings';
       </div>
     </div>
   `,
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, TableModule, TenantTransactionCostExtendedComponent]
 })
 export class TenantTransactionCostComponent extends TableConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
   @ViewChild('dataTable') datatable: ElementRef;

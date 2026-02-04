@@ -9,6 +9,7 @@ import {ChartDataService} from '../service/chart.data.service';
 import {ChartData, PlotlyHelper} from '../plotly.helper';
 import {PlotlyLocales} from '../../plotlylocale/plotly.locales';
 import {GlobalparameterService} from '../../../lib/services/globalparameter.service';
+import {NgClass} from '@angular/common';
 
 declare let Plotly: any;
 
@@ -27,7 +28,8 @@ declare let Plotly: any;
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: false
+  standalone: true,
+  imports: [NgClass]
 })
 export class ChartGeneralPurposeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   @ViewChild('chart', {static: true}) chartElement: ElementRef;

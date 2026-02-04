@@ -1,6 +1,11 @@
 import {Component, Injector, OnDestroy} from '@angular/core';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
+import {CommonModule} from '@angular/common';
 import {TranslateService} from '@ngx-translate/core';
+import {AngularSvgIconModule, SvgIconRegistryService} from 'angular-svg-icon';
+import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
+import {toClipboard} from 'copee';
+
+import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ParentChildRowSelection} from '../../lib/datashowbase/parent.child.row.selection';
@@ -15,21 +20,24 @@ import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {CombineTemplateAndImpTransPos} from '../../securityaccount/component/combine.template.and.imp.trans.pos';
-import {toClipboard} from 'copee';
 import {ImportSettings} from './import.settings';
 import {Transaction} from '../../entities/transaction';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
+import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {Security} from '../../entities/security';
 import {
   AfterSetSecurity,
-  CallBackSetSecurityWithAfter
+  CallBackSetSecurityWithAfter,
+  SecuritycurrencySearchAndSetComponent
 } from '../../securitycurrency/component/securitycurrency-search-and-set.component';
 import {SupplementCriteria} from '../../securitycurrency/model/supplement.criteria';
 import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
-import {SvgIconRegistryService} from 'angular-svg-icon';
 import {ImportTransactionPos} from '../../entities/import.transaction.pos';
 import {BaseSettings} from '../../lib/base.settings';
+import {TemplateFormCheckDialogResultFailedComponent} from '../../imptranstemplate/component/template-form-check-dialog-result-failed.component';
+import {SecurityaccountImportExtendedInfoFilenameComponent} from './securityaccount-import-extended-info-filename.component';
+import {SecurityaccountImportExtendedInfoComponent} from './securityaccount-import-extended-info.component';
+import {SecurityaccountImportSetCashaccountComponent} from './securityaccount-import-set-cashaccount.component';
 
 
 /**
@@ -93,7 +101,17 @@ import {BaseSettings} from '../../lib/base.settings';
       </securityaccount-import-set-cashaccount>
     }
   `,
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ConfigurableTableComponent,
+    AngularSvgIconModule,
+    TemplateFormCheckDialogResultFailedComponent,
+    SecurityaccountImportExtendedInfoFilenameComponent,
+    SecurityaccountImportExtendedInfoComponent,
+    SecuritycurrencySearchAndSetComponent,
+    SecurityaccountImportSetCashaccountComponent
+  ]
 })
 export class SecurityaccountImportTransactionTableComponent extends TableConfigBase
   implements OnDestroy, CallBackSetSecurityWithAfter {

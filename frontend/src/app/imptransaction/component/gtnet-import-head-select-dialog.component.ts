@@ -1,12 +1,14 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Validators} from '@angular/forms';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
+import {DialogModule} from 'primeng/dialog';
 
 import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {AppHelper} from '../../lib/helper/app.helper';
@@ -37,7 +39,8 @@ import {GTNetSecurityImpPosService} from '../../shared/gtnet/service/gtnet-secur
       </dynamic-form>
     </p-dialog>
   `,
-  standalone: false
+  standalone: true,
+  imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class GTNetImportHeadSelectDialogComponent extends SimpleEditBase implements OnInit {
 

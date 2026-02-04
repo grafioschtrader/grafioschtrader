@@ -1,5 +1,12 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {TranslateService} from '@ngx-translate/core';
+import {ActivatedRoute, Params} from '@angular/router';
+import {ConfirmationService, MenuItem} from 'primeng/api';
+import {ContextMenuModule} from 'primeng/contextmenu';
+import {Subscription} from 'rxjs';
+import {plainToInstance} from 'class-transformer';
+
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {HelpIds} from '../../lib/help/help.ids';
 import {ImportTransactionHead} from '../../entities/import.transaction.head';
@@ -7,14 +14,11 @@ import {
   ImportTransactionHeadService,
   SuccessFailedDirectImportTransaction
 } from '../service/import.transaction.head.service';
-import {ActivatedRoute, Params} from '@angular/router';
 import {Securityaccount} from '../../entities/securityaccount';
-import {Subscription} from 'rxjs';
 import {SecurityaccountImportTransactionTableComponent} from './securityaccount-import-transaction-table.component';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {SingleRecordMasterViewBase} from '../../lib/masterdetail/component/single.record.master.view.base';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {ConfirmationService, MenuItem} from 'primeng/api';
 import {ParentChildRowSelection} from '../../lib/datashowbase/parent.child.row.selection';
 import {ImportTransactionTemplateService} from '../../imptranstemplate/service/import.transaction.template.service';
 import {ImportTransactionTemplate} from '../../entities/import.transaction.template';
@@ -22,8 +26,8 @@ import {ProcessedAction} from '../../lib/types/processed.action';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {CombineTemplateAndImpTransPos} from '../../securityaccount/component/combine.template.and.imp.trans.pos';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {plainToInstance} from 'class-transformer';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
+import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
@@ -31,6 +35,9 @@ import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {AdditionalFieldConfig, FileUploadParam} from '../../lib/generaldialog/model/file.upload.param';
 import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 import {BaseSettings} from '../../lib/base.settings';
+import {UploadFileDialogComponent} from '../../lib/generaldialog/component/upload-file-dialog.component';
+import {SecurityaccountImportTransactionEditHeadComponent} from './securityaccount-import-transaction-edit-head.component';
+import {GTNetImportHeadSelectDialogComponent} from './gtnet-import-head-select-dialog.component';
 
 
 /**
@@ -77,7 +84,16 @@ import {BaseSettings} from '../../lib/base.settings';
       </gtnet-import-head-select-dialog>
     }
   `,
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    DynamicFormModule,
+    ContextMenuModule,
+    SecurityaccountImportTransactionTableComponent,
+    SecurityaccountImportTransactionEditHeadComponent,
+    UploadFileDialogComponent,
+    GTNetImportHeadSelectDialogComponent
+  ]
 })
 export class SecurityaccountImportTransactionComponent
   extends SingleRecordMasterViewBase<ImportTransactionHead, CombineTemplateAndImpTransPos, CallParam>

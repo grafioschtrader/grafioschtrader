@@ -11,17 +11,19 @@ import {CopyTradingDaysFromSourceToTarget, TradingDaysMinusService} from '../ser
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 
 
 /**
  * Dialog for input optional year and Stock exchange to copy a single year or all years of a trading calendar.
  */
 @Component({
-    template: `
+  template: `
     <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
                   (submitBt)="submit($event)">
     </dynamic-form>`,
-    standalone: false
+  standalone: true,
+  imports: [DynamicFormComponent]
 })
 export class TradingCalendarOtherExchangeDynamicComponent extends FormBase implements OnInit {
   copyTradingDaysFromSourceToTarget: CopyTradingDaysFromSourceToTarget;

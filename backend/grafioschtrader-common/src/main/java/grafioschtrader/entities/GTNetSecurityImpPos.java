@@ -1,10 +1,13 @@
 package grafioschtrader.entities;
 
+import java.util.Date;
 import java.util.List;
 
 import grafiosch.common.ImportDataRequired;
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.entities.BaseID;
+import grafiosch.entities.GTNet;
+import grafioschtrader.types.HistoryquoteImportStatus;
 import grafioschtrader.validation.ValidCurrencyCode;
 import grafioschtrader.validation.ValidISIN;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -16,8 +19,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -81,6 +87,33 @@ public class GTNetSecurityImpPos extends BaseID<Integer> {
   @OneToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "id_securitycurrency")
   private Security security;
+
+  @Schema(description = "Reference to the GTNet peer that provided the security metadata during import.")
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "id_gt_net_metadata")
+  private GTNet gtNetMetadata;
+
+  @Schema(description = "Reference to the GTNet peer that provided historical price data after security creation.")
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "id_gt_net_historyquote")
+  private GTNet gtNetHistoryquote;
+
+  @Schema(description = "Earliest historical date available from the GTNet peer that provided historyquote data.")
+  @Temporal(TemporalType.DATE)
+  @Column(name = "historyquote_min_date")
+  private Date historyquoteMinDate;
+
+  @Schema(description = "Most recent historical date from the GTNet peer at the time of import.")
+  @Temporal(TemporalType.DATE)
+  @Column(name = "historyquote_max_date")
+  private Date historyquoteMaxDate;
+
+  @Schema(description = """
+      Status of historical price data import: 0=PENDING (not yet attempted),
+      1=GTNET_LOADED (loaded from GTNet peer), 2=CONNECTOR_LOADED (loaded via connector fallback),
+      3=FAILED (all attempts failed).""")
+  @Column(name = "historyquote_status")
+  private byte historyquoteStatus = HistoryquoteImportStatus.PENDING.getValue();
 
   @Schema(description = """
       List of gaps (mismatches) identified during the last GTNet import attempt.
@@ -155,6 +188,54 @@ public class GTNetSecurityImpPos extends BaseID<Integer> {
 
   public void setGaps(List<GTNetSecurityImpGap> gaps) {
     this.gaps = gaps;
+  }
+
+  public GTNet getGtNetMetadata() {
+    return gtNetMetadata;
+  }
+
+  public void setGtNetMetadata(GTNet gtNetMetadata) {
+    this.gtNetMetadata = gtNetMetadata;
+  }
+
+  public GTNet getGtNetHistoryquote() {
+    return gtNetHistoryquote;
+  }
+
+  public void setGtNetHistoryquote(GTNet gtNetHistoryquote) {
+    this.gtNetHistoryquote = gtNetHistoryquote;
+  }
+
+  public Date getHistoryquoteMinDate() {
+    return historyquoteMinDate;
+  }
+
+  public void setHistoryquoteMinDate(Date historyquoteMinDate) {
+    this.historyquoteMinDate = historyquoteMinDate;
+  }
+
+  public Date getHistoryquoteMaxDate() {
+    return historyquoteMaxDate;
+  }
+
+  public void setHistoryquoteMaxDate(Date historyquoteMaxDate) {
+    this.historyquoteMaxDate = historyquoteMaxDate;
+  }
+
+  public byte getHistoryquoteStatus() {
+    return historyquoteStatus;
+  }
+
+  public void setHistoryquoteStatus(byte historyquoteStatus) {
+    this.historyquoteStatus = historyquoteStatus;
+  }
+
+  public HistoryquoteImportStatus getHistoryquoteImportStatus() {
+    return HistoryquoteImportStatus.getByValue(historyquoteStatus);
+  }
+
+  public void setHistoryquoteImportStatus(HistoryquoteImportStatus status) {
+    this.historyquoteStatus = status.getValue();
   }
 
   @Override

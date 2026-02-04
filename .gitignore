@@ -4,7 +4,6 @@
 *.bat
 *.ps1
 /*.sql
-CLAUDE.md
 .claude
 AGENTS.md
 nul

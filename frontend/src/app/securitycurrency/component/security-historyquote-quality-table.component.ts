@@ -1,19 +1,21 @@
 import {Component, EventEmitter, Injector, Input, OnChanges, Output} from '@angular/core';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {SecurityService} from '../service/security.service';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslatePipe, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {HistoryquoteQualityIds, IHistoryquoteQualityWithSecurityProp} from '../model/historyquote.quality.group';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
 import {FilterService} from 'primeng/api';
+import {TableModule} from 'primeng/table';
+import {NgClass} from '@angular/common';
 
 /**
  * Shows the securities in a table.
  */
 @Component({
-    selector: 'security-historyquote-quality-table',
+  selector: 'security-historyquote-quality-table',
   template: `
     <p-table [columns]="fields" [value]="hqwspList" selectionMode="single"
              [(selection)]="selectedSecurity" (onRowSelect)="onRowSelect($event)"
@@ -45,7 +47,8 @@ import {FilterService} from 'primeng/api';
       </ng-template>
     </p-table>
   `,
-    standalone: false
+  standalone: true,
+  imports: [TableModule, TranslatePipe, NgClass]
 })
 export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase implements OnChanges {
   @Input() historyquoteQualityIds: HistoryquoteQualityIds;

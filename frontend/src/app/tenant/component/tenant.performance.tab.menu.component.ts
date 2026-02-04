@@ -1,6 +1,8 @@
 import {Component} from '@angular/core';
+import {RouterOutlet} from '@angular/router';
 import {AppSettings} from '../../shared/app.settings';
 import {TabItem} from '../../lib/types/tab.item';
+import {SharedTabMenuComponent} from '../../lib/tabmenu/component/shared.tab.menu.component';
 
 @Component({
   // Selector is not used
@@ -12,7 +14,8 @@ import {TabItem} from '../../lib/types/tab.item';
       <router-outlet></router-outlet>
     </app-shared-tab-menu>
   `,
-  standalone: false
+  standalone: true,
+  imports: [SharedTabMenuComponent, RouterOutlet]
 })
 export class TenantPerformanceTabMenuComponent {
   tabs: TabItem[] = [

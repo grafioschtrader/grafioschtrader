@@ -11,7 +11,7 @@ import {Component} from '@angular/core';
     template: `
     Alert
   `,
-    standalone: false
+  standalone: true
 })
 export class TenantAlertComponent {
 

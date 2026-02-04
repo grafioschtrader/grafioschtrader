@@ -1,7 +1,10 @@
 import {Component, Input, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
+import {AngularSvgIconModule} from 'angular-svg-icon';
+
 import {SingleRecordConfigBase} from '../../lib/datashowbase/single.record.config.base';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {TranslateService} from '@ngx-translate/core';
 import {CombineTemplateAndImpTransPos} from '../../securityaccount/component/combine.template.and.imp.trans.pos';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ImportSettings} from './import.settings';
@@ -14,9 +17,10 @@ import {AppHelper} from '../../lib/helper/app.helper';
  * Shows the extended information to a single import transaction record in case when an import template could read the data.
  */
 @Component({
-    selector: 'securityaccount-import-extended-info',
-    templateUrl: '../../securityaccount/view/securityaccount.import.extended.info.html',
-    standalone: false
+  selector: 'securityaccount-import-extended-info',
+  templateUrl: '../../securityaccount/view/securityaccount.import.extended.info.html',
+  standalone: true,
+  imports: [CommonModule, TranslateModule, AngularSvgIconModule]
 })
 export class SecurityaccountImportExtendedInfoComponent extends SingleRecordConfigBase implements OnInit {
   @Input() combineTemplateAndImpTransPos: CombineTemplateAndImpTransPos;

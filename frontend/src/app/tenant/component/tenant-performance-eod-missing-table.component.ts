@@ -1,14 +1,17 @@
-import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
+import {CommonModule} from '@angular/common';
 import {Component, EventEmitter, Injector, Input, OnChanges, OnInit, Output} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
+import {FilterService} from 'primeng/api';
+import {TableModule} from 'primeng/table';
+import {TooltipModule} from 'primeng/tooltip';
+import {ColumnConfig} from '../../lib/datashowbase/column.config';
+import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {Security} from '../../entities/security';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {IFeedConnector} from '../../shared/securitycurrency/ifeed.connector';
-import {FilterService} from 'primeng/api';
 
 /**
  * Shows a table with the missing instruments that do not have a complete price history.
@@ -51,7 +54,8 @@ import {FilterService} from 'primeng/api';
       </ng-template>
     </p-table>
   `,
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, TranslateModule, TableModule, TooltipModule]
 })
 export class TenantPerformanceEodMissingTableComponent extends TableConfigBase implements OnInit, OnChanges {
   /**

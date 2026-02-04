@@ -1,7 +1,9 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {ActivatedRoute, Params} from '@angular/router';
 import {TranslateService} from '@ngx-translate/core';
 import {ConfirmationService, MenuItem} from 'primeng/api';
+import {ContextMenuModule} from 'primeng/contextmenu';
 
 import {ActivePanelService} from '../../../lib/mainmenubar/service/active.panel.service';
 import {AppSettings} from '../../app.settings';
@@ -11,6 +13,7 @@ import {MessageToastService} from '../../../lib/message/message.toast.service';
 import {InfoLevelType} from '../../../lib/message/info.leve.type';
 import {GlobalparameterService} from '../../../lib/services/globalparameter.service';
 import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
+import {DynamicFormModule} from '../../../lib/dynamic-form/dynamic-form.module';
 import {TranslateHelper} from '../../../lib/helper/translate.helper';
 import {SelectOptionsHelper} from '../../../lib/helper/select.options.helper';
 import {ProcessedActionData} from '../../../lib/types/processed.action.data';
@@ -21,6 +24,7 @@ import {GTNetSecurityImpHead} from '../model/gtnet-security-imp-head';
 import {GTNetSecurityImpPos} from '../model/gtnet-security-imp-pos';
 import {GTNetSecurityImpHeadService} from '../service/gtnet-security-imp-head.service';
 import {GTNetSecurityImportTableComponent} from './gtnet-security-import-table.component';
+import {GTNetSecurityImportEditHeadComponent} from './gtnet-security-import-edit-head.component';
 
 /**
  * Main component for GTNet security import operations.
@@ -53,7 +57,14 @@ import {GTNetSecurityImportTableComponent} from './gtnet-security-import-table.c
       </gtnet-security-import-edit-head>
     }
   `,
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    DynamicFormModule,
+    ContextMenuModule,
+    GTNetSecurityImportTableComponent,
+    GTNetSecurityImportEditHeadComponent
+  ]
 })
 export class GTNetSecurityImportComponent
   extends SingleRecordMasterViewBase<GTNetSecurityImpHead, GTNetSecurityImpPos, GTNetSecurityImpHead>
