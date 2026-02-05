@@ -54,6 +54,7 @@ import grafioschtrader.repository.SecurityJpaRepository;
  *   <li>Query open servers for remaining unfilled instruments</li>
  *   <li>Fall back to connectors (IFeedConnector) for any still-unfilled instruments</li>
  *   <li>If own mode is push-open: push connector-fetched prices back to remote servers</li>
+ *   <li>If own mode is AC_OPEN: async push updated prices to previously contacted PUSH_OPEN servers</li>
  * </ol>
  *
  * @see InstrumentExchangeSet for tracking which instruments have been filled
@@ -98,6 +99,9 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
 
   @Autowired
   private GTNetExchangeLogJpaRepository gtNetExchangeLogJpaRepository;
+
+  @Autowired
+  private GTNetLastpricePushService gtNetLastpricePushService;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -198,11 +202,13 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
 
     // 4. Query push-open servers by priority (excluding own entry to prevent self-communication)
     // PUSH_OPEN uses priority+random algorithm (unchanged)
+    // Also track server responses for potential push-back in Step 10 (AC_OPEN mode only)
+    PushOpenServerContext pushContext = new PushOpenServerContext();
     if (needsFilling(gtNetInstruments)) {
       stepStart = System.nanoTime();
       List<GTNet> pushOpenSuppliers = getSuppliersByPriorityWithRandomization(
           excludeOwnEntry(gtNetJpaRepository.findPushOpenSuppliers()), GTNetExchangeKindType.LAST_PRICE);
-      queryRemoteServers(pushOpenSuppliers, gtNetInstruments);
+      queryRemoteServersWithTracking(pushOpenSuppliers, gtNetInstruments, pushContext);
       log.debug("Step 4 - Query push-open servers: {} ms", (System.nanoTime() - stepStart) / 1_000_000);
     }
 
@@ -261,6 +267,11 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
     }
     log.debug("Step 9 - Combine results: {} ms", (System.nanoTime() - stepStart) / 1_000_000);
 
+    // 10. If local server is AC_OPEN, async push updated prices to contacted PUSH_OPEN servers
+    stepStart = System.nanoTime();
+    triggerAsyncPushIfOpenMode(pushContext, allSecurities, allPairs);
+    log.debug("Step 10 - Trigger async push: {} ms", (System.nanoTime() - stepStart) / 1_000_000);
+
     log.debug("Total executeGTNetExchange: {} ms", (System.nanoTime() - totalStart) / 1_000_000);
     return new SecurityCurrency(allSecurities, allPairs);
   }
@@ -269,13 +280,26 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
    * Queries remote servers for price data (for AC_PUSH_OPEN suppliers - no filtering).
    */
   private void queryRemoteServers(List<GTNet> suppliers, InstrumentExchangeSet instruments) {
+    queryRemoteServersWithTracking(suppliers, instruments, null);
+  }
+
+  /**
+   * Queries remote PUSH_OPEN servers for price data, optionally tracking their responses
+   * for later push-back operations.
+   *
+   * @param suppliers list of PUSH_OPEN suppliers to query
+   * @param instruments the instrument exchange set
+   * @param pushContext optional context to track server responses (null to disable tracking)
+   */
+  private void queryRemoteServersWithTracking(List<GTNet> suppliers, InstrumentExchangeSet instruments,
+      PushOpenServerContext pushContext) {
     for (GTNet supplier : suppliers) {
       if (instruments.allFilled()) {
         break;
       }
 
       try {
-        queryRemoteServer(supplier, instruments, null);
+        queryRemoteServerWithTracking(supplier, instruments, null, pushContext);
       } catch (Exception e) {
         e.printStackTrace();
         log.warn("Failed to query GTNet server {}: {}", supplier.getDomainRemoteName(), e.getMessage());
@@ -286,6 +310,7 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
   /**
    * Queries remote servers with instrument filtering (for AC_OPEN suppliers).
    * Only sends instruments that the supplier is known to support based on GTNetSupplierDetail.
+   * No tracking is performed for AC_OPEN suppliers (they don't receive push-backs).
    */
   private void queryRemoteServersFiltered(List<GTNet> suppliers, InstrumentExchangeSet instruments,
       SupplierInstrumentFilter filter) {
@@ -295,7 +320,7 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
       }
 
       try {
-        queryRemoteServer(supplier, instruments, filter);
+        queryRemoteServerWithTracking(supplier, instruments, filter, null);
       } catch (Exception e) {
         e.printStackTrace();
         log.warn("Failed to query GTNet server {}: {}", supplier.getDomainRemoteName(), e.getMessage());
@@ -304,13 +329,15 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
   }
 
   /**
-   * Queries a single remote server for price data.
+   * Queries a single remote server for price data, optionally tracking the response.
    *
    * @param supplier the GTNet supplier to query
    * @param instruments the instrument exchange set
    * @param filter optional filter for AC_OPEN suppliers (null for AC_PUSH_OPEN)
+   * @param pushContext optional context to track server responses for later push-back (null to skip)
    */
-  private void queryRemoteServer(GTNet supplier, InstrumentExchangeSet instruments, SupplierInstrumentFilter filter) {
+  private void queryRemoteServerWithTracking(GTNet supplier, InstrumentExchangeSet instruments,
+      SupplierInstrumentFilter filter, PushOpenServerContext pushContext) {
     GTNetConfig config = supplier.getGtNetConfig();
     if (config == null || !config.isAuthorizedRemoteEntry()) {
       log.debug("Skipping unauthorized server: {}", supplier.getDomainRemoteName());
@@ -405,6 +432,11 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
       }
 
       log.info("Received {} price updates from {}", responseCount, supplier.getDomainRemoteName());
+
+      // Track server response for potential push-back (only for PUSH_OPEN servers)
+      if (pushContext != null && responseCount > 0) {
+        pushContext.recordServerResponse(supplier, responsePayload.securities, responsePayload.currencypairs);
+      }
 
       // Process response - update instruments and mark as filled
       int updatedCount = instruments.processResponse(responsePayload.securities, responsePayload.currencypairs);
@@ -529,6 +561,57 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
         log.debug("Updated {} currency pairs in push pool", currencypairCount);
       }
     }
+  }
+
+  /**
+   * Triggers async push of updated prices to previously contacted PUSH_OPEN servers if the local
+   * server is configured as AC_OPEN (not AC_PUSH_OPEN).
+   *
+   * This allows AC_OPEN servers to share updated prices with PUSH_OPEN servers that contributed
+   * to the exchange. The push is fire-and-forget - this method returns immediately.
+   *
+   * @param pushContext context tracking contacted PUSH_OPEN servers and their baseline timestamps
+   * @param allSecurities all securities with final prices
+   * @param allCurrencypairs all currency pairs with final prices
+   */
+  private void triggerAsyncPushIfOpenMode(PushOpenServerContext pushContext,
+      List<Security> allSecurities, List<Currencypair> allCurrencypairs) {
+
+    // Check if there are servers to update
+    if (pushContext == null || !pushContext.hasServersToUpdate()) {
+      log.debug("No PUSH_OPEN servers to update");
+      return;
+    }
+
+    // Get local GTNet entry
+    Integer myGTNetId = globalparametersJpaRepository.getGTNetMyEntryID();
+    if (myGTNetId == null) {
+      return;
+    }
+
+    Optional<GTNet> myGTNetOpt = gtNetJpaRepository.findById(myGTNetId);
+    if (myGTNetOpt.isEmpty()) {
+      return;
+    }
+
+    GTNet myGTNet = myGTNetOpt.get();
+
+    // Check if we have a LAST_PRICE entity with AC_OPEN mode
+    Optional<GTNetEntity> lastpriceEntity = myGTNet.getEntityByKind(GTNetExchangeKindType.LAST_PRICE.getValue());
+    if (lastpriceEntity.isEmpty()) {
+      return;
+    }
+
+    AcceptRequestTypes acceptMode = lastpriceEntity.get().getAcceptRequest();
+    if (acceptMode != AcceptRequestTypes.AC_OPEN) {
+      // Only AC_OPEN servers push back to PUSH_OPEN servers
+      // AC_PUSH_OPEN servers already contribute via their push pool
+      log.debug("Local server is not AC_OPEN (mode={}), skipping async push-back", acceptMode);
+      return;
+    }
+
+    log.info("Triggering async push to {} PUSH_OPEN server(s)", pushContext.getContactedServers().size());
+    gtNetLastpricePushService.asyncPushPricesToServers(pushContext, allSecurities, allCurrencypairs);
   }
 
   private boolean containsSecurity(List<Security> list, Security security) {
