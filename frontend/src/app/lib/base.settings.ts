@@ -71,6 +71,8 @@ export class BaseSettings {
   public static readonly UDF_DATA_KEY = BaseSettings.UDF_DATA.toLowerCase();
   public static readonly UDF_SPECIAL_TYPE_DISABLE_USER = 'udfspecialtypedisableuser';
 
+  public static readonly USER_CHART_SHAPE_KEY = 'userchartshape';
+
 
   public static readonly PROPOSE_CHANGE_YOUR_PROPOSAL_KEY = 'proposeyourproposal';
   public static readonly PROPOSE_CHANGE_REQUEST_FOR_YOU_KEY = 'proposerequestforyou';

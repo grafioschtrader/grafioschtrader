@@ -160,6 +160,8 @@
   "DEBIT_ACCOUNT": "Belastungskonto",
   "DEBIT_AMOUNT": "Belastungsbetrag",
   "DEFINITION": "Definition",
+  "DELETE_ALL_SHAPES": "Alle Zeichnungen löschen",
+  "DELETE_ALL_SHAPES_CONFIRM": "Sind Sie sicher, dass Sie alle gezeichneten Formen löschen möchten?",
   "DELETE_CREATE_TYPES_QUOTES": "Importierte und/oder linear befüllte löschen",
   "DELETE_LINKED_SECURITY": "Verknüpftes Wertpapier löschen",
   "DELETE_RECORDS": "Löschen mehrer {{i18nRecord}}",

@@ -1,6 +1,17 @@
 ALTER TABLE historyquote_quality DROP COLUMN IF EXISTS ohlPercentage;
 ALTER TABLE historyquote_quality ADD COLUMN ohlPercentage double DEFAULT NULL;
 
+DROP TABLE IF EXISTS user_chart_shape;
+CREATE TABLE user_chart_shape (
+  id_user INT(11) NOT NULL,
+  id_securitycurrency INT(11) NOT NULL,
+  shape_data LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL
+    CHECK (json_valid(shape_data)),
+  PRIMARY KEY (id_user, id_securitycurrency),
+  CONSTRAINT fk_ucs_user FOREIGN KEY (id_user) REFERENCES user(id_user)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
 DROP PROCEDURE IF EXISTS deleteUpdateHistoryQuality;
 
 DELIMITER ;;

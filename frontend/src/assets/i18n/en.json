@@ -161,6 +161,8 @@
   "DEBIT_ACCOUNT": "Debit account",
   "DEBIT_AMOUNT": "Debit amount",
   "DEFINITION": "definition",
+  "DELETE_ALL_SHAPES": "Delete all shapes",
+  "DELETE_ALL_SHAPES_CONFIRM": "Are you sure you want to delete all drawn shapes?",
   "DELETE_CREATE_TYPES_QUOTES": "Delete imported and/or linear filled",
   "DELETE_LINKED_SECURITY": "Delete linked security",
   "DELETE_RECORDS": "Delete multiple {{i18nRecord}}",

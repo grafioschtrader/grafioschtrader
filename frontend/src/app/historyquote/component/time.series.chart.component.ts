@@ -17,14 +17,14 @@ import {HelpIds} from '../../lib/help/help.ids';
 import {CurrencypairWithTransaction} from '../../entities/view/currencypair.with.transaction';
 import {SecurityTransactionSummary} from '../../entities/view/security.transaction.summary';
 import {PlotlyLocales} from '../../shared/plotlylocale/plotly.locales';
-import {combineLatest, Observable, Subscription} from 'rxjs';
+import {combineLatest, Observable, Subject, Subscription} from 'rxjs';
 import {PlotlyHelper} from '../../shared/chart/plotly.helper';
 import {TransactionType} from '../../shared/types/transaction.type';
 import {AppHelper, Comparison} from '../../lib/helper/app.helper';
 import moment, {Moment} from 'moment';
 import {AppSettings} from '../../shared/app.settings';
 import {SecurityTransactionPosition} from '../../entities/view/security.transaction.position';
-import {MenuItem, SelectItem} from 'primeng/api';
+import {ConfirmationService, MenuItem, SelectItem} from 'primeng/api';
 import {
   IndicatorDefinition,
   IndicatorDefinitions,
@@ -55,6 +55,8 @@ import {DatePicker} from 'primeng/datepicker';
 import {Select} from 'primeng/select';
 import {ContextMenu} from 'primeng/contextmenu';
 import {IndicatorEditComponent} from './indicator-edit.component';
+import {UserChartShapeService} from '../service/user.chart.shape.service';
+import {debounceTime} from 'rxjs/operators';
 
 declare let Plotly: any;
 
@@ -182,6 +184,12 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   private mainCurrency: string;
   private legendTooltipMap = new Map<string, string>();
 
+  private shapeHistory: any[][] = [];
+  private shapeHistoryIndex: number = -1;
+  private isProgrammaticRelayout: boolean = false;
+  private shapeSave$ = new Subject<{idSecuritycurrency: number, shapes: any[]}>();
+  private shapeSaveSubscription: Subscription;
+
 
   constructor(private messageToastService: MessageToastService,
     private usersettingsService: UserSettingsService,
@@ -192,7 +200,9 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     private historyquoteService: HistoryquoteService,
     private activatedRoute: ActivatedRoute,
     private translateService: TranslateService,
-    private activePanelService: ActivePanelService) {
+    private activePanelService: ActivePanelService,
+    private confirmationService: ConfirmationService,
+    private userChartShapeService: UserChartShapeService) {
 
     this.dateFormat = gps.getCalendarTwoNumberDateFormat().toLocaleLowerCase();
     //  this.yearRange = `2000:${new Date().getFullYear()}`;
@@ -235,11 +245,19 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       this.prepareChart(paramObject.allParam);
     });
     this.historyquoteService.getAllTaForms().subscribe(formDefinition => this.taFormDefinitions = formDefinition);
+    this.shapeSaveSubscription = this.shapeSave$.pipe(debounceTime(500)).subscribe(data => {
+      if (data.shapes.length > 0) {
+        this.userChartShapeService.saveShapes(data.idSecuritycurrency, data.shapes).subscribe();
+      } else {
+        this.userChartShapeService.deleteShapes(data.idSecuritycurrency).subscribe();
+      }
+    });
   }
 
   ngOnDestroy(): void {
     this.subscriptionLatest && this.subscriptionLatest.unsubscribe();
     this.subscriptionViewSizeChanged && this.subscriptionViewSizeChanged.unsubscribe();
+    this.shapeSaveSubscription && this.shapeSaveSubscription.unsubscribe();
     this.activePanelService.destroyPanel(this);
   }
 
@@ -397,9 +415,29 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
         traces.push(volumeTrace);
       }
     }
-    const layout: any = this.getLayout(this.getHoldingLayout());
-    this.plot(element, traces, layout);
-    this.redoTaAfterDateChange();
+    if (!userUserInputDate && this.loadedData.length === 1) {
+      this.userChartShapeService.getShapes(this.loadedData[0].idSecuritycurrency).subscribe({
+        next: (response) => {
+          const shapes = response?.shapeData || [];
+          this.initShapeHistory(shapes);
+          const layout: any = this.getLayout(this.getHoldingLayout(), shapes);
+          this.plot(element, traces, layout);
+          this.redoTaAfterDateChange();
+        },
+        error: () => {
+          this.initShapeHistory([]);
+          const layout: any = this.getLayout(this.getHoldingLayout(), []);
+          this.plot(element, traces, layout);
+          this.redoTaAfterDateChange();
+        }
+      });
+    } else {
+      const savedShapes = this.shapeHistory.length > 0 && this.shapeHistoryIndex >= 0
+        ? this.shapeHistory[this.shapeHistoryIndex] : [];
+      const layout: any = this.getLayout(this.getHoldingLayout(), savedShapes);
+      this.plot(element, traces, layout);
+      this.redoTaAfterDateChange();
+    }
   }
 
   private getHoldingLayout() {
@@ -1071,7 +1109,41 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   private plot(element: any, traces: any, layout: any): void {
     const config = PlotlyLocales.setPlotyLocales(Plotly, this.gps);
     config.modeBarButtonsToRemove = ['lasso2d', 'select2d'];
-    config.modeBarButtonsToAdd = ['drawline', 'drawopenpath', 'drawclosedpath', 'drawcircle', 'drawrect', 'eraseshape'];
+    config.modeBarButtonsToAdd = [
+      'drawline', 'drawopenpath', 'drawclosedpath', 'drawcircle', 'drawrect', 'eraseshape',
+      {
+        name: 'undo',
+        title: 'Undo',
+        icon: Plotly.Icons.undo,
+        click: () => this.undoShapes()
+      },
+      {
+        name: 'redo',
+        title: 'Redo',
+        icon: {
+          width: 857.1,
+          height: 1000,
+          path: 'm857 350q0-87-34-166t-91-137-137-92-166-34q-96 0-183 41t-147 114q-4 6-4 13t5 11l76 77q6 5 14 5 9-1 13-7 ' +
+            '41-53 100-82t126-29q58 0 110 23t92 61 61 91 22 111-22 111-61 91-92 61-110 23q-55 0-105-20t-90-57l77-77q17-16 ' +
+            '8-38-10-23-33-23h-250q-15 0-25 11t-11 25v250q0 24 22 33 22 10 39-8l72-72q60 57 137 88t159 31q87 0 166-34t137-91 ' +
+            '91-137 34-166z',
+          transform: 'matrix(-1 0 0 1 857 0)'
+        },
+        click: () => this.redoShapes()
+      },
+      {
+        name: 'deleteAllShapes',
+        title: 'Delete all shapes',
+        icon: {
+          width: 448,
+          height: 512,
+          path: 'M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 ' +
+            '48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 ' +
+            '0 0 0 47.9-45L416 128H32z'
+        },
+        click: () => this.deleteAllShapes()
+      }
+    ];
     config.displaylogo = false;
     Plotly.purge(this.chartElement.nativeElement);
     Plotly.newPlot(element, traces, layout, config).then(this.attachTooltip.bind(this));
@@ -1102,39 +1174,93 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   /**
-   * Handles shape changes (draw, edit, delete) and persists them to user settings.
-   * Shapes are stored per security/currency pair identified by idSecuritycurrency.
+   * Initializes the shape history stack with the given shapes as the first entry.
+   */
+  private initShapeHistory(shapes: any[]): void {
+    this.shapeHistory = [JSON.parse(JSON.stringify(shapes || []))];
+    this.shapeHistoryIndex = 0;
+  }
+
+  /**
+   * Handles shape changes (draw, edit, delete) and persists them to backend.
+   * Tracks undo/redo history unless the change was triggered programmatically.
    */
   private onShapesChanged(eventData: any): void {
     if (this.loadedData.length === 1) {
       const shapes = this.chartElement.nativeElement.layout?.shapes;
       if (shapes !== undefined) {
-        const storageKey = this.getShapesStorageKey();
-        if (shapes.length > 0) {
-          this.usersettingsService.saveObject(storageKey, shapes);
+        if (this.isProgrammaticRelayout) {
+          this.isProgrammaticRelayout = false;
+          this.persistShapesToBackend(shapes);
         } else {
-          this.usersettingsService.removeKey(storageKey);
+          const shapesCopy = JSON.parse(JSON.stringify(shapes));
+          this.shapeHistory = this.shapeHistory.slice(0, this.shapeHistoryIndex + 1);
+          this.shapeHistory.push(shapesCopy);
+          this.shapeHistoryIndex = this.shapeHistory.length - 1;
+          this.persistShapesToBackend(shapes);
         }
       }
     }
   }
 
   /**
-   * Retrieves saved shapes for the current security/currency pair from user settings.
+   * Persists shapes to backend via debounced subject.
    */
-  private getSavedShapes(): any[] {
+  private persistShapesToBackend(shapes: any[]): void {
     if (this.loadedData.length === 1) {
-      const storageKey = this.getShapesStorageKey();
-      return this.usersettingsService.retrieveObject(storageKey) || [];
+      this.shapeSave$.next({idSecuritycurrency: this.loadedData[0].idSecuritycurrency, shapes: shapes || []});
     }
-    return [];
   }
 
-  private getShapesStorageKey(): string {
-    return AppSettings.CHART_SHAPES_STORE + this.loadedData[0].idSecuritycurrency;
+  /**
+   * Undoes the last shape change by stepping back in the shape history.
+   */
+  private undoShapes(): void {
+    if (this.shapeHistoryIndex > 0) {
+      this.shapeHistoryIndex--;
+      this.applyShapesFromHistory();
+    }
   }
 
-  private getLayout(holdingLayout): any {
+  /**
+   * Redoes the last undone shape change by stepping forward in the shape history.
+   */
+  private redoShapes(): void {
+    if (this.shapeHistoryIndex < this.shapeHistory.length - 1) {
+      this.shapeHistoryIndex++;
+      this.applyShapesFromHistory();
+    }
+  }
+
+  /**
+   * Applies the shapes at the current history index to the chart layout.
+   */
+  private applyShapesFromHistory(): void {
+    this.isProgrammaticRelayout = true;
+    const shapes = JSON.parse(JSON.stringify(this.shapeHistory[this.shapeHistoryIndex]));
+    Plotly.relayout(this.chartElement.nativeElement, {shapes});
+  }
+
+  /**
+   * Deletes all shapes from the chart after user confirmation.
+   */
+  private deleteAllShapes(): void {
+    const currentShapes = this.chartElement.nativeElement.layout?.shapes || [];
+    if (currentShapes.length === 0) {
+      return;
+    }
+    this.translateService.get(['DELETE_ALL_SHAPES', 'DELETE_ALL_SHAPES_CONFIRM']).subscribe(translations => {
+      this.confirmationService.confirm({
+        header: translations['DELETE_ALL_SHAPES'],
+        message: translations['DELETE_ALL_SHAPES_CONFIRM'],
+        accept: () => {
+          Plotly.relayout(this.chartElement.nativeElement, {shapes: []});
+        }
+      });
+    });
+  }
+
+  private getLayout(holdingLayout, shapes: any[] = []): any {
     const dateNative = moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
     // Oscillators can only be displayed when showing a single security
     const hasOscillator = this.loadedData.length === 1 && this.indicatorDefinitions.hasShownOscillator();
@@ -1176,7 +1302,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
         line: {color: 'cyan', width: 2},
         fillcolor: 'rgba(0, 255, 255, 0.1)'
       },
-      shapes: this.getSavedShapes()
+      shapes: shapes
     };
 
     // Configure subplot layout based on active subcharts
