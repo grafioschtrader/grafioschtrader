@@ -1,6 +1,5 @@
 package grafioschtrader.gtnet.model;
 
-import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -97,11 +96,11 @@ public class SecurityGtnetLookupDTO {
   private Date sTimestamp;
 
   // History quality data (from historyquote_quality table)
-  @Schema(description = "Earliest available historical quote date")
-  private LocalDate historyMinDate;
+  @Schema(description = "Earliest available historical quote date (YYYY-MM-DD)")
+  private String historyMinDate;
 
-  @Schema(description = "Latest available historical quote date")
-  private LocalDate historyMaxDate;
+  @Schema(description = "Latest available historical quote date (YYYY-MM-DD)")
+  private String historyMaxDate;
 
   @Schema(description = "Percentage of quotes with valid open, high, and low values (0-100)")
   private Double ohlPercentage;
@@ -436,19 +435,19 @@ public class SecurityGtnetLookupDTO {
     this.sTimestamp = sTimestamp;
   }
 
-  public LocalDate getHistoryMinDate() {
+  public String getHistoryMinDate() {
     return historyMinDate;
   }
 
-  public void setHistoryMinDate(LocalDate historyMinDate) {
+  public void setHistoryMinDate(String historyMinDate) {
     this.historyMinDate = historyMinDate;
   }
 
-  public LocalDate getHistoryMaxDate() {
+  public String getHistoryMaxDate() {
     return historyMaxDate;
   }
 
-  public void setHistoryMaxDate(LocalDate historyMaxDate) {
+  public void setHistoryMaxDate(String historyMaxDate) {
     this.historyMaxDate = historyMaxDate;
   }
 

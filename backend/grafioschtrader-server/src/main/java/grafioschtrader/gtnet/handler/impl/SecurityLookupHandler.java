@@ -215,8 +215,12 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
     try {
       IHistoryquoteQuality quality = historyquoteJpaRepository.getMissingsDaysCountByIdSecurity(idSecurity);
       if (quality != null) {
-        dto.setHistoryMinDate(quality.getMinDate());
-        dto.setHistoryMaxDate(quality.getMaxDate());
+        if (quality.getMinDate() != null) {
+          dto.setHistoryMinDate(quality.getMinDate().toString());
+        }
+        if (quality.getMaxDate() != null) {
+          dto.setHistoryMaxDate(quality.getMaxDate().toString());
+        }
         dto.setOhlPercentage(quality.getOhlPercentage());
       }
     } catch (Exception e) {
