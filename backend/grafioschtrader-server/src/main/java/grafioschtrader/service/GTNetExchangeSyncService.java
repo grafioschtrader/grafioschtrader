@@ -24,7 +24,8 @@ import grafiosch.repository.GTNetConfigJpaRepository;
 import grafiosch.repository.GTNetJpaRepository;
 import grafiosch.repository.GlobalparametersJpaRepository;
 import grafioschtrader.entities.Currencypair;
-import grafioschtrader.entities.GTNetSupplierDetail;
+import grafiosch.entities.GTNetSupplierDetail;
+import grafiosch.repository.GTNetSupplierDetailJpaRepository;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
@@ -32,7 +33,6 @@ import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.model.msg.ExchangeSyncMsg;
 import grafioschtrader.gtnet.model.msg.ExchangeSyncMsg.ExchangeSyncItem;
 import grafioschtrader.repository.CurrencypairJpaRepository;
-import grafioschtrader.repository.GTNetSupplierDetailJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 
 /**
@@ -289,8 +289,8 @@ public class GTNetExchangeSyncService {
   private void createSupplierDetail(GTNetConfig config, Securitycurrency<?> sc, GTNetExchangeKindType entityKind) {
     GTNetSupplierDetail detail = new GTNetSupplierDetail();
     detail.setGtNetConfig(config);
-    detail.setSecuritycurrency(sc);
-    detail.setEntityKind(entityKind);
+    detail.setIdEntity(sc.getIdSecuritycurrency());
+    detail.setEntityKind(entityKind.getValue());
     gtNetSupplierDetailJpaRepository.save(detail);
   }
 
@@ -390,8 +390,8 @@ public class GTNetExchangeSyncService {
 
     GTNetSupplierDetail detail = new GTNetSupplierDetail();
     detail.setGtNetConfig(config);
-    detail.setSecuritycurrency(sc);
-    detail.setEntityKind(entityKind);
+    detail.setIdEntity(sc.getIdSecuritycurrency());
+    detail.setEntityKind(entityKind.getValue());
     gtNetSupplierDetailJpaRepository.save(detail);
     return true;
   }
@@ -420,9 +420,8 @@ public class GTNetExchangeSyncService {
     return gtNetSupplierDetailJpaRepository.findAll().stream()
         .filter(d -> d.getGtNetConfig() != null
             && d.getGtNetConfig().getIdGtNet().equals(config.getIdGtNet())
-            && d.getSecuritycurrency() != null
-            && d.getSecuritycurrency().getIdSecuritycurrency().equals(sc.getIdSecuritycurrency())
-            && d.getEntityKind() == entityKind)
+            && sc.getIdSecuritycurrency().equals(d.getIdEntity())
+            && d.getEntityKind() == entityKind.getValue())
         .findFirst();
   }
 }

@@ -168,7 +168,7 @@ export interface GTNetExchangeFields {
 export interface GTNetSupplierDetail {
   idGtNetSupplierDetail: number;
   idGtNet: number;
-  securitycurrency: any;
+  idEntity: number;
   entityKind: GTNetExchangeKindType;
 }
 

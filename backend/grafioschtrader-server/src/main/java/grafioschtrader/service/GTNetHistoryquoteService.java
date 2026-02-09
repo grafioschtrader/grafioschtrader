@@ -34,7 +34,8 @@ import grafioschtrader.entities.GTNetHistoryquote;
 import grafioschtrader.entities.GTNetInstrument;
 import grafioschtrader.entities.GTNetInstrumentCurrencypair;
 import grafioschtrader.entities.GTNetInstrumentSecurity;
-import grafioschtrader.entities.GTNetSupplierDetail;
+import grafiosch.entities.GTNetSupplierDetail;
+import grafiosch.repository.GTNetSupplierDetailJpaRepository;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
@@ -49,7 +50,6 @@ import grafioschtrader.repository.GTNetExchangeLogJpaRepository;
 import grafioschtrader.repository.GTNetHistoryquoteJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentCurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentSecurityJpaRepository;
-import grafioschtrader.repository.GTNetSupplierDetailJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 

@@ -1,0 +1,15 @@
+DELIMITER //
+CREATE OR REPLACE PROCEDURE RenameIdSecuritycurrencyToIdEntity()
+BEGIN
+    IF EXISTS (
+        SELECT * FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'gt_net_supplier_detail'
+        AND COLUMN_NAME = 'id_securitycurrency'
+    ) THEN
+        ALTER TABLE gt_net_supplier_detail CHANGE COLUMN id_securitycurrency id_entity INT;
+    END IF;
+END //
+DELIMITER ;
+CALL RenameIdSecuritycurrencyToIdEntity();
+DROP PROCEDURE IF EXISTS RenameIdSecuritycurrencyToIdEntity;
