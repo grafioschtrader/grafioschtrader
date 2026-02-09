@@ -4,6 +4,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.DistributionFrequency;
 import grafioschtrader.types.SpecialInvestmentInstruments;
@@ -93,6 +95,7 @@ public class SecurityGtnetLookupDTO {
 
   // Intraday timestamp
   @Schema(description = "Timestamp of the last intraday price update")
+  @JsonProperty("sTimestamp")
   private Date sTimestamp;
 
   // History quality data (from historyquote_quality table)
