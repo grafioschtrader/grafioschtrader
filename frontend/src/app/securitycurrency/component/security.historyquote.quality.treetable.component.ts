@@ -130,6 +130,8 @@ export class SecurityHistoryquoteQualityTreetableComponent extends TreeTableConf
     this.addColumnFeqH(DataType.NumericInteger, 'filledLinear', true, false);
     this.addColumnFeqH(DataType.Numeric, 'qualityPercentage', true, false,
       {headerSuffix: '%'});
+    this.addColumnFeqH(DataType.Numeric, 'ohlPercentage', true, false,
+      {headerSuffix: '%'});
     this.setSameFieldNameForGroupField(1);
     this.translateHeadersAndColumns();
 

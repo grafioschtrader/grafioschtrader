@@ -17,6 +17,7 @@ export class HistoryquoteQualityGroup extends HistoryquoteQualityIds {
   manualImported: number;
   filledLinear: number;
   qualityPercentage: number;
+  ohlPercentage: number;
   childrendHqg: HistoryquoteQualityGroup[];
 }
 

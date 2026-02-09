@@ -93,6 +93,16 @@ Even then, prefer using JPA Criteria API or Specification pattern over raw SQL s
 - **`*JpaRepositoryCustom`** (interface): Custom method signatures for complex operations.
 - **`*JpaRepositoryImpl`** (class): Implementation of custom methods. Should delegate SQL operations to the main repository interface.
 
+## gt_ddl.sql - Do NOT Edit
+
+**IMPORTANT**: The file `grafioschtrader-server/src/main/resources/db/migration/gt_ddl.sql` is **auto-generated** and must **never be manually edited**.
+
+- It contains the current DDL (Data Definition Language) for the entire Grafioschtrader database schema, including tables, stored procedures, and other database objects.
+- Before a new software version is released, a job regenerates this file and also updates the artifact versions in the backend.
+- It serves as the **basis for importing exported data** into a fresh database.
+- Not all tables in `gt_ddl.sql` are mapped as JPA entities (e.g., `historyquote_quality` has no corresponding entity class).
+- Schema changes must be done exclusively via **Flyway migration files** (`V*__*.sql`), never by editing `gt_ddl.sql` directly.
+
 ## Common Annotations for Native Queries
 
 ```java

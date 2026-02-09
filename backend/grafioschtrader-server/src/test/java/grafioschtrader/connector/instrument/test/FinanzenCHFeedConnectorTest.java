@@ -30,7 +30,7 @@ class FinanzenCHFeedConnectorTest extends BaseFeedConnectorCheck {
 //  }
 
   @Override
-  protected List<SecurityHistoricalDate> getHistoricalSecurities() {
+  protected List<SecurityHistoricalDate> getHistoricalSecurities(HistoricalIntra histroricalIntra) {
     List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
     try {
       hisoricalDate.add(new SecurityHistoricalDate("iShares II PLC FTSE DEV MAR PROP ETF (USD)", "IE00B1FZS350",

@@ -31,7 +31,7 @@ public class BoursoramaFeedConnectorTest extends BaseFeedConnectorCheck {
   }
 
   @Override
-  protected List<SecurityHistoricalDate> getHistoricalSecurities() {
+  protected List<SecurityHistoricalDate> getHistoricalSecurities(HistoricalIntra histroricalIntra) {
     List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
     String dateTo = "2023-08-31";
     try {

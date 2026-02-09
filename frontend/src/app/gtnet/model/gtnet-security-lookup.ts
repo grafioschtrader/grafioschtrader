@@ -91,6 +91,24 @@ export interface SecurityGtnetLookupDTO {
   /** URL extension for split connector */
   matchedSplitUrlExtension?: string;
 
+  // Connector retry counters
+  retryHistoryLoad?: number;
+  retryIntraLoad?: number;
+  retryDividendLoad?: number;
+  retrySplitLoad?: number;
+
+  // Intraday timestamp
+  sTimestamp?: number;
+
+  // History quality data (from historyquote_quality table)
+  historyMinDate?: string;
+  historyMaxDate?: string;
+  ohlPercentage?: number;
+
+  // Dividend and split counts
+  dividendCount?: number;
+  splitCount?: number;
+
   /** Matched local asset class ID based on categoryType, specialInvestmentInstrument, and subCategoryNLS */
   matchedAssetClassId?: number;
   /** Asset class match type: EXACT (with subCategoryNLS), PARTIAL (categoryType + specialInvestmentInstrument only), SCHEME_MATCH */

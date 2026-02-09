@@ -40,7 +40,7 @@ public class TwelvedataFeedConnectorTest extends BaseFeedConnectorCheck {
   }
 
   @Override
-  protected List<SecurityHistoricalDate> getHistoricalSecurities() {
+  protected List<SecurityHistoricalDate> getHistoricalSecurities(HistoricalIntra histroricalIntra) {
     List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
     try {
       hisoricalDate.add(new SecurityHistoricalDate("Cisco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "csco",

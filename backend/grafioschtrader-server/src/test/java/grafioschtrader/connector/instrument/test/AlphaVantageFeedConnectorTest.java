@@ -42,7 +42,7 @@ class AlphaVantageFeedConnectorTest extends BaseFeedConnectorCheck {
   }
 
   @Override
-  protected List<SecurityHistoricalDate> getHistoricalSecurities() {
+  protected List<SecurityHistoricalDate> getHistoricalSecurities(HistoricalIntra histroricalIntra) {
     List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
     try {
       hisoricalDate.add(new SecurityHistoricalDate("Apple", "AAPL", 1000, "2010-01-03", "2025-05-16"));

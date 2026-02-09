@@ -24,6 +24,7 @@ import grafiosch.gtnet.handler.HandlerResult;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector;
+import grafioschtrader.dto.IHistoryquoteQuality;
 import grafioschtrader.entities.Security;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
@@ -33,7 +34,10 @@ import grafioschtrader.gtnet.model.SecurityGtnetLookupDTO;
 import grafioschtrader.gtnet.model.SubCategoryDetector;
 import grafioschtrader.gtnet.model.msg.SecurityLookupMsg;
 import grafioschtrader.gtnet.model.msg.SecurityLookupResponseMsg;
+import grafioschtrader.repository.DividendJpaRepository;
+import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
+import grafioschtrader.repository.SecuritysplitJpaRepository;
 
 /**
  * Handler for GT_NET_SECURITY_LOOKUP_SEL_C requests from remote instances.
@@ -50,6 +54,15 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
+
+  @Autowired
+  private HistoryquoteJpaRepository historyquoteJpaRepository;
+
+  @Autowired
+  private DividendJpaRepository dividendJpaRepository;
+
+  @Autowired
+  private SecuritysplitJpaRepository securitysplitJpaRepository;
 
   @Autowired
   private Map<String, IFeedConnector> feedConnectorMap;
@@ -187,6 +200,32 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
 
     // Build connector hints
     dto.setConnectorHints(buildConnectorHints(security));
+
+    // Retry counters
+    dto.setRetryHistoryLoad(security.getRetryHistoryLoad());
+    dto.setRetryIntraLoad(security.getRetryIntraLoad());
+    dto.setRetryDividendLoad(security.getRetryDividendLoad());
+    dto.setRetrySplitLoad(security.getRetrySplitLoad());
+
+    // Intraday timestamp
+    dto.setSTimestamp(security.getSTimestamp());
+
+    // History quality data from historyquote_quality table
+    Integer idSecurity = security.getIdSecuritycurrency();
+    try {
+      IHistoryquoteQuality quality = historyquoteJpaRepository.getMissingsDaysCountByIdSecurity(idSecurity);
+      if (quality != null) {
+        dto.setHistoryMinDate(quality.getMinDate());
+        dto.setHistoryMaxDate(quality.getMaxDate());
+        dto.setOhlPercentage(quality.getOhlPercentage());
+      }
+    } catch (Exception e) {
+      log.debug("Could not load history quality for security {}: {}", idSecurity, e.getMessage());
+    }
+
+    // Dividend and split counts
+    dto.setDividendCount((int) dividendJpaRepository.countByIdSecuritycurrency(idSecurity));
+    dto.setSplitCount((int) securitysplitJpaRepository.countByIdSecuritycurrency(idSecurity));
 
     return dto;
   }

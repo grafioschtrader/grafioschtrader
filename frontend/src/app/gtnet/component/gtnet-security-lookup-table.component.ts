@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Injector, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
-import {CommonModule} from '@angular/common';
+import {CommonModule, DatePipe} from '@angular/common';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {ButtonModule} from 'primeng/button';
 import {FilterService} from 'primeng/api';
@@ -22,7 +22,7 @@ import {AppSettings} from '../../shared/app.settings';
 @Component({
   selector: 'gtnet-security-lookup-table',
   standalone: true,
-  imports: [CommonModule, ConfigurableTableComponent, TranslateModule, ButtonModule],
+  imports: [CommonModule, ConfigurableTableComponent, TranslateModule, ButtonModule, DatePipe],
   template: `
     <configurable-table
       [data]="securities"
@@ -44,72 +44,38 @@ import {AppSettings} from '../../shared/app.settings';
     <ng-template #connectorExpansion let-security>
       <div class="connector-expansion">
         <div class="connector-boxes">
-          <!-- History Connector Box -->
-          @if (security.matchedHistoryConnector) {
-            <fieldset class="connector-box">
-              <legend>{{ 'HISTORY_SETTINGS' | translate }}</legend>
-              <div class="connector-row">
-                <span class="connector-label">{{ 'ID_CONNECTOR_HISTORY' | translate }}:</span>
-                <span class="connector-value">{{ security.matchedHistoryConnector }}</span>
-              </div>
-              @if (security.matchedHistoryUrlExtension) {
+          @for (cfg of connectorConfigs; track cfg.connectorField) {
+            @if (security[cfg.connectorField]) {
+              <fieldset class="connector-box">
+                <legend>{{ cfg.legendKey | translate }}</legend>
                 <div class="connector-row">
-                  <span class="connector-label">{{ 'URL_HISTORY_EXTEND' | translate }}:</span>
-                  <span class="connector-value text-break">{{ security.matchedHistoryUrlExtension }}</span>
+                  <span class="connector-label">{{ cfg.labelKey | translate }}:</span>
+                  <span class="connector-value">{{ security[cfg.connectorField] }}</span>
                 </div>
-              }
-            </fieldset>
-          }
-
-          <!-- Intraday Connector Box -->
-          @if (security.matchedIntraConnector) {
-            <fieldset class="connector-box">
-              <legend>{{ 'INTRA_SETTINGS' | translate }}</legend>
-              <div class="connector-row">
-                <span class="connector-label">{{ 'ID_CONNECTOR_INTRA' | translate }}:</span>
-                <span class="connector-value">{{ security.matchedIntraConnector }}</span>
-              </div>
-              @if (security.matchedIntraUrlExtension) {
-                <div class="connector-row">
-                  <span class="connector-label">{{ 'URL_INTRA_EXTEND' | translate }}:</span>
-                  <span class="connector-value text-break">{{ security.matchedIntraUrlExtension }}</span>
-                </div>
-              }
-            </fieldset>
-          }
-
-          <!-- Dividend Connector Box -->
-          @if (security.matchedDividendConnector) {
-            <fieldset class="connector-box">
-              <legend>{{ 'DIVIDEND_SETTINGS' | translate }}</legend>
-              <div class="connector-row">
-                <span class="connector-label">{{ 'ID_CONNECTOR_DIVIDEND' | translate }}:</span>
-                <span class="connector-value">{{ security.matchedDividendConnector }}</span>
-              </div>
-              @if (security.matchedDividendUrlExtension) {
-                <div class="connector-row">
-                  <span class="connector-label">{{ 'URL_DIVIDEND_EXTEND' | translate }}:</span>
-                  <span class="connector-value text-break">{{ security.matchedDividendUrlExtension }}</span>
-                </div>
-              }
-            </fieldset>
-          }
-
-          <!-- Split Connector Box -->
-          @if (security.matchedSplitConnector) {
-            <fieldset class="connector-box">
-              <legend>{{ 'SPLIT_SETTING' | translate }}</legend>
-              <div class="connector-row">
-                <span class="connector-label">{{ 'ID_CONNECTOR_SPLIT' | translate }}:</span>
-                <span class="connector-value">{{ security.matchedSplitConnector }}</span>
-              </div>
-              @if (security.matchedSplitUrlExtension) {
-                <div class="connector-row">
-                  <span class="connector-label">{{ 'URL_SPLIT_EXTEND' | translate }}:</span>
-                  <span class="connector-value text-break">{{ security.matchedSplitUrlExtension }}</span>
-                </div>
-              }
-            </fieldset>
+                @if (security[cfg.urlField]) {
+                  <div class="connector-row">
+                    <span class="connector-label">{{ cfg.urlLabelKey | translate }}:</span>
+                    <span class="connector-value text-break">{{ security[cfg.urlField] }}</span>
+                  </div>
+                }
+                @for (extra of cfg.extraFields; track extra.field) {
+                  @if (security[extra.field] != null) {
+                    <div class="connector-row">
+                      <span class="connector-label">{{ extra.labelKey | translate }}:</span>
+                      <span class="connector-value">
+                        @if (extra.isDate) {
+                          {{ security[extra.field] | date:'shortDate' }}
+                        } @else if (extra.isDateTime) {
+                          {{ security[extra.field] | date:'short' }}
+                        } @else {
+                          {{ security[extra.field] }}{{ extra.suffix || '' }}
+                        }
+                      </span>
+                    </div>
+                  }
+                }
+              </fieldset>
+            }
           }
         </div>
       </div>
@@ -170,6 +136,35 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
   @Output() securitySelected = new EventEmitter<SecurityGtnetLookupDTO>();
 
   selectedSecurity: SecurityGtnetLookupDTO;
+
+  readonly connectorConfigs: ConnectorDisplayConfig[] = [
+    {connectorField: 'matchedHistoryConnector', urlField: 'matchedHistoryUrlExtension',
+      legendKey: 'HISTORY_SETTINGS', labelKey: 'HISTORY_DATA_PROVIDER', urlLabelKey: 'URL_HISTORY_EXTEND',
+      extraFields: [
+        {field: 'retryHistoryLoad', labelKey: 'RETRY_HISTORY_LOAD'},
+        {field: 'historyMinDate', labelKey: 'MIN_DATE', isDate: true},
+        {field: 'historyMaxDate', labelKey: 'MAX_DATE', isDate: true},
+        {field: 'ohlPercentage', labelKey: 'OHL_PERCENTAGE', suffix: '%'},
+      ]},
+    {connectorField: 'matchedIntraConnector', urlField: 'matchedIntraUrlExtension',
+      legendKey: 'INTRA_SETTINGS', labelKey: 'INTRA_DATA_PROVIDER', urlLabelKey: 'URL_INTRA_EXTEND',
+      extraFields: [
+        {field: 'retryIntraLoad', labelKey: 'RETRY_INTRA_LOAD'},
+        {field: 'sTimestamp', labelKey: 'TIMEDATE', isDateTime: true},
+      ]},
+    {connectorField: 'matchedDividendConnector', urlField: 'matchedDividendUrlExtension',
+      legendKey: AppSettings.DIVIDEND_SETTINGS, labelKey: 'ID_CONNECTOR_DIVIDEND', urlLabelKey: 'URL_DIVIDEND_EXTEND',
+      extraFields: [
+        {field: 'retryDividendLoad', labelKey: 'RETRY_DIVIDEND_LOAD'},
+        {field: 'dividendCount', labelKey: 'DIVIDEND_COUNT'},
+      ]},
+    {connectorField: 'matchedSplitConnector', urlField: 'matchedSplitUrlExtension',
+      legendKey: AppSettings.SPLIT_SETTINGS, labelKey: 'ID_CONNECTOR_SPLIT', urlLabelKey: 'URL_SPLIT_EXTEND',
+      extraFields: [
+        {field: 'retrySplitLoad', labelKey: 'RETRY_SPLIT_LOAD'},
+        {field: 'splitCount', labelKey: 'SPLIT_COUNT'},
+      ]},
+  ];
 
   /** Flag to track if fields have been initialized in ngOnInit */
   private fieldsInitialized = false;
@@ -260,4 +255,21 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
     const keys = Object.keys(subCat);
     return keys.length > 0 ? subCat[keys[0]] : '';
   }
+}
+
+interface ConnectorExtraField {
+  field: string;
+  labelKey: string;
+  isDate?: boolean;
+  isDateTime?: boolean;
+  suffix?: string;
+}
+
+interface ConnectorDisplayConfig {
+  connectorField: string;
+  urlField: string;
+  legendKey: string;
+  labelKey: string;
+  urlLabelKey: string;
+  extraFields?: ConnectorExtraField[];
 }

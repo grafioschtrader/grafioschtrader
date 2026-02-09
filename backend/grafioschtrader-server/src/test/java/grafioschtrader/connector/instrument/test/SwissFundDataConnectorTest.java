@@ -19,7 +19,7 @@ class SwissFundDataConnectorTest extends BaseFeedConnectorCheck {
   }
 
   @Override
-  protected List<SecurityHistoricalDate> getHistoricalSecurities() {
+  protected List<SecurityHistoricalDate> getHistoricalSecurities(HistoricalIntra histroricalIntra) {
     List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
     try {
       hisoricalDate.add(new SecurityHistoricalDate("Migros Bank (CH) Fonds 45 V",

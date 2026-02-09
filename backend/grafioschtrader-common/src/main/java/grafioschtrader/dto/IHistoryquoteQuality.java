@@ -56,4 +56,7 @@ public interface IHistoryquoteQuality {
 
   @Schema(description = "Count of quotes manually modified by a user.")
   Integer getUserModified();
+
+  @Schema(description = "Percentage of quotes with valid open, high, and low values (0-100). Both 0 and NULL are treated as missing.")
+  Double getOhlPercentage();
 }

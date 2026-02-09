@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import grafioschtrader.entities.Dividend;
 
 public interface DividendJpaRepository extends JpaRepository<Dividend, Integer>, DividendJpaRepositoryCustom {
+  long countByIdSecuritycurrency(Integer idSecuritycurrency);
+
   Long deleteByIdSecuritycurrencyAndCreateType(Integer idSecuritycurrency, byte createType);
 
   List<Dividend> findByIdSecuritycurrencyInAndCreateTypeOrderByIdSecuritycurrencyAscExDateAsc(List<Integer> securityIds,

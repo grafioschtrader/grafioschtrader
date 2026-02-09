@@ -26,7 +26,7 @@ public class EuronextFeedConnectorTest extends BaseFeedConnectorCheck {
   }
 
   @Override
-  protected List<SecurityHistoricalDate> getHistoricalSecurities() {
+  protected List<SecurityHistoricalDate> getHistoricalSecurities(HistoricalIntra histroricalIntra) {
     List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
     try {
       hisoricalDate.add(new SecurityHistoricalDate("Niederlande, Königreich der 4% 05/37", "NL0000102234",

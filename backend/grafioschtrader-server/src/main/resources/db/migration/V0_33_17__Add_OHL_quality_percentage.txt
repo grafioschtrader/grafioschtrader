@@ -1,0 +1,65 @@
+ALTER TABLE historyquote_quality DROP COLUMN IF EXISTS ohlPercentage;
+ALTER TABLE historyquote_quality ADD COLUMN ohlPercentage double DEFAULT NULL;
+
+DROP PROCEDURE IF EXISTS deleteUpdateHistoryQuality;
+
+DELIMITER ;;
+CREATE PROCEDURE `deleteUpdateHistoryQuality`()
+    MODIFIES SQL DATA
+BEGIN
+SET @globalparam_update = "gt.historyquote.quality.update.date";
+DROP TEMPORARY TABLE IF EXISTS minmax;
+CREATE TEMPORARY TABLE minmax AS
+(SELECT s.id_securitycurrency, MIN(hq.date) AS minDate, MAX(hq.date) AS maxDate,
+SUM(IF(hq.create_type = 0, 1, 0)) AS connectorCreated,
+SUM(IF(hq.create_type = 1, 1, 0)) AS filledNoTradeDay,
+SUM(IF(hq.create_type = 2, 1, 0)) AS manualImported,
+SUM(IF(hq.create_type = 3, 1, 0)) AS filledLinear
+FROM security s JOIN historyquote hq ON s.id_securitycurrency = hq.id_securitycurrency
+GROUP BY s.id_securitycurrency);
+DELETE FROM historyquote_quality;
+INSERT INTO historyquote_quality (idSecurity, minDate, connectorCreated, filledNoTradeDay, manualImported, filledLinear,
+missingStart, maxDate, missingEnd, totalMissing, expectedTotal, qualityPercentage, toManyAsCalendar, quoteSaturday, quoteSunday)
+SELECT s.id_securitycurrency AS idSecurity,
+MIN(hq.date) AS minDate, mm.connectorCreated, mm.filledNoTradeDay, mm.manualImported, mm.filledLinear,
+SUM(IF(tdp.trading_date < mm.minDate AND hq.date IS NULL, 1, 0) ) AS missingStart,
+MAX(hq.date) maxDate,
+SUM(IF(tdp.trading_date > mm.maxDate AND hq.date IS NULL, 1, 0)) AS missingEnd,
+SUM(IF(hq.date IS NULL, 1, 0)) AS totalMissing,
+count(*) AS expectedTotal,
+ROUND((1 - SUM(IF(hq.date IS NULL, 1, 0)) / count(*)) * 100, 2) AS qualityPercentage,
+0 AS toManyAsCalendar,
+0 AS quoteSaturday,
+0 AS quoteSunday
+FROM minmax mm JOIN security s ON s.id_securitycurrency = mm.id_securitycurrency
+JOIN trading_days_plus tdp LEFT JOIN trading_days_minus tdm ON tdp.trading_date = tdm.trading_date_minus AND tdm.id_stockexchange = s.id_stockexchange
+LEFT JOIN historyquote hq ON s.id_securitycurrency = hq.id_securitycurrency AND tdp.trading_date = hq.date
+WHERE tdm.trading_date_minus IS NULL
+AND s.active_from_date <= tdp.trading_date AND s.id_tenant_private IS NULL AND tdp.trading_date <= LEAST(s.active_to_date, NOW() - INTERVAL 1 DAY)
+GROUP BY s.id_securitycurrency;
+UPDATE historyquote_quality hq JOIN
+(SELECT s.id_securitycurrency, count(*) AS toManyAsCalendar, SUM(IF(DAYOFWEEK(hq.date) = 7, 1, 0)) AS quoteSaturday, SUM(IF(DAYOFWEEK(hq.date) = 1, 1, 0))
+AS quoteSunday FROM security s JOIN historyquote hq ON s.id_securitycurrency = hq.id_securitycurrency LEFT JOIN trading_days_plus tdp
+ON tdp.trading_date = hq.date LEFT JOIN trading_days_minus tdm ON tdp.trading_date = tdm.trading_date_minus AND tdm.id_stockexchange = s.id_stockexchange
+WHERE (tdp.trading_date IS NULL OR tdm.trading_date_minus IS NOT NULL) AND s.active_from_date <= hq.date
+AND hq.date <= LEAST(s.active_to_date, NOW() - INTERVAL 1 DAY)  GROUP BY s.id_securitycurrency) AS x ON x.id_securitycurrency = hq.idSecurity
+SET hq.toManyAsCalendar = x.toManyAsCalendar, hq.quoteSaturday = x.quoteSaturday, hq.quoteSunday = x.quoteSunday;
+UPDATE historyquote_quality hqq JOIN
+(SELECT hq.id_securitycurrency,
+  ROUND(SUM(IF(
+    (hq.open IS NOT NULL AND hq.open <> 0)
+    AND (hq.high IS NOT NULL AND hq.high <> 0)
+    AND (hq.low IS NOT NULL AND hq.low <> 0), 1, 0)) / COUNT(*) * 100, 2) AS ohlPercentage
+  FROM historyquote hq
+  GROUP BY hq.id_securitycurrency) AS ohl ON ohl.id_securitycurrency = hqq.idSecurity
+SET hqq.ohlPercentage = ohl.ohlPercentage;
+IF (SELECT count(*) FROM globalparameters WHERE property_name = @globalparam_update) = 1
+THEN
+   UPDATE globalparameters SET property_date = CURDATE() WHERE property_name = @globalparam_update;
+ELSE
+    INSERT INTO globalparameters (property_name, property_date) VALUES(@globalparam_update,  CURDATE());
+END IF;
+END ;;
+DELIMITER ;
+
+UPDATE historyquote SET open = NULL, high = NULL, low = NULL WHERE close <> 0 AND (open = 0 OR high = 0 OR low = 0);

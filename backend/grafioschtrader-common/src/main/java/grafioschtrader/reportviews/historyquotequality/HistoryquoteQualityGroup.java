@@ -21,6 +21,7 @@ public class HistoryquoteQualityGroup extends HistoryquoteQualityIds {
   public int manualImported;
   public int filledLinear;
   private double qualityPercentage;
+  private double ohlPercentage;
   private int averageCounter;
   public List<HistoryquoteQualityGroup> childrendHqg = new ArrayList<>();
 
@@ -58,12 +59,17 @@ public class HistoryquoteQualityGroup extends HistoryquoteQualityIds {
     hqg.manualImported += hqf.getManualImported();
     hqg.filledLinear += hqf.getFilledLinear();
     hqg.qualityPercentage += hqf.getQualityPercentage();
+    hqg.ohlPercentage += hqf.getOhlPercentage() != null ? hqf.getOhlPercentage() : 0.0;
     hqg.averageCounter++;
   }
 
   public double getQualityPercentage() {
     return DataBusinessHelper
         .roundStandard(averageCounter > 0 ? qualityPercentage / averageCounter : qualityPercentage);
+  }
+
+  public double getOhlPercentage() {
+    return DataBusinessHelper.roundStandard(averageCounter > 0 ? ohlPercentage / averageCounter : ohlPercentage);
   }
 
 }

@@ -54,6 +54,7 @@ export class HistoryquoteQualityComponent extends SingleRecordConfigBase impleme
     this.addFieldPropertyFeqH(DataType.NumericInteger, 'totalMissing');
     this.addFieldPropertyFeqH(DataType.NumericInteger, 'expectedTotal');
     this.addFieldPropertyFeqH(DataType.Numeric, 'qualityPercentage', {headerSuffix: '%'});
+    this.addFieldPropertyFeqH(DataType.Numeric, 'ohlPercentage', {headerSuffix: '%'});
     this.addColumn(DataType.String, 'idConnectorHistory', 'HISTORY_DATA_PROVIDER', true, true,
       {fieldValueFN: this.getFeedConnectorReadableName.bind(this)});
     this.addFieldPropertyFeqH(DataType.NumericInteger, 'toManyAsCalendar');

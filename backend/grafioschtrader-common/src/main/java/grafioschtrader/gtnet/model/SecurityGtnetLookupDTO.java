@@ -1,5 +1,6 @@
 package grafioschtrader.gtnet.model;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -77,6 +78,40 @@ public class SecurityGtnetLookupDTO {
 
   @Schema(description = "Date until which the security is actively traded")
   private Date activeToDate;
+
+  // Connector retry counters
+  @Schema(description = "Retry counter for historical price data loading")
+  private Short retryHistoryLoad;
+
+  @Schema(description = "Retry counter for intraday price data loading")
+  private Short retryIntraLoad;
+
+  @Schema(description = "Retry counter for dividend data loading")
+  private Short retryDividendLoad;
+
+  @Schema(description = "Retry counter for split data loading")
+  private Short retrySplitLoad;
+
+  // Intraday timestamp
+  @Schema(description = "Timestamp of the last intraday price update")
+  private Date sTimestamp;
+
+  // History quality data (from historyquote_quality table)
+  @Schema(description = "Earliest available historical quote date")
+  private LocalDate historyMinDate;
+
+  @Schema(description = "Latest available historical quote date")
+  private LocalDate historyMaxDate;
+
+  @Schema(description = "Percentage of quotes with valid open, high, and low values (0-100)")
+  private Double ohlPercentage;
+
+  // Dividend and split counts
+  @Schema(description = "Number of dividend records for this security")
+  private Integer dividendCount;
+
+  @Schema(description = "Number of split records for this security")
+  private Integer splitCount;
 
   // Source tracking
   @Schema(description = "Domain name of the GTNet peer that provided this data")
@@ -359,5 +394,85 @@ public class SecurityGtnetLookupDTO {
 
   public void setAssetClassMatchType(String assetClassMatchType) {
     this.assetClassMatchType = assetClassMatchType;
+  }
+
+  public Short getRetryHistoryLoad() {
+    return retryHistoryLoad;
+  }
+
+  public void setRetryHistoryLoad(Short retryHistoryLoad) {
+    this.retryHistoryLoad = retryHistoryLoad;
+  }
+
+  public Short getRetryIntraLoad() {
+    return retryIntraLoad;
+  }
+
+  public void setRetryIntraLoad(Short retryIntraLoad) {
+    this.retryIntraLoad = retryIntraLoad;
+  }
+
+  public Short getRetryDividendLoad() {
+    return retryDividendLoad;
+  }
+
+  public void setRetryDividendLoad(Short retryDividendLoad) {
+    this.retryDividendLoad = retryDividendLoad;
+  }
+
+  public Short getRetrySplitLoad() {
+    return retrySplitLoad;
+  }
+
+  public void setRetrySplitLoad(Short retrySplitLoad) {
+    this.retrySplitLoad = retrySplitLoad;
+  }
+
+  public Date getSTimestamp() {
+    return sTimestamp;
+  }
+
+  public void setSTimestamp(Date sTimestamp) {
+    this.sTimestamp = sTimestamp;
+  }
+
+  public LocalDate getHistoryMinDate() {
+    return historyMinDate;
+  }
+
+  public void setHistoryMinDate(LocalDate historyMinDate) {
+    this.historyMinDate = historyMinDate;
+  }
+
+  public LocalDate getHistoryMaxDate() {
+    return historyMaxDate;
+  }
+
+  public void setHistoryMaxDate(LocalDate historyMaxDate) {
+    this.historyMaxDate = historyMaxDate;
+  }
+
+  public Double getOhlPercentage() {
+    return ohlPercentage;
+  }
+
+  public void setOhlPercentage(Double ohlPercentage) {
+    this.ohlPercentage = ohlPercentage;
+  }
+
+  public Integer getDividendCount() {
+    return dividendCount;
+  }
+
+  public void setDividendCount(Integer dividendCount) {
+    this.dividendCount = dividendCount;
+  }
+
+  public Integer getSplitCount() {
+    return splitCount;
+  }
+
+  public void setSplitCount(Integer splitCount) {
+    this.splitCount = splitCount;
   }
 }
