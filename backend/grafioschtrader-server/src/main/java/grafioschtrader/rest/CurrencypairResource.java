@@ -33,12 +33,12 @@ import grafioschtrader.dto.CrossRateResponse;
 import grafioschtrader.dto.GTSecuritiyCurrencyExchange;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
 import grafioschtrader.entities.Currencypair;
-import grafioschtrader.entities.GTNetSupplierDetail;
+import grafiosch.entities.GTNetSupplierDetail;
+import grafiosch.repository.GTNetSupplierDetailJpaRepository;
 import grafioschtrader.gtnet.model.GTNetSupplierWithDetails;
 import grafioschtrader.reportviews.currencypair.CurrencypairWithHistoryquote;
 import grafioschtrader.reportviews.currencypair.CurrencypairWithTransaction;
 import grafioschtrader.repository.CurrencypairJpaRepository;
-import grafioschtrader.repository.GTNetSupplierDetailJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
 import grafioschtrader.search.SecuritycurrencySearch;
@@ -208,7 +208,7 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
     List<Integer> allIds = currencypairs.stream()
         .map(Currencypair::getIdSecuritycurrency)
         .collect(Collectors.toList());
-    result.idSecuritycurrenies = gtNetSupplierDetailJpaRepository.findIdSecuritycurrencyWithDetails(allIds);
+    result.idSecuritycurrenies = gtNetSupplierDetailJpaRepository.findIdEntityWithDetails(allIds);
 
     return new ResponseEntity<>(result, HttpStatus.OK);
   }
@@ -242,8 +242,7 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
   public ResponseEntity<List<GTNetSupplierWithDetails>> getCurrencypairSupplierDetails(
       @PathVariable Integer idSecuritycurrency) {
     List<GTNetSupplierDetail> details = gtNetSupplierDetailJpaRepository.findAll().stream()
-        .filter(d -> d.getSecuritycurrency() != null
-            && d.getSecuritycurrency().getIdSecuritycurrency().equals(idSecuritycurrency))
+        .filter(d -> idSecuritycurrency.equals(d.getIdEntity()))
         .collect(Collectors.toList());
 
     // Group by GTNet (supplier)

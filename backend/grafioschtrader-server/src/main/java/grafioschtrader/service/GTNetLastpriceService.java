@@ -30,7 +30,8 @@ import grafiosch.m2m.client.BaseDataClient.SendResult;
 import grafiosch.repository.GTNetJpaRepository;
 import grafiosch.repository.GlobalparametersJpaRepository;
 import grafioschtrader.entities.Currencypair;
-import grafioschtrader.entities.GTNetSupplierDetail;
+import grafiosch.entities.GTNetSupplierDetail;
+import grafiosch.repository.GTNetSupplierDetailJpaRepository;
 import grafioschtrader.entities.Security;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
@@ -41,7 +42,6 @@ import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetExchangeLogJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentCurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentSecurityJpaRepository;
-import grafioschtrader.repository.GTNetSupplierDetailJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 
 /**

@@ -60,7 +60,7 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
   /**
    * Retrieves all currency pairs with supplier detail count for GTNet exchange configuration.
    */
-  @Query("SELECT c, (SELECT COUNT(d) FROM GTNetSupplierDetail d WHERE d.securitycurrency.idSecuritycurrency = c.idSecuritycurrency) FROM Currencypair c ORDER BY c.fromCurrency, c.toCurrency")
+  @Query("SELECT c, (SELECT COUNT(d) FROM GTNetSupplierDetail d WHERE d.idEntity = c.idSecuritycurrency) FROM Currencypair c ORDER BY c.fromCurrency, c.toCurrency")
   List<Object[]> findAllWithSupplierDetailCount();
 
   List<Currencypair> findByFromCurrency(String fromCurrency);

@@ -1,11 +1,8 @@
-package grafioschtrader.entities;
+package grafiosch.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import grafiosch.entities.BaseID;
-import grafiosch.entities.GTNetConfig;
-import grafioschtrader.gtnet.GTNetExchangeKindType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -43,10 +40,9 @@ public class GTNetSupplierDetail extends BaseID<Integer> {
   @ManyToOne
   private GTNetConfig gtNetConfig;
 
-  @Schema(description = "The security or currency pair to which this setting applies.")
-  @JoinColumn(name = "id_securitycurrency")
-  @ManyToOne
-  private Securitycurrency<?> securitycurrency;
+  @Schema(description = "The ID of the security or currency pair to which this setting applies.")
+  @Column(name = "id_entity")
+  private Integer idEntity;
 
   @Schema(description = """
       Indicates the type of exchange data: LAST_PRICE (0) for intraday prices or HISTORICAL_PRICES (1) for historical
@@ -74,22 +70,22 @@ public class GTNetSupplierDetail extends BaseID<Integer> {
     return gtNetConfig != null ? gtNetConfig.getIdGtNet() : null;
   }
 
-  public Securitycurrency<?> getSecuritycurrency() {
-    return securitycurrency;
+  public Integer getIdEntity() {
+    return idEntity;
   }
 
-  public void setSecuritycurrency(Securitycurrency<?> securitycurrency) {
-    this.securitycurrency = securitycurrency;
-  }
-
-  @JsonProperty("entityKind")
-  public GTNetExchangeKindType getEntityKind() {
-    return GTNetExchangeKindType.getGTNetExchangeKindType(entityKind);
+  public void setIdEntity(Integer idEntity) {
+    this.idEntity = idEntity;
   }
 
   @JsonProperty("entityKind")
-  public void setEntityKind(GTNetExchangeKindType entityKind) {
-    this.entityKind = entityKind.getValue();
+  public byte getEntityKind() {
+    return entityKind;
+  }
+
+  @JsonProperty("entityKind")
+  public void setEntityKind(byte entityKind) {
+    this.entityKind = entityKind;
   }
 
   @Override

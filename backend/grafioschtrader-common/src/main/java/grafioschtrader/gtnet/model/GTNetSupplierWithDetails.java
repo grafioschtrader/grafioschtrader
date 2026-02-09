@@ -3,7 +3,7 @@ package grafioschtrader.gtnet.model;
 import java.util.List;
 
 import grafiosch.entities.GTNet;
-import grafioschtrader.entities.GTNetSupplierDetail;
+import grafiosch.entities.GTNetSupplierDetail;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**

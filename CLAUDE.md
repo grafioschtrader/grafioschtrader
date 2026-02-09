@@ -302,6 +302,101 @@ npm test
 4. Flyway auto-executes on next application startup
 5. Test with separate test database instance
 
+### Idempotent Flyway Migrations
+
+**IMPORTANT**: All Flyway migration scripts **must be idempotent** — running the same migration twice must not fail or produce unintended side effects. MariaDB 10.3+ supports `IF EXISTS` / `IF NOT EXISTS` for many but not all DDL operations. Use the patterns below.
+
+#### Operations with native `IF EXISTS` / `IF NOT EXISTS` support
+
+Use directly — no workaround needed:
+
+```sql
+-- Tables
+DROP TABLE IF EXISTS my_table;
+CREATE TABLE IF NOT EXISTS my_table (...);
+
+-- Columns
+ALTER TABLE my_table ADD COLUMN IF NOT EXISTS my_col INT NOT NULL DEFAULT 0;
+ALTER TABLE my_table DROP COLUMN IF EXISTS my_col;
+
+-- Indexes (standalone DROP)
+DROP INDEX IF EXISTS idx_name ON my_table;
+ALTER TABLE my_table DROP INDEX IF EXISTS idx_name;
+
+-- Foreign keys / constraints
+ALTER TABLE my_table DROP FOREIGN KEY IF EXISTS fk_name;
+ALTER TABLE my_table DROP CONSTRAINT IF EXISTS constraint_name;
+```
+
+#### Operations WITHOUT native `IF EXISTS` support
+
+The following operations will fail if the object already exists (or does not exist). Use the listed workaround for each.
+
+**`ALTER TABLE ... ADD INDEX / ADD UNIQUE / ADD CONSTRAINT / ADD FOREIGN KEY`** — drop first, then add:
+```sql
+DROP INDEX IF EXISTS idx_name ON my_table;
+ALTER TABLE my_table ADD UNIQUE idx_name (col1, col2);
+```
+
+**`ALTER TABLE ... CHANGE COLUMN` (rename + retype)** — wrap in a stored procedure that checks `INFORMATION_SCHEMA`:
+```sql
+DELIMITER //
+CREATE OR REPLACE PROCEDURE MigrateMyTable()
+BEGIN
+    IF EXISTS (
+        SELECT * FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'my_table'
+        AND COLUMN_NAME = 'old_name'
+    ) THEN
+        ALTER TABLE my_table CHANGE COLUMN old_name new_name INT NOT NULL;
+    END IF;
+END //
+DELIMITER ;
+CALL MigrateMyTable();
+DROP PROCEDURE IF EXISTS MigrateMyTable;
+```
+
+**`ALTER TABLE ... MODIFY COLUMN` (retype without rename)** — generally safe to re-run (setting the same type is a no-op), but if the migration changes a type that may already have been changed, use the same stored-procedure pattern as `CHANGE COLUMN` above, checking the current column type or other distinguishing attribute.
+
+**`INSERT INTO` (data rows)** — use one of:
+```sql
+-- Option 1: delete first, then insert
+DELETE FROM globalparameters WHERE property_name = 'my.property';
+INSERT INTO globalparameters (property_name, property_int) VALUES ('my.property', 42);
+
+-- Option 2: INSERT IGNORE (skips on duplicate key)
+INSERT IGNORE INTO my_table (id, value) VALUES (1, 'x');
+
+-- Option 3: ON DUPLICATE KEY UPDATE
+INSERT INTO my_table (id, value) VALUES (1, 'x')
+  ON DUPLICATE KEY UPDATE value = VALUES(value);
+```
+
+**`CREATE TABLE` with full recreation** — when the table structure may change, use the drop-then-create pattern. Respect foreign-key ordering (drop child tables before parent tables):
+```sql
+DROP TABLE IF EXISTS child_table;
+DROP TABLE IF EXISTS parent_table;
+CREATE TABLE parent_table (...);
+CREATE TABLE child_table (...);
+```
+
+#### Quick-reference table
+
+| Operation | Idempotent syntax | Workaround needed? |
+|-----------|-------------------|--------------------|
+| `CREATE TABLE` | `CREATE TABLE IF NOT EXISTS` | No |
+| `DROP TABLE` | `DROP TABLE IF EXISTS` | No |
+| `ADD COLUMN` | `ADD COLUMN IF NOT EXISTS` | No |
+| `DROP COLUMN` | `DROP COLUMN IF EXISTS` | No |
+| `DROP INDEX` | `DROP INDEX IF EXISTS` | No |
+| `DROP FOREIGN KEY` | `DROP FOREIGN KEY IF EXISTS` | No |
+| `ADD INDEX / UNIQUE` | — | Yes: drop first, then add |
+| `ADD CONSTRAINT / FOREIGN KEY` | — | Yes: drop first, then add |
+| `CHANGE COLUMN` | — | Yes: stored procedure with `INFORMATION_SCHEMA` check |
+| `MODIFY COLUMN` | — | Usually safe to re-run; procedure if conditional |
+| `INSERT INTO` | — | Yes: delete-first, `INSERT IGNORE`, or `ON DUPLICATE KEY` |
+
 ### Git Commit Guidelines
 
 - Use imperative summaries with issue hooks (e.g., `Resolve #158`, `Continue with #143`)

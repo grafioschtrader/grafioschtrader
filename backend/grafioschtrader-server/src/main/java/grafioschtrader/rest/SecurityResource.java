@@ -44,7 +44,8 @@ import grafioschtrader.dto.GTSecuritiyCurrencyExchange;
 import grafioschtrader.dto.HisotryqouteLinearFilledSummary;
 import grafioschtrader.dto.InstrumentStatisticsResult;
 import grafioschtrader.dto.SecurityCurrencypairDerivedLinks;
-import grafioschtrader.entities.GTNetSupplierDetail;
+import grafiosch.entities.GTNetSupplierDetail;
+import grafiosch.repository.GTNetSupplierDetailJpaRepository;
 import grafioschtrader.entities.Security;
 import grafioschtrader.gtnet.model.GTNetSupplierWithDetails;
 import grafioschtrader.priceupdate.historyquote.HistoryquoteQualityService;
@@ -57,7 +58,6 @@ import grafioschtrader.reportviews.historyquotequality.IHistoryquoteQualityWithS
 import grafioschtrader.reportviews.securityaccount.SecurityOpenPositionPerSecurityaccount;
 import grafioschtrader.reportviews.securitycurrency.SecurityDataProviderUrls;
 import grafioschtrader.reportviews.transaction.SecurityTransactionSummary;
-import grafioschtrader.repository.GTNetSupplierDetailJpaRepository;
 import grafioschtrader.repository.SecurityDerivedLinkJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.search.SecuritycurrencySearch;
@@ -316,7 +316,7 @@ public class SecurityResource extends UpdateCreateResource<Security> {
 
     // Get IDs of securities that have supplier details
     List<Integer> allIds = securities.stream().map(Security::getIdSecuritycurrency).collect(Collectors.toList());
-    result.idSecuritycurrenies = gtNetSupplierDetailJpaRepository.findIdSecuritycurrencyWithDetails(allIds);
+    result.idSecuritycurrenies = gtNetSupplierDetailJpaRepository.findIdEntityWithDetails(allIds);
 
     return new ResponseEntity<>(result, HttpStatus.OK);
   }
@@ -349,8 +349,7 @@ public class SecurityResource extends UpdateCreateResource<Security> {
   public ResponseEntity<List<GTNetSupplierWithDetails>> getSecuritySupplierDetails(
       @PathVariable Integer idSecuritycurrency) {
     List<GTNetSupplierDetail> details = gtNetSupplierDetailJpaRepository.findAll().stream()
-        .filter(d -> d.getSecuritycurrency() != null
-            && d.getSecuritycurrency().getIdSecuritycurrency().equals(idSecuritycurrency))
+        .filter(d -> idSecuritycurrency.equals(d.getIdEntity()))
         .collect(Collectors.toList());
 
     // Group by GTNet (supplier)

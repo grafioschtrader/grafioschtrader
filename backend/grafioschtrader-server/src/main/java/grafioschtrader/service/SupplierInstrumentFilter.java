@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import grafioschtrader.entities.GTNetSupplierDetail;
+import grafiosch.entities.GTNetSupplierDetail;
 
 /**
  * Filters instruments based on GTNetSupplierDetail configuration.
@@ -38,9 +38,7 @@ public class SupplierInstrumentFilter {
     if (details != null) {
       for (GTNetSupplierDetail detail : details) {
         Integer supplierId = detail.getIdGtNet();
-        Integer instrumentId = detail.getSecuritycurrency() != null
-            ? detail.getSecuritycurrency().getIdSecuritycurrency()
-            : null;
+        Integer instrumentId = detail.getIdEntity();
 
         if (supplierId != null && instrumentId != null) {
           supplierToInstruments.computeIfAbsent(supplierId, k -> new HashSet<>()).add(instrumentId);
