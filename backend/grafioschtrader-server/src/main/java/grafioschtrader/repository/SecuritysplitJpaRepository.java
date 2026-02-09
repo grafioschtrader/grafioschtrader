@@ -12,6 +12,8 @@ import grafioschtrader.entities.Securitysplit;
 public interface SecuritysplitJpaRepository
     extends JpaRepository<Securitysplit, Integer>, SecuritysplitJpaRepositoryCustom {
 
+  long countByIdSecuritycurrency(Integer idSecuritycurrency);
+
   Long deleteByIdSecuritycurrency(Integer idSecuritycurrency);
 
   Long deleteByIdSecuritycurrencyAndCreateType(Integer idSecuritycurrency, byte createType);

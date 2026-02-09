@@ -2034,13 +2034,13 @@ SUM(IF(hq.create_type = 3, 1, 0)) AS filledLinear
 FROM security s JOIN historyquote hq ON s.id_securitycurrency = hq.id_securitycurrency
 GROUP BY s.id_securitycurrency);
 DELETE FROM historyquote_quality;
-INSERT INTO historyquote_quality SELECT s.id_securitycurrency AS idSecurity, 
+INSERT INTO historyquote_quality SELECT s.id_securitycurrency AS idSecurity,
 MIN(hq.date) AS minDate, mm.connectorCreated, mm.filledNoTradeDay, mm.manualImported, mm.filledLinear,
-SUM(IF(tdp.trading_date < mm.minDate AND hq.date IS NULL, 1, 0) ) AS missingStart, 
-MAX(hq.date) maxDate, 
-SUM(IF(tdp.trading_date > mm.maxDate AND hq.date IS NULL, 1, 0)) AS missingEnd, 
-SUM(IF(hq.date IS NULL, 1, 0)) AS totalMissing, 
-count(*) AS expectedTotal, 
+SUM(IF(tdp.trading_date < mm.minDate AND hq.date IS NULL, 1, 0) ) AS missingStart,
+MAX(hq.date) maxDate,
+SUM(IF(tdp.trading_date > mm.maxDate AND hq.date IS NULL, 1, 0)) AS missingEnd,
+SUM(IF(hq.date IS NULL, 1, 0)) AS totalMissing,
+count(*) AS expectedTotal,
 ROUND((1 - SUM(IF(hq.date IS NULL, 1, 0)) / count(*)) * 100, 2) AS qualityPercentage,
 0 AS toManyAsCalendar,
 0 AS quoteSaturday,

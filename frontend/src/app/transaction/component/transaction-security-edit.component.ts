@@ -59,6 +59,8 @@ import {BusinessSelectOptionsHelper} from '../../shared/securitycurrency/busines
 import {BaseSettings} from '../../lib/base.settings';
 import {DialogModule} from 'primeng/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
+import {DialogService} from 'primeng/dynamicdialog';
+import {CalcExRateDialogComponent} from './calc-ex-rate-dialog.component';
 
 /**
  * Edit transaction for an investment product, also margin product. The transaction type (buy, dividend, sell,
@@ -70,14 +72,14 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
     <p-dialog [(visible)]="visibleSecurityTransactionDialog"
               [style]="{width: '720px'}" [resizable]="false"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-      <p-header>
-        <h4>{{ 'INVESTMENT_TRANSACTION' | translate }}</h4>
-        @if (isOpenMarginInstrument && !transactionCallParam.transaction) {
-          <div>
+      <ng-template #header>
+        <div>
+          <h4>{{ 'INVESTMENT_TRANSACTION' | translate }}</h4>
+          @if (isOpenMarginInstrument && !transactionCallParam.transaction) {
             <p class="big-size">{{ 'MARGIN_BUY_SELL' | translate }}</p>
-          </div>
-        }
-      </p-header>
+          }
+        </div>
+      </ng-template>
 
       @if (transactionLocked) {
         <div class="alert alert-warning alert-dialog-wrap">{{ transactionLockedMessage }}</div>
@@ -149,6 +151,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     private securityService: SecurityService,
     private activeRoute: ActivatedRoute,
     private gpsGT: GlobalparameterGTService,
+    private dialogService: DialogService,
     messageToastService: MessageToastService,
     currencypairService: CurrencypairService,
     historyquoteService: HistoryquoteService,
@@ -435,6 +438,90 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       return DynamicFieldHelper.createFieldInputNumber('units', 'QUANTITY', true,
         9, 3, false);
     }
+  }
+
+  protected override createExRateButtons(): FieldConfig[] {
+    return [
+      ...super.createExRateButtons(),
+      DynamicFieldHelper.createFunctionButtonFieldName('calcExRateButton', 'CALC_EX_RATE',
+        (e) => this.openCalcExRateDialog(), {
+          buttonInForm: true, usedLayoutColumns: 1
+        }),
+    ];
+  }
+
+  protected override disableEnableExchangeRateButtons(): void {
+    super.disableEnableExchangeRateButtons();
+    this.configObject.calcExRateButton.disabled = this.configObject.currencyExRate.formControl.disabled;
+  }
+
+  /**
+   * Opens a dialog where the user enters the total credited/debited amount.
+   * On close, the entered amount is used to reverse-calculate the exchange rate.
+   */
+  private openCalcExRateDialog(): void {
+    const ref = this.dialogService.open(CalcExRateDialogComponent, {
+      header: this.configObject.calcExRateButton.labelKey,
+      width: '400px',
+      closable: true
+    });
+    ref.onClose.subscribe((amount: number) => {
+      if (amount != null) {
+        this.calcExRateFromAmount(amount);
+      }
+    });
+  }
+
+  /**
+   * Reverse-calculates the exchange rate from the given cash account amount.
+   * Uses the same quotation and cost logic as calcPosTotal(data, false) but with exRate=1.0
+   * to obtain rawTotal, then derives exRate from: cashaccountAmount = divideMultiplyExchangeRate(rawTotal, exRate, ...).
+   *
+   * @param cashaccountAmount The cash account amount entered by the user (can be negative)
+   */
+  private calcExRateFromAmount(cashaccountAmount: number): void {
+    if (cashaccountAmount === 0) {
+      return;
+    }
+    const data = this.getTransactionByForm();
+    if (!data.units || !data.quotation) {
+      return;
+    }
+    // Apply the same quotation adjustments as calcPosTotal(data, false)
+    let quotation = data.quotation;
+    if (this.isOpenMarginInstrument) {
+      quotation = 0;
+    } else if (this.isCloseMarginInstrument) {
+      if (this.securityOpenPositionPerSecurityaccount) {
+        quotation -= this.transactionCallParam.closeMarginPosition.quotationOpenPosition /
+          this.securityOpenPositionPerSecurityaccount.securityPositionSummary.splitFactorFromBaseTransaction;
+      }
+    }
+    const taxCost = data.taxCost ? data.taxCost : 0;
+    const transactionCost = data.transactionCost ? data.transactionCost : 0;
+    const accruedInterest = (!this.configObject.assetInvestmentValue1.invisible
+      && !this.isMarginInstrument && data.assetInvestmentValue1) ? data.assetInvestmentValue1 : 0;
+    let valuePerPoint = 1.0;
+    if (this.isMarginInstrument) {
+      valuePerPoint = data.assetInvestmentValue2 ? data.assetInvestmentValue2
+        : this.transactionCallParam.transaction.assetInvestmentValue2;
+    }
+    const rawTotal = this.transactionEditType.calcPosTotal(
+      quotation, data.units, taxCost, transactionCost, accruedInterest, valuePerPoint
+    );
+    if (rawTotal === 0) {
+      return;
+    }
+    // Reverse of divideMultiplyExchangeRate:
+    // if cashCurrency == fromCurrency: cashAmount = rawTotal / exRate => exRate = rawTotal / cashAmount
+    // else:                            cashAmount = rawTotal * exRate => exRate = cashAmount / rawTotal
+    let exRate: number;
+    if (this.currencyCashaccount === this.currencypair.fromCurrency) {
+      exRate = rawTotal / cashaccountAmount;
+    } else {
+      exRate = cashaccountAmount / rawTotal;
+    }
+    this.configObject.currencyExRate.formControl.setValue(exRate);
   }
 
   private calcPosTotalOnChanges(data: any): void {

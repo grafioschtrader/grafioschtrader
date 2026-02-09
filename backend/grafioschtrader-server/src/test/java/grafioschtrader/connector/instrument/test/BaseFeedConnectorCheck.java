@@ -65,12 +65,13 @@ public abstract class BaseFeedConnectorCheck {
 
   protected abstract IFeedConnector getIFeedConnector();
 
-  protected List<SecurityHistoricalDate> getHistoricalSecurities() {
+  protected List<SecurityHistoricalDate> getHistoricalSecurities(HistoricalIntra histroricalIntra) {
     return null;
   }
 
   void updateSecurityLastPriceByHistoricalData() {
-    List<Security> securities = getHistoricalSecurities().stream().map(hd -> hd.security).collect(Collectors.toList());
+    List<Security> securities = getHistoricalSecurities(HistoricalIntra.INTRADAY).stream().map(hd -> hd.security)
+        .collect(Collectors.toList());
     updateSecurityLastPrice(securities);
   }
 
@@ -89,9 +90,10 @@ public abstract class BaseFeedConnectorCheck {
       } catch (final Exception e) {
         e.printStackTrace();
       }
-      System.out.println(String.format("%s URL: %s last:%f change percentage: %f open: %f high: %f low: %f timestamp: %tc",
-          security.getName(), security.getUrlIntraExtend(), security.getSLast(), security.getSChangePercentage(),
-          security.getSOpen(), security.getSHigh(), security.getSLow(), security.getSTimestamp()));
+      System.out
+          .println(String.format("%s URL: %s last:%f change percentage: %f open: %f high: %f low: %f timestamp: %tc",
+              security.getName(), security.getUrlIntraExtend(), security.getSLast(), security.getSChangePercentage(),
+              security.getSOpen(), security.getSHigh(), security.getSLow(), security.getSTimestamp()));
       Assertions.assertThat(security.getSLast()).as("Last price for " + security.getName()).isNotNull()
           .isGreaterThan(0.0);
     });
@@ -103,7 +105,7 @@ public abstract class BaseFeedConnectorCheck {
 
   void getEodSecurityHistory(boolean needSort, boolean addTimeZone) {
     boolean printValuesInsteadOfAssert = false;
-    final List<SecurityHistoricalDate> hisoricalDate = getHistoricalSecurities();
+    final List<SecurityHistoricalDate> hisoricalDate = getHistoricalSecurities(HistoricalIntra.HISTORICAL);
     if (addTimeZone) {
       applyTimeZonesToSecurities(hisoricalDate);
     }
@@ -138,7 +140,8 @@ public abstract class BaseFeedConnectorCheck {
       LocalDate hdToDate = Instant.ofEpochMilli(hd.to.getTime()).atZone(zoneId).toLocalDate();
 
       if (printValuesInsteadOfAssert) {
-        System.out.println(String.format("Security: %s, Actual Rows: %d, First Quote Date: %s, Last Quote Date: %s", hd.security.getName(), historyquotes.size(), firstQuoteDate, lastQuoteDate));
+        System.out.println(String.format("Security: %s, Actual Rows: %d, First Quote Date: %s, Last Quote Date: %s",
+            hd.security.getName(), historyquotes.size(), firstQuoteDate, lastQuoteDate));
       } else {
         // Assert size and date range (only date part)
         Assertions.assertThat(historyquotes.size()).as("Number of history quotes for Security " + hd.security.getName())
@@ -256,5 +259,9 @@ public abstract class BaseFeedConnectorCheck {
         }
       }
     }
+  }
+
+  public static enum HistoricalIntra {
+    HISTORICAL, INTRADAY
   }
 }

@@ -101,7 +101,9 @@
       "Bash(hugo:*)",
       "Bash(gh pr list:*)",
       "Bash(npm test:*)",
-      "Bash(del \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend\\\\grafioschtrader-common\\\\src\\\\main\\\\java\\\\grafioschtrader\\\\types\\\\HistoryquoteImportStatus.java\")"
+      "Bash(del \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend\\\\grafioschtrader-common\\\\src\\\\main\\\\java\\\\grafioschtrader\\\\types\\\\HistoryquoteImportStatus.java\")",
+      "Bash(git -C C:SoftwareProjekteHugosgrafioschtrader log --oneline -10)",
+      "Bash(npx ng build:*)"
     ],
     "deny": [],
     "ask": []

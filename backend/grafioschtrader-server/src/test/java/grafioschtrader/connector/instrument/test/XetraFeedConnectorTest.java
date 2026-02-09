@@ -27,7 +27,7 @@ public class XetraFeedConnectorTest extends BaseFeedConnectorCheck {
   }
 
   @Override
-  protected List<SecurityHistoricalDate> getHistoricalSecurities() {
+  protected List<SecurityHistoricalDate> getHistoricalSecurities(HistoricalIntra histroricalIntra) {
     List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
     try {
       hisoricalDate.add(new SecurityHistoricalDate("NORIS-FONDS", "DE0008492356",
@@ -45,12 +45,14 @@ public class XetraFeedConnectorTest extends BaseFeedConnectorCheck {
       hisoricalDate.add(new SecurityHistoricalDate("iShares Core MSCI World UCITS ETF", "IE00B4L5Y983",
           SpecialInvestmentInstruments.ETF, AssetclassType.EQUITIES, "IE00B4L5Y983",
           XetraFeedConnector.STOCK_EX_MIC_XETRA, 3910, "2009-10-14", "2025-05-09"));
-      hisoricalDate.add(new SecurityHistoricalDate("Nickelpreis", "XC0005705543",
-          SpecialInvestmentInstruments.DIRECT_INVESTMENT, AssetclassType.COMMODITIES, "ARIVA:XC0005705543",
-          XetraFeedConnector.STOCK_EX_MIC_FRANKFURT, 3091, "2013-01-02", "2025-05-09"));
-      hisoricalDate.add(new SecurityHistoricalDate("EURO STOXX 50", "EU0009658145",
-          SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, AssetclassType.EQUITIES, "ARIVA:EU0009658145",
-          XetraFeedConnector.STOCK_EX_MIC_XETRA, 3131, "2013-01-02", "2025-05-09"));
+      if (histroricalIntra == HistoricalIntra.HISTORICAL) {
+        hisoricalDate.add(new SecurityHistoricalDate("Nickelpreis", "XC0005705543",
+            SpecialInvestmentInstruments.DIRECT_INVESTMENT, AssetclassType.COMMODITIES, "ARIVA:XC0005705543",
+            XetraFeedConnector.STOCK_EX_MIC_FRANKFURT, 3091, "2013-01-02", "2025-05-09"));
+        hisoricalDate.add(new SecurityHistoricalDate("EURO STOXX 50", "EU0009658145",
+            SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, AssetclassType.EQUITIES, "ARIVA:EU0009658145",
+            XetraFeedConnector.STOCK_EX_MIC_XETRA, 3131, "2013-01-02", "2025-05-09"));
+      }
     } catch (ParseException pe) {
       pe.printStackTrace();
     }

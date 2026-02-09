@@ -80,6 +80,7 @@ export class SecurityHistoryquoteQualityTableComponent extends TableConfigBase i
     this.addColumnFeqH(DataType.NumericInteger, 'manualImported');
     this.addColumnFeqH(DataType.NumericInteger, 'filledLinear');
     this.addColumnFeqH(DataType.Numeric, 'qualityPercentage', true, false, {headerSuffix: '%'});
+    this.addColumnFeqH(DataType.Numeric, 'ohlPercentage', true, false, {headerSuffix: '%'});
     this.addColumnFeqH(DataType.NumericInteger, 'toManyAsCalendar');
     this.addColumnFeqH(DataType.NumericInteger, 'quoteSaturday');
     this.addColumnFeqH(DataType.NumericInteger, 'quoteSunday');

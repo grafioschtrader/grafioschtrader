@@ -845,6 +845,7 @@ CREATE TABLE `historyquote_quality` (
   `toManyAsCalendar` int(11) NOT NULL,
   `quoteSaturday` int(11) NOT NULL,
   `quoteSunday` int(11) NOT NULL,
+  `ohlPercentage` double DEFAULT NULL,
   PRIMARY KEY (`idSecurity`),
   CONSTRAINT `FK_HistoryquoteQuality_Security` FOREIGN KEY (`idSecurity`) REFERENCES `security` (`id_securitycurrency`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;

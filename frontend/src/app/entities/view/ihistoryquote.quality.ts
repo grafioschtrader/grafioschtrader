@@ -14,4 +14,5 @@ export interface IHistoryquoteQuality {
   filledLinear: number;
   calculated: number;
   userModified: number;
+  ohlPercentage: number;
 }

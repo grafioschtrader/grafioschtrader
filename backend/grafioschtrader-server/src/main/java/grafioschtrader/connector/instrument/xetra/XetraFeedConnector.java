@@ -1,8 +1,12 @@
 package grafioschtrader.connector.instrument.xetra;
 
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -40,6 +44,7 @@ public class XetraFeedConnector extends BaseFeedConnector {
   public static final String STOCK_EX_MIC_FRANKFURT = "XFRA";
 
   private static final String DOMAIN_VERSION = "https://api.boerse-frankfurt.de/v1/";
+  private static final String DOMAIN_INTRADAY = "https://api.live.deutsche-boerse.com/v1/data/price_information/single";
   private static final String DAY_RESOLUTION = "1D";
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static final ObjectMapper objectMapper = new ObjectMapper()
@@ -64,31 +69,71 @@ public class XetraFeedConnector extends BaseFeedConnector {
 
   @Override
   public String getSecurityIntradayDownloadLink(final Security security) {
-    Date toDate = new Date();
-    LocalDate fromLocalDate = DateHelper.getLocalDate(toDate).minusDays(10);
-    return getSecurityDownloadLink(security, DateHelper.getDateFromLocalDate(fromLocalDate), toDate,
-        security.getUrlIntraExtend(), DAY_RESOLUTION, 2);
+    return buildIntradayApiUrl(security);
   }
 
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
-    final Quotes quotes = objectMapper.readValue(new URI(getSecurityIntradayDownloadLink(security)).toURL(),
-        Quotes.class);
-    if (quotes.s.equals("ok")) {
-      for (int i = quotes.t.length - 1; i >= quotes.t.length - 2; i--) {
-        if (i == quotes.t.length - 1) {
-          security.setSLast(quotes.c[i]);
-          security.setSLow(quotes.l[i]);
-          security.setSHigh(quotes.h[i]);
-          security.setSVolume(quotes.v[i]);
-          security.setSTimestamp(new Date(new Date().getTime() - getIntradayDelayedSeconds() * 1000));
-        } else {
-          security.setSPrevClose(quotes.c[i]);
-          security.setSChangePercentage(DataBusinessHelper
-              .roundStandard((security.getSLast() - security.getSPrevClose()) / security.getSPrevClose() * 100));
-        }
-      }
+    final PriceInformation priceInfo = objectMapper.readValue(new URI(getSecurityIntradayDownloadLink(security)).toURL(),
+        PriceInformation.class);
+    if (priceInfo.lastPrice != null) {
+      security.setSLast(priceInfo.lastPrice);
     }
+    if (priceInfo.closingPricePrevTradingDay != null) {
+      security.setSPrevClose(priceInfo.closingPricePrevTradingDay);
+    }
+    if (priceInfo.dayHigh != null) {
+      security.setSHigh(priceInfo.dayHigh);
+    }
+    if (priceInfo.dayLow != null) {
+      security.setSLow(priceInfo.dayLow);
+    }
+    if (priceInfo.turnoverInPieces != null) {
+      security.setSVolume(priceInfo.turnoverInPieces);
+    }
+    if (priceInfo.timestampLastPrice != null) {
+      security.setSTimestamp(parseIso8601Timestamp(priceInfo.timestampLastPrice));
+    }
+    if (priceInfo.changeToPrevDayInPercent != null) {
+      security.setSChangePercentage(DataBusinessHelper.roundStandard(priceInfo.changeToPrevDayInPercent));
+    }
+  }
+
+  /**
+   * Builds the intraday API URL for the Deutsche Boerse live price endpoint.
+   *
+   * @param security the security to get intraday prices for
+   * @return the fully constructed URL with ISIN and MIC parameters
+   */
+  private String buildIntradayApiUrl(final Security security) {
+    String isin = extractIsin(security.getUrlIntraExtend());
+    String mic = security.getStockexchange().getMic();
+    return DOMAIN_INTRADAY + "?isin=" + URLEncoder.encode(isin, StandardCharsets.UTF_8)
+        + "&mic=" + URLEncoder.encode(mic, StandardCharsets.UTF_8);
+  }
+
+  /**
+   * Extracts the ISIN from the URL extension. Handles both plain ISIN format and "PREFIX:ISIN" format.
+   *
+   * @param urlExtend the URL extension (e.g., "DE0007164600" or "ARIVA:DE0007164600")
+   * @return the extracted ISIN
+   */
+  private String extractIsin(String urlExtend) {
+    if (urlExtend.contains(":")) {
+      return urlExtend.substring(urlExtend.indexOf(':') + 1);
+    }
+    return urlExtend;
+  }
+
+  /**
+   * Parses an ISO 8601 timestamp string to a Date object.
+   *
+   * @param timestamp the ISO 8601 formatted timestamp (e.g., "2024-01-15T14:30:00+01:00")
+   * @return the parsed Date object
+   */
+  private Date parseIso8601Timestamp(String timestamp) {
+    OffsetDateTime odt = OffsetDateTime.parse(timestamp, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    return Date.from(odt.toInstant());
   }
 
   @Override
@@ -181,6 +226,9 @@ public class XetraFeedConnector extends BaseFeedConnector {
     return historyquotes;
   }
 
+  /**
+   * DTO for deserializing historical quote data from the TradingView API.
+   */
   private static class Quotes {
     public String s;
     @JsonFormat(shape = JsonFormat.Shape.NUMBER, pattern = "s")
@@ -190,6 +238,21 @@ public class XetraFeedConnector extends BaseFeedConnector {
     public double[] h;
     public double[] l;
     public long[] v;
+  }
+
+  /**
+   * DTO for deserializing intraday price data from the Deutsche Boerse live price API.
+   */
+  private static class PriceInformation {
+    public Double changeToPrevDayInPercent;
+    public Double closingPricePrevTradingDay;
+    public Double dayHigh;
+    public Double dayLow;
+    public String isin;
+    public Double lastPrice;
+    public String mic;
+    public String timestampLastPrice;
+    public Long turnoverInPieces;
   }
 
 }

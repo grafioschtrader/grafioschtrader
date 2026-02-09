@@ -93,4 +93,11 @@ public interface IHistoryquoteQualityFlat {
    * @return the quality percentage (0.0–100.0)
    */
   double getQualityPercentage();
+
+  /**
+   * The percentage of quotes with valid open, high, and low values.
+   *
+   * @return the OHL percentage (0.0–100.0), or null if not yet computed
+   */
+  Double getOhlPercentage();
 }

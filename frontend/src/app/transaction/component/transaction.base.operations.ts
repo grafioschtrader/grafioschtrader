@@ -10,7 +10,6 @@ import {MessageToastService} from '../../lib/message/message.toast.service';
 import {HistoryquoteService} from '../../historyquote/service/historyquote.service';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
-import {BaseSettings} from '../../lib/base.settings';
 import moment from 'moment';
 
 /**
@@ -143,11 +142,11 @@ export abstract class TransactionBaseOperations {
         (e) => this.oneOverX(e), {
           buttonInForm: true, usedLayoutColumns: 1,
         }),
-      DynamicFieldHelper.createFunctionButtonFieldName('exRateButton', 'TIME_DEPENDING_EXCHANGE_RATE_',
+      DynamicFieldHelper.createFunctionButtonFieldName('exRateButton', 'EX_RATE_SYMBOL',
         (e) => this.getTimeDependingExchangeRate(e), {
-          icon: BaseSettings.PATH_ASSET_ICONS + 'refresh.svg',
           buttonInForm: true, usedLayoutColumns: 1
         })
+
     ];
   }
 
