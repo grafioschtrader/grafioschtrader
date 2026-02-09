@@ -1,8 +1,9 @@
 import {Component, EventEmitter, Injector, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
-import {CommonModule, DatePipe} from '@angular/common';
+import {CommonModule} from '@angular/common';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {ButtonModule} from 'primeng/button';
 import {FilterService} from 'primeng/api';
+import moment from 'moment';
 
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
@@ -11,6 +12,9 @@ import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {SecurityGtnetLookupDTO} from '../model/gtnet-security-lookup';
+import {SecurityService} from '../../securitycurrency/service/security.service';
+import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
+import {SecurityCurrencyHelper} from '../../securitycurrency/service/security.currency.helper';
 import {AppSettings} from '../../shared/app.settings';
 
 /**
@@ -22,7 +26,7 @@ import {AppSettings} from '../../shared/app.settings';
 @Component({
   selector: 'gtnet-security-lookup-table',
   standalone: true,
-  imports: [CommonModule, ConfigurableTableComponent, TranslateModule, ButtonModule, DatePipe],
+  imports: [CommonModule, ConfigurableTableComponent, TranslateModule, ButtonModule],
   template: `
     <configurable-table
       [data]="securities"
@@ -50,7 +54,7 @@ import {AppSettings} from '../../shared/app.settings';
                 <legend>{{ cfg.legendKey | translate }}</legend>
                 <div class="connector-row">
                   <span class="connector-label">{{ cfg.labelKey | translate }}:</span>
-                  <span class="connector-value">{{ security[cfg.connectorField] }}</span>
+                  <span class="connector-value">{{ getConnectorReadableName(security[cfg.connectorField]) }}</span>
                 </div>
                 @if (security[cfg.urlField]) {
                   <div class="connector-row">
@@ -64,9 +68,9 @@ import {AppSettings} from '../../shared/app.settings';
                       <span class="connector-label">{{ extra.labelKey | translate }}:</span>
                       <span class="connector-value">
                         @if (extra.isDate) {
-                          {{ security[extra.field] | date:'shortDate' }}
+                          {{ formatDate(security[extra.field]) }}
                         } @else if (extra.isDateTime) {
-                          {{ security[extra.field] | date:'short' }}
+                          {{ formatDateTime(security[extra.field]) }}
                         } @else {
                           {{ security[extra.field] }}{{ extra.suffix || '' }}
                         }
@@ -166,6 +170,9 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
       ]},
   ];
 
+  /** Map of connector ID to human-readable name */
+  feedConnectorsKV: { [id: string]: string } = {};
+
   /** Flag to track if fields have been initialized in ngOnInit */
   private fieldsInitialized = false;
 
@@ -176,7 +183,9 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
               usersettingsService: UserSettingsService,
               translateService: TranslateService,
               gps: GlobalparameterService,
-              injector: Injector) {
+              injector: Injector,
+              private securityService: SecurityService,
+              private currencypairService: CurrencypairService) {
     super(filterService, usersettingsService, translateService, gps, injector);
     this.userLang = gps.getUserLang();
   }
@@ -208,6 +217,9 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
     this.prepareTableAndTranslate();
     this.fieldsInitialized = true;
 
+    // Load connector readable names
+    SecurityCurrencyHelper.loadAllConnectors(this.securityService, this.currencypairService, this.feedConnectorsKV);
+
     // If data was already provided before ngOnInit, create translated value store now
     if (this.securities?.length > 0) {
       this.createTranslatedValueStore(this.securities);
@@ -236,6 +248,27 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
     if (this.selectedSecurity) {
       this.securitySelected.emit(this.selectedSecurity);
     }
+  }
+
+  /**
+   * Returns the human-readable name for a connector ID, or the raw ID if not found.
+   */
+  getConnectorReadableName(connectorId: string): string {
+    return this.feedConnectorsKV[connectorId] || connectorId;
+  }
+
+  /**
+   * Formats a date string (YYYY-MM-DD) using the locale-aware date format.
+   */
+  formatDate(value: string): string {
+    return value ? moment(value).format(this.gps.getDateFormat()) : '';
+  }
+
+  /**
+   * Formats a date-time value (numeric timestamp) using the locale-aware date-time format.
+   */
+  formatDateTime(value: number): string {
+    return value ? moment(+value).format(this.gps.getTimeDateFormatForTable()) : '';
   }
 
   /**
