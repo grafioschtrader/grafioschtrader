@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.33.16</version>
+		<version>0.33.17</version>
 	</parent>
 
 
@@ -51,7 +51,7 @@
         <dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafiosch-server-base</artifactId>
-	        <version>0.33.16</version>
+	        <version>0.33.17</version>
 		</dependency>
 
 		<dependency>

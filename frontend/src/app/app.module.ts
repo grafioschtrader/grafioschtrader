@@ -2,6 +2,7 @@ import {BrowserModule} from '@angular/platform-browser';
 import {inject, NgModule, provideAppInitializer} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {HistoryquoteService} from './historyquote/service/historyquote.service';
+import {UserChartShapeService} from './historyquote/service/user.chart.shape.service';
 import {MenuModule} from 'primeng/menu';
 import {MenubarModule} from 'primeng/menubar';
 import {routing} from './app.routes';
@@ -471,7 +472,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     ProposeUserTaskService, SecurityaccountService, SecurityService, SecuritysplitService, StockexchangeService,
     TaskDataChangeService, TenantService, TimeSeriesQuotesService, TradingDaysMinusService, TradingDaysPlusService,
     TradingPlatformPlanService, TransactionService, UDFDataService, UDFMetadataGeneralService, UDFMetadataSecurityService,
-    UDFSpecialTypeDisableUserService, UserAdminService, UserDataService, UserEntityChangeLimitService, UserSettingsService,
+    UDFSpecialTypeDisableUserService, UserAdminService, UserChartShapeService, UserDataService, UserEntityChangeLimitService, UserSettingsService,
     ViewSizeChangedService, WatchlistService, {provide: TASK_EXTENDED_SERVICE, useClass: SecurityService},
     {provide: TASK_TYPE_ENUM, useValue: TaskType},
     // Propose Change Entity Handler Registration (Modern Angular approach)

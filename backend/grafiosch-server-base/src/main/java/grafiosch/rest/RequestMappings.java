@@ -59,6 +59,9 @@ public class RequestMappings {
 
   public static final String GTNETCONFIGENTITY = "gtnetconfigentity";
   public static final String GTNETCONFIGENTITY_MAP = API + GTNETCONFIGENTITY;
+  public static final String USER_CHART_SHAPE = "userchartshape";
+  public static final String USER_CHART_SHAPE_MAP = API + USER_CHART_SHAPE;
+
   public static final String ACTUATOR_MAP = API + "actuator";
  
 

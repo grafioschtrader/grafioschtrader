@@ -248,8 +248,10 @@ public class XetraFeedConnector extends BaseFeedConnector {
     public Double closingPricePrevTradingDay;
     public Double dayHigh;
     public Double dayLow;
+    @SuppressWarnings("unused")
     public String isin;
     public Double lastPrice;
+    @SuppressWarnings("unused")
     public String mic;
     public String timestampLastPrice;
     public Long turnoverInPieces;
