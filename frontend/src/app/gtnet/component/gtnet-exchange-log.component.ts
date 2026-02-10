@@ -7,7 +7,7 @@ import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {GTNetExchangeLogService} from '../service/gtnet-exchange-log.service';
 import {GTNetExchangeLogTree, GTNetExchangeLogNode} from '../model/gtnet-exchange-log';
-import {GTNetExchangeKindType} from '../model/gtnet';
+import {GTNetExchangeKindType} from '../../lib/gnet/model/gtnet';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ActivatedRoute} from '@angular/router';
 import {AppSettings} from '../../shared/app.settings';

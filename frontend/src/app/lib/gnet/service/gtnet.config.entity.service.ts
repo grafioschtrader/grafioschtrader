@@ -1,14 +1,12 @@
 import {Injectable} from '@angular/core';
-import {AuthServiceWithLogout} from '../../lib/login/service/base.auth.service.with.logout';
+import {AuthServiceWithLogout} from '../../login/service/base.auth.service.with.logout';
 import {GTNetConfigEntity} from '../model/gtnet';
-import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
+import {ServiceEntityUpdate} from '../../edit/service.entity.update';
 import {Observable} from 'rxjs/internal/Observable';
-import {AppSettings} from '../../shared/app.settings';
-import {catchError} from 'rxjs/operators';
-import {LoginService} from '../../lib/login/service/log-in.service';
+import {LoginService} from '../../login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {BaseSettings} from '../../lib/base.settings';
+import {MessageToastService} from '../../message/message.toast.service';
+import {BaseSettings} from '../../base.settings';
 
 /**
  * Service for managing GTNetConfigEntity.
@@ -27,6 +25,6 @@ export class GTNetConfigEntityService extends AuthServiceWithLogout<GTNetConfigE
    * Updates a GTNetConfigEntity. Only useDetailLog and consumerUsage can be modified.
    */
   update(entity: GTNetConfigEntity): Observable<GTNetConfigEntity> {
-    return this.updateEntity(entity, entity.idGtNetEntity, AppSettings.GT_NET_CONFIG_ENTITY_KEY);
+    return this.updateEntity(entity, entity.idGtNetEntity, BaseSettings.GT_NET_CONFIG_ENTITY_KEY);
   }
 }

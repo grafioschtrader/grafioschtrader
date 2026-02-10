@@ -1,32 +1,31 @@
 import {Component, Injector, QueryList, ViewChildren} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
+import {TableCrudSupportMenu} from '../../datashowbase/table.crud.support.menu';
 import {GTNet, GTNetWithMessages} from '../model/gtnet';
 import {getValidResponseCodes, GTNetMessage, GTNetMessageCodeType, MessageVisibility, MsgCallParam, SendReceivedType} from '../model/gtnet.message';
 import {GTNetService} from '../service/gtnet.service';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
+import {MessageToastService} from '../../message/message.toast.service';
+import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {DialogService} from 'primeng/dynamicdialog';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {AppSettings} from '../../shared/app.settings';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
-import {HelpIds} from '../../lib/help/help.ids';
+import {GlobalparameterService} from '../../services/globalparameter.service';
+import {UserSettingsService} from '../../services/user.settings.service';
+import {DataType} from '../../dynamic-form/models/data.type';
+import {ColumnConfig, TranslateValue} from '../../datashowbase/column.config';
+import {HelpIds} from '../../help/help.ids';
 import {GTNetMessageTreeTableComponent} from './gtnet-message-treetable.component';
 import {combineLatest} from 'rxjs';
 import {GTNetMessageService} from '../service/gtnet.message.service';
-import {ClassDescriptorInputAndShow} from '../../lib/dynamicfield/field.descriptor.input.and.show';
-import {BaseSettings} from '../../lib/base.settings';
+import {ClassDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
+import {BaseSettings} from '../../base.settings';
 import {ContextMenuModule} from 'primeng/contextmenu';
 import {TooltipModule} from 'primeng/tooltip';
 import {GTNetMessageEditComponent} from './gtnet-message-edit.component';
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
+import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.component';
+import {ProcessedAction} from '../../types/processed.action';
+import {ProcessedActionData} from '../../types/processed.action.data';
 
 /**
  * Component for displaying admin-only messages in a dedicated tab.
@@ -137,7 +136,7 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
     injector: Injector) {
 
     // No CRUD options - this is a read-only view for GTNet entities
-    super(AppSettings.GT_NET, gtNetService, confirmationService, messageToastService, activePanelService,
+    super(BaseSettings.GT_NET, gtNetService, confirmationService, messageToastService, activePanelService,
       dialogService, filterService, translateService, gps, usersettingsService, injector, []);
 
     this.isUserAdmin = gps.hasRole(BaseSettings.ROLE_ADMIN);

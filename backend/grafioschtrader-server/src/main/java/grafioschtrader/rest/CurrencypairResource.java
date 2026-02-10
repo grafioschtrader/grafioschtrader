@@ -35,7 +35,13 @@ import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
 import grafioschtrader.entities.Currencypair;
 import grafiosch.entities.GTNetSupplierDetail;
 import grafiosch.repository.GTNetSupplierDetailJpaRepository;
+import grafioschtrader.entities.GTNetSupplierDetailHist;
+import grafioschtrader.entities.GTNetSupplierDetailLast;
+import grafioschtrader.gtnet.GTNetExchangeKindType;
+import grafioschtrader.gtnet.model.GTNetSupplierDetailWithSettings;
 import grafioschtrader.gtnet.model.GTNetSupplierWithDetails;
+import grafioschtrader.repository.GTNetSupplierDetailHistJpaRepository;
+import grafioschtrader.repository.GTNetSupplierDetailLastJpaRepository;
 import grafioschtrader.reportviews.currencypair.CurrencypairWithHistoryquote;
 import grafioschtrader.reportviews.currencypair.CurrencypairWithTransaction;
 import grafioschtrader.repository.CurrencypairJpaRepository;
@@ -62,6 +68,12 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
 
   @Autowired
   private GTNetSupplierDetailJpaRepository gtNetSupplierDetailJpaRepository;
+
+  @Autowired
+  private GTNetSupplierDetailHistJpaRepository gtNetSupplierDetailHistJpaRepository;
+
+  @Autowired
+  private GTNetSupplierDetailLastJpaRepository gtNetSupplierDetailLastJpaRepository;
 
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
@@ -236,7 +248,7 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
     return new ResponseEntity<>(updatedCurrencypairs, HttpStatus.OK);
   }
 
-  @Operation(summary = "Returns supplier details for a currency pair", description = "Returns information about which GTNet suppliers can provide price data for this currency pair", tags = {
+  @Operation(summary = "Returns supplier details for a currency pair", description = "Returns information about which GTNet suppliers can provide price data for this currency pair, including quality settings", tags = {
       Currencypair.TABNAME })
   @GetMapping(value = "/{idSecuritycurrency}/gtnetexchange/supplierdetails", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<GTNetSupplierWithDetails>> getCurrencypairSupplierDetails(
@@ -244,6 +256,16 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
     List<GTNetSupplierDetail> details = gtNetSupplierDetailJpaRepository.findAll().stream()
         .filter(d -> idSecuritycurrency.equals(d.getIdEntity()))
         .collect(Collectors.toList());
+
+    // Batch-load child settings
+    List<Integer> detailIds = details.stream().map(GTNetSupplierDetail::getIdGtNetSupplierDetail)
+        .collect(Collectors.toList());
+    Map<Integer, GTNetSupplierDetailHist> histMap = detailIds.isEmpty() ? Map.of()
+        : gtNetSupplierDetailHistJpaRepository.findByIdGtNetSupplierDetailIn(detailIds).stream()
+            .collect(Collectors.toMap(GTNetSupplierDetailHist::getIdGtNetSupplierDetail, h -> h));
+    Map<Integer, GTNetSupplierDetailLast> lastMap = detailIds.isEmpty() ? Map.of()
+        : gtNetSupplierDetailLastJpaRepository.findByIdGtNetSupplierDetailIn(detailIds).stream()
+            .collect(Collectors.toMap(GTNetSupplierDetailLast::getIdGtNetSupplierDetail, l -> l));
 
     // Group by GTNet (supplier)
     Map<Integer, List<GTNetSupplierDetail>> byGtNet = details.stream()
@@ -254,7 +276,12 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
     for (Map.Entry<Integer, List<GTNetSupplierDetail>> entry : byGtNet.entrySet()) {
       GTNet gtNet = gtNetJpaRepository.findById(entry.getKey()).orElse(null);
       if (gtNet != null) {
-        result.add(new GTNetSupplierWithDetails(gtNet, entry.getValue()));
+        List<GTNetSupplierDetailWithSettings> detailsWithSettings = entry.getValue().stream()
+            .map(d -> new GTNetSupplierDetailWithSettings(d,
+                histMap.get(d.getIdGtNetSupplierDetail()),
+                lastMap.get(d.getIdGtNetSupplierDetail())))
+            .collect(Collectors.toList());
+        result.add(new GTNetSupplierWithDetails(gtNet, detailsWithSettings));
       }
     }
 

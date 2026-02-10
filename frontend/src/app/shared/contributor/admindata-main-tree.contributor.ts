@@ -134,7 +134,7 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
       label: 'GT_NET_MESSAGE_ANSWER',
       data: new TypeNodeData(
         TreeNodeType.NO_MENU,
-        this.addMainRoute(AppSettings.GT_NET_MESSAGE_ANSWER_KEY),
+        this.addMainRoute(BaseSettings.GT_NET_MESSAGE_ANSWER_KEY),
         null,
         null,
         null
@@ -149,7 +149,8 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
         null,
         null,
         null
-      )});
+      )
+    });
 
     gtNetNode.children.push({
       label: 'GT_NET_EXCHANGE_LOG',

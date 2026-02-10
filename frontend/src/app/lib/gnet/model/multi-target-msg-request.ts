@@ -1,4 +1,4 @@
-import {BaseParam} from '../../lib/entities/base.param';
+import {BaseParam} from '../../entities/base.param';
 
 /**
  * Request DTO for submitting GTNet admin messages to multiple targets via multi-select.

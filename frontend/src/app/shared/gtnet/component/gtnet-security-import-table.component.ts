@@ -38,8 +38,8 @@ import {HelpIds} from '../../../lib/help/help.ids';
 import {IGlobalMenuAttach} from '../../../lib/mainmenubar/component/iglobal.menu.attach';
 import {ActivePanelService} from '../../../lib/mainmenubar/service/active.panel.service';
 import {GTNetSecurityImpGapTableComponent} from './gtnet-security-imp-gap-table.component';
-import {GTNetService} from '../../../gtnet/service/gtnet.service';
-import {GTNet} from '../../../gtnet/model/gtnet';
+import {GTNetService} from '../../../lib/gnet/service/gtnet.service';
+import {GTNet} from '../../../lib/gnet/model/gtnet';
 
 /**
  * Table component for displaying and editing GTNet security import positions.

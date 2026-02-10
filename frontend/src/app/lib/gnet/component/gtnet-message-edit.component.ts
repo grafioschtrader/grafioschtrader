@@ -1,29 +1,29 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {GTNetMessageCodeType, MessageVisibility, MsgCallParam, shouldShowWaitDaysApply} from '../model/gtnet.message';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {HelpIds} from '../../lib/help/help.ids';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {ClassDescriptorInputAndShow} from '../../lib/dynamicfield/field.descriptor.input.and.show';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
+import {GlobalparameterService} from '../../services/globalparameter.service';
+import {MessageToastService} from '../../message/message.toast.service';
+import {HelpIds} from '../../help/help.ids';
+import {AppHelper} from '../../helper/app.helper';
+import {ClassDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
+import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {Subscription} from 'rxjs';
-import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.helper';
-import {BaseParam} from '../../lib/entities/base.param';
-import {Helper} from '../../lib/helper/helper';
-import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
+import {FieldConfig} from '../../dynamic-form/models/field.config';
+import {SelectOptionsHelper} from '../../helper/select.options.helper';
+import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
+import {BaseParam} from '../../entities/base.param';
+import {Helper} from '../../helper/helper';
+import {SimpleEditBase} from '../../edit/simple.edit.base';
+import {InfoLevelType} from '../../message/info.leve.type';
+import {ProcessedActionData} from '../../types/processed.action.data';
+import {ProcessedAction} from '../../types/processed.action';
 import {GTNetService} from '../service/gtnet.service';
 import {GTNetWithMessages, MsgRequest} from '../model/gtnet';
 import {MultiTargetMsgRequest} from '../model/multi-target-msg-request';
-import {BaseSettings} from '../../lib/base.settings';
+import {BaseSettings} from '../../base.settings';
 import {DialogModule} from 'primeng/dialog';
-import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
+import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 
 /**
  * Crate a new GTNet message. A message can not be changed.

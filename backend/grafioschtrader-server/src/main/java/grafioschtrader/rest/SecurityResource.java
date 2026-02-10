@@ -46,8 +46,14 @@ import grafioschtrader.dto.InstrumentStatisticsResult;
 import grafioschtrader.dto.SecurityCurrencypairDerivedLinks;
 import grafiosch.entities.GTNetSupplierDetail;
 import grafiosch.repository.GTNetSupplierDetailJpaRepository;
+import grafioschtrader.entities.GTNetSupplierDetailHist;
+import grafioschtrader.entities.GTNetSupplierDetailLast;
 import grafioschtrader.entities.Security;
+import grafioschtrader.gtnet.GTNetExchangeKindType;
+import grafioschtrader.gtnet.model.GTNetSupplierDetailWithSettings;
 import grafioschtrader.gtnet.model.GTNetSupplierWithDetails;
+import grafioschtrader.repository.GTNetSupplierDetailHistJpaRepository;
+import grafioschtrader.repository.GTNetSupplierDetailLastJpaRepository;
 import grafioschtrader.priceupdate.historyquote.HistoryquoteQualityService;
 import grafioschtrader.reports.SecruityTransactionsReport;
 import grafioschtrader.reports.SecruityTransactionsReport.SecruityTransactionsReportOptions;
@@ -86,6 +92,12 @@ public class SecurityResource extends UpdateCreateResource<Security> {
 
   @Autowired
   private GTNetSupplierDetailJpaRepository gtNetSupplierDetailJpaRepository;
+
+  @Autowired
+  private GTNetSupplierDetailHistJpaRepository gtNetSupplierDetailHistJpaRepository;
+
+  @Autowired
+  private GTNetSupplierDetailLastJpaRepository gtNetSupplierDetailLastJpaRepository;
 
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
@@ -343,14 +355,28 @@ public class SecurityResource extends UpdateCreateResource<Security> {
     return new ResponseEntity<>(updatedSecurities, HttpStatus.OK);
   }
 
-  @Operation(summary = "Returns supplier details for a security", description = "Returns information about which GTNet suppliers can provide price data for this security", tags = {
+  @Operation(summary = "Returns supplier details for a security", description = "Returns information about which GTNet suppliers can provide price data for this security, including quality settings", tags = {
       Security.TABNAME })
   @GetMapping(value = "/{idSecuritycurrency}/gtnetexchange/supplierdetails", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<GTNetSupplierWithDetails>> getSecuritySupplierDetails(
       @PathVariable Integer idSecuritycurrency) {
+    return new ResponseEntity<>(buildSupplierWithDetails(idSecuritycurrency), HttpStatus.OK);
+  }
+
+  private List<GTNetSupplierWithDetails> buildSupplierWithDetails(Integer idSecuritycurrency) {
     List<GTNetSupplierDetail> details = gtNetSupplierDetailJpaRepository.findAll().stream()
         .filter(d -> idSecuritycurrency.equals(d.getIdEntity()))
         .collect(Collectors.toList());
+
+    // Batch-load child settings
+    List<Integer> detailIds = details.stream().map(GTNetSupplierDetail::getIdGtNetSupplierDetail)
+        .collect(Collectors.toList());
+    Map<Integer, GTNetSupplierDetailHist> histMap = detailIds.isEmpty() ? Map.of()
+        : gtNetSupplierDetailHistJpaRepository.findByIdGtNetSupplierDetailIn(detailIds).stream()
+            .collect(Collectors.toMap(GTNetSupplierDetailHist::getIdGtNetSupplierDetail, h -> h));
+    Map<Integer, GTNetSupplierDetailLast> lastMap = detailIds.isEmpty() ? Map.of()
+        : gtNetSupplierDetailLastJpaRepository.findByIdGtNetSupplierDetailIn(detailIds).stream()
+            .collect(Collectors.toMap(GTNetSupplierDetailLast::getIdGtNetSupplierDetail, l -> l));
 
     // Group by GTNet (supplier)
     Map<Integer, List<GTNetSupplierDetail>> byGtNet = details.stream().filter(d -> d.getGtNetConfig() != null)
@@ -360,11 +386,16 @@ public class SecurityResource extends UpdateCreateResource<Security> {
     for (Map.Entry<Integer, List<GTNetSupplierDetail>> entry : byGtNet.entrySet()) {
       GTNet gtNet = gtNetJpaRepository.findById(entry.getKey()).orElse(null);
       if (gtNet != null) {
-        result.add(new GTNetSupplierWithDetails(gtNet, entry.getValue()));
+        List<GTNetSupplierDetailWithSettings> detailsWithSettings = entry.getValue().stream()
+            .map(d -> new GTNetSupplierDetailWithSettings(d,
+                histMap.get(d.getIdGtNetSupplierDetail()),
+                lastMap.get(d.getIdGtNetSupplierDetail())))
+            .collect(Collectors.toList());
+        result.add(new GTNetSupplierWithDetails(gtNet, detailsWithSettings));
       }
     }
 
-    return new ResponseEntity<>(result, HttpStatus.OK);
+    return result;
   }
 
   @Operation(summary = "Triggers GTNet exchange sync",

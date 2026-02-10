@@ -1,19 +1,18 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
-import {GTNetConfigEntity, GTNetExchangeKindType, SupplierConsumerLogTypes} from '../model/gtnet';
+import {SimpleEntityEditBase} from '../../edit/simple.entity.edit.base';
+import {GTNetConfigEntity, SupplierConsumerLogTypes} from '../model/gtnet';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {HelpIds} from '../../lib/help/help.ids';
-import {AppSettings} from '../../shared/app.settings';
+import {GlobalparameterService} from '../../services/globalparameter.service';
+import {MessageToastService} from '../../message/message.toast.service';
+import {HelpIds} from '../../help/help.ids';
 import {GTNetConfigEntityService} from '../service/gtnet.config.entity.service';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
+import {AppHelper} from '../../helper/app.helper';
+import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
+import {SelectOptionsHelper} from '../../helper/select.options.helper';
+import {TranslateHelper} from '../../helper/translate.helper';
+import {DataType} from '../../dynamic-form/models/data.type';
 import {DialogModule} from 'primeng/dialog';
-import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
+import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {GTNetConfigEntityDisplay} from './gtnet-config-entity-table.component';
 
 /**

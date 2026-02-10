@@ -378,6 +378,7 @@
   "SYNCMODE": "Sync Mode",
   "HISTORIC": "Historic",
   "HISTORICAL": "Historic",
+  "HISTORICAL_PRICES": "Historical prices (HP)",
   "HISTORICAL_URL": "Historical data hyperlink",
   "HISTORICAL_URL_TITLE": "Opens the hyperlink in this browser or downloads the corresponding file",
   "HISTORIC_NO_DATA": "No history quote data for {{securityName}}!",

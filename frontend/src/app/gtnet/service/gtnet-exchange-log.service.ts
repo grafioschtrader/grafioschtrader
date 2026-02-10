@@ -7,7 +7,7 @@ import {MessageToastService} from '../../lib/message/message.toast.service';
 import {LoginService} from '../../lib/login/service/log-in.service';
 import {BaseSettings} from '../../lib/base.settings';
 import {GTNetExchangeLogTree} from '../model/gtnet-exchange-log';
-import {GTNetExchangeKindType} from '../model/gtnet';
+import {GTNetExchangeKindType} from '../../lib/gnet/model/gtnet';
 
 /**
  * Service for GTNet exchange log operations.

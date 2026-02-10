@@ -24,6 +24,15 @@ import {Helper} from '../helper/helper';
 import {FilterType} from './filter.type';
 import {BaseLocale} from '../dynamic-form/models/base.locale';
 
+/** Represents one item in the first (group) header row */
+interface HeaderGroupItem {
+  /** 'single' = ungrouped column (gets rowspan=2), 'group' = group header (gets colspan) */
+  type: 'single' | 'group';
+  label?: string;
+  colspan?: number;
+  field?: ColumnConfig;
+}
+
 /**
  * Reusable table component providing standardized PrimeNG table functionality with column configuration,
  * sorting, pagination, row expansion, selection, and context menu support.
@@ -114,22 +123,36 @@ import {BaseLocale} from '../dynamic-form/models/base.locale';
 
         <!-- Header template -->
         <ng-template pTemplate="header" let-columns>
-          <tr>
-            <!-- Expansion toggle column -->
-            @if (expandable) {
-              <th [style.width.px]="expansionColumnWidth"></th>
-            }
-
-            <!-- Multi-select checkbox column -->
-            @if (selectionMode === 'multiple') {
-              <th [style.width.em]="2.25">
-                <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
-              </th>
-            }
-
-            <!-- Dynamic data columns -->
-            @for (field of columns; track field.field) {
-              @if (field.visible) {
+          @if (hasGroups) {
+            <!-- Row 1: Group headers + ungrouped columns (with rowspan=2) -->
+            <tr>
+              @if (expandable) {
+                <th [rowSpan]="2" [style.width.px]="expansionColumnWidth"></th>
+              }
+              @if (selectionMode === 'multiple') {
+                <th [rowSpan]="2" [style.width.em]="2.25">
+                  <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                </th>
+              }
+              @for (item of headerGroupRow; track $index) {
+                @if (item.type === 'single') {
+                  <th [rowSpan]="2" [pSortableColumn]="item.field.field"
+                      [pTooltip]="item.field.headerTooltipTranslated"
+                      [style.max-width.px]="item.field.width"
+                      [ngStyle]="item.field.width ? {'flex-basis': '0 0 ' + item.field.width + 'px'} : {}">
+                    {{ item.field.headerTranslated }}
+                    <p-sortIcon [field]="item.field.field"></p-sortIcon>
+                  </th>
+                } @else {
+                  <th [attr.colspan]="item.colspan" style="text-align:center">
+                    {{ item.label }}
+                  </th>
+                }
+              }
+            </tr>
+            <!-- Row 2: Individual headers for grouped columns only -->
+            <tr>
+              @for (field of groupedColumns; track field.field) {
                 <th [pSortableColumn]="field.field"
                     [pTooltip]="field.headerTooltipTranslated"
                     [style.max-width.px]="field.width"
@@ -138,8 +161,31 @@ import {BaseLocale} from '../dynamic-form/models/base.locale';
                   <p-sortIcon [field]="field.field"></p-sortIcon>
                 </th>
               }
-            }
-          </tr>
+            </tr>
+          } @else {
+            <!-- Standard single-row header (unchanged) -->
+            <tr>
+              @if (expandable) {
+                <th [style.width.px]="expansionColumnWidth"></th>
+              }
+              @if (selectionMode === 'multiple') {
+                <th [style.width.em]="2.25">
+                  <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                </th>
+              }
+              @for (field of columns; track field.field) {
+                @if (field.visible) {
+                  <th [pSortableColumn]="field.field"
+                      [pTooltip]="field.headerTooltipTranslated"
+                      [style.max-width.px]="field.width"
+                      [ngStyle]="field.width ? {'flex-basis': '0 0 ' + field.width + 'px'} : {}">
+                    {{ field.headerTranslated }}
+                    <p-sortIcon [field]="field.field"></p-sortIcon>
+                  </th>
+                }
+              }
+            </tr>
+          }
 
           <!-- Filter row -->
           @if (hasFilter) {
@@ -673,6 +719,19 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
   @Input() freezeSelectionColumn = false;
 
   // ============================================================================
+  // Header Group Support
+  // ============================================================================
+
+  /** Computed group structure for the first header row */
+  headerGroupRow: HeaderGroupItem[] = [];
+
+  /** Columns belonging to groups (for the second header row) */
+  groupedColumns: ColumnConfig[] = [];
+
+  /** Whether the current column configuration uses header groups */
+  hasGroups = false;
+
+  // ============================================================================
   // Component Methods
   // ============================================================================
 
@@ -681,11 +740,8 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
    * Currently monitors fields changes to ensure proper column updates.
    */
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['fields']) {
-      // Fields configuration changed - may need to refresh column setup
-    }
-    if (changes['data']) {
-      // Data changed - table will re-render
+    if (changes['fields'] || changes['data']) {
+      this.computeHeaderGroups();
     }
   }
 
@@ -815,6 +871,43 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
    */
   isOwnerHighlighted(row: T, field: ColumnConfig): boolean {
     return this.ownerHighlightFn ? this.ownerHighlightFn(row, field) : false;
+  }
+
+  /**
+   * Computes header group structure from column configurations.
+   * Splits visible columns into ungrouped (rowspan=2) and grouped (colspan) items.
+   */
+  private computeHeaderGroups(): void {
+    const visibleFields = this.fields.filter(f => f.visible);
+    this.hasGroups = visibleFields.some(f => !!f.headerGroupKey);
+    if (!this.hasGroups) {
+      this.headerGroupRow = [];
+      this.groupedColumns = [];
+      return;
+    }
+    this.headerGroupRow = [];
+    this.groupedColumns = [];
+    let i = 0;
+    while (i < visibleFields.length) {
+      const field = visibleFields[i];
+      if (!field.headerGroupKey) {
+        this.headerGroupRow.push({type: 'single', field});
+        i++;
+      } else {
+        const groupKey = field.headerGroupKey;
+        let colspan = 0;
+        while (i < visibleFields.length && visibleFields[i].headerGroupKey === groupKey) {
+          this.groupedColumns.push(visibleFields[i]);
+          colspan++;
+          i++;
+        }
+        this.headerGroupRow.push({
+          type: 'group',
+          label: field.headerGroupTranslated || groupKey,
+          colspan
+        });
+      }
+    }
   }
 
   /**

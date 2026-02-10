@@ -28,7 +28,9 @@ import {TenantTransactionTableComponent} from './tenant/component/tenant.transac
 import {PortfolioTransactionTableComponent} from './portfolio/component/portfolio.transaction.table.component';
 import {CashaccountEditComponent} from './cashaccount/component/cashaccount-edit.component';
 import {SecurityaccountTabMenuComponent} from './securityaccount/component/securityaccount.tab.menu.component';
-import {SecurityaccountImportTabMenuComponent} from './imptransaction/component/securityaccount-import-tab-menu.component';
+import {
+  SecurityaccountImportTabMenuComponent
+} from './imptransaction/component/securityaccount-import-tab-menu.component';
 import {LoginComponent} from './lib/login/component/login.component';
 import {
   SecurityaccountImportTransactionComponent
@@ -52,19 +54,18 @@ import {WatchlistDividendSplitFeedComponent} from './watchlist/component/watchli
 import {GlobalSettingsTableComponent} from './lib/globalsettings/global.settings.table.component';
 import {TaskDataChangeTableComponent} from './lib/taskdatamonitor/component/task.data.change.table.component';
 import {ConnectorApiKeyTableComponent} from './lib/connectorapikey/component/connector.api.key.table.component';
-import {GTNetSetupTableComponent} from './gtnet/component/gtnet.setup.table.component';
-import {GTNetTabMenuComponent} from './gtnet/component/gtnet-tabmenu.component';
-import {GTNetAdminMessagesComponent} from './gtnet/component/gtnet-admin-messages.component';
+import {GTNetSetupTableComponent} from './lib/gnet/component/gtnet.setup.table.component';
+import {GTNetTabMenuComponent} from './lib/gnet/component/gtnet-tabmenu.component';
+import {GTNetAdminMessagesComponent} from './lib/gnet/component/gtnet-admin-messages.component';
 import {GTNetExchangeLogTabMenuComponent} from './gtnet/component/gtnet-exchange-log-tabmenu.component';
 import {GTNetExchangeLogComponent} from './gtnet/component/gtnet-exchange-log.component';
-import {GTNetMessageAnswerTableComponent} from './gtnet/component/gtnet-message-answer-table.component';
+import {GTNetMessageAnswerTableComponent} from './lib/gnet/component/gtnet-message-answer-table.component';
 import {GTNetExchangeTabMenuComponent} from './gtnet/component/gtnet-exchange-tabmenu.component';
 import {GTNetExchangeSecuritiesComponent} from './gtnet/component/gtnet-exchange-securities.component';
 import {GTNetExchangeCurrencypairsComponent} from './gtnet/component/gtnet-exchange-currencypairs.component';
 import {SendRecvTreetableComponent} from './lib/mail/component/send.recv.treetable.component';
 import {adminGuard, authGuard} from './shared/service/guards.definition';
 import {SendRecvForwardTabMenuComponent} from './lib/mail/component/send.recv.forward.tab.menu.component';
-import {MailForwardSettingTableComponent} from './lib/mail/component/mail.forward.setting.table.component';
 import {UDFMetadataSecurityTableComponent} from './udfmetasecurity/components/udf.metadata.security.table.component';
 import {WatchlistUdfComponent} from './watchlist/component/watchlist.udf.component';
 import {UDFMetadataGeneralTableComponent} from './lib/udfmeta/components/udf.metadata.general.table.component';
@@ -158,7 +159,8 @@ const APP_ROUTES: Routes = [
             canActivate: [authGuard],
             children: [
               {
-                path: AppSettings.SECURITYACCOUNT_IMPORT_KEY + '/:id', component: SecurityaccountImportTransactionComponent,
+                path: AppSettings.SECURITYACCOUNT_IMPORT_KEY + '/:id',
+                component: SecurityaccountImportTransactionComponent,
                 canActivate: [authGuard]
               },
               {
@@ -243,12 +245,12 @@ const APP_ROUTES: Routes = [
         canActivate: [authGuard]
       },
       {
-        path:  BaseSettings.UDF_METADATA_GENERAL_KEY,
+        path: BaseSettings.UDF_METADATA_GENERAL_KEY,
         component: UDFMetadataGeneralTableComponent,
         canActivate: [authGuard]
       },
       {
-        path:  AppSettings.UDF_METADATA_SECURITY_KEY,
+        path: AppSettings.UDF_METADATA_SECURITY_KEY,
         component: UDFMetadataSecurityTableComponent,
         canActivate: [authGuard]
       },
@@ -293,19 +295,19 @@ const APP_ROUTES: Routes = [
         canActivate: [authGuard],
         children: [
           {
-            path: AppSettings.GT_NET_SETUP_KEY,
+            path: BaseSettings.GT_NET_SETUP_KEY,
             component: GTNetSetupTableComponent,
             canActivate: [authGuard]
           },
           {
-            path: AppSettings.GT_NET_ADMIN_MESSAGES_KEY,
+            path: BaseSettings.GT_NET_ADMIN_MESSAGES_KEY,
             component: GTNetAdminMessagesComponent,
             canActivate: [authGuard]
           }
         ]
       },
       {
-        path: AppSettings.GT_NET_MESSAGE_ANSWER_KEY,
+        path: BaseSettings.GT_NET_MESSAGE_ANSWER_KEY,
         component: GTNetMessageAnswerTableComponent,
         canActivate: [authGuard]
       },

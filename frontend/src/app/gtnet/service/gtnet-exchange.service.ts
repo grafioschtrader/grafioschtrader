@@ -8,7 +8,7 @@ import {LoginService} from '../../lib/login/service/log-in.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {BaseSettings} from '../../lib/base.settings';
 import {AppSettings} from '../../shared/app.settings';
-import {GTNetSupplierWithDetails, GTSecuritiyCurrencyExchange} from '../model/gtnet';
+import {GTNetSupplierWithDetails, GTSecuritiyCurrencyExchange} from '../../lib/gnet/model/gtnet';
 import {Security} from '../../entities/security';
 import {Currencypair} from '../../entities/currencypair';
 
