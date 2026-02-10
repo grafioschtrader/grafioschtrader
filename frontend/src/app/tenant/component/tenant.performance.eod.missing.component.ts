@@ -72,7 +72,7 @@ import {TenantPerformanceEodMissingTableComponent} from './tenant-performance-eo
       </tenant-performance-eod-missing-table>
 
       @if (contextMenuItems) {
-        <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="cmDiv">
+        <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="cmDiv" appendTo="body">
         </p-contextMenu>
       }
     </div>

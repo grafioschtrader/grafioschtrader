@@ -1,4 +1,5 @@
 ALTER TABLE gt_net_supplier_detail CHANGE COLUMN IF EXISTS id_securitycurrency id_entity INT;
+UPDATE security SET active_to_date = "2032-12-31" WHERE active_to_date = "2025-12-31" ;
 
 -- Child table for historical price data settings per supplier detail
 DROP TABLE IF EXISTS gt_net_supplier_detail_hist;

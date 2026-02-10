@@ -25,8 +25,8 @@ import {NgClass} from '@angular/common';
 import {Panel} from 'primeng/panel';
 import {Select} from 'primeng/select';
 import {FormsModule} from '@angular/forms';
-import {TreeTableModule} from 'primeng/treetable';
-import {ContextMenu} from 'primeng/contextmenu';
+import {ConfigurableTreeTableComponent} from '../../lib/datashowbase/configurable-tree-table.component';
+import {SharedModule} from 'primeng/api';
 
 /**
  * Shows the quality of historical price data per stock exchange or data provider.
@@ -34,7 +34,7 @@ import {ContextMenu} from 'primeng/contextmenu';
 @Component({
   template: `
     <div class="data-container" (click)="onComponentClick($event)"
-         #cmDiv [ngClass]=" {'active-border': isActivated(), 'passiv-border': !isActivated()}">
+         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
       <p-panel>
         <p-header>
           <h4>{{ 'SECURITY_HISTORY_QUALITY' | translate }} ({{ 'LAST_UPDATE' | translate }}: {{ lastUpdate }})</h4>
@@ -44,59 +44,37 @@ import {ContextMenu} from 'primeng/contextmenu';
                   (onChange)="groupChanged($event)">
         </p-select>
       </p-panel>
-      <p-treeTable [value]="qualityNode" [columns]="fields" dataKey="uniqueKey" sortField="name"
-                   selectionMode="single" [(selection)]="selectedNode" (onNodeSelect)="nodeSelect($event)">
-        <ng-template #header let-fields>
-          <tr>
-            @for (field of fields; track field) {
-              <th [ttSortableColumn]="field.field" [style.width.px]="field.width">
-                {{ field.headerTranslated }}
-                <p-treeTableSortIcon [field]="field.field"></p-treeTableSortIcon>
-              </th>
-            }
-          </tr>
-        </ng-template>
-        <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
-          <tr [ttSelectableRow]="rowNode">
-            @for (field of fields; track field; let i = $index) {
-              <td [ngClass]="{'text-end': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
+      <configurable-tree-table
+        [data]="qualityNode" [fields]="fields" dataKey="uniqueKey"
+        sortField="name"
+        [(selection)]="selectedNode" (nodeSelect)="nodeSelect($event)"
+        [contextMenuItems]="contextMenuItems" [showContextMenu]="!!contextMenuItems"
+        [valueGetterFn]="getValueByPath.bind(this)"
+        [footerTemplate]="qualityFooter">
+      </configurable-tree-table>
+      <ng-template #qualityFooter>
+        <tr>
+          @for (field of fields; track field) {
+            @if (field.visible) {
+              <td class="row-total" [style.width.px]="field.width"
+                  [ngClass]="{'text-end': (field.dataType===DataType.NumericInteger || field.dataType===DataType.Numeric
                 || field.dataType===DataType.DateTimeNumeric)}">
-                @if (i === 0) {
-                  <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
-                }
-                {{ getValueByPath(rowData, field) }}
+                {{ getValueColumnTotal(field, 0, historyquoteQualityHead, null) }}
               </td>
             }
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="footer">
-          <tr>
-            @for (field of fields; track field) {
-              @if (field.visible) {
-                <td class="row-total" [style.width.px]="field.width"
-                    [ngClass]="{'text-end': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
-                || field.dataType===DataType.DateTimeNumeric)}">
-                  {{ getValueColumnTotal(field, 0, historyquoteQualityHead, null) }}
-                </td>
-              }
-            }
-          </tr>
-        </ng-template>
-      </p-treeTable>
+          }
+        </tr>
+      </ng-template>
       <security-historyquote-quality-table [historyquoteQualityIds]="historyquoteQualityIds"
                                            [groupTitle]="groupTitle"
                                            (changedIdSecurity)="handleChangedIdSecurity($event)">
       </security-historyquote-quality-table>
-      @if (contextMenuItems) {
-        <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="cmDiv">
-        </p-contextMenu>
-      }
     </div>
   `,
   standalone: true,
   imports: [
-    NgClass, TranslatePipe, Panel, Select, FormsModule,
-    TreeTableModule, ContextMenu, SecurityHistoryquoteQualityTableComponent
+    NgClass, TranslatePipe, Panel, SharedModule, Select, FormsModule,
+    ConfigurableTreeTableComponent, SecurityHistoryquoteQualityTableComponent
   ]
 })
 export class SecurityHistoryquoteQualityTreetableComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {

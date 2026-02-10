@@ -15,7 +15,7 @@ import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-fo
   selector: 'indicator-edit',
   template: `
     <p-dialog header="{{'DEFINITION' | translate}}: {{taEditParam.taIndicators | translate}}"
-              [(visible)]="visibleDialog"
+              [visible]="visibleDialog"
               [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

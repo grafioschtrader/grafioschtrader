@@ -1,5 +1,4 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {NgClass} from '@angular/common';
 import {GTNetExchangeService} from '../service/gtnet-exchange.service';
 import {
   GTNetExchangeKindType,
@@ -11,7 +10,7 @@ import {TranslateService} from '@ngx-translate/core';
 import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {TreeNode} from 'primeng/api';
-import {TreeTableModule} from 'primeng/treetable';
+import {ConfigurableTreeTableComponent} from '../../lib/datashowbase/configurable-tree-table.component';
 
 /**
  * Displays supplier details for a security or currency pair as a tree table.
@@ -21,33 +20,13 @@ import {TreeTableModule} from 'primeng/treetable';
 @Component({
   selector: 'gtnet-supplier-detail-table',
   standalone: true,
-  imports: [NgClass, TreeTableModule],
+  imports: [ConfigurableTreeTableComponent],
   template: `
-    <p-treeTable [value]="treeNodes" [columns]="fields" dataKey="uniqueKey">
-      <ng-template #header let-fields>
-        <tr>
-          @for (field of fields; track field) {
-            <th [ttSortableColumn]="field.field" [style.width.px]="field.width">
-              {{ field.headerTranslated }}
-              <p-treeTableSortIcon [field]="field.field"></p-treeTableSortIcon>
-            </th>
-          }
-        </tr>
-      </ng-template>
-      <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
-        <tr [ttSelectableRow]="rowNode">
-          @for (field of fields; track field; let i = $index) {
-            <td [ngClass]="{'text-end': (field.dataType===DataType.NumericInteger || field.dataType===DataType.Numeric
-                || field.dataType===DataType.DateTimeNumeric)}">
-              @if (i === 0) {
-                <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
-              }
-              {{ getValueByPath(rowData, field) }}
-            </td>
-          }
-        </tr>
-      </ng-template>
-    </p-treeTable>
+    <configurable-tree-table
+      [data]="treeNodes" [fields]="fields" dataKey="uniqueKey"
+      [selectionMode]="null"
+      [valueGetterFn]="getValueByPath.bind(this)">
+    </configurable-tree-table>
   `
 })
 export class GTNetSupplierDetailTableComponent extends TreeTableConfigBase implements OnInit {
@@ -55,7 +34,6 @@ export class GTNetSupplierDetailTableComponent extends TreeTableConfigBase imple
   /** Discriminator type: 'S' for Security, 'C' for Currencypair */
   @Input() dtype: string;
 
-  override DataType = DataType;
   treeNodes: TreeNode[] = [];
 
   constructor(private gtNetExchangeService: GTNetExchangeService,

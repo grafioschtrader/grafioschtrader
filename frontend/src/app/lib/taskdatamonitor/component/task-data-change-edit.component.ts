@@ -92,9 +92,10 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
       const hasEntityIdOptions = entity && this.tdcFormConstraints.entityIdOptions
         && this.tdcFormConstraints.entityIdOptions[entity];
       if (hasEntityIdOptions) {
-        // Convert backend options to form options and show as dropdown
-        this.configObject.idEntity.valueKeyHtmlOptions = this.tdcFormConstraints.entityIdOptions[entity]
-          .map((opt: EntityIdOption) => new ValueKeyHtmlSelectOptions(opt.key, opt.value));
+        // Convert backend options to form options, translate, and show as dropdown
+        this.configObject.idEntity.valueKeyHtmlOptions = SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(
+          this.translateService, this.tdcFormConstraints.entityIdOptions[entity]
+            .map((opt: EntityIdOption) => new ValueKeyHtmlSelectOptions(opt.key, opt.value)), false);
       } else {
         // No options available - show as number input
         this.configObject.idEntity.valueKeyHtmlOptions = null;

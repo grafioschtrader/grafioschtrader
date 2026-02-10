@@ -254,7 +254,8 @@ interface HeaderGroupItem {
         <!-- Body template -->
         <ng-template pTemplate="body" let-rowData let-expanded="expanded" let-columns="columns">
           <tr [pSelectableRow]="rowData"
-              [pContextMenuRow]="contextMenuEnabled ? rowData : null">
+              [pContextMenuRow]="contextMenuEnabled ? rowData : null"
+              [ngClass]="getRowClass(rowData)">
 
             <!-- Expansion toggle cell -->
             @if (expandable) {
@@ -677,6 +678,13 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
   @Input() valueGetterFn?: (row: T, field: ColumnConfig) => any;
 
   // ============================================================================
+  // Row Behavior Callbacks
+  // ============================================================================
+
+  /** Callback returning CSS class(es) for a row based on row data. */
+  @Input() rowClassFn?: (row: T) => string | null;
+
+  // ============================================================================
   // Column Resizing
   // ============================================================================
 
@@ -815,6 +823,16 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
     }
     // Default to path-based access
     return Helper.getValueByPath(row, field.field);
+  }
+
+  /**
+   * Returns CSS class(es) for a row using the rowClassFn callback.
+   *
+   * @param row - Row data object
+   * @returns CSS class string or null
+   */
+  getRowClass(row: T): string | null {
+    return this.rowClassFn ? this.rowClassFn(row) : null;
   }
 
   /**
