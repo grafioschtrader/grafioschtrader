@@ -7,9 +7,7 @@ import {GlobalparameterService} from '../../lib/services/globalparameter.service
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {TreeNode} from 'primeng/api';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
-import {TreeTableModule} from 'primeng/treetable';
-import {CommonModule} from '@angular/common';
-import {TooltipModule} from 'primeng/tooltip';
+import {ConfigurableTreeTableComponent} from '../../lib/datashowbase/configurable-tree-table.component';
 
 /**
  * Shows statistical data about an instrument.
@@ -18,55 +16,21 @@ import {TooltipModule} from 'primeng/tooltip';
   selector: 'instrument-statistics-summary',
   template: `
     <div class="datatable nestedtable" style="min-width: 200px; max-width: 400px;">
-      <p-treeTable [value]="rootNodes" [columns]="fields">
-        <ng-template #caption>
-          <div style="text-align:left">
-            <h5>{{"STATISTICS_DATA" | translate}}</h5>
-          </div>
-        </ng-template>
-        <ng-template #header let-fields>
-          <tr>
-            @for (field of fields; track field.headerTranslated) {
-              <th [style.width.px]="field.width">
-                {{field.headerTranslated}}
-              </th>
-            }
-          </tr>
-        </ng-template>
-        <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
-          <tr>
-            @for (field of fields; track field.headerTranslated; let i = $index) {
-              @if (field.visible) {
-                <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-end': ''"
-                    [style.width.px]="field.width">
-                  @if (i === 0) {
-                    <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
-                  }
-                  @switch (field.templateName) {
-                    @case ('greenRed') {
-                      <span [pTooltip]="getValueByPath(rowData, field)"
-                            [style.color]='isValueByPathMinus(rowData, field)? "red": "inherit"'
-                            tooltipPosition="top">
-                        {{getValueByPath(rowData, field)}}
-                      </span>
-                    }
-                    @default {
-                      <span [pTooltip]="getValueByPath(rowData, field)">{{getValueByPath(rowData, field)}}</span>
-                    }
-                  }
-                </td>
-              }
-            }
-          </tr>
-        </ng-template>
-      </p-treeTable>
+      <configurable-tree-table
+        [data]="rootNodes" [fields]="fields"
+        [selectionMode]="null" [enableSort]="false"
+        [showGridlines]="false"
+        [valueGetterFn]="getValueByPath.bind(this)"
+        [negativeValueFn]="isValueByPathMinus.bind(this)">
+        <div caption style="text-align:left">
+          <h5>{{ "STATISTICS_DATA" | translate }}</h5>
+        </div>
+      </configurable-tree-table>
     </div>
   `,
   imports: [
     TranslateModule,
-    TreeTableModule,
-    CommonModule,
-    TooltipModule
+    ConfigurableTreeTableComponent
   ],
   standalone: true
 })

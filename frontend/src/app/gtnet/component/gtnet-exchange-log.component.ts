@@ -1,8 +1,6 @@
 import {Component, Input, OnInit, TemplateRef, ViewChild} from '@angular/core';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {TreeNode} from 'primeng/api';
-import {TreeTableModule} from 'primeng/treetable';
-import {TooltipModule} from 'primeng/tooltip';
 import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {GTNetExchangeLogService} from '../service/gtnet-exchange-log.service';
@@ -12,6 +10,7 @@ import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ActivatedRoute} from '@angular/router';
 import {AppSettings} from '../../shared/app.settings';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
+import {ConfigurableTreeTableComponent} from '../../lib/datashowbase/configurable-tree-table.component';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {ShowRecordConfigBase} from '../../lib/datashowbase/show.record.config.base';
 import {HelpIds} from '../../lib/help/help.ids';
@@ -26,10 +25,9 @@ import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.ser
   selector: 'gtnet-exchange-log',
   standalone: true,
   imports: [
-    TreeTableModule,
-    TooltipModule,
     TranslateModule,
-    ConfigurableTableComponent
+    ConfigurableTableComponent,
+    ConfigurableTreeTableComponent
   ],
   template: `
     <configurable-table
@@ -51,30 +49,12 @@ import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.ser
         <!-- Supplier Statistics -->
         <h5>{{ 'SUPPLIER_STATISTICS' | translate }}</h5>
         @if (hasData(tree.supplierTotal)) {
-          <p-treeTable
-            [value]="getSupplierNodes(tree)"
-            [columns]="fields"
-            [scrollable]="true">
-            <ng-template pTemplate="header" let-columns>
-              <tr>
-                @for (col of columns; track col.field) {
-                  <th [style.width.px]="col.width">{{ col.headerTranslated }}</th>
-                }
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
-              <tr>
-                @for (col of columns; track col.field; let i = $index) {
-                  <td>
-                    @if (i === 0) {
-                      <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
-                    }
-                    {{ getValueByPath(rowData, col) }}
-                  </td>
-                }
-              </tr>
-            </ng-template>
-          </p-treeTable>
+          <configurable-tree-table
+            [data]="getSupplierNodes(tree)" [fields]="fields"
+            [selectionMode]="null" [enableSort]="false"
+            [scrollable]="true"
+            [valueGetterFn]="getValueByPath.bind(this)">
+          </configurable-tree-table>
         } @else {
           <p class="no-data">{{ 'NO_DATA_AVAILABLE' | translate }}</p>
         }
@@ -82,30 +62,12 @@ import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.ser
         <!-- Consumer Statistics -->
         <h5 class="mt-3">{{ 'CONSUMER_STATISTICS' | translate }}</h5>
         @if (hasData(tree.consumerTotal)) {
-          <p-treeTable
-            [value]="getConsumerNodes(tree)"
-            [columns]="fields"
-            [scrollable]="true">
-            <ng-template pTemplate="header" let-columns>
-              <tr>
-                @for (col of columns; track col.field) {
-                  <th [style.width.px]="col.width">{{ col.headerTranslated }}</th>
-                }
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
-              <tr>
-                @for (col of columns; track col.field; let i = $index) {
-                  <td>
-                    @if (i === 0) {
-                      <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
-                    }
-                    {{ getValueByPath(rowData, col) }}
-                  </td>
-                }
-              </tr>
-            </ng-template>
-          </p-treeTable>
+          <configurable-tree-table
+            [data]="getConsumerNodes(tree)" [fields]="fields"
+            [selectionMode]="null" [enableSort]="false"
+            [scrollable]="true"
+            [valueGetterFn]="getValueByPath.bind(this)">
+          </configurable-tree-table>
         } @else {
           <p class="no-data">{{ 'NO_DATA_AVAILABLE' | translate }}</p>
         }

@@ -2,9 +2,8 @@ import {CommonModule} from '@angular/common';
 import {Component, EventEmitter, Injector, Input, OnChanges, OnInit, Output} from '@angular/core';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {FilterService} from 'primeng/api';
-import {TableModule} from 'primeng/table';
-import {TooltipModule} from 'primeng/tooltip';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
+import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
@@ -19,43 +18,25 @@ import {IFeedConnector} from '../../shared/securitycurrency/ifeed.connector';
 @Component({
   selector: 'tenant-performance-eod-missing-table',
   template: `
-    <p-table [columns]="fields" [value]="securities" selectionMode="single"
-             [(selection)]="selectedSecurity" (onRowSelect)="onRowSelect($event)"
-             (onRowUnselect)="onRowUnselect($event)"
-             dataKey="idSecuritycurrency" (sortFunction)="customSort($event)" [customSort]="true"
-             sortMode="multiple" [multiSortMeta]="multiSortMeta"
-             stripedRows showGridlines>
-      <ng-template #caption>
-        <h5>{{ 'MISSING_DAY_TABLE_MARK'|translate }}</h5>
-      </ng-template>
-      <ng-template #header let-fields>
-        <tr>
-          @for (field of fields; track field) {
-            <th [pSortableColumn]="field.field" [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-              {{ field.headerTranslated }}
-              <p-sortIcon [field]="field.field"></p-sortIcon>
-            </th>
-          }
-        </tr>
-      </ng-template>
-      <ng-template #body let-el let-columns="fields">
-        <tr [pSelectableRow]="el"
-            [ngClass]="selectedDayIdSecurities.indexOf(el.idSecuritycurrency)>= 0 ? 'rowgroup-total' : null">
-          @for (field of fields; track field) {
-            <td
-              [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-end': ''"
-              [style.max-width.px]="field.width"
-              [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-              <span [pTooltip]="getValueByPath(el, field)" tooltipPosition="top">{{ getValueByPath(el, field) }}</span>
-            </td>
-          }
-        </tr>
-      </ng-template>
-    </p-table>
+    <configurable-table
+      [data]="securities"
+      [fields]="fields"
+      dataKey="idSecuritycurrency"
+      selectionMode="single"
+      [selection]="selectedSecurity"
+      (selectionChange)="onSelectionChange($event)"
+      [enableCustomSort]="true"
+      [customSortFn]="customSort.bind(this)"
+      sortMode="multiple"
+      [multiSortMeta]="multiSortMeta"
+      [valueGetterFn]="getValueByPath.bind(this)"
+      [baseLocale]="baseLocale"
+      [rowClassFn]="getRowHighlightClass.bind(this)">
+      <h5 caption>{{ 'MISSING_DAY_TABLE_MARK' | translate }}</h5>
+    </configurable-table>
   `,
   standalone: true,
-  imports: [CommonModule, TranslateModule, TableModule, TooltipModule]
+  imports: [CommonModule, TranslateModule, ConfigurableTableComponent]
 })
 export class TenantPerformanceEodMissingTableComponent extends TableConfigBase implements OnInit, OnChanges {
   /**
@@ -98,12 +79,13 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
     return this.feedConnectorsKV ? this.feedConnectorsKV[valueField] : null;
   }
 
-  onRowSelect(event): void {
-    this.changedSecurity.emit(this.selectedSecurity);
+  onSelectionChange(security: Security): void {
+    this.selectedSecurity = security;
+    this.changedSecurity.emit(security);
   }
 
-  onRowUnselect(event): void {
-    this.changedSecurity.emit(this.selectedSecurity);
+  getRowHighlightClass(row: Security): string | null {
+    return this.selectedDayIdSecurities.indexOf(row.idSecuritycurrency) >= 0 ? 'rowgroup-total' : null;
   }
 
   ngOnInit(): void {
@@ -114,7 +96,6 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
       }, {} as { [key: string]: string });
     });
   }
-
 
   ngOnChanges(): void {
     if (this.selectedDayIdSecurities.length > 0) {

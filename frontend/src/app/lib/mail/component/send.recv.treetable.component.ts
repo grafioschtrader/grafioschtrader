@@ -3,11 +3,8 @@ import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {ColumnConfig, TranslateValue} from '../../datashowbase/column.config';
-import {Component, OnInit, ViewChild} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {TreeTableModule} from 'primeng/treetable';
-import {ContextMenuModule} from 'primeng/contextmenu';
-import {TooltipModule} from 'primeng/tooltip';
 import {Textarea} from 'primeng/textarea';
 import {AngularSvgIconModule} from 'angular-svg-icon';
 import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach';
@@ -25,73 +22,39 @@ import {MessageToastService} from '../../message/message.toast.service';
 import {DynamicDialogs} from '../../dynamicdialog/component/dynamic.dialogs';
 import {BaseSettings} from '../../base.settings';
 import {HelpIds} from '../../help/help.ids';
+import {ConfigurableTreeTableComponent} from '../../datashowbase/configurable-tree-table.component';
 
 /**
  * This component contains a tree structure for displaying sent and received messages. The message text is displayed in a text area.
  */
 @Component({
   template: `
-    <div class="data-container" (click)="onComponentClick($event)"
-         #cmDiv [ngClass]=" {'active-border': isActivated(), 'passiv-border': !isActivated()}">
-      <p-treeTable [value]="sendRecvRootNode" [columns]="fields" dataKey="idMailSendRecv"
-                   selectionMode="single" [(selection)]="selectedNode" (onNodeSelect)="nodeSelect($event)"
-                   sortField="sendRecvTime" [sortOrder]="sortOrder" showGridlines="true">
-        <ng-template #caption>
-          <div style="text-align:left">
-            <h5>{{ "MAIL_TO_FROM" | translate }} {{ gps.getIdUser() }}, {{ "MOST_PRIVILEGED_ROLE" | translate }}
-              : {{ gps.getMostPrivilegedRole() | translate }}</h5>
-          </div>
-        </ng-template>
-        <ng-template #header let-fields>
-          <tr>
-            @for (field of fields; track field.field) {
-              <th [ttSortableColumn]="field.field" [style.width.px]="field.width"
-                  [pTooltip]="field.headerTooltipTranslated">
-                {{ field.headerTranslated }}
-                <p-treeTableSortIcon [field]="field.field"></p-treeTableSortIcon>
-              </th>
-            }
-          </tr>
-        </ng-template>
-        <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
-          <tr [ngClass]="rowNode.level === 0 && rowNode.node?.children.length > 0 ? 'row-total' : null"
-              [ttSelectableRow]="rowNode">
-            @for (field of fields; track field.field; let i = $index) {
-              <td [ngClass]="{'text-end': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
-            || field.dataType===DataType.DateTimeNumeric)}">
-                @if (i === 0) {
-                  <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
-                }
-                @switch (field.templateName) {
-                  @case ('check') {
-                    <span><i [ngClass]="{'fa fa-check': getValueByPath(rowData, field)}"
-                             aria-hidden="true"></i></span>
-                  }
-                  @case ('icon') {
-                    <svg-icon [name]="getValueByPath(rowData, field)"
-                              [svgStyle]="{ 'width.px':16, 'height.px':16 }"></svg-icon>
-                  }
-                  @default {
-                    {{ getValueByPath(rowData, field) }}
-                  }
-                }
-              </td>
-            }
-          </tr>
-        </ng-template>
-      </p-treeTable>
-      <textarea [rows]="15" pTextarea
-                readonly="true">{{ selectedNode ? selectedNode.data.message : "" }}</textarea>
-      <p-contextMenu [model]="contextMenuItems" [target]="cmDiv"></p-contextMenu>
-    </div>
+    <configurable-tree-table
+      [data]="sendRecvRootNode" [fields]="fields" dataKey="idMailSendRecv"
+      [(selection)]="selectedNode" (nodeSelect)="nodeSelect($event)"
+      sortField="sendRecvTime" [sortOrder]="sortOrder"
+      [contextMenuItems]="contextMenuItems" [showContextMenu]="true"
+      [containerClass]="{'data-container': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+      [rowClassFn]="getRowClass.bind(this)"
+      [valueGetterFn]="getValueByPath.bind(this)"
+      (componentClick)="onComponentClick($event)">
+      <div caption style="text-align:left">
+        <h5>{{ "MAIL_TO_FROM" | translate }} {{ gps.getIdUser() }}, {{ "MOST_PRIVILEGED_ROLE" | translate }}
+          : {{ gps.getMostPrivilegedRole() | translate }}</h5>
+      </div>
+      <ng-template #iconCell let-row let-field="field" let-value="value">
+        <svg-icon [name]="value" [svgStyle]="{ 'width.px':16, 'height.px':16 }"></svg-icon>
+      </ng-template>
+    </configurable-tree-table>
+    <textarea [rows]="15" pTextarea
+              readonly="true">{{ selectedNode ? selectedNode.data.message : "" }}</textarea>
   `,
   styles: ['textarea { width:100%; }'],
   providers: [DialogService],
   standalone: true,
-  imports: [CommonModule, TreeTableModule, ContextMenuModule, TooltipModule, Textarea, AngularSvgIconModule, TranslateModule]
+  imports: [CommonModule, Textarea, AngularSvgIconModule, TranslateModule, ConfigurableTreeTableComponent]
 })
 export class SendRecvTreetableComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {
-  @ViewChild('cm') contextMenu: any;
   public static createSendRecvIconMap: { [key: string]: string } = {
     [SendRecvType.SEND]: 'send',
     [SendRecvType.RECEIVE]: 'envelope',
@@ -199,6 +162,10 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
     }
   }
 
+  getRowClass(rowNode: any, rowData: any): string | null {
+    return rowNode.level === 0 && rowNode.node?.children?.length > 0 ? 'row-total' : null;
+  }
+
   getSendRecvIcon(entity: MailSendRecv, field: ColumnConfig,
     valueField: any): string {
     return entity.idUserTo && (entity.idUserTo !== this.gps.getIdUser() && entity.sendRecv === SendRecvType.RECEIVE
@@ -243,7 +210,6 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
   }
 
   onComponentClick(event): void {
-    this.contextMenu && this.contextMenu.hide();
     this.setMenuItemsToActivePanel();
   }
 
@@ -267,7 +233,6 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
   }
 
   hideContextMenu(): void {
-    this.contextMenu && this.contextMenu.hide();
   }
 
   callMeDeactivate(): void {

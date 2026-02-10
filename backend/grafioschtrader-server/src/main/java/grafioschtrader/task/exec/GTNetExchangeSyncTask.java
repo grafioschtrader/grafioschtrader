@@ -114,7 +114,7 @@ public class GTNetExchangeSyncTask implements ITask {
 
     // Get all accessible AC_OPEN suppliers, excluding own entry to prevent self-communication
     Integer myEntryId = globalparametersJpaRepository.getGTNetMyEntryID();
-    List<GTNet> allSuppliers = gtNetJpaRepository.findOpenSuppliers().stream()
+    List<GTNet> allSuppliers = gtNetJpaRepository.findAll().stream()
         .filter(peer -> myEntryId == null || !peer.getIdGtNet().equals(myEntryId))
         .collect(Collectors.toList());
 
