@@ -376,6 +376,7 @@
   "SYNCMODE": "Sync-Modus",
   "HISTORIC": "Historisch",
   "HISTORICAL": "Historisch",
+  "HISTORICAL_PRICES": "Historische Preise (HP)",
   "HISTORICAL_URL": "Historische Daten-Hyperlink",
   "HISTORICAL_PRICE": "Historischer Preis",
   "HISTORICAL_URL_TITLE": "Öffnet den Hyperlink in diesem Browser oder lädt die entsprechende Datei herunter",

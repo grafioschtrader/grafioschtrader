@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import grafiosch.entities.GTNet;
+import grafiosch.gtnet.model.ExchangeKindTypeInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -56,14 +57,20 @@ public class GTNetWithMessages {
       creating a new discontinued message when one is already open.""")
   public Integer idOpenDiscontinuedMessage;
 
+  @Schema(description = """
+      Metadata about all registered exchange kind types. Allows the frontend to dynamically build
+      entity kind lists and determine per-kind capabilities without hardcoding enum values.""")
+  public List<ExchangeKindTypeInfo> exchangeKindTypes;
+
   public GTNetWithMessages(List<GTNet> gtNetList, Map<Integer, Integer> gtNetMessageCountMap,
       Map<Integer, List<Integer>> outgoingPendingReplies, Map<Integer, List<Integer>> incomingPendingReplies,
-      Integer gtNetMyEntryId, Integer idOpenDiscontinuedMessage) {
+      Integer gtNetMyEntryId, Integer idOpenDiscontinuedMessage, List<ExchangeKindTypeInfo> exchangeKindTypes) {
     this.gtNetList = gtNetList;
     this.gtNetMessageCountMap = gtNetMessageCountMap;
     this.outgoingPendingReplies = outgoingPendingReplies;
     this.incomingPendingReplies = incomingPendingReplies;
     this.gtNetMyEntryId = gtNetMyEntryId;
     this.idOpenDiscontinuedMessage = idOpenDiscontinuedMessage;
+    this.exchangeKindTypes = exchangeKindTypes;
   }
 }

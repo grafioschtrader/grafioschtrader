@@ -1,4 +1,4 @@
-import {Directive, Injector, OnDestroy, OnInit, ViewChild, inject} from '@angular/core';
+import {Directive, Injector, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {ConfirmationService, FilterService, MenuItem, SortEvent} from 'primeng/api';
 import {DialogService} from 'primeng/dynamicdialog';
@@ -6,10 +6,9 @@ import {DialogService} from 'primeng/dynamicdialog';
 import {CrudMenuOptions, TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {GTNetExchangeFields} from '../model/gtnet';
+import {GTNetExchangeFields} from '../../lib/gnet/model/gtnet';
 import {GTNetExchangeService} from '../service/gtnet-exchange.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {FilterType} from '../../lib/datashowbase/filter.type';
 import {HelpIds} from '../../lib/help/help.ids';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
@@ -31,7 +30,7 @@ import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-ta
  */
 @Directive()
 export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GTNetExchangeFields>
-    extends TableCrudSupportMenu<T> implements OnInit, OnDestroy {
+  extends TableCrudSupportMenu<T> implements OnInit, OnDestroy {
 
   /** Set of modified item IDs for batch save tracking */
   modifiedItems: Set<number> = new Set();
@@ -92,13 +91,13 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
    * Uses the new field names directly on the entity.
    */
   protected addCheckboxColumns(): void {
-    this.addColumnFeqH(DataType.Boolean, 'gtNetLastpriceRecv',  true, false,
+    this.addColumnFeqH(DataType.Boolean, 'gtNetLastpriceRecv', true, false,
       {width: 80, templateName: 'checkbox'});
-    this.addColumnFeqH(DataType.Boolean, 'gtNetHistoricalRecv',  true, false,
+    this.addColumnFeqH(DataType.Boolean, 'gtNetHistoricalRecv', true, false,
       {width: 80, templateName: 'checkbox'});
-    this.addColumnFeqH(DataType.Boolean, 'gtNetLastpriceSend',  true, false,
+    this.addColumnFeqH(DataType.Boolean, 'gtNetLastpriceSend', true, false,
       {width: 80, templateName: 'checkbox'});
-    this.addColumnFeqH(DataType.Boolean, 'gtNetHistoricalSend',  true, false,
+    this.addColumnFeqH(DataType.Boolean, 'gtNetHistoricalSend', true, false,
       {width: 80, templateName: 'checkbox'});
   }
 

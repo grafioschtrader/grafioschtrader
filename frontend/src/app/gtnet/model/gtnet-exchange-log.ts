@@ -1,4 +1,4 @@
-import {GTNetExchangeKindType} from './gtnet';
+import {GTNetExchangeKindType} from '../../lib/gnet/model/gtnet';
 
 /**
  * Period types for GTNet exchange log aggregation.

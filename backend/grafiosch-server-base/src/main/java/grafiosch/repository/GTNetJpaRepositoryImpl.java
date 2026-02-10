@@ -65,6 +65,7 @@ import grafiosch.gtnet.handler.HandlerResult;
 import grafiosch.gtnet.m2m.model.GTNetEntityPublicDTO;
 import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
+import grafiosch.gtnet.model.ExchangeKindTypeInfo;
 import grafiosch.gtnet.model.GTNetWithMessages;
 import grafiosch.gtnet.model.MsgRequest;
 import grafiosch.gtnet.model.MultiTargetMsgRequest;
@@ -159,8 +160,12 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
         SendReceivedType.SEND.getValue(), GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_ALL_C.getValue(),
         GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C.getValue());
 
+    List<ExchangeKindTypeInfo> exchangeKindTypes = exchangeKindTypeRegistry.getAllKinds().stream()
+        .map(ExchangeKindTypeInfo::new).collect(Collectors.toList());
+
     return new GTNetWithMessages(gtNetJpaRepository.findAll(), gtNetMessageCountMap, outgoingPendingReplies,
-        incomingPendingReplies, globalparametersJpaRepository.getGTNetMyEntryID(), idOpenDiscontinuedMessage);
+        incomingPendingReplies, globalparametersJpaRepository.getGTNetMyEntryID(), idOpenDiscontinuedMessage,
+        exchangeKindTypes);
   }
 
   @Override

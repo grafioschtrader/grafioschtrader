@@ -184,6 +184,7 @@ export abstract class ShowRecordConfigBase {
       cc.headerSuffix = optionalParams.headerSuffix;
       cc.translateValues = optionalParams.translateValues;
       cc.headerPrefix = optionalParams.headerPrefix;
+      cc.headerGroupKey = optionalParams.headerGroupKey;
       cc.templateName = (optionalParams.templateName) ? optionalParams.templateName : '';
       cc.maxFractionDigits = optionalParams.maxFractionDigits;
       cc.minFractionDigits = optionalParams.minFractionDigits;
@@ -345,11 +346,18 @@ export abstract class ShowRecordConfigBase {
    * @protected
    */
   protected translateHeaders(translateHeaderKeys: string[], columConfig: ColumnConfig[]): void {
-    this.translateService.get(translateHeaderKeys.filter(thk => !!thk)).subscribe((allTranslatedTexts: any) =>
-      columConfig.map(field => field.headerTranslated =
-        ((field.headerPrefix == null) ? '' : field.headerSuffix + ' ')
-        + allTranslatedTexts[field.headerKey]
-        + ((field.headerSuffix == null) ? '' : ' ' + field.headerSuffix))
+    const groupKeys = columConfig.map(f => f.headerGroupKey).filter(k => !!k);
+    const allKeys = [...new Set([...translateHeaderKeys.filter(thk => !!thk), ...groupKeys])];
+    this.translateService.get(allKeys).subscribe((allTranslatedTexts: any) =>
+      columConfig.map(field => {
+        field.headerTranslated =
+          ((field.headerPrefix == null) ? '' : field.headerSuffix + ' ')
+          + allTranslatedTexts[field.headerKey]
+          + ((field.headerSuffix == null) ? '' : ' ' + field.headerSuffix);
+        if (field.headerGroupKey) {
+          field.headerGroupTranslated = allTranslatedTexts[field.headerGroupKey];
+        }
+      })
     );
   }
 

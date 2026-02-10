@@ -8,7 +8,7 @@ import {GlobalparameterService} from '../../../lib/services/globalparameter.serv
 import {DataType} from '../../../lib/dynamic-form/models/data.type';
 import {TranslateValue} from '../../../lib/datashowbase/column.config';
 import {GTNetSecurityImpGap} from '../model/gtnet-security-imp-gap';
-import {GTNet} from '../../../gtnet/model/gtnet';
+import {GTNet} from '../../../lib/gnet/model/gtnet';
 import {GapCodeType} from '../model/gap-code.type';
 
 /** Maps numeric gap codes to translation keys */

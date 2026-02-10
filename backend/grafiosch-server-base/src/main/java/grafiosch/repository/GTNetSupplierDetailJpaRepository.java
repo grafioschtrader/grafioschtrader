@@ -16,12 +16,13 @@ public interface GTNetSupplierDetailJpaRepository extends JpaRepository<GTNetSup
 
   /**
    * Deletes all GTNetSupplierDetail entries for a specific GTNet peer.
-   * Used during full recreation mode to clear existing entries before creating new ones.
+   * Uses native query so that DB-level ON DELETE CASCADE triggers cleanup of child tables
+   * (gt_net_supplier_detail_hist, gt_net_supplier_detail_last).
    *
    * @param idGtNet the GTNet peer ID whose supplier details should be deleted
    */
   @Modifying
-  @Query("DELETE FROM GTNetSupplierDetail d WHERE d.gtNetConfig.idGtNet = ?1")
+  @Query(value = "DELETE FROM gt_net_supplier_detail WHERE id_gt_net = ?1", nativeQuery = true)
   void deleteByIdGtNet(Integer idGtNet);
 
   /**

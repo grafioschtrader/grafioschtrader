@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -92,6 +93,26 @@ public class ExchangeSyncMsg {
 
     @Schema(description = "Whether this server offers historical prices for this instrument")
     public boolean historicalSend;
+
+    // History settings (populated when historicalSend=true)
+    @Schema(description = "Retry counter for historical price data downloads")
+    public Short retryHistoryLoad;
+
+    @Schema(description = "Earliest available history date (yyyy-MM-dd)")
+    public String historyMinDate;
+
+    @Schema(description = "Latest available history date (yyyy-MM-dd)")
+    public String historyMaxDate;
+
+    @Schema(description = "Percentage of quotes with valid OHL values (0-100)")
+    public Double ohlPercentage;
+
+    // Intra settings (populated when lastpriceSend=true)
+    @Schema(description = "Retry counter for intraday price data downloads")
+    public Short retryIntraLoad;
+
+    @Schema(description = "Timestamp of last intraday price update")
+    public Date sTimestamp;
 
     public ExchangeSyncItem() {
     }

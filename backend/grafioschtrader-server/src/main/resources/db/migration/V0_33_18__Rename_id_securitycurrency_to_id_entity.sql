@@ -1,0 +1,1 @@
+ALTER TABLE gt_net_supplier_detail CHANGE COLUMN IF EXISTS id_securitycurrency id_entity INT;

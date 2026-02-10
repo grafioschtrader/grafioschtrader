@@ -1,14 +1,19 @@
-import {BaseID} from '../../lib/entities/base.id';
-import {MessageComType} from '../../lib/mail/model/mail.send.recv';
-import {BaseParam} from '../../lib/entities/base.param';
+import {BaseID} from '../../entities/base.id';
+import {MessageComType} from '../../mail/model/mail.send.recv';
+import {BaseParam} from '../../entities/base.param';
+
+// Re-export from shared for backward compatibility with non-migrated components
+export {GTNetExchangeKindType} from '../../../shared/gtnet/model/gtnet-exchange-kind.type';
 
 /**
- * Enum for entity kinds - types of data that can be exchanged.
+ * Metadata about an exchange kind type, provided by the backend.
+ * Allows the frontend to dynamically build entity kind lists without hardcoding enum values.
  */
-export enum GTNetExchangeKindType {
-  LAST_PRICE = 0,
-  HISTORICAL_PRICES = 1,
-  SECURITY_METADATA = 2
+export interface ExchangeKindTypeInfo {
+  name: string;
+  value: number;
+  supportsPush: boolean;
+  syncable: boolean;
 }
 
 /**
@@ -42,7 +47,7 @@ export enum SupplierConsumerLogTypes {
 export interface GTNetEntity {
   idGtNetEntity?: number;
   idGtNet: number;
-  entityKind: GTNetExchangeKindType|string;
+  entityKind: number|string;
   serverState: GTNetServerStateTypes;
   acceptRequest: AcceptRequestTypes|string;
   /**
@@ -80,6 +85,8 @@ export interface GTNetConfig {
    * Incremented when the remote sends a request that exceeds the configured max_limit.
    */
   requestViolationCount?: number;
+  /** Timestamp of the last successful supplier detail update from the exchange sync job. */
+  supplierLastUpdate?: string;
 }
 
 export class GTNet implements BaseID {
@@ -135,6 +142,8 @@ export interface GTNetWithMessages {
    * Only one such message can be open at a time per instance.
    */
   idOpenDiscontinuedMessage: number;
+  /** Metadata about all registered exchange kind types from the backend. */
+  exchangeKindTypes: ExchangeKindTypeInfo[];
 }
 
 export enum GTNetServerStateTypes {
@@ -169,17 +178,45 @@ export interface GTNetSupplierDetail {
   idGtNetSupplierDetail: number;
   idGtNet: number;
   idEntity: number;
-  entityKind: GTNetExchangeKindType;
+  entityKind: number;
+}
+
+/**
+ * Historical price data quality settings for a supplier detail entry.
+ */
+export interface GTNetSupplierDetailHist {
+  retryHistoryLoad?: number;
+  historyMinDate?: string;
+  historyMaxDate?: string;
+  ohlPercentage?: number;
+}
+
+/**
+ * Intraday price settings for a supplier detail entry.
+ */
+export interface GTNetSupplierDetailLast {
+  retryIntraLoad?: number;
+  sTimestamp?: number;
+}
+
+/**
+ * Combines a GTNetSupplierDetail with its optional settings.
+ * For HISTORICAL_PRICES entries, histSettings is populated; for LAST_PRICE entries, lastSettings is populated.
+ */
+export interface GTNetSupplierDetailWithSettings {
+  detail: GTNetSupplierDetail;
+  histSettings?: GTNetSupplierDetailHist;
+  lastSettings?: GTNetSupplierDetailLast;
 }
 
 /**
  * Combined DTO for supplier with details, used in expandable rows.
  * Contains the GTNet domain information (with domainRemoteName and config)
- * along with a list of detail entries for price types offered.
+ * along with a list of detail entries with settings for price types offered.
  */
 export interface GTNetSupplierWithDetails {
   gtNet: GTNet;
-  details: GTNetSupplierDetail[];
+  details: GTNetSupplierDetailWithSettings[];
 }
 
 /**
@@ -194,4 +231,5 @@ export interface GTSecuritiyCurrencyExchange {
 export interface GTNetCallParam {
   gtNet: GTNet;
   isMyEntry: boolean;
+  exchangeKindTypes: ExchangeKindTypeInfo[];
 }

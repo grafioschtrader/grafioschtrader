@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfig;
+import grafiosch.entities.GTNetSupplierDetail;
 import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.m2m.GTNetMessageHelper;
@@ -22,10 +23,12 @@ import grafiosch.m2m.client.BaseDataClient;
 import grafiosch.m2m.client.BaseDataClient.SendResult;
 import grafiosch.repository.GTNetConfigJpaRepository;
 import grafiosch.repository.GTNetJpaRepository;
-import grafiosch.repository.GlobalparametersJpaRepository;
-import grafioschtrader.entities.Currencypair;
-import grafiosch.entities.GTNetSupplierDetail;
 import grafiosch.repository.GTNetSupplierDetailJpaRepository;
+import grafiosch.repository.GlobalparametersJpaRepository;
+import grafioschtrader.dto.IHistoryquoteQuality;
+import grafioschtrader.entities.Currencypair;
+import grafioschtrader.entities.GTNetSupplierDetailHist;
+import grafioschtrader.entities.GTNetSupplierDetailLast;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
@@ -33,6 +36,9 @@ import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.model.msg.ExchangeSyncMsg;
 import grafioschtrader.gtnet.model.msg.ExchangeSyncMsg.ExchangeSyncItem;
 import grafioschtrader.repository.CurrencypairJpaRepository;
+import grafioschtrader.repository.GTNetSupplierDetailHistJpaRepository;
+import grafioschtrader.repository.GTNetSupplierDetailLastJpaRepository;
+import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 
 /**
@@ -61,6 +67,12 @@ public class GTNetExchangeSyncService {
   private GTNetSupplierDetailJpaRepository gtNetSupplierDetailJpaRepository;
 
   @Autowired
+  private GTNetSupplierDetailHistJpaRepository gtNetSupplierDetailHistJpaRepository;
+
+  @Autowired
+  private GTNetSupplierDetailLastJpaRepository gtNetSupplierDetailLastJpaRepository;
+
+  @Autowired
   private GTNetConfigJpaRepository gtNetConfigJpaRepository;
 
   @Autowired
@@ -68,6 +80,9 @@ public class GTNetExchangeSyncService {
 
   @Autowired
   private CurrencypairJpaRepository currencypairJpaRepository;
+
+  @Autowired
+  private HistoryquoteJpaRepository historyquoteJpaRepository;
 
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
@@ -165,9 +180,10 @@ public class GTNetExchangeSyncService {
 
   /**
    * Gets exchange items that have changed since the given timestamp.
+   * Populates history/intra settings fields based on send flags.
    *
    * @param sinceTimestamp the timestamp after which to find changes
-   * @return list of exchange sync items with send flags enabled
+   * @return list of exchange sync items with send flags and settings enabled
    */
   public List<ExchangeSyncItem> getChangedExchangeItems(Date sinceTimestamp) {
     List<ExchangeSyncItem> items = new java.util.ArrayList<>();
@@ -176,9 +192,11 @@ public class GTNetExchangeSyncService {
     List<Security> changedSecurities = securityJpaRepository.findByGtNetLastModifiedTimeAfterAndIsinIsNotNull(sinceTimestamp);
     for (Security security : changedSecurities) {
       if (security.isGtNetLastpriceSend() || security.isGtNetHistoricalSend()) {
-        items.add(ExchangeSyncItem.forSecurity(
+        ExchangeSyncItem item = ExchangeSyncItem.forSecurity(
             security.getIsin(), security.getCurrency(),
-            security.isGtNetLastpriceSend(), security.isGtNetHistoricalSend()));
+            security.isGtNetLastpriceSend(), security.isGtNetHistoricalSend());
+        populateSettingsFromSecuritycurrency(item, security);
+        items.add(item);
       }
     }
 
@@ -186,9 +204,11 @@ public class GTNetExchangeSyncService {
     List<Currencypair> changedCurrencypairs = currencypairJpaRepository.findByGtNetLastModifiedTimeAfter(sinceTimestamp);
     for (Currencypair cp : changedCurrencypairs) {
       if (cp.isGtNetLastpriceSend() || cp.isGtNetHistoricalSend()) {
-        items.add(ExchangeSyncItem.forCurrencypair(
+        ExchangeSyncItem item = ExchangeSyncItem.forCurrencypair(
             cp.getFromCurrency(), cp.getToCurrency(),
-            cp.isGtNetLastpriceSend(), cp.isGtNetHistoricalSend()));
+            cp.isGtNetLastpriceSend(), cp.isGtNetHistoricalSend());
+        populateSettingsFromSecuritycurrency(item, cp);
+        items.add(item);
       }
     }
 
@@ -197,6 +217,7 @@ public class GTNetExchangeSyncService {
 
   /**
    * Gets ALL exchange items with send flags enabled, ignoring timestamps.
+   * Populates history/intra settings fields based on send flags.
    * Used for full recreation mode where all eligible instruments are synchronized.
    *
    * @return list of all exchange sync items with at least one send flag enabled
@@ -207,20 +228,55 @@ public class GTNetExchangeSyncService {
     // All securities with GTNet send enabled
     List<Security> allSecurities = securityJpaRepository.findAllWithGtNetSendEnabled();
     for (Security security : allSecurities) {
-      items.add(ExchangeSyncItem.forSecurity(
+      ExchangeSyncItem item = ExchangeSyncItem.forSecurity(
           security.getIsin(), security.getCurrency(),
-          security.isGtNetLastpriceSend(), security.isGtNetHistoricalSend()));
+          security.isGtNetLastpriceSend(), security.isGtNetHistoricalSend());
+      populateSettingsFromSecuritycurrency(item, security);
+      items.add(item);
     }
 
     // All currency pairs with GTNet send enabled
     List<Currencypair> allCurrencypairs = currencypairJpaRepository.findAllWithGtNetSendEnabled();
     for (Currencypair cp : allCurrencypairs) {
-      items.add(ExchangeSyncItem.forCurrencypair(
+      ExchangeSyncItem item = ExchangeSyncItem.forCurrencypair(
           cp.getFromCurrency(), cp.getToCurrency(),
-          cp.isGtNetLastpriceSend(), cp.isGtNetHistoricalSend()));
+          cp.isGtNetLastpriceSend(), cp.isGtNetHistoricalSend());
+      populateSettingsFromSecuritycurrency(item, cp);
+      items.add(item);
     }
 
     return items;
+  }
+
+  /**
+   * Populates the history and intra settings fields on an ExchangeSyncItem from the Securitycurrency entity.
+   *
+   * @param item the sync item to populate
+   * @param sc the security or currency pair entity
+   */
+  private void populateSettingsFromSecuritycurrency(ExchangeSyncItem item, Securitycurrency<?> sc) {
+    if (item.lastpriceSend) {
+      item.retryIntraLoad = sc.getRetryIntraLoad();
+      item.sTimestamp = sc.getSTimestamp();
+    }
+    if (item.historicalSend) {
+      item.retryHistoryLoad = sc.getRetryHistoryLoad();
+      try {
+        IHistoryquoteQuality quality = historyquoteJpaRepository.getMissingsDaysCountByIdSecurity(
+            sc.getIdSecuritycurrency());
+        if (quality != null) {
+          if (quality.getMinDate() != null) {
+            item.historyMinDate = quality.getMinDate().toString();
+          }
+          if (quality.getMaxDate() != null) {
+            item.historyMaxDate = quality.getMaxDate().toString();
+          }
+          item.ohlPercentage = quality.getOhlPercentage();
+        }
+      } catch (Exception e) {
+        log.debug("Could not load history quality for {}: {}", sc.getIdSecuritycurrency(), e.getMessage());
+      }
+    }
   }
 
   /**
@@ -239,8 +295,9 @@ public class GTNetExchangeSyncService {
       return;
     }
 
-    // Delete all existing supplier details for this peer
+    // Delete all existing supplier details for this peer (ON DELETE CASCADE cleans up child tables)
     gtNetSupplierDetailJpaRepository.deleteByIdGtNet(config.getIdGtNet());
+    gtNetSupplierDetailJpaRepository.flush();
     log.debug("Deleted existing supplier details for {}", supplier.getDomainRemoteName());
 
     int created = 0;
@@ -257,13 +314,13 @@ public class GTNetExchangeSyncService {
 
           // Create entry for lastprice if enabled
           if (item.lastpriceSend) {
-            createSupplierDetail(config, sc, GTNetExchangeKindType.LAST_PRICE);
+            createSupplierDetailWithSettings(config, sc, GTNetExchangeKindType.LAST_PRICE, item);
             created++;
           }
 
           // Create entry for historical if enabled
           if (item.historicalSend) {
-            createSupplierDetail(config, sc, GTNetExchangeKindType.HISTORICAL_PRICES);
+            createSupplierDetailWithSettings(config, sc, GTNetExchangeKindType.HISTORICAL_PRICES, item);
             created++;
           }
         } catch (Exception e) {
@@ -280,18 +337,49 @@ public class GTNetExchangeSyncService {
   }
 
   /**
-   * Creates a new GTNetSupplierDetail entry.
+   * Creates a new GTNetSupplierDetail entry with its child settings entity.
    *
    * @param config the GTNet config for the supplier
    * @param sc the security or currency pair
    * @param entityKind the entity kind (LAST_PRICE or HISTORICAL_PRICES)
+   * @param item the sync item containing settings data
    */
-  private void createSupplierDetail(GTNetConfig config, Securitycurrency<?> sc, GTNetExchangeKindType entityKind) {
+  private void createSupplierDetailWithSettings(GTNetConfig config, Securitycurrency<?> sc,
+      GTNetExchangeKindType entityKind, ExchangeSyncItem item) {
     GTNetSupplierDetail detail = new GTNetSupplierDetail();
     detail.setGtNetConfig(config);
     detail.setIdEntity(sc.getIdSecuritycurrency());
     detail.setEntityKind(entityKind.getValue());
-    gtNetSupplierDetailJpaRepository.save(detail);
+    detail = gtNetSupplierDetailJpaRepository.save(detail);
+
+    saveChildSettings(detail, entityKind, item);
+  }
+
+  /**
+   * Saves the appropriate child settings entity for a supplier detail.
+   *
+   * @param detail the saved supplier detail (with generated ID)
+   * @param entityKind the entity kind determining which child table to use
+   * @param item the sync item containing the settings values
+   */
+  private void saveChildSettings(GTNetSupplierDetail detail, GTNetExchangeKindType entityKind, ExchangeSyncItem item) {
+    if (entityKind == GTNetExchangeKindType.HISTORICAL_PRICES) {
+      GTNetSupplierDetailHist hist = new GTNetSupplierDetailHist(detail.getIdGtNetSupplierDetail());
+      hist.setRetryHistoryLoad(item.retryHistoryLoad != null ? item.retryHistoryLoad : 0);
+      if (item.historyMinDate != null) {
+        hist.setHistoryMinDate(java.time.LocalDate.parse(item.historyMinDate));
+      }
+      if (item.historyMaxDate != null) {
+        hist.setHistoryMaxDate(java.time.LocalDate.parse(item.historyMaxDate));
+      }
+      hist.setOhlPercentage(item.ohlPercentage);
+      gtNetSupplierDetailHistJpaRepository.save(hist);
+    } else if (entityKind == GTNetExchangeKindType.LAST_PRICE) {
+      GTNetSupplierDetailLast last = new GTNetSupplierDetailLast(detail.getIdGtNetSupplierDetail());
+      last.setRetryIntraLoad(item.retryIntraLoad != null ? item.retryIntraLoad : 0);
+      last.setSTimestamp(item.sTimestamp);
+      gtNetSupplierDetailLastJpaRepository.save(last);
+    }
   }
 
   /**
@@ -333,7 +421,7 @@ public class GTNetExchangeSyncService {
 
         // Handle intraday entity kind
         if (item.lastpriceSend) {
-          if (upsertSupplierDetail(config, sc, GTNetExchangeKindType.LAST_PRICE)) {
+          if (upsertSupplierDetail(config, sc, GTNetExchangeKindType.LAST_PRICE, item)) {
             created++;
           }
         } else {
@@ -344,7 +432,7 @@ public class GTNetExchangeSyncService {
 
         // Handle historical entity kind
         if (item.historicalSend) {
-          if (upsertSupplierDetail(config, sc, GTNetExchangeKindType.HISTORICAL_PRICES)) {
+          if (upsertSupplierDetail(config, sc, GTNetExchangeKindType.HISTORICAL_PRICES, item)) {
             created++;
           }
         } else {
@@ -378,26 +466,52 @@ public class GTNetExchangeSyncService {
   }
 
   /**
-   * Creates or updates a GTNetSupplierDetail entry.
+   * Creates or updates a GTNetSupplierDetail entry with its child settings.
    *
-   * @return true if a new entry was created, false if updated or already exists
+   * @return true if a new entry was created, false if updated
    */
-  private boolean upsertSupplierDetail(GTNetConfig config, Securitycurrency<?> sc, GTNetExchangeKindType entityKind) {
+  private boolean upsertSupplierDetail(GTNetConfig config, Securitycurrency<?> sc,
+      GTNetExchangeKindType entityKind, ExchangeSyncItem item) {
     Optional<GTNetSupplierDetail> existing = findSupplierDetail(config, sc, entityKind);
     if (existing.isPresent()) {
-      return false; // Already exists, no action needed
+      // Update existing child settings
+      updateChildSettings(existing.get(), entityKind, item);
+      return false;
     }
 
-    GTNetSupplierDetail detail = new GTNetSupplierDetail();
-    detail.setGtNetConfig(config);
-    detail.setIdEntity(sc.getIdSecuritycurrency());
-    detail.setEntityKind(entityKind.getValue());
-    gtNetSupplierDetailJpaRepository.save(detail);
+    createSupplierDetailWithSettings(config, sc, entityKind, item);
     return true;
   }
 
   /**
-   * Deletes a GTNetSupplierDetail entry if it exists.
+   * Updates child settings for an existing supplier detail.
+   */
+  private void updateChildSettings(GTNetSupplierDetail detail, GTNetExchangeKindType entityKind,
+      ExchangeSyncItem item) {
+    Integer detailId = detail.getIdGtNetSupplierDetail();
+    if (entityKind == GTNetExchangeKindType.HISTORICAL_PRICES) {
+      GTNetSupplierDetailHist hist = gtNetSupplierDetailHistJpaRepository.findById(detailId)
+          .orElse(new GTNetSupplierDetailHist(detailId));
+      hist.setRetryHistoryLoad(item.retryHistoryLoad != null ? item.retryHistoryLoad : 0);
+      if (item.historyMinDate != null) {
+        hist.setHistoryMinDate(java.time.LocalDate.parse(item.historyMinDate));
+      }
+      if (item.historyMaxDate != null) {
+        hist.setHistoryMaxDate(java.time.LocalDate.parse(item.historyMaxDate));
+      }
+      hist.setOhlPercentage(item.ohlPercentage);
+      gtNetSupplierDetailHistJpaRepository.save(hist);
+    } else if (entityKind == GTNetExchangeKindType.LAST_PRICE) {
+      GTNetSupplierDetailLast last = gtNetSupplierDetailLastJpaRepository.findById(detailId)
+          .orElse(new GTNetSupplierDetailLast(detailId));
+      last.setRetryIntraLoad(item.retryIntraLoad != null ? item.retryIntraLoad : 0);
+      last.setSTimestamp(item.sTimestamp);
+      gtNetSupplierDetailLastJpaRepository.save(last);
+    }
+  }
+
+  /**
+   * Deletes a GTNetSupplierDetail entry if it exists. ON DELETE CASCADE handles child cleanup.
    *
    * @return true if an entry was deleted
    */
@@ -415,8 +529,6 @@ public class GTNetExchangeSyncService {
    */
   private Optional<GTNetSupplierDetail> findSupplierDetail(GTNetConfig config, Securitycurrency<?> sc,
       GTNetExchangeKindType entityKind) {
-    // Use a native query or iterate - for now, we fetch all and filter
-    // This could be optimized with a proper repository method
     return gtNetSupplierDetailJpaRepository.findAll().stream()
         .filter(d -> d.getGtNetConfig() != null
             && d.getGtNetConfig().getIdGtNet().equals(config.getIdGtNet())

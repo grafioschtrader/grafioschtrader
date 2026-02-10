@@ -1,17 +1,16 @@
 import {Injectable} from '@angular/core';
-import {AuthServiceWithLogout} from '../../lib/login/service/base.auth.service.with.logout';
+import {AuthServiceWithLogout} from '../../login/service/base.auth.service.with.logout';
 import {GTNet, GTNetWithMessages, MsgRequest} from '../model/gtnet';
 import {GTNetMessage} from '../model/gtnet.message';
 import {MultiTargetMsgRequest} from '../model/multi-target-msg-request';
-import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
+import {ServiceEntityUpdate} from '../../edit/service.entity.update';
 import {Observable} from 'rxjs/internal/Observable';
-import {AppSettings} from '../../shared/app.settings';
 import {catchError} from 'rxjs/operators';
-import {LoginService} from '../../lib/login/service/log-in.service';
+import {LoginService} from '../../login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {ApplicationInfo} from '../../lib/services/actuator.service';
-import {BaseSettings} from '../../lib/base.settings';
+import {MessageToastService} from '../../message/message.toast.service';
+import {ApplicationInfo} from '../../services/actuator.service';
+import {BaseSettings} from '../../base.settings';
 
 @Injectable()
 export class GTNetService extends AuthServiceWithLogout<GTNet> implements ServiceEntityUpdate<GTNet> {
@@ -21,17 +20,17 @@ export class GTNetService extends AuthServiceWithLogout<GTNet> implements Servic
   }
 
   getAllGTNetsWithMessages(): Observable<GTNetWithMessages> {
-    return <Observable<GTNetWithMessages>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_KEY}`
+    return <Observable<GTNetWithMessages>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}`
       + `/gtnetwithmessage`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   checkRemoteDomainWithApplicationInfo(remoteDomainName: string): Observable<ApplicationInfo> {
-    return <Observable<ApplicationInfo>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_KEY}`
+    return <Observable<ApplicationInfo>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}`
       + `/remotetest/${remoteDomainName}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   submitMsg(msgRequest: MsgRequest): Observable<GTNetWithMessages> {
-    return <Observable<GTNetWithMessages>>this.httpClient.post(`${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_KEY}/submitmsg`,
+    return <Observable<GTNetWithMessages>>this.httpClient.post(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}/submitmsg`,
       msgRequest, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -44,7 +43,7 @@ export class GTNetService extends AuthServiceWithLogout<GTNet> implements Servic
    */
   submitMsgToMultiple(multiTargetMsgRequest: MultiTargetMsgRequest): Observable<GTNetWithMessages> {
     return <Observable<GTNetWithMessages>>this.httpClient.post(
-      `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_KEY}/submitmsgmulti`,
+      `${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}/submitmsgmulti`,
       multiTargetMsgRequest, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -56,16 +55,16 @@ export class GTNetService extends AuthServiceWithLogout<GTNet> implements Servic
    * @returns list of messages ordered by timestamp descending
    */
   getMessagesByIdGtNet(idGtNet: number): Observable<GTNetMessage[]> {
-    return <Observable<GTNetMessage[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_KEY}`
+    return <Observable<GTNetMessage[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}`
       + `/messages/${idGtNet}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   update(gtNet: GTNet): Observable<GTNet> {
-    return this.updateEntity(gtNet, gtNet.idGtNet, AppSettings.GT_NET_KEY);
+    return this.updateEntity(gtNet, gtNet.idGtNet, BaseSettings.GT_NET_KEY);
   }
 
   deleteEntity(idGtNet: number): Observable<any> {
-    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_KEY}/${idGtNet}`,
+    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}/${idGtNet}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -76,7 +75,7 @@ export class GTNetService extends AuthServiceWithLogout<GTNet> implements Servic
    * @returns Observable that completes when deletion is successful
    */
   deleteMessageBatch(idGtNetMessageList: number[]): Observable<void> {
-    return this.httpClient.post<void>(`${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_KEY}/deletemessagebatch`,
+    return this.httpClient.post<void>(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}/deletemessagebatch`,
       idGtNetMessageList, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 }

@@ -1,19 +1,19 @@
 import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
+import {TreeTableConfigBase} from '../../datashowbase/tree.table.config.base';
+import {DataType} from '../../dynamic-form/models/data.type';
 import {DeliveryStatus, getReverseCode, getValidResponseCodes, GTNetMessage, GTNetMessageCodeType, MessageVisibility, MsgCallParam, SendReceivedType} from '../model/gtnet.message';
 import {MsgRequest} from '../model/gtnet';
 import {GTNetService} from '../service/gtnet.service';
 import {FilterService, MenuItem, TreeNode} from 'primeng/api';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
-import {HelpIds} from '../../lib/help/help.ids';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
-import {ClassDescriptorInputAndShow} from '../../lib/dynamicfield/field.descriptor.input.and.show';
+import {GlobalparameterService} from '../../services/globalparameter.service';
+import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach';
+import {HelpIds} from '../../help/help.ids';
+import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
+import {ColumnConfig, TranslateValue} from '../../datashowbase/column.config';
+import {ClassDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
 import {TreeTable, TreeTableModule} from 'primeng/treetable';
 import {ContextMenuModule} from 'primeng/contextmenu';
 import {TooltipModule} from 'primeng/tooltip';
@@ -22,13 +22,13 @@ import {SelectModule} from 'primeng/select';
 import {InputTextModule} from 'primeng/inputtext';
 import {CheckboxModule} from 'primeng/checkbox';
 import {GTNetMessageEditComponent} from './gtnet-message-edit.component';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
+import {ProcessedActionData} from '../../types/processed.action.data';
+import {ProcessedAction} from '../../types/processed.action';
 import {GTNetMessageService} from '../service/gtnet.message.service';
 import {AngularSvgIconModule, SvgIconRegistryService} from 'angular-svg-icon';
-import {BaseSettings} from '../../lib/base.settings';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {FilterType} from '../../lib/datashowbase/filter.type';
+import {BaseSettings} from '../../base.settings';
+import {TranslateHelper} from '../../helper/translate.helper';
+import {FilterType} from '../../datashowbase/filter.type';
 
 /**
  * It shows the messages in a tree table.

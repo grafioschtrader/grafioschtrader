@@ -49,6 +49,12 @@ export interface ColumnConfig extends BaseFieldDefinition {
   /** Text to prepend before the header text */
   headerPrefix?: string;
 
+  /** NLS key for a column group header. Columns with the same headerGroupKey are displayed under a shared group header row. */
+  headerGroupKey?: string;
+
+  /** Translated group header text, populated by translation service */
+  headerGroupTranslated?: string;
+
   /** Type of filtering to apply to this column */
   filterType?: FilterType;
 
@@ -146,6 +152,9 @@ export interface ColumnConfig extends BaseFieldDefinition {
 
   /** Text to prepend before the header text */
   headerPrefix?: string;
+
+  /** NLS key for column group header */
+  headerGroupKey?: string;
 
   /** How field values should be translated */
   translateValues?: TranslateValue;

@@ -1,19 +1,19 @@
 import {Component, EventEmitter, Injector, Input, OnInit, Output} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
+import {TableConfigBase} from '../../datashowbase/table.config.base';
 import {GTNetConfigEntity, GTNetEntity, GTNetExchangeKindType, SupplierConsumerLogTypes} from '../model/gtnet';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
+import {DataType} from '../../dynamic-form/models/data.type';
+import {ColumnConfig, TranslateValue} from '../../datashowbase/column.config';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
+import {GlobalparameterService} from '../../services/globalparameter.service';
+import {UserSettingsService} from '../../services/user.settings.service';
 import {FilterService, MenuItem} from 'primeng/api';
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
+import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.component';
 import {ContextMenuModule} from 'primeng/contextmenu';
 import {TooltipModule} from 'primeng/tooltip';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
+import {ProcessedActionData} from '../../types/processed.action.data';
+import {ProcessedAction} from '../../types/processed.action';
+import {TranslateHelper} from '../../helper/translate.helper';
 import {GTNetConfigEntityEditComponent} from './gtnet-config-entity-edit.component';
 
 /**

@@ -1,5 +1,5 @@
-import {Component, Input, OnInit, AfterViewInit, OnDestroy} from '@angular/core';
-import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
+import {Component, Input, OnInit} from '@angular/core';
+import {SimpleEntityEditBase} from '../../edit/simple.entity.edit.base';
 import {
   getResponseCodesForRequest,
   GTNetMessageAnswer,
@@ -7,21 +7,21 @@ import {
   REQUEST_CODES_FOR_AUTO_RESPONSE
 } from '../model/gtnet.message.answer';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {HelpIds} from '../../lib/help/help.ids';
-import {AppSettings} from '../../shared/app.settings';
+import {GlobalparameterService} from '../../services/globalparameter.service';
+import {MessageToastService} from '../../message/message.toast.service';
+import {HelpIds} from '../../help/help.ids';
 import {GTNetMessageAnswerService} from '../service/gtnet.message.answer.service';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
+import {AppHelper} from '../../helper/app.helper';
+import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
 import {Subscription} from 'rxjs';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
+import {TranslateHelper} from '../../helper/translate.helper';
+import {SelectOptionsHelper} from '../../helper/select.options.helper';
+import {DataType} from '../../dynamic-form/models/data.type';
 import {DialogModule} from 'primeng/dialog';
-import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
+import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {GTNetMessageCodeType} from '../model/gtnet.message';
 import {MenuItem} from 'primeng/api';
+import {BaseSettings} from '../../base.settings';
 
 /**
  * Type filter for context-aware variable filtering.
@@ -102,7 +102,7 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
     gps: GlobalparameterService,
     messageToastService: MessageToastService,
     gtNetMessageAnswerService: GTNetMessageAnswerService) {
-    super(HelpIds.HELP_GT_NET_AUTOANSWER, AppHelper.toUpperCaseWithUnderscore(AppSettings.GT_NET_MESSAGE_ANSWER), translateService, gps,
+    super(HelpIds.HELP_GT_NET_AUTOANSWER, AppHelper.toUpperCaseWithUnderscore(BaseSettings.GT_NET_MESSAGE_ANSWER), translateService, gps,
       messageToastService, gtNetMessageAnswerService);
   }
 
@@ -281,28 +281,50 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
       menuItems.push({
         label: this.translateService.instant('EVALEX_STRING_FUNCTIONS'),
         items: [
-          {label: 'STR_STARTS_WITH(?, ?)', title: this.translateService.instant('STR_STARTS_WITH_DESC'),
-            command: () => this.insertFunction('STR_STARTS_WITH(?, ?)')},
-          {label: 'STR_ENDS_WITH(?, ?)', title: this.translateService.instant('STR_ENDS_WITH_DESC'),
-            command: () => this.insertFunction('STR_ENDS_WITH(?, ?)')},
-          {label: 'STR_CONTAINS(?, ?)', title: this.translateService.instant('STR_CONTAINS_DESC'),
-            command: () => this.insertFunction('STR_CONTAINS(?, ?)')},
-          {label: 'STR_MATCHES(?, ?)', title: this.translateService.instant('STR_MATCHES_DESC'),
-            command: () => this.insertFunction('STR_MATCHES(?, ?)')},
-          {label: 'STR_LENGTH(?)', title: this.translateService.instant('STR_LENGTH_DESC'),
-            command: () => this.insertFunction('STR_LENGTH(?)')},
-          {label: 'STR_LOWER(?)', title: this.translateService.instant('STR_LOWER_DESC'),
-            command: () => this.insertFunction('STR_LOWER(?)')},
-          {label: 'STR_UPPER(?)', title: this.translateService.instant('STR_UPPER_DESC'),
-            command: () => this.insertFunction('STR_UPPER(?)')},
-          {label: 'STR_TRIM(?)', title: this.translateService.instant('STR_TRIM_DESC'),
-            command: () => this.insertFunction('STR_TRIM(?)')},
-          {label: 'STR_LEFT(?, ?)', title: this.translateService.instant('STR_LEFT_DESC'),
-            command: () => this.insertFunction('STR_LEFT(?, ?)')},
-          {label: 'STR_RIGHT(?, ?)', title: this.translateService.instant('STR_RIGHT_DESC'),
-            command: () => this.insertFunction('STR_RIGHT(?, ?)')},
-          {label: 'STR_SUBSTRING(?, ?, ?)', title: this.translateService.instant('STR_SUBSTRING_DESC'),
-            command: () => this.insertFunction('STR_SUBSTRING(?, ?, ?)')}
+          {
+            label: 'STR_STARTS_WITH(?, ?)', title: this.translateService.instant('STR_STARTS_WITH_DESC'),
+            command: () => this.insertFunction('STR_STARTS_WITH(?, ?)')
+          },
+          {
+            label: 'STR_ENDS_WITH(?, ?)', title: this.translateService.instant('STR_ENDS_WITH_DESC'),
+            command: () => this.insertFunction('STR_ENDS_WITH(?, ?)')
+          },
+          {
+            label: 'STR_CONTAINS(?, ?)', title: this.translateService.instant('STR_CONTAINS_DESC'),
+            command: () => this.insertFunction('STR_CONTAINS(?, ?)')
+          },
+          {
+            label: 'STR_MATCHES(?, ?)', title: this.translateService.instant('STR_MATCHES_DESC'),
+            command: () => this.insertFunction('STR_MATCHES(?, ?)')
+          },
+          {
+            label: 'STR_LENGTH(?)', title: this.translateService.instant('STR_LENGTH_DESC'),
+            command: () => this.insertFunction('STR_LENGTH(?)')
+          },
+          {
+            label: 'STR_LOWER(?)', title: this.translateService.instant('STR_LOWER_DESC'),
+            command: () => this.insertFunction('STR_LOWER(?)')
+          },
+          {
+            label: 'STR_UPPER(?)', title: this.translateService.instant('STR_UPPER_DESC'),
+            command: () => this.insertFunction('STR_UPPER(?)')
+          },
+          {
+            label: 'STR_TRIM(?)', title: this.translateService.instant('STR_TRIM_DESC'),
+            command: () => this.insertFunction('STR_TRIM(?)')
+          },
+          {
+            label: 'STR_LEFT(?, ?)', title: this.translateService.instant('STR_LEFT_DESC'),
+            command: () => this.insertFunction('STR_LEFT(?, ?)')
+          },
+          {
+            label: 'STR_RIGHT(?, ?)', title: this.translateService.instant('STR_RIGHT_DESC'),
+            command: () => this.insertFunction('STR_RIGHT(?, ?)')
+          },
+          {
+            label: 'STR_SUBSTRING(?, ?, ?)', title: this.translateService.instant('STR_SUBSTRING_DESC'),
+            command: () => this.insertFunction('STR_SUBSTRING(?, ?, ?)')
+          }
         ]
       });
     }

@@ -1,20 +1,19 @@
 import {Component, Injector, OnInit} from '@angular/core';
-import {HelpIds} from '../../lib/help/help.ids';
-import {CrudMenuOptions, TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
+import {HelpIds} from '../../help/help.ids';
+import {TableCrudSupportMenu} from '../../datashowbase/table.crud.support.menu';
 import {GTNetMessageAnswer, GTNetMessageAnswerCallParam} from '../model/gtnet.message.answer';
 import {GTNetMessageAnswerService} from '../service/gtnet.message.answer.service';
 import {ConfirmationService, FilterService} from 'primeng/api';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
+import {MessageToastService} from '../../message/message.toast.service';
+import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {DialogService} from 'primeng/dynamicdialog';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {AppSettings} from '../../shared/app.settings';
-import {BaseSettings} from '../../lib/base.settings';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {TranslateValue} from '../../lib/datashowbase/column.config';
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
+import {GlobalparameterService} from '../../services/globalparameter.service';
+import {UserSettingsService} from '../../services/user.settings.service';
+import {BaseSettings} from '../../base.settings';
+import {DataType} from '../../dynamic-form/models/data.type';
+import {TranslateValue} from '../../datashowbase/column.config';
+import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.component';
 import {GTNetMessageAnswerEditComponent} from './gtnet-message-answer-edit.component';
 import {GTNetMessageCodeType} from '../model/gtnet.message';
 
@@ -77,7 +76,7 @@ export class GTNetMessageAnswerTableComponent extends TableCrudSupportMenu<GTNet
     usersettingsService: UserSettingsService,
     injector: Injector) {
 
-    super(AppSettings.GT_NET_MESSAGE_ANSWER, gtNetMessageAnswerService, confirmationService, messageToastService,
+    super(BaseSettings.GT_NET_MESSAGE_ANSWER, gtNetMessageAnswerService, confirmationService, messageToastService,
       activePanelService, dialogService, filterService, translateService, gps, usersettingsService, injector,
       gps.hasRole(BaseSettings.ROLE_ADMIN) ? TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS : []);
   }

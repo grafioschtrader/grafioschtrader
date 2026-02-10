@@ -1,9 +1,9 @@
 import {Component, OnInit} from '@angular/core';
 import {RouterModule} from '@angular/router';
 
-import {SharedTabMenuComponent} from '../../lib/tabmenu/component/shared.tab.menu.component';
-import {TabItem} from '../../lib/types/tab.item';
-import {AppSettings} from '../../shared/app.settings';
+import {SharedTabMenuComponent} from '../../tabmenu/component/shared.tab.menu.component';
+import {TabItem} from '../../types/tab.item';
+import {BaseSettings} from '../../base.settings';
 
 /**
  * Tab menu component for GTNet functionality.
@@ -27,7 +27,7 @@ import {AppSettings} from '../../shared/app.settings';
 export class GTNetTabMenuComponent implements OnInit {
 
   tabs: TabItem[] = [];
-  defaultRoute: string = AppSettings.GT_NET_SETUP_KEY;
+  defaultRoute: string = BaseSettings.GT_NET_SETUP_KEY;
 
   ngOnInit(): void {
     this.initializeTabs();
@@ -35,8 +35,8 @@ export class GTNetTabMenuComponent implements OnInit {
 
   private initializeTabs(): void {
     const tabsConfig: [string, string][] = [
-      ['GT_NET', AppSettings.GT_NET_SETUP_KEY],
-      ['GT_NET_ADMIN_MESSAGES', AppSettings.GT_NET_ADMIN_MESSAGES_KEY]
+      ['GT_NET', BaseSettings.GT_NET_SETUP_KEY],
+      ['GT_NET_ADMIN_MESSAGES', BaseSettings.GT_NET_ADMIN_MESSAGES_KEY]
     ];
 
     this.tabs = tabsConfig.map(([label, route]) => ({

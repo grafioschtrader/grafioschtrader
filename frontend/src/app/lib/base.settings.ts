@@ -3,6 +3,8 @@ export class BaseSettings {
 
   public static readonly ACTUATOR = 'actuator';
 
+  public static readonly GT_NET = 'GTNet';
+
   // Native formats
   public static readonly FORMAT_DATE_SHORT_NATIVE = 'YYYY-MM-DD';
   public static readonly FORMAT_DATE_SHORT_US: string  = 'YYYYMMDD';
@@ -63,6 +65,14 @@ export class BaseSettings {
 
   public static readonly GLOBAL_SETTINGS_KEY = 'globalsettings';
   public static readonly TASK_DATA_CHANGE_MONITOR_KEY = 'taskdatachangemonitor';
+
+  public static readonly GT_NET_KEY = 'gtnet';
+  public static readonly GT_NET_MESSAGE_ANSWER = 'GTNetMessageAnswer';
+  public static readonly GT_NET_MESSAGE_ANSWER_KEY = 'gtnetmessageanswer';
+  public static readonly GT_NET_SETUP_KEY = 'gtnetsetup';
+  public static readonly GT_NET_ADMIN_MESSAGES_KEY = 'gtnetadminmessages';
+  public static readonly GT_NET_CONFIG_ENTITY_KEY = 'gtnetconfigentity';
+  public static readonly GT_NET_MESSAGE_KEY = 'gtnetmessage';
 
   public static readonly PROPOSE_CHANGE_ENTITY = 'ProposeChangeEntity';
   public static readonly PROPOSE_CHANGE_ENTITY_KEY = BaseSettings.PROPOSE_CHANGE_ENTITY.toLowerCase();

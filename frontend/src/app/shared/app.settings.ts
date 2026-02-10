@@ -1,5 +1,5 @@
 import {GlobalSessionNames} from '../lib/global.session.names';
-import {GTNetMessage} from '../gtnet/model/gtnet.message';
+import {GTNetMessage} from '../lib/gnet/model/gtnet.message';
 import {GlobalGTSessionNames} from './global.gt.session.names';
 import {BaseSettings} from '../lib/base.settings';
 
@@ -16,7 +16,7 @@ export class AppSettings {
   public static readonly CURRENCYPAIR = 'Currencypair';
   public static readonly DIVIDEND = 'Dividend';
 
-  public static readonly GT_NET = 'GTNet';
+
   public static readonly GT_NET_MESSAGE = 'GTNetMessage';
   public static readonly HISTORYQUOTE = 'Historyquote';
   public static readonly HISTORYQUOTE_PERIOD = 'HistoryquotePeriod';
@@ -84,18 +84,12 @@ export class AppSettings {
   public static readonly GT_NET_EXCHANGE_LOG_KEY = 'gtnetexchangelog';
   public static readonly GT_NET_EXCHANGE_LOG_LASTPRICE_KEY = 'lastprice';
   public static readonly GT_NET_EXCHANGE_LOG_HISTORICAL_KEY = 'historical';
-  public static readonly GT_NET_KEY = 'gtnet';
+
   public static readonly GT_NET_TAB_MENU_KEY = 'gtnettabmenu';
-  public static readonly GT_NET_SETUP_KEY = 'gtnetsetup';
-  public static readonly GT_NET_ADMIN_MESSAGES_KEY = 'gtnetadminmessages';
   public static readonly GT_NET_CONFIG_ENTITY = 'GTNetConfigEntity';
-  public static readonly GT_NET_CONFIG_ENTITY_KEY = 'gtnetconfigentity';
-  public static readonly GT_NET_MESSAGE_ANSWER = 'GTNetMessageAnswer';
-  public static readonly GT_NET_MESSAGE_ANSWER_KEY = 'gtnetmessageanswer';
   public static readonly GT_NET_EXCHANGE_KEY = 'gtnetexchange';
   public static readonly GT_NET_EXCHANGE_SECURITIES_KEY = 'securities';
   public static readonly GT_NET_EXCHANGE_CURRENCYPAIRS_KEY = 'currencypairs';
-  public static readonly GT_NET_MESSAGE_KEY = 'gtnetmessage';
   public static readonly GT_NET_SECURITY_LOOKUP_KEY = 'gtnetsecuritylookup';
   public static readonly GT_NET_SECURITY_IMP_HEAD = 'GTNetSecurityImpHead';
   public static readonly GT_NET_SECURITY_IMP_HEAD_KEY = 'gtnetsecurityimphead';
