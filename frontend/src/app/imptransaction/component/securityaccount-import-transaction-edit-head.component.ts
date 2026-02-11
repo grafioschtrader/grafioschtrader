@@ -20,7 +20,7 @@ import {BaseSettings} from '../../lib/base.settings';
 @Component({
   selector: 'securityaccount-import-transaction-edit-head',
   template: `
-    <p-dialog header="{{'IMPORT_SET' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'IMPORT_SET' | translate}}" [visible]="visibleDialog"
               [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

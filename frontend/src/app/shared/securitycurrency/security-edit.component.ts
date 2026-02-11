@@ -52,7 +52,7 @@ import {GtnetSecurityLookupService} from '../../gtnet/service/gtnet-security-loo
   selector: 'security-edit',
   template: `
     <p-dialog class="big-dialog"
-              header="{{'SECURITY' | translate}}" [(visible)]="visibleEditSecurityDialog"
+              header="{{'SECURITY' | translate}}" [visible]="visibleEditSecurityDialog"
               [style]="{width: '600px', minHeight: '500px'}"
               [resizable]="false"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">

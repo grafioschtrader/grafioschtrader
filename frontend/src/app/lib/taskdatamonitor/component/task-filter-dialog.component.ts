@@ -32,7 +32,7 @@ export interface TaskFilterItem {
 @Component({
   selector: 'task-filter-dialog',
   template: `
-    <p-dialog header="{{ 'TASK_FILTER' | translate }}" [(visible)]="visibleDialog"
+    <p-dialog header="{{ 'TASK_FILTER' | translate }}" [visible]="visibleDialog"
               [style]="{width: '500px'}"
               [contentStyle]="{'max-height':'600px'}"
               (onShow)="onShow()" (onHide)="onHide()" [modal]="true">
@@ -126,7 +126,6 @@ export class TaskFilterDialogComponent extends ShowRecordConfigBase {
     const selectedTaskIds = this.selectedItems.map(item => item.taskAsId);
     this.saveSelectionToStorage(selectedTaskIds);
     this.closeDialog.emit(selectedTaskIds);
-    this.visibleDialog = false;
   }
 
   /**

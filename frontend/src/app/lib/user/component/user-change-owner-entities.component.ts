@@ -25,7 +25,7 @@ import {ProcessedAction} from '../../types/processed.action';
 @Component({
     selector: 'user-change-owner-entities',
     template: `
-    <p-dialog header="{{'USER_CHANGE_OWNER_ENTITIES' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'USER_CHANGE_OWNER_ENTITIES' | translate}}" [visible]="visibleDialog"
               [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

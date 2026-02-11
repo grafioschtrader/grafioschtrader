@@ -80,7 +80,7 @@ const FUNCTION_PARAM_TYPES: { [func: string]: EvalExType[] } = {
     TranslateModule
   ],
   template: `
-    <p-dialog header="{{'GT_NET_MESSAGE_ANSWER' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'GT_NET_MESSAGE_ANSWER' | translate}}" [visible]="visibleDialog"
               [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

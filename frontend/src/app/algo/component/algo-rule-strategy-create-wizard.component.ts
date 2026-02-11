@@ -16,7 +16,7 @@ import {StepComponent} from '../../lib/wizard/component/step.component';
 @Component({
     selector: 'algo-strategy-create-wizard',
     template: `
-    <p-dialog header="{{'STRATEGY_CREATE' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'STRATEGY_CREATE' | translate}}" [visible]="visibleDialog"
               [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

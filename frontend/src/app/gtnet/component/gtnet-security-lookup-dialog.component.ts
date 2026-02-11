@@ -35,7 +35,7 @@ import {ProcessedAction} from '../../lib/types/processed.action';
   template: `
     <p-dialog
       [header]="'GTNET_SECURITY_LOOKUP' | translate"
-      [(visible)]="visibleDialog"
+      [visible]="visibleDialog"
       [style]="{width: '900px', minHeight: '400px'}"
       [modal]="true"
       [resizable]="true"

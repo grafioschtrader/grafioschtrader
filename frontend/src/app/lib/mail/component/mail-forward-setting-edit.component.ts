@@ -31,7 +31,7 @@ import {HelpIds} from '../../help/help.ids';
 @Component({
   selector: 'mail-forward-setting-edit',
   template: `
-    <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{i18nRecord | translate}}" [visible]="visibleDialog"
               [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

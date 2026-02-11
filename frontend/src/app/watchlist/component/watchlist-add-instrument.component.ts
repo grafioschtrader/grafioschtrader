@@ -22,7 +22,7 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 @Component({
     selector: 'watchlist-add-instrument',
     template: `
-    <p-dialog styleClass="big-dialog" header="{{'ADD_EXISTING_SECURITY' | translate}}" [(visible)]="visibleAddInstrumentDialog"
+    <p-dialog styleClass="big-dialog" header="{{'ADD_EXISTING_SECURITY' | translate}}" [visible]="visibleAddInstrumentDialog"
               [style]="{width: '720px'}" [resizable]="false"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
       <p class="big-size">{{'SEARCH_DIALOG_HELP' | translate}}</p>

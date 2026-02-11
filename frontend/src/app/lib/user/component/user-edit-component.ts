@@ -24,7 +24,7 @@ import {BaseSettings} from '../../base.settings';
 @Component({
   selector: 'user-edit',
   template: `
-    <p-dialog header="{{'USER_SETTINGS' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'USER_SETTINGS' | translate}}" [visible]="visibleDialog"
               [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

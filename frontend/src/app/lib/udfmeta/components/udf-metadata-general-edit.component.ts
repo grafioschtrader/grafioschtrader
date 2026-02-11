@@ -29,7 +29,7 @@ import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 @Component({
     selector: 'udf-metadata-general-edit',
     template: `
-    <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{i18nRecord | translate}}" [visible]="visibleDialog"
               [style]="{width: '500px'}" (onShow)="onShow($event)" (onHide)="onHide($event)"
               [modal]="true">
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"

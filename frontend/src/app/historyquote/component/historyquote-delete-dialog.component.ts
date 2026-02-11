@@ -20,7 +20,7 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 @Component({
     selector: 'historyquote-delete-dialog',
     template: `
-      <p-dialog header="{{'DELETE_CREATE_TYPES_QUOTES' | translate}}" [(visible)]="visibleDialog"
+      <p-dialog header="{{'DELETE_CREATE_TYPES_QUOTES' | translate}}" [visible]="visibleDialog"
                 [style]="{width: '500px'}"
                 (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

@@ -25,7 +25,7 @@ import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 @Component({
     selector: 'nickname-lang-edit',
     template: `
-    <p-dialog header="{{'NICKNAME_LOCALE_CHANGE' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'NICKNAME_LOCALE_CHANGE' | translate}}" [visible]="visibleDialog"
               [style]="{width: '450px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"

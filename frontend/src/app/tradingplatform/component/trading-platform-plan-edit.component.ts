@@ -22,7 +22,7 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 @Component({
     selector: 'trading-platform-plan-edit',
     template: `
-    <p-dialog header="{{'TRADING_PLATFORM_PLAN' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'TRADING_PLATFORM_PLAN' | translate}}" [visible]="visibleDialog"
               [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

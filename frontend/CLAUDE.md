@@ -212,7 +212,7 @@ protected abstract initialize(): void;  // Called on dialog show
 ```typescript
 @Component({
   template: `
-    <p-dialog [(visible)]="visibleDialog" (onShow)="onShow($event)" (onHide)="onHide($event)">
+    <p-dialog [visible]="visibleDialog" (onShow)="onShow($event)" (onHide)="onHide($event)">
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm" (submitBt)="submit($event)">
       </dynamic-form>
@@ -492,7 +492,7 @@ Before writing code, find and read an existing dialog that matches your use case
 ```typescript
 @Component({
   template: `
-    <p-dialog header="{{'DIALOG_TITLE' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'DIALOG_TITLE' | translate}}" [visible]="visibleDialog"
               [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"

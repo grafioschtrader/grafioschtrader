@@ -40,7 +40,7 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
   selector: 'transaction-cashaccount-editsingle',
   template: `
     <p-dialog header="{{'SINGLE_ACCOUNT_TRANSACTION' | translate}}"
-              [(visible)]="visibleCashaccountTransactionSingleDialog"
+              [visible]="visibleCashaccountTransactionSingleDialog"
               [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

@@ -32,7 +32,7 @@ import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-fo
 @Component({
     selector: 'algo-strategy-edit',
     template: `
-    <p-dialog header="{{'ALGO_STRATEGY' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'ALGO_STRATEGY' | translate}}" [visible]="visibleDialog"
               [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

@@ -105,7 +105,10 @@
       "Bash(git -C C:SoftwareProjekteHugosgrafioschtrader log --oneline -10)",
       "Bash(npx ng build:*)",
       "Bash(del \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend\\\\grafioschtrader-common\\\\src\\\\main\\\\java\\\\grafioschtrader\\\\entities\\\\GTNetSupplierDetail.java\")",
-      "Bash(npm run buildprod:*)"
+      "Bash(npm run buildprod:*)",
+      "Bash(git log:*)",
+      "Bash(done)",
+      "Bash(powershell -ExecutionPolicy Bypass -File \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\replace-visible.ps1\":*)"
     ],
     "deny": [],
     "ask": []

@@ -25,7 +25,7 @@ import {ProposeChangeEntityWithEntity} from '../../proposechange/model/propose.c
 @Component({
     selector: 'user-entity-change-limit-edit',
     template: `
-    <p-dialog header="{{'USER_ENTITY_CHANGE_LIMIT' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'USER_ENTITY_CHANGE_LIMIT' | translate}}" [visible]="visibleDialog"
               [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
