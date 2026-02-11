@@ -48,7 +48,7 @@ import {DialogModule} from 'primeng/dialog';
 @Component({
     selector: 'security-derived-edit',
   template: `
-    <p-dialog header="{{'DERIVED_DATA' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'DERIVED_DATA' | translate}}" [visible]="visibleDialog"
               [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

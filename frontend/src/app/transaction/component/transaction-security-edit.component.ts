@@ -61,6 +61,7 @@ import {DialogModule} from 'primeng/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 import {DialogService} from 'primeng/dynamicdialog';
 import {CalcExRateDialogComponent} from './calc-ex-rate-dialog.component';
+import {DynamicDialogHelper} from '../../lib/dynamicdialog/component/dynamicDialogHelper';
 
 /**
  * Edit transaction for an investment product, also margin product. The transaction type (buy, dividend, sell,
@@ -69,7 +70,7 @@ import {CalcExRateDialogComponent} from './calc-ex-rate-dialog.component';
 @Component({
   selector: 'transaction-security-edit',
   template: `
-    <p-dialog [(visible)]="visibleSecurityTransactionDialog"
+    <p-dialog [visible]="visibleSecurityTransactionDialog"
               [style]="{width: '720px'}" [resizable]="false"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
       <ng-template #header>
@@ -460,11 +461,9 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
    * On close, the entered amount is used to reverse-calculate the exchange rate.
    */
   private openCalcExRateDialog(): void {
-    const ref = this.dialogService.open(CalcExRateDialogComponent, {
-      header: this.configObject.calcExRateButton.labelKey,
-      width: '400px',
-      closable: true
-    });
+    const ddh = new DynamicDialogHelper(this.translateService, this.dialogService,
+      CalcExRateDialogComponent, this.configObject.calcExRateButton.labelKey);
+    const ref = ddh.openDynamicDialog(400);
     ref.onClose.subscribe((amount: number) => {
       if (amount != null) {
         this.calcExRateFromAmount(amount);

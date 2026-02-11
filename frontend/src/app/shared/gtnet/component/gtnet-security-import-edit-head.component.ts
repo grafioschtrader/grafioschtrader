@@ -21,7 +21,7 @@ import {GTNetSecurityImpHeadService} from '../service/gtnet-security-imp-head.se
 @Component({
   selector: 'gtnet-security-import-edit-head',
   template: `
-    <p-dialog header="{{'GTNET_SECURITY_IMP_HEAD' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'GTNET_SECURITY_IMP_HEAD' | translate}}" [visible]="visibleDialog"
               [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

@@ -55,7 +55,7 @@ import {BaseSettings} from '../../base.settings';
     EditableTableComponent
   ],
   template: `
-    <p-dialog header="{{'GT_NET_NET_AND_MESSAGE' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'GT_NET_NET_AND_MESSAGE' | translate}}" [visible]="visibleDialog"
               [style]="{width: '750px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

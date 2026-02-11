@@ -17,7 +17,7 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 @Component({
     selector: 'transform-pdf-to-txt-dialog',
     template: `
-    <p-dialog header="{{'TRANSFORM_PDF_TO_TXT' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'TRANSFORM_PDF_TO_TXT' | translate}}" [visible]="visibleDialog"
               [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

@@ -41,7 +41,7 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 @Component({
   selector: 'transaction-cashaccount-editdouble',
   template: `
-    <p-dialog header="{{'ACCOUNT_TRANSFER' | translate}}" [(visible)]="visibleCashaccountTransactionDoubleDialog"
+    <p-dialog header="{{'ACCOUNT_TRANSFER' | translate}}" [visible]="visibleCashaccountTransactionDoubleDialog"
               [style]="{width: '550px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

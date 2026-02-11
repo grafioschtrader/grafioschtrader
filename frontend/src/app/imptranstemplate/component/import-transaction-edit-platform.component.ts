@@ -23,7 +23,7 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 @Component({
     selector: 'import-transaction-edit-platform',
     template: `
-    <p-dialog header="{{'IMPORT_TRANSACTION_PLATFORM' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'IMPORT_TRANSACTION_PLATFORM' | translate}}" [visible]="visibleDialog"
               [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

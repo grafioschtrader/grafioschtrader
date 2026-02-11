@@ -27,7 +27,7 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 @Component({
     selector: 'watchlist-add-edit-price-problem-instrument',
     template: `
-    <p-dialog header="{{'WATCHLIST_ADD_PROBLEM_INSTRUMENT' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'WATCHLIST_ADD_PROBLEM_INSTRUMENT' | translate}}" [visible]="visibleDialog"
               [style]="{width: '450px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"

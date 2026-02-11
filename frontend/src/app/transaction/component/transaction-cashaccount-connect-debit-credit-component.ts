@@ -12,7 +12,7 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 @Component({
     selector: 'transaction-cashaccount-connect-debit-credit',
     template: `
-    <p-dialog header="{{'CHANGE_TO_ACCOUNT_TRANSFER' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'CHANGE_TO_ACCOUNT_TRANSFER' | translate}}" [visible]="visibleDialog"
               [style]="{width: '450px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

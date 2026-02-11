@@ -23,7 +23,7 @@ import {ValidatorFn} from '@angular/forms';
 @Component({
   selector: 'globalsettings-edit',
   template: `
-    <p-dialog header="{{'GLOBAL_SETTINGS' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'GLOBAL_SETTINGS' | translate}}" [visible]="visibleDialog"
               [style]="{width: '800px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

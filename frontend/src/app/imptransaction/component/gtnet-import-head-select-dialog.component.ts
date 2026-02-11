@@ -29,7 +29,7 @@ import {GTNetSecurityImpPosService} from '../../shared/gtnet/service/gtnet-secur
 @Component({
   selector: 'gtnet-import-head-select-dialog',
   template: `
-    <p-dialog header="{{'SELECT_OR_CREATE_GTNET_IMPORT_HEAD' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'SELECT_OR_CREATE_GTNET_IMPORT_HEAD' | translate}}" [visible]="visibleDialog"
               [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

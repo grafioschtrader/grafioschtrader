@@ -28,7 +28,7 @@ import {GTNetConfigEntityDisplay} from './gtnet-config-entity-table.component';
     TranslateModule
   ],
   template: `
-    <p-dialog header="{{ 'GT_NET_CONFIG_ENTITY_EDIT' | translate }}" [(visible)]="visibleDialog"
+    <p-dialog header="{{ 'GT_NET_CONFIG_ENTITY_EDIT' | translate }}" [visible]="visibleDialog"
               [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
       <p class="big-size">{{gtNetConfigEntity.entityKind | translate}}</p>

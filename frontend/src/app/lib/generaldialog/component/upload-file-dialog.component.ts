@@ -39,7 +39,7 @@ import {BaseSettings} from '../../base.settings';
 @Component({
     selector: 'upload-file-dialog',
     template: `
-    <p-dialog header="{{fileUploadParam.title | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{fileUploadParam.title | translate}}" [visible]="visibleDialog"
               [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"

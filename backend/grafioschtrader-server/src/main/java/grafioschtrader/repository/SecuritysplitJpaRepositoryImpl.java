@@ -248,8 +248,12 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
             && youngestSplitDate.get().after(security.getFullLoadTimestamp()))) {
       // The historical price data must be reloaded if the most recent split date is
       // more recent than the last complete load of this historical data.
-      log.info("Youngest Split-Date: {}, Full load timestamp: {}", youngestSplitDate.get(),
+      if(youngestSplitDate.isEmpty()) {
+        log.info("Full load timestamp: {}", security.getFullLoadTimestamp());
+      } else {
+        log.info("Youngest Split-Date: {}, Full load timestamp: {}", youngestSplitDate.get(),
           security.getFullLoadTimestamp());
+      }
       securityJpaRepository.reloadAsyncFullHistoryquote(security);
       if (requireHoldingBuild) {
         taskDataChangeJpaRepository

@@ -21,7 +21,7 @@ import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-fo
 @Component({
     selector: 'correlation-set-edit',
     template: `
-    <p-dialog header="{{'CORRELATION_SET' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'CORRELATION_SET' | translate}}" [visible]="visibleDialog"
               [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

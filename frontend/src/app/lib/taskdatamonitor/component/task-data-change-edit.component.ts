@@ -25,7 +25,7 @@ import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 @Component({
     selector: 'task-data-change-edit',
     template: `
-    <p-dialog header="{{i18nRecord | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{i18nRecord | translate}}" [visible]="visibleDialog"
               [style]="{width: '500px'}" (onShow)="onShow($event)"
               (onHide)="onHide($event)" [modal]="true">
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
@@ -61,6 +61,7 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
       DynamicFieldHelper.createFieldSelectStringHeqF('idTask', true),
       DynamicFieldHelper.createFieldSelectStringHeqF('entity', true),
       DynamicFieldHelper.createFieldSelectStringHeqF('idEntity', true),
+      DynamicFieldHelper.createFieldInputNumber('idEntityNum', 'ID_ENTITY', true, 10, 0, false),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateTimeNumeric, 'earliestStartTime', true,
         {
           calendarConfig: {
@@ -75,34 +76,51 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
 
   valueChangedOnIdTask(): void {
     this.idTaskSubscribe = this.configObject.idTask.formControl.valueChanges.subscribe(idTask => {
-      this.configObject.entity.valueKeyHtmlOptions = this.tdcFormConstraints.taskTypeConfig[idTask] ?
-        SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(this.translateService,
-          SelectOptionsHelper.createHtmlOptionsFromStringArray(
-            this.tdcFormConstraints.taskTypeConfig[idTask], true), false) : null;
-      FormHelper.disableEnableFieldConfigs(!this.configObject.entity.valueKeyHtmlOptions, [this.configObject.entity,
-        this.configObject.idEntity]);
-      const allowEmpty = this.tdcFormConstraints.taskTypeConfig[idTask] && this.tdcFormConstraints.taskTypeConfig[idTask].includes;
-      DynamicFieldHelper.resetValidator(this.configObject.entity, allowEmpty ? null : [Validators.required],
-        allowEmpty ? null : [DynamicFieldHelper.RULE_REQUIRED_DIRTY]);
+      const taskConfig = this.tdcFormConstraints.taskTypeConfig[idTask];
+      if (taskConfig) {
+        // Scenario B/C: task has entity configuration - show entity field
+        this.configObject.entity.valueKeyHtmlOptions =
+          SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(this.translateService,
+            SelectOptionsHelper.createHtmlOptionsFromStringArray(taskConfig, true), false);
+        FormHelper.disableEnableFieldConfigs(false, [this.configObject.entity]);
+        const allowEmpty = taskConfig.includes('');
+        DynamicFieldHelper.resetValidator(this.configObject.entity, allowEmpty ? null : [Validators.required],
+          allowEmpty ? null : [DynamicFieldHelper.RULE_REQUIRED_DIRTY]);
+        this.configObject.entity.formControl.setValue(null);
+      } else {
+        // Scenario A: no entity configuration - hide all entity fields
+        this.configObject.entity.formControl.setValue(null);
+        this.hideIdEntityFields();
+        DynamicFieldHelper.resetValidator(this.configObject.entity, null, null);
+        this.configObject.entity.formControl.disable();
+        FormHelper.hideVisibleFieldConfigs(true, [this.configObject.entity]);
+      }
     });
   }
 
   valueChangedOnEntity(): void {
     this.entitySubscribe = this.configObject.entity.formControl.valueChanges.subscribe(entity => {
-      const hasEntityIdOptions = entity && this.tdcFormConstraints.entityIdOptions
-        && this.tdcFormConstraints.entityIdOptions[entity];
-      if (hasEntityIdOptions) {
-        // Convert backend options to form options, translate, and show as dropdown
+      if (!entity || entity.length === 0) {
+        // No entity selected: hide both idEntity fields
+        this.hideIdEntityFields();
+      } else if (this.tdcFormConstraints.entityIdOptions && this.tdcFormConstraints.entityIdOptions[entity]) {
+        // Entity with predefined options: show select dropdown, hide number input
         this.configObject.idEntity.valueKeyHtmlOptions = SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(
           this.translateService, this.tdcFormConstraints.entityIdOptions[entity]
             .map((opt: EntityIdOption) => new ValueKeyHtmlSelectOptions(opt.key, opt.value)), false);
+        this.configObject.idEntity.formControl.setValue(null);
+        FormHelper.disableEnableFieldConfigs(false, [this.configObject.idEntity]);
+        DynamicFieldHelper.resetValidator(this.configObject.idEntity, [Validators.required],
+          [DynamicFieldHelper.RULE_REQUIRED_DIRTY]);
+        this.hideField(this.configObject.idEntityNum);
       } else {
-        // No options available - show as number input
-        this.configObject.idEntity.valueKeyHtmlOptions = null;
+        // Entity without predefined options: show number input, hide select
+        this.configObject.idEntityNum.formControl.setValue(null);
+        FormHelper.disableEnableFieldConfigs(false, [this.configObject.idEntityNum]);
+        DynamicFieldHelper.resetValidator(this.configObject.idEntityNum, [Validators.required],
+          [DynamicFieldHelper.RULE_REQUIRED_DIRTY]);
+        this.hideField(this.configObject.idEntity);
       }
-      // Reset idEntity value when entity changes
-      this.configObject.idEntity.formControl.setValue(null);
-      FormHelper.disableEnableFieldConfigs(!entity || entity.length === 0, [this.configObject.idEntity]);
     });
   }
 
@@ -115,11 +133,20 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
   protected override initialize(): void {
     this.valueChangedOnIdTask();
     this.valueChangedOnEntity();
+    // Initially hide entity and idEntity fields until a task is selected
+    this.hideField(this.configObject.entity);
+    this.hideIdEntityFields();
     this.configObject.idTask.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
       this.translateService, this.taskTypeEnum, Object.keys(this.taskTypeEnum).filter(
         key => this.taskTypeEnum[key] <= this.tdcFormConstraints.maxUserCreateTask).map(key => this.taskTypeEnum[key]));
     if (this.callParam) {
       this.form.transferBusinessObjectToForm(this.callParam);
+      // For number input case, transferBusinessObjectToForm sets idEntity on the select field.
+      // Move the value to the number input if it's now visible.
+      if (this.callParam.idEntity != null && this.callParam.entity
+        && !(this.tdcFormConstraints.entityIdOptions && this.tdcFormConstraints.entityIdOptions[this.callParam.entity])) {
+        this.configObject.idEntityNum.formControl.setValue(this.callParam.idEntity);
+      }
     }
     this.configObject.earliestStartTime.formControl.setValue(moment().add(1, 'm').toDate());
     this.configObject.idTask.elementRef.nativeElement.focus();
@@ -129,10 +156,27 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
     const taskDataChange = this.copyFormToPrivateBusinessObject(new TaskDataChange(), null);
     taskDataChange.earliestStartTime = moment(taskDataChange.earliestStartTime).add(moment().utcOffset() * -1,
       'm').format('yyyy-MM-DD HH:mm:ss');
+    // Use number input value if present (idEntityNum is not on TaskDataChange, so read from form)
+    const idEntityNumValue = this.configObject.idEntityNum.formControl.value;
+    if (idEntityNumValue != null) {
+      taskDataChange.idEntity = idEntityNumValue;
+    }
     // Convert idEntity to number if it was selected from dropdown (string key)
     if (taskDataChange.idEntity && typeof taskDataChange.idEntity === 'string') {
       taskDataChange.idEntity = parseInt(taskDataChange.idEntity, 10);
     }
     return taskDataChange;
+  }
+
+  private hideIdEntityFields(): void {
+    this.hideField(this.configObject.idEntity);
+    this.hideField(this.configObject.idEntityNum);
+  }
+
+  private hideField(fieldConfig: any): void {
+    fieldConfig.formControl.setValue(null);
+    DynamicFieldHelper.resetValidator(fieldConfig, null, null);
+    fieldConfig.formControl.disable();
+    FormHelper.hideVisibleFieldConfigs(true, [fieldConfig]);
   }
 }

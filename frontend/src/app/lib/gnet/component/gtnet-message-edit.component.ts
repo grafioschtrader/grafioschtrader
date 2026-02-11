@@ -37,7 +37,7 @@ import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/d
     TranslateModule
   ],
   template: `
-    <p-dialog header="{{'GT_NET_MESSAGE_SEND' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'GT_NET_MESSAGE_SEND' | translate}}" [visible]="visibleDialog"
               [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

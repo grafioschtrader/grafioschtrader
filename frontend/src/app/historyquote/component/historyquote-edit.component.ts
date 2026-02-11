@@ -25,7 +25,7 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 @Component({
     selector: 'historyquote-edit',
     template: `
-    <p-dialog header="{{'HISTORY_QUOTE_FOR' | translate}} {{callParam.showName}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'HISTORY_QUOTE_FOR' | translate}} {{callParam.showName}}" [visible]="visibleDialog"
               [style]="{width: '400px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

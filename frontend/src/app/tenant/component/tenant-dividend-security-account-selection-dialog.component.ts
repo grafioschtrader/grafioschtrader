@@ -19,7 +19,7 @@ import {TranslateModule} from '@ngx-translate/core';
 @Component({
     selector: 'tenant-dividend-security-account-selection-dialog',
     template: `
-    <p-dialog header="{{'DIV_INCLUDE_SECURITYACCOUNT' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'DIV_INCLUDE_SECURITYACCOUNT' | translate}}" [visible]="visibleDialog"
               [style]="{width: '600px'}"
               [contentStyle]="{'max-height':'800px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">

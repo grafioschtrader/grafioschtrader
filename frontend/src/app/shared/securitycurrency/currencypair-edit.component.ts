@@ -34,7 +34,7 @@ import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-fo
 @Component({
   selector: 'currencypair-edit',
   template: `
-    <p-dialog header="{{'CURRENCYPAIR' | translate}}" [(visible)]="visibleEditCurrencypairDialog"
+    <p-dialog header="{{'CURRENCYPAIR' | translate}}" [visible]="visibleEditCurrencypairDialog"
               [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

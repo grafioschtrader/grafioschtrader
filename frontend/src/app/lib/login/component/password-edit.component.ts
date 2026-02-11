@@ -24,7 +24,7 @@ import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 @Component({
   selector: 'password-edit',
   template: `
-    <p-dialog header="{{'PASSWORD_CHANGE' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'PASSWORD_CHANGE' | translate}}" [visible]="visibleDialog"
               [style]="{width: '450px'}"
               [closeOnEscape]="!forcePasswordChange" [closable]="!forcePasswordChange"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">

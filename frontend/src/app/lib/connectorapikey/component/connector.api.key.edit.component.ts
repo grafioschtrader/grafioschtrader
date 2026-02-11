@@ -23,7 +23,7 @@ import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.htm
 @Component({
     selector: 'connector-api-key-edit',
     template: `
-    <p-dialog header="{{'CONNECTOR_API_KEY' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'CONNECTOR_API_KEY' | translate}}" [visible]="visibleDialog"
               [style]="{width: '600px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 

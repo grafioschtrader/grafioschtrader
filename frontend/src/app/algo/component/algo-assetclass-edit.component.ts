@@ -26,7 +26,7 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 @Component({
     selector: 'algo-assetclass-edit',
     template: `
-    <p-dialog header="{{'ALGO_ASSETCLASS' | translate}}" [(visible)]="visibleDialog"
+    <p-dialog header="{{'ALGO_ASSETCLASS' | translate}}" [visible]="visibleDialog"
               [style]="{width: '500px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
