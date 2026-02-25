@@ -2,6 +2,8 @@ package grafioschtrader.gtnet.model;
 
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -113,6 +115,7 @@ public class ConnectorHint {
    * Returns true when this hint describes a generic (user-defined) connector. Generic connectors carry a domainUrl
    * so that the receiving instance can verify configuration compatibility beyond just the family name.
    */
+  @JsonIgnore
   public boolean isGenericConnector() {
     return domainUrl != null;
   }
