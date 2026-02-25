@@ -40,6 +40,16 @@ public class ConnectorHint {
   @Schema(description = "Whether this connector requires an API key to function")
   private boolean requiresApiKey;
 
+  @Schema(description = """
+      Base API domain URL of the generic connector (e.g., 'https://api.twelvedata.com/'). \
+      Only set for generic (user-defined) connectors; null for built-in connectors.""")
+  private String domainUrl;
+
+  @Schema(description = """
+      Regex pattern used to validate URL extensions for the generic connector. \
+      Only set for generic connectors; null for built-in connectors.""")
+  private String regexUrlPattern;
+
   public ConnectorHint() {
   }
 
@@ -81,5 +91,29 @@ public class ConnectorHint {
 
   public void setRequiresApiKey(boolean requiresApiKey) {
     this.requiresApiKey = requiresApiKey;
+  }
+
+  public String getDomainUrl() {
+    return domainUrl;
+  }
+
+  public void setDomainUrl(String domainUrl) {
+    this.domainUrl = domainUrl;
+  }
+
+  public String getRegexUrlPattern() {
+    return regexUrlPattern;
+  }
+
+  public void setRegexUrlPattern(String regexUrlPattern) {
+    this.regexUrlPattern = regexUrlPattern;
+  }
+
+  /**
+   * Returns true when this hint describes a generic (user-defined) connector. Generic connectors carry a domainUrl
+   * so that the receiving instance can verify configuration compatibility beyond just the family name.
+   */
+  public boolean isGenericConnector() {
+    return domainUrl != null;
   }
 }

@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,10 @@ import grafiosch.repository.GTNetJpaRepository;
 import grafiosch.repository.GlobalparametersJpaRepository;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector;
+import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
+import grafioschtrader.connector.instrument.generic.GenericFeedConnector;
+import grafioschtrader.entities.GenericConnectorDef;
+import grafioschtrader.entities.GenericConnectorEndpoint;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.gtnet.model.ConnectorHint;
 import grafioschtrader.gtnet.model.ConnectorHint.ConnectorCapability;
@@ -438,7 +443,7 @@ public class GTNetSecurityLookupService {
     int matchScore = 0;
 
     for (ConnectorHint hint : hints) {
-      String localConnectorId = findLocalConnector(hint.getConnectorFamily());
+      String localConnectorId = findLocalConnector(hint);
       if (localConnectorId == null) {
         continue;
       }
@@ -487,27 +492,92 @@ public class GTNetSecurityLookupService {
   }
 
   /**
-   * Finds a local connector matching the given family name.
+   * Finds a local connector matching the given hint. For built-in connectors (hint has no domainUrl), matches by
+   * connector family only. For generic connectors, additionally verifies that domainUrl and regexUrlPattern match
+   * and that the local connector has the required endpoints for the hint's capabilities.
    *
-   * @param connectorFamily the connector family (e.g., "six", "yahoo")
-   * @return the full connector ID if found locally, null otherwise
+   * @param hint the connector hint from a remote peer
+   * @return the full connector ID if a compatible local connector is found, null otherwise
    */
-  private String findLocalConnector(String connectorFamily) {
+  private String findLocalConnector(ConnectorHint hint) {
+    String connectorFamily = hint.getConnectorFamily();
     if (connectorFamily == null || connectorFamily.isBlank()) {
       return null;
     }
 
-    // Build the expected connector ID
     String expectedId = BaseFeedConnector.ID_PREFIX + connectorFamily;
 
-    // Search through available connectors
     for (IFeedConnector connector : feedConnectors) {
-      if (connector.getID().equals(expectedId)) {
+      if (!connector.getID().equals(expectedId)) {
+        continue;
+      }
+
+      // Built-in connector: family match is sufficient
+      if (!hint.isGenericConnector()) {
         return expectedId;
       }
+
+      // Generic connector: require configuration match
+      if (connector instanceof GenericFeedConnector gfc) {
+        GenericConnectorDef localDef = gfc.getConnectorDef();
+        if (Objects.equals(hint.getDomainUrl(), localDef.getDomainUrl())
+            && Objects.equals(hint.getRegexUrlPattern(), localDef.getRegexUrlPattern())
+            && hasRequiredEndpoints(gfc, hint.getCapabilities())) {
+          return expectedId;
+        }
+        log.debug("Generic connector {} found locally but config mismatch: domainUrl=[{}] vs [{}], "
+            + "regexUrlPattern=[{}] vs [{}]", connectorFamily, hint.getDomainUrl(), localDef.getDomainUrl(),
+            hint.getRegexUrlPattern(), localDef.getRegexUrlPattern());
+      }
+      // Local connector has the same family but is not a GenericFeedConnector — skip
     }
 
     return null;
+  }
+
+  /**
+   * Checks whether the local generic connector has endpoints matching every capability in the given set.
+   * Maps each {@link ConnectorCapability} to the corresponding {@link FeedSupport} value and verifies
+   * that at least one endpoint exists for it.
+   *
+   * @param gfc the local generic feed connector
+   * @param capabilities the set of capabilities required by the hint
+   * @return true if every capability has a matching endpoint, false otherwise
+   */
+  private boolean hasRequiredEndpoints(GenericFeedConnector gfc, java.util.Set<ConnectorCapability> capabilities) {
+    if (capabilities == null || capabilities.isEmpty()) {
+      return true;
+    }
+    GenericConnectorDef def = gfc.getConnectorDef();
+    List<GenericConnectorEndpoint> endpoints = def.getEndpoints();
+    if (endpoints == null || endpoints.isEmpty()) {
+      return false;
+    }
+
+    for (ConnectorCapability cap : capabilities) {
+      String requiredFeedSupport = mapCapabilityToFeedSupport(cap);
+      if (requiredFeedSupport == null) {
+        continue;
+      }
+      boolean found = endpoints.stream().anyMatch(ep -> requiredFeedSupport.equals(ep.getFeedSupport()));
+      if (!found) {
+        log.debug("Generic connector {} missing endpoint for {}", gfc.getID(), requiredFeedSupport);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Maps a {@link ConnectorCapability} to the corresponding GenericConnectorEndpoint feedSupport string.
+   * Generic connectors only support FS_HISTORY and FS_INTRA; DIVIDEND and SPLIT are not applicable.
+   */
+  private static String mapCapabilityToFeedSupport(ConnectorCapability capability) {
+    return switch (capability) {
+      case HISTORY -> FeedSupport.FS_HISTORY.name();
+      case INTRADAY -> FeedSupport.FS_INTRA.name();
+      case DIVIDEND, SPLIT -> null;
+    };
   }
 
   /**

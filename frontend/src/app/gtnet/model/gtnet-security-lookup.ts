@@ -30,6 +30,10 @@ export interface ConnectorHint {
   capabilities: ConnectorCapability[];
   urlExtensionPattern?: string;
   requiresApiKey: boolean;
+  /** Base API domain URL of the generic connector. Only set for generic (user-defined) connectors. */
+  domainUrl?: string;
+  /** Regex pattern for URL extension validation. Only set for generic connectors. */
+  regexUrlPattern?: string;
 }
 
 /**

@@ -22,8 +22,11 @@ import grafiosch.gtnet.handler.AbstractGTNetMessageHandler;
 import grafiosch.gtnet.handler.GTNetMessageContext;
 import grafiosch.gtnet.handler.HandlerResult;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
+import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector;
+import grafioschtrader.connector.instrument.generic.GenericFeedConnector;
+import grafioschtrader.entities.GenericConnectorDef;
 import grafioschtrader.dto.IHistoryquoteQuality;
 import grafioschtrader.entities.Security;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
@@ -306,7 +309,17 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
     boolean requiresApiKey = checkRequiresApiKey(connectorId);
     Set<ConnectorCapability> capabilities = EnumSet.of(capability);
 
-    return new ConnectorHint(family, capabilities, urlExtension, requiresApiKey);
+    ConnectorHint hint = new ConnectorHint(family, capabilities, urlExtension, requiresApiKey);
+
+    // Populate generic connector metadata for stricter cross-instance matching
+    IFeedConnector connector = feedConnectorMap.get(connectorId);
+    if (connector instanceof GenericFeedConnector gfc) {
+      GenericConnectorDef def = gfc.getConnectorDef();
+      hint.setDomainUrl(def.getDomainUrl());
+      hint.setRegexUrlPattern(def.getRegexUrlPattern());
+    }
+
+    return hint;
   }
 
   private String extractConnectorFamily(String connectorId) {
@@ -318,10 +331,10 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
 
   private boolean checkRequiresApiKey(String connectorId) {
     IFeedConnector connector = feedConnectorMap.get(connectorId);
-    if (connector != null) {
-      return connector.getClass().getName().contains("ApiKey");
+    if (connector instanceof GenericFeedConnector gfc) {
+      return gfc.getConnectorDef().isNeedsApiKey();
     }
-    return false;
+    return connector instanceof BaseFeedApiKeyConnector;
   }
 
   private HandlerResult<GTNetMessage, MessageEnvelope> createSuccessResponse(GTNetMessageContext context, GTNetMessage storedRequest,
