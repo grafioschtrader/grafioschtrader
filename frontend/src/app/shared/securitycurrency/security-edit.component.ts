@@ -333,6 +333,9 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   private applyGtnetLookupData(dto: SecurityGtnetLookupDTO): void {
     // Set direct field values
     this.configObject.name.formControl.setValue(dto.name);
+    if (dto.isin) {
+      this.configObject.isin.formControl.setValue(dto.isin);
+    }
     if (dto.tickerSymbol) {
       this.configObject.tickerSymbol.formControl.setValue(dto.tickerSymbol);
     }

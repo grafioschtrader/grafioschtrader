@@ -41,6 +41,7 @@ import grafioschtrader.gtnet.model.SubCategoryDetector;
 import grafioschtrader.gtnet.model.SubCategoryScheme;
 import grafioschtrader.entities.GTNetSecurityImpPos;
 import grafioschtrader.repository.AssetclassJpaRepository;
+import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.gtnet.model.msg.SecurityBatchLookupMsg;
 import grafioschtrader.gtnet.model.msg.SecurityBatchLookupResponseMsg;
 import grafioschtrader.gtnet.model.msg.SecurityLookupMsg;
@@ -67,7 +68,7 @@ public class GTNetSecurityLookupService {
   private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Autowired
-  private List<IFeedConnector> feedConnectors;
+  private SecurityJpaRepository securityJpaRepository;
 
   @Autowired
   private AssetclassJpaRepository assetclassJpaRepository;
@@ -507,7 +508,7 @@ public class GTNetSecurityLookupService {
 
     String expectedId = BaseFeedConnector.ID_PREFIX + connectorFamily;
 
-    for (IFeedConnector connector : feedConnectors) {
+    for (IFeedConnector connector : securityJpaRepository.getFeedConnectors()) {
       if (!connector.getID().equals(expectedId)) {
         continue;
       }

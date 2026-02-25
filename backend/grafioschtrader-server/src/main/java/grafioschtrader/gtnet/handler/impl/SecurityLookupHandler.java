@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,8 +68,6 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
   @Autowired
   private SecuritysplitJpaRepository securitysplitJpaRepository;
 
-  @Autowired
-  private Map<String, IFeedConnector> feedConnectorMap;
 
   @Override
   public GTNetMessageCodeType getSupportedMessageCode() {
@@ -312,7 +311,7 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
     ConnectorHint hint = new ConnectorHint(family, capabilities, urlExtension, requiresApiKey);
 
     // Populate generic connector metadata for stricter cross-instance matching
-    IFeedConnector connector = feedConnectorMap.get(connectorId);
+    IFeedConnector connector = findFeedConnectorById(connectorId);
     if (connector instanceof GenericFeedConnector gfc) {
       GenericConnectorDef def = gfc.getConnectorDef();
       hint.setDomainUrl(def.getDomainUrl());
@@ -330,11 +329,21 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
   }
 
   private boolean checkRequiresApiKey(String connectorId) {
-    IFeedConnector connector = feedConnectorMap.get(connectorId);
+    IFeedConnector connector = findFeedConnectorById(connectorId);
     if (connector instanceof GenericFeedConnector gfc) {
       return gfc.getConnectorDef().isNeedsApiKey();
     }
     return connector instanceof BaseFeedApiKeyConnector;
+  }
+
+  /**
+   * Finds a feed connector by its full ID (e.g., "gt.datafeed.yahoo") from the complete connector list
+   * including dynamically registered generic connectors.
+   */
+  private IFeedConnector findFeedConnectorById(String connectorId) {
+    return securityJpaRepository.getFeedConnectors().stream()
+        .filter(fc -> fc.getID().equals(connectorId))
+        .findFirst().orElse(null);
   }
 
   private HandlerResult<GTNetMessage, MessageEnvelope> createSuccessResponse(GTNetMessageContext context, GTNetMessage storedRequest,
