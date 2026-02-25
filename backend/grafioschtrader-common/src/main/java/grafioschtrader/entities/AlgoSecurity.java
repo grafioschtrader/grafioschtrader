@@ -29,6 +29,10 @@ public class AlgoSecurity extends AlgoAssetclassSecurity {
   @Column(name = "id_algo_security_parent")
   private Integer idAlgoSecurityParent;
 
+  @Schema(description = "Whether this standalone alert is active and should be evaluated by the alarm service.")
+  @Column(name = "activatable")
+  private boolean activatable = true;
+
   @JoinColumn(name = "id_securitycurrency", referencedColumnName = "id_securitycurrency")
   @ManyToOne
   private Security security;
@@ -39,6 +43,14 @@ public class AlgoSecurity extends AlgoAssetclassSecurity {
 
   public void setIdAlgoSecurityParent(Integer idAlgoSecurityParent) {
     this.idAlgoSecurityParent = idAlgoSecurityParent;
+  }
+
+  public boolean isActivatable() {
+    return activatable;
+  }
+
+  public void setActivatable(boolean activatable) {
+    this.activatable = activatable;
   }
 
   public Security getSecurity() {

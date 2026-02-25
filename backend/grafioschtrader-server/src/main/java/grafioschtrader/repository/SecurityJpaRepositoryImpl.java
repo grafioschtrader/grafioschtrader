@@ -108,6 +108,9 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Autowired
   private GTNetHistoryquoteService gtNetHistoryquoteService;
 
+  @Autowired
+  private grafioschtrader.service.AlgoAlarmEvaluationService algoAlarmEvaluationService;
+
   // Circular Dependency -> Lazy
   private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
 
@@ -351,12 +354,15 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   public void updateAllLastPrices() {
     List<Security> securities = securityJpaRepository.findAll();
     Date now = new Date();
-    intradayThruConnector.updateLastPriceOfSecuritycurrency(securities.stream()
+    List<Security> updatedSecurities = intradayThruConnector.updateLastPriceOfSecuritycurrency(securities.stream()
         .filter(s -> !s.isDerivedInstrument() && !now.after(s.getActiveToDate()) && !now.before(s.getActiveFromDate())
             && s.getRetryIntraLoad() < globalparametersService.getMaxIntraRetry() && s.getIdConnectorIntra() != null)
         .collect(Collectors.toList()), true);
-    intradayThruCalculation.updateLastPriceOfSecuritycurrency(
+    List<Security> updatedDerived = intradayThruCalculation.updateLastPriceOfSecuritycurrency(
         securities.stream().filter(Security::isDerivedInstrument).collect(Collectors.toList()), true);
+    updatedSecurities.addAll(updatedDerived);
+    // Tier 1: evaluate simple alerts on freshly updated securities
+    algoAlarmEvaluationService.evaluateSimpleAlerts(updatedSecurities);
   }
 
   @Override

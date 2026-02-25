@@ -33,21 +33,21 @@ public class BoursoramaFeedConnectorTest extends BaseFeedConnectorCheck {
   @Override
   protected List<SecurityHistoricalDate> getHistoricalSecurities(HistoricalIntra histroricalIntra) {
     List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
-    String dateTo = "2023-08-31";
+    String dateTo = "2026-02-09";
     try {
       hisoricalDate.add(new SecurityHistoricalDate("iShares SMIM ETF (CH)", SpecialInvestmentInstruments.ETF,
-          "2aCSSMIM", GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 3195, "2010-12-09", dateTo));
+          "2aCSSMIM", GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 3804, "2010-12-09", dateTo));
       hisoricalDate.add(new SecurityHistoricalDate("0.362 Bank of New Zealand 21-29", null,
           SpecialInvestmentInstruments.DIRECT_INVESTMENT, AssetclassType.FIXED_INCOME, "2aBNZ01",
-          GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 135, "2021-12-15", dateTo));
+          GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 417, "2021-12-15", "2026-02-06"));
       hisoricalDate.add(new SecurityHistoricalDate("Cisco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CSCO",
-          GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 4435, "2006-01-03", dateTo));
+          GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 5018, "2006-02-13", dateTo));
       hisoricalDate.add(new SecurityHistoricalDate("Lyxor CAC 40", SpecialInvestmentInstruments.ETF, "1rPCAC",
-          GlobalConstants.STOCK_EX_MIC_FRANCE, GlobalConstants.MC_EUR, 4007, "2008-01-02", dateTo));
+          GlobalConstants.STOCK_EX_MIC_FRANCE, GlobalConstants.MC_EUR, 4629, "2008-01-02", dateTo));
       hisoricalDate.add(new SecurityHistoricalDate("ZKB Gold ETF (CHF)", SpecialInvestmentInstruments.ETF, "2aZGLD",
-          GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 4370, "2006-03-15", dateTo));
+          GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 4979, "2006-03-15", dateTo));
       hisoricalDate.add(new SecurityHistoricalDate("NASDAQ 100", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
-          "$COMPX", GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 4446, "2006-01-03", dateTo));
+          "$COMPX", GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 5027, "2006-02-13", dateTo));
 
     } catch (ParseException pe) {
       pe.printStackTrace();

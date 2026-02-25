@@ -11,12 +11,15 @@ import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {HelpIds} from '../../lib/help/help.ids';
 import {ImportTransactionPlatformService} from '../../imptranstemplate/service/import.transaction.platform.service';
 import {DialogService} from 'primeng/dynamicdialog';
-import {ConfirmationService, FilterService} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 import {BaseSettings} from '../../lib/base.settings';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {TradingPlatformPlanEditComponent} from './trading-platform-plan-edit.component';
+import {FeeModelEditComponent} from './fee-model-edit.component';
+import {ProcessedAction} from '../../lib/types/processed.action';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
 
 @Component({
   template: `
@@ -48,14 +51,23 @@ import {TradingPlatformPlanEditComponent} from './trading-platform-plan-edit.com
                                   (closeDialog)="handleCloseDialog($event)">
       </trading-platform-plan-edit>
     }
+
+    @if (visibleFeeModelDialog) {
+      <fee-model-edit [visibleDialog]="visibleFeeModelDialog"
+                      [callParam]="feeModelCallParam"
+                      (closeDialog)="handleCloseFeeModelDialog($event)">
+      </fee-model-edit>
+    }
   `,
   providers: [DialogService],
   standalone: true,
-  imports: [TranslateModule, ConfigurableTableComponent, TradingPlatformPlanEditComponent]
+  imports: [TranslateModule, ConfigurableTableComponent, TradingPlatformPlanEditComponent, FeeModelEditComponent]
 })
 export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<TradingPlatformPlan> implements OnDestroy {
 
   callParam: TradingPlatformPlan;
+  visibleFeeModelDialog = false;
+  feeModelCallParam: TradingPlatformPlan;
   private platformTransactionImportKV: { [id: string]: string };
 
   constructor(private importTransactionPlatformService: ImportTransactionPlatformService,
@@ -110,6 +122,25 @@ export class TradingPlatformPlanTableComponent extends TableCrudSupportMenu<Trad
 
   protected override hasRightsForDeleteEntity(entity: TradingPlatformPlan): boolean {
     return true;
+  }
+
+  protected override addCustomMenusToSelectedEntity(entity: TradingPlatformPlan, menuItems: MenuItem[]): void {
+    menuItems.push({
+      label: 'EDIT_FEE_MODEL' + BaseSettings.DIALOG_MENU_SUFFIX,
+      command: (event) => this.handleEditFeeModel(entity)
+    });
+  }
+
+  private handleEditFeeModel(entity: TradingPlatformPlan): void {
+    this.feeModelCallParam = entity;
+    this.visibleFeeModelDialog = true;
+  }
+
+  handleCloseFeeModelDialog(processedActionData: ProcessedActionData): void {
+    this.visibleFeeModelDialog = false;
+    if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
+      this.readData();
+    }
   }
 
 }

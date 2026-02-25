@@ -177,6 +177,10 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   @Null(groups = { CashTransaction.class })
   private Double assetInvestmentValue2;
 
+  @Schema(description = "Reference to the standing order that created this transaction, null if manually created")
+  @Column(name = "id_standing_order")
+  private Integer idStandingOrder;
+
   @Transient
   private Double securityRisk;
 
@@ -432,6 +436,14 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     this.assetInvestmentValue2 = assetInvestmentValue2;
   }
 
+  public Integer getIdStandingOrder() {
+    return idStandingOrder;
+  }
+
+  public void setIdStandingOrder(Integer idStandingOrder) {
+    this.idStandingOrder = idStandingOrder;
+  }
+
   public Double getSecurityRisk() {
     return securityRisk;
   }
@@ -581,7 +593,6 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     case DEPOSIT:
       idSecurityaccount = null;
       taxCost = null;
-      transactionCost = null;
       break;
     case INTEREST_CASHACCOUNT:
       connectedIdTransaction = null;

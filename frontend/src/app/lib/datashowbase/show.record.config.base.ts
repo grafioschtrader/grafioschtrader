@@ -47,6 +47,7 @@ export abstract class ShowRecordConfigBase {
     protected injector: Injector = null) {
     this.baseLocale = {
       language: gps.getUserLang(),
+      locale: gps.getLocale(),
       dateFormat: gps.getCalendarTwoNumberDateFormat().toLocaleLowerCase()
     };
   }
@@ -196,6 +197,7 @@ export abstract class ShowRecordConfigBase {
       cc.frozenColumn = optionalParams.frozenColumn;
       cc.userValue = optionalParams.userValue;
       cc.fieldsetName = optionalParams.fieldsetName;
+      cc.cec = optionalParams.cec;
     }
   }
 

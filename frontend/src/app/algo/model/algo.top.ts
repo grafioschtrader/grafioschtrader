@@ -2,16 +2,15 @@ import {AlgoTopAssetSecurity} from './algo.top.asset.security';
 import {AlgoAssetclass} from './algo.assetclass';
 import {Exclude, Type} from 'class-transformer';
 import {AlgoTreeName} from '../../entities/view/algo.tree.name';
-import {RuleStrategyType} from '../../shared/types/rule.strategy.type';
 
 
 export class AlgoTop extends AlgoTopAssetSecurity implements AlgoTreeName {
   name: string = null;
   @Type(() => AlgoAssetclass)
   algoAssetclassList: AlgoAssetclass[];
-  ruleStrategy: RuleStrategyType | string;
   idWatchlist: number = null;
   activatable: boolean;
+  referenceDate: Date;
   addedPercentage: number;
 
   @Exclude()

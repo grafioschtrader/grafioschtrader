@@ -24,9 +24,11 @@ import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.CashAccountTransfer;
 import grafioschtrader.dto.ClosedMarginUnits;
+import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Portfolio;
+import grafioschtrader.entities.SecaccountTradingPeriod;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.Tenant;
@@ -208,6 +210,9 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     // Validate transaction date against closedUntil restriction
     checkTransactionDateAgainstClosedUntil(transaction, cashaccount);
 
+    // Validate trading period restrictions
+    checkTradingPeriodAllowed(transaction, securityaccount);
+
     return securityaccount;
   }
 
@@ -232,15 +237,132 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     if (effectiveClosedUntil != null) {
       LocalDate transactionDate = DateHelper.getLocalDate(transaction.getTransactionTime());
       if (!transactionDate.isAfter(effectiveClosedUntil)) {
-        throw new DataViolationException("transactionTime", "gt.transaction.date.in.closed.period",
+        throw new DataViolationException("transaction.time", "gt.transaction.date.in.closed.period",
             new Object[] { effectiveClosedUntil });
       }
     }
   }
 
   /**
+   * Validates that the transaction's instrument type is allowed by the security account's trading period definitions.
+   * If the security account has no trading period rows, all trading is allowed (backward compatibility). Otherwise, at
+   * least one period must match the transaction's special investment instrument (exact match) and optionally
+   * asset class type (NULL acts as wildcard), with the transaction date falling within the period's date range.
+   *
+   * @param transaction     the transaction to validate
+   * @param securityaccount the security account (may be null for cash-only transactions)
+   * @throws DataViolationException if the instrument type is not allowed in this account at the transaction date
+   */
+  private void checkTradingPeriodAllowed(Transaction transaction, Securityaccount securityaccount) {
+    if (securityaccount == null || transaction.getSecurity() == null) {
+      return;
+    }
+    List<SecaccountTradingPeriod> tradingPeriods = securityaccount.getTradingPeriods();
+    if (tradingPeriods == null || tradingPeriods.isEmpty()) {
+      return;
+    }
+    Assetclass assetclass = transaction.getSecurity().getAssetClass();
+    byte txCategoryType = assetclass.getCategoryType().getValue();
+    byte txSpecInvest = assetclass.getSpecialInvestmentInstrument().getValue();
+    LocalDate txDate = DateHelper.getLocalDate(transaction.getTransactionTime());
+
+    boolean allowed = tradingPeriods.stream().anyMatch(period -> {
+      if (period.getCategoryType() != null && period.getCategoryType().getValue() != txCategoryType) {
+        return false;
+      }
+      if (period.getSpecInvestInstrument().getValue() != txSpecInvest) {
+        return false;
+      }
+      if (period.getDateFrom() != null && txDate.isBefore(period.getDateFrom())) {
+        return false;
+      }
+      if (period.getDateTo() != null && txDate.isAfter(period.getDateTo())) {
+        return false;
+      }
+      return true;
+    });
+
+    if (!allowed) {
+      throw new DataViolationException("transaction.time", "gt.trading.period.not.allowed",
+          new Object[] { assetclass.getCategoryType(), assetclass.getSpecialInvestmentInstrument() });
+    }
+  }
+
+  /**
+   * Validates that a create/update transaction would not cause a negative cash account balance when overdraft is
+   * forbidden. Overdraft is forbidden when {@code cashaccount.borrowingRate} is {@code null}. When it is non-null
+   * (even 0.0), overdraft is allowed and no check is performed.
+   *
+   * @param transaction    the transaction being created or updated
+   * @param existingEntity the previous version of the transaction (for updates), or null for new transactions
+   * @throws DataViolationException if the projected minimum balance would be negative
+   */
+  private void checkOverdraftAllowed(Transaction transaction, Transaction existingEntity) {
+    Cashaccount cashaccount = transaction.getCashaccount();
+    if (cashaccount.getBorrowingRate() != null) {
+      return;
+    }
+
+    double delta = existingEntity != null && existingEntity.getCashaccountAmount() != null
+        ? transaction.getCashaccountAmount() - existingEntity.getCashaccountAmount()
+        : transaction.getCashaccountAmount();
+
+    if (delta >= 0) {
+      return;
+    }
+
+    Integer idCashaccount = cashaccount.getIdSecuritycashAccount();
+    LocalDate txDate = DateHelper.getLocalDate(transaction.getTransactionTime());
+
+    Double balanceBefore = holdCashaccountBalanceJpaRepository.getBalanceBeforeDate(idCashaccount, txDate);
+    double balanceBeforeDate = balanceBefore != null ? balanceBefore : 0.0;
+
+    Double minFrom = holdCashaccountBalanceJpaRepository.getMinBalanceFromDate(idCashaccount, txDate);
+    double minBalanceFromDate = minFrom != null ? minFrom : balanceBeforeDate;
+
+    double projectedMin = Math.min(balanceBeforeDate, minBalanceFromDate) + delta;
+
+    if (projectedMin < 0) {
+      throw new DataViolationException("cashaccount.amount", "gt.cashaccount.overdraft.not.allowed",
+          new Object[] { DataBusinessHelper.round(projectedMin) });
+    }
+  }
+
+  /**
+   * Validates that deleting a transaction would not cause a negative cash account balance when overdraft is forbidden.
+   * Deleting reverses the transaction's effect, so the delta is the negation of the original cash account amount.
+   *
+   * @param transaction the transaction being deleted
+   * @throws DataViolationException if the projected minimum balance after deletion would be negative
+   */
+  private void checkOverdraftAllowedForDelete(Transaction transaction) {
+    Cashaccount cashaccount = transaction.getCashaccount();
+    if (cashaccount.getBorrowingRate() != null) {
+      return;
+    }
+    double delta = -transaction.getCashaccountAmount();
+    if (delta >= 0) {
+      return;
+    }
+
+    Integer idCashaccount = cashaccount.getIdSecuritycashAccount();
+    LocalDate txDate = DateHelper.getLocalDate(transaction.getTransactionTime());
+
+    Double balanceBefore = holdCashaccountBalanceJpaRepository.getBalanceBeforeDate(idCashaccount, txDate);
+    double balanceBeforeDate = balanceBefore != null ? balanceBefore : 0.0;
+    Double minFrom = holdCashaccountBalanceJpaRepository.getMinBalanceFromDate(idCashaccount, txDate);
+    double minBalanceFromDate = minFrom != null ? minFrom : balanceBeforeDate;
+    double projectedMin = Math.min(balanceBeforeDate, minBalanceFromDate) + delta;
+
+    if (projectedMin < 0) {
+      throw new DataViolationException("cashaccount.amount", "gt.cashaccount.overdraft.not.allowed",
+          new Object[] { DataBusinessHelper.round(projectedMin) });
+    }
+  }
+
+  /**
    * Validates currency pair for a transaction when security is involved.
-   * 
+   *
    * @param transaction the transaction to validate
    */
   private void checkCurrencypair(final Transaction transaction) {
@@ -317,6 +439,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     case FINANCE_COST:
       List<Transaction> existingTransactions = checkTradingDayAndUnitsIntegrity(transaction);
       transaction.validateCashaccountAmount(getOpenPositionMarginPosition(transaction), currencyFraction);
+      checkOverdraftAllowed(transaction, existingEntity);
       newTransaction = saveSecurityTransaction(transaction, existingEntity, securityaccount, adjustHoldings);
       if (newTransaction.isMarginOpenPosition() && !existingTransactions.isEmpty()) {
         adjustMarginClosePosition(newTransaction, existingTransactions, currencyFraction);
@@ -331,6 +454,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     case INTEREST_CASHACCOUNT:
       transaction.clearAccountTransaction();
       transaction.validateCashaccountAmount(null, currencyFraction);
+      checkOverdraftAllowed(transaction, existingEntity);
       newTransaction = saveTransactionAndCorrectCashaccountBalance(transaction, existingEntity, adjustHoldings,
           isCashAccountTransfer);
       break;
@@ -493,13 +617,18 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
         user.getIdTenant());
     if (transaction != null) {
       if (transaction.getSecurity() != null) {
+        checkOverdraftAllowedForDelete(transaction);
         deleteSecurityTransaction(transaction);
       } else {
         Transaction connectedTransaction = null;
         if (transaction.isCashaccountTransfer()) {
           connectedTransaction = transactionJpaRepository
               .findByIdTransactionAndIdTenant(transaction.getConnectedIdTransaction(), transaction.getIdTenant());
+          checkOverdraftAllowedForDelete(transaction);
+          checkOverdraftAllowedForDelete(connectedTransaction);
           removeTransaction(connectedTransaction);
+        } else {
+          checkOverdraftAllowedForDelete(transaction);
         }
         removeTransaction(transaction);
         if (transaction.getTransactionType() == TransactionType.DEPOSIT

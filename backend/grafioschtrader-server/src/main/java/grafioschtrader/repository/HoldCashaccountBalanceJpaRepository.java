@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import grafioschtrader.entities.HoldCashaccountBalance;
 import grafioschtrader.entities.HoldCashaccountBalance.HoldCashaccountBalanceKey;
@@ -14,8 +15,53 @@ public interface HoldCashaccountBalanceJpaRepository extends
 
   void removeByIdTenant(Integer idTenant);
 
+  //@formatter:off
+  /**
+   * Retrieves all cash account balance records for a tenant that are active at the given reference date.
+   * A record is active when the reference date falls within the hold period
+   * (from_hold_date &le; refDate and to_hold_date is null or &ge; refDate).
+   *
+   * @param idTenant the tenant ID
+   * @param refDate  the reference date at which to evaluate balances
+   * @return a list of cash account balance records active at the reference date
+   */
+  //@formatter:on
+  @Query("""
+      SELECT hcab FROM HoldCashaccountBalance hcab
+      WHERE hcab.idTenant = :idTenant
+        AND hcab.idEm.fromHoldDate <= :refDate
+        AND (hcab.toHoldDate IS NULL OR hcab.toHoldDate >= :refDate)""")
+  List<HoldCashaccountBalance> findCashBalancesAtDate(@Param("idTenant") Integer idTenant,
+      @Param("refDate") LocalDate refDate);
+
   void removeByIdTenantAndIdEmIdSecuritycashAccountAndIdEmFromHoldDateGreaterThanEqual(Integer idTenant,
       Integer idSecuritycashAccount, LocalDate fromHoldDate);
+
+  /**
+   * Retrieves the balance from the most recent record strictly before the given date.
+   * Returns null if no record exists before the date (balance is implicitly 0).
+   *
+   * Named query: HoldCashaccountBalance.getBalanceBeforeDate
+   *
+   * @param idCashaccount the cash account ID
+   * @param beforeDate    the date to look before (exclusive)
+   * @return the balance from the most recent record before the date, or null if none exists
+   */
+  @Query(nativeQuery = true)
+  Double getBalanceBeforeDate(Integer idCashaccount, LocalDate beforeDate);
+
+  /**
+   * Retrieves the minimum balance from all records at or after the given date.
+   * Returns null if no records exist at or after the date.
+   *
+   * Named query: HoldCashaccountBalance.getMinBalanceFromDate
+   *
+   * @param idCashaccount the cash account ID
+   * @param fromDate      the start date (inclusive)
+   * @return the minimum balance from records at or after the date, or null if none exists
+   */
+  @Query(nativeQuery = true)
+  Double getMinBalanceFromDate(Integer idCashaccount, LocalDate fromDate);
 
   //@formatter:off
   /**

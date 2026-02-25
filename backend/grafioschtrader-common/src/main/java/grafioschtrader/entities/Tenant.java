@@ -80,7 +80,14 @@ public class Tenant extends TenantBase implements Serializable {
   @Column(name = "tenant_kind_type")
   private byte tenantKindType;
 
-  
+  @Schema(description = "Reference to the parent tenant for simulation tenants")
+  @Column(name = "id_parent_tenant")
+  private Integer idParentTenant;
+
+  @Schema(description = "Reference to the shared AlgoTop strategy for simulation tenants")
+  @Column(name = "id_algo_top")
+  private Integer idAlgoTop;
+
   public Tenant() {
   }
 
@@ -149,6 +156,22 @@ public class Tenant extends TenantBase implements Serializable {
 
   public void setIdWatchlistPerformance(Integer idWatchlistPerformance) {
     this.idWatchlistPerformance = idWatchlistPerformance;
+  }
+
+  public Integer getIdParentTenant() {
+    return idParentTenant;
+  }
+
+  public void setIdParentTenant(Integer idParentTenant) {
+    this.idParentTenant = idParentTenant;
+  }
+
+  public Integer getIdAlgoTop() {
+    return idAlgoTop;
+  }
+
+  public void setIdAlgoTop(Integer idAlgoTop) {
+    this.idAlgoTop = idAlgoTop;
   }
 
   public void updateThis(Tenant sourceTenant) {

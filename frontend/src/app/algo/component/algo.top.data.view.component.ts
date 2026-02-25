@@ -1,17 +1,18 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ConfirmationService, MenuItem, TreeNode} from 'primeng/api';
-import {Subscription} from 'rxjs';
+import {concat, Subscription} from 'rxjs';
+import {toArray} from 'rxjs/operators';
 import {ActivatedRoute, Params} from '@angular/router';
 import {AlgoTop} from '../model/algo.top';
 import {AlgoAssetclassService} from '../service/algo.assetclass.service';
 import {AlgoAssetclass} from '../model/algo.assetclass';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {plainToClass} from 'class-transformer';
-import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
+import {ColumnConfig, EditInputType, TranslateValue} from '../../lib/datashowbase/column.config';
 import {AlgoTopAssetSecurity} from '../model/algo.top.asset.security';
 import {AlgoStrategy} from '../model/algo.strategy';
 import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
@@ -35,7 +36,6 @@ import {BaseID} from '../../lib/entities/base.id';
 import {AlgoSecurityService} from '../service/algo.security.service';
 import {AlgoStrategyService} from '../service/algo.strategy.service';
 import {AlgoStrategyImplementationType} from '../../shared/types/algo.strategy.implementation.type';
-import {RuleStrategyType} from '../../shared/types/rule.strategy.type';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AlgoStrategyHelper} from './algo.strategy.helper';
 import {AlgoTopService} from '../service/algo.top.service';
@@ -45,54 +45,38 @@ import {AlgoSecurityEditComponent} from './algo-security-edit.component';
 
 /**
  * Shows algorithmic trading tree with its strategies.
- * Project: Grafioschtrader
+ * Supports inline editing of the percentage column for AlgoTop, AlgoAssetclass, and AlgoSecurity nodes.
  */
 import {CommonModule} from '@angular/common';
-import {TreeTableModule} from 'primeng/treetable';
-import {ContextMenuModule} from 'primeng/contextmenu';
 import {TranslateModule} from '@ngx-translate/core';
 import {StrategyDetailComponent} from './strategy-detail.component';
 import {AlgoAssetclassEditComponent} from './algo-assetclass-edit.component';
 import {AlgoStrategyEditComponent} from './algo-strategy-edit.component';
+import {
+  ConfigurableTreeTableComponent,
+  TreeTableCellEditEvent
+} from '../../lib/datashowbase/configurable-tree-table.component';
 
 @Component({
   template: `
-    <div class="data-container" (click)="onComponentClick($event)" (contextmenu)="onRightClick($event)"
-         #cmDiv [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
-      <p-treeTable [columns]="fields" [value]="treeNodes" selectionMode="single" [(selection)]="selectedNode"
-                   (onNodeSelect)="onNodeSelect($event)" (onNodeUnselect)="onNodeUnselect($event)"
-                   [(contextMenuSelection)]="selectedNode" dataKey="idTree">
-        <ng-template #caption>
-          <h4>{{ 'ALGO_OVERVIEW' | translate }}
-            ({{ (algoTop.ruleStrategy === RuleStrategy[RuleStrategy.RS_RULE] ? 'ALGO_PORTFOLIO_STRATEGY' : 'ALGO_RULE_BASED') | translate }}
-            )</h4>
-        </ng-template>
-
-        <ng-template #header let-fields>
-          <tr>
-            @for (field of fields; track field) {
-              <th>
-                {{ field.headerTranslated }}
-              </th>
-            }
-          </tr>
-        </ng-template>
-        <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
-          <tr [ttContextMenuRow]="rowNode" [ttSelectableRow]="rowNode"
-              [ngClass]="{'kb-row': rowData.constructor.name  === 'AlgoAssetclass'}">
-            @for (field of fields; track field; let i = $index) {
-              <td [ngClass]="{'text-end': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
-              || field.dataType===DataType.DateTimeNumeric) || field.dataType===DataType.NumericShowZero}">
-                @if (i === 0) {
-                  <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
-                }
-                {{ getValueByPath(rowData, field) }}
-              </td>
-            }
-          </tr>
-        </ng-template>
-      </p-treeTable>
-      <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="cmDiv"></p-contextMenu>
+    <div class="data-container"
+         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
+      <configurable-tree-table
+        [data]="treeNodes" [fields]="fields" dataKey="idTree"
+        [(selection)]="selectedNode"
+        (nodeSelect)="onNodeSelect($event)" (nodeUnselect)="onNodeUnselect($event)"
+        [showContextMenu]="true" [contextMenuItems]="contextMenuItems"
+        [valueGetterFn]="getValueByPath.bind(this)"
+        [baseLocale]="baseLocale"
+        [canEditCellFn]="canEditCell.bind(this)"
+        (cellEditComplete)="onCellEditComplete($event)"
+        [checkboxVisibleFn]="isSecurityRow.bind(this)"
+        (checkboxChange)="onCheckboxChangeHandler($event)"
+        (componentClick)="onComponentClick($event)"
+        [rowClassFn]="getAlgoRowClass.bind(this)"
+        [enableSort]="false">
+        <h4 caption>{{ 'ALGO_OVERVIEW' | translate }}</h4>
+      </configurable-tree-table>
       @if (algoStrategyShowParamCall.algoStrategy) {
         <strategy-detail [algoStrategyParamCall]="algoStrategyShowParamCall">
         </strategy-detail>
@@ -123,15 +107,13 @@ import {AlgoStrategyEditComponent} from './algo-strategy-edit.component';
     }
   `],
     standalone: true,
-    imports: [AlgoSecurityEditComponent, CommonModule, TreeTableModule, ContextMenuModule, TranslateModule,
+    imports: [AlgoSecurityEditComponent, CommonModule, TranslateModule, ConfigurableTreeTableComponent,
       StrategyDetailComponent, AlgoAssetclassEditComponent, AlgoStrategyEditComponent]
 })
 export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
-  @ViewChild('contextMenu', {static: true}) contextMenu: any;
 
 // Otherwise enum DialogVisible can't be used in a html template
   AlgoDialogVisible: typeof AlgoDialogVisible = AlgoDialogVisible;
-  RuleStrategy: typeof RuleStrategyType = RuleStrategyType;
 
   // For modal dialogs
   visibleDialogs: boolean[] = [];
@@ -164,7 +146,9 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
 
     this.addColumn(DataType.String, 'name', 'NAME', true, false,
       {fieldValueFN: this.getReadableUniqueName.bind(this)});
-    this.addColumn(DataType.Numeric, 'percentage', 'ALGO_PERCENTAGE', true, false);
+    this.addColumn(DataType.Boolean, '_selected', '', true, false, {templateName: 'editableCheck', width: 40});
+    const percentageCol = this.addColumn(DataType.Numeric, 'percentage', 'ALGO_PERCENTAGE', true, false);
+    percentageCol.cec = {inputType: EditInputType.InputNumber, min: 0, max: 100, maxFractionDigits: 2};
     this.addColumnFeqH(DataType.NumericShowZero, 'addedPercentage', true, false);
     this.addColumn(DataType.String, 'idTree', 'ID', true, false);
   }
@@ -209,8 +193,73 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
     this.resetMenu();
   }
 
-  onRightClick(event): void {
-    this.resetMenu();
+  /**
+   * Determines if a specific cell should be editable.
+   * Only AlgoTopAssetSecurity descendants (AlgoTop, AlgoAssetclass, AlgoSecurity) have percentage.
+   * AlgoStrategy nodes do not have percentage and should not be editable.
+   *
+   * @param rowData - The row data object from the tree node
+   * @param field - The column configuration
+   * @returns true if the cell should be editable
+   */
+  canEditCell(rowData: any, field: ColumnConfig): boolean {
+    return 'percentage' in rowData;
+  }
+
+  /**
+   * Handles cell edit completion by persisting the changed value via the appropriate service.
+   * On error, rolls back to the original value.
+   *
+   * @param event - The cell edit event containing rowData, field, originalValue, and newValue
+   */
+  onCellEditComplete(event: TreeTableCellEditEvent): void {
+    if (event.originalValue === event.newValue) {
+      return;
+    }
+    const rowData = event.rowData;
+    if (rowData instanceof AlgoTop) {
+      this.algoTopService.update(rowData).subscribe({
+        next: () => this.readDataWithTopLevel(),
+        error: () => rowData[event.field.field] = event.originalValue
+      });
+    } else if (rowData instanceof AlgoAssetclass) {
+      this.algoAssetclassService.update(rowData).subscribe({
+        next: () => this.readDataWithoutTopLevel(),
+        error: () => rowData[event.field.field] = event.originalValue
+      });
+    } else if (rowData instanceof AlgoSecurity) {
+      this.algoSecurityService.update(rowData).subscribe({
+        next: () => this.readDataWithoutTopLevel(),
+        error: () => rowData[event.field.field] = event.originalValue
+      });
+    }
+  }
+
+  /**
+   * Returns CSS class for tree table rows.
+   * AlgoAssetclass rows are displayed in bold to distinguish them visually.
+   *
+   * @param rowNode - PrimeNG TreeNode wrapper
+   * @param rowData - The row data object
+   * @returns CSS class string or null
+   */
+  getAlgoRowClass(rowNode: any, rowData: any): string | null {
+    return rowData instanceof AlgoAssetclass ? 'kb-row' : null;
+  }
+
+  /**
+   * Determines if a row should display the selection checkbox.
+   * Only AlgoSecurity rows get checkboxes for batch selection.
+   */
+  isSecurityRow(rowData: any, field: ColumnConfig): boolean {
+    return rowData instanceof AlgoSecurity;
+  }
+
+  /**
+   * Handles checkbox toggle by storing the checked state on the row data object.
+   */
+  onCheckboxChangeHandler(event: {rowData: any; field: ColumnConfig; value: boolean}): void {
+    event.rowData._selected = event.value;
   }
 
   extendMenuWithAlgoStrategy(menuItems: MenuItem[], selectedNode: AlgoTop | AlgoAssetclass | AlgoSecurity, algoStrategy: AlgoStrategy): void {
@@ -338,6 +387,50 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
     }
   }
 
+  private getCheckedSecurities(): AlgoSecurity[] {
+    const result: AlgoSecurity[] = [];
+    if (this.algoTop?.algoAssetclassList) {
+      for (const ac of this.algoTop.algoAssetclassList) {
+        if (ac.algoSecurityList) {
+          for (const sec of ac.algoSecurityList) {
+            if ((sec as any)._selected) {
+              result.push(sec);
+            }
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  private handleDeleteSelectedSecurities(): void {
+    const checked = this.getCheckedSecurities();
+    if (checked.length === 0) {
+      return;
+    }
+    AppHelper.confirmationDialog(this.translateService, this.confirmationService,
+      'MSG_CONFIRM_DELETE_RECORD|SECURITY', () => {
+        const deleteObs = checked.map(sec => this.algoSecurityService.deleteEntity(sec.idAlgoAssetclassSecurity));
+        concat(...deleteObs).pipe(toArray()).subscribe(() => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {i18nRecord: 'AlgoSecurity'});
+          this.resetMenu();
+          this.readDataWithoutTopLevel();
+        });
+      });
+  }
+
+  private handleNormalizePercentages(idAlgoAssetclassSecurity: number): void {
+    this.algoTopService.normalizePercentages(idAlgoAssetclassSecurity).subscribe(() => {
+      this.readDataWithoutTopLevel();
+    });
+  }
+
+  private handleNormalizeAllPercentages(idAlgoAssetclassSecurity: number): void {
+    this.algoTopService.normalizeAllPercentages(idAlgoAssetclassSecurity).subscribe(() => {
+      this.readDataWithoutTopLevel();
+    });
+  }
+
   private resetMenu(): void {
     this.contextMenuItems = this.getEditMenu(this.selectedNode);
     this.activePanelService.activatePanel(this, {
@@ -348,10 +441,28 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
 
   private getEditMenu(selectedNode: TreeNode): MenuItem[] {
     const menuItems: MenuItem[] = [];
+    const checkedSecurities = this.getCheckedSecurities();
+    if (checkedSecurities.length > 0) {
+      menuItems.push({
+        label: 'DELETE_SELECTED_SECURITIES',
+        command: () => this.handleDeleteSelectedSecurities()
+      });
+      menuItems.push({separator: true});
+    }
     if (selectedNode instanceof TreeAlgoTop) {
       menuItems.push({
         label: 'ADD_RECORD|ASSETCLASS', command: (e) => this.addEdit(AlgoDialogVisible.ALGO_ASSETCLASS,
           this.algoTop, null)
+      });
+      menuItems.push({
+        label: 'NORMALIZE_PERCENTAGES',
+        command: () => this.handleNormalizePercentages(this.algoTop.idAlgoAssetclassSecurity),
+        disabled: !this.algoTop.algoAssetclassList || this.algoTop.algoAssetclassList.length === 0
+      });
+      menuItems.push({
+        label: 'NORMALIZE_ALL_PERCENTAGES',
+        command: () => this.handleNormalizeAllPercentages(this.algoTop.idAlgoAssetclassSecurity),
+        disabled: !this.algoTop.algoAssetclassList || this.algoTop.algoAssetclassList.length === 0
       });
       this.extendMenuWithAlgoStrategy(menuItems, selectedNode.data, null);
     } else if (selectedNode instanceof TreeAlgoAssetclass) {
@@ -368,6 +479,11 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
       menuItems.push({
         label: 'ADD_RECORD|SECURITY', command: (e) => this.addEdit(AlgoDialogVisible.ALGO_SECURITY,
           <AlgoAssetclass>selectedNode.data, null)
+      });
+      menuItems.push({
+        label: 'NORMALIZE_PERCENTAGES',
+        command: () => this.handleNormalizePercentages(selectedNode.data.idAlgoAssetclassSecurity),
+        disabled: !selectedNode.data.algoSecurityList || selectedNode.data.algoSecurityList.length === 0
       });
       this.extendMenuWithAlgoStrategy(menuItems, selectedNode.data, null);
     } else if (selectedNode instanceof TreeAlgoSecurity) {
@@ -397,7 +513,7 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
   private addEdit(algoDialogVisible: AlgoDialogVisible, parent: AlgoTop | AlgoAssetclass | AlgoSecurity,
     thisObject: AlgoTop | AlgoAssetclass | AlgoSecurity | AlgoStrategy,
     algoStrategyDefinitionForm?: AlgoStrategyDefinitionForm): void {
-    this.algoCallParam = new AlgoCallParam(parent, thisObject);
+    this.algoCallParam = new AlgoCallParam(parent, thisObject, algoStrategyDefinitionForm);
     this.visibleDialogs[algoDialogVisible] = true;
   }
 
@@ -416,11 +532,13 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
     if (!inputAndShowDefinition) {
       this.algoStrategyService.getFormDefinitionsByAlgoStrategy(asiNo).subscribe(iasd => {
         this.algoStrategyDefinitionForm.inputAndShowDefinitionMap.set(asiNo, iasd);
+        algoStrategyParamCall.isComplexStrategy = iasd.isComplexStrategy;
         algoStrategyParamCall.fieldDescriptorShow = AlgoStrategyHelper.getFieldDescriptorInputAndShowByLevel(algoTopAssetSecurity,
           iasd);
         this.algoStrategyShowParamCall.algoStrategy = algoStrategy;
       });
     } else {
+      algoStrategyParamCall.isComplexStrategy = inputAndShowDefinition.isComplexStrategy;
       algoStrategyParamCall.fieldDescriptorShow = AlgoStrategyHelper.getFieldDescriptorInputAndShowByLevel(algoTopAssetSecurity,
         inputAndShowDefinition);
       this.algoStrategyShowParamCall.algoStrategy = algoStrategy;

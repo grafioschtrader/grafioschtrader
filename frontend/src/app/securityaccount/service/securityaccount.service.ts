@@ -2,7 +2,10 @@ import {Injectable} from '@angular/core';
 import {AppSettings} from '../../shared/app.settings';
 import {SecurityPositionGrandSummary} from '../../entities/view/security.position.grand.summary';
 import {MessageToastService} from '../../lib/message/message.toast.service';
+import {FeeModelComparisonResponse} from '../../entities/fee.model.comparison';
 import {Securityaccount} from '../../entities/securityaccount';
+import {TradingPeriodTransactionSummary} from '../../entities/trading.period.transaction.summary';
+import {TransactionCostEstimateRequest, TransactionCostEstimateResult} from '../../entities/transaction.cost.estimate';
 import {Observable} from 'rxjs';
 import {HttpClient} from '@angular/common/http';
 import {AuthServiceWithLogout} from '../../lib/login/service/base.auth.service.with.logout';
@@ -44,8 +47,27 @@ export class SecurityaccountService extends AuthServiceWithLogout<Securityaccoun
       .pipe(catchError(this.handleError.bind(this)));
   }
 
+  getTransactionSummaries(idSecuritycashAccount: number): Observable<TradingPeriodTransactionSummary[]> {
+    return this.httpClient.get<TradingPeriodTransactionSummary[]>(
+      `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITYACCOUNT_KEY}/${idSecuritycashAccount}/transactionsummaries`,
+      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
   update(securityaccount: Securityaccount): Observable<Securityaccount> {
     return this.updateEntity(securityaccount, securityaccount.idSecuritycashAccount, AppSettings.SECURITYACCOUNT_KEY);
+  }
+
+  getFeeModelComparison(idSecuritycashAccount: number, excludeZeroCost: boolean): Observable<FeeModelComparisonResponse> {
+    return this.httpClient.get<FeeModelComparisonResponse>(
+      `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITYACCOUNT_KEY}/${idSecuritycashAccount}/feemodelcomparison`,
+      {headers: this.prepareHeaders(), params: {excludeZeroCost: excludeZeroCost.toString()}})
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  estimateCostFromYaml(request: TransactionCostEstimateRequest): Observable<TransactionCostEstimateResult> {
+    return this.httpClient.post<TransactionCostEstimateResult>(
+      `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITYACCOUNT_KEY}/estimatecostyaml`,
+      request, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   deleteSecurityaccount(idSecuritycashaccount: number) {

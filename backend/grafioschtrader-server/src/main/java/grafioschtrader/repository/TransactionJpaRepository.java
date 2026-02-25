@@ -5,13 +5,34 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import grafiosch.common.UpdateQuery;
 import grafiosch.rest.UpdateCreateJpaRepository;
+import grafioschtrader.dto.TradingPeriodTransactionSummary;
 import grafioschtrader.entities.Transaction;
 
 public interface TransactionJpaRepository extends JpaRepository<Transaction, Integer>, TransactionJpaRepositoryCustom,
     UpdateCreateJpaRepository<Transaction> {
+
+  long countByIdStandingOrder(Integer idStandingOrder);
+
+  /**
+   * Returns transaction summaries grouped by (specialInvestmentInstrument, categoryType)
+   * for a given security account. Used to prevent deletion or shortening of trading periods
+   * that still cover existing transactions.
+   *
+   * @param idSecurityaccount the security account id
+   * @return list of summaries with max transaction date and count per instrument/category group
+   */
+  @Query(value = """
+      SELECT new grafioschtrader.dto.TradingPeriodTransactionSummary(
+        a.specialInvestmentInstrument, a.categoryType, MAX(t.transactionDate), COUNT(t))
+      FROM Transaction t JOIN t.security s JOIN s.assetClass a
+      WHERE t.idSecurityaccount = :idSecurityaccount
+      GROUP BY a.specialInvestmentInstrument, a.categoryType""")
+  List<TradingPeriodTransactionSummary> getTransactionSummariesBySecurityaccount(
+      @Param("idSecurityaccount") Integer idSecurityaccount);
 
   // TODO remove it after usage
 

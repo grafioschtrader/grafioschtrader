@@ -1,0 +1,125 @@
+Trade details, {cac|P|N}
+Berichtszeitraum 09-Mai-2025 bis 09-Mai-2025
+ETF
+Instrument VanEck Semiconductor UCITS ETF Handelszeit {date|P|SL} {time|N|SL}
+ISIN {isin|P|N} Valuta 13-Mai-2025
+Symbol SMHV:xswx Order-ID 5285124389
+Börsenbeschreibung SIX SWISS EXCHANGE (XSWX) Trade-ID 6267363737
+Hauptbörse SIX Swiss Exchange Gehandelter Wert -20'002.50 CHF
+Handelsplatz Exchange Preis {quotation|P|SL} CHF
+Ordertyp Limit-Order Menge {units|P|N}
+K/V {transType|P|N} Spread-Kosten 0.00 CHF
+Eröffnung/Schluss (?:To-Open|To-Close) Gesamte Trading-Kosten -46.00 CHF
+Saxo is counterparty No
+Buchungsbetrag- Amount Umrechnungskosten Gebuchter Betrag
+Trade-Datum Value Date Umrechnungskurs
+ID CHF CHF CHF
+Schweizerische
+Stempelgebühr 43933498763 09-Mai-2025 13-Mai-2025 -30.00 1.000000 0.00 {tt1|SL|N|O}
+Ausland
+Aktienbetrag 43931071149 09-Mai-2025 13-Mai-2025 -20'002.50 1.000000 0.00 -20'002.50
+Provision 43927001638 09-Mai-2025 13-Mai-2025 -16.00 1.000000 0.00 {tc1|SL|N|O}
+Nettobetrag - - - - - 0.00 {ta|SL|N}
+[END]
+templatePurpose=Kauf und Verkauf Wertpapiere (Saxo Bank CH)
+transType=ACCUMULATE|Kauf
+transType=REDUCE|Verkauf
+dateFormat=dd-MMM-yyyy
+timeFormat=HH:mm:ss
+overRuleSeparators=All<''|.>
+
+Document 1:
+CH - 13724560 - 13724560
+Bericht zu Trade-Details
+Berichtszeitraum: 09-Mai-2025 - 09-Mai-2025
+Generiert um: 20-Feb-2026 08:31:27 08:31:27 (W. Europe Standard Time)
+CH - 13724560 Saxo Bank CH
+Switzerland The Circle 38
+8058 Zürich-Flughafen
+Switzerland
+Saxo Bank CH / The Circle 38 / 8058 Zürich-Flughafen / Switzerland CH - 13724560 Berichtszeitraum
+Währung: CHF 09-Mai-2025 - 09-Mai-2025
+Seite 1 von 3 Konten: 80000/111070CHF Generiert um: 20-Feb-2026
+Trade details, CHF
+Berichtszeitraum
+09-Mai-2025 bis 09-Mai-2025
+ETF
+Instrument VanEck Semiconductor UCITS ETF Handelszeit 09-Mai-2025 16:27:41
+ISIN IE00BMC38736 Valuta 13-Mai-2025
+Symbol SMHV:xswx Order-ID 5285124389
+Börsenbeschreibung SIX SWISS EXCHANGE (XSWX) Trade-ID 6267363737
+Hauptbörse SIX Swiss Exchange Gehandelter Wert -20’002.50 CHF
+Handelsplatz Exchange Preis 31.5 CHF
+Ordertyp Limit-Order Menge 635.00
+K/V Kauf Spread-Kosten 0.00 CHF
+Eröffnung/Schluss To-Open Gesamte Trading-Kosten -46.00 CHF
+Saxo is counterparty No
+Buchungsbetrag- Amount Umrechnungskosten Gebuchter Betrag
+Trade-Datum Value Date Umrechnungskurs
+ID CHF CHF CHF
+Schweizerische
+Stempelgebühr 43933498763 09-Mai-2025 13-Mai-2025 -30.00 1.000000 0.00 -30.00
+Ausland
+Aktienbetrag 43931071149 09-Mai-2025 13-Mai-2025 -20’002.50 1.000000 0.00 -20’002.50
+Provision 43927001638 09-Mai-2025 13-Mai-2025 -16.00 1.000000 0.00 -16.00
+Saxo Bank CH / The Circle 38 / 8058 Zürich-Flughafen / Switzerland CH - 13724560 Berichtszeitraum
+Währung: CHF 09-Mai-2025 - 09-Mai-2025
+Seite 2 von 3 Konten: 80000/111070CHF Generiert um: 20-Feb-2026
+Trade details, CHF
+Berichtszeitraum
+09-Mai-2025 bis 09-Mai-2025
+Buchungsbetrag- Amount Umrechnungskosten Gebuchter Betrag
+Trade-Datum Value Date Umrechnungskurs
+ID CHF CHF CHF
+Nettobetrag - - - - - 0.00 -20’048.50
+Saxo Bank CH / The Circle 38 / 8058 Zürich-Flughafen / Switzerland CH - 13724560 Berichtszeitraum
+Währung: CHF 09-Mai-2025 - 09-Mai-2025
+Seite 3 von 3 Konten: 80000/111070CHF Generiert um: 20-Feb-2026
+
+Document 2:
+CH - 13724560 - 13724560
+Bericht zu Trade-Details
+Berichtszeitraum: 30-Jul-2025 - 30-Jul-2025
+Generiert um: 20-Feb-2026 08:33:32 08:33:32 (W. Europe Standard Time)
+CH - 13724560 Saxo Bank CH
+Switzerland The Circle 38
+8058 Zürich-Flughafen
+Switzerland
+Saxo Bank CH / The Circle 38 / 8058 Zürich-Flughafen / Switzerland CH - 13724560 Berichtszeitraum
+Währung: CHF 30-Jul-2025 - 30-Jul-2025
+Seite 1 von 3 Konten: 80000/111070CHF Generiert um: 20-Feb-2026
+Trade details, CHF
+Berichtszeitraum
+30-Jul-2025 bis 30-Jul-2025
+ETF
+Instrument VanEck Semiconductor UCITS ETF Handelszeit 30-Jul-2025 16:24:03
+ISIN IE00BMC38736 Valuta 04-Aug-2025
+Symbol SMHV:xswx Order-ID 5309495022
+Börsenbeschreibung SIX SWISS EXCHANGE (XSWX) Trade-ID 6352218398
+Hauptbörse SIX Swiss Exchange Gehandelter Wert 25’450.80 CHF
+Handelsplatz Exchange Preis 40.08 CHF
+Ordertyp Limit-Order Menge -635.00
+K/V Verkauf Spread-Kosten 0.00 CHF
+Eröffnung/Schluss To-Close Gesamte Trading-Kosten -58.54 CHF
+Saxo is counterparty No
+Buchungsbetrag- Amount Umrechnungskosten Gebuchter Betrag
+Trade-Datum Value Date Umrechnungskurs
+ID CHF CHF CHF
+Schweizerische
+Stempelgebühr 46252062679 30-Jul-2025 04-Aug-2025 -38.18 1.000000 0.00 -38.18
+Ausland
+Aktienbetrag 46242691036 30-Jul-2025 04-Aug-2025 25’450.80 1.000000 0.00 25’450.80
+Provision 46237820314 30-Jul-2025 04-Aug-2025 -20.36 1.000000 0.00 -20.36
+Saxo Bank CH / The Circle 38 / 8058 Zürich-Flughafen / Switzerland CH - 13724560 Berichtszeitraum
+Währung: CHF 30-Jul-2025 - 30-Jul-2025
+Seite 2 von 3 Konten: 80000/111070CHF Generiert um: 20-Feb-2026
+Trade details, CHF
+Berichtszeitraum
+30-Jul-2025 bis 30-Jul-2025
+Buchungsbetrag- Amount Umrechnungskosten Gebuchter Betrag
+Trade-Datum Value Date Umrechnungskurs
+ID CHF CHF CHF
+Nettobetrag - - - - - 0.00 25’392.26
+Saxo Bank CH / The Circle 38 / 8058 Zürich-Flughafen / Switzerland CH - 13724560 Berichtszeitraum
+Währung: CHF 30-Jul-2025 - 30-Jul-2025
+Seite 3 von 3 Konten: 80000/111070CHF Generiert um: 20-Feb-2026

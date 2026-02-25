@@ -214,12 +214,12 @@ public abstract class TemplateConfiguration {
         case CONF_DATE_FORMAT:
           dateFormat = splitEqual[1];
           dateTypeRegex = dateFormat.replaceAll("\\-", "\\\\-").replaceAll("\\.", "\\\\.")
-              .replaceFirst("yyyy", "\\\\d{4}").replaceFirst("MMM", "\\\\w{3}").replaceFirst("hh|HH", "\\\\d{1,2}")
+              .replaceFirst("yyyy", "\\\\d{4}").replaceFirst("MMM", "\\\\w+").replaceFirst("hh|HH", "\\\\d{1,2}")
               .replaceAll("dd|MM|yy|mm|ss", "\\\\d{2}").replaceFirst("a", "[AaPp][Mm]");
           break;
         case CONF_TIME_FORMAT:
           timeFormat = splitEqual[1];
-          timeTypeRegex = timeFormat.replaceAll("dd|MM|yy|mm|ss", "\\\\d{2}").replaceFirst("a", "[AaPp][Mm]");
+          timeTypeRegex = timeFormat.replaceFirst("hh|HH", "\\\\d{1,2}").replaceAll("dd|MM|yy|mm|ss", "\\\\d{2}").replaceFirst("a", "[AaPp][Mm]");
           break;
         case CONF_OVER_RULE_SEPARATORS:
           separators = splitEqual[1];

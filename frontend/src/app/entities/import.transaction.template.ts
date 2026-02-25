@@ -9,7 +9,7 @@ export class ImportTransactionTemplate extends Auditable implements BaseID {
   idTransactionImportPlatform: number;
   templateFormatType: TemplateFormatType | string = null;
   templatePurpose: string = null;
-  templateCategory?: TemplateCategory;
+  templateCategory?: TemplateCategory | string = null;
   templateAsTxt: string = null;
   validSince ? = null;
   templateLanguage: string = null;

@@ -47,11 +47,11 @@ public class AlgoSecurityJpaRepositoryImpl extends BaseRepositoryImpl<AlgoSecuri
     if (idSecuritycurrency != null) {
       final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
       AlgoSecurity algoSecurity = algoSecurityJpaRepository
-          .findBySecurity_idSecuritycurrencyAndIdTenant(idSecuritycurrency, user.getIdTenant());
+          .findBySecurity_idSecuritycurrencyAndIdTenant(idSecuritycurrency, user.getActualIdTenant());
       if (algoSecurity == null) {
         algoSecurity = new AlgoSecurity();
         algoSecurity.setSecurity(securityJpaRepository.findByIdSecuritycurrency(idSecuritycurrency));
-        algoSecurity.setIdTenant(user.getIdTenant());
+        algoSecurity.setIdTenant(user.getActualIdTenant());
         assit.algoSecurity = saveOnlyAttributes(algoSecurity, null,
             Set.of(PropertyAlwaysUpdatable.class, PropertyOnlyCreation.class));
         assit.wasCreated = true;

@@ -18,6 +18,11 @@ export interface ConfigurationWithLoginGT extends ConfigurationWithLogin {
   cryptocurrencies: string[];
 
   /**
+   * Earliest trading day that GT supports for transactions and historical prices (ISO date string, e.g. "2000-01-03").
+   */
+  oldestTradingDay: string;
+
+  /**
    * Currency-specific decimal precision configuration.
    * Certain currencies have a deviation different from two decimal places.
    * This mapping provides the correct precision for each currency.

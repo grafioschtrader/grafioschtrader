@@ -18,6 +18,13 @@ public class StrategyClassBindingDefinition {
   @JsonIgnore
   public final Class<?> algoSecurityModel;
 
+  /**
+   * For complex strategies that store their configuration as JSON in {@code AlgoStrategy.strategyConfig}. When non-null,
+   * indicates that a YAML/visual editor should be used instead of auto-generated DynamicModelHelper forms.
+   */
+  @JsonIgnore
+  public final Class<?> complexConfigClass;
+
   public final EnumSet<AlgoStrategyLevelRequirementType> algoStrategyLevelRequirementsSet;
 
   public boolean canRepeatSameLevel;
@@ -25,11 +32,19 @@ public class StrategyClassBindingDefinition {
   public StrategyClassBindingDefinition(AlgoStrategyImplementationType algoStrategyImplementations,
       Class<?> algoTopModel, Class<?> algoAssetclassModel, Class<?> algoSecurityModel,
       EnumSet<AlgoStrategyLevelRequirementType> algoStrategyLevelRequirementsSet, boolean canRepeatSameLevel) {
+    this(algoStrategyImplementations, algoTopModel, algoAssetclassModel, algoSecurityModel, null,
+        algoStrategyLevelRequirementsSet, canRepeatSameLevel);
+  }
+
+  public StrategyClassBindingDefinition(AlgoStrategyImplementationType algoStrategyImplementations,
+      Class<?> algoTopModel, Class<?> algoAssetclassModel, Class<?> algoSecurityModel, Class<?> complexConfigClass,
+      EnumSet<AlgoStrategyLevelRequirementType> algoStrategyLevelRequirementsSet, boolean canRepeatSameLevel) {
     super();
     this.algoStrategyImplementations = algoStrategyImplementations;
     this.algoTopModel = algoTopModel;
     this.algoAssetclassModel = algoAssetclassModel;
     this.algoSecurityModel = algoSecurityModel;
+    this.complexConfigClass = complexConfigClass;
     this.algoStrategyLevelRequirementsSet = algoStrategyLevelRequirementsSet;
     this.canRepeatSameLevel = canRepeatSameLevel;
   }

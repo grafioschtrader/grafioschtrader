@@ -83,10 +83,10 @@ export abstract class Helper {
       if (config.referencedDataObject) {
         targetObject[config.field] = this.getReferencedDataObject(config, config.field);
       } else if (config.dataType === DataType.Numeric && config.inputType === InputType.Select
-        && !Helper.hasValue(config.formControl.value)) {
+        && (config.formControl.value == null || config.formControl.value === '')) {
         targetObject[config.field] = null;
       } else if (config.dataType === DataType.Numeric) {
-        targetObject[config.field] = +config.formControl.value;
+        targetObject[config.field] = config.formControl.value != null ? +config.formControl.value : null;
       } else if (config.dataType === DataType.DateNumeric || config.dataType === DataType.DateString) {
         if (config.formControl.value) {
           this.formatDateString(config, targetObject, BaseSettings.FORMAT_DATE_SHORT_NATIVE);

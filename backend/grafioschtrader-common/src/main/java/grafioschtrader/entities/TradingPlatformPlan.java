@@ -61,6 +61,13 @@ public class TradingPlatformPlan extends Auditable implements Serializable {
   @PropertyAlwaysUpdatable
   private ImportTransactionPlatform importTransactionPlatform;
 
+  @Schema(description = """
+      YAML-based fee model configuration using EvalEx expressions for rule-based transaction cost estimation.
+      Rules are evaluated top-to-bottom; the first rule whose condition is true determines the fee.""")
+  @Column(name = "fee_model_yaml", columnDefinition = "TEXT")
+  @PropertyAlwaysUpdatable
+  private String feeModelYaml;
+
   public Integer getIdTradingPlatformPlan() {
     return idTradingPlatformPlan;
   }
@@ -105,6 +112,14 @@ public class TradingPlatformPlan extends Auditable implements Serializable {
 
   public void setPlatformPlanNameNLS(MultilanguageString platformPlanNameNLS) {
     this.platformPlanNameNLS = platformPlanNameNLS;
+  }
+
+  public String getFeeModelYaml() {
+    return feeModelYaml;
+  }
+
+  public void setFeeModelYaml(String feeModelYaml) {
+    this.feeModelYaml = feeModelYaml;
   }
 
 }

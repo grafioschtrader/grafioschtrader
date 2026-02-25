@@ -17,4 +17,8 @@ public interface TenantJpaRepository
 
   List<Tenant> findByTenantKindType(byte tenantKindType);
 
+  List<Tenant> findByIdParentTenant(Integer idParentTenant);
+
+  int countByIdParentTenant(Integer idParentTenant);
+
 }

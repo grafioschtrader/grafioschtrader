@@ -28,6 +28,7 @@ export class AppSettings {
   public static readonly PORTFOLIO = 'Portfolio';
 
 
+  public static readonly STANDING_ORDER = 'StandingOrder';
   public static readonly SECURITY = 'Security';
   public static readonly SECURITY_SPLIT = 'Securitysplit';
   public static readonly SECURITYACCOUNT = 'Securityaccount';
@@ -37,6 +38,7 @@ export class AppSettings {
   public static readonly TRANSACTION = 'Transaction';
   public static readonly TRADING_DAYS_MINUS = 'TradingDaysMinus';
   public static readonly TRADING_DAYS_PLUS = 'TradingDaysPlus';
+  public static readonly GENERIC_CONNECTOR_DEF = 'GenericConnectorDef';
   public static readonly TRADING_PLATFORM_PLAN = 'TradingPlatformPlan';
 
 
@@ -100,6 +102,7 @@ export class AppSettings {
   public static readonly TRADING_DAYS_PLUS_KEY = AppSettings.TRADING_DAYS_PLUS.toLowerCase();
   public static readonly IMPORT_TRANSACTION_HEAD_KEY = AppSettings.IMPORT_TRANSACTION_HEAD.toLowerCase();
   public static readonly IMPORT_TRANSACTION_POS_KEY = AppSettings.IMPORT_TRANSACTION_POS.toLowerCase();
+  public static readonly GENERIC_CONNECTOR_KEY = 'genericconnector';
   public static readonly TRADING_PLATFORM_PLAN_KEY = AppSettings.TRADING_PLATFORM_PLAN.toLowerCase();
   public static readonly IMP_TRANS_PLATFORM_KEY = AppSettings.IMPORT_TRANSACTION_PLATFORM.toLowerCase();
   public static readonly IMP_TRANS_TEMPLATE_KEY = AppSettings.IMPORT_TRANSACTION_TEMPLATE.toLowerCase();
@@ -137,8 +140,14 @@ export class AppSettings {
   public static readonly SECURITYACCOUNT_GTNET_IMPORT_KEY = 'securityaccountGtnetImport';
   public static readonly DIVIDENDS_ROUTER_KEY = 'portfolioDividens';
   public static readonly TRANSACTION_COST_KEY = 'portfoliotranscost';
+  public static readonly TRANSACTION_COST_SUMMARY_KEY = 'transcostsummary';
+  public static readonly FEE_MODEL_COMPARISON_KEY = 'feemodelcomparison';
   public static readonly STRATEGY_KEY = 'strategy';
   public static readonly STRATEGY_OVERVIEW_KEY = 'strategyoverview';
+  public static readonly STANDING_ORDER_KEY = AppSettings.STANDING_ORDER.toLowerCase();
+  public static readonly STANDING_ORDER_TAB_KEY = 'standingordertabmenu';
+  public static readonly TENANT_STANDING_ORDER_CASHACCOUNT = 'tenantstandingordercashaccount';
+  public static readonly TENANT_STANDING_ORDER_SECURITY = 'tenantstandingordersecurity';
   public static readonly TENANT_ALERT = 'tenantalert';
   public static readonly TENANT_TRANSACTION = 'tenanttransaction';
   public static readonly CASHACCOUNT_DETAIL_ROUTE_KEY = 'cashaccountDetail';
@@ -173,6 +182,7 @@ export class AppSettings {
   public static readonly WATCHLIST_DIVIDEND_SPLIT_FEED_TABLE_SETTINGS_STORE = 'u_watchlist_dividend_split_feed_4';
   public static readonly IMPORT_TRANSACTION_POS_TABLE_SETTINGS_STORE = 'u_importtransactionpos_2';
   public static readonly HISTORYQUOTE_TABLE_SETTINGS_STORE = 'u_historyquote_01';
+  public static readonly FEE_MODEL_COMPARISON_TABLE_SETTINGS_STORE = 'u_fee_model_comparison_1';
 
   // Save others in local storage
   public static readonly TA_INDICATORS_STORE = 'ta_indicator_';

@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import grafioschtrader.entities.ImportTransactionPlatform;
+import grafioschtrader.platformimport.FailedParsedTemplateState;
 import grafioschtrader.platformimport.FormTemplateCheck;
 import grafioschtrader.repository.ImportTransactionPlatformJpaRepository;
 import grafioschtrader.repository.ImportTransactionTemplateJpaRepository;
@@ -32,24 +33,32 @@ public abstract class PdfReaderTest {
   abstract protected String getPlatformName();
 
   @Test
-  void checkFormAgainstTemplateTest() {
-    try {
-      List<File> files = getAllTextFiles();
-      ImportTransactionPlatform importTransactionPlatform = importTransactionPlatformJpaRepository
-          .findFristByNameContaining(getPlatformName());
-      FormTemplateCheck formTemplateCheck = new FormTemplateCheck();
-      formTemplateCheck.setIdTransactionImportPlatform(importTransactionPlatform.getIdTransactionImportPlatform());
-      for (File file : files) {
-        formTemplateCheck.setPdfAsTxt(FileUtils.readFileToString(file, StandardCharsets.UTF_8));
-        FormTemplateCheck formTemplateCheckRc = importTransactionTemplateJpaRepository
-            .checkFormAgainstTemplate(formTemplateCheck, LocaleUtils.toLocale("de_CH"));
-        System.out.println("File: " + file.getName());
-        assertNull(formTemplateCheckRc.getFailedParsedTemplateStateList());
-      }
-    } catch (Exception e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+  void checkFormAgainstTemplateTest() throws Exception {
+    List<File> files = getAllTextFiles();
+    ImportTransactionPlatform importTransactionPlatform = importTransactionPlatformJpaRepository
+        .findFristByNameContaining(getPlatformName());
+    FormTemplateCheck formTemplateCheck = new FormTemplateCheck();
+    formTemplateCheck.setIdTransactionImportPlatform(importTransactionPlatform.getIdTransactionImportPlatform());
+    for (File file : files) {
+      formTemplateCheck.setPdfAsTxt(FileUtils.readFileToString(file, StandardCharsets.UTF_8));
+      FormTemplateCheck formTemplateCheckRc = importTransactionTemplateJpaRepository
+          .checkFormAgainstTemplate(formTemplateCheck, LocaleUtils.toLocale("de_CH"));
+      System.out.println("File: " + file.getName());
+      assertNull(formTemplateCheckRc.getFailedParsedTemplateStateList(),
+          () -> buildFailureMessage(file, formTemplateCheckRc.getFailedParsedTemplateStateList()));
     }
+  }
+
+  private String buildFailureMessage(File file, List<FailedParsedTemplateState> failures) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("File: ").append(file.getName()).append('\n');
+    for (FailedParsedTemplateState f : failures) {
+      sb.append("  Template: ").append(f.getTemplatePurpose());
+      sb.append(" | validSince: ").append(f.getValidSince());
+      sb.append(" | lastMatchingProperty: ").append(f.getLastMatchingProperty());
+      sb.append('\n');
+    }
+    return sb.toString();
   }
 
   private List<File> getAllTextFiles() throws IOException {

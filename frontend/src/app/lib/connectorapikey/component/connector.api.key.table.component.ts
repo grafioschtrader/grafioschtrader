@@ -123,7 +123,7 @@ export class ConnectorApiKeyTableComponent extends TableCrudSupportMenu<Connecto
   }
 
   getFeedConnectorReadableName(dataobject: any, field: ColumnConfig, valueField: any): string {
-    return this.strn[valueField].readableName;
+    return this.strn[valueField]?.readableName ?? valueField;
   }
 
   ngOnDestroy(): void {

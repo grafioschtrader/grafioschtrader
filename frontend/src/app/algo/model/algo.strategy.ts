@@ -7,6 +7,8 @@ import {AlgoRuleStrategy} from './algo.rule.strategy';
 export class AlgoStrategy extends AlgoRuleStrategy implements AlgoTreeName {
 
   algoStrategyImplementations: AlgoStrategyImplementationType | string = null;
+  activatable: boolean = true;
+  strategyConfig: string = null;
 
   @Exclude()
   getNameByLanguage(language: string): string {

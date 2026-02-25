@@ -370,7 +370,7 @@ public class GTNetSecurityImpPosJpaRepositoryImpl implements GTNetSecurityImpPos
     }
 
     if (headName == null || headName.trim().isEmpty()) {
-      throw new DataViolationException("headName", "gt.net.security.imp.head.name.required", null);
+      throw new DataViolationException("head.name", "gt.net.security.imp.head.name.required", null);
     }
 
     GTNetSecurityImpHead header = new GTNetSecurityImpHead();

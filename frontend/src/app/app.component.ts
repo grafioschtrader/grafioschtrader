@@ -84,6 +84,9 @@ const MyPreset = definePreset(Aura, {
       },
     },
     treetable: {
+      header: {
+        background: '#efefef',
+      },
       headerCell: {
         padding: "0rem 0rem",
       },

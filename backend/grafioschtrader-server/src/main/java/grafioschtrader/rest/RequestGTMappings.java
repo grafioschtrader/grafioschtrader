@@ -33,6 +33,9 @@ public interface RequestGTMappings {
   public static final String ALGOSTRATEGY = "algostrategy";
   public static final String ALGOSTRATEGY_MAP = RequestMappings.API + ALGOSTRATEGY;
 
+  public static final String STANDINGORDER = "standingorder";
+  public static final String STANDINGORDER_MAP = RequestMappings.API + STANDINGORDER;
+
   public static final String CASHACCOUNT_MAP = RequestMappings.API + Cashaccount.TABNAME;
 
   public static final String CORRELATION_SET = "correlationset";
@@ -41,6 +44,9 @@ public interface RequestGTMappings {
   public static final String CURRENCYPAIR_MAP = RequestMappings.API + Currencypair.TABNAME;
 
   public static final String DIVIDEND_MAP = RequestMappings.API + Dividend.TABNAME;
+
+  public static final String GENERIC_CONNECTOR = "genericconnector";
+  public static final String GENERIC_CONNECTOR_MAP = RequestMappings.API + GENERIC_CONNECTOR;
 
   public static final String GLOBALPARAMETERS_GT_MAP = RequestMappings.API + GT + Globalparameters.TABNAME;
 

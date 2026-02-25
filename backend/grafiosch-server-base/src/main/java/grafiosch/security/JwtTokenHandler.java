@@ -101,7 +101,15 @@ public final class JwtTokenHandler {
     try {
       final Claims jwsClaims = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
       Integer userId = (Integer) jwsClaims.get(ID_USER);
-      return Optional.ofNullable(userService.loadUserByUserIdAndCheckUsername(userId, jwsClaims.getSubject()));
+      User user = (User) userService.loadUserByUserIdAndCheckUsername(userId, jwsClaims.getSubject());
+      if (user != null) {
+        Integer jwtIdTenant = (Integer) jwsClaims.get("idTenant");
+        if (jwtIdTenant != null && !jwtIdTenant.equals(user.getIdTenant())) {
+          user.setActualIdTenant(user.getIdTenant());
+          user.setIdTenant(jwtIdTenant);
+        }
+      }
+      return Optional.ofNullable(user);
     } catch (ExpiredJwtException e) {
       throw e;
     }
@@ -147,13 +155,33 @@ public final class JwtTokenHandler {
    * @return signed JWT token string ready for client use
    */
   public String createTokenForUser(final UserDetails user, int expirationMinutes) {
+    return createTokenForUser(user, expirationMinutes, null);
+  }
+
+  /**
+   * Creates a new JWT token for the specified user with an optional tenant ID override.
+   *
+   * <p>
+   * When {@code overrideIdTenant} is non-null, the token's {@code idTenant} claim uses the override value instead of
+   * the user's actual tenant ID. This supports tenant switching for simulation environments where the user temporarily
+   * operates under a different (simulation) tenant context.
+   * </p>
+   *
+   * @param user              the UserDetails object containing user information
+   * @param expirationMinutes number of minutes until token expires
+   * @param overrideIdTenant  optional tenant ID to use instead of the user's own tenant ID; null uses the user's tenant
+   * @return signed JWT token string ready for client use
+   */
+  public String createTokenForUser(final UserDetails user, int expirationMinutes, Integer overrideIdTenant) {
     final ZonedDateTime afterSomeMinutes = ZonedDateTime.now().plusMinutes(expirationMinutes);
 
     List<String> roles = user.getAuthorities().stream().map(GrantedAuthority::getAuthority)
         .collect(Collectors.toList());
 
+    int tenantId = overrideIdTenant != null ? overrideIdTenant : ((User) user).getIdTenant();
+
     return Jwts.builder().subject(user.getUsername()).claim(ID_USER, ((User) user).getIdUser())
-        .claim("idTenant", ((User) user).getIdTenant()).claim("localeStr", ((User) user).getLocaleStr())
+        .claim("idTenant", tenantId).claim("localeStr", ((User) user).getLocaleStr())
         .claim("roles", roles).signWith(secretKey).expiration(Date.from(afterSomeMinutes.toInstant())).compact();
   }
 

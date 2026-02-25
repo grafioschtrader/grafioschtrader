@@ -155,6 +155,9 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
       + UDFMetadataSecurity.class.getSimpleName();
   public static final String GLOB_KEY_LIMIT_DAY_GTNETSECURITYIMPORT = GlobalConstants.GT_LIMIT_DAY
       + "GTNetSecurityImport";
+  public static final String GLOB_KEY_MAX_SIMULATION_ENVIRONMENTS = GlobalConstants.GT_PREFIX + MAX
+      + "simulation.environments";
+  public static final String GLOB_KEY_MAX_STANDING_ORDER = GlobalConstants.GT_PREFIX + MAX + "standing.order";
   public static final String GLOB_KEY_SOURCE_DEMO_ID_TENANT_DE = GlobalConstants.GT_PREFIX + "source.demo.idtenant.de";
   public static final String GLOB_KEY_SOURCE_DEMO_ID_TENANT_EN = GlobalConstants.GT_PREFIX + "source.demo.idtenant.en";
 
@@ -170,6 +173,8 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_MAX_WATCHLIST_LENGTH, new MaxDefaultDBValue(200));
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_MAX_CORRELATION_SET, new MaxDefaultDBValue(10));
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_MAX_CORRELATION_INSTRUMENTS, new MaxDefaultDBValue(20));
+    defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_MAX_SIMULATION_ENVIRONMENTS, new MaxDefaultDBValue(5));
+    defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_MAX_STANDING_ORDER, new MaxDefaultDBValue(50));
 
     // Set tenant regulations violations, with daily CUD limits on shared entries
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_ASSETCLASS, new MaxDefaultDBValue(10));

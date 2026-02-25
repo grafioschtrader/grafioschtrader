@@ -80,6 +80,7 @@ export enum TaskTypeExtended {
 
   GTNET_SECURITY_IMPORT_POSITIONS = 27,
 
+  STANDING_ORDER_EXECUTION = 28,
 
   // Update tasks
   UPD_V_0_11_0 = 51,

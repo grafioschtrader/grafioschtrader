@@ -11,6 +11,7 @@ import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../lib/login/service/log-in.service';
 import {BaseSettings} from '../../lib/base.settings';
+import {TransactionCostEstimateRequest, TransactionCostEstimateResult} from '../../entities/transaction.cost.estimate';
 
 
 @Injectable()
@@ -33,6 +34,18 @@ export class TradingPlatformPlanService extends AuthServiceWithLogout<TradingPla
 
   update(tradingPlatformPlan: TradingPlatformPlan): Observable<TradingPlatformPlan> {
     return this.updateEntity(tradingPlatformPlan, tradingPlatformPlan.idTradingPlatformPlan, AppSettings.TRADING_PLATFORM_PLAN_KEY);
+  }
+
+  public estimateTransactionCost(request: TransactionCostEstimateRequest): Observable<TransactionCostEstimateResult> {
+    return <Observable<TransactionCostEstimateResult>>this.httpClient.post(
+      `${BaseSettings.API_ENDPOINT}${AppSettings.TRADING_PLATFORM_PLAN_KEY}/estimatecost`,
+      request, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  public validateYaml(yaml: string): Observable<string[]> {
+    return <Observable<string[]>>this.httpClient.post(
+      `${BaseSettings.API_ENDPOINT}${AppSettings.TRADING_PLATFORM_PLAN_KEY}/validateyaml`,
+      yaml, {headers: this.getHeaders().headers, responseType: 'json'}).pipe(catchError(this.handleError.bind(this)));
   }
 
 }

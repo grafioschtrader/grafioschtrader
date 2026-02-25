@@ -64,7 +64,13 @@ export enum GlobalSessionNames {
   STANDARD_CURRENCY_PRECISIONS_AND_LIMITS = 'standardPrecision',
 
   /** Base URL for external help documentation (e.g., "//APP.github.io/gt-user-manual"). */
-  EXTERNAL_HELP_URL = 'externalHelpUrl'
+  EXTERNAL_HELP_URL = 'externalHelpUrl',
+
+  /** Stores the user's main tenant ID when switched to a simulation tenant. */
+  MAIN_ID_TENANT = 'mainIdTenant',
+
+  /** Earliest trading day that GT supports for transactions and historical prices (e.g. "2000-01-03"). */
+  OLDEST_TRADING_DAY = 'oldestTradingDay'
 }
 
 

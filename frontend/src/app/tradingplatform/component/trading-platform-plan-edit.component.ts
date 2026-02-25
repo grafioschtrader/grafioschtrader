@@ -23,7 +23,7 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
     selector: 'trading-platform-plan-edit',
     template: `
     <p-dialog header="{{'TRADING_PLATFORM_PLAN' | translate}}" [visible]="visibleDialog"
-              [style]="{width: '600px'}"
+              [style]="{width: '900px'}"
               (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
 
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
@@ -40,10 +40,10 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
   importTransactionPlatformList: ImportTransactionPlatform[];
 
   constructor(private importTransactionPlatformService: ImportTransactionPlatformService,
+              private tradingPlatformPlanService: TradingPlatformPlanService,
               translateService: TranslateService,
               gps: GlobalparameterService,
-              messageToastService: MessageToastService,
-              tradingPlatformPlanService: TradingPlatformPlanService) {
+              messageToastService: MessageToastService) {
     super(HelpIds.HELP_BASEDATA_TRADING_PLATFORM_PLAN, AppSettings.TRADING_PLATFORM_PLAN.toUpperCase(), translateService, gps,
       messageToastService, tradingPlatformPlanService);
   }
@@ -84,11 +84,6 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): TradingPlatformPlan {
     const tradingPlatformPlan = new TradingPlatformPlan();
     this.copyFormToPublicBusinessObject(tradingPlatformPlan, this.callParam, this.proposeChangeEntityWithEntity);
-    /*
-        if (this.callParam) {
-          Object.assign(tradingPlatformPlan, this.callParam);
-        }
-    */
     this.form.cleanMaskAndTransferValuesToBusinessObject(tradingPlatformPlan);
     tradingPlatformPlan.importTransactionPlatform = this.importTransactionPlatformList.find(
       importTransactionPlatform => importTransactionPlatform.idTransactionImportPlatform === +value.idTransactionImportPlatform);

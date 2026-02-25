@@ -15,6 +15,9 @@ public enum MessageGTComType implements IMessageComType {
   // this security.
   USER_SECURITY_MISSING_CONNECTOR((byte) 5),
 
+  // Algo alarm notification sent to user when an alert condition triggers
+  USER_ALGO_ALARM_TRIGGERED((byte) 6),
+
   // Maybe a historical data provider is not working anymore
   MAIN_ADMIN_HISTORY_PROVIDER_NOT_WORKING(MailSettingForward.MAIN_ADMIN_BASE_VALUE),;
 

@@ -3,6 +3,7 @@ package grafioschtrader.rest;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -12,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,6 +22,10 @@ import org.springframework.web.bind.annotation.RestController;
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.dto.FeeModelComparisonResponse;
+import grafioschtrader.dto.TransactionCostEstimateRequest;
+import grafioschtrader.dto.TransactionCostEstimateResult;
+import grafioschtrader.dto.TradingPeriodTransactionSummary;
 import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.reports.SecurityGroupByAssetclassSubCategoryReport;
 import grafioschtrader.reports.SecurityGroupByAssetclassWithCashReport;
@@ -26,6 +33,7 @@ import grafioschtrader.reports.SecurityGroupByBaseReport;
 import grafioschtrader.reports.SecurityPositionByCurrencyGrandSummaryReport;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionGrandSummary;
 import grafioschtrader.repository.SecurityaccountJpaRepository;
+import grafioschtrader.service.TransactionCostEvalExEstimator;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,6 +52,9 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
 
   @Autowired
   private SecurityGroupByAssetclassWithCashReport securityGroupByAssetclassWithCashReport;
+
+  @Autowired
+  private TransactionCostEvalExEstimator transactionCostEvalExEstimator;
 
   @Autowired
   private AutowireCapableBeanFactory beanFactory;
@@ -67,6 +78,43 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
   @Override
   protected UpdateCreateDeleteWithTenantJpaRepository<Securityaccount> getUpdateCreateJpaRepository() {
     return securityaccountJpaRepository;
+  }
+
+  @Operation(summary = "Get transaction summaries grouped by instrument type for a security account",
+      description = """
+          Returns the count and latest transaction date for each (specialInvestmentInstrument, categoryType)
+          combination within the specified security account. Used by the frontend to prevent deletion or
+          shortening of trading periods that still cover existing transactions.""",
+      tags = {Securityaccount.TABNAME})
+  @GetMapping(value = "/{idSecurityaccount}/transactionsummaries", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<TradingPeriodTransactionSummary>> getTransactionSummaries(
+      @PathVariable Integer idSecurityaccount) {
+    return new ResponseEntity<>(securityaccountJpaRepository.getTransactionSummaries(idSecurityaccount), HttpStatus.OK);
+  }
+
+  @Operation(summary = "Compare actual transaction costs with EvalEx fee model estimates",
+      description = """
+          Loads BUY/SELL transactions for the specified security account, evaluates the YAML fee model
+          configured on its TradingPlatformPlan, and returns a comparison of actual vs estimated costs
+          with summary statistics.""",
+      tags = {Securityaccount.TABNAME})
+  @GetMapping(value = "/{idSecurityaccount}/feemodelcomparison", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<FeeModelComparisonResponse> getFeeModelComparison(
+      @PathVariable Integer idSecurityaccount,
+      @RequestParam(defaultValue = "true") boolean excludeZeroCost) {
+    return new ResponseEntity<>(securityaccountJpaRepository.getFeeModelComparison(idSecurityaccount, excludeZeroCost),
+        HttpStatus.OK);
+  }
+
+  @Operation(summary = "Estimate transaction cost from inline YAML fee model",
+      description = """
+          Evaluates the given YAML fee model directly without loading from DB. If the request contains
+          inline YAML, it is used; otherwise falls back to the TradingPlatformPlan's fee model.""",
+      tags = {Securityaccount.TABNAME})
+  @PostMapping(value = "/estimatecostyaml", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<TransactionCostEstimateResult> estimateCostFromYaml(
+      @RequestBody TransactionCostEstimateRequest request) {
+    return new ResponseEntity<>(transactionCostEvalExEstimator.estimateWithOptionalYaml(request), HttpStatus.OK);
   }
 
   //============================================================================

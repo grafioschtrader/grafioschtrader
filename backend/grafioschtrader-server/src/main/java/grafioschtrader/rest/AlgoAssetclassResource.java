@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
-import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.AlgoAssetclass;
 import grafioschtrader.repository.AlgoAssetclassJpaRepository;
@@ -25,7 +24,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController
 @RequestMapping(RequestGTMappings.ALGOASSETCLASS_MAP)
 @Tag(name = RequestGTMappings.ALGOASSETCLASS, description = "Controller for top level algorithmic trading assetclass")
-public class AlgoAssetclassResource extends UpdateCreateDeleteWithTenantResource<AlgoAssetclass> {
+public class AlgoAssetclassResource extends AlgoBaseResource<AlgoAssetclass> {
 
   @Autowired
   AlgoAssetclassJpaRepository algoAssetclassJpaRepository;
@@ -41,7 +40,7 @@ public class AlgoAssetclassResource extends UpdateCreateDeleteWithTenantResource
       @PathVariable final Integer idAlgoAssetclassParent) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(
-        algoAssetclassJpaRepository.findByIdTenantAndIdAlgoAssetclassParent(user.getIdTenant(), idAlgoAssetclassParent),
+        algoAssetclassJpaRepository.findByIdTenantAndIdAlgoAssetclassParent(user.getActualIdTenant(), idAlgoAssetclassParent),
         HttpStatus.OK);
   }
 

@@ -1,0 +1,2239 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+
+<meta charset="utf-8">
+<!-- 
+	This website is powered by TYPO3 - inspiring people to share!
+	TYPO3 is a free open source Content Management Framework initially created by Kasper Skaarhoj and licensed under GNU/GPL.
+	TYPO3 is copyright 1998-2026 of Kasper Skaarhoj. Extensions are copyright of their respective owners.
+	Information and contribution at https://typo3.org/
+-->
+
+
+<link rel="icon" href="/_assets/855c6689f7a337bb845f6a4066e73fe1/Icons/favicon.ico" type="image/vnd.microsoft.icon">
+<title>gettex – die schnelle und günstige Börse: gettex</title>
+<meta http-equiv="x-ua-compatible" content="IE=edge">
+<meta name="generator" content="TYPO3 CMS">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="index,follow">
+<meta property="og:title" content="gettex Exchange">
+<meta name="twitter:card" content="summary">
+<meta name="apple-mobile-web-app-capable" content="no">
+<meta name="theme-color" content="#0c0c0c">
+
+
+<link rel="stylesheet" href="/typo3temp/assets/css/09e07e89ef36e62786a8c9c198b13610.css?1771855813" media="all">
+<link rel="stylesheet" href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/main.css?1771855558" media="all">
+<link href="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/css/dark.v6.0.1.css?1771850547" rel="stylesheet" >
+<link href="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/css/vendor.v6.0.1.dark.css?1771850547" rel="stylesheet" >
+<link href="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/css/WInstrumentInfo.v6.0.1.dark.css?1771850547" rel="stylesheet" >
+<link href="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/css/WStockScreener.v6.0.1.dark.css?1771850547" rel="stylesheet" >
+<link href="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/css/WInfoMatrix.v6.0.1.dark.css?1771850547" rel="stylesheet" >
+<link href="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/css/WAdvancedChart.v6.0.1.dark.css?1771850547" rel="stylesheet" >
+<link href="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/css/WPriceChart.v6.0.1.dark.css?1771850547" rel="stylesheet" >
+<link href="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/css/WTimeSales.v6.0.1.dark.css?1771850547" rel="stylesheet" >
+<link href="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/css/WCorporateEvents.v6.0.1.dark.css?1771850547" rel="stylesheet" >
+<link href="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/css/WCompanyProfile.v6.0.1.dark.css?1771850547" rel="stylesheet" >
+<link href="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/css/WEstimatesRatios.v6.0.1.dark.css?1771850547" rel="stylesheet" >
+<link href="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/css/WFundScreener.v6.0.1.dark.css?1771850547" rel="stylesheet" >
+<link href="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/css/WFundObjective.v6.0.1.dark.css?1771850547" rel="stylesheet" >
+<link href="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/css/WFundTotalReturns.v6.0.1.dark.css?1771850547" rel="stylesheet" >
+<link href="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/css/WFundRiskVolatility.v6.0.1.dark.css?1771850547" rel="stylesheet" >
+<link href="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/css/WFundAllocation.v6.0.1.dark.css?1771850547" rel="stylesheet" >
+<link href="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/css/WSearch.v6.0.1.dark.css?1771850547" rel="stylesheet" >
+<link href="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/css/WMarketList.v6.0.1.dark.css?1771850547" rel="stylesheet" >
+<link href="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/css/WTickerBand.v6.0.1.dark.css?1771850547" rel="stylesheet" >
+<link href="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/css/WWinnersLosers.v6.0.1.dark.css?1771850547" rel="stylesheet" >
+<link href="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/css/WBondScreener.v6.0.1.dark.css?1771850547" rel="stylesheet" >
+<link href="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/css/fdc_gettex-widget_2.4.2.css?1771850547" rel="stylesheet" >
+
+
+
+
+
+
+<link rel="preload" as="style" href="https://www.gettex.de/fileadmin/sg_cookie_optin/siteroot-1/cookieOptin.css?1724858767" media="all" crossorigin="anonymous">
+<link rel="stylesheet" href="https://www.gettex.de/fileadmin/sg_cookie_optin/siteroot-1/cookieOptin.css?1724858767" media="all" crossorigin="anonymous">
+<script id="cookieOptinData" type="application/json">{"cookieGroups":[{"groupName":"essential","label":"Erforderliche Cookies","description":"Diese Kategorie von Cookies ist erforderlich, um ein reibungsloses Funktionieren unserer Webseiten sicherzustellen (z.B. Session-Cookies, Cookie zur Speicherung der hier festgelegten Cookie-Pr\u00e4ferenzen, etc.). Erforderliche Cookies k\u00f6nnen daher nicht deaktiviert werden.","required":true,"cookieData":[{"Name":"cookie_optin","Provider":"TYPO3","Purpose":"Enth\u00e4lt die gew\u00e4hlten Tracking-Optin-Einstellungen.","Lifetime":"1 Jahr","index":0,"crdate":1588692473,"tstamp":1724858765,"pseudo":false}],"scriptData":[],"loadingHTML":"","loadingJavaScript":""},{"groupName":"funktionalecookies","label":"Funktionale Cookies","description":"Um ein reibungsloses Funktionieren besonderer Anwendungen unserer Webseiten zu gew\u00e4hrleisten, werden funktionale Cookies eingesetzt. Nur mit dem Einsatz von funktionalen Cookies steht dem Nutzer die gesamte Funktionalit\u00e4t unserer Webseiten zur Verf\u00fcgung","googleService":0,"googleName":"","dependentGroups":"","dependentGroupTitles":"","required":false,"cookieData":[{"Name":"bankLogin","Provider":"www.gettex.de","Purpose":"Dieser Cookie wird verwendet, um die Auswahl der gew\u00fcnschten Bank aus dem Bereich Bankeinstellungen zu speichern.","Lifetime":"30 Jahre","index":0,"crdate":1612936064,"tstamp":1665732598,"pseudo":false},{"Name":"bm_simple_watchlist","Provider":"www.gettex.de","Purpose":"Dieser Cookie wird verwendet, um die Titel der Merkliste im Browser zu speichern.","Lifetime":"30 Jahre","index":1,"crdate":1612936064,"tstamp":1665732598,"pseudo":false},{"Name":"","Provider":"","Purpose":"","Lifetime":"","index":2,"crdate":"","tstamp":"","pseudo":true}],"scriptData":[],"loadingHTML":"","loadingJavaScript":"","crdate":1612936064,"tstamp":1724858765},{"groupName":"tracking-cookies","label":"Tracking-Cookies","description":"Die Verwendung von Tracking\u2013 bzw. Analyse-Cookies erfolgt zu dem Zweck, die Qualit\u00e4t unserer Webseiten und ihrer Inhalte zu verbessern. Dadurch soll eine h\u00f6here Kundenzufriedenheit bei den Nutzern der Webseiten erreicht werden. Unter diese Kategorie fallen Cookies f\u00fcr Google Analytics, Google Tag Manager, YouTube und Twitter.","googleService":1,"googleName":"analytics_storage","dependentGroups":"","dependentGroupTitles":"","required":false,"cookieData":[{"Name":"_ga","Provider":"Google Adwords","Purpose":"Dieses Cookie wird von Google Analytics installiert. Das Cookie wird verwendet, um Besucher-, Sitzungs- und Kampagnendaten zu berechnen und die Nutzung der Website f\u00fcr den Analysebericht der Website zu verfolgen. Die Cookies speichern Informationen anonym und weisen eine zuf\u00e4llig generierte Nummer zu, um eindeutige Besucher zu identifizieren.","Lifetime":"2 Jahre","index":0,"crdate":1588692608,"tstamp":1724858765,"pseudo":false},{"Name":"_gid","Provider":"Google Analytics","Purpose":"Enth\u00e4lt eine zufallsgenerierte User-ID. Anhand dieser ID kann Google Analytics wiederkehrende User auf dieser Website wiedererkennen und die Daten von fr\u00fcheren Besuchen zusammenf\u00fchren.","Lifetime":"1 Tag","index":1,"crdate":1588692663,"tstamp":1724858765,"pseudo":false},{"Name":"_gat_UA-76102930-1","Provider":"Google Analytics","Purpose":"Dies ist ein Protokoll-Cookie zur anonymen Analyse des Nutzerverhaltens auf unserer Website.","Lifetime":"1 Minute","index":2,"crdate":1588692707,"tstamp":1724858765,"pseudo":false},{"Name":"in-session","Provider":"IBM Corporation c\/o Instana","Purpose":"Benutzerspezifische Informationen k\u00f6nnen optional mit den an Instana \u00fcbermittelten Daten gesendet werden. Diese Informationen k\u00f6nnen dann verwendet werden, um zus\u00e4tzliche Funktionen freizuschalten, wie zum Beispiel:\r\n\r\n- Berechnung der Anzahl der von Fehlern betroffenen Benutzer,\r\n- Daten nach bestimmten Benutzern zu filtern und   zu sehen, welcher Benutzer einen Seitenaufruf \/ AJAX-Aufruf initiiert hat.","Lifetime":"Browser Lifetime","index":3,"crdate":1665579017,"tstamp":1724858765,"pseudo":false}],"scriptData":[{"title":"Google Tag Manager","script":"document.TagManagerLoaded = document.TagManagerLoaded || 0;\r\nif (!document.TagManagerLoaded) {\r\n  document.TagManagerLoaded = 1;\r\n  (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='\/\/www.googletagmanager.com\/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-PRX7TWQ');\r\n}","html":"","index":0},{"title":"instana","script":"(function(s,t,a,n){s[t]||(s[t]=a,n=s[a]=function(){n.q.push(arguments)},\r\n  n.q=[],n.v=2,n.l=1*new Date)})(window,\"InstanaEumObject\",\"ineum\");\r\n\r\n  ineum('reportingUrl', 'https:\/\/eum-green-saas.instana.io');\r\n  ineum('key', 'iZQjEwT2TWm62NEw8e8x-w');\r\n  ineum('trackSessions');","html":"<script defer crossorigin=\"anonymous\" src=\"https:\/\/eum.instana.io\/eum.min.js\"><\/script>","index":1}],"loadingHTML":"<script defer crossorigin=\"anonymous\" src=\"https:\/\/eum.instana.io\/eum.min.js\"><\/script>\n\n","loadingJavaScript":"https:\/\/www.gettex.de\/fileadmin\/sg_cookie_optin\/siteroot-1\/tracking-cookies-0.js","crdate":1588692608,"tstamp":1724858765},{"groupName":"iframes","label":"Externe Inhalte","description":"Wir verwenden auf unserer Website externe Inhalte, um Ihnen zus\u00e4tzliche Informationen anzubieten.","required":false,"cookieData":[]}],"cssData":{"color_box":"#6a6d6e","color_headline":"#ffffff","color_text":"#ffffff","color_confirmation_background":"#C9FFC9","color_confirmation_text":"#208A20","color_checkbox":"#7B9B2C","color_checkbox_required":"#A5A5A5","color_button_all":"#99c115","color_button_all_hover":"#bee73b","color_button_all_text":"#FFFFFF","color_button_specific":"#A5A5A5","color_button_specific_hover":"#D7D7D7","color_button_specific_text":"#FFFFFF","color_button_essential":"#A5A5A5","color_button_essential_hover":"#D7D7D7","color_button_essential_text":"#FFFFFF","color_button_close":"#A5A5A5","color_button_close_hover":"#D7D7D7","color_button_close_text":"#FFFFFF","color_list":"#A5A5A5","color_list_text":"#FFFFFF","color_table":"#FFFFFF","color_Table_data_text":"#373737","color_table_header":"#F3F3F3","color_table_header_text":"#373737","color_full_box":"#143D59","color_full_headline":"#FFFFFF","color_full_text":"#FFFFFF","color_full_button_close":"#143D59","color_full_button_close_hover":"#143D59","color_full_button_close_text":"#FFFFFF","iframe_color_consent_box_background":"#D6D6D6","iframe_color_button_load_one":"#99c115","iframe_color_button_load_one_hover":"#bee73b","iframe_color_button_load_one_text":"#FFFFFF","iframe_color_open_settings":"#373737","banner_color_box":"#6a6d6e","banner_color_text":"#FFFFFF","banner_color_link_text":"#fcfcfc","banner_color_button_settings":"#99c115","banner_color_button_settings_hover":"#bee73b","banner_color_button_settings_text":"#FFFFFF","banner_color_button_accept_essential":"#575757","banner_color_button_accept_essential_hover":"#929292","banner_color_button_accept_essential_text":"#FFFFFF","banner_color_button_accept":"#A5A5A5","banner_color_button_accept_hover":"#D7D7D7","banner_color_button_accept_text":"#FFFFFF","color_fingerprint_image":"#FFFFFF","color_fingerprint_background":"#143D59"},"footerLinks":[{"url":"\/datenschutz\/?disableOptIn=1&cHash=7da71d944c4254df35b9ddbda00238ae","name":"Datenschutz","uid":197,"index":0}],"iFrameGroup":{"groupName":"iframes","label":"Externe Inhalte","description":"Wir verwenden auf unserer Website externe Inhalte, um Ihnen zus\u00e4tzliche Informationen anzubieten.","required":false,"cookieData":[]},"settings":{"banner_enable":true,"banner_force_min_width":0,"version":1,"banner_position":0,"banner_show_settings_button":false,"cookie_lifetime":365,"session_only_essential_cookies":false,"iframe_enabled":true,"minify_generated_data":true,"show_button_close":false,"activate_testing_mode":false,"disable_powered_by":true,"disable_for_this_language":false,"set_cookie_for_domain":"","save_history_webhook":"https:\/\/www.gettex.de\/?saveOptinHistory","cookiebanner_whitelist_regex":"","banner_show_again_interval":14,"identifier":1,"language":0,"render_assets_inline":false,"consider_do_not_track":false,"domains_to_delete_cookies_for":"","subdomain_support":false,"overwrite_baseurl":"","unified_cookie_name":true,"disable_usage_statistics":false,"fingerprint_position":1,"iframe_replacement_background_image":"","monochrome_enabled":true,"show_fingerprint":false,"disable_automatic_loading":false,"auto_action_for_bots":0},"textEntries":{"header":"Datenschutzeinstellungen","description":"Wir verwenden auf unserer Website Cookies, um die Benutzerfreundlichkeit zu erh\u00f6hen. Mit dem Klicken auf ALLE AKZEPTIEREN erkl\u00e4rst du dich damit einverstanden, dass wir Cookies verwenden d\u00fcrfen. Detaillierte Informationen, wie man der Verwendung von Cookies jederzeit widersprechen kann, findet man hier:","accept_all_text":"Alle akzeptieren","accept_specific_text":"Speichern & schlie\u00dfen","accept_essential_text":"Nur essentielle Cookies akzeptieren","extend_box_link_text":"Weitere Informationen anzeigen","extend_box_link_text_close":"Weitere Informationen verstecken","extend_table_link_text":"Cookie-Informationen anzeigen","extend_table_link_text_close":"Cookie-Informationen verstecken","cookie_name_text":"Name","cookie_provider_text":"Anbieter","cookie_purpose_text":"Zweck","cookie_lifetime_text":"Laufzeit","iframe_button_allow_all_text":"Alle externen Inhalte erlauben","iframe_button_allow_one_text":"Einmalig erlauben","iframe_button_reject_text":"Nicht erlauben","iframe_button_load_one_text":"Externen Inhalt laden","iframe_open_settings_text":"Einstellungen anzeigen","iframe_button_load_one_description":"","banner_button_accept_text":"Alle Akzeptieren","banner_button_accept_essential_text":"Nur notwendige Cookies akzeptieren","banner_button_settings_text":"Einstellungen","banner_description":"Wir verwenden auf unserer Website Cookies, um die Benutzerfreundlichkeit zu erh\u00f6hen. Mit dem Klicken auf ALLE AKZEPTIEREN erkl\u00e4rst du dich damit einverstanden, dass wir Cookies verwenden d\u00fcrfen. Detaillierte Informationen, wie man der Verwendung von Cookies jederzeit widersprechen kann, findet man hier:","save_confirmation_text":"Cookie-Einstellungen erfolgreich gespeichert","user_hash_text":"User-Hash","dependent_groups_text":"Abh\u00e4ngig von:"},"placeholders":{"iframe_consent_description":"<p class=\"sg-cookie-optin-box-flash-message\"><\/p>"},"mustacheData":{"template":{"template_html":"<div class=\"sg-cookie-optin-box\">\r\n    {{#settings.show_button_close}}\r\n    <span class=\"sg-cookie-optin-box-close-button\">\u2715<\/span>\r\n    {{\/settings.show_button_close}}\r\n\r\n    <strong class=\"sg-cookie-optin-box-header\">{{{textEntries.header}}}<\/strong>\r\n    <p class=\"sg-cookie-optin-box-description\">\r\n        {{{textEntries.description}}}<br>\r\n        {{#footerLinks}}\r\n        {{#index}}\r\n        <span class=\"sg-cookie-optin-box-footer-divider\"> | <\/span>\r\n        {{\/index}}\r\n\r\n        <a class=\"sg-cookie-optin-box-footer-link\" href=\"{{url}}\" target=\"_blank\">{{{name}}}<\/a>\r\n        {{\/footerLinks}}\r\n    <\/p>\r\n\r\n    <ul class=\"sg-cookie-optin-box-cookie-list\">\r\n        {{#cookieGroups}}\r\n        <li class=\"sg-cookie-optin-box-cookie-list-item\">\r\n            <input class=\"sg-cookie-optin-checkbox\"\r\n                   id=\"sg-cookie-optin-{{groupName}}\"\r\n                   type=\"checkbox\"\r\n                   name=\"cookies[]\"\r\n                   value=\"{{groupName}}\"\r\n                   {{#required}}checked=\"1\"{{\/required}}\r\n            {{#required}}disabled=\"1\"{{\/required}}>\r\n            <label class=\"sg-cookie-optin-checkbox-label\" for=\"sg-cookie-optin-{{groupName}}\">\r\n                <span>{{{label}}}<\/span>\r\n            <\/label>\r\n        <\/li>\r\n        {{\/cookieGroups}}\r\n    <\/ul>\r\n\r\n    <div class=\"sg-cookie-optin-box-button\">\r\n        <button class=\"sg-cookie-optin-box-button-accept-all\">{{{textEntries.accept_all_text}}}<\/button>\r\n        <button class=\"sg-cookie-optin-box-button-accept-specific\">{{{textEntries.accept_specific_text}}}<\/button>\r\n        <button class=\"sg-cookie-optin-box-button-accept-essential\">{{{textEntries.accept_essential_text}}}<\/button>\r\n    <\/div>\r\n\r\n    <ul class=\"sg-cookie-optin-box-cookie-detail-list\">\r\n        {{#cookieGroups}}\r\n        <li class=\"sg-cookie-optin-box-cookie-detail-list-item\">\r\n            <strong class=\"sg-cookie-optin-box-cookie-detail-header\">{{{label}}}<\/strong>\r\n            <p class=\"sg-cookie-optin-box-cookie-detail-description\">{{{description}}}<\/p>\r\n\r\n            <div class=\"sg-cookie-optin-box-cookie-detail-sublist\">\r\n                <table>\r\n                    <tbody>\r\n                    {{#cookieData}}\r\n                    {{^pseudo}}\r\n                    {{#index}}<tr class=\"divider\"><td colspan=\"2\">&nbsp;<\/td><\/tr>{{\/index}}\r\n                    <tr>\r\n                        <th>{{{textEntries.cookie_name_text}}}<\/th>\r\n                        <td>{{{Name}}}<\/td>\r\n                    <\/tr>\r\n                    <tr>\r\n                        <th>{{{textEntries.cookie_provider_text}}}<\/th>\r\n                        <td>{{{Provider}}}<\/td>\r\n                    <\/tr>\r\n                    <tr>\r\n                        <th>{{{textEntries.cookie_lifetime_text}}}<\/th>\r\n                        <td>{{{Lifetime}}}<\/td>\r\n                    <\/tr>\r\n                    <tr>\r\n                        <th>{{{textEntries.cookie_purpose_text}}}<\/th>\r\n                        <td class=\"sg-cookie-optin-box-table-reason\">{{{Purpose}}}<\/td>\r\n                    <\/tr>\r\n                    {{\/pseudo}}\r\n                    {{\/cookieData}}\r\n                    <\/tbody>\r\n                <\/table>\r\n            <\/div>\r\n\r\n            {{#cookieData}}\r\n            {{^index}}<a class=\"sg-cookie-optin-box-sublist-open-more-link\" href=\"#\">{{{textEntries.extend_table_link_text}}}<\/a>{{\/index}}\r\n            {{\/cookieData}}\r\n        <\/li>\r\n        {{\/cookieGroups}}\r\n    <\/ul>\r\n\r\n    <div class=\"sg-cookie-optin-box-open-more\">\r\n        <a class=\"sg-cookie-optin-box-open-more-link\" href=\"#\">{{{textEntries.extend_box_link_text}}}<\/a>\r\n    <\/div>\r\n<\/div>\r\n","template_overwritten":1,"template_selection":0,"markup":"<div class=\"sg-cookie-optin-box\">\r\n\r\n    <strong class=\"sg-cookie-optin-box-header\">Datenschutzeinstellungen<\/strong>\r\n    <p class=\"sg-cookie-optin-box-description\">\r\n        Wir verwenden auf unserer Website Cookies, um die Benutzerfreundlichkeit zu erh\u00f6hen. Mit dem Klicken auf ALLE AKZEPTIEREN erkl\u00e4rst du dich damit einverstanden, dass wir Cookies verwenden d\u00fcrfen. Detaillierte Informationen, wie man der Verwendung von Cookies jederzeit widersprechen kann, findet man hier:<br>\r\n\r\n        <a class=\"sg-cookie-optin-box-footer-link\" href=\"\/datenschutz\/?disableOptIn=1&amp;cHash=7da71d944c4254df35b9ddbda00238ae\" target=\"_blank\">Datenschutz<\/a>\r\n    <\/p>\r\n\r\n    <ul class=\"sg-cookie-optin-box-cookie-list\">\r\n        <li class=\"sg-cookie-optin-box-cookie-list-item\">\r\n            <input class=\"sg-cookie-optin-checkbox\"\r\n                   id=\"sg-cookie-optin-essential\"\r\n                   type=\"checkbox\"\r\n                   name=\"cookies[]\"\r\n                   value=\"essential\"\r\n                   checked=\"1\"\r\n            disabled=\"1\">\r\n            <label class=\"sg-cookie-optin-checkbox-label\" for=\"sg-cookie-optin-essential\">\r\n                <span>Erforderliche Cookies<\/span>\r\n            <\/label>\r\n        <\/li>\r\n        <li class=\"sg-cookie-optin-box-cookie-list-item\">\r\n            <input class=\"sg-cookie-optin-checkbox\"\r\n                   id=\"sg-cookie-optin-funktionalecookies\"\r\n                   type=\"checkbox\"\r\n                   name=\"cookies[]\"\r\n                   value=\"funktionalecookies\"\r\n                   \r\n            >\r\n            <label class=\"sg-cookie-optin-checkbox-label\" for=\"sg-cookie-optin-funktionalecookies\">\r\n                <span>Funktionale Cookies<\/span>\r\n            <\/label>\r\n        <\/li>\r\n        <li class=\"sg-cookie-optin-box-cookie-list-item\">\r\n            <input class=\"sg-cookie-optin-checkbox\"\r\n                   id=\"sg-cookie-optin-tracking-cookies\"\r\n                   type=\"checkbox\"\r\n                   name=\"cookies[]\"\r\n                   value=\"tracking-cookies\"\r\n                   \r\n            >\r\n            <label class=\"sg-cookie-optin-checkbox-label\" for=\"sg-cookie-optin-tracking-cookies\">\r\n                <span>Tracking-Cookies<\/span>\r\n            <\/label>\r\n        <\/li>\r\n        <li class=\"sg-cookie-optin-box-cookie-list-item\">\r\n            <input class=\"sg-cookie-optin-checkbox\"\r\n                   id=\"sg-cookie-optin-iframes\"\r\n                   type=\"checkbox\"\r\n                   name=\"cookies[]\"\r\n                   value=\"iframes\"\r\n                   \r\n            >\r\n            <label class=\"sg-cookie-optin-checkbox-label\" for=\"sg-cookie-optin-iframes\">\r\n                <span>Externe Inhalte<\/span>\r\n            <\/label>\r\n        <\/li>\r\n    <\/ul>\r\n\r\n    <div class=\"sg-cookie-optin-box-button\">\r\n        <button class=\"sg-cookie-optin-box-button-accept-all\">Alle akzeptieren<\/button>\r\n        <button class=\"sg-cookie-optin-box-button-accept-specific\">Speichern & schlie\u00dfen<\/button>\r\n        <button class=\"sg-cookie-optin-box-button-accept-essential\">Nur essentielle Cookies akzeptieren<\/button>\r\n    <\/div>\r\n\r\n    <ul class=\"sg-cookie-optin-box-cookie-detail-list\">\r\n        <li class=\"sg-cookie-optin-box-cookie-detail-list-item\">\r\n            <strong class=\"sg-cookie-optin-box-cookie-detail-header\">Erforderliche Cookies<\/strong>\r\n            <p class=\"sg-cookie-optin-box-cookie-detail-description\">Diese Kategorie von Cookies ist erforderlich, um ein reibungsloses Funktionieren unserer Webseiten sicherzustellen (z.B. Session-Cookies, Cookie zur Speicherung der hier festgelegten Cookie-Pr\u00e4ferenzen, etc.). Erforderliche Cookies k\u00f6nnen daher nicht deaktiviert werden.<\/p>\r\n\r\n            <div class=\"sg-cookie-optin-box-cookie-detail-sublist\">\r\n                <table>\r\n                    <tbody>\r\n                    \r\n                    <tr>\r\n                        <th>Name<\/th>\r\n                        <td>cookie_optin<\/td>\r\n                    <\/tr>\r\n                    <tr>\r\n                        <th>Anbieter<\/th>\r\n                        <td>TYPO3<\/td>\r\n                    <\/tr>\r\n                    <tr>\r\n                        <th>Laufzeit<\/th>\r\n                        <td>1 Jahr<\/td>\r\n                    <\/tr>\r\n                    <tr>\r\n                        <th>Zweck<\/th>\r\n                        <td class=\"sg-cookie-optin-box-table-reason\">Enth\u00e4lt die gew\u00e4hlten Tracking-Optin-Einstellungen.<\/td>\r\n                    <\/tr>\r\n                    <\/tbody>\r\n                <\/table>\r\n            <\/div>\r\n\r\n            <a class=\"sg-cookie-optin-box-sublist-open-more-link\" href=\"#\">Cookie-Informationen anzeigen<\/a>\r\n        <\/li>\r\n        <li class=\"sg-cookie-optin-box-cookie-detail-list-item\">\r\n            <strong class=\"sg-cookie-optin-box-cookie-detail-header\">Funktionale Cookies<\/strong>\r\n            <p class=\"sg-cookie-optin-box-cookie-detail-description\">Um ein reibungsloses Funktionieren besonderer Anwendungen unserer Webseiten zu gew\u00e4hrleisten, werden funktionale Cookies eingesetzt. Nur mit dem Einsatz von funktionalen Cookies steht dem Nutzer die gesamte Funktionalit\u00e4t unserer Webseiten zur Verf\u00fcgung<\/p>\r\n\r\n            <div class=\"sg-cookie-optin-box-cookie-detail-sublist\">\r\n                <table>\r\n                    <tbody>\r\n                    \r\n                    <tr>\r\n                        <th>Name<\/th>\r\n                        <td>bankLogin<\/td>\r\n                    <\/tr>\r\n                    <tr>\r\n                        <th>Anbieter<\/th>\r\n                        <td>www.gettex.de<\/td>\r\n                    <\/tr>\r\n                    <tr>\r\n                        <th>Laufzeit<\/th>\r\n                        <td>30 Jahre<\/td>\r\n                    <\/tr>\r\n                    <tr>\r\n                        <th>Zweck<\/th>\r\n                        <td class=\"sg-cookie-optin-box-table-reason\">Dieser Cookie wird verwendet, um die Auswahl der gew\u00fcnschten Bank aus dem Bereich Bankeinstellungen zu speichern.<\/td>\r\n                    <\/tr>\r\n                    <tr class=\"divider\"><td colspan=\"2\">&nbsp;<\/td><\/tr>\r\n                    <tr>\r\n                        <th>Name<\/th>\r\n                        <td>bm_simple_watchlist<\/td>\r\n                    <\/tr>\r\n                    <tr>\r\n                        <th>Anbieter<\/th>\r\n                        <td>www.gettex.de<\/td>\r\n                    <\/tr>\r\n                    <tr>\r\n                        <th>Laufzeit<\/th>\r\n                        <td>30 Jahre<\/td>\r\n                    <\/tr>\r\n                    <tr>\r\n                        <th>Zweck<\/th>\r\n                        <td class=\"sg-cookie-optin-box-table-reason\">Dieser Cookie wird verwendet, um die Titel der Merkliste im Browser zu speichern.<\/td>\r\n                    <\/tr>\r\n                    <\/tbody>\r\n                <\/table>\r\n            <\/div>\r\n\r\n            <a class=\"sg-cookie-optin-box-sublist-open-more-link\" href=\"#\">Cookie-Informationen anzeigen<\/a>\r\n            \r\n            \r\n        <\/li>\r\n        <li class=\"sg-cookie-optin-box-cookie-detail-list-item\">\r\n            <strong class=\"sg-cookie-optin-box-cookie-detail-header\">Tracking-Cookies<\/strong>\r\n            <p class=\"sg-cookie-optin-box-cookie-detail-description\">Die Verwendung von Tracking\u2013 bzw. Analyse-Cookies erfolgt zu dem Zweck, die Qualit\u00e4t unserer Webseiten und ihrer Inhalte zu verbessern. Dadurch soll eine h\u00f6here Kundenzufriedenheit bei den Nutzern der Webseiten erreicht werden. Unter diese Kategorie fallen Cookies f\u00fcr Google Analytics, Google Tag Manager, YouTube und Twitter.<\/p>\r\n\r\n            <div class=\"sg-cookie-optin-box-cookie-detail-sublist\">\r\n                <table>\r\n                    <tbody>\r\n                    \r\n                    <tr>\r\n                        <th>Name<\/th>\r\n                        <td>_ga<\/td>\r\n                    <\/tr>\r\n                    <tr>\r\n                        <th>Anbieter<\/th>\r\n                        <td>Google Adwords<\/td>\r\n                    <\/tr>\r\n                    <tr>\r\n                        <th>Laufzeit<\/th>\r\n                        <td>2 Jahre<\/td>\r\n                    <\/tr>\r\n                    <tr>\r\n                        <th>Zweck<\/th>\r\n                        <td class=\"sg-cookie-optin-box-table-reason\">Dieses Cookie wird von Google Analytics installiert. Das Cookie wird verwendet, um Besucher-, Sitzungs- und Kampagnendaten zu berechnen und die Nutzung der Website f\u00fcr den Analysebericht der Website zu verfolgen. Die Cookies speichern Informationen anonym und weisen eine zuf\u00e4llig generierte Nummer zu, um eindeutige Besucher zu identifizieren.<\/td>\r\n                    <\/tr>\r\n                    <tr class=\"divider\"><td colspan=\"2\">&nbsp;<\/td><\/tr>\r\n                    <tr>\r\n                        <th>Name<\/th>\r\n                        <td>_gid<\/td>\r\n                    <\/tr>\r\n                    <tr>\r\n                        <th>Anbieter<\/th>\r\n                        <td>Google Analytics<\/td>\r\n                    <\/tr>\r\n                    <tr>\r\n                        <th>Laufzeit<\/th>\r\n                        <td>1 Tag<\/td>\r\n                    <\/tr>\r\n                    <tr>\r\n                        <th>Zweck<\/th>\r\n                        <td class=\"sg-cookie-optin-box-table-reason\">Enth\u00e4lt eine zufallsgenerierte User-ID. Anhand dieser ID kann Google Analytics wiederkehrende User auf dieser Website wiedererkennen und die Daten von fr\u00fcheren Besuchen zusammenf\u00fchren.<\/td>\r\n                    <\/tr>\r\n                    <tr class=\"divider\"><td colspan=\"2\">&nbsp;<\/td><\/tr>\r\n                    <tr>\r\n                        <th>Name<\/th>\r\n                        <td>_gat_UA-76102930-1<\/td>\r\n                    <\/tr>\r\n                    <tr>\r\n                        <th>Anbieter<\/th>\r\n                        <td>Google Analytics<\/td>\r\n                    <\/tr>\r\n                    <tr>\r\n                        <th>Laufzeit<\/th>\r\n                        <td>1 Minute<\/td>\r\n                    <\/tr>\r\n                    <tr>\r\n                        <th>Zweck<\/th>\r\n                        <td class=\"sg-cookie-optin-box-table-reason\">Dies ist ein Protokoll-Cookie zur anonymen Analyse des Nutzerverhaltens auf unserer Website.<\/td>\r\n                    <\/tr>\r\n                    <tr class=\"divider\"><td colspan=\"2\">&nbsp;<\/td><\/tr>\r\n                    <tr>\r\n                        <th>Name<\/th>\r\n                        <td>in-session<\/td>\r\n                    <\/tr>\r\n                    <tr>\r\n                        <th>Anbieter<\/th>\r\n                        <td>IBM Corporation c\/o Instana<\/td>\r\n                    <\/tr>\r\n                    <tr>\r\n                        <th>Laufzeit<\/th>\r\n                        <td>Browser Lifetime<\/td>\r\n                    <\/tr>\r\n                    <tr>\r\n                        <th>Zweck<\/th>\r\n                        <td class=\"sg-cookie-optin-box-table-reason\">Benutzerspezifische Informationen k\u00f6nnen optional mit den an Instana \u00fcbermittelten Daten gesendet werden. Diese Informationen k\u00f6nnen dann verwendet werden, um zus\u00e4tzliche Funktionen freizuschalten, wie zum Beispiel:\r\n\r\n- Berechnung der Anzahl der von Fehlern betroffenen Benutzer,\r\n- Daten nach bestimmten Benutzern zu filtern und   zu sehen, welcher Benutzer einen Seitenaufruf \/ AJAX-Aufruf initiiert hat.<\/td>\r\n                    <\/tr>\r\n                    <\/tbody>\r\n                <\/table>\r\n            <\/div>\r\n\r\n            <a class=\"sg-cookie-optin-box-sublist-open-more-link\" href=\"#\">Cookie-Informationen anzeigen<\/a>\r\n            \r\n            \r\n            \r\n        <\/li>\r\n        <li class=\"sg-cookie-optin-box-cookie-detail-list-item\">\r\n            <strong class=\"sg-cookie-optin-box-cookie-detail-header\">Externe Inhalte<\/strong>\r\n            <p class=\"sg-cookie-optin-box-cookie-detail-description\">Wir verwenden auf unserer Website externe Inhalte, um Ihnen zus\u00e4tzliche Informationen anzubieten.<\/p>\r\n\r\n            <div class=\"sg-cookie-optin-box-cookie-detail-sublist\">\r\n                <table>\r\n                    <tbody>\r\n                    <\/tbody>\r\n                <\/table>\r\n            <\/div>\r\n\r\n        <\/li>\r\n    <\/ul>\r\n\r\n    <div class=\"sg-cookie-optin-box-open-more\">\r\n        <a class=\"sg-cookie-optin-box-open-more-link\" href=\"#\">Weitere Informationen anzeigen<\/a>\r\n    <\/div>\r\n<\/div>\r\n"},"banner":{"banner_html":"<div class=\"sg-cookie-optin-banner {{^settings.banner_position}}sg-cookie-optin-banner-bottom{{\/settings.banner_position}}\">\n\t<div class=\"sg-cookie-optin-box\">\n\t\t<div class=\"sg-cookie-optin-banner-content\">\n\t\t\t<p class=\"sg-cookie-optin-banner-description\">\n\t\t\t\t{{{textEntries.banner_description}}}\n\n\t\t\t\t{{#footerLinks}}\n\t\t\t\t\t{{#index}}\n\t\t\t\t\t\t(\n\t\t\t\t\t{{\/index}}\n\t\t\t\t{{\/footerLinks}}\n\n\t\t\t\t{{#footerLinks}}\n\t\t\t\t\t{{#index}}\n\t\t\t\t\t\t<span class=\"sg-cookie-optin-box-footer-divider\"> | <\/span>\n\t\t\t\t\t{{\/index}}\n\n\t\t\t\t\t<a class=\"sg-cookie-optin-box-footer-link\" href=\"{{url}}\" target=\"_blank\">{{{name}}}<\/a>\n\t\t\t\t{{\/footerLinks}}\n\n\t\t\t\t{{#footerLinks}}\n\t\t\t\t\t{{#index}}\n\t\t\t\t\t\t)\n\t\t\t\t\t{{\/index}}\n\t\t\t\t{{\/footerLinks}}\n\t\t\t<\/p>\n\n\t\t\t<div class=\"sg-cookie-optin-banner-button\">\n\t\t\t\t{{#settings.banner_show_settings_button}}\n\t\t\t\t\t<button class=\"sg-cookie-optin-banner-button-settings\">{{{textEntries.banner_button_settings_text}}}<\/button>\n\t\t\t\t{{\/settings.banner_show_settings_button}}\n\n\t\t\t\t<button class=\"sg-cookie-optin-banner-button-accept-essential\">{{{textEntries.banner_button_accept_essential_text}}}<\/button>\n\t\t\t\t<button class=\"sg-cookie-optin-banner-button-accept\">{{{textEntries.banner_button_accept_text}}}<\/button>\n\t\t\t<\/div>\n\t\t<\/div>\n\t<\/div>\n<\/div>\n","banner_overwritten":0,"markup":"<div class=\"sg-cookie-optin-banner sg-cookie-optin-banner-bottom\">\n\t<div class=\"sg-cookie-optin-box\">\n\t\t<div class=\"sg-cookie-optin-banner-content\">\n\t\t\t<p class=\"sg-cookie-optin-banner-description\">\n\t\t\t\tWir verwenden auf unserer Website Cookies, um die Benutzerfreundlichkeit zu erh\u00f6hen. Mit dem Klicken auf ALLE AKZEPTIEREN erkl\u00e4rst du dich damit einverstanden, dass wir Cookies verwenden d\u00fcrfen. Detaillierte Informationen, wie man der Verwendung von Cookies jederzeit widersprechen kann, findet man hier:\n\n\n\n\t\t\t\t\t<a class=\"sg-cookie-optin-box-footer-link\" href=\"\/datenschutz\/?disableOptIn=1&amp;cHash=7da71d944c4254df35b9ddbda00238ae\" target=\"_blank\">Datenschutz<\/a>\n\n\t\t\t<\/p>\n\n\t\t\t<div class=\"sg-cookie-optin-banner-button\">\n\n\t\t\t\t<button class=\"sg-cookie-optin-banner-button-accept-essential\">Nur notwendige Cookies akzeptieren<\/button>\n\t\t\t\t<button class=\"sg-cookie-optin-banner-button-accept\">Alle Akzeptieren<\/button>\n\t\t\t<\/div>\n\t\t<\/div>\n\t<\/div>\n<\/div>\n"},"iframe":{"iframe_html":"<div class=\"sg-cookie-optin-box\">\n\t{{#settings.show_button_close}}\n\t\t<span class=\"sg-cookie-optin-box-close-button\">\u2715<\/span>\n\t{{\/settings.show_button_close}}\n\n\t<strong class=\"sg-cookie-optin-box-header\">{{{iFrameGroup.label}}}<\/strong>\n\t<p class=\"sg-cookie-optin-box-description\">{{{iFrameGroup.description}}}<\/p>\n\n\t<div class=\"sg-cookie-optin-box-button\">\n\t\t<button  class=\"sg-cookie-optin-box-button-accept-all\">{{{textEntries.iframe_button_allow_all_text}}}<\/button>\n\t\t<button  class=\"sg-cookie-optin-box-button-accept-specific\">{{{textEntries.iframe_button_allow_one_text}}}<\/button>\n\t\t<button  class=\"sg-cookie-optin-box-button-iframe-reject\">{{{textEntries.iframe_button_reject_text}}}<\/button>\n\t<\/div>\n\n\t{{{placeholders.iframe_consent_description}}}\n\n\t<div class=\"sg-cookie-optin-box-footer\">\n\t\t<div class=\"sg-cookie-optin-box-copyright\">\n\t\t\t<a  class=\"sg-cookie-optin-box-copyright-link{{#settings.disable_powered_by}} sg-cookie-optin-box-copyright-link-hidden{{\/settings.disable_powered_by}}\"\n\t\t\t   href=\"https:\/\/www.sgalinski.de\/typo3-produkte-webentwicklung\/sgalinski-cookie-optin\/\"\n\t\t\t   rel=\"noopener\"\n\t\t\t   target=\"_blank\">\n\t\t\t\tPowered by<br>sgalinski Cookie Consent\n\t\t\t<\/a>\n\t\t<\/div>\n\n\t\t<div class=\"sg-cookie-optin-box-footer-links\">\n\t\t\t{{#footerLinks}}\n\t\t\t{{#index}}\n\t\t\t<span class=\"sg-cookie-optin-box-footer-divider\"> | <\/span>\n\t\t\t{{\/index}}\n\t\t\t<a  class=\"sg-cookie-optin-box-footer-link\" href=\"{{url}}\" target=\"_blank\">{{{name}}}<\/a>\n\t\t\t{{\/footerLinks}}\n\t\t<\/div>\n\t<\/div>\n<\/div>\n","iframe_overwritten":0,"markup":"<div class=\"sg-cookie-optin-box\">\n\n\t<strong class=\"sg-cookie-optin-box-header\">Externe Inhalte<\/strong>\n\t<p class=\"sg-cookie-optin-box-description\">Wir verwenden auf unserer Website externe Inhalte, um Ihnen zus\u00e4tzliche Informationen anzubieten.<\/p>\n\n\t<div class=\"sg-cookie-optin-box-button\">\n\t\t<button  class=\"sg-cookie-optin-box-button-accept-all\">Alle externen Inhalte erlauben<\/button>\n\t\t<button  class=\"sg-cookie-optin-box-button-accept-specific\">Einmalig erlauben<\/button>\n\t\t<button  class=\"sg-cookie-optin-box-button-iframe-reject\">Nicht erlauben<\/button>\n\t<\/div>\n\n\t<p class=\"sg-cookie-optin-box-flash-message\"><\/p>\n\n\t<div class=\"sg-cookie-optin-box-footer\">\n\t\t<div class=\"sg-cookie-optin-box-copyright\">\n\t\t\t<a  class=\"sg-cookie-optin-box-copyright-link sg-cookie-optin-box-copyright-link-hidden\"\n\t\t\t   href=\"https:\/\/www.sgalinski.de\/typo3-produkte-webentwicklung\/sgalinski-cookie-optin\/\"\n\t\t\t   rel=\"noopener\"\n\t\t\t   target=\"_blank\">\n\t\t\t\tPowered by<br>sgalinski Cookie Consent\n\t\t\t<\/a>\n\t\t<\/div>\n\n\t\t<div class=\"sg-cookie-optin-box-footer-links\">\n\t\t\t<a  class=\"sg-cookie-optin-box-footer-link\" href=\"\/datenschutz\/?disableOptIn=1&amp;cHash=7da71d944c4254df35b9ddbda00238ae\" target=\"_blank\">Datenschutz<\/a>\n\t\t<\/div>\n\t<\/div>\n<\/div>\n"},"iframeReplacement":{"iframe_replacement_html":"<button class=\"sg-cookie-optin-iframe-consent-accept\">{{{textEntries.iframe_button_load_one_text}}}<\/button>\n{{{placeholders.iframe_consent_description}}}\n<a class=\"sg-cookie-optin-iframe-consent-link\">{{{textEntries.iframe_open_settings_text}}}<\/a>\n","iframe_replacement_overwritten":0,"markup":"<button class=\"sg-cookie-optin-iframe-consent-accept\">Externen Inhalt laden<\/button>\n<p class=\"sg-cookie-optin-box-flash-message\"><\/p>\n<a class=\"sg-cookie-optin-iframe-consent-link\">Einstellungen anzeigen<\/a>\n"},"iframeWhitelist":{"iframe_whitelist_regex":"^https:\\\/\\\/www\\.google\\.com\\\/recaptcha\\\/\r\n^https:\\\/\\\/gettex\\.wsd\\.com\\\/website\\\/","markup":"^https:\\\/\\\/www\\.google\\.com\\\/recaptcha\\\/\r\n^https:\\\/\\\/gettex\\.wsd\\.com\\\/website\\\/"},"services":[]}}</script>
+<link rel="preload" as="script" href="https://www.gettex.de/fileadmin/sg_cookie_optin/siteroot-1/cookieOptin.js?1724858767" data-ignore="1" crossorigin="anonymous">
+					<script src="https://www.gettex.de/fileadmin/sg_cookie_optin/siteroot-1/cookieOptin.js?1724858767" data-ignore="1" crossorigin="anonymous"></script>
+<link rel="canonical" href="https://www.gettex.de/"/>
+
+<link rel="alternate" hreflang="de-DE" href="https://www.gettex.de/"/>
+<link rel="alternate" hreflang="en-US" href="https://www.gettex.de/en/"/>
+<link rel="alternate" hreflang="x-default" href="https://www.gettex.de/"/>
+<script type="application/ld+json" id="ext-schema-jsonld">{"@context":"https://schema.org/","@type":"WebPage"}</script>
+</head>
+<body>
+
+
+<div class="page-wrapper">
+    <header class="gettex-header navbar-expand-xl stickyheader">
+        
+
+
+    
+            
+                
+            
+
+            
+        
+
+
+
+
+
+
+        
+
+        <div class="container-max">
+            <div class="row">
+                <div class="col-6 col-xl-3">
+                    
+
+<a class="navbar-brand logo-link" title="Link zur Startseite" href="/">
+    <svg width="194" height="78" viewBox="0 0 194 78" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g id="gettex_exchange-2">
+            <g id="Logoelement">
+                <path id="rectangle-green" d="M193.979 0H184.076V9.90053H193.979V0Z" fill="#A9C813"/>
+                <path id="rectangle-red" d="M184.076 9.90735H174.173V19.8079H184.076V9.90735Z" fill="#E40613"/>
+            </g>
+            <path id="exchange" d="M126.607 62.0853H124.718L121.864 66.129H121.816L118.921 62.0853H117.032L120.865 67.2374L116.889 72.5879H118.743L121.775 68.3869H121.816L124.889 72.5879H126.744L122.761 67.2853L126.593 62.0921L126.607 62.0853ZM133.396 71.37C132.808 71.37 132.288 71.2742 131.836 71.0758C131.384 70.8774 131.015 70.6105 130.714 70.2548C130.412 69.9058 130.187 69.4884 130.036 69.0095C129.885 68.5305 129.81 68.0105 129.81 67.4427C129.81 66.6627 129.913 66.0058 130.111 65.479C130.317 64.9521 130.583 64.5279 130.912 64.2063C131.241 63.8848 131.617 63.659 132.041 63.5153C132.459 63.3784 132.883 63.3032 133.314 63.3032C133.745 63.3032 134.115 63.3442 134.512 63.4332C134.902 63.5221 135.326 63.6521 135.792 63.83V62.4069C135.463 62.2153 135.059 62.0648 134.601 61.9553C134.136 61.8527 133.65 61.7979 133.143 61.7979C132.76 61.7979 132.363 61.839 131.959 61.9279C131.555 62.01 131.165 62.1469 130.782 62.3384C130.399 62.53 130.043 62.7695 129.707 63.0637C129.372 63.3579 129.078 63.7137 128.831 64.1379C128.578 64.5553 128.38 65.0411 128.243 65.5953C128.099 66.1495 128.031 66.7721 128.031 67.4632C128.031 68.3937 128.168 69.1942 128.441 69.8716C128.715 70.549 129.085 71.11 129.557 71.5548C130.029 71.9995 130.577 72.3211 131.206 72.54C131.836 72.7521 132.507 72.8616 133.212 72.8616C133.485 72.8616 133.759 72.8479 134.033 72.8137C134.307 72.7795 134.56 72.7384 134.806 72.6837C135.046 72.629 135.272 72.5674 135.477 72.4921C135.682 72.4169 135.847 72.3484 135.97 72.2732V70.85C135.559 71.0211 135.135 71.1511 134.697 71.24C134.259 71.329 133.828 71.3769 133.403 71.3769L133.396 71.37ZM193.678 64.6511C193.459 63.9874 193.165 63.4469 192.789 63.0295C192.412 62.6121 191.974 62.3042 191.461 62.1058C190.948 61.9074 190.4 61.8116 189.811 61.8116C189.189 61.8116 188.586 61.9279 188.011 62.1674C187.437 62.4069 186.93 62.7558 186.492 63.2279C186.054 63.7 185.698 64.2884 185.431 64.9932C185.164 65.6979 185.034 66.5258 185.034 67.4837C185.034 68.4416 185.171 69.29 185.445 69.9742C185.719 70.6653 186.095 71.2195 186.581 71.6505C187.06 72.0816 187.635 72.3895 188.292 72.5811C188.949 72.7727 189.661 72.8684 190.407 72.8684C191.043 72.8684 191.632 72.8137 192.186 72.7111C192.741 72.6016 193.206 72.4579 193.583 72.2732V70.85C193.117 71.0211 192.652 71.1511 192.186 71.24C191.721 71.329 191.201 71.3769 190.633 71.3769C190.065 71.3769 189.579 71.3084 189.107 71.1784C188.634 71.0484 188.224 70.8363 187.875 70.5421C187.526 70.2548 187.245 69.8716 187.046 69.4063C186.841 68.9411 186.745 68.3663 186.745 67.6958H193.993C194 67.4769 194.007 67.3332 194.007 67.2716V67.0458C194.007 66.1153 193.897 65.3216 193.685 64.6579L193.678 64.6511ZM186.827 66.2179C186.862 65.8142 186.964 65.4311 187.115 65.0753C187.272 64.7195 187.478 64.4048 187.731 64.1448C187.984 63.8779 188.278 63.6727 188.621 63.5153C188.963 63.3579 189.326 63.2827 189.722 63.2827C190.119 63.2827 190.482 63.3579 190.783 63.5084C191.091 63.659 191.345 63.8642 191.557 64.1311C191.769 64.3979 191.926 64.7058 192.036 65.0616C192.145 65.4174 192.2 65.8074 192.2 66.2179H186.827ZM180.682 63.2758H180.641C180.586 63.18 180.49 63.05 180.346 62.8858C180.202 62.7216 180.011 62.5574 179.764 62.3932C179.525 62.229 179.231 62.0921 178.888 61.9758C178.546 61.8663 178.149 61.8048 177.691 61.7979C177.095 61.7979 176.514 61.9142 175.959 62.1469C175.398 62.3795 174.898 62.7284 174.467 63.2005C174.029 63.6727 173.68 64.2679 173.42 64.9863C173.153 65.7048 173.023 66.5532 173.023 67.5316C173.023 68.2363 173.092 68.859 173.235 69.3995C173.379 69.94 173.571 70.4053 173.803 70.7953C174.036 71.1921 174.31 71.5205 174.618 71.7805C174.926 72.0405 175.254 72.2527 175.59 72.41C175.925 72.5674 176.267 72.6837 176.609 72.7453C176.952 72.8137 177.266 72.8479 177.561 72.8479C178.204 72.8479 178.772 72.7453 179.272 72.5332C179.771 72.3211 180.202 72.0132 180.579 71.6027H180.613V73.0053C180.613 74.1821 180.285 75.0579 179.628 75.6327C178.971 76.2074 178.026 76.4948 176.801 76.4948C176.486 76.4948 176.192 76.4811 175.932 76.4605C175.672 76.44 175.412 76.4058 175.165 76.3579C174.912 76.31 174.673 76.2484 174.433 76.18C174.193 76.1116 173.954 76.0227 173.701 75.92V77.3705C174.009 77.5416 174.44 77.6853 174.981 77.8084C175.528 77.9316 176.144 77.9932 176.835 77.9932C177.657 77.9932 178.403 77.8974 179.073 77.699C179.751 77.5074 180.326 77.2063 180.805 76.8095C181.284 76.4127 181.653 75.9132 181.92 75.3111C182.187 74.709 182.317 74.0042 182.317 73.1969V62.0784H181.024L180.668 63.269L180.682 63.2758ZM180.613 70.2069C180.257 70.5763 179.853 70.8637 179.388 71.0827C178.923 71.2948 178.423 71.4042 177.896 71.4042C177.574 71.4042 177.232 71.3495 176.869 71.2469C176.507 71.1374 176.171 70.939 175.87 70.6516C175.562 70.3574 175.309 69.9537 175.111 69.4337C174.912 68.9137 174.809 68.2363 174.809 67.4084C174.809 66.7995 174.878 66.2384 175.008 65.7321C175.138 65.2258 175.336 64.7948 175.596 64.4321C175.857 64.0695 176.185 63.789 176.568 63.5905C176.952 63.3921 177.403 63.2895 177.91 63.2895C178.252 63.2895 178.56 63.3374 178.847 63.44C179.135 63.5427 179.388 63.659 179.614 63.8027C179.84 63.9463 180.038 64.1037 180.202 64.2679C180.374 64.439 180.504 64.5895 180.599 64.7195V70.2137L180.613 70.2069ZM114.206 63.0227C113.829 62.6053 113.391 62.2974 112.878 62.099C112.365 61.9005 111.817 61.8048 111.229 61.8048C110.606 61.8048 110.004 61.9211 109.429 62.1605C108.854 62.4 108.347 62.749 107.909 63.2211C107.471 63.6932 107.115 64.2816 106.848 64.9863C106.582 65.6911 106.452 66.519 106.452 67.4769C106.452 68.4348 106.588 69.2832 106.862 69.9674C107.136 70.6584 107.512 71.2127 107.998 71.6437C108.477 72.0748 109.052 72.3827 109.709 72.5742C110.366 72.7658 111.078 72.8616 111.824 72.8616C112.461 72.8616 113.049 72.8069 113.604 72.7042C114.158 72.5948 114.623 72.4511 115 72.2663V70.8432C114.534 71.0142 114.069 71.1442 113.604 71.2332C113.138 71.3221 112.618 71.37 112.05 71.37C111.482 71.37 110.996 71.3016 110.524 71.1716C110.051 71.0416 109.641 70.8295 109.292 70.5353C108.943 70.2479 108.662 69.8648 108.464 69.3995C108.258 68.9342 108.163 68.3595 108.163 67.689H115.41C115.417 67.47 115.424 67.3263 115.424 67.2648V67.039C115.424 66.1084 115.315 65.3148 115.102 64.6511C114.883 63.9874 114.589 63.4469 114.213 63.0295L114.206 63.0227ZM108.245 66.2179C108.279 65.8142 108.382 65.4311 108.539 65.0753C108.696 64.7195 108.902 64.4048 109.155 64.1448C109.408 63.8779 109.702 63.6727 110.045 63.5153C110.387 63.3579 110.75 63.2827 111.147 63.2827C111.543 63.2827 111.906 63.3579 112.207 63.5084C112.515 63.659 112.769 63.8642 112.981 64.1311C113.193 64.3979 113.35 64.7058 113.46 65.0616C113.569 65.4174 113.624 65.8074 113.624 66.2179H108.252H108.245ZM169.307 62.6463C168.999 62.3521 168.629 62.14 168.212 62.0032C167.794 61.8663 167.343 61.8048 166.864 61.8048C166.46 61.8048 166.083 61.8458 165.741 61.9348C165.399 62.0237 165.084 62.1469 164.797 62.3042C164.509 62.4616 164.249 62.6463 164.016 62.8584C163.784 63.0705 163.572 63.2963 163.38 63.5358H163.346L163.017 62.0784H161.689V72.5742H163.4V65.1163C163.797 64.5416 164.276 64.09 164.824 63.7616C165.378 63.4332 165.946 63.269 166.535 63.269C167.206 63.269 167.719 63.4674 168.068 63.8642C168.417 64.2611 168.595 64.9111 168.595 65.8211V72.5742H170.306V65.5474C170.306 64.8563 170.217 64.2679 170.032 63.7958C169.854 63.3169 169.608 62.9337 169.3 62.6395L169.307 62.6463ZM146.14 62.5369C145.798 62.2632 145.435 62.0716 145.031 61.969C144.634 61.8663 144.237 61.8116 143.84 61.8116C143.443 61.8116 143.101 61.8527 142.766 61.9416C142.437 62.0305 142.122 62.1537 141.835 62.3042C141.548 62.4548 141.287 62.6327 141.048 62.8448C140.808 63.0569 140.596 63.2826 140.405 63.5221H140.37V56.5842H138.659V72.5879H140.37V65.13C140.767 64.5553 141.24 64.1037 141.787 63.7753C142.335 63.4469 142.91 63.2827 143.512 63.2827C144.244 63.2827 144.764 63.4948 145.086 63.9258C145.408 64.3569 145.565 64.9932 145.565 65.8348V72.5879H147.276V65.5611C147.276 64.7948 147.166 64.1721 146.954 63.6795C146.742 63.1937 146.468 62.8174 146.126 62.5437L146.14 62.5369ZM158.069 63.8642C157.775 63.2484 157.289 62.749 156.611 62.3727C155.934 61.9963 155.071 61.8116 154.01 61.8116C153.716 61.8116 153.422 61.8253 153.128 61.8527C152.833 61.88 152.553 61.9279 152.286 61.9826C152.019 62.0374 151.766 62.1058 151.526 62.1811C151.287 62.2563 151.081 62.3384 150.903 62.4274V63.8642C151.369 63.6863 151.834 63.5495 152.299 63.4537C152.765 63.3511 153.264 63.3032 153.798 63.3032C154.517 63.3032 155.078 63.4195 155.502 63.6521C155.92 63.8848 156.228 64.179 156.42 64.5279C156.509 64.699 156.57 64.8905 156.611 65.1163C156.645 65.3353 156.666 65.5884 156.666 65.8758V66.6079H156.625C156.262 66.4779 155.852 66.3684 155.386 66.2795C154.921 66.1905 154.414 66.1427 153.874 66.1358C153.299 66.1358 152.772 66.2111 152.299 66.3684C151.82 66.519 151.417 66.7448 151.081 67.0321C150.739 67.3195 150.479 67.6684 150.287 68.0858C150.096 68.5032 150.007 68.9684 150.007 69.4884C150.007 70.0084 150.089 70.4942 150.26 70.9116C150.431 71.329 150.671 71.6848 150.972 71.979C151.28 72.2663 151.642 72.4921 152.067 72.6427C152.491 72.7932 152.957 72.8684 153.463 72.8684C153.839 72.8684 154.195 72.8274 154.524 72.7453C154.852 72.6632 155.16 72.5537 155.441 72.4169C155.721 72.28 155.968 72.1295 156.18 71.9516C156.392 71.7737 156.57 71.6027 156.714 71.4248H156.755L156.947 72.5879H158.384V65.5816C158.384 65.2395 158.356 64.9316 158.309 64.6511C158.261 64.3705 158.185 64.1105 158.069 63.8711V63.8642ZM156.666 70.0769C156.584 70.159 156.461 70.2684 156.29 70.419C156.118 70.5627 155.906 70.7132 155.66 70.8569C155.414 71.0074 155.133 71.1305 154.818 71.24C154.503 71.3495 154.161 71.3974 153.791 71.3974C153.511 71.3974 153.251 71.3563 153.004 71.2811C152.758 71.2058 152.546 71.0895 152.368 70.9253C152.19 70.7679 152.046 70.5627 151.944 70.3232C151.841 70.0837 151.786 69.7963 151.786 69.4748C151.786 68.8316 151.992 68.3595 152.402 68.0516C152.813 67.7437 153.381 67.5863 154.106 67.5863C154.626 67.5932 155.106 67.6411 155.537 67.7163C155.968 67.7984 156.344 67.8805 156.659 67.9695V70.07L156.666 70.0769Z" fill="white"/>
+            <path id="gettex" d="M26.8216 28.1484C26.7669 20.41 25.9388 13.7663 20.7715 10.8105C18.9237 9.75684 16.5351 9.16158 13.4142 9.16158C12.9762 9.16158 12.593 9.19579 12.1823 9.22316C1.49884 9.81158 0.082128 18.0153 0 28.1005C0.013688 30.0232 0.095816 31.8637 0.27376 33.5947C0.30798 33.9574 0.355888 34.2995 0.403796 34.6553C1.06766 39.7937 2.70338 43.8442 6.24173 45.8489C7.80216 46.7384 9.73217 47.2311 12.1139 47.2311C12.5382 47.2311 12.9762 47.1968 13.4142 47.1421C16.3024 46.7589 19.2727 45.1442 20.621 42.5784C20.621 42.5784 20.6347 45.3495 20.532 46.5468C19.9366 53.6558 18.0476 56.3995 13.4142 56.3995C12.4629 56.3995 11.6348 56.2695 10.9025 56.0232C9.03408 55.4005 7.82954 53.9295 7.09038 51.3705C7.08354 51.3432 7.0767 51.3226 7.06985 51.2953H0.78706C1.01291 52.6363 1.39618 53.7584 1.84104 54.7368C2.88817 57.0153 4.12009 58.5821 5.67368 59.5811C7.43943 60.7168 9.51316 61.1684 11.7648 61.3053C11.847 61.3053 11.9291 61.319 12.0112 61.319C12.3055 61.3326 12.6066 61.3463 12.9078 61.3463C12.9694 61.3463 13.0241 61.3463 13.0857 61.3463C13.1336 61.3463 13.1747 61.3463 13.2158 61.3463C13.2842 61.3463 13.3526 61.3463 13.4211 61.3463C13.8112 61.3463 14.1945 61.3395 14.5709 61.319C16.8499 61.23 18.9647 60.84 20.7715 59.8C24.3236 57.7542 26.6984 53.1632 26.8216 43.29V43.0095C26.8216 42.9342 26.8216 42.8589 26.8216 42.7768C26.8216 42.6811 26.8216 42.5921 26.8216 42.4963C26.8216 42.3184 26.8216 42.1474 26.8216 41.9763V28.1484ZM20.3814 34.5937C19.656 40.6421 17.7123 43.0095 13.4142 43.0095C9.11621 43.0095 7.17936 40.6489 6.44705 34.6211C6.40598 34.2926 6.37176 33.9437 6.33754 33.5947C6.15276 31.6037 6.07063 29.2774 6.07063 26.5337C6.07063 25.6989 6.098 24.9326 6.13907 24.2074C6.58393 16.0105 9.45841 14.1221 13.4142 14.1221C17.3701 14.1221 20.2309 16.0037 20.6894 24.1526C20.7305 24.8984 20.7579 25.6784 20.7579 26.5337C20.7579 29.7495 20.6483 32.4111 20.3814 34.5937ZM119.989 9.16158C107.198 9.16158 105.945 18.1795 105.945 29.12C105.945 45.6026 112.228 47.9632 119.989 47.9632C128.27 47.9632 132.486 44.5626 133.52 35.9142H127.086C126.566 39.9032 124.424 43.0095 120.283 43.0095C115.554 43.0095 112.597 40.9432 112.296 30.5226H134.033V27.3479C133.739 15.0047 130.707 9.16158 119.989 9.16158ZM112.303 25.9384C112.597 16.3321 115.26 14.1153 119.845 14.1153C124.431 14.1153 127.463 16.2568 127.682 25.9384H112.303ZM156.331 27.7105L167.493 9.90053H160.177L152.635 23.2768L145.538 9.90053H137.777L148.419 27.7105L136.812 47.2242H143.984L152.039 31.9253L160.766 47.2242H168.753L156.331 27.7105ZM93.9134 37.3237V14.4847H101.455V9.90053H93.9134V0H87.8496V41.0184C87.8496 45.3084 90.4366 47.6689 96.2061 47.6689C98.2046 47.6689 100.196 47.4432 102.119 47.0737V42.4211C100.86 42.5716 99.9019 42.7153 99.457 42.7153C93.9134 42.7153 93.9134 39.6842 93.9134 37.3237ZM74.1547 37.3237V14.4847H81.6968V9.90053H74.1547V0H68.091V41.0184C68.091 45.3084 70.678 47.6689 76.4475 47.6689C78.4459 47.6689 80.4375 47.4432 82.3607 47.0737V42.4211C81.1014 42.5716 80.1432 42.7153 79.6984 42.7153C74.1547 42.7153 74.1547 39.6842 74.1547 37.3237ZM47.2168 9.16158C34.4253 9.16158 33.1729 18.1795 33.1729 29.12C33.1729 45.6026 39.4557 47.9632 47.2168 47.9632C55.498 47.9632 59.7139 44.5626 60.7473 35.9142H54.314C53.7938 39.9032 51.6517 43.0095 47.511 43.0095C42.7818 43.0095 39.8252 40.9432 39.5241 30.5226H61.2606V27.3479C60.9664 15.0047 57.9345 9.16158 47.2168 9.16158ZM39.5309 25.9384C39.8252 16.3321 42.4875 14.1153 47.073 14.1153C51.6585 14.1153 54.6904 16.2568 54.9094 25.9384H39.5309Z" fill="white"/>
+        </g>
+    </svg>
+</a>
+
+
+
+                </div>
+                <div class="col-6 d-flex d-xl-none justify-content-end">
+                    <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                        <svg width="30px" height="30px" class="icon-close">
+                            <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-close"></use>
+                        </svg>
+                        <svg width="30px" height="30px" class="icon-burger">
+                            <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-burger"></use>
+                        </svg>
+                    </button>
+                </div>
+                <div class="col-12 col-xl-9">
+                    <div class="collapse navbar-collapse header-navs" id="navbarNav">
+                        <nav class="header-meta">
+                            
+
+<a title="Watchlist" href="/trading-ideen/watchlist/">
+    <svg width="12px" height="12px">
+        <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-add-merkliste-inactive"></use>
+    </svg>
+</a>
+
+
+
+                            
+
+                            
+
+
+
+    
+    
+    
+    
+
+    <span class="trading-status">
+        <span class="label d-none d-xl-inline">
+            Handelsstatus
+        </span>
+        <span class="label d-inline d-xl-none">
+            Status
+        </span>
+        <span class="dot dot-open"></span>
+    </span>
+
+
+
+
+
+                            
+
+    
+
+    
+            
+                
+            
+                
+                    
+                    
+                            <a class="text-uppercase" title="Switch to English" href="/en/">en</a>
+                        
+                
+            
+        
+
+
+                        </nav>
+                        
+
+<nav role="navigation">
+    <ul class="navbar-nav flex-xl-row justify-content-xl-end">
+        
+            <li class="nav-item dropdown">
+                
+                        
+                                
+                            
+                        <a href="#" class="nav-link dropdown-toggle " role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                            Realtime Kurse
+                            <svg width="15px" height="15px" class="ms-2 first-level-arrow">
+                                <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-chevron-down"></use>
+                            </svg>
+                        </a>
+                        <ul class="dropdown-menu nav-level-2">
+                            
+                                
+                                        <li class="dropdown-level-3 navbar-expand">
+                                            <a href="#" class="dropdown-item" role="button" data-bs-toggle="dropdown" data-bs-target="#level-3_0" data-bs-auto-close="true" aria-expanded="false">
+                                                Indizes
+                                                <svg width="15px" height="15px" class="ms-2">
+                                                    <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-chevron-right"></use>
+                                                </svg>
+                                            </a>
+                                            <ul class="nav-level-3 dropdown-menu collapse navbar-collapse" id="level-3_0">
+                                                
+                                                    <li>
+                                                        
+                                                                <a class="nav-link" href="/realtime-kurse/indizes/uc-dax/">
+                                                                    UC DAX
+                                                                </a>
+                                                            
+                                                    </li>
+                                                
+                                                    <li>
+                                                        
+                                                                <a class="nav-link" href="/realtime-kurse/indizes/uc-mdax/">
+                                                                    UC MDAX
+                                                                </a>
+                                                            
+                                                    </li>
+                                                
+                                                    <li>
+                                                        
+                                                                <a class="nav-link" href="/realtime-kurse/indizes/uc-tecdax/">
+                                                                    UC TECDAX
+                                                                </a>
+                                                            
+                                                    </li>
+                                                
+                                                    <li>
+                                                        
+                                                                <a class="nav-link" href="/realtime-kurse/indizes/uc-dji/">
+                                                                    UC DJI
+                                                                </a>
+                                                            
+                                                    </li>
+                                                
+                                                    <li>
+                                                        
+                                                                <a class="nav-link" href="/realtime-kurse/indizes/uc-estoxx/">
+                                                                    UC ESTOXX
+                                                                </a>
+                                                            
+                                                    </li>
+                                                
+                                                    <li>
+                                                        
+                                                                <a class="nav-link" href="/realtime-kurse/indizes/uc-nasdaq-100/">
+                                                                    UC NASDAQ 100
+                                                                </a>
+                                                            
+                                                    </li>
+                                                
+                                            </ul>
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/realtime-kurse/aktien/">
+                                                        Aktien
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/realtime-kurse/etfs-fonds/">
+                                                        ETFs &amp; FONDS
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/realtime-kurse/anleihen/">
+                                                        Anleihen
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/realtime-kurse/krypto/">
+                                                        Krypto
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                        </ul>
+                    
+            </li>
+        
+            <li class="nav-item dropdown">
+                
+                        
+                                
+                            
+                        <a href="#" class="nav-link dropdown-toggle " role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                            Märkte screenen
+                            <svg width="15px" height="15px" class="ms-2 first-level-arrow">
+                                <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-chevron-down"></use>
+                            </svg>
+                        </a>
+                        <ul class="dropdown-menu nav-level-2">
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/maerkte/aktien-finder/">
+                                                        Aktien-Finder
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/maerkte/zertifikate-finder/">
+                                                        Zertifikate-Finder
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/maerkte/etf-finder/">
+                                                        ETF-Finder
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/maerkte/fonds-finder/">
+                                                        Fonds-Finder
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/maerkte/anleihen-finder/">
+                                                        Anleihen-Finder
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                        </ul>
+                    
+            </li>
+        
+            <li class="nav-item dropdown">
+                
+                        
+                                
+                            
+                        <a href="#" class="nav-link dropdown-toggle " role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                            Trading Ideen
+                            <svg width="15px" height="15px" class="ms-2 first-level-arrow">
+                                <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-chevron-down"></use>
+                            </svg>
+                        </a>
+                        <ul class="dropdown-menu nav-level-2">
+                            
+                                
+                                        <li class="dropdown-level-3 navbar-expand">
+                                            <a href="#" class="dropdown-item" role="button" data-bs-toggle="dropdown" data-bs-target="#level-3_0" data-bs-auto-close="true" aria-expanded="false">
+                                                Risk-Indikatoren
+                                                <svg width="15px" height="15px" class="ms-2">
+                                                    <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-chevron-right"></use>
+                                                </svg>
+                                            </a>
+                                            <ul class="nav-level-3 dropdown-menu collapse navbar-collapse" id="level-3_0">
+                                                
+                                                    <li>
+                                                        
+                                                                <a class="nav-link" href="/risk-indikatoren/uebersicht/">
+                                                                    Übersicht
+                                                                </a>
+                                                            
+                                                    </li>
+                                                
+                                                    <li>
+                                                        
+                                                                <a class="nav-link" href="/risk-indikatoren/eu-intraday/">
+                                                                    EU Intraday
+                                                                </a>
+                                                            
+                                                    </li>
+                                                
+                                                    <li>
+                                                        
+                                                                <a class="nav-link" href="/risk-indikatoren/eu-long-term/">
+                                                                    EU Long Term
+                                                                </a>
+                                                            
+                                                    </li>
+                                                
+                                                    <li>
+                                                        
+                                                                <a class="nav-link" href="/risk-indikatoren/us-intraday/">
+                                                                    US Intraday
+                                                                </a>
+                                                            
+                                                    </li>
+                                                
+                                                    <li>
+                                                        
+                                                                <a class="nav-link" href="/risk-indikatoren/us-longterm/">
+                                                                    US Longterm
+                                                                </a>
+                                                            
+                                                    </li>
+                                                
+                                            </ul>
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/podcast/">
+                                                        gettex Podcast
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li class="dropdown-level-3 navbar-expand">
+                                            <a href="#" class="dropdown-item" role="button" data-bs-toggle="dropdown" data-bs-target="#level-3_2" data-bs-auto-close="true" aria-expanded="false">
+                                                Neu auf gettex
+                                                <svg width="15px" height="15px" class="ms-2">
+                                                    <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-chevron-right"></use>
+                                                </svg>
+                                            </a>
+                                            <ul class="nav-level-3 dropdown-menu collapse navbar-collapse" id="level-3_2">
+                                                
+                                                    <li>
+                                                        
+                                                                <a class="nav-link" href="/trading-ideen/neu-auf-gettex/aktien/">
+                                                                    Neue Aktienlistings
+                                                                </a>
+                                                            
+                                                    </li>
+                                                
+                                                    <li>
+                                                        
+                                                                <a class="nav-link" href="/trading-ideen/neu-auf-gettex/anleihen/">
+                                                                    Neue Anleihen
+                                                                </a>
+                                                            
+                                                    </li>
+                                                
+                                                    <li>
+                                                        
+                                                                <a class="nav-link" href="/trading-ideen/neu-auf-gettex/zertifikate/">
+                                                                    Neue Intraday Zertifikate
+                                                                </a>
+                                                            
+                                                    </li>
+                                                
+                                            </ul>
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/trading-ideen/blog/">
+                                                        Blog
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/newsletter/">
+                                                        Newsletter
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/die-boersenbuben/">
+                                                        Die Börsenbuben
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/trading-ideen/wissen-trainings/">
+                                                        Wissen &amp; Trainings
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/trading-ideen/watchlist/">
+                                                        Watchlist
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/trading-ideen/support/">
+                                                        Support
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                        </ul>
+                    
+            </li>
+        
+            <li class="nav-item dropdown">
+                
+                        
+                                
+                            
+                        <a href="#" class="nav-link dropdown-toggle " role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                            Handel
+                            <svg width="15px" height="15px" class="ms-2 first-level-arrow">
+                                <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-chevron-down"></use>
+                            </svg>
+                        </a>
+                        <ul class="dropdown-menu nav-level-2">
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/handel/handelskalender/">
+                                                        Handelskalender
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/handelszeitverlaengerung/">
+                                                        Handelszeitverlängerung
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/trading-ideen/listing-demand/">
+                                                        Listing on demand
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/handel/bekanntmachungen/">
+                                                        Bekanntmachungen
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/handel/quality-reports/">
+                                                        Quality Reports
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/handel/delayed-data/">
+                                                        Delayed Data
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/handel/regelwerk/">
+                                                        Regelwerk
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/handel/handelsteilnehmer-werden/">
+                                                        Handelsteilnehmer werden
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/handel/geschaeftsaufhebungen/">
+                                                        Geschäftsaufhebungen
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                        </ul>
+                    
+            </li>
+        
+            <li class="nav-item dropdown">
+                
+                        
+                                
+                            
+                        <a href="#" class="nav-link dropdown-toggle " role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                            Über Gettex
+                            <svg width="15px" height="15px" class="ms-2 first-level-arrow">
+                                <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-chevron-down"></use>
+                            </svg>
+                        </a>
+                        <ul class="dropdown-menu nav-level-2">
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/ueber-gettex/faqs/">
+                                                        FAQs
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/ueber-gettex/presse/">
+                                                        Presse
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/ueber-gettex/partner/">
+                                                        Partner
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/ueber-gettex/gremien/">
+                                                        Gremien
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/ueber-gettex/karriere/">
+                                                        Karriere
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                                
+                                        <li>
+                                            
+                                                    <a class="nav-link" href="/ueber-gettex/service-kontakt/">
+                                                        Service &amp; Kontakt
+                                                    </a>
+                                                
+                                        </li>
+                                    
+                            
+                        </ul>
+                    
+            </li>
+        
+            <li class="nav-item dropdown">
+                
+                        
+                                <a class="nav-link" href="/ueber-gettex/warum-gettex-2/">
+                                    Warum gettex?
+                                </a>
+                            
+                    
+            </li>
+        
+    </ul>
+</nav>
+
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main id="content-top" class="page-content">
+        
+
+        <div class="container-max">
+            
+
+
+
+
+
+            <!--TYPO3SEARCH_begin-->
+            
+        
+    
+            <div id="c385" class="frame default list layout-0">
+
+                
+                
+                    
+
+
+
+                
+                
+                    
+
+
+
+                
+                
+
+    
+        
+    <div class="tx-nrc-financialcom">
+        
+        
+        
+        
+        
+        
+
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+
+        
+    
+        
+        
+        <div class="gettex-widget"></div>
+            <script type="text/javascript">
+
+                const language='de-DE';
+                const urlManagerConfig={"isinPlaceholder":"-ISIN-","urlNavigationPattern":{"detail_stocks":{"overview":"https://www.gettex.de/aktie/-ISIN-/","company":"https://www.gettex.de/aktie/-ISIN-/unternehmensprofil/?cHash=6999e3a4cfef5bed8621204f53b583fc","news":"https://www.gettex.de/aktie/-ISIN-/news-events/?cHash=d77fe9340476819af56fd1d590d6af41","fundAllocation":"https://www.gettex.de/aktie/-ISIN-/zusammensetzung/?cHash=8e08b7ad3e8434d87935c09e9396f9e6","constituents":"https://www.gettex.de/aktie/-ISIN-/constituents/?cHash=416e960de9d5e40c5d3f953c2a93a9ab","topflop":"https://www.gettex.de/aktie/-ISIN-/tops-flops/?cHash=eca21f6059ceec6bd1629d3959f948a4","certificatefinder":"https://www.gettex.de/aktie/-ISIN-/zertifikatefinder/?cHash=a598a087d5f9bbbd41d7560f2418034e"},"detail_bonds":{"overview":"https://www.gettex.de/anleihe/-ISIN-/","company":"https://www.gettex.de/anleihe/-ISIN-/unternehmensprofil/?cHash=9f69aabd91078f7f3a84159e26edc569","news":"https://www.gettex.de/anleihe/-ISIN-/news-events/?cHash=df3aa1f6dc4a8c8022eb77b8d51ef026","fundAllocation":"https://www.gettex.de/anleihe/-ISIN-/zusammensetzung/?cHash=7429db9ecad0b00903cddd6742ba4ccb","constituents":"https://www.gettex.de/anleihe/-ISIN-/constituents/?cHash=6244a9ac2980d013373d0a15d112277f","topflop":"https://www.gettex.de/anleihe/-ISIN-/tops-flops/?cHash=f3af8a8f368e7491d812bea2e6341669","certificatefinder":"https://www.gettex.de/anleihe/-ISIN-/zertifikatefinder/?cHash=e0e61b3ec575cf64eecc461e234c8901"},"detail_funds":{"overview":"https://www.gettex.de/fond/-ISIN-/","company":"https://www.gettex.de/fond/-ISIN-/unternehmensprofil/?cHash=6d1e57362a204a18083f3d95d56e461c","news":"https://www.gettex.de/fond/-ISIN-/news-events/?cHash=04de0bc9a4f3691e22b094bce4a7eea7","fundAllocation":"https://www.gettex.de/fond/-ISIN-/zusammensetzung/?cHash=e774e751ad2995674a22c42169c844fb","constituents":"https://www.gettex.de/fond/-ISIN-/constituents/?cHash=cc7505345c9a7f91bf2fc1dcb4603a68","topflop":"https://www.gettex.de/fond/-ISIN-/tops-flops/?cHash=41f24a0ffaee8bd742e2eba4e21a66ec","certificatefinder":"https://www.gettex.de/fond/-ISIN-/zertifikatefinder/?cHash=da9a8fc489bc95bb39f8a827228bf4c4"},"detail_derivatives":{"overview":"https://www.gettex.de/zertifikat/-ISIN-/","company":"https://www.gettex.de/zertifikat/-ISIN-/unternehmensprofil/?cHash=db7b3a6f70058e15e199f6f892310f89","news":"https://www.gettex.de/zertifikat/-ISIN-/news-events/?cHash=29219c55d5c21675f7e7f0fab109d630","fundAllocation":"https://www.gettex.de/zertifikat/-ISIN-/zusammensetzung/?cHash=94220030217dbb303804bfe10ce7f286","constituents":"https://www.gettex.de/zertifikat/-ISIN-/constituents/?cHash=16879f029375e665caf4c530f725485f","topflop":"https://www.gettex.de/zertifikat/-ISIN-/tops-flops/?cHash=9a854c3c09ee47674344567389ec234f","certificatefinder":"https://www.gettex.de/zertifikat/-ISIN-/zertifikatefinder/?cHash=b27b8ae61a8146de6bc543808f3e149d"},"detail_indices":{"overview":"https://www.gettex.de/aktienindex/-ISIN-/","company":"https://www.gettex.de/aktienindex/-ISIN-/unternehmensprofil/?cHash=8eaa045bccb1653f4158917e3d634ee9","news":"https://www.gettex.de/aktienindex/-ISIN-/news-events/?cHash=48d6f1b7eabbd72747514f1083830ed8","fundAllocation":"https://www.gettex.de/aktienindex/-ISIN-/zusammensetzung/?cHash=dd40650a6fd2714086535a3feebc6fbf","constituents":"https://www.gettex.de/aktienindex/-ISIN-/constituents/?cHash=7b67ab74f7cca8a28a3edd9d876dfefc","topflop":"https://www.gettex.de/aktienindex/-ISIN-/tops-flops/?cHash=4d983eb1b1755ffd488bcd1b90815f1f","certificatefinder":"https://www.gettex.de/aktienindex/-ISIN-/zertifikatefinder/?cHash=eabdeec6b94e6434aed7bcc964c75f05"},"detail_etps":{"overview":"https://www.gettex.de/krypto/-ISIN-/","company":"https://www.gettex.de/krypto/-ISIN-/unternehmensprofil/?cHash=64f02663f94d270551e8e3f396dd627b","news":"https://www.gettex.de/krypto/-ISIN-/news-events/?cHash=39d8cd850e76cc1ed7a37786bf31483f","fundAllocation":"https://www.gettex.de/krypto/-ISIN-/zusammensetzung/?cHash=b862d85abe4cbff008022dd8262f2859","constituents":"https://www.gettex.de/krypto/-ISIN-/constituents/?cHash=90a09931cfdaeb65a0892df1d9289014","topflop":"https://www.gettex.de/krypto/-ISIN-/tops-flops/?cHash=d66b1e0eb1677d6e7cf7b460be3e7463","certificatefinder":"https://www.gettex.de/krypto/-ISIN-/zertifikatefinder/?cHash=82de332acc165841ca25343c8b040a0d"},"detail_indicators":{"overview":"https://www.gettex.de/risk-index/-ISIN-/","company":"https://www.gettex.de/risk-index/-ISIN-/unternehmensprofil/?cHash=ef1e4602c0c5b994e8b37824923aaaef","news":"https://www.gettex.de/risk-index/-ISIN-/news-events/?cHash=8522873ab63d0db5442c77b6175acbd3","fundAllocation":"https://www.gettex.de/risk-index/-ISIN-/zusammensetzung/?cHash=941e6cf8567c6a4a7cb9bb039a563369","constituents":"https://www.gettex.de/risk-index/-ISIN-/constituents/?cHash=3b9b370b944772aa334b2ebe0417061e","topflop":"https://www.gettex.de/risk-index/-ISIN-/tops-flops/?cHash=7a7d79be9d5dcab2ab7edd43f2838e4e","certificatefinder":"https://www.gettex.de/risk-index/-ISIN-/zertifikatefinder/?cHash=d98d37f20b398e87bed68a3fc3bd564f"}},"forceNewTabForWidgetLinks":false,"overwriteTargets":{"detail_indices":{"certificatefinder":""}}};
+                const widgetInitObject={"view":"home"};
+                const widgetScope='';
+
+                function initWidgets() {
+
+                    window.gettexWidget = window.fdc_gettex_widget.init(
+                        '.gettex-widget',
+                        widgetInitObject,
+                        language, // Initial language,
+                        widgetScope
+                    );
+
+                    window.gettexWidget.onTradeButtonClick(function callback(action, ric) {
+                        if (handleTradeButtonEvent) {
+                            handleTradeButtonEvent(action);
+                        }
+                    });
+
+                    const gettexWidget = window.gettexWidget;
+                    gettexWidget.onNavigation((view, isin, subView) => {
+                        UrlManager.goto(view, subView, isin);
+                    });
+
+                    gettexWidget.onWatchListChange(function callback(value) {
+                        UrlManager.addToWatchlist(value);
+                    });
+
+                    determineMetaData();
+                }
+
+                let replacements = {}; // global, für REST + Streaming
+                let titleTemplate = document.title;
+
+                async function determineMetaData() {
+                    const canonicalLink = document.querySelector('link[rel="canonical"]');
+                    const isin = '';
+
+                    if (canonicalLink) {
+                        canonicalLink.setAttribute('href', window.location.href);
+                    }
+
+                    if (!isin) {
+                        return;
+                    }
+
+                    try {
+                        //fetch static data
+                        const response = await dory.Rest.get('/find/securities?fids=x._DSPLY_NAME,x._ISIN,x._TYPE,x._LOCAL_ID,q.RIC&search=-ISIN-&searchFor=ISIN&exchanges=GTX&pageSize=2&pageNo=0');
+                        response.data.data.forEach(function (record) {
+                            // Stammdaten ins replacements-Objekt
+                            replacements = {
+                                ...replacements,
+                                NAME: record['x._DSPLY_NAME'],
+                                WKN: record['x._LOCAL_ID'],
+                                RIC: record['q.RIC']
+                            };
+                        });
+                        updateMetaData(replacements);
+                        startStreaming();
+                        determineInfoBannerData(replacements.RIC);
+
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+
+                /**
+                 * Initializes the streaming connection and subscribes to the quote updates.
+                 */
+                function startStreaming() {
+                    dory.Streaming.connect()
+                        .catch(function (error) {
+                            console.error(error);
+                        })
+                        .then(function () {
+                            const id = dory.Streaming.Quote.subscribe(
+                                {
+                                    rics: [replacements.RIC],
+                                    fids: ['q._BID', 'q._ASK']
+                                },
+                                function (data, err) {
+                                    if (err) {
+                                        console.error('Streaming error:', err);
+                                    }
+                                },
+                                function (data) {
+                                    mergeStreamingData(data);
+                                },
+                                function (data) {
+                                    mergeStreamingData(data);
+                                },
+                                'AskBidSupscription'
+                            );
+                        });
+                }
+
+                /**
+                 * Merges the streaming data into the replacements object.
+                 *
+                 * @param data
+                 */
+                function mergeStreamingData(data) {
+                    const firstPayload = data?.payload?.[0];
+                    const bid = formatNumber(firstPayload?.data?.['q._BID'] ?? null);
+                    const ask = formatNumber(firstPayload?.data?.['q._ASK'] ?? null);
+
+                    if (bid == null || ask == null) {
+                        return;
+                    }
+
+                    replacements = {
+                        ...replacements,
+                        BID: bid,
+                        ASK: ask
+                    };
+                    updateMetaData(replacements);
+                }
+
+                /**
+                 * Updates the document title and meta tags with the given replacements.
+                 *
+                 * @param replacements
+                 */
+                function updateMetaData(replacements) {
+
+                    const title = replaceKeys(titleTemplate, replacements);
+                    document.title = title;
+
+                    const metaTitleOg = document.querySelector('meta[property="og:title"]');
+                    if (metaTitleOg) {
+                        metaTitleOg.setAttribute('content', title);
+                    }
+
+                    const metaDescription = document.querySelector('meta[name="description"]');
+                    if (metaDescription) {
+                        const descriptionTemplate = metaDescription.getAttribute('content');
+                        const description = replaceKeys(descriptionTemplate, replacements);
+                        metaDescription.setAttribute('content', description);
+
+                        const metaDescriptionOg = document.querySelector('meta[property="og:description"]');
+                        if (metaDescriptionOg) {
+                            metaDescriptionOg.setAttribute('content', description);
+                        }
+                    }
+                }
+
+                /**
+                 * Determines the meta data for the current page.
+                 */
+                function determineInfoBannerData(ric) {
+                    const isin = '';
+
+                    if (!isin) {
+                        return;
+                    }
+
+                    dory.Rest.get('/quote/info?fids=ewx.eusipa_cd,ewx.issuer&rics=#rics#&search=-ISIN-&searchFor=ISIN&exchanges=GTX&pageSize=2&pageNo=0'.replace("#rics#", ric))
+                        .catch(function (error) {
+                            console.error(error);
+                        }).then(function (response) {
+                        response.data.data.forEach(function (record) {
+                            const masterdata = {
+                                ISSUER: record['ewx.issuer'],
+                                TYPE: record['ewx.eusipa_cd'],
+                            };
+
+                            if (masterdata['ISSUER'] == 'BNP Paribas') {
+                                const templateBanner = document.querySelector(".info-banner-videos");
+                                const items = videos?.[masterdata['TYPE']];
+
+                                if (!Array.isArray(items) || items.length === 0) {
+                                    // Optional: Banner ausblenden, wenn kein Treffer
+                                    templateBanner.style.display = "none";
+                                    return;
+                                } else {
+                                    if (document.documentElement.getAttribute("lang") === "de") {
+                                        templateBanner.style.display = "block";
+                                    }
+                                }
+
+                                fillBanner(templateBanner, items[0]);
+
+                                // 5) Für weitere Items klonen und hinter das Original hängen
+                                let insertAfter = templateBanner;
+                                for (let i = 1; i < items.length; i++) {
+                                    const clone = templateBanner.cloneNode(true);
+                                    clone.setAttribute("data-cloned", "1");
+                                    fillBanner(clone, items[i]);
+                                    insertAfter.parentNode.insertBefore(clone, insertAfter.nextSibling);
+                                    insertAfter = clone;
+                                }
+                            }
+                        });
+                    });
+                }
+
+                /**
+                 * Helper function to fill banner with dynamic data
+                 */
+                function fillBanner(banner, item) {
+                    const a = banner.querySelector("a");
+                    if (a) {
+                        a.href = item.link || "#";
+                    }
+                    const titleEl = banner.querySelector(".video-title");
+                    if (titleEl) {
+                        titleEl.textContent = item.title ?? "";
+                    }
+                }
+
+                /**
+                 * Replaces keys in a string with values from a given object.
+                 *
+                 * @param str
+                 * @param replacements
+                 * @returns {*}
+                 */
+                function replaceKeys(str, replacements) {
+
+                    if (!str) {
+                        return;
+                    }
+
+                    return str.replace(/{(.*?)}/g, function(match, key) {
+                        return replacements[key] !== undefined ? replacements[key] : match;
+                    });
+                }
+
+                /**
+                 * Formats a number to a string with two decimal places, using the German locale.
+                 */
+                const formatNumber = (value) => {
+                    if (value == null) return null;
+                    return new Intl.NumberFormat(language, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 4,
+                    }).format(value);
+                };
+
+
+                document.addEventListener('DOMContentLoaded',  function () {
+
+                    if (UrlManager !== 'undefined') {
+                        UrlManager.init(urlManagerConfig);
+                    }
+
+
+                    
+            const endpoint='https://lseg-widgets.financial.com';
+            const samlRequest=`<?xml version="1.0" encoding="UTF-8"?>
+<samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_f38459f3d459523da6a9a92ab3ea4c38cb43da5222" Version="2.0" IssueInstant="2026-02-23T16:26:29Z" Destination="https://www.financial.com/"><saml:Issuer>wlib_gettex</saml:Issuer><samlp:Status><samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/></samlp:Status><saml:Assertion xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" ID="_0a598f0aad10785d030b80a5a614594e551fa33183" Version="2.0" IssueInstant="2026-02-23T16:26:29Z"><saml:Issuer>wlib_gettex</saml:Issuer><ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+  <ds:SignedInfo><ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+    <ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>
+  <ds:Reference URI="#_0a598f0aad10785d030b80a5a614594e551fa33183"><ds:Transforms><ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/><ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/></ds:Transforms><ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/><ds:DigestValue>mnzql+3bF7OSOLp8GfJVtzn/5wPzL8GCIJFUqOxuA6g=</ds:DigestValue></ds:Reference></ds:SignedInfo><ds:SignatureValue>gHrdpjzHwcWvxT/ph4t6I4RTbjbsQ0z0FRMw39WdwDLNM9K85tjx33THKURr5yRqsVgcVmHYZHSzlGiL6hDdihJVXgwjdCS21C2oHgSNFO1OZN9NXo6rJrIVGt13Rjhnhciaw54F8vl91s30JNiToQSSg6ne+4taSNVG7OeAnYkwBxtg2eIkGH9yVmQe2fg65T6gf8jhqHJ/3rX7lRovGxKheTjWmk99639jBvNGtAR32Lm0b+iXlorg/RB+EnEUYuf5ivltuyxwYNE84Pb6xFr9iIE0pdbuaZOzI/CdO4hMloDUMOWipMbvWyM1pBwo5ITRPVnvQTi88zReCV4Kms51zB/sAqFqtgH4JF3cJpOjKn9F+luLNvaX7Bv/IdZiQrVBT19xCUN9rlPsqKVRpqAmK4wIBYFTNMrL/0qH0MAOYOdhrsH0UDM+RqMp3UZ+saXKvzaaIVc9jTdNd5y6QCbIqDG3lzptA0RuQRjLryIKPwUXwEuc6YKcr7zVEsh67c6s6+uF5cBdv92aIOF5DbBwwgevJuFtCE4RdDdZJ52B6i5sVhLHLb3I9X3E3OcgQb4DJ7NpW7eoE7pumYxc5iid5nI2WYteM2hDPtzCKzvVS8h6A/cHbVqcD1ioAbjAS8VX2QqW1ss9UU6a5rCZpzOSZBJ6NpYnsKuIH8J4Swo=</ds:SignatureValue>
+<ds:KeyInfo><ds:X509Data><ds:X509Certificate>MIIFCTCCAvGgAwIBAgIUVyx+5uRspvECpVtGapdwzOvi2sMwDQYJKoZIhvcNAQELBQAwFDESMBAGA1UECgwJR2V0dGV4LmRlMB4XDTIzMTEyNDExMjk1OFoXDTMzMTEyMTExMjk1OFowFDESMBAGA1UECgwJR2V0dGV4LmRlMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAud8guZn6oO2y/yIgqe03TCIB2LiJq6hsJAZtKWLsBVse2Uw+DE/FeH+eG8YaChgm7sn7EqAalufsHFLWCufX4X9/6ImwIw9qCrZA3/r0lCm1TMU6fOCvFdODgdoJ6bHaOA39/fRvGibYiVvioAJ706MmH3nua/EDiqPkXfqN/n7jhKK/Pwcnt/zG7xHE5DB9TP2mnxMpDN6u+zeblcVdtNznxuDkGiEbyiUk5AdoeHjzp+AI1WB1dvhGlCO5etxwyW0b1nrG1GQR4BRwBHNayCXN8n0zFl6UYSh3+fIJ8byAvr7WXcCy9LpDVdx3qj67+oe+dekhIPL9IdQ/KUEZZQgBGxnCRnVBdnrZ5e7AQCBB/rFSHjsc15/MK+Yc84WFR+ChRpsZK43jT7YmUEWo0C2zujBUusMvEs4IInJ6tvpih1RXkNI1X0+oqPA+DOjHmpeElIw95Uz6XcSr6j0oiYcq8Iya1oDedX2bMw8lsQIzE5Zoo4W79bx1U1LTYnocDR3jHfh4u8H+NJSpKGS9jX0F/PH9xvXZV/D27/X8lZw+/FbYs+Ty/dADvhGaloA/phQXGJSDR3YvCJtYts/ixBdXgR5lkALF44sh1PXnhXE1omPCvAGz16lyS0F8dim/Q9ZNFvxCQL2KVGKOtw05H0dlZa42QXUk1Kay7wGKFaMCAwEAAaNTMFEwHQYDVR0OBBYEFPsv57jpZdEuQGrOJLAoDLyyqv6NMB8GA1UdIwQYMBaAFPsv57jpZdEuQGrOJLAoDLyyqv6NMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggIBADBBd77zP9QoFAfyce6TRDMvr0bTjmXQhTc7qUl6O5q3+wNfA8ftN6+oiquCHK/nk80BE892Z+VR7K5Y68I+GM+n5nJKDiN4PoCNxq0zUdhHS3j/sZz7THqw3szkRaJrhA9SVJaawvvmYy08qDYFDUh5YMHxmAT4PUz6lxyjgkLHu2ZG81SDq6qHtUjiXlI28F+5R7qcQ6vhumvA235RKBCAxMECZo5xC+mC8LiRRBJKySwy5SUrsHKMt1NhRDWDMjh1rJbMM3DTlTlc5BPBwHiRixYcHzXWZeeckMIrH8iJiZyKRMBgFJRzl4HOQEJcm6I8RHhlwUDV+P705AZ33BkMPgDwzfLDSSf9anZJCpRkIS6skirqEXJ3Z4xLVogxEaqeqEalCYTQusZOzJcfOMnXEODB6D0VbhwctYbCLuSoq/y87/FSfm+8ztArBei0X138OQNav1Itkt1QVDoqzbmNbpDZQXA8ZalzqJ+1s7xvxTuE83jehSVzaeLDXZusUv8e0SMhtSlMHMuuNP59jofyEwJ1PtrwFfq/C1n5qRsiVDMX+/Xk+EEhpMD1HygmCZKkUbZ+9aYSJIaeI7f1NvAPPeCOGV1uQNIbJxoqr+nl1/hPs6COYwlMXAxwH3tQlQuG1nuE3P580RdV70A9t94o1nnI4M5vf1VLqi0sG7ir</ds:X509Certificate></ds:X509Data></ds:KeyInfo></ds:Signature><saml:Subject><saml:NameID Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient">WG_GETTEX</saml:NameID></saml:Subject><saml:Conditions NotBefore="2026-02-23T16:26:29Z" NotOnOrAfter="2026-02-23T17:11:29Z"><saml:AudienceRestriction><saml:Audience>https://www.financial.com</saml:Audience></saml:AudienceRestriction></saml:Conditions><saml:AuthnStatement AuthnInstant="2026-02-23T16:26:29Z"><saml:AuthnContext><saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:Smartcard</saml:AuthnContextClassRef></saml:AuthnContext></saml:AuthnStatement></saml:Assertion></samlp:Response>
+`;
+
+            window.dory.config.setBasePath(endpoint);
+
+            dory.Auth.isSessionValid().then(function (isSessionValid) {
+                if (isSessionValid === true) {
+                    initWidgets()
+                } else {
+                    var samlTicket = samlRequest;
+                    dory.Auth.samlLogin(samlTicket).then(
+                        function() {initWidgets()}
+                     );
+                }
+            });
+    
+
+                });
+
+            </script>
+    
+    
+    </div>
+
+
+    
+
+
+                
+                    
+
+
+
+                
+                
+                    
+
+
+
+                
+            </div>
+
+        
+
+
+
+
+    <div class="teaser-module frame default layout-0">
+        
+                <div class="swiper swiper-teaser">
+                    <div class="swiper-wrapper">
+                        
+                            <div class="swiper-slide">
+                                
+
+
+
+        
+    
+
+<div class="teaser image-right">
+    <div class="text-area">
+        
+            <p class="lead">
+                Lasertech, Luftreinhaltung, Engergieversorger, japan. Sportartikel und vieles mehr
+            </p>
+        
+        
+            <p class="h2">
+                Neue Listings auf gettex im Februar
+            </p>
+        
+        
+            <a href="https://www.gettex.de/trading-ideen/blog/beitrag/kurz-vorgestellt-neue-listings-auf-gettex-im-februar/" target="_blank" class="btn btn-primary">
+                
+                    Neue Aktien im Februar von Thomas Schumm
+                    <svg width="16px" height="16px">
+                        
+                                <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-chevron-right"></use>
+                            
+                    </svg>
+                
+            </a>
+        
+    </div>
+    <div class="image-area">
+        
+            <img src="/fileadmin/_processed_/c/c/csm_energie_unsplash_107f51d483.png" width="840" height="560" alt="" />
+        
+    </div>
+</div>
+
+
+
+                            </div>
+                        
+                            <div class="swiper-slide">
+                                
+
+
+
+        
+    
+
+<div class="teaser image-right">
+    <div class="text-area">
+        
+            <p class="lead">
+                Lars Reichel hat im Podcast Marile Glöcklhofer und Martin Utschneider zu Gast
+            </p>
+        
+        
+            <p class="h2">
+                Aktueller gettex Podcast: Her money - her trades. 
+            </p>
+        
+        
+            <a href="https://gettex-podcast.podigee.io/27-her-money-her-trades" target="_blank" rel="noreferrer" class="btn btn-primary">
+                
+                    Hier anhören (58:42 min.)
+                    <svg width="16px" height="16px">
+                        
+                                <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-chevron-right"></use>
+                            
+                    </svg>
+                
+            </a>
+        
+    </div>
+    <div class="image-area">
+        
+            <img src="/fileadmin/_processed_/0/1/csm_250115_Gettex_Podcast_870x420_7822cfd46a.jpg" width="840" height="406" alt="" />
+        
+    </div>
+</div>
+
+
+
+                            </div>
+                        
+                            <div class="swiper-slide">
+                                
+
+
+
+        
+    
+
+<div class="teaser image-right">
+    <div class="text-area">
+        
+            <p class="lead">
+                Fünf Anlagethemen für 2026
+            </p>
+        
+        
+            <p class="h2">
+                S&amp;P 500: 12 Prozent Steigerung in 2026 sind möglich
+            </p>
+        
+        
+            <a href="https://www.gettex.de/trading-ideen/blog/beitrag/sp-500-12-prozent-steigerung-in-2026-sind-moeglich/" target="_blank" class="btn btn-primary">
+                
+                    Prognose von Goldman Sachs Research 
+                    <svg width="16px" height="16px">
+                        
+                                <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-chevron-right"></use>
+                            
+                    </svg>
+                
+            </a>
+        
+    </div>
+    <div class="image-area">
+        
+            <img src="/fileadmin/_processed_/5/a/csm_fed_unsplash_0e1da95c71.jpg" width="840" height="622" alt="" />
+        
+    </div>
+</div>
+
+
+
+                            </div>
+                        
+                            <div class="swiper-slide">
+                                
+
+
+
+        
+    
+
+<div class="teaser image-right">
+    <div class="text-area">
+        
+            <p class="lead">
+                So gehst du mit diesem Problem richtig um.
+            </p>
+        
+        
+            <p class="h2">
+                Zu viel USA im Depot?
+            </p>
+        
+        
+            <a href="https://www.gettex.de/trading-ideen/blog/beitrag/zu-viel-usa-im-depot-so-gehst-du-mit-diesem-problem-richtig-um/" target="_blank" class="btn btn-primary">
+                
+                    Thomas Brummer, extraETF
+                    <svg width="16px" height="16px">
+                        
+                                <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-chevron-right"></use>
+                            
+                    </svg>
+                
+            </a>
+        
+    </div>
+    <div class="image-area">
+        
+            <img src="/fileadmin/_processed_/9/9/csm_Amerika_USA_unsplash_eb79bfcbf4.png" width="840" height="560" alt="" />
+        
+    </div>
+</div>
+
+
+
+                            </div>
+                        
+                            <div class="swiper-slide">
+                                
+
+
+
+        
+    
+
+<div class="teaser image-right">
+    <div class="text-area">
+        
+            <p class="lead">
+                Modernisierungsdruck &amp; Reshoring: Rückenwind für Maschinenbauer
+            </p>
+        
+        
+            <p class="h2">
+                Aktuelles Anlagethema von theScreener: Industriemaschinen
+            </p>
+        
+        
+            <a href="https://www.thescreener.com/de/anlagethema/modernisierungsdruck-reshoring-rueckenwind-fuer-maschinenbauer/" target="_blank" rel="noreferrer" class="btn btn-primary">
+                
+                    Performance | Tops &amp; Flops
+                    <svg width="16px" height="16px">
+                        
+                                <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-chevron-right"></use>
+                            
+                    </svg>
+                
+            </a>
+        
+    </div>
+    <div class="image-area">
+        
+            <img src="/fileadmin/_processed_/1/f/csm_ki_ee0de144a5.jpg" width="840" height="573" alt="" />
+        
+    </div>
+</div>
+
+
+
+                            </div>
+                        
+                    </div>
+                    <div class="swiper-button-prev js-prev-teaser">
+                        <svg width="20px" height="20px">
+                            <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-chevron-left"></use>
+                        </svg>
+                    </div>
+                    <div class="swiper-button-next js-next-teaser">
+                        <svg width="20px" height="20px">
+                            <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-chevron-right"></use>
+                        </svg>
+                    </div>
+                </div>
+            
+    </div>
+
+
+
+
+    
+            <div id="c36" class="frame default news_newsliststicky layout-0">
+
+                
+                
+                    
+
+
+
+                
+                
+                    
+
+
+
+                
+                
+
+    
+    
+
+
+
+<div class="news">
+	
+	<!--TYPO3SEARCH_end-->
+	
+			
+					<div class="row">
+						<div class="col-4">
+							<h2 class="h3">News</h2>
+						</div>
+						<div class="col-8 text-end">
+							<a href="/newsuebersicht/" title="Alle News anzeigen" class="link-overview">
+								<span>Alle News anzeigen</span>
+								<svg width="14px" height="14px">
+									<use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-chevron-right"></use>
+								</svg>
+							</a>
+						</div>
+					</div>
+				
+			
+					<div class="row align-items-stretch news-list-view" id="news-container-36">
+						
+								
+									<div class="col-12 col-md-6 col-xxl-3">
+										
+<!--
+	=====================
+		Partials/List/Item.html
+-->
+
+
+<a itemprop="url" rel="follow" class="news-list-item articletype-0" title="EQS-Adhoc: fox e-mobility AG: Kursaussetzung" href="/newsdetail/eqs-adhoc-fox-e-mobility-ag-kursaussetzung/">
+	<p class="lead news-list-date">
+		<time itemprop="datePublished" datetime="2026-02-23">
+			23.02.26 17:18 Uhr
+		</time>
+	</p>
+	<h3 class="title">
+		<span itemprop="headline">EQS-Adhoc: fox e-mobility AG: Kursaussetzung</span>
+	</h3>
+</a>
+
+
+									</div>
+								
+									<div class="col-12 col-md-6 col-xxl-3">
+										
+<!--
+	=====================
+		Partials/List/Item.html
+-->
+
+
+<a itemprop="url" rel="nofollow noopener" class="news-list-item articletype-2" title="Amazon-Aktie: Jetzt verkaufen wie Buffett?" target="_blank" href="https://www.sharedeals.de/amazon-aktie-jetzt-verkaufen-wie-buffett/?utm_source=rss&amp;#038;utm_medium=rss&amp;#038;utm_campaign=amazon-aktie-jetzt-verkaufen-wie-buffett">
+	<p class="lead news-list-date">
+		<time itemprop="datePublished" datetime="2026-02-23">
+			23.02.26 17:15 Uhr
+		</time>
+	</p>
+	<h3 class="title">
+		<span itemprop="headline">Amazon-Aktie: Jetzt verkaufen wie Buffett?</span>
+	</h3>
+</a>
+
+
+									</div>
+								
+									<div class="col-12 col-md-6 col-xxl-3">
+										
+<!--
+	=====================
+		Partials/List/Item.html
+-->
+
+
+<a itemprop="url" rel="nofollow noopener" class="news-list-item articletype-2" title="US-Flugzeugträger legt auf Kreta an - Zeichen an den Iran" target="_blank" href="https://www.finanzen.net/nachricht/aktien/us-flugzeugtraeger-legt-auf-kreta-an-zeichen-an-den-iran-15510149">
+	<p class="lead news-list-date">
+		<time itemprop="datePublished" datetime="2026-02-23">
+			23.02.26 17:12 Uhr
+		</time>
+	</p>
+	<h3 class="title">
+		<span itemprop="headline">US-Flugzeugträger legt auf Kreta an - Zeichen an den Iran</span>
+	</h3>
+</a>
+
+
+									</div>
+								
+									<div class="col-12 col-md-6 col-xxl-3">
+										
+<!--
+	=====================
+		Partials/List/Item.html
+-->
+
+
+<a itemprop="url" rel="nofollow noopener" class="news-list-item articletype-2" title="ROUNDUP 2: Unfreiwillige Nacht im Flieger - Entschädigung für Fluggäste" target="_blank" href="https://www.finanzen.net/nachricht/aktien/roundup-2-unfreiwillige-nacht-im-flieger-entschaedigung-fuer-fluggaeste-15510172">
+	<p class="lead news-list-date">
+		<time itemprop="datePublished" datetime="2026-02-23">
+			23.02.26 17:12 Uhr
+		</time>
+	</p>
+	<h3 class="title">
+		<span itemprop="headline">ROUNDUP 2: Unfreiwillige Nacht im Flieger - Entschädigung für Fluggäste</span>
+	</h3>
+</a>
+
+
+									</div>
+								
+							
+					</div>
+				
+		
+	<!--TYPO3SEARCH_begin-->
+
+</div>
+
+
+
+                
+                    
+
+
+
+                
+                
+                    
+
+
+
+                
+            </div>
+
+        
+
+
+
+<div class="logoslider frame default layout-0">
+    
+        <div class="headline h3 text-center">
+            Unsere Partner
+        </div>
+    
+    
+        <div class="swiper-outer-wrapper">
+            <div class="swiper swiper-logos" id="swiper_109">
+                <!-- Additional required wrapper -->
+                <div class="swiper-wrapper" id="swiper-wrapper-109">
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/Bankenlogos_diverse/1822direkt.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/Baader.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/BNP-Paribas.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/comdirect.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/Commerzbank.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/Bankenlogos_diverse/Consorsbank-Slider.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/DAB-BNP-Paribas.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/DADAT.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/DKB.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/Donner-Reuschel.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/dwp-bank.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/easybank.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/Bankenlogos_diverse/ErsteGroup-Settings-white.svg" width="180" height="60" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/Estably.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/finanzen-net-zero.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/flatex.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/Goldman-Sachs.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/HSBC.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/ICF-Bank.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/ING.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/Bankenlogos_diverse/InteractiveBrokers.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/Bankenlogos_diverse/Joe-Broker.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/LYNX.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/mwb.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/Bankenlogos_diverse/MyMarkets.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/RaiffeisenBankInternational.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/scalable.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/Bankenlogos_diverse/Schelhammer-Capital.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/sino.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/Smartbroker-Plus.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/Sbroker-Settings.svg" width="180" height="60" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/Sparkasse.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/Bankenlogos_diverse/Targo-Bank.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/Traders-Place.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/Bankenlogos_diverse/Trading212.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/HypoVereinsbank.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/V-Bank.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/www.gettex.de/Logos/Bankenlogos_weiss/vitrade.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                        <div class="swiper-slide">
+                            
+                                
+                                        <img src="/fileadmin/user_upload/Bankenlogos_diverse/WH-selfinvest.svg" width="180" height="54" alt="" />
+                                    
+                            
+                        </div>
+                    
+                </div>
+            </div>
+            <div class="swiper-button-prev js-prev-logos">
+                <svg width="20px" height="20px">
+                    <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-chevron-left"></use>
+                </svg>
+            </div>
+            <div class="swiper-button-next js-next-logos">
+                <svg width="20px" height="20px">
+                    <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-chevron-right"></use>
+                </svg>
+            </div>
+        </div>
+    
+</div>
+
+
+    <script>
+        const parent = document.querySelector('#swiper-wrapper-109');
+        for (let i = parent.children.length; i >= 0; i--) {
+            parent.appendChild(parent.children[Math.random() * i | 0]);
+        }
+    </script>
+
+
+
+
+    
+            <!--TYPO3SEARCH_end-->
+        </div>
+    </main>
+
+    <footer class="page-footer">
+        <div class="footer-top">
+            <div class="container-max d-flex justify-content-between align-items-center flex-column-reverse flex-xxl-row">
+                <div class="footer-topleft">
+                    <div class="footer-special-navigation">
+                        
+
+
+<div class="footer-banksetting">
+    <button href="#modal-banksetting" data-bs-toggle="modal" title="Bankeinstellungen">
+        <svg width="15px" height="15px">
+            <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-bankeinstellungen"></use>
+        </svg>
+        <span>
+            Bankeinstellungen
+        </span>
+        
+    </button>
+    <div class="modal" id="modal-banksetting" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Online Depot voreinstellen</h2>
+                    <button type="button" data-bs-dismiss="modal" aria-label="Close">
+                        <svg width="15px" height="15px">
+                            <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-close"></use>
+                        </svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    
+                    <a id="url-content-banklogin" href="/?bank-login-select&amp;L=0&amp;lang=de&amp;refId=1&amp;nrc_bank_login%5Btransaction%5D=change" class="nrc_banklogin-select">
+                    </a>
+                    <div id="content-banklogin"></div>
+                    <script>
+                        let link = document.getElementById('url-content-banklogin');
+                        loadBankLoginModalContentByUrl(link.href);
+
+                        function loadBankLoginModalContentByUrl(url) {
+                            let xhr = new XMLHttpRequest();
+                            xhr.onreadystatechange = function() {
+                                if (xhr.readyState === XMLHttpRequest.DONE) {
+                                    if (xhr.status === 200) {
+                                        // Request successful, do something with the response
+                                        let textContent = xhr.responseText;
+                                        document.getElementById('content-banklogin').innerHTML = textContent;
+
+                                        // in order to have working css code from the target page we need to add it as a new script tag so that it is executed after the xhr request
+                                        let scriptcode = document.getElementById('thecode'),
+                                            getscriptcode = scriptcode.textContent;
+                                        const scr = document.createElement('script');
+                                        scr.textContent = getscriptcode;
+                                        document.getElementById('content-banklogin').append(scr);
+                                        scriptcode.parentNode.removeChild(scriptcode);
+                                    } else {
+                                        // Request failed
+                                        console.error('Failed to load content. Status code: ' + xhr.status);
+                                    }
+                                }
+                            };
+
+                            xhr.open('GET', url, true);
+                            xhr.send();
+                        }
+
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+                    </div>
+                    <nav class="footer-top-navigation">
+    <span class="label">Häufig gesucht:</span>
+    
+        <a class="btn btn-quartary" title="Zertifikate-Finder" href="/maerkte/zertifikate-finder/">
+            Zertifikate-Finder
+            <svg width="12px" height="12px">
+                <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-chevron-right"></use>
+            </svg>
+        </a>
+    
+        <a class="btn btn-quartary" title="FAQs" href="/ueber-gettex/faqs/">
+            FAQs
+            <svg width="12px" height="12px">
+                <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-chevron-right"></use>
+            </svg>
+        </a>
+    
+        <a class="btn btn-quartary" title="Newsletter" href="/newsletter/">
+            Newsletter
+            <svg width="12px" height="12px">
+                <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-chevron-right"></use>
+            </svg>
+        </a>
+    
+</nav>
+
+                </div>
+                <div class="footer-info-navigation">
+                    
+    
+    <div class="footer-tradingtime">
+        
+            <div>
+                <span>Realtimekurse</span>
+                <span>23.02.2026</span>
+                <span>17:26:29</span>
+            </div>
+        
+        <div>
+            <span>Handelszeit</span>
+            <span>Mo-Fr: 7:30-23 Uhr</span>
+        </div>
+        <div>
+            <span>Zertifikate</span>
+            <span>8:00-22 Uhr</span>
+        </div>
+    </div>
+
+
+
+
+                    
+
+<div class="footer-totop">
+    <a href="#content-top" title="Zum Seitenanfang">
+        <svg width="12px" height="15px">
+            <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-arrow-up"></use>
+        </svg>
+    </a>
+</div>
+
+
+
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container-max">
+                <div class="row flex-column flex-lg-row">
+                    <div class="col-12 col-lg-2">
+                        
+
+<a class="logo-link" title="Link zur Startseite" href="/">
+    <svg width="194" height="78" viewBox="0 0 194 78" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g id="gettex_exchange-2">
+            <g id="Logoelement">
+                <path id="rectangle-green" d="M193.979 0H184.076V9.90053H193.979V0Z" fill="#A9C813"/>
+                <path id="rectangle-red" d="M184.076 9.90735H174.173V19.8079H184.076V9.90735Z" fill="#E40613"/>
+            </g>
+            <path id="exchange" d="M126.607 62.0853H124.718L121.864 66.129H121.816L118.921 62.0853H117.032L120.865 67.2374L116.889 72.5879H118.743L121.775 68.3869H121.816L124.889 72.5879H126.744L122.761 67.2853L126.593 62.0921L126.607 62.0853ZM133.396 71.37C132.808 71.37 132.288 71.2742 131.836 71.0758C131.384 70.8774 131.015 70.6105 130.714 70.2548C130.412 69.9058 130.187 69.4884 130.036 69.0095C129.885 68.5305 129.81 68.0105 129.81 67.4427C129.81 66.6627 129.913 66.0058 130.111 65.479C130.317 64.9521 130.583 64.5279 130.912 64.2063C131.241 63.8848 131.617 63.659 132.041 63.5153C132.459 63.3784 132.883 63.3032 133.314 63.3032C133.745 63.3032 134.115 63.3442 134.512 63.4332C134.902 63.5221 135.326 63.6521 135.792 63.83V62.4069C135.463 62.2153 135.059 62.0648 134.601 61.9553C134.136 61.8527 133.65 61.7979 133.143 61.7979C132.76 61.7979 132.363 61.839 131.959 61.9279C131.555 62.01 131.165 62.1469 130.782 62.3384C130.399 62.53 130.043 62.7695 129.707 63.0637C129.372 63.3579 129.078 63.7137 128.831 64.1379C128.578 64.5553 128.38 65.0411 128.243 65.5953C128.099 66.1495 128.031 66.7721 128.031 67.4632C128.031 68.3937 128.168 69.1942 128.441 69.8716C128.715 70.549 129.085 71.11 129.557 71.5548C130.029 71.9995 130.577 72.3211 131.206 72.54C131.836 72.7521 132.507 72.8616 133.212 72.8616C133.485 72.8616 133.759 72.8479 134.033 72.8137C134.307 72.7795 134.56 72.7384 134.806 72.6837C135.046 72.629 135.272 72.5674 135.477 72.4921C135.682 72.4169 135.847 72.3484 135.97 72.2732V70.85C135.559 71.0211 135.135 71.1511 134.697 71.24C134.259 71.329 133.828 71.3769 133.403 71.3769L133.396 71.37ZM193.678 64.6511C193.459 63.9874 193.165 63.4469 192.789 63.0295C192.412 62.6121 191.974 62.3042 191.461 62.1058C190.948 61.9074 190.4 61.8116 189.811 61.8116C189.189 61.8116 188.586 61.9279 188.011 62.1674C187.437 62.4069 186.93 62.7558 186.492 63.2279C186.054 63.7 185.698 64.2884 185.431 64.9932C185.164 65.6979 185.034 66.5258 185.034 67.4837C185.034 68.4416 185.171 69.29 185.445 69.9742C185.719 70.6653 186.095 71.2195 186.581 71.6505C187.06 72.0816 187.635 72.3895 188.292 72.5811C188.949 72.7727 189.661 72.8684 190.407 72.8684C191.043 72.8684 191.632 72.8137 192.186 72.7111C192.741 72.6016 193.206 72.4579 193.583 72.2732V70.85C193.117 71.0211 192.652 71.1511 192.186 71.24C191.721 71.329 191.201 71.3769 190.633 71.3769C190.065 71.3769 189.579 71.3084 189.107 71.1784C188.634 71.0484 188.224 70.8363 187.875 70.5421C187.526 70.2548 187.245 69.8716 187.046 69.4063C186.841 68.9411 186.745 68.3663 186.745 67.6958H193.993C194 67.4769 194.007 67.3332 194.007 67.2716V67.0458C194.007 66.1153 193.897 65.3216 193.685 64.6579L193.678 64.6511ZM186.827 66.2179C186.862 65.8142 186.964 65.4311 187.115 65.0753C187.272 64.7195 187.478 64.4048 187.731 64.1448C187.984 63.8779 188.278 63.6727 188.621 63.5153C188.963 63.3579 189.326 63.2827 189.722 63.2827C190.119 63.2827 190.482 63.3579 190.783 63.5084C191.091 63.659 191.345 63.8642 191.557 64.1311C191.769 64.3979 191.926 64.7058 192.036 65.0616C192.145 65.4174 192.2 65.8074 192.2 66.2179H186.827ZM180.682 63.2758H180.641C180.586 63.18 180.49 63.05 180.346 62.8858C180.202 62.7216 180.011 62.5574 179.764 62.3932C179.525 62.229 179.231 62.0921 178.888 61.9758C178.546 61.8663 178.149 61.8048 177.691 61.7979C177.095 61.7979 176.514 61.9142 175.959 62.1469C175.398 62.3795 174.898 62.7284 174.467 63.2005C174.029 63.6727 173.68 64.2679 173.42 64.9863C173.153 65.7048 173.023 66.5532 173.023 67.5316C173.023 68.2363 173.092 68.859 173.235 69.3995C173.379 69.94 173.571 70.4053 173.803 70.7953C174.036 71.1921 174.31 71.5205 174.618 71.7805C174.926 72.0405 175.254 72.2527 175.59 72.41C175.925 72.5674 176.267 72.6837 176.609 72.7453C176.952 72.8137 177.266 72.8479 177.561 72.8479C178.204 72.8479 178.772 72.7453 179.272 72.5332C179.771 72.3211 180.202 72.0132 180.579 71.6027H180.613V73.0053C180.613 74.1821 180.285 75.0579 179.628 75.6327C178.971 76.2074 178.026 76.4948 176.801 76.4948C176.486 76.4948 176.192 76.4811 175.932 76.4605C175.672 76.44 175.412 76.4058 175.165 76.3579C174.912 76.31 174.673 76.2484 174.433 76.18C174.193 76.1116 173.954 76.0227 173.701 75.92V77.3705C174.009 77.5416 174.44 77.6853 174.981 77.8084C175.528 77.9316 176.144 77.9932 176.835 77.9932C177.657 77.9932 178.403 77.8974 179.073 77.699C179.751 77.5074 180.326 77.2063 180.805 76.8095C181.284 76.4127 181.653 75.9132 181.92 75.3111C182.187 74.709 182.317 74.0042 182.317 73.1969V62.0784H181.024L180.668 63.269L180.682 63.2758ZM180.613 70.2069C180.257 70.5763 179.853 70.8637 179.388 71.0827C178.923 71.2948 178.423 71.4042 177.896 71.4042C177.574 71.4042 177.232 71.3495 176.869 71.2469C176.507 71.1374 176.171 70.939 175.87 70.6516C175.562 70.3574 175.309 69.9537 175.111 69.4337C174.912 68.9137 174.809 68.2363 174.809 67.4084C174.809 66.7995 174.878 66.2384 175.008 65.7321C175.138 65.2258 175.336 64.7948 175.596 64.4321C175.857 64.0695 176.185 63.789 176.568 63.5905C176.952 63.3921 177.403 63.2895 177.91 63.2895C178.252 63.2895 178.56 63.3374 178.847 63.44C179.135 63.5427 179.388 63.659 179.614 63.8027C179.84 63.9463 180.038 64.1037 180.202 64.2679C180.374 64.439 180.504 64.5895 180.599 64.7195V70.2137L180.613 70.2069ZM114.206 63.0227C113.829 62.6053 113.391 62.2974 112.878 62.099C112.365 61.9005 111.817 61.8048 111.229 61.8048C110.606 61.8048 110.004 61.9211 109.429 62.1605C108.854 62.4 108.347 62.749 107.909 63.2211C107.471 63.6932 107.115 64.2816 106.848 64.9863C106.582 65.6911 106.452 66.519 106.452 67.4769C106.452 68.4348 106.588 69.2832 106.862 69.9674C107.136 70.6584 107.512 71.2127 107.998 71.6437C108.477 72.0748 109.052 72.3827 109.709 72.5742C110.366 72.7658 111.078 72.8616 111.824 72.8616C112.461 72.8616 113.049 72.8069 113.604 72.7042C114.158 72.5948 114.623 72.4511 115 72.2663V70.8432C114.534 71.0142 114.069 71.1442 113.604 71.2332C113.138 71.3221 112.618 71.37 112.05 71.37C111.482 71.37 110.996 71.3016 110.524 71.1716C110.051 71.0416 109.641 70.8295 109.292 70.5353C108.943 70.2479 108.662 69.8648 108.464 69.3995C108.258 68.9342 108.163 68.3595 108.163 67.689H115.41C115.417 67.47 115.424 67.3263 115.424 67.2648V67.039C115.424 66.1084 115.315 65.3148 115.102 64.6511C114.883 63.9874 114.589 63.4469 114.213 63.0295L114.206 63.0227ZM108.245 66.2179C108.279 65.8142 108.382 65.4311 108.539 65.0753C108.696 64.7195 108.902 64.4048 109.155 64.1448C109.408 63.8779 109.702 63.6727 110.045 63.5153C110.387 63.3579 110.75 63.2827 111.147 63.2827C111.543 63.2827 111.906 63.3579 112.207 63.5084C112.515 63.659 112.769 63.8642 112.981 64.1311C113.193 64.3979 113.35 64.7058 113.46 65.0616C113.569 65.4174 113.624 65.8074 113.624 66.2179H108.252H108.245ZM169.307 62.6463C168.999 62.3521 168.629 62.14 168.212 62.0032C167.794 61.8663 167.343 61.8048 166.864 61.8048C166.46 61.8048 166.083 61.8458 165.741 61.9348C165.399 62.0237 165.084 62.1469 164.797 62.3042C164.509 62.4616 164.249 62.6463 164.016 62.8584C163.784 63.0705 163.572 63.2963 163.38 63.5358H163.346L163.017 62.0784H161.689V72.5742H163.4V65.1163C163.797 64.5416 164.276 64.09 164.824 63.7616C165.378 63.4332 165.946 63.269 166.535 63.269C167.206 63.269 167.719 63.4674 168.068 63.8642C168.417 64.2611 168.595 64.9111 168.595 65.8211V72.5742H170.306V65.5474C170.306 64.8563 170.217 64.2679 170.032 63.7958C169.854 63.3169 169.608 62.9337 169.3 62.6395L169.307 62.6463ZM146.14 62.5369C145.798 62.2632 145.435 62.0716 145.031 61.969C144.634 61.8663 144.237 61.8116 143.84 61.8116C143.443 61.8116 143.101 61.8527 142.766 61.9416C142.437 62.0305 142.122 62.1537 141.835 62.3042C141.548 62.4548 141.287 62.6327 141.048 62.8448C140.808 63.0569 140.596 63.2826 140.405 63.5221H140.37V56.5842H138.659V72.5879H140.37V65.13C140.767 64.5553 141.24 64.1037 141.787 63.7753C142.335 63.4469 142.91 63.2827 143.512 63.2827C144.244 63.2827 144.764 63.4948 145.086 63.9258C145.408 64.3569 145.565 64.9932 145.565 65.8348V72.5879H147.276V65.5611C147.276 64.7948 147.166 64.1721 146.954 63.6795C146.742 63.1937 146.468 62.8174 146.126 62.5437L146.14 62.5369ZM158.069 63.8642C157.775 63.2484 157.289 62.749 156.611 62.3727C155.934 61.9963 155.071 61.8116 154.01 61.8116C153.716 61.8116 153.422 61.8253 153.128 61.8527C152.833 61.88 152.553 61.9279 152.286 61.9826C152.019 62.0374 151.766 62.1058 151.526 62.1811C151.287 62.2563 151.081 62.3384 150.903 62.4274V63.8642C151.369 63.6863 151.834 63.5495 152.299 63.4537C152.765 63.3511 153.264 63.3032 153.798 63.3032C154.517 63.3032 155.078 63.4195 155.502 63.6521C155.92 63.8848 156.228 64.179 156.42 64.5279C156.509 64.699 156.57 64.8905 156.611 65.1163C156.645 65.3353 156.666 65.5884 156.666 65.8758V66.6079H156.625C156.262 66.4779 155.852 66.3684 155.386 66.2795C154.921 66.1905 154.414 66.1427 153.874 66.1358C153.299 66.1358 152.772 66.2111 152.299 66.3684C151.82 66.519 151.417 66.7448 151.081 67.0321C150.739 67.3195 150.479 67.6684 150.287 68.0858C150.096 68.5032 150.007 68.9684 150.007 69.4884C150.007 70.0084 150.089 70.4942 150.26 70.9116C150.431 71.329 150.671 71.6848 150.972 71.979C151.28 72.2663 151.642 72.4921 152.067 72.6427C152.491 72.7932 152.957 72.8684 153.463 72.8684C153.839 72.8684 154.195 72.8274 154.524 72.7453C154.852 72.6632 155.16 72.5537 155.441 72.4169C155.721 72.28 155.968 72.1295 156.18 71.9516C156.392 71.7737 156.57 71.6027 156.714 71.4248H156.755L156.947 72.5879H158.384V65.5816C158.384 65.2395 158.356 64.9316 158.309 64.6511C158.261 64.3705 158.185 64.1105 158.069 63.8711V63.8642ZM156.666 70.0769C156.584 70.159 156.461 70.2684 156.29 70.419C156.118 70.5627 155.906 70.7132 155.66 70.8569C155.414 71.0074 155.133 71.1305 154.818 71.24C154.503 71.3495 154.161 71.3974 153.791 71.3974C153.511 71.3974 153.251 71.3563 153.004 71.2811C152.758 71.2058 152.546 71.0895 152.368 70.9253C152.19 70.7679 152.046 70.5627 151.944 70.3232C151.841 70.0837 151.786 69.7963 151.786 69.4748C151.786 68.8316 151.992 68.3595 152.402 68.0516C152.813 67.7437 153.381 67.5863 154.106 67.5863C154.626 67.5932 155.106 67.6411 155.537 67.7163C155.968 67.7984 156.344 67.8805 156.659 67.9695V70.07L156.666 70.0769Z" fill="white"/>
+            <path id="gettex" d="M26.8216 28.1484C26.7669 20.41 25.9388 13.7663 20.7715 10.8105C18.9237 9.75684 16.5351 9.16158 13.4142 9.16158C12.9762 9.16158 12.593 9.19579 12.1823 9.22316C1.49884 9.81158 0.082128 18.0153 0 28.1005C0.013688 30.0232 0.095816 31.8637 0.27376 33.5947C0.30798 33.9574 0.355888 34.2995 0.403796 34.6553C1.06766 39.7937 2.70338 43.8442 6.24173 45.8489C7.80216 46.7384 9.73217 47.2311 12.1139 47.2311C12.5382 47.2311 12.9762 47.1968 13.4142 47.1421C16.3024 46.7589 19.2727 45.1442 20.621 42.5784C20.621 42.5784 20.6347 45.3495 20.532 46.5468C19.9366 53.6558 18.0476 56.3995 13.4142 56.3995C12.4629 56.3995 11.6348 56.2695 10.9025 56.0232C9.03408 55.4005 7.82954 53.9295 7.09038 51.3705C7.08354 51.3432 7.0767 51.3226 7.06985 51.2953H0.78706C1.01291 52.6363 1.39618 53.7584 1.84104 54.7368C2.88817 57.0153 4.12009 58.5821 5.67368 59.5811C7.43943 60.7168 9.51316 61.1684 11.7648 61.3053C11.847 61.3053 11.9291 61.319 12.0112 61.319C12.3055 61.3326 12.6066 61.3463 12.9078 61.3463C12.9694 61.3463 13.0241 61.3463 13.0857 61.3463C13.1336 61.3463 13.1747 61.3463 13.2158 61.3463C13.2842 61.3463 13.3526 61.3463 13.4211 61.3463C13.8112 61.3463 14.1945 61.3395 14.5709 61.319C16.8499 61.23 18.9647 60.84 20.7715 59.8C24.3236 57.7542 26.6984 53.1632 26.8216 43.29V43.0095C26.8216 42.9342 26.8216 42.8589 26.8216 42.7768C26.8216 42.6811 26.8216 42.5921 26.8216 42.4963C26.8216 42.3184 26.8216 42.1474 26.8216 41.9763V28.1484ZM20.3814 34.5937C19.656 40.6421 17.7123 43.0095 13.4142 43.0095C9.11621 43.0095 7.17936 40.6489 6.44705 34.6211C6.40598 34.2926 6.37176 33.9437 6.33754 33.5947C6.15276 31.6037 6.07063 29.2774 6.07063 26.5337C6.07063 25.6989 6.098 24.9326 6.13907 24.2074C6.58393 16.0105 9.45841 14.1221 13.4142 14.1221C17.3701 14.1221 20.2309 16.0037 20.6894 24.1526C20.7305 24.8984 20.7579 25.6784 20.7579 26.5337C20.7579 29.7495 20.6483 32.4111 20.3814 34.5937ZM119.989 9.16158C107.198 9.16158 105.945 18.1795 105.945 29.12C105.945 45.6026 112.228 47.9632 119.989 47.9632C128.27 47.9632 132.486 44.5626 133.52 35.9142H127.086C126.566 39.9032 124.424 43.0095 120.283 43.0095C115.554 43.0095 112.597 40.9432 112.296 30.5226H134.033V27.3479C133.739 15.0047 130.707 9.16158 119.989 9.16158ZM112.303 25.9384C112.597 16.3321 115.26 14.1153 119.845 14.1153C124.431 14.1153 127.463 16.2568 127.682 25.9384H112.303ZM156.331 27.7105L167.493 9.90053H160.177L152.635 23.2768L145.538 9.90053H137.777L148.419 27.7105L136.812 47.2242H143.984L152.039 31.9253L160.766 47.2242H168.753L156.331 27.7105ZM93.9134 37.3237V14.4847H101.455V9.90053H93.9134V0H87.8496V41.0184C87.8496 45.3084 90.4366 47.6689 96.2061 47.6689C98.2046 47.6689 100.196 47.4432 102.119 47.0737V42.4211C100.86 42.5716 99.9019 42.7153 99.457 42.7153C93.9134 42.7153 93.9134 39.6842 93.9134 37.3237ZM74.1547 37.3237V14.4847H81.6968V9.90053H74.1547V0H68.091V41.0184C68.091 45.3084 70.678 47.6689 76.4475 47.6689C78.4459 47.6689 80.4375 47.4432 82.3607 47.0737V42.4211C81.1014 42.5716 80.1432 42.7153 79.6984 42.7153C74.1547 42.7153 74.1547 39.6842 74.1547 37.3237ZM47.2168 9.16158C34.4253 9.16158 33.1729 18.1795 33.1729 29.12C33.1729 45.6026 39.4557 47.9632 47.2168 47.9632C55.498 47.9632 59.7139 44.5626 60.7473 35.9142H54.314C53.7938 39.9032 51.6517 43.0095 47.511 43.0095C42.7818 43.0095 39.8252 40.9432 39.5241 30.5226H61.2606V27.3479C60.9664 15.0047 57.9345 9.16158 47.2168 9.16158ZM39.5309 25.9384C39.8252 16.3321 42.4875 14.1153 47.073 14.1153C51.6585 14.1153 54.6904 16.2568 54.9094 25.9384H39.5309Z" fill="white"/>
+        </g>
+    </svg>
+</a>
+
+
+
+                    </div>
+                    <div class="col-12 col-lg-8">
+                        <ul class="footer-meta">
+    
+        <li>
+            <a title="Impressum" href="/impressum/">
+                Impressum
+            </a>
+        </li>
+    
+        <li>
+            <a title="Rechtliche Hinweise" href="/rechtliche-hinweise/">
+                Rechtliche Hinweise
+            </a>
+        </li>
+    
+        <li>
+            <a title="Datenschutz" href="/datenschutz/">
+                Datenschutz
+            </a>
+        </li>
+    
+        <li>
+            <a title="Kontakt" href="/kontakt/">
+                Kontakt
+            </a>
+        </li>
+    
+    <li>
+        <a href="#" title="Cookie setup" onclick="SgCookieOptin.openCookieOptin();return false;">Cookies</a>
+    </li>
+</ul>
+
+                    </div>
+                    <div class="col-12 col-lg-2">
+                        
+
+<div class="footer-social">
+    <label>Folgen Sie uns</label>
+    <div class="social-wrapper">
+        <a href="https://www.facebook.com/gettexDE/" title="Profil von gettex auf facebook" target="_blank">
+            <svg width="20px" height="20px">
+                <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-facebook"></use>
+            </svg>
+        </a>
+        <a href="https://www.instagram.com/gettex.de/" title="Profil von gettex auf Instagram" target="_blank">
+            <svg width="20px" height="20px">
+                <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-instagram"></use>
+            </svg>
+        </a>
+        <a href="https://de.linkedin.com/company/gettex" title="Profil von gettex auf LinkedIn" target="_blank">
+            <svg width="20px" height="20px">
+                <use xlink:href="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/spritemap.svg#sprite-linkedin"></use>
+            </svg>
+        </a>
+    </div>
+</div>
+
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+</div>
+
+
+
+<div class="background-wrapper">
+    <div class="blur-red"></div>
+    <div class="blur-green"></div>
+    <div class="blur-grey"></div>
+    <div class="blur-footer"></div>
+    <div class="grain"></div>
+</div>
+
+<script src="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/main.js?1771855558"></script>
+<script src="/_assets/855c6689f7a337bb845f6a4066e73fe1/assets/runtime.js?1771855558"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/sdk.v6.4.0.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/js/sdk.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/runtime.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-glob.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/shared.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-frame.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/shared-dory.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-2773344759.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-lodash.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-date.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-font.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-157264313.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-1422585655.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-1520613718.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-663811122.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-chart.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-130863185.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-components.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-3862836246.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-4186971204.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-1995543075.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-1589653882.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-4080984665.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/WAdvancedChart.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-1279173972.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-50229.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/WBondScreener.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/WCompanyProfile.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-grid.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-3924025046.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-2185936227.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/WCorporateEvents.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/WEstimatesRatios.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/WFundAllocation.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/WFundObjective.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-19329.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/WFundRiskVolatility.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/WFundScreener.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/WFundTotalReturns.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/WInfoMatrix.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/WInstrumentInfo.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/WMarketList.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/WPriceChart.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/WSearch.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/vendor-1063.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/WStockScreener.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/WTickerBand.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/WTimeSales.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/widgets/js/WWinnersLosers.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/financialcom/js/fdc_gettex-widget_2.4.2.js?1771850547"></script>
+<script src="/_assets/bd1f6fa5d0be3ef8269f2aa4d083cca3/JavaScript/UrlManager.js?1771850547"></script>
+
+
+</body>
+</html>

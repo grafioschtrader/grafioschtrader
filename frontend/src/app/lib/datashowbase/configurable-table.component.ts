@@ -23,6 +23,8 @@ import {DataType} from '../dynamic-form/models/data.type';
 import {Helper} from '../helper/helper';
 import {FilterType} from './filter.type';
 import {BaseLocale} from '../dynamic-form/models/base.locale';
+import {GlobalSessionNames} from '../global.session.names';
+import {BaseSettings} from '../base.settings';
 
 /** Represents one item in the first (group) header row */
 interface HeaderGroupItem {
@@ -278,7 +280,7 @@ interface HeaderGroupItem {
             <!-- Dynamic data cells -->
             @for (field of columns; track field.field) {
               @if (field.visible) {
-                <td [ngStyle]="field.width ? {'flex-basis': '0 0 ' + field.width + 'px'} : {}"
+                <td [ngStyle]="getMergedCellStyle(rowData, field)"
                     [style.max-width.px]="field.width"
                     [ngClass]="getCellClass(field)">
                   <!-- Cell content rendering -->
@@ -293,7 +295,9 @@ interface HeaderGroupItem {
                       {{ getValue(rowData, field) }}
                     </span>
                   } @else if (field.templateName === 'greenRed') {
-                    <span [style.color]='isNegativeValue(rowData, field) ? "red" : "green"'>
+                    <span [pTooltip]="getValue(rowData, field)"
+                          [style.color]='isNegativeValue(rowData, field) ? "red" : "inherit"'
+                          tooltipPosition="top">
                       {{ getValue(rowData, field) }}
                     </span>
                   } @else if (field.templateName === 'check') {
@@ -336,6 +340,30 @@ interface HeaderGroupItem {
                 <ng-container *ngTemplateOutlet="expandedRowTemplate; context: {$implicit: row}">
                 </ng-container>
               </td>
+            </tr>
+          </ng-template>
+        }
+
+        <!-- Footer template -->
+        @if (footerValueFn) {
+          <ng-template pTemplate="footer">
+            <tr>
+              @if (expandable) {
+                <td [class]="footerCellClass"></td>
+              }
+              @if (selectionMode === 'multiple') {
+                <td [class]="footerCellClass"></td>
+              }
+              @for (field of fields; track field.field) {
+                @if (field.visible) {
+                  <td [class]="footerCellClass"
+                      [ngClass]="getCellClass(field)"
+                      [style.max-width.px]="field.width"
+                      [ngStyle]="field.width ? {'flex-basis': '0 0 ' + field.width + 'px'} : {}">
+                    {{ footerValueFn(field) }}
+                  </td>
+                }
+              }
             </tr>
           </ng-template>
         }
@@ -449,7 +477,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
   /**
    * Minimum date allowed in date filter pickers.
    */
-  @Input() minDate: Date = new Date('2000-01-01');
+  @Input() minDate: Date = new Date(sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK);
 
   /**
    * Maximum date allowed in date filter pickers.
@@ -594,7 +622,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
    * Object tracking which rows are currently expanded. Keys are the dataKey values.
    * Managed internally by PrimeNG when rows are toggled.
    */
-  expandedRowKeys: { [key: string]: boolean } = {};
+  @Input() expandedRowKeys: { [key: string]: boolean } = {};
 
   /**
    * Emits when a row is expanded. Event contains the row data.
@@ -677,12 +705,29 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
    */
   @Input() valueGetterFn?: (row: T, field: ColumnConfig) => any;
 
+  /**
+   * Custom function to compute inline styles for individual table cells.
+   * Receives the row data and column configuration, returns a style object or null.
+   * Useful for conditional cell background coloring (e.g., color gradients based on values).
+   */
+  @Input() cellStyleFn?: (row: T, field: ColumnConfig) => { [key: string]: string } | null;
+
   // ============================================================================
   // Row Behavior Callbacks
   // ============================================================================
 
   /** Callback returning CSS class(es) for a row based on row data. */
   @Input() rowClassFn?: (row: T) => string | null;
+
+  // ============================================================================
+  // Footer Configuration
+  // ============================================================================
+
+  /** Callback returning the display value for each footer cell. When provided, a footer row is rendered. */
+  @Input() footerValueFn?: (field: ColumnConfig) => string;
+
+  /** CSS class applied to each footer cell (e.g., 'row-total' for lightskyblue background). */
+  @Input() footerCellClass?: string;
 
   // ============================================================================
   // Column Resizing
@@ -833,6 +878,26 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
    */
   getRowClass(row: T): string | null {
     return this.rowClassFn ? this.rowClassFn(row) : null;
+  }
+
+  /**
+   * Computes merged inline styles for a table cell, combining the column width style
+   * with any custom cell styles from cellStyleFn.
+   *
+   * @param row - Row data object
+   * @param field - Column configuration
+   * @returns Merged style object for ngStyle binding
+   */
+  getMergedCellStyle(row: T, field: ColumnConfig): { [key: string]: string } {
+    const widthStyle: { [key: string]: string } = field.width ? {'flex-basis': '0 0 ' + field.width + 'px'} : {} as { [key: string]: string };
+    if (!this.cellStyleFn) {
+      return widthStyle;
+    }
+    const customStyle = this.cellStyleFn(row, field);
+    if (!customStyle) {
+      return widthStyle;
+    }
+    return {...widthStyle, ...customStyle};
   }
 
   /**

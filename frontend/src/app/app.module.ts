@@ -52,6 +52,8 @@ import {TimeSeriesQuotesService} from './historyquote/service/time.series.quotes
 import {CorrelationComponent} from './correlation/component/correlation.component';
 import {TradingPlatformPlanTableComponent} from './tradingplatform/component/trading.platform.plan.table.component';
 import {TradingPlatformPlanService} from './tradingplatform/service/trading.platform.plan.service';
+import {GenericConnectorDefService} from './genericconnector/service/generic.connector.def.service';
+import {GenericConnectorComponent} from './genericconnector/component/generic-connector.component';
 import {TenantDividendsComponent} from './tenant/component/tenant.dividends.component';
 import {TenantTransactionCostComponent} from './tenant/component/tenant.transaction.cost.component';
 import {TenantSummariesAssetclassComponent} from './tenant/component/tenant.summaries.assetclass.component';
@@ -238,6 +240,11 @@ import {UDFMetadataGeneralService} from './lib/udfmeta/service/udf.metadata.gene
 import {UDFGeneralEditComponent} from './lib/udfmeta/components/udf-general-edit.component';
 import {UDFSpecialTypeDisableUserService} from './lib/udfmeta/service/udf.special.type.disable.user.service';
 import {AlarmSetupService} from './algo/service/alarm.setup.service';
+import {StandingOrderCashaccountTableComponent} from './standingorder/component/standing-order-cashaccount-table.component';
+import {StandingOrderSecurityTableComponent} from './standingorder/component/standing-order-security-table.component';
+import {StandingOrderCashaccountEditComponent} from './standingorder/component/standing-order-cashaccount-edit.component';
+import {StandingOrderSecurityEditComponent} from './standingorder/component/standing-order-security-edit.component';
+import {StandingOrderService} from './standingorder/service/standing.order.service';
 import {TenantAlertComponent} from './tenant/component/tenant.alert.component';
 import {DatePicker} from 'primeng/datepicker';
 import {DialogService, DynamicDialogModule} from 'primeng/dynamicdialog';
@@ -362,6 +369,10 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     TemplateFormCheckDialogComponent,
     TemplateFormCheckDialogResultFailedComponent,
     TemplateFormCheckDialogResultSuccessComponent,
+    StandingOrderCashaccountTableComponent,
+    StandingOrderSecurityTableComponent,
+    StandingOrderCashaccountEditComponent,
+    StandingOrderSecurityEditComponent,
     TenantAlertComponent,
     TenantDividendsComponent,
     TenantEditDynamicComponent,
@@ -434,6 +445,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     TaskDataChangeTableComponent,
     TradingPlatformPlanEditComponent,
     TradingPlatformPlanTableComponent,
+    GenericConnectorComponent,
     TabsModule,
     TieredMenuModule,
     TimeSeriesChartComponent,
@@ -470,8 +482,8 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     MailSendRecvService, MailSendRecvService, MailSettingForwardService, MainDialogService, MessageToastService,
     MultipleRequestToOneService, ParentChildRegisterService, PortfolioService, ProductIconService, ProposeChangeEntityService,
     ProposeUserTaskService, SecurityaccountService, SecurityService, SecuritysplitService, StockexchangeService,
-    TaskDataChangeService, TenantService, TimeSeriesQuotesService, TradingDaysMinusService, TradingDaysPlusService,
-    TradingPlatformPlanService, TransactionService, UDFDataService, UDFMetadataGeneralService, UDFMetadataSecurityService,
+    StandingOrderService, TaskDataChangeService, TenantService, TimeSeriesQuotesService, TradingDaysMinusService, TradingDaysPlusService,
+    TradingPlatformPlanService, GenericConnectorDefService, TransactionService, UDFDataService, UDFMetadataGeneralService, UDFMetadataSecurityService,
     UDFSpecialTypeDisableUserService, UserAdminService, UserChartShapeService, UserDataService, UserEntityChangeLimitService, UserSettingsService,
     ViewSizeChangedService, WatchlistService, {provide: TASK_EXTENDED_SERVICE, useClass: SecurityService},
     {provide: TASK_TYPE_ENUM, useValue: TaskType},

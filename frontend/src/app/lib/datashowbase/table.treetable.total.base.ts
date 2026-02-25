@@ -298,7 +298,7 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
               valueLabelHtmlSelectOptions.push(new ValueLabelHtmlSelectOptions(key, field.translatedValueMap[key]))
             );
         } else {
-          const uniqueValuesSet = new Set(data.map(item => this.getValueByPath(item, field)));
+          const uniqueValuesSet = new Set(data.map(item => this.getValueByPath(item, field)).filter(v => v != null));
 
           Array.from(uniqueValuesSet).sort((a, b) => a.toLowerCase() < b.toLowerCase() ? -1 :
             a.toLowerCase() > b.toLowerCase() ? 1 : 0).forEach(value => {

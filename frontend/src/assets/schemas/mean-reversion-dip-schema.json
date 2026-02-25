@@ -1,0 +1,549 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Mean Reversion Dip Strategy Configuration",
+  "description": "Configuration schema for the Mean Reversion Dip trading strategy. Defines entry, profit management, downside management, risk controls, and output settings.",
+  "type": "object",
+  "required": ["strategy_name"],
+  "additionalProperties": false,
+  "properties": {
+    "strategy_name": {
+      "type": "string",
+      "maxLength": 100,
+      "description": "Name identifying the strategy instance (required, max 100 chars)"
+    },
+    "version": {
+      "type": "string",
+      "maxLength": 10,
+      "description": "Version identifier for the strategy configuration (max 10 chars)"
+    },
+    "universe": {
+      "$ref": "#/$defs/UniverseConfig"
+    },
+    "data": {
+      "$ref": "#/$defs/DataConfig"
+    },
+    "execution": {
+      "$ref": "#/$defs/ExecutionConfig"
+    },
+    "cooldowns": {
+      "$ref": "#/$defs/CooldownsConfig"
+    },
+    "entry": {
+      "$ref": "#/$defs/EntryConfig"
+    },
+    "profit_management": {
+      "$ref": "#/$defs/ProfitManagementConfig"
+    },
+    "downside_management": {
+      "$ref": "#/$defs/DownsideManagementConfig"
+    },
+    "risk_controls": {
+      "$ref": "#/$defs/RiskControlsConfig"
+    },
+    "outputs": {
+      "$ref": "#/$defs/OutputsConfig"
+    }
+  },
+  "$defs": {
+    "UniverseConfig": {
+      "type": "object",
+      "description": "Defines the asset universe for the strategy",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["single_asset", "watchlist"],
+          "description": "Asset selection method: single_asset for one instrument, watchlist for a group"
+        },
+        "assets": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of asset symbols or identifiers (e.g. [\"AAPL\"])"
+        },
+        "direction": {
+          "type": "string",
+          "enum": ["long_only", "short_only", "long_short"],
+          "description": "Trade direction: long_only, short_only, or long_short"
+        }
+      }
+    },
+    "DataConfig": {
+      "type": "object",
+      "description": "Data source configuration for price data",
+      "additionalProperties": false,
+      "properties": {
+        "price_field": {
+          "type": "string",
+          "enum": ["close", "last", "mid"],
+          "description": "Which price field to use for calculations"
+        },
+        "timeframe": {
+          "type": "string",
+          "description": "Timeframe for data bars (e.g. '1d', '1h', '5m')"
+        }
+      }
+    },
+    "ExecutionConfig": {
+      "type": "object",
+      "description": "Order execution parameters",
+      "additionalProperties": false,
+      "properties": {
+        "order_type": {
+          "type": "string",
+          "enum": ["market", "limit"],
+          "description": "Order type: market or limit"
+        },
+        "slippage_model": {
+          "type": "string",
+          "description": "Slippage model type (e.g. 'none', 'fixed', 'pct')"
+        },
+        "fees_model": {
+          "type": "string",
+          "description": "Fees model type (e.g. 'none', 'flat', 'pct')"
+        }
+      }
+    },
+    "CooldownsConfig": {
+      "type": "object",
+      "description": "Cooldown periods to prevent overtrading",
+      "additionalProperties": false,
+      "properties": {
+        "after_buy_days": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of days to wait after a buy before allowing another trade"
+        },
+        "after_sell_days": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of days to wait after a sell before allowing another trade"
+        },
+        "max_trades_per_asset_per_30d": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum number of trades per asset in a rolling 30-day window"
+        }
+      }
+    },
+    "EntryConfig": {
+      "type": "object",
+      "description": "Entry strategy configuration - when and how to enter a position",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["dip_buy", "breakout", "indicator_signal"],
+          "description": "Entry strategy type: dip_buy (mean reversion), breakout, or indicator_signal"
+        },
+        "lookback_T": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Lookback period in bars for dip detection"
+        },
+        "dip_reference": {
+          "$ref": "#/$defs/DipReferenceConfig"
+        },
+        "dip_threshold_pct": {
+          "type": "number",
+          "description": "Dip threshold as a decimal (e.g. -0.12 means the price must be 12% below the reference)"
+        },
+        "initial_buy_sizing": {
+          "$ref": "#/$defs/SizingConfig"
+        }
+      }
+    },
+    "DipReferenceConfig": {
+      "type": "object",
+      "description": "Defines how the reference price for dip detection is calculated",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["price_T_ago", "highest_in_window", "moving_average"],
+          "description": "Reference type: price_T_ago (price T bars ago), highest_in_window, or moving_average"
+        },
+        "period": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Period parameter for the reference calculation (used by highest_in_window and moving_average)"
+        },
+        "indicator": {
+          "type": "string",
+          "description": "Indicator name for moving_average reference type (e.g. 'SMA', 'EMA')"
+        }
+      }
+    },
+    "SizingConfig": {
+      "type": "object",
+      "description": "Position sizing configuration - how much to buy/sell",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["pct_portfolio", "absolute_amount"],
+          "description": "Sizing mode: pct_portfolio (percentage of portfolio value) or absolute_amount (fixed monetary amount)"
+        },
+        "pct": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Percentage of portfolio (e.g. 0.03 = 3%). Used when mode is pct_portfolio"
+        },
+        "amount": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "description": "Fixed monetary amount. Used when mode is absolute_amount"
+        }
+      }
+    },
+    "ProfitManagementConfig": {
+      "type": "object",
+      "description": "Profit-taking configuration - defines scale-out tranches and final take-profit",
+      "additionalProperties": false,
+      "properties": {
+        "scale_out_enabled": {
+          "type": "boolean",
+          "description": "Whether to perform partial exits (scale-out) at different profit levels"
+        },
+        "sell_fraction_basis": {
+          "type": "string",
+          "enum": ["initial_position", "current_position"],
+          "description": "Basis for computing sell fractions: initial_position or current_position"
+        },
+        "scale_out_plan": {
+          "type": "array",
+          "description": "Array of exit tranches executed sequentially as profit targets are hit",
+          "items": {
+            "$ref": "#/$defs/ScaleOutTrancheConfig"
+          }
+        },
+        "take_profit": {
+          "$ref": "#/$defs/TakeProfitConfig"
+        }
+      }
+    },
+    "ScaleOutTrancheConfig": {
+      "type": "object",
+      "description": "A single scale-out tranche - defines when to sell a portion of the position",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Tranche identifier (e.g. 't1', 't2', 't3')"
+        },
+        "trigger": {
+          "$ref": "#/$defs/TriggerConfig"
+        },
+        "sell_fraction": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Fraction of position to sell (e.g. 0.30 = 30%)"
+        },
+        "sell_remainder": {
+          "type": "boolean",
+          "description": "If true, sell the entire remaining position at this tranche (overrides sell_fraction)"
+        }
+      }
+    },
+    "TriggerConfig": {
+      "type": "object",
+      "description": "Trigger condition for scale-out or other events",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["pct_gain", "absolute_profit", "indicator"],
+          "description": "Trigger type: pct_gain (percentage gain), absolute_profit, or indicator-based"
+        },
+        "value": {
+          "type": "number",
+          "description": "Trigger threshold value (e.g. 0.07 for 7% gain)"
+        },
+        "reference": {
+          "type": "string",
+          "enum": ["avg_cost", "initial_entry_price"],
+          "description": "Price reference for gain calculation: avg_cost or initial_entry_price"
+        }
+      }
+    },
+    "TakeProfitConfig": {
+      "type": "object",
+      "description": "Final take-profit configuration - sell all remaining when target is reached",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["pct_gain", "absolute_profit", "indicator"],
+          "description": "Take-profit trigger mode"
+        },
+        "pct": {
+          "type": ["number", "null"],
+          "description": "Target gain percentage (e.g. 0.10 = 10%). Used when mode is pct_gain"
+        },
+        "profit_amount": {
+          "type": ["number", "null"],
+          "description": "Target absolute profit amount. Used when mode is absolute_profit"
+        },
+        "reference": {
+          "type": "string",
+          "enum": ["avg_cost", "initial_entry_price"],
+          "description": "Price reference: avg_cost or initial_entry_price"
+        },
+        "action": {
+          "type": "string",
+          "description": "Action to execute when take-profit is triggered (e.g. 'sell_all_remaining')"
+        }
+      }
+    },
+    "DownsideManagementConfig": {
+      "type": "object",
+      "description": "Downside/loss management configuration - defines stop-loss or averaging-down behavior",
+      "additionalProperties": false,
+      "properties": {
+        "trigger": {
+          "$ref": "#/$defs/DownsideTriggerConfig"
+        },
+        "loss_action": {
+          "type": "string",
+          "enum": ["A_sell_loss", "B_average_down"],
+          "description": "Which loss management variant to apply: A_sell_loss (stop-loss) or B_average_down (buy more at lower prices)"
+        },
+        "variant_A_sell_loss": {
+          "$ref": "#/$defs/SellLossConfig"
+        },
+        "variant_B_average_down": {
+          "$ref": "#/$defs/AverageDownConfig"
+        }
+      }
+    },
+    "DownsideTriggerConfig": {
+      "type": "object",
+      "description": "Defines when downside management is triggered",
+      "additionalProperties": false,
+      "properties": {
+        "down_reference": {
+          "type": "string",
+          "enum": ["avg_cost", "initial_entry_price"],
+          "description": "Reference price for loss calculation"
+        },
+        "down_threshold_pct": {
+          "type": "number",
+          "description": "Loss threshold as a decimal (e.g. -0.10 means 10% loss triggers downside management)"
+        },
+        "decision_basis": {
+          "type": "string",
+          "enum": ["simple_threshold", "indicator", "statistical", "hybrid"],
+          "description": "Decision method: simple_threshold, indicator-based, statistical, or hybrid (combines all)"
+        },
+        "indicator_rules": {
+          "type": "array",
+          "description": "Technical indicator rules (used when decision_basis is 'indicator' or 'hybrid')",
+          "items": {
+            "$ref": "#/$defs/IndicatorRuleConfig"
+          }
+        },
+        "statistical_rules": {
+          "type": "array",
+          "description": "Statistical rules (used when decision_basis is 'statistical' or 'hybrid')",
+          "items": {
+            "$ref": "#/$defs/StatisticalRuleConfig"
+          }
+        }
+      }
+    },
+    "IndicatorRuleConfig": {
+      "type": "object",
+      "description": "A technical indicator rule for decision-making",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Rule identifier (e.g. 'rsi_exit')"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["rsi", "zscore", "sma", "ema"],
+          "description": "Indicator type: rsi, zscore, sma, or ema"
+        },
+        "params": {
+          "$ref": "#/$defs/IndicatorParams"
+        }
+      }
+    },
+    "StatisticalRuleConfig": {
+      "type": "object",
+      "description": "A statistical rule for decision-making",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Rule identifier (e.g. 'zscore_extreme')"
+        },
+        "type": {
+          "type": "string",
+          "description": "Statistical type (e.g. 'zscore')"
+        },
+        "params": {
+          "$ref": "#/$defs/IndicatorParams"
+        }
+      }
+    },
+    "IndicatorParams": {
+      "type": "object",
+      "description": "Parameters for technical indicators and statistical rules",
+      "additionalProperties": false,
+      "properties": {
+        "length": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Period for period-based indicators (RSI, SMA, EMA)"
+        },
+        "condition": {
+          "type": "string",
+          "maxLength": 10,
+          "description": "Comparison operator (e.g. '<', '>', '<=', '>=')"
+        },
+        "value": {
+          "type": "number",
+          "description": "Threshold value to compare against"
+        },
+        "lookback": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Lookback period for statistical calculations (e.g. z-score)"
+        }
+      }
+    },
+    "SellLossConfig": {
+      "type": "object",
+      "description": "Variant A: Stop-loss configuration - sell position when loss exceeds threshold",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether this stop-loss variant is active"
+        },
+        "stop_type": {
+          "type": "string",
+          "enum": ["hard_stop", "indicator_stop"],
+          "description": "Stop-loss method: hard_stop (fixed threshold) or indicator_stop (indicator-based)"
+        },
+        "stop_reference": {
+          "type": "string",
+          "enum": ["avg_cost", "initial_entry_price"],
+          "description": "Price reference for stop-loss calculation"
+        },
+        "stop_threshold_pct": {
+          "type": "number",
+          "description": "Stop-loss threshold as a decimal (e.g. -0.10 = 10% loss)"
+        },
+        "order_type": {
+          "type": "string",
+          "enum": ["market", "limit"],
+          "description": "Order type for the stop-loss exit"
+        },
+        "action": {
+          "type": "string",
+          "description": "Action to execute (e.g. 'sell_all_remaining')"
+        }
+      }
+    },
+    "AverageDownConfig": {
+      "type": "object",
+      "description": "Variant B: Averaging-down configuration - buy more at lower prices to reduce average cost",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether this averaging-down variant is active"
+        },
+        "add_sizing": {
+          "$ref": "#/$defs/SizingConfig"
+        },
+        "max_adds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum number of additional purchases allowed"
+        },
+        "add_step_rule": {
+          "$ref": "#/$defs/AddStepRuleConfig"
+        },
+        "recalculate_avg_cost": {
+          "type": "boolean",
+          "description": "Whether to recalculate average cost after each additional purchase"
+        }
+      }
+    },
+    "AddStepRuleConfig": {
+      "type": "object",
+      "description": "Rule defining when to make additional purchases during averaging down",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["each_n_pct_drop", "indicator_based", "custom"],
+          "description": "Add rule type: each_n_pct_drop (buy on each N% drop), indicator_based, or custom"
+        },
+        "drop_pct_step": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Percentage drop step for each_n_pct_drop (e.g. 0.10 = buy on each 10% drop)"
+        },
+        "reference": {
+          "type": "string",
+          "enum": ["avg_cost", "initial_entry_price"],
+          "description": "Price reference for drop calculation"
+        }
+      }
+    },
+    "RiskControlsConfig": {
+      "type": "object",
+      "description": "Risk management parameters - portfolio-level exposure and drawdown limits",
+      "additionalProperties": false,
+      "properties": {
+        "max_position_exposure_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Maximum percentage of portfolio value in a single position (e.g. 0.10 = 10%)"
+        },
+        "max_position_drawdown_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Maximum drawdown allowed per position before force exit (e.g. 0.25 = 25%)"
+        },
+        "force_exit_on_risk_breach": {
+          "type": "boolean",
+          "description": "Whether to force-liquidate the position when risk limits are breached"
+        },
+        "block_entry_if_exposure_exceeded": {
+          "type": "boolean",
+          "description": "Whether to block new entries if the exposure limit is already exceeded"
+        },
+        "block_add_if_exposure_exceeded": {
+          "type": "boolean",
+          "description": "Whether to block averaging-down if the exposure limit is already exceeded"
+        }
+      }
+    },
+    "OutputsConfig": {
+      "type": "object",
+      "description": "Output configuration - which events to emit and metrics to track",
+      "additionalProperties": false,
+      "properties": {
+        "emit_events": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Events to emit during strategy execution (e.g. ENTRY, BUY, SCALE_OUT_1, STOP_EXIT, SELL_ALL)"
+        },
+        "track_metrics": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Metrics to track (e.g. avg_cost, position_qty, unrealized_pnl, max_drawdown)"
+        }
+      }
+    }
+  }
+}

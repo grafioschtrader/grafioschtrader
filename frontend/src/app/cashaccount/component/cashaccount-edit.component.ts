@@ -62,6 +62,7 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
       DynamicFieldHelper.createFieldSelectStringHeqF('currency', true,
         {inputWidth: 5, disabled: this.callParam.optParam && this.callParam.optParam.hasTransaction}),
       DynamicFieldHelper.createFieldSelectNumber('connectIdSecurityaccount', 'SECURITYACCOUNT_ASSIGNMENT', false),
+      DynamicFieldHelper.createFieldInputNumberHeqF('borrowingRate', false, 3, 4, false),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', BaseSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];

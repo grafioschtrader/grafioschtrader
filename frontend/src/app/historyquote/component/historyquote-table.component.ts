@@ -45,6 +45,7 @@ import {HistoryquoteEditComponent} from './historyquote-edit.component';
 import {UploadFileDialogComponent} from '../../lib/generaldialog/component/upload-file-dialog.component';
 import {HistoryquoteQualityFillGapsComponent} from './historyquote-quality-fill-gaps.component';
 import {HistoryquoteDeleteDialogComponent} from './historyquote-delete-dialog.component';
+import {GlobalSessionNames} from '../../lib/global.session.names';
 
 /**
  * Shows the history quotes in a table
@@ -145,7 +146,7 @@ import {HistoryquoteDeleteDialogComponent} from './historyquote-delete-dialog.co
   ]
 })
 export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquote> implements OnDestroy {
-  minDate: Date = new Date('2000-01-01');
+  minDate: Date = new Date(sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK);
   maxDate: Date = new Date('2099-12-31');
 
   private static createTypeIconMap: { [key: number]: string } = {

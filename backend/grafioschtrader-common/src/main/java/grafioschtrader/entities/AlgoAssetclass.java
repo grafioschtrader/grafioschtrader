@@ -100,7 +100,7 @@ public class AlgoAssetclass extends AlgoAssetclassSecurity {
   }
 
   public void setCategoryType(AssetclassType assetClassType) {
-    this.categoryType = assetClassType.getValue();
+    this.categoryType = assetClassType == null ? null : assetClassType.getValue();
   }
 
   public SpecialInvestmentInstruments getSpecialInvestmentInstrument() {
@@ -109,7 +109,7 @@ public class AlgoAssetclass extends AlgoAssetclassSecurity {
   }
 
   public void setSpecialInvestmentInstrument(SpecialInvestmentInstruments specialInvestmentInstrument) {
-    this.specialInvestmentInstrument = specialInvestmentInstrument.getValue();
+    this.specialInvestmentInstrument = specialInvestmentInstrument == null ? null : specialInvestmentInstrument.getValue();
   }
 
   public List<AlgoSecurity> getAlgoSecurityList() {

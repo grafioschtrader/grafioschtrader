@@ -2,16 +2,19 @@ package grafioschtrader.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
-import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.algo.AlgoSecurityStrategyImplType;
 import grafioschtrader.entities.AlgoSecurity;
@@ -22,10 +25,19 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController
 @RequestMapping(RequestGTMappings.ALGOSECURITY_MAP)
 @Tag(name = RequestGTMappings.ALGOSECURITY, description = "Controller for top level algorithmic trading assetclass security")
-public class AlgoSecurityResource extends UpdateCreateDeleteWithTenantResource<AlgoSecurity> {
+public class AlgoSecurityResource extends AlgoBaseResource<AlgoSecurity> {
 
   @Autowired
   private AlgoSecurityJpaRepository algoSecurityJpaRepository;
+
+  @Operation(summary = "Returns all AlgoSecurity entries for the current tenant",
+      description = "Returns all alert securities with their strategies for the tenant alert overview.",
+      tags = { RequestGTMappings.ALGOSECURITY })
+  @GetMapping(value = "/tenant", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<AlgoSecurity>> getAllForTenant() {
+    User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    return new ResponseEntity<>(algoSecurityJpaRepository.findByIdTenant(user.getActualIdTenant()), HttpStatus.OK);
+  }
 
   @Operation(summary = "", description = "", tags = { RequestGTMappings.ALGOSECURITY })
   @GetMapping(value = "/security/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)

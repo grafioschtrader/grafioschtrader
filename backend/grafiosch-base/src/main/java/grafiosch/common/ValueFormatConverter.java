@@ -39,6 +39,7 @@ public class ValueFormatConverter {
   private SimpleDateFormat simpleDateFormat;
   private DateTimeFormatter localTimeFormater;
   private DateTimeFormatter localDateFormatter;
+  private DateTimeFormatter localDateFormatterFallback;
   private String thousandSeparatorsPattern;
   private Locale userLocale;
 
@@ -67,10 +68,12 @@ public class ValueFormatConverter {
   public ValueFormatConverter(String dateFormat, String localTimeFormat, char thousandSeparators,
       String thousandSeparatorsPattern, char decimalSeparator, Locale userLocale) {
     if (localTimeFormat == null) {
-      simpleDateFormat = new SimpleDateFormat(dateFormat);
+      simpleDateFormat = new SimpleDateFormat(dateFormat, Locale.ENGLISH);
     } else {
       localTimeFormater = DateTimeFormatter.ofPattern(localTimeFormat);
-      localDateFormatter = DateTimeFormatter.ofPattern(dateFormat);
+      localDateFormatter = DateTimeFormatter.ofPattern(dateFormat, userLocale);
+      Locale fallbackLocale = userLocale.getLanguage().equals("en") ? Locale.GERMAN : Locale.ENGLISH;
+      localDateFormatterFallback = DateTimeFormatter.ofPattern(dateFormat, fallbackLocale);
     }
     this.setSeparators(decimalSeparator, thousandSeparators);
     this.thousandSeparatorsPattern = thousandSeparatorsPattern;
@@ -147,7 +150,11 @@ public class ValueFormatConverter {
         convertValue = new Date(numberFormat.parse(value).longValue() * 1000);
       }
     } else if (LocalDate.class == dataType) {
-      convertValue = LocalDate.parse(value, localDateFormatter);
+      try {
+        convertValue = LocalDate.parse(value, localDateFormatter);
+      } catch (Exception e) {
+        convertValue = LocalDate.parse(value, localDateFormatterFallback);
+      }
     } else if (LocalTime.class == dataType) {
       convertValue = LocalTime.parse(value, localTimeFormater);
     }

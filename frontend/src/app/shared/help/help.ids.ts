@@ -24,6 +24,11 @@ export const AppHelpIds: Record<string, string> = {
   HELP_PORTFOLIOS_TRANSACTIONCOSTS: 'reportportfolio/transactioncosts',
   HELP_PORTFOLIOS_TRANSACTIONLIST: 'reportportfolio/transactionlist',
 
+  // Standing orders
+  HELP_STANDING_ORDER: 'transaction/standingorder',
+  HELP_STANDING_ORDER_CASH: 'transaction/standingorder/cash',
+  HELP_STANDING_ORDER_SECURITY: 'transaction/standingorder/security',
+
   // Algo trading
   HELP_ALGO: 'algo',
   HELP_ALGO_RULE: 'algo/rule',
@@ -54,6 +59,7 @@ export const AppHelpIds: Record<string, string> = {
   HELP_BASEDATA_ASSETCLASS: 'basedata/instrumentbased/assetclass',
   HELP_BASEDATA_STOCKEXCHANGE: 'basedata/instrumentbased/stockexchange',
   HELP_BASEDATA_TRADING_PLATFORM_PLAN: 'basedata/tradingplatformplan',
+  HELP_BASEDATA_GENERIC_CONNECTOR: 'basedata/genericconnector',
   HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_GROUP: 'basedata/imptranstemplate',
   HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_TEMPLATE: 'basedata/imptranstemplate/createimptranstemplate',
   HELP_BASEDATA_UDF_METADATA_SECURITY: 'basedata/udfmetadata/instruments',

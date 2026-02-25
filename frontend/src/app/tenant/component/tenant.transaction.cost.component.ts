@@ -1,9 +1,8 @@
-import {CommonModule} from '@angular/common';
-import {Component, ElementRef, Injector, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, Injector, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {TranslateService} from '@ngx-translate/core';
 import {FilterService, MenuItem} from 'primeng/api';
-import {TableModule} from 'primeng/table';
+import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {Subscription} from 'rxjs';
 import {TransactionCostGrandSummary} from '../../entities/view/transactioncost/transaction.cost.grand.summary';
 import {TransactionCostGroupSummary} from '../../entities/view/transactioncost/transaction.cost.group.summary';
@@ -31,84 +30,37 @@ import {TenantTransactionCostExtendedComponent} from './tenant-transaction-cost-
  */
 @Component({
   template: `
-    <div class="data-container" (click)="onComponentClick($event)"
-         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
-      <div class="datatable">
-        <p-table #dataTable [columns]="fields" [value]="transactionCostGroupSummaries" selectionMode="single"
-                 [(selection)]="selectedRow" dataKey="securityaccount.idSecuritycashAccount"
-                 [expandedRowKeys]="expandedTCGSid" sortMode="multiple" [multiSortMeta]="multiSortMeta"
-                 stripedRows showGridlines>
-          <ng-template #header let-fields>
-            <tr>
-              <th style="width:24px"></th>
-              @for (field of fields; track field) {
-                <th [pSortableColumn]="field.field" [style.max-width.px]="field.width"
-                    [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-                  {{ field.headerTranslated }}
-                  <p-sortIcon [field]="field.field"></p-sortIcon>
-                </th>
-              }
-            </tr>
-          </ng-template>
-
-          <ng-template #body let-el let-expanded="expanded" let-columns="fields">
-            <tr [pSelectableRow]="el">
-              <td style="width:24px">
-                <a href="#" [pRowToggler]="el">
-                  <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
-                </a>
-              </td>
-              @for (field of fields; track field) {
-                @if (field.visible) {
-                  <td [style.max-width.px]="field.width"
-                      [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                      [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                     || field.dataType===DataType.NumericInteger)? 'text-end': ''">
-                    {{ getValueByPath(el, field) }}
-                  </td>
-                }
-              }
-            </tr>
-          </ng-template>
-
-          <ng-template pTemplate="footer">
-            <tr>
-              <td></td>
-              @for (field of fields; track field) {
-                @if (field.visible) {
-                  <td class="row-total" [style.width.px]="field.width"
-                      [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-end': ''">
-                    {{ getValueColumnTotal(field, 0, transactionCostGrandSummary, null) }}
-                  </td>
-                }
-              }
-            </tr>
-          </ng-template>
-
-          <ng-template #expandedrow let-tcgs let-columns="fields">
-            <tr>
-              <td [attr.colspan]="numberOfVisibleColumns + 1">
-                <tenant-transaction-cost-extended
-                  [transactionCostPositions]="tcgs.transactionCostPositions"
-                  [transactionCostGrandSummary]="transactionCostGrandSummary"
-                  [baseSelectedRow]="baseSelectedRow"
-                  [firstRowIndex]="firstRowIndex"
-                  (dateChanged)="transactionDataChanged($event)">>
-                </tenant-transaction-cost-extended>
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
-      </div>
-    </div>
+    <configurable-table
+      [data]="transactionCostGroupSummaries"
+      [fields]="fields"
+      dataKey="securityaccount.idSecuritycashAccount"
+      [(selection)]="selectedRow"
+      [expandable]="true"
+      [expandedRowTemplate]="expandedContent"
+      [expandedRowKeys]="expandedTCGSid"
+      [multiSortMeta]="multiSortMeta"
+      [valueGetterFn]="getValueByPath.bind(this)"
+      [customSortFn]="customSort.bind(this)"
+      [footerValueFn]="getFooterValue"
+      footerCellClass="row-total"
+      [containerClass]="{'data-container': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+      customClass="datatable"
+      (componentClick)="onComponentClick($event)">
+    </configurable-table>
+    <ng-template #expandedContent let-tcgs>
+      <tenant-transaction-cost-extended
+        [transactionCostPositions]="tcgs.transactionCostPositions"
+        [transactionCostGrandSummary]="transactionCostGrandSummary"
+        [baseSelectedRow]="baseSelectedRow"
+        [firstRowIndex]="firstRowIndex"
+        (dateChanged)="transactionDataChanged($event)">
+      </tenant-transaction-cost-extended>
+    </ng-template>
   `,
   standalone: true,
-  imports: [CommonModule, TableModule, TenantTransactionCostExtendedComponent]
+  imports: [ConfigurableTableComponent, TenantTransactionCostExtendedComponent]
 })
 export class TenantTransactionCostComponent extends TableConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
-  @ViewChild('dataTable') datatable: ElementRef;
-
   /**
    * Used to reference chart trace by the id of the security account. It is used when the
    * users clicks a data point in the chart to select the main table row
@@ -124,6 +76,11 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
   expandedTCGSid: { [s: string]: boolean } = {};
   baseSelectedRow: TransactionCostPosition;
   firstRowIndex = 0;
+
+  getFooterValue = (field: ColumnConfig): string => {
+    return this.getValueColumnTotal(field, 0, this.transactionCostGrandSummary, null);
+  };
+
   private chartIdNumberToTransactionCostPosition: TransactionCostPosition[];
   private columnConfigs: ColumnConfig[] = [];
 
@@ -237,7 +194,7 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
   private prepareChartDataWithRequest(): void {
     if (!this.subscriptionRequestFromChart) {
       this.subscriptionRequestFromChart = this.chartDataService.requestFromChart$.subscribe(id => {
-          if (this.datatable && id === AppSettings.TRANSACTION_COST_KEY) {
+          if (this.transactionCostGroupSummaries && id === AppSettings.TRANSACTION_COST_KEY) {
             this.prepareCharDataAndSentToChart();
           }
         }

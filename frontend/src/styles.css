@@ -336,6 +336,7 @@ table th input {
 .fcontainer {
   display: flex;
   flex-wrap: wrap;
+  font-size: 0.75rem;
 }
 
 .fcontainer .fbox {

@@ -1,0 +1,91 @@
+1. Mean Reversion Dip Strategy (Speculative Use Case)
+
+This strategy belongs to the more speculative or tactical trading use cases. A position is initiated when an instrument within a predefined watchlist declines by a specified percentage over a configurable lookback period. The decline may be calculated relative to the price T periods ago, the highest price within the lookback window, or another defined reference such as a moving average.
+
+The initial position size is defined either as a fixed percentage of total portfolio equity or as an absolute amount. After entry, the position is actively managed.
+
+If the price increases, the system may perform partial profit-taking in multiple tranches. Each tranche is triggered by predefined conditions, such as a percentage gain relative to the average cost, an absolute profit level, or an indicator signal. After all partial exits are completed, or if a global take-profit threshold is reached, the remaining position is fully closed.
+
+If the price decreases after entry, a configurable downside decision logic applies. This logic may be based on a simple percentage drawdown threshold, technical indicators, statistical measures, or a hybrid combination of these elements.
+
+Two alternative behaviors are possible:
+
+Variant A: The position is fully closed at a defined stop-loss level or upon an indicator-based exit signal.
+
+Variant B: The system performs controlled averaging down by adding to the position according to predefined rules. Additional purchases are limited by a maximum number of adds and a maximum exposure constraint per asset. After each add, the average cost is recalculated and all relevant thresholds are updated.
+
+The strategy supports both long and short positions, depending on configuration.
+
+2. Partial Profit Taking Logic (Scaling Out)
+
+Partial profit taking is implemented as a structured exit mechanism independent of the initial entry logic. It allows the reduction of exposure in predefined stages while keeping part of the position active.
+
+Each partial exit is defined by:
+
+A trigger condition (percentage gain, absolute P&L, or indicator event)
+
+A sell fraction (either based on current position size or initial position size)
+
+Tranches are executed only once. The final tranche may optionally liquidate the entire remaining position. This logic can be applied to both long and short positions symmetrically.
+
+This module functions as a reusable component and may also be attached to other strategies beyond mean reversion.
+
+3. Controlled Averaging Down Module
+
+This module extends a position when the market moves against the initial entry.
+
+Averaging down is not unconditional. It is governed by:
+
+A defined drawdown trigger
+
+Indicator-based or statistical confirmation
+
+A maximum number of additional entries
+
+A maximum portfolio exposure limit per instrument
+
+Optional global risk limits
+
+Additional entries can be sized either as a percentage of total portfolio equity or as a fixed monetary amount. Step-based rules may apply, such as adding after every additional X% decline from the initial entry price.
+
+The system must ensure that exposure constraints are respected before executing additional orders. If risk limits are breached, forced liquidation rules may apply.
+
+This module supports both long and short implementations (i.e., averaging up in short positions).
+
+4. Strategic Portfolio Rebalancing Use Case (Core Allocation Model)
+
+In contrast to the speculative trading use cases, this strategy represents the structured and long-term portfolio management component.
+
+The portfolio is allocated according to predefined asset class percentages that correspond to the asset classes available in Grafioschtrader. Asset classes may include equities, bonds, commodities, cash equivalents, cryptocurrencies, or any other instrument categories supported by the platform.
+
+Each asset class allocation is expressed as a percentage of total portfolio equity. Within each asset class, instruments are selected from a defined watchlist. These instruments may be ETFs, individual stocks, or any tradable instrument available in Grafioschtrader.
+
+Rebalancing occurs periodically or when allocation drift exceeds defined tolerance thresholds. The system calculates current allocation weights and generates buy or sell orders to restore the target allocation percentages.
+
+Additionally, a configurable percentage of the total portfolio may be allocated to tactical or speculative strategies (such as the mean reversion module described above). This creates a hierarchical capital structure:
+
+Core allocation (strategic, rebalanced)
+
+Tactical allocation (active trading strategies)
+
+The model supports both long and short exposure at the instrument level, if permitted by platform configuration.
+
+Architectural Implications for the Data Model
+
+From a data-model perspective, these strategies imply:
+
+Portfolio-level configuration (equity, allocation, risk limits)
+
+Asset-class layer
+
+Watchlist-based instrument selection
+
+Strategy modules attachable to instruments
+
+Position state tracking (avg cost, adds, scale-outs)
+
+Exposure management at instrument and portfolio level
+
+Long/short symmetry
+
+Modular entry/exit components reusable across strategies

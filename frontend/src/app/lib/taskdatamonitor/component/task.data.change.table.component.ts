@@ -25,6 +25,7 @@ import {TooltipModule} from 'primeng/tooltip';
 import {TaskDataChangeEditComponent} from './task-data-change-edit.component';
 import {TaskFilterDialogComponent} from './task-filter-dialog.component';
 import {TranslateHelper} from '../../helper/translate.helper';
+import {GlobalSessionNames} from '../../global.session.names';
 
 /**
  * Shows the batch Jobs in a table.
@@ -110,7 +111,7 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
 
   private static readonly STORE_KEY = 'u_taskdatachange';
 
-  minDate: Date = new Date('2000-01-01');
+  minDate: Date = new Date(sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK);
   maxDate: Date = new Date('2099-12-31');
   taskDataChangeList: TaskDataChange[];
   additionalData: any;

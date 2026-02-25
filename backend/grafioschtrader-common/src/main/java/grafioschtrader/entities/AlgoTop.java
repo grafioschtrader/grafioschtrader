@@ -1,7 +1,8 @@
 package grafioschtrader.entities;
 
+import java.time.LocalDate;
+
 import grafiosch.common.PropertyAlwaysUpdatable;
-import grafioschtrader.algo.RuleStrategyType;
 import grafioschtrader.algo.strategy.model.StrategyHelper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
@@ -13,7 +14,14 @@ import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-@Schema(description = "Algorithmic trading top level. It does not include the depending children.")
+/**
+ * Top-level entry point in the algo hierarchy for a tenant. Links a named algo configuration to a watchlist and
+ * defines the simulation date range. The {@code activatable} flag controls whether the configuration is eligible
+ * for live alarm evaluation. Children (asset-class and security levels) are loaded separately.
+ */
+@Schema(description = """
+    Top-level algo configuration for a tenant. Links a named algo setup to a watchlist and defines simulation
+    date range. Does not include depending children (asset class / security levels).""")
 @Entity
 @Table(name = AlgoTop.TABNAME)
 @DiscriminatorValue(StrategyHelper.TOP_LEVEL_LETTER)
@@ -33,10 +41,6 @@ public class AlgoTop extends AlgoTopAssetSecurity {
 //	@OneToMany(fetch = FetchType.LAZY)
 //	private List<AlgoAssetclass> algoAssetclassList;
 
-  @Basic(optional = false)
-  @Column(name = "rule_or_strategy")
-  private Byte ruleStrategy;
-
   @Schema(description = """
       For the simulation, a watchlist must be linked to the top level.
       The corresponding securities can then be selected from this list.""")
@@ -49,6 +53,18 @@ public class AlgoTop extends AlgoTopAssetSecurity {
   @Column(name = "activatable")
   private boolean activatable;
 
+  @Schema(description = "Reference date from UC6 portfolio strategy creation. Used as transaction cutoff for simulation copies.")
+  @Column(name = "reference_date")
+  private LocalDate referenceDate;
+
+  @Schema(description = "Start date of the simulation date range for backtesting.")
+  @Column(name = "simulation_start_date")
+  private LocalDate simulationStartDate;
+
+  @Schema(description = "End date of the simulation date range for backtesting.")
+  @Column(name = "simulation_end_date")
+  private LocalDate simulationEndDate;
+
   @Transient
   public Float addedPercentage;
 
@@ -58,14 +74,6 @@ public class AlgoTop extends AlgoTopAssetSecurity {
 
   public void setName(String name) {
     this.name = name;
-  }
-
-  public RuleStrategyType getRuleStrategy() {
-    return RuleStrategyType.getRuleStrategyType(ruleStrategy);
-  }
-
-  public void setRuleStrategy(RuleStrategyType ruleStrategy) {
-    this.ruleStrategy = ruleStrategy.getValue();
   }
 
   public Integer getIdWatchlist() {
@@ -84,9 +92,33 @@ public class AlgoTop extends AlgoTopAssetSecurity {
     this.activatable = activatable;
   }
 
+  public LocalDate getReferenceDate() {
+    return referenceDate;
+  }
+
+  public void setReferenceDate(LocalDate referenceDate) {
+    this.referenceDate = referenceDate;
+  }
+
+  public LocalDate getSimulationStartDate() {
+    return simulationStartDate;
+  }
+
+  public void setSimulationStartDate(LocalDate simulationStartDate) {
+    this.simulationStartDate = simulationStartDate;
+  }
+
+  public LocalDate getSimulationEndDate() {
+    return simulationEndDate;
+  }
+
+  public void setSimulationEndDate(LocalDate simulationEndDate) {
+    this.simulationEndDate = simulationEndDate;
+  }
+
   @Override
   public String toString() {
-    return "AlgoTop [name=" + name + ", ruleStrategy=" + ruleStrategy + ", idWatchlist=" + idWatchlist
+    return "AlgoTop [name=" + name + ", idWatchlist=" + idWatchlist
         + ", activatable=" + activatable + ", idAlgoAssetclassSecurity=" + idAlgoAssetclassSecurity + ", idTenant="
         + idTenant + ", percentage=" + percentage + "]";
   }

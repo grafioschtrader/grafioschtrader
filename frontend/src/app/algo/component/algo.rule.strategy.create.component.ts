@@ -10,7 +10,6 @@ import {Subscription} from 'rxjs';
 import {AssetclassService} from '../../assetclass/service/assetclass.service';
 import {Assetclass} from '../../entities/assetclass';
 import {AlgoTopCreate, AssetclassPercentage} from '../../entities/backend/algo.top.create';
-import {RuleStrategyType} from '../../shared/types/rule.strategy.type';
 import {HelpIds} from '../../lib/help/help.ids';
 import {AlgoTopService} from '../service/algo.top.service';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
@@ -30,7 +29,6 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 /**
  * Dialog for define a strategy. Asset class can be added dynamically.
- * Project: Grafioschtrader
  */
 @Component({
 
@@ -46,7 +44,7 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
   ]
 })
 export class AlgoRuleStrategyCreateDynamicComponent extends SimpleDynamicEditBase<AlgoTop> implements OnInit, OnDestroy, AfterViewInit {
-  static readonly DIALOG_WIDTH = 500;
+  static readonly DIALOG_WIDTH = 700;
   callParam: CallParam;
   private static readonly ASSETCLASS_FIELD = 'idAssetclass';
   private static readonly PERCENTAGE_FIELD = 'percentage';
@@ -72,8 +70,7 @@ export class AlgoRuleStrategyCreateDynamicComponent extends SimpleDynamicEditBas
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
-      2, this.helpLink.bind(this));
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 2, this.helpLink.bind(this));
     this.callParam = this.dynamicDialogConfig.data.callParam;
     this.config = [
       DynamicFieldHelper.createFieldInputString('name', 'NAME', 32, true),
@@ -90,11 +87,7 @@ export class AlgoRuleStrategyCreateDynamicComponent extends SimpleDynamicEditBas
 
   ngAfterViewInit(): void {
     this.algoTopCreate = <AlgoTopCreate>this.callParam.thisObject;
-    if (this.algoTopCreate.ruleStrategy === RuleStrategyType[RuleStrategyType.RS_RULE]) {
-      this.helpId = HelpIds.HELP_ALGO_RULE;
-    } else {
-      this.helpId = HelpIds.HELP_ALGO_STRATEGY;
-    }
+    this.helpId = HelpIds.HELP_ALGO_STRATEGY;
     this.assetsclasses = [];
     this.valueChangedOnWatchlist();
     this.watchlistService.getWatchlistsByIdTenant().subscribe(watchlists => {

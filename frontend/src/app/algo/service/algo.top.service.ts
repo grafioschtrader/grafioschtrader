@@ -9,7 +9,7 @@ import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../lib/login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {AlgoTopCreate} from '../../entities/backend/algo.top.create';
+import {AlgoTopCreate, AlgoTopCreateFromPortfolio} from '../../entities/backend/algo.top.create';
 import {BaseSettings} from '../../lib/base.settings';
 
 @Injectable()
@@ -36,6 +36,24 @@ export class AlgoTopService extends AuthServiceWithLogout<AlgoTop> implements De
 
   public update(algoTop: AlgoTop): Observable<AlgoTop> {
     return this.updateEntity(algoTop, algoTop.idAlgoAssetclassSecurity, AppSettings.ALGO_TOP_KEY);
+  }
+
+  public createFromPortfolio(dto: AlgoTopCreateFromPortfolio): Observable<AlgoTop> {
+    return <Observable<AlgoTop>>this.httpClient.post(
+      `${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_TOP_KEY}/createfromportfolio`, dto,
+      {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  public normalizePercentages(idAlgoAssetclassSecurity: number): Observable<void> {
+    return this.httpClient.put<void>(
+      `${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_TOP_KEY}/normalizepercentages/${idAlgoAssetclassSecurity}`,
+      null, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  public normalizeAllPercentages(idAlgoAssetclassSecurity: number): Observable<void> {
+    return this.httpClient.put<void>(
+      `${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_TOP_KEY}/normalizeallpercentages/${idAlgoAssetclassSecurity}`,
+      null, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   public deleteEntity(idAlgoAssetclassSecurity: number): Observable<any> {

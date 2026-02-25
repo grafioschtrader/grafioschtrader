@@ -14,26 +14,41 @@ import {AppSettings} from '../../shared/app.settings';
 import {OptionalParams, TranslateValue} from '../../lib/datashowbase/column.config';
 import {AlgoStrategyHelper} from './algo.strategy.helper';
 import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.helper';
+import * as yaml from 'js-yaml';
 
 /**
  * Displays the parameters of a selected strategy.
- * A strategy can consist of different parameters, therefore the output is created dynamically from a map.
- * Project: Grafioschtrader
+ * For simple strategies, parameters are shown as key-value pairs from algoRuleStrategyParamMap.
+ * For complex strategies, the strategyConfig JSON is converted to YAML for readable display.
  */
 @Component({
   selector: 'strategy-detail',
   template: `
-    @for (field of fields; track field) {
-      <div class="row">
-        <div class="col-md-6 showlabel text-end">
-          {{field.headerTranslated}}:
+    @if (isComplexStrategy) {
+      <pre class="strategy-yaml-display">{{ yamlDisplay }}</pre>
+    } @else {
+      @for (field of fields; track field) {
+        <div class="row">
+          <div class="col-md-6 showlabel text-end">
+            {{field.headerTranslated}}:
+          </div>
+          <div class="col-md-6 nopadding wrap">
+            {{getValueByPath(dynamicModel, field)}}{{field.headerSuffix}}
+          </div>
         </div>
-        <div class="col-md-6 nopadding wrap">
-          {{getValueByPath(dynamicModel, field)}}{{field.headerSuffix}}
-        </div>
-      </div>
+      }
     }
   `,
+  styles: [`
+    .strategy-yaml-display {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 8px;
+      font-size: 0.85em;
+    }
+  `],
   standalone: true,
   imports: []
 })
@@ -41,15 +56,39 @@ export class StrategyDetailComponent extends SingleRecordConfigBase implements O
   @Input() algoStrategyParamCall: AlgoStrategyParamCall;
 
   dynamicModel: any = {};
+  isComplexStrategy = false;
+  yamlDisplay = '';
 
   constructor(translateService: TranslateService, gps: GlobalparameterService) {
     super(translateService, gps);
   }
 
   ngOnChanges() {
-    console.log('ngOnInit-AlgoStrategy:', this.algoStrategyParamCall.algoStrategy);
-    console.log('ngOnInit-description:', this.algoStrategyParamCall.fieldDescriptorShow);
-    this.dynamicModel = DynamicFieldModelHelper.createAndSetValuesInDynamicModel(this.algoStrategyParamCall.algoStrategy.algoStrategyImplementations,
+    this.isComplexStrategy = this.algoStrategyParamCall.isComplexStrategy;
+    if (this.isComplexStrategy) {
+      this.displayComplexStrategy();
+    } else {
+      this.displaySimpleStrategy();
+    }
+  }
+
+  private displayComplexStrategy(): void {
+    const strategyConfig = this.algoStrategyParamCall.algoStrategy.strategyConfig;
+    if (strategyConfig) {
+      try {
+        const jsonObj = JSON.parse(strategyConfig);
+        this.yamlDisplay = yaml.dump(jsonObj, {lineWidth: 120, noRefs: true});
+      } catch (e) {
+        this.yamlDisplay = strategyConfig;
+      }
+    } else {
+      this.yamlDisplay = '';
+    }
+  }
+
+  private displaySimpleStrategy(): void {
+    this.dynamicModel = DynamicFieldModelHelper.createAndSetValuesInDynamicModel(
+      this.algoStrategyParamCall.algoStrategy.algoStrategyImplementations,
       AlgoStrategyHelper.FIELD_STRATEGY_IMPL,
       this.algoStrategyParamCall.algoStrategy.algoRuleStrategyParamMap,
       this.algoStrategyParamCall.fieldDescriptorShow);
@@ -57,7 +96,6 @@ export class StrategyDetailComponent extends SingleRecordConfigBase implements O
     this.translateHeadersAndColumns();
     this.createTranslatedValueStore([this.dynamicModel]);
   }
-
 
   private createDynamicOutputFields(fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[]): void {
     this.fields = [];

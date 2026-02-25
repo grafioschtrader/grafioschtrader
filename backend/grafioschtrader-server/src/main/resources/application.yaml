@@ -18,8 +18,8 @@ gt:
       historyquotes: true
   use:
     websocket: false
-    algo: false
-    alert: false
+    algo: true
+    alert: true
   limit:
     # Limit Data
     #-------------------------------------

@@ -76,7 +76,7 @@ public class GlobalConstants extends BaseConstants {
   public static final int OLDEST_TRADING_YEAR = 2000;
 
   /** GT supports back to this date, the entries of transactions and prices of securities. */
-  public static final String OLDEST_TRADING_DAY = OLDEST_TRADING_YEAR + "-01-01";
+  public static final String OLDEST_TRADING_DAY = OLDEST_TRADING_YEAR + "-01-03";
 
   /**
    * The youngest trading day in the future. The trading calendar can be entered up to this date in the future.

@@ -120,6 +120,9 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
       }
     );
     this.usersettingsService.saveArray(key, visibleColumns);
+    if (this.rowsPerPage) {
+      this.usersettingsService.saveSingleValue(key + '.rows', this.rowsPerPage);
+    }
   }
 
   /**
@@ -137,6 +140,10 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
           field.visible = fieldObject[field.headerKey];
         });
       }
+    }
+    const storedRows = this.usersettingsService.readSingleValue(key + '.rows');
+    if (storedRows != null && storedRows > 0) {
+      this.rowsPerPage = storedRows;
     }
   }
 

@@ -191,6 +191,9 @@ export interface ColumnConfig extends BaseFieldDefinition {
 
   /** User-defined value */
   userValue?: any;
+
+  /** Configuration for making this column editable in table/tree-table editing scenarios */
+  cec?: ColumnEditConfig;
 }
 
 

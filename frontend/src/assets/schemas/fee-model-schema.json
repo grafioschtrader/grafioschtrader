@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Fee Model Configuration",
+  "description": "Rule-based transaction fee model. Supports flat rules (always applicable) or time-based periods with nested rules.",
+  "type": "object",
+  "oneOf": [
+    {
+      "required": ["rules"],
+      "properties": {
+        "rules": {
+          "type": "array",
+          "description": "Fee rules (no date restriction). Evaluated top-to-bottom; first matching condition wins.",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/FeeRule" }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "required": ["periods"],
+      "properties": {
+        "periods": {
+          "type": "array",
+          "description": "Time-based fee periods. Each period has a date range and its own rules array. First period matching the transaction date is used.",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/FeeModelPeriod" }
+        }
+      },
+      "additionalProperties": false
+    }
+  ],
+  "$defs": {
+    "FeeRule": {
+      "type": "object",
+      "required": ["name", "condition", "expression"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Human-readable rule name (e.g., 'Swiss stocks - Premium tier')"
+        },
+        "condition": {
+          "type": "string",
+          "description": "EvalEx boolean expression. Variables: tradeValue (trade amount), units (share count), instrument (string: DIRECT_INVESTMENT, ETF, MUTUAL_FUND, PENSION_FUNDS, CFD, FOREX, ISSUER_RISK_PRODUCT, NON_INVESTABLE_INDICES), assetclass (string: EQUITIES, FIXED_INCOME, MONEY_MARKET, COMMODITIES, REAL_ESTATE, MULTI_ASSET, CONVERTIBLE_BOND, CREDIT_DERIVATIVE, CURRENCY_PAIR), mic (MIC code, e.g. XSWX, XNYS), currency (ISO code), fixedAssets (portfolio value), tradeDirection (0=buy, 1=sell). Legacy numeric aliases: specInvestInstrument, categoryType. Use 'true' for a catch-all default rule."
+        },
+        "expression": {
+          "type": "string",
+          "description": "EvalEx numeric expression for fee calculation. Supports MAX(), MIN(), IF(), ABS(), ROUND(), arithmetic, comparisons. Example: 'MAX(9.0, tradeValue * 0.001)'"
+        }
+      }
+    },
+    "FeeModelPeriod": {
+      "type": "object",
+      "required": ["validFrom", "rules"],
+      "properties": {
+        "validFrom": {
+          "type": "string",
+          "format": "date",
+          "description": "Start date (inclusive) in YYYY-MM-DD format"
+        },
+        "validTo": {
+          "type": "string",
+          "format": "date",
+          "description": "End date (inclusive) in YYYY-MM-DD format. Omit for open-ended (until further notice)."
+        },
+        "rules": {
+          "type": "array",
+          "description": "Fee rules for this period",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/FeeRule" }
+        }
+      }
+    }
+  }
+}

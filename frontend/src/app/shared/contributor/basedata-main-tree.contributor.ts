@@ -103,6 +103,16 @@ export class BaseDataMainTreeContributor extends MainTreeContributor {
         )
       },
       {
+        label: AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF),
+        data: new TypeNodeData(
+          TreeNodeType.GenericConnectorDef,
+          this.addMainRoute(AppSettings.GENERIC_CONNECTOR_KEY),
+          null,
+          null,
+          null
+        )
+      },
+      {
         label: 'IMPORT_TRANSACTION_PLATFORM',
         data: new TypeNodeData(
           TreeNodeType.ImpTransTemplate,

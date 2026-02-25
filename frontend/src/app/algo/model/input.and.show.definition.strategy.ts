@@ -4,4 +4,5 @@ export class InputAndShowDefinitionStrategy {
   topFormDefinitionList: FieldDescriptorInputAndShow[];
   assetclassFormDefinitionList: FieldDescriptorInputAndShow[];
   securityFormDefinitionList: FieldDescriptorInputAndShow[];
+  isComplexStrategy: boolean;
 }

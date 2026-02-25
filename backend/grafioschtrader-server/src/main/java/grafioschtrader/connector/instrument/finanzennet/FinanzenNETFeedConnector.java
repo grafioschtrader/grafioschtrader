@@ -48,14 +48,15 @@ public class FinanzenNETFeedConnector extends FinanzenConnetorBase {
   public static String domain = "https://www.finanzen.net/";
   private static final List<Locale> CANDIDATE_LOCALES = Arrays.asList(Locale.GERMANY, Locale.US);
 
-  private static final Pattern THREE_NUMBER_PATTERN = Pattern
-      .compile("([-]?\\d{1,3}(?:[.,]\\d{3})*[.,]?\\d*)\\s+([-]?\\d{1,3}(?:[.,]\\d{3})*[.,]?\\d*)\\s+([-]?\\d{1,3}(?:[.,]\\d{3})*[.,]?\\d*)");
+  private static final Pattern THREE_NUMBER_PATTERN = Pattern.compile(
+      "([-]?\\d{1,3}(?:[.,]\\d{3})*[.,]?\\d*)\\s+([-]?\\d{1,3}(?:[.,]\\d{3})*[.,]?\\d*)\\s+([-]?\\d{1,3}(?:[.,]\\d{3})*[.,]?\\d*)");
 
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
 
   static {
     supportedFeed = new HashMap<>();
-    supportedFeed.put(FeedSupport.FS_INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY_URL });
+    supportedFeed.put(FeedSupport.FS_INTRA,
+        new FeedIdentifier[] { FeedIdentifier.SECURITY_URL, FeedIdentifier.CURRENCY_URL });
   }
 
   public FinanzenNETFeedConnector() {
@@ -105,23 +106,22 @@ public class FinanzenNETFeedConnector extends FinanzenConnetorBase {
   public int getIntradayDelayedSeconds() {
     return 900;
   }
-  
+
   @Override
   public String getCurrencypairIntradayDownloadLink(final Currencypair currencypair) {
     return domain + currencyIntraPrefix + currencypair.getUrlIntraExtend();
   }
-  
+
   @Override
-  public void  updateCurrencyPairLastPrice(final Currencypair currencypair) throws Exception {
+  public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws Exception {
     updateSecuritycurrency(currencypair, getCurrencypairIntradayDownloadLink(currencypair));
   }
-
 
   public <T extends Securitycurrency<T>> void updateSecuritycurrency(T securitycurrency, String url) throws Exception {
     final Document doc = getDoc(url);
     String rawTextContent = doc.select("div.snapshot__values").text();
     String cleanedTextForRegex = rawTextContent.replaceAll("[A-Z]{3}", "").replace("%", "").replace(":", "")
-        .replace("±", "") .replace("+", "").replaceAll("\\s+", " ").trim();
+        .replace("±", "").replace("+", "").replaceAll("\\s+", " ").trim();
     Matcher matcher = THREE_NUMBER_PATTERN.matcher(cleanedTextForRegex);
     if (matcher.find()) {
       String lastPriceStr = matcher.group(1).trim();
@@ -151,8 +151,8 @@ public class FinanzenNETFeedConnector extends FinanzenConnetorBase {
         throw new ParseException("Could not parse numbers with any of the candidate locales.", 0);
       }
     } else {
-      throw new ParseException("Could not find the three consecutive number pattern in the text: '" + cleanedTextForRegex + "'",
-          0);
+      throw new ParseException(
+          "Could not find the three consecutive number pattern in the text: '" + cleanedTextForRegex + "'", 0);
     }
   }
 

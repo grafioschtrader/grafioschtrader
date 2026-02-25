@@ -6,8 +6,9 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import grafiosch.entities.TenantBaseID;
-import grafioschtrader.algo.rule.BuySellType;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -71,25 +72,12 @@ public abstract class AlgoTopAssetSecurity extends TenantBaseID implements Seria
     this.idTenant = idTenant;
   }
 
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   public List<AlgoStrategy> getAlgoStrategyList() {
     return (algoRuleStrategyList != null)
         ? this.algoRuleStrategyList.stream().filter(algoRuleStrategy -> algoRuleStrategy instanceof AlgoStrategy)
             .map(algoStrategy -> (AlgoStrategy) algoStrategy).collect(Collectors.toList())
         : null;
-  }
-
-  public List<AlgoRule> getAlgoSellRuleList() {
-    return getAlgoRuleList(BuySellType.BS_SELL);
-  }
-
-  public List<AlgoRule> getAlgoBuyRuleList() {
-    return getAlgoRuleList(BuySellType.BS_BUY);
-  }
-
-  private List<AlgoRule> getAlgoRuleList(BuySellType buyOrSell) {
-    return (algoRuleStrategyList != null) ? this.algoRuleStrategyList.stream()
-        .filter(algoRuleStrategy -> algoRuleStrategy instanceof AlgoRule).map(algoRule -> (AlgoRule) algoRule)
-        .filter(algoRule -> algoRule.getBuySell() == buyOrSell).collect(Collectors.toList()) : null;
   }
 
   public Float getPercentage() {

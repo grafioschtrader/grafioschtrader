@@ -21,10 +21,9 @@ import {TransactionSecurityFieldDefinition} from './transaction.security.field.d
 import {TransactionSecurityOptionalParam} from '../model/transaction.security.optional.param';
 import {HelpIds} from '../../lib/help/help.ids';
 import {CommonModule} from '@angular/common';
-import {TableModule} from 'primeng/table';
-import {TooltipModule} from 'primeng/tooltip';
-import {ContextMenuModule} from 'primeng/contextmenu';
+import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {TransactionSecurityEditComponent} from './transaction-security-edit.component';
+import {StandingOrderSecurityEditComponent} from '../../standingorder/component/standing-order-security-edit.component';
 
 /**
  * Component that displays transaction data for a single security instrument in a tabular format. This component serves as a
@@ -38,10 +37,9 @@ import {TransactionSecurityEditComponent} from './transaction-security-edit.comp
     standalone: true,
     imports: [
       CommonModule,
-      TableModule,
-      TooltipModule,
-      ContextMenuModule,
-      TransactionSecurityEditComponent
+      ConfigurableTableComponent,
+      TransactionSecurityEditComponent,
+      StandingOrderSecurityEditComponent
     ]
 })
 export class TransactionSecurityTableComponent extends TransactionContextMenu implements OnInit, OnDestroy {

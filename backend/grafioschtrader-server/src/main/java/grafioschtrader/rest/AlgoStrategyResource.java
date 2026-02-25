@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
-import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.algo.strategy.model.AlgoLevelType;
 import grafioschtrader.algo.strategy.model.AlgoStrategyImplementationType;
@@ -27,7 +26,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController
 @RequestMapping(RequestGTMappings.ALGOSTRATEGY_MAP)
 @Tag(name = RequestGTMappings.ALGOSTRATEGY, description = "Controller for algorithmic trading strategy")
-public class AlgoStrategyResource extends UpdateCreateDeleteWithTenantResource<AlgoStrategy> {
+public class AlgoStrategyResource extends AlgoBaseResource<AlgoStrategy> {
 
   @Autowired
   private AlgoStrategyJpaRepository algoStrategyJpaRepository;

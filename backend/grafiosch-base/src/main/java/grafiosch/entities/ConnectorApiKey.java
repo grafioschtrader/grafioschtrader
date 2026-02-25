@@ -43,8 +43,7 @@ public class ConnectorApiKey extends BaseID<String> {
   @Column(name = "api_key")
   private String apiKey;
 
-  @Schema(description = "Storage of the access and power levels.")
-  @Basic(optional = false)
+  @Schema(description = "Storage of the access and power levels. Null for generic connectors without subscription types.")
   @Column(name = "subscription_type")
   private Short subscriptionType;
 
@@ -117,11 +116,11 @@ public class ConnectorApiKey extends BaseID<String> {
   }
 
   public ISubscriptionType getSubscriptionType() {
-    return SUBSCRIPTION_REGISTRY.getTypeByValue(subscriptionType);
+    return subscriptionType == null ? null : SUBSCRIPTION_REGISTRY.getTypeByValue(subscriptionType);
   }
 
   public void setSubscriptionType(ISubscriptionType subscriptionType) {
-    this.subscriptionType = subscriptionType.getValue();
+    this.subscriptionType = subscriptionType == null ? null : subscriptionType.getValue();
   }
 
   /**
@@ -145,6 +144,10 @@ public class ConnectorApiKey extends BaseID<String> {
    */
   @JsonSetter("subscriptionType")
   public void setSubscriptionType(String subscriptionTypeName) {
+    if (subscriptionTypeName == null || subscriptionTypeName.isBlank()) {
+      this.subscriptionType = null;
+      return;
+    }
     ISubscriptionType subscriptionType = SUBSCRIPTION_REGISTRY.getTypeByName(subscriptionTypeName);
     if (subscriptionType == null) {
       throw new IllegalArgumentException("Unknown subscription type: " + subscriptionTypeName);

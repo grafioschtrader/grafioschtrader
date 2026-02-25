@@ -53,7 +53,8 @@ import {SecurityaccountImportSetCashaccountComponent} from './securityaccount-im
       [(selection)]="selectedEntities"
       [selectionMode]="'multiple'"
       [paginator]="true"
-      [rows]="50"
+      [rows]="rowsPerPage"
+      (pageChange)="onPage($event)"
       [multiSortMeta]="multiSortMeta"
       [sortMode]="'multiple'"
       [stripedRows]="true"
@@ -149,7 +150,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     usersettingsService: UserSettingsService,
     injector: Injector) {
     super(filterService, usersettingsService, translateService, gps, injector);
-
+    this.rowsPerPage = 50;
     this.supplementCriteria = new SupplementCriteria(true, false);
     SecurityaccountImportTransactionTableComponent.registerIcons(this.iconReg);
 

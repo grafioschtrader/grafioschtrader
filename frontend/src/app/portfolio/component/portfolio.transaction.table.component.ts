@@ -9,21 +9,18 @@ import {combineLatest, Observable, Subscription} from 'rxjs';
 import {TransactionService} from '../../transaction/service/transaction.service';
 import {Transaction} from '../../entities/transaction';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {TranslateService, TranslateModule} from '@ngx-translate/core';
+import {TranslateService} from '@ngx-translate/core';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ActivatedRoute, Params} from '@angular/router';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {CommonModule} from '@angular/common';
-import {TableModule} from 'primeng/table';
-import {DatePicker} from 'primeng/datepicker';
-import {FormsModule} from '@angular/forms';
-import {SelectModule} from 'primeng/select';
-import {ContextMenuModule} from 'primeng/contextmenu';
-import {TooltipModule} from 'primeng/tooltip';
+import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {TransactionCashaccountEditSingleComponent} from '../../transaction/component/transaction-cashaccount-editsingle.component';
 import {TransactionCashaccountEditDoubleComponent} from '../../transaction/component/transaction-cashaccount-editdouble.component';
 import {TransactionSecurityEditComponent} from '../../transaction/component/transaction-security-edit.component';
 import {TransactionCashaccountConnectDebitCreditComponent} from '../../transaction/component/transaction-cashaccount-connect-debit-credit-component';
+import {StandingOrderCashaccountEditComponent} from '../../standingorder/component/standing-order-cashaccount-edit.component';
+import {StandingOrderSecurityEditComponent} from '../../standingorder/component/standing-order-security-edit.component';
 
 /**
  * Component that displays all transactions belonging to a specific portfolio in a tabular format.
@@ -37,17 +34,13 @@ import {TransactionCashaccountConnectDebitCreditComponent} from '../../transacti
   standalone: true,
   imports: [
     CommonModule,
-    TranslateModule,
-    FormsModule,
-    TableModule,
-    SelectModule,
-    DatePicker,
-    ContextMenuModule,
-    TooltipModule,
+    ConfigurableTableComponent,
     TransactionCashaccountEditSingleComponent,
     TransactionCashaccountEditDoubleComponent,
     TransactionSecurityEditComponent,
-    TransactionCashaccountConnectDebitCreditComponent
+    TransactionCashaccountConnectDebitCreditComponent,
+    StandingOrderCashaccountEditComponent,
+    StandingOrderSecurityEditComponent
   ]
 })
 export class PortfolioTransactionTableComponent extends TransactionTable implements OnInit, OnDestroy {

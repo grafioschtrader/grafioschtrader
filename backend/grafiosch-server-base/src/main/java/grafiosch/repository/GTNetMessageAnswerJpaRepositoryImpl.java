@@ -74,12 +74,12 @@ public class GTNetMessageAnswerJpaRepositoryImpl extends BaseRepositoryImpl<GTNe
     } catch (ParseException e) {
       log.warn("Invalid EvalEx expression: {} - Error: {}", expressionString, e.getMessage());
       String localeStr = getLocaleString();
-      throw new DataViolationException("responseMsgConditional", "gt.evalex.invalid.expression",
+      throw new DataViolationException("response.msg.conditional", "gt.evalex.invalid.expression",
           new Object[] { e.getMessage() }, localeStr);
     } catch (Exception e) {
       log.warn("Error parsing expression: {} - Error: {}", expressionString, e.getMessage());
       String localeStr = getLocaleString();
-      throw new DataViolationException("responseMsgConditional", "gt.evalex.parse.error",
+      throw new DataViolationException("response.msg.conditional", "gt.evalex.parse.error",
           new Object[] { e.getMessage() }, localeStr);
     }
   }

@@ -46,7 +46,7 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
   }
 
   getTreeOrder(): number {
-    return 2; // Watchlist comes after Portfolio and potentially Algo
+    return 1; // Watchlist comes after Portfolio
   }
 
   getRootNodes(): Observable<TreeNode[]> {

@@ -14,6 +14,8 @@ public interface AlgoTopJpaRepository extends JpaRepository<AlgoTop, Integer>, A
 
   List<AlgoTop> findByIdTenantOrderByName(Integer idTenant);
 
+  List<AlgoTop> findByActivatableTrue();
+
   AlgoTop findByIdTenantAndIdAlgoAssetclassSecurity(Integer idTenant, Integer idAlgoAssetclassSecurity);
 
   @Transactional

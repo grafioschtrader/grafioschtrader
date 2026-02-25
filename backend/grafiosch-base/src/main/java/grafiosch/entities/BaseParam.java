@@ -14,7 +14,6 @@ import jakarta.persistence.MappedSuperclass;
  * Known subclasses:
  * <ul>
  *   <li>{@code GTNetMessage.GTNetMessageParam} - Parameters for GTNet inter-instance messages</li>
- *   <li>{@code AlgoRule.AlgoRuleParam2} - Parameters for algorithmic trading rules</li>
  *   <li>{@code AlgoRuleStrategy.AlgoRuleStrategyParam} - Parameters for trading strategies</li>
  * </ul>
  *

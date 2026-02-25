@@ -17,8 +17,11 @@ import {ChartGeneralPurposeComponent} from './shared/chart/component/chart.gener
 import {RegistrationTokenVerifyComponent} from './lib/login/component/registration.token.verify.component';
 import {CorrelationComponent} from './correlation/component/correlation.component';
 import {TradingPlatformPlanTableComponent} from './tradingplatform/component/trading.platform.plan.table.component';
+import {GenericConnectorComponent} from './genericconnector/component/generic-connector.component';
 import {TenantDividendsComponent} from './tenant/component/tenant.dividends.component';
 import {TenantTransactionCostComponent} from './tenant/component/tenant.transaction.cost.component';
+import {TenantTransactionCostTabMenuComponent} from './tenant/component/tenant-transaction-cost-tab-menu.component';
+import {FeeModelComparisonComponent} from './tenant/component/fee-model-comparison.component';
 import {TenantSummariesAssetclassComponent} from './tenant/component/tenant.summaries.assetclass.component';
 import {TenantSummariesCashaccountComponent} from './tenant/component/tenant.summaries.cashaccount.component';
 import {TenantSummariesSecurityaccountComponent} from './tenant/component/tenant.summaries.securityaccount.component';
@@ -70,6 +73,9 @@ import {UDFMetadataSecurityTableComponent} from './udfmetasecurity/components/ud
 import {WatchlistUdfComponent} from './watchlist/component/watchlist.udf.component';
 import {UDFMetadataGeneralTableComponent} from './lib/udfmeta/components/udf.metadata.general.table.component';
 import {TenantAlertComponent} from './tenant/component/tenant.alert.component';
+import {StandingOrderCashaccountTableComponent} from './standingorder/component/standing-order-cashaccount-table.component';
+import {StandingOrderSecurityTableComponent} from './standingorder/component/standing-order-security-table.component';
+import {StandingOrderTabMenuComponent} from './standingorder/component/standing-order-tab-menu.component';
 import {BaseSettings} from './lib/base.settings';
 import {MailForwardSettingTableEditComponent} from './lib/mail/component/mail.forward.setting.table.edit.component';
 import {GTNetSecurityImportComponent} from './shared/gtnet/component/gtnet-security-import.component';
@@ -106,7 +112,24 @@ const APP_ROUTES: Routes = [
           {path: AppSettings.DEPOT_CASH_KEY, component: TenantSummariesAssetclassComponent, canActivate: [authGuard]},
           {path: AppSettings.DIVIDENDS_ROUTER_KEY, component: TenantDividendsComponent, canActivate: [authGuard]},
           {path: AppSettings.TENANT_TRANSACTION, component: TenantTransactionTableComponent, canActivate: [authGuard]},
-          {path: AppSettings.TRANSACTION_COST_KEY, component: TenantTransactionCostComponent, canActivate: [authGuard]},
+          {
+            path: AppSettings.TRANSACTION_COST_KEY,
+            component: TenantTransactionCostTabMenuComponent,
+            canActivate: [authGuard],
+            children: [
+              {path: AppSettings.TRANSACTION_COST_SUMMARY_KEY, component: TenantTransactionCostComponent, canActivate: [authGuard]},
+              {path: AppSettings.FEE_MODEL_COMPARISON_KEY, component: FeeModelComparisonComponent, canActivate: [authGuard]}
+            ]
+          },
+          {
+            path: AppSettings.STANDING_ORDER_TAB_KEY,
+            component: StandingOrderTabMenuComponent,
+            canActivate: [authGuard],
+            children: [
+              {path: AppSettings.TENANT_STANDING_ORDER_CASHACCOUNT, component: StandingOrderCashaccountTableComponent, canActivate: [authGuard]},
+              {path: AppSettings.TENANT_STANDING_ORDER_SECURITY, component: StandingOrderSecurityTableComponent, canActivate: [authGuard]}
+            ]
+          },
           {path: AppSettings.TENANT_ALERT, component: TenantAlertComponent, canActivate: [authGuard]}
         ]
       },
@@ -237,6 +260,11 @@ const APP_ROUTES: Routes = [
       {
         path: AppSettings.TRADING_PLATFORM_PLAN_KEY,
         component: TradingPlatformPlanTableComponent,
+        canActivate: [authGuard]
+      },
+      {
+        path: AppSettings.GENERIC_CONNECTOR_KEY,
+        component: GenericConnectorComponent,
         canActivate: [authGuard]
       },
       {

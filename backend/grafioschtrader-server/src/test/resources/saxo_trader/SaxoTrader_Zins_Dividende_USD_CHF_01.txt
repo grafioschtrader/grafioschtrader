@@ -1,0 +1,38 @@
+CH - 99999999 - 99999999
+Corporate Action Detail Report
+Berichtszeitraum: 28-Jan-2026 - 28-Jan-2026
+Generiert um: 20-Feb-2026 08:20:26 08:20:26 (W. Europe Standard Time)
+CH - 99999999 Saxo Bank CH
+Switzerland The Circle 38
+8058 Zürich-Flughafen
+Switzerland
+Saxo Bank CH / The Circle 38 / 8058 Zürich-Flughafen / Switzerland CH - 99999999 Berichtszeitraum
+Währung: CHF 28-Jan-2026 - 28-Jan-2026
+Seite 1 von 3 Konten: 80000/888888CHF Generiert um: 20-Feb-2026
+Corporate Action Detail, CHF
+Berichtszeitraum
+28-Jan-2026 bis 28-Jan-2026
+Corporate Action
+Event Bardividende Geeignete Menge 400
+iShares JP Morgan EM Local Govt Bond
+Description Dividende pro Aktie 1.36 USD
+UCITS ETF
+Symbol IEML:xswx Umrechnungskurs 0.765647
+ISIN IE00B5M4WH52 Kapitalmaßnahmen - Bardividenden 417.49 CHF
+Transaction description Event Id 7777777
+Saxo Bank CH / The Circle 38 / 8058 Zürich-Flughafen / Switzerland CH - 99999999 Berichtszeitraum
+Währung: CHF 28-Jan-2026 - 28-Jan-2026
+Seite 2 von 3 Konten: 80000/888888CHF Generiert um: 20-Feb-2026
+Corporate Action Detail, CHF
+Berichtszeitraum
+28-Jan-2026 bis 28-Jan-2026
+Betrag Gebuchter Betrag
+Buchungsbetrag-ID Ex-Tag Record Date Einstellungsdatum Zahltag Umrechnungskurs
+USD CHF
+Kapitalmaßnahmen -
+51722257045 15-Jan-2026 16-Jan-2026 - 28-Jan-2026 545.28 0.765647 417.49
+Bardividenden
+Nettobetrag - - - - - 545.28 0.765647 417.49
+Saxo Bank CH / The Circle 38 / 8058 Zürich-Flughafen / Switzerland CH - 99999999 Berichtszeitraum
+Währung: CHF 28-Jan-2026 - 28-Jan-2026
+Seite 3 von 3 Konten: 80000/888888CHF Generiert um: 20-Feb-2026

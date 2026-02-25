@@ -48,18 +48,18 @@ public class EodHistoricalDataConnectorTest extends BaseFeedConnectorCheck {
   protected List<SecurityHistoricalDate> getHistoricalSecurities(HistoricalIntra histroricalIntra) {
     List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
     try {
-      hisoricalDate.add(new SecurityHistoricalDate("Cisco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "AF.PA",
-          GlobalConstants.STOCK_EX_MIC_FRANCE, GlobalConstants.MC_EUR, 6056, "2000-01-03", "2023-08-31"));
+      hisoricalDate.add(new SecurityHistoricalDate("Air France-KLM SA ", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "AF.PA",
+          GlobalConstants.STOCK_EX_MIC_FRANCE, GlobalConstants.MC_EUR, 6678, "2000-01-03", "2026-02-09"));
       hisoricalDate.add(new SecurityHistoricalDate("Cisco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "csco",
-          GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 5926, "2000-01-03", "2023-07-24"));
+          GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 6565, "2000-01-03", "2026-02-09"));
       hisoricalDate.add(new SecurityHistoricalDate("Lyxor CAC 40", SpecialInvestmentInstruments.ETF, "CAC.PA",
-          GlobalConstants.STOCK_EX_MIC_FRANCE, GlobalConstants.MC_EUR, 4011, "2008-01-02", "2023-08-31"));
+          GlobalConstants.STOCK_EX_MIC_FRANCE, GlobalConstants.MC_EUR, 4633, "2008-01-02", "2026-02-09"));
       hisoricalDate.add(new SecurityHistoricalDate("iShares SMIM ETF (CH)", SpecialInvestmentInstruments.ETF,
-          "CSSMIM.SW", GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 4705, "2004-12-09", "2023-08-31"));
+          "CSSMIM.SW", GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 5316, "2004-12-09", "2026-02-09"));
       hisoricalDate.add(new SecurityHistoricalDate("ZKB Gold ETF (CHF)", SpecialInvestmentInstruments.ETF, "ZGLD.SW",
-          GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 4206, "2006-03-15", "2023-08-31"));
+          GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 4809, "2006-12-18", "2026-02-09"));
       hisoricalDate.add(new SecurityHistoricalDate("NASDAQ 100", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
-          "NDX.INDX", GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 5954, "2000-01-03", "2023-08-31"));
+          "NDX.INDX", GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 6565, "2000-01-03", "2026-02-09"));
     } catch (ParseException pe) {
       pe.printStackTrace();
     }
@@ -89,10 +89,10 @@ public class EodHistoricalDataConnectorTest extends BaseFeedConnectorCheck {
     String oldestDate = "2000-01-03";
     final List<CurrencyPairHistoricalDate> currencies = new ArrayList<>();
     try {
-      currencies.add(new CurrencyPairHistoricalDate("ZAR", "NOK", 7231, oldestDate, "2025-05-09"));
-      currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 6687, oldestDate,
+      currencies.add(new CurrencyPairHistoricalDate("ZAR", "NOK", 6738, oldestDate, "2025-05-09"));
+      currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 6612, oldestDate,
           "2025-05-09"));
-      currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_CHF, 6690, oldestDate,
+      currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_CHF, 6613, oldestDate,
           "2025-05-09"));
       currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.CC_BTC, GlobalConstants.MC_USD, 3888, "2014-09-17",
           "2025-05-09"));

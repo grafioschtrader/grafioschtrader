@@ -50,6 +50,11 @@ export class TenantTabMenuComponent implements OnInit {
       ['TRANSACTIONS', AppSettings.TENANT_TRANSACTION],
     ];
 
+    // Add standing order tab (sub-tab menu with cashaccount and security)
+    baseTabsConfig.push(
+      ['STANDING_ORDERS', AppSettings.STANDING_ORDER_TAB_KEY]
+    );
+
     // Add conditional alert tab
     if (this.gps.useAlert()) {
       baseTabsConfig.push(['ALERT', AppSettings.TENANT_ALERT]);

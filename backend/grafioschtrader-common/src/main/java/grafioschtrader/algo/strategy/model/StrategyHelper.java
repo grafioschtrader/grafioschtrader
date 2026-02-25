@@ -8,9 +8,13 @@ import java.util.stream.Collectors;
 
 import grafiosch.dynamic.model.DynamicModelHelper;
 import grafioschtrader.algo.strategy.model.alerts.AbsoluteValuePriceAlert;
+import grafioschtrader.algo.strategy.model.alerts.ExpressionAlert;
 import grafioschtrader.algo.strategy.model.alerts.HoldingGainLosePercentAlert;
+import grafioschtrader.algo.strategy.model.alerts.MaCrossingAlert;
 import grafioschtrader.algo.strategy.model.alerts.PeriodPriceGainLosePercentAlert;
+import grafioschtrader.algo.strategy.model.alerts.RsiThresholdAlert;
 import grafioschtrader.algo.strategy.model.rebalacing.RebalancingAssetclassSecurity;
+import grafioschtrader.algo.strategy.model.complex.StrategyConfig;
 import grafioschtrader.algo.strategy.model.rebalacing.RebalancingTop;
 
 public abstract class StrategyHelper {
@@ -36,6 +40,18 @@ public abstract class StrategyHelper {
         new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_PERIOD_PRICE_GAIN_LOSE_PERCENT_ALERT,
             PeriodPriceGainLosePercentAlert.class, PeriodPriceGainLosePercentAlert.class,
             PeriodPriceGainLosePercentAlert.class, null, true));
+    strategyBindingMap.put(AlgoStrategyImplementationType.AS_MEAN_REVERSION_DIP,
+        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_MEAN_REVERSION_DIP,
+            null, null, null, StrategyConfig.class, null, false));
+    strategyBindingMap.put(AlgoStrategyImplementationType.AS_MA_CROSSING_ALERT,
+        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_MA_CROSSING_ALERT,
+            null, null, MaCrossingAlert.class, null, true));
+    strategyBindingMap.put(AlgoStrategyImplementationType.AS_RSI_THRESHOLD_ALERT,
+        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_RSI_THRESHOLD_ALERT,
+            null, null, RsiThresholdAlert.class, null, true));
+    strategyBindingMap.put(AlgoStrategyImplementationType.AS_EXPRESSION_ALERT,
+        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_EXPRESSION_ALERT,
+            null, null, ExpressionAlert.class, null, true));
   }
 
   public static Set<AlgoStrategyImplementationType> getUnusedStrategiesForManualAdding(
@@ -49,7 +65,7 @@ public abstract class StrategyHelper {
       levelImplementaionPredicate = scbd -> scbd.algoAssetclassModel != null;
       break;
     case SECURITY_LEVEL:
-      levelImplementaionPredicate = scbd -> scbd.algoSecurityModel != null;
+      levelImplementaionPredicate = scbd -> scbd.algoSecurityModel != null || scbd.complexConfigClass != null;
       break;
     }
     Set<AlgoStrategyImplementationType> allASI = strategyBindingMap.values().stream()
@@ -70,7 +86,8 @@ public abstract class StrategyHelper {
     return new InputAndShowDefinitionStrategy(
         DynamicModelHelper.getFormDefinitionOfModelClassMembers(scbd.algoTopModel),
         DynamicModelHelper.getFormDefinitionOfModelClassMembers(scbd.algoAssetclassModel),
-        DynamicModelHelper.getFormDefinitionOfModelClassMembers(scbd.algoSecurityModel));
+        DynamicModelHelper.getFormDefinitionOfModelClassMembers(scbd.algoSecurityModel),
+        scbd.complexConfigClass != null);
   }
 
 }

@@ -25,6 +25,7 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {PortfolioEditDynamicComponent} from '../component/portfolio.edit.dynamic.component';
 import {SecurityaccountEditDynamicComponent} from '../../securityaccount/component/securityaccount.edit.dynamic.component';
+import {FeeModelEditComponent} from '../../tradingplatform/component/fee-model-edit.component';
 
 /**
  * Contributor for Portfolio-related nodes in the main navigation tree.
@@ -186,6 +187,16 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
           label: 'EDIT_RECORD|SECURITYACCOUNT',
           command: () => this.callbacks?.handleEdit(SecurityaccountEditDynamicComponent, parentNodeData, selectedNodeData,
             AppSettings.SECURITYACCOUNT.toUpperCase())
+            ?.subscribe(result => {
+              if (result) {
+                this.callbacks?.refreshTree();
+              }
+            })
+        });
+        menuItems.push({
+          label: 'EDIT_FEE_MODEL' + BaseSettings.DIALOG_MENU_SUFFIX,
+          command: () => this.callbacks?.handleEdit(FeeModelEditComponent, parentNodeData, selectedNodeData,
+            'FEE_MODEL_YAML')
             ?.subscribe(result => {
               if (result) {
                 this.callbacks?.refreshTree();

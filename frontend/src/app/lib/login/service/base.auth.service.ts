@@ -54,7 +54,7 @@ export abstract class BaseAuthService<T> extends BaseService {
 
         if (transformedError.isEmtpy()) {
           // Message which comes translated from the server
-          const err = body.error.message || JSON.stringify(body);
+          const err = body?.error?.message || JSON.stringify(body);
           transformedError.msg = `${error.status} - ${error.statusText || ''} ${err}`;
         }
       }

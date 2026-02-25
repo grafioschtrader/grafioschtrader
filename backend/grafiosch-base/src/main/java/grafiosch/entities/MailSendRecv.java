@@ -55,7 +55,6 @@ public class MailSendRecv extends BaseID<Integer> {
   @Column(name = "id_role_to")
   private Integer idRoleTo;
 
- 
 
   @Schema(description = "The subject of this message")
   @NotNull

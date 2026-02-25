@@ -6,14 +6,14 @@
 package grafioschtrader.entities;
 
 import java.io.Serializable;
-import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import grafiosch.BaseConstants;
 import grafiosch.common.PropertyAlwaysUpdatable;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -45,35 +45,10 @@ public class Securityaccount extends Securitycashaccount implements Serializable
   @PropertyAlwaysUpdatable
   private TradingPlatformPlan tradingPlatformPlan;
 
-  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
-  @Column(name = "share_use_until")
   @PropertyAlwaysUpdatable
-  private LocalDate shareUseUntil;
-
-  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
-  @Column(name = "bond_use_until")
-  @PropertyAlwaysUpdatable
-  private LocalDate bondUseUntil;
-
-  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
-  @Column(name = "etf_use_until")
-  @PropertyAlwaysUpdatable
-  private LocalDate etfUseUntil;
-
-  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
-  @Column(name = "fond_use_until")
-  @PropertyAlwaysUpdatable
-  private LocalDate fondUseUntil;
-
-  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
-  @Column(name = "forex_use_until")
-  @PropertyAlwaysUpdatable
-  private LocalDate forexUseUntil;
-
-  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
-  @Column(name = "cfd_use_until")
-  @PropertyAlwaysUpdatable
-  private LocalDate cfdUseUntil;
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+  @JoinColumn(name = "id_securitycash_account", nullable = false)
+  private List<SecaccountTradingPeriod> tradingPeriods = new ArrayList<>();
 
   @JsonIgnore
   @Column(name = "weka_model")
@@ -82,6 +57,13 @@ public class Securityaccount extends Securitycashaccount implements Serializable
   @PropertyAlwaysUpdatable
   @Column(name = "lowest_transaction_cost")
   private Float lowestTransactionCost;
+
+  @Schema(description = """
+      Optional YAML-based fee model that overrides the TradingPlatformPlan's fee model
+      for this specific security account. When non-null and non-blank, this takes priority.""")
+  @Column(name = "fee_model_yaml", columnDefinition = "TEXT")
+  @PropertyAlwaysUpdatable
+  private String feeModelYaml;
 
   @Transient
   private boolean hasTransaction;
@@ -109,52 +91,26 @@ public class Securityaccount extends Securitycashaccount implements Serializable
     this.tradingPlatformPlan = tradingPlatformPlan;
   }
 
-  public LocalDate getShareUseUntil() {
-    return shareUseUntil;
+  public List<SecaccountTradingPeriod> getTradingPeriods() {
+    return tradingPeriods;
   }
 
-  public void setShareUseUntil(LocalDate shareUseUntil) {
-    this.shareUseUntil = shareUseUntil;
+  public void setTradingPeriods(List<SecaccountTradingPeriod> tradingPeriods) {
+    this.tradingPeriods.clear();
+    if (tradingPeriods != null) {
+      this.tradingPeriods.addAll(tradingPeriods);
+    }
   }
 
-  public LocalDate getBondUseUntil() {
-    return bondUseUntil;
-  }
-
-  public void setBondUseUntil(LocalDate bondUseUntil) {
-    this.bondUseUntil = bondUseUntil;
-  }
-
-  public LocalDate getEtfUseUntil() {
-    return etfUseUntil;
-  }
-
-  public void setEtfUseUntil(LocalDate etfUseUntil) {
-    this.etfUseUntil = etfUseUntil;
-  }
-
-  public LocalDate getFondUseUntil() {
-    return fondUseUntil;
-  }
-
-  public void setFondUseUntil(LocalDate fondUseUntil) {
-    this.fondUseUntil = fondUseUntil;
-  }
-
-  public LocalDate getForexUseUntil() {
-    return forexUseUntil;
-  }
-
-  public void setForexUseUntil(LocalDate forexUseUntil) {
-    this.forexUseUntil = forexUseUntil;
-  }
-
-  public LocalDate getCfdUseUntil() {
-    return cfdUseUntil;
-  }
-
-  public void setCfdUseUntil(LocalDate cfdUseUntil) {
-    this.cfdUseUntil = cfdUseUntil;
+  /**
+   * Replaces the trading periods collection reference with a plain ArrayList. Must be used instead of
+   * {@link #setTradingPeriods} when re-persisting a detached entity after {@code em.clear()}, because
+   * the setter preserves the Hibernate PersistentBag reference (required for orphanRemoval tracking),
+   * which causes "Don't change the reference to a collection with delete-orphan enabled" when the
+   * entity is persisted in a new persistence context.
+   */
+  public void replaceTradingPeriods(List<SecaccountTradingPeriod> tradingPeriods) {
+    this.tradingPeriods = tradingPeriods != null ? new ArrayList<>(tradingPeriods) : new ArrayList<>();
   }
 
   public byte[] getWekaModel() {
@@ -171,6 +127,14 @@ public class Securityaccount extends Securitycashaccount implements Serializable
 
   public void setLowestTransactionCost(Float lowestTransactionCost) {
     this.lowestTransactionCost = lowestTransactionCost;
+  }
+
+  public String getFeeModelYaml() {
+    return feeModelYaml;
+  }
+
+  public void setFeeModelYaml(String feeModelYaml) {
+    this.feeModelYaml = feeModelYaml;
   }
 
   public boolean isHasTransaction() {

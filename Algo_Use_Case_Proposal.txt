@@ -1,0 +1,109 @@
+public enum UniverseMode { single_asset, watchlist }
+public enum Direction { long_only, short_only, long_short }
+
+public enum PriceField { close, last, mid }
+public enum Timeframe { _1d, _1h, _5m } // oder String
+
+public enum OrderType { market, limit }
+
+public enum SizingMode { pct_portfolio, absolute_amount }
+
+public enum TriggerType { pct_gain, absolute_profit, indicator }
+
+public enum ReferencePrice { avg_cost, initial_entry_price }
+
+public enum DecisionBasis { simple_threshold, indicator, statistical, hybrid }
+
+public enum LossAction { A_sell_loss, B_average_down }
+
+public enum StopType { hard_stop, indicator_stop }
+
+public enum AddStepType { each_n_pct_drop, indicator_based, custom }
+
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class StrategyConfig {
+  public String strategy_name;
+  public String version;
+
+  public UniverseConfig universe;
+  public DataConfig data;
+  public ExecutionConfig execution;
+  public CooldownsConfig cooldowns;
+
+  public EntryConfig entry;
+  public ProfitManagementConfig profit_management;
+  public DownsideManagementConfig downside_management;
+  public RiskControlsConfig risk_controls;
+  public OutputsConfig outputs;
+}
+import java.util.List;
+
+public class UniverseConfig {
+  public UniverseMode mode;
+  public List<String> assets;          // e.g. ["AAPL"]
+  public Direction direction;          // long_only/long_short etc.
+}
+
+public class DataConfig {
+  public PriceField price_field;
+  public String timeframe;             // keep as String if flexible
+}
+
+public class ExecutionConfig {
+  public OrderType order_type;
+  public String slippage_model;        // or enum
+  public String fees_model;            // or enum
+}
+
+public class CooldownsConfig {
+  public int after_buy_days;
+  public int after_sell_days;
+  public int max_trades_per_asset_per_30d;
+}
+public class SizingConfig {
+  public SizingMode mode;
+  public Double pct;     // null if absolute
+  public Double amount;  // null if pct
+}
+import java.util.List;
+
+public class ProfitManagementConfig {
+  public boolean scale_out_enabled;
+  public String sell_fraction_basis;    // "initial_position" | "current_position"
+  public List<ScaleOutTrancheConfig> scale_out_plan;
+
+  public TakeProfitConfig take_profit;
+}
+
+public class ScaleOutTrancheConfig {
+  public String id;
+  public TriggerConfig trigger;
+  public double sell_fraction;          // 0.30
+  public Boolean sell_remainder;        // optional
+}
+
+public class TakeProfitConfig {
+  public String mode;                   // "pct_gain" | "absolute_profit"
+  public Double pct;
+  public Double profit_amount;
+  public ReferencePrice reference;      // avg_cost etc.
+  public String action;                 // "sell_all_remaining"
+}
+
+public class RiskControlsConfig {
+  public double max_position_exposure_pct;
+  public Double max_position_drawdown_pct;
+  public boolean force_exit_on_risk_breach;
+  public boolean block_entry_if_exposure_exceeded;
+  public boolean block_add_if_exposure_exceeded;
+}
+
+import java.util.List;
+
+public class OutputsConfig {
+  public List<String> emit_events;
+  public List<String> track_metrics;
+}

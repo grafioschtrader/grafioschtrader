@@ -114,7 +114,12 @@ public class TokenAuthenticationService extends TokenAuthentication {
      * portfolio management, and price tracking. This list is used by the frontend
      * to validate and display available cryptocurrency options.</p>
      */
-    public static final List<String> cryptocurrencies = GlobalConstants.CRYPTO_CURRENCY_SUPPORTED;
+    public final List<String> cryptocurrencies = GlobalConstants.CRYPTO_CURRENCY_SUPPORTED;
+    /**
+     * Earliest trading day that GT supports for transactions and historical prices.
+     * Passed to the frontend so hardcoded dates can be avoided.
+     */
+    public final String oldestTradingDay = GlobalConstants.OLDEST_TRADING_DAY;
     /**
      * Certain currencies have a deviation different of two decimal places. This should be made known here.
      */

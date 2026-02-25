@@ -278,7 +278,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       if (entity.getAcceptRequest() == AcceptRequestTypes.AC_PUSH_OPEN) {
         IExchangeKindType kind = exchangeKindTypeRegistry.getByValue(entity.getEntityKindValue());
         if (kind != null && !kind.supportsPush()) {
-          throw new DataViolationException("acceptRequest", "gt.gtnet.entity.push.not.supported",
+          throw new DataViolationException("accept.request", "gt.gtnet.entity.push.not.supported",
               new Object[] { kind.name() });
         }
       }
@@ -332,7 +332,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     // Resolve message code from string to enum
     GTNetMessageCode messageCode = messageCodeRegistry.getByName(msgRequest.messageCode);
     if (messageCode == null) {
-      throw new DataViolationException("messageCode", "gt.gtnet.invalid.message.code",
+      throw new DataViolationException("message.code", "gt.gtnet.invalid.message.code",
           new Object[] { msgRequest.messageCode });
     }
 
@@ -342,7 +342,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
           SendReceivedType.SEND.getValue(), GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_ALL_C.getValue(),
           GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C.getValue());
       if (existingOpenDiscontinued != null) {
-        throw new DataViolationException("messageCode", "gt.gtnet.discontinued.already.open", null);
+        throw new DataViolationException("message.code", "gt.gtnet.discontinued.already.open", null);
       }
     }
 
@@ -1386,7 +1386,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   @Transactional
   public GTNetWithMessages submitMsgToMultiple(MultiTargetMsgRequest multiTargetMsgRequest) {
     if (multiTargetMsgRequest.idGTNetTargetDomains == null || multiTargetMsgRequest.idGTNetTargetDomains.isEmpty()) {
-      throw new DataViolationException("idGTNetTargetDomains", "gt.gtnet.multi.target.empty", null);
+      throw new DataViolationException("id.gtnet.target.domains", "gt.gtnet.multi.target.empty", null);
     }
 
     GTNet sourceGTNet = gtNetJpaRepository

@@ -1,0 +1,183 @@
+ {
+        "readableName": "onvista",
+        "description": {
+            "historicalDescription": "Auf <a target=\"_blank\" href=\"//www.onvista.de\">onvista</a> das entsprechende Wertpapier suchen bzw selektieren.<br>Über die Schaltflächte \"Alle Kurse\" bzw. \"Historische Kurse\" gelangt Sie zur Schaltfläche \"Download als CSV\".<br>Aktivieren Sie die <b>Entwicklertools</b> des Webbrowsers und wählen in diesen den Menüpunt \"<b>Netzwerk</b>\".<br>Drücken Sie die Schaltfläche \"Download als CSV\". Der <b>Anfrage-URL</b> entnehmen wir über die Entwicklertools des Netzwerkes einen bestimmten Teil.<br> Beispielsweise für die Aktie Amazon beim Handelsplatz \"Nasdaq\" ergibt sich folgende <b>URL-Anfrage</b>: \"https://api.onvista.de/api/v1/instruments/<b>STOCK/90929/eod_history?idNotation=252992</b>&range=M1&startDate=2022-06-28\" wir benötigen den Teil zwischen \"https://api.onvista.de/api/v1/instruments/\" und \"&range=M1&startDate=2022-06-28\"\". Daher tragen wir \"<b>STOCK/90929/eod_history?idNotation=252992</b>\" ein.",
+            "intraDescription": "Auf <a target=\"_blank\" href=\"//www.onvista.de\">onvista</a> das entsprechende Wertpapier suchen bzw selektieren.<br>Über die Schaltflächte \"Alle Kurse\" bzw. \"Historische Kurse\" gelangt Sie zur Schaltfläche \"Download als CSV\".<br>Aktivieren Sie die <b>Entwicklertools</b> des Webbrowsers und wählen in diesen den Menüpunt \"<b>Netzwerk</b>\".<br>Drücken Sie die Schaltfläche \"Download als CSV\". Der <b>Anfrage-URL</b> entnehmen wir über die Entwicklertools des Netzwerkes einen bestimmten Teil.<br> Beispielsweise für die Aktie Amazon beim Handelsplatz \"Nasdaq\" ergibt sich folgende <b>URL-Anfrage</b>: \"https://api.onvista.de/api/v1/instruments/<b>STOCK/90929/eod_history?idNotation=252992</b>&range=M1&startDate=2022-06-28\" wir benötigen den Teil zwischen \"https://api.onvista.de/api/v1/instruments/\" und \"&range=M1&startDate=2022-06-28\"\". Daher tragen wir \"<b>STOCK/90929/eod_history?idNotation=252992</b>\" ein."
+        },
+        "id": "gt.datafeed.onvista",
+        "shortID": "onvista",
+        "securitycurrencyFeedSupport": {
+            "FS_HISTORY": [
+                "SECURITY_URL",
+                "CURRENCY_URL"
+            ]
+        }
+    },
+    {
+        "connectorDef": {
+            "idProposeRequest": null,
+            "noteRequestOrReject": null,
+            "createdBy": null,
+            "creationTime": 1771867110000,
+            "lastModifiedBy": null,
+            "lastModifiedTime": 1771867110000,
+            "version": 0,
+            "idGenericConnector": 2,
+            "shortId": "otcx",
+            "readableName": "OTC-X (Berner Kantonalbank)",
+            "domainUrl": "https://www.otc-x.ch/api/",
+            "needsApiKey": false,
+            "rateLimitType": "NONE",
+            "rateLimitRequests": null,
+            "rateLimitPeriodSec": null,
+            "rateLimitConcurrent": null,
+            "intradayDelaySeconds": 900,
+            "regexUrlPattern": "^[A-Z]{2}[A-Z0-9]{9}[0-9]$",
+            "supportsSecurity": true,
+            "supportsCurrency": false,
+            "needHistoryGapFiller": true,
+            "gbxDividerEnabled": false,
+            "tokenConfigYaml": null,
+            "descriptionNLS": null,
+            "activated": true,
+            "endpoints": [
+                {
+                    "idEndpoint": 3,
+                    "feedSupport": "FS_HISTORY",
+                    "instrumentType": "SECURITY",
+                    "urlTemplate": "market/securities/{ticker}/chartData?type=PRICE_HISTORY&from={fromDate}&until={toDate}&interval=DAY",
+                    "httpMethod": "GET",
+                    "responseFormat": "JSON",
+                    "numberFormat": "PLAIN",
+                    "dateFormatType": "ISO_DATE",
+                    "dateFormatPattern": null,
+                    "jsonDataStructure": "ARRAY_OF_OBJECTS",
+                    "jsonDataPath": "data",
+                    "jsonStatusPath": null,
+                    "jsonStatusOkValue": null,
+                    "csvDelimiter": null,
+                    "csvSkipHeaderLines": 1,
+                    "htmlCssSelector": null,
+                    "htmlExtractMode": null,
+                    "htmlTextCleanup": null,
+                    "htmlExtractRegex": null,
+                    "htmlSplitDelimiter": null,
+                    "tickerBuildStrategy": "URL_EXTEND",
+                    "currencyPairSeparator": null,
+                    "currencyPairSuffix": null,
+                    "tickerUppercase": true,
+                    "maxDataPoints": 1500,
+                    "paginationEnabled": false,
+                    "endpointOptions": [
+                        "SKIP_WEEKEND_DATA"
+                    ],
+                    "fieldMappings": [
+                        {
+                            "idFieldMapping": 13,
+                            "targetField": "close",
+                            "sourceExpression": "values.0",
+                            "csvColumnIndex": null,
+                            "dividerExpression": null,
+                            "required": true,
+                            "id": 13
+                        },
+                        {
+                            "idFieldMapping": 12,
+                            "targetField": "date",
+                            "sourceExpression": "x",
+                            "csvColumnIndex": null,
+                            "dividerExpression": null,
+                            "required": true,
+                            "id": 12
+                        },
+                        {
+                            "idFieldMapping": 39,
+                            "targetField": "open",
+                            "sourceExpression": "dddd",
+                            "csvColumnIndex": null,
+                            "dividerExpression": null,
+                            "required": true,
+                            "id": 39
+                        }
+                    ],
+                    "id": 3
+                },
+                {
+                    "idEndpoint": 4,
+                    "feedSupport": "FS_INTRA",
+                    "instrumentType": "SECURITY",
+                    "urlTemplate": "market/securities/{ticker}",
+                    "httpMethod": "GET",
+                    "responseFormat": "JSON",
+                    "numberFormat": "PLAIN",
+                    "dateFormatType": "ISO_DATE_TIME",
+                    "dateFormatPattern": null,
+                    "jsonDataStructure": "SINGLE_OBJECT",
+                    "jsonDataPath": null,
+                    "jsonStatusPath": null,
+                    "jsonStatusOkValue": null,
+                    "csvDelimiter": null,
+                    "csvSkipHeaderLines": 1,
+                    "htmlCssSelector": null,
+                    "htmlExtractMode": null,
+                    "htmlTextCleanup": null,
+                    "htmlExtractRegex": null,
+                    "htmlSplitDelimiter": null,
+                    "tickerBuildStrategy": "URL_EXTEND",
+                    "currencyPairSeparator": null,
+                    "currencyPairSuffix": null,
+                    "tickerUppercase": true,
+                    "maxDataPoints": null,
+                    "paginationEnabled": false,
+                    "endpointOptions": [],
+                    "fieldMappings": [
+                        {
+                            "idFieldMapping": 15,
+                            "targetField": "high",
+                            "sourceExpression": "askPricePoint",
+                            "csvColumnIndex": null,
+                            "dividerExpression": null,
+                            "required": false,
+                            "id": 15
+                        },
+                        {
+                            "idFieldMapping": 14,
+                            "targetField": "last",
+                            "sourceExpression": "lastPrice",
+                            "csvColumnIndex": null,
+                            "dividerExpression": null,
+                            "required": true,
+                            "id": 14
+                        },
+                        {
+                            "idFieldMapping": 16,
+                            "targetField": "low",
+                            "sourceExpression": "bidPricePoint",
+                            "csvColumnIndex": null,
+                            "dividerExpression": null,
+                            "required": false,
+                            "id": 16
+                        }
+                    ],
+                    "id": 4
+                }
+            ],
+            "httpHeaders": [],
+            "id": 2
+        },
+        "readableName": "OTC-X (Berner Kantonalbank)",
+        "description": {
+            "historicalDescription": null,
+            "intraDescription": null
+        },
+        "id": "gt.datafeed.otcx",
+        "shortID": "otcx",
+        "securitycurrencyFeedSupport": {
+            "FS_HISTORY": [
+                "SECURITY_URL"
+            ],
+            "FS_INTRA": [
+                "SECURITY_URL"
+            ]
+        }
+    },

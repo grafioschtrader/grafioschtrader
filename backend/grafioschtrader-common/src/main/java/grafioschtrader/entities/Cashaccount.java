@@ -15,6 +15,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 
 @Schema(description = "Contains the base data of a security or cash account")
@@ -37,6 +38,13 @@ public class Cashaccount extends Securitycashaccount implements Serializable {
   @JsonIgnore
   @OneToMany(mappedBy = "cashaccount", fetch = FetchType.LAZY)
   private List<Transaction> transactionList;
+
+  @Schema(description = """
+      Annual borrowing rate in percent for overdraft control. NULL means the account may not have a negative
+      balance. A value >= 0 means the account can be overdrawn at the specified annual interest rate.""")
+  @DecimalMin("0.0")
+  @Column(name = "borrowing_rate")
+  private Double borrowingRate;
 
   @Schema(description = """
       This 'Deposit' input field should only contain a value if there are multiple deposits within a tenant.
@@ -74,6 +82,14 @@ public class Cashaccount extends Securitycashaccount implements Serializable {
     this.transactionList = transactionList;
   }
 
+  public Double getBorrowingRate() {
+    return borrowingRate;
+  }
+
+  public void setBorrowingRate(Double borrowingRate) {
+    this.borrowingRate = borrowingRate;
+  }
+
   public Integer getConnectIdSecurityaccount() {
     return connectIdSecurityaccount;
   }
@@ -96,6 +112,7 @@ public class Cashaccount extends Securitycashaccount implements Serializable {
       this.setCurrency(sourceCashaccount.getCurrency());
     }
     this.setNote(sourceCashaccount.getNote());
+    this.setBorrowingRate(sourceCashaccount.getBorrowingRate());
     this.setConnectIdSecurityaccount(sourceCashaccount.connectIdSecurityaccount);
   }
 

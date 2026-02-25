@@ -19,6 +19,7 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
 import {HelpIds} from '../../lib/help/help.ids';
+import {StandingOrderCallParam} from '../../standingorder/model/standing.order.call.param';
 
 
 /**
@@ -58,8 +59,17 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
   /** Controls visibility of the connect debit/credit transaction dialog */
   visibleConnectDebitCreditDialog = false;
 
+  /** Controls visibility of the cashaccount standing order edit dialog */
+  visibleStandingOrderCashaccountDialog = false;
+
+  /** Controls visibility of the security standing order edit dialog */
+  visibleStandingOrderSecurityDialog = false;
+
   /** Parameters passed to transaction editing dialogs */
   transactionCallParam: TransactionCallParam;
+
+  /** Parameters passed to standing order creation dialog */
+  standingOrderCallParam: StandingOrderCallParam;
 
   /** Maintains page position and selected row state for table navigation */
   pageFirstRowSelectedRow: PageFirstRowSelectedRow;
@@ -113,6 +123,28 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    */
   handleConnectDebitCreditTransaction(transaction: Transaction): void {
     this.visibleConnectDebitCreditDialog = true;
+  }
+
+  /**
+   * Opens the appropriate standing order creation dialog pre-filled with data from the selected transaction.
+   * @param transaction The transaction to use as template for the standing order
+   */
+  handleCreateStandingOrderFromTransaction(transaction: Transaction): void {
+    this.standingOrderCallParam = new StandingOrderCallParam(null, transaction);
+    if (Transaction.isSecurityTransaction(transaction.transactionType)) {
+      this.visibleStandingOrderSecurityDialog = true;
+    } else if (Transaction.isWithdrawalOrDeposit(transaction.transactionType)) {
+      this.visibleStandingOrderCashaccountDialog = true;
+    }
+  }
+
+  /**
+   * Handles the closing of standing order creation dialogs.
+   * @param processedActionData The result data from the dialog operation
+   */
+  handleCloseStandingOrderDialog(processedActionData: ProcessedActionData): void {
+    this.visibleStandingOrderCashaccountDialog = false;
+    this.visibleStandingOrderSecurityDialog = false;
   }
 
   /**
@@ -299,6 +331,13 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
         command: (e) => (transaction) ? this.handleConnectDebitCreditTransaction(transaction) : null,
         disabled: !transaction || !transaction.idTransaction
           || !Transaction.isWithdrawalOrDeposit(transaction.transactionType) || !!transaction.connectedIdTransaction
+      });
+
+      menuItems.push({
+        label: 'CREATE|STANDING_ORDER',
+        command: (e) => (transaction) ? this.handleCreateStandingOrderFromTransaction(transaction) : null,
+        disabled: !transaction || !transaction.idTransaction
+          || !(Transaction.isSecurityTransaction(transaction.transactionType) || Transaction.isWithdrawalOrDeposit(transaction.transactionType))
       });
 
       TranslateHelper.translateMenuItems(menuItems, this.translateService);

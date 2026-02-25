@@ -5,6 +5,9 @@ export class BaseSettings {
 
   public static readonly GT_NET = 'GTNet';
 
+  /** Fallback value for the oldest trading day when sessionStorage is not yet populated (before login). */
+  public static readonly OLDEST_TRADING_DAY_FALLBACK = '2000-01-03';
+
   // Native formats
   public static readonly FORMAT_DATE_SHORT_NATIVE = 'YYYY-MM-DD';
   public static readonly FORMAT_DATE_SHORT_US: string  = 'YYYYMMDD';

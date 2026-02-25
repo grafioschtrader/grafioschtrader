@@ -243,6 +243,12 @@ export interface ValidationErrorEvent<T> {
                             class="p-button-rounded p-button-text">
                     </button>
                   }
+                  @if (!editing && canDeleteRowFn && canDeleteRowFn(rowData)) {
+                    <button pButton pRipple type="button" icon="pi pi-trash"
+                            (click)="onRowDeleteClick(rowData, ri)"
+                            class="p-button-rounded p-button-text p-button-danger">
+                    </button>
+                  }
                   @if (editing) {
                     <button pButton pRipple type="button" pSaveEditableRow
                             icon="pi pi-check"
@@ -320,7 +326,12 @@ export interface ValidationErrorEvent<T> {
                          (ngModelChange)="onFieldChange(field, rowData, $event)"
                          [dateFormat]="baseLocale.dateFormat"
                          [minDate]="field.cec?.minDate"
-                         [maxDate]="field.cec?.maxDate">
+                         [maxDate]="field.cec?.maxDate"
+                         dataType="date"
+                         selectionMode="single"
+                         [showOnFocus]="false"
+                         [showIcon]="true"
+                         appendTo="body">
             </p-datepicker>
           }
 
@@ -478,6 +489,9 @@ export class EditableTableComponent<T = any> implements OnChanges {
   /** Callback to determine if a specific row can be edited */
   @Input() canEditRowFn?: (row: T) => boolean;
 
+  /** Callback to determine if a specific row can be deleted. When set, shows a trash button per row. */
+  @Input() canDeleteRowFn?: (row: T) => boolean;
+
   /** Callback to validate row before saving. Return true if valid. */
   @Input() validateRowFn?: (row: T) => boolean;
 
@@ -551,6 +565,9 @@ export class EditableTableComponent<T = any> implements OnChanges {
 
   /** Emits when a new row is added via context menu */
   @Output() rowAdded = new EventEmitter<RowEditEvent<T>>();
+
+  /** Emits when a row delete button is clicked. Parent handles actual deletion logic. */
+  @Output() rowDelete = new EventEmitter<RowEditEvent<T>>();
 
   /** Emits when a field value changes during editing */
   @Output() fieldValueChange = new EventEmitter<FieldValueChangeEvent<T>>();
@@ -709,6 +726,11 @@ export class EditableTableComponent<T = any> implements OnChanges {
     this.cleanupRowState(rowKey);
 
     this.rowEditCancel.emit({ row, index });
+  }
+
+  /** Handles row delete button click */
+  onRowDeleteClick(row: T, index: number): void {
+    this.rowDelete.emit({ row, index });
   }
 
   /** Cleans up internal state for a row */

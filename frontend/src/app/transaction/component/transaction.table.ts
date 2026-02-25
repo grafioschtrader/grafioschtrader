@@ -73,6 +73,8 @@ export abstract class TransactionTable extends TransactionContextMenu {
       {width: 100, translateValues: TranslateValue.NORMAL, filterType: FilterType.withOptions});
     this.addColumn(DataType.String, 'security.name', AppSettings.SECURITY.toUpperCase(), true, false,
       {width: 150, filterType: FilterType.withOptions});
+    this.addColumnFeqH(DataType.NumericInteger, 'idStandingOrder', true, false,
+      {filterType: FilterType.likeDataType})
     this.addColumn(DataType.Numeric, 'units', 'QUANTITY', true, false,
       {filterType: FilterType.likeDataType});
     this.addColumn(DataType.Numeric, 'quotation', 'QUOTATION_DIV', true, false,

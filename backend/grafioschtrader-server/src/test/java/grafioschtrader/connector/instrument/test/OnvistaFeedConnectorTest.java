@@ -36,20 +36,19 @@ class OnvistaFeedConnectorTest extends BaseFeedConnectorCheck {
   @Override
   protected List<SecurityHistoricalDate> getHistoricalSecurities(HistoricalIntra histroricalIntra) {
     List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
+    String toDate = "2026-02-09";
     try {
       hisoricalDate.add(new SecurityHistoricalDate("Siemens", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
-          "STOCK/82902/eod_history?idNotation=1929749", 6084, "2000-01-03", "2023-12-08"));
+          "STOCK/82902/eod_history?idNotation=1929749", 6631, "2000-01-03", toDate));
       hisoricalDate.add(new SecurityHistoricalDate("iShares Core DAX", SpecialInvestmentInstruments.ETF,
-          "FUND/3567527/eod_history?idNotation=28520648", 3734, "2009-04-06", "2023-12-08"));
+          "FUND/3567527/eod_history?idNotation=28520648", 4281, "2009-04-06", toDate));
       hisoricalDate
           .add(new SecurityHistoricalDate("BGF World Energy Fund I2 USD", SpecialInvestmentInstruments.MUTUAL_FUND,
-              "FUND/20982583/eod_history?idNotation=26071169", 3394, "2008-11-18", "2023-12-08"));
+              "FUND/20982583/eod_history?idNotation=26071169", 5106, "2008-11-18", toDate));
       hisoricalDate.add(new SecurityHistoricalDate("Amazon", SpecialInvestmentInstruments.MUTUAL_FUND,
-          "STOCK/90929/eod_history?idNotation=9386187", 4889, "2004-03-17", "2023-12-08"));
-      hisoricalDate.add(new SecurityHistoricalDate("Autoneum Holding AG SF-Anl. 2017(25)",
-          SpecialInvestmentInstruments.DIRECT_INVESTMENT, "BOND/130304815/eod_history?idNotation=202439144", 1265,
-          "2017-12-06", "2023-12-08"));
-
+          "STOCK/90929/eod_history?idNotation=9386187", 5436, "2004-03-17", toDate));
+      hisoricalDate.add(new SecurityHistoricalDate("Luzerner Kantonalbank AG SF-Anl. 2021(29/31)", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
+          "BOND/197305892/eod_history?idNotation=334772886", 723, "2021-05-12", toDate));
     } catch (ParseException pe) {
       pe.printStackTrace();
     }

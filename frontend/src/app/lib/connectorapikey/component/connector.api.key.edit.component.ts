@@ -14,6 +14,7 @@ import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../helper/select.options.helper';
 import {TranslateHelper} from '../../helper/translate.helper';
 import {Subscription} from 'rxjs';
+import {Validators} from '@angular/forms';
 import {BaseSettings} from '../../base.settings';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 
@@ -56,7 +57,7 @@ export class ConnectorApiKeyEditComponent extends SimpleEntityEditBase<Connector
       4, this.helpLink.bind(this));
     this.config = [
       DynamicFieldHelper.createFieldSelectStringHeqF('idProvider', true),
-      DynamicFieldHelper.createFieldSelectStringHeqF('subscriptionType', true),
+      DynamicFieldHelper.createFieldSelectStringHeqF('subscriptionType', false),
       DynamicFieldHelper.createFieldInputStringHeqF('apiKey', 64, true, {minLength: 10}),
       DynamicFieldHelper.createSubmitButton()
     ];
@@ -70,13 +71,28 @@ export class ConnectorApiKeyEditComponent extends SimpleEntityEditBase<Connector
     if (this.connectorApiKey) {
       this.form.transferBusinessObjectToForm(this.connectorApiKey);
       this.configObject.idProvider.formControl.disable();
+      this.updateSubscriptionTypeVisibility(this.connectorApiKey.idProvider);
     }
   }
 
   valueChangedOnIdProvider(): void {
     this.idProviderChangedSub = this.configObject.idProvider.formControl.valueChanges.subscribe(selection => {
       this.configObject.subscriptionType.valueKeyHtmlOptions = this.subscriptionTypeOptionsMap[selection];
+      this.updateSubscriptionTypeVisibility(selection);
     });
+  }
+
+  private updateSubscriptionTypeVisibility(providerId: string): void {
+    const options = this.subscriptionTypeOptionsMap[providerId];
+    if (!options || options.length === 0) {
+      this.configObject.subscriptionType.invisible = true;
+      this.configObject.subscriptionType.formControl.clearValidators();
+      this.configObject.subscriptionType.formControl.setValue(null);
+    } else {
+      this.configObject.subscriptionType.invisible = false;
+      this.configObject.subscriptionType.formControl.setValidators(Validators.required);
+    }
+    this.configObject.subscriptionType.formControl.updateValueAndValidity();
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): ConnectorApiKey {

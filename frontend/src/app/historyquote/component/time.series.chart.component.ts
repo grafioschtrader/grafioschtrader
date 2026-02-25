@@ -57,6 +57,7 @@ import {ContextMenu} from 'primeng/contextmenu';
 import {IndicatorEditComponent} from './indicator-edit.component';
 import {UserChartShapeService} from '../service/user.chart.shape.service';
 import {debounceTime} from 'rxjs/operators';
+import {GlobalSessionNames} from '../../lib/global.session.names';
 
 declare let Plotly: any;
 
@@ -150,7 +151,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   @ViewChild('container', {static: true}) container: ElementRef;
   @ViewChild('chart', {static: true}) chartElement: ElementRef;
 
-  startDate = new Date('2000-01-03');
+  startDate = new Date(sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK);
   endDate = new Date();
   fromDate: Date;
   oldestTradeDate: number;
@@ -1055,7 +1056,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     if (!this.fromDate || this.loadedData.length === 1 || this.oldestDate.getTime() > this.fromDate.getTime()) {
       this.fromDate = this.oldestDate;
     }
-    this.startDate = this.oldestDate ? new Date(this.oldestDate) : new Date('2000-01-03');
+    this.startDate = this.oldestDate ? new Date(this.oldestDate) : new Date(sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK);
     this.endDate = this.youngestDate ? new Date(this.youngestDate) : new Date();
   }
 

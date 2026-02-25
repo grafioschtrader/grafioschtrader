@@ -24,7 +24,9 @@ import jakarta.annotation.PostConstruct;
 @EnableAsync
 @EntityScan(basePackages = { "grafiosch.entities", "grafioschtrader.entities" })
 @ComponentScan(basePackages = { "grafiosch", "grafioschtrader" }, excludeFilters = {
-    @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = GrafioschtraderApplication.class) })
+    @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = GrafioschtraderApplication.class),
+    @ComponentScan.Filter(type = FilterType.REGEX, pattern = "grafiosch\\.gtnet\\.handler\\..*"),
+    @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = grafiosch.gtnet.GTNetLifecycleListener.class) })
 
 // Since Spring Boot 3.2 it requires and read this properties
 @PropertySource("classpath:application-test.properties")

@@ -9,11 +9,15 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import grafiosch.entities.User;
 import grafiosch.repository.BaseRepositoryImpl;
 import grafioschtrader.algo.strategy.model.AlgoLevelType;
 import grafioschtrader.algo.strategy.model.AlgoStrategyImplementationType;
+import grafioschtrader.algo.strategy.model.StrategyClassBindingDefinition;
 import grafioschtrader.algo.strategy.model.StrategyHelper;
+import grafioschtrader.algo.strategy.model.complex.StrategyConfigValidator;
 import grafioschtrader.entities.AlgoStrategy;
 
 public class AlgoStrategyJpaRepositoryImpl extends BaseRepositoryImpl<AlgoStrategy>
@@ -22,9 +26,23 @@ public class AlgoStrategyJpaRepositoryImpl extends BaseRepositoryImpl<AlgoStrate
   @Autowired
   private AlgoStrategyJpaRepository algoStrategyJpaRepository;
 
+  @Autowired
+  private ObjectMapper objectMapper;
+
   @Override
   public AlgoStrategy saveOnlyAttributes(AlgoStrategy algoStrategy, AlgoStrategy existingEntity,
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
+    if (algoStrategy.getStrategyConfig() != null) {
+      StrategyClassBindingDefinition scbd = StrategyHelper.getStrategyBindingMap()
+          .get(algoStrategy.getAlgoStrategyImplementations());
+      if (scbd != null && scbd.complexConfigClass != null) {
+        try {
+          StrategyConfigValidator.parseAndValidate(algoStrategy.getStrategyConfig(), objectMapper);
+        } catch (Exception e) {
+          throw new IllegalArgumentException(e.getMessage(), e);
+        }
+      }
+    }
     return algoStrategyJpaRepository.save(algoStrategy);
   }
 
@@ -41,10 +59,10 @@ public class AlgoStrategyJpaRepositoryImpl extends BaseRepositoryImpl<AlgoStrate
   @Override
   public Set<AlgoStrategyImplementationType> getUnusedStrategiesForManualAdding(Integer idAlgoAssetclassSecurity) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    String algoLevel = algoStrategyJpaRepository.getAlgoLevelType(idAlgoAssetclassSecurity, user.getIdTenant());
+    String algoLevel = algoStrategyJpaRepository.getAlgoLevelType(idAlgoAssetclassSecurity, user.getActualIdTenant());
     if (algoLevel != null) {
       List<AlgoStrategy> existingAlgoStrategies = algoStrategyJpaRepository
-          .findByIdAlgoAssetclassSecurityAndIdTenant(idAlgoAssetclassSecurity, user.getIdTenant());
+          .findByIdAlgoAssetclassSecurityAndIdTenant(idAlgoAssetclassSecurity, user.getActualIdTenant());
       Set<AlgoStrategyImplementationType> existingSet = existingAlgoStrategies.stream()
           .map(strategy -> strategy.getAlgoStrategyImplementations()).collect(Collectors.toSet());
       return StrategyHelper.getUnusedStrategiesForManualAdding(existingSet, AlgoLevelType.getAlgoLeveType(algoLevel));

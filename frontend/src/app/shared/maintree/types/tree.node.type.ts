@@ -17,9 +17,11 @@ export const TreeNodeType = {
   AssetClass: 'AssetClass',
   Stockexchange: 'Stockexchange',
   TradingPlatformPlan: 'TradingPlatformPlan',
+  GenericConnectorDef: 'GenericConnectorDef',
   ImpTransTemplate: 'ImpTransTemplate',
   UDFMetadataSecurity: 'UDFMetadataSecurity',
   GTNetSecurityImport: 'GTNetSecurityImport',
+  SimulationEnvironment: 'SimulationEnvironment',
   NO_MENU: 'NO_MENU'
 } as const;
 

@@ -5,7 +5,6 @@ import grafiosch.exportdelete.ExportDefinition;
 import grafiosch.exportdelete.ExportDefinition.TENANT_USER;
 import grafioschtrader.entities.AlgoAssetclass;
 import grafioschtrader.entities.AlgoAssetclassSecurity;
-import grafioschtrader.entities.AlgoRule;
 import grafioschtrader.entities.AlgoRuleStrategy;
 import grafioschtrader.entities.AlgoSecurity;
 import grafioschtrader.entities.AlgoStrategy;
@@ -26,6 +25,7 @@ import grafioschtrader.entities.ImportTransactionTemplate;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.SecurityDerivedLink;
+import grafioschtrader.entities.SecaccountTradingPeriod;
 import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.Securitycashaccount;
 import grafioschtrader.entities.Securitycurrency;
@@ -34,6 +34,10 @@ import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.entities.TradingDaysMinus;
 import grafioschtrader.entities.TradingDaysPlus;
 import grafioschtrader.entities.TradingPlatformPlan;
+import grafioschtrader.entities.StandingOrder;
+import grafioschtrader.entities.StandingOrderCashaccount;
+import grafioschtrader.entities.StandingOrderFailure;
+import grafioschtrader.entities.StandingOrderSecurity;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.entities.Watchlist;
@@ -46,16 +50,8 @@ import grafioschtrader.entities.Watchlist;
  * <li>mail* tables are not exported, they have a relation to others users</li>
  * <li>{@link grafiosch.entities.TaskDataChange} is not exported
  * </ul>
- *
- *
  */
 public class MyDataExportDeleteDefinition {
-  private static String ALGO_RULE_PARAM_2_DEL = String.format(
-      "ap FROM %s ap JOIN %s ars ON ap.id_algo_rule_strategy = ars.id_algo_rule_strategy WHERE ars.id_tenant = ?",
-      AlgoRule.ALGO_RULE_PARAM2, AlgoRuleStrategy.TABNAME);
-  private static String ALGO_RULE_DEL = String.format(
-      "ar FROM %s ar JOIN %s ars ON ar.id_algo_rule_strategy = ars.id_algo_rule_strategy WHERE ars.id_tenant = ?",
-      AlgoRuleStrategy.TABNAME, AlgoRuleStrategy.TABNAME);
   private static String ALGO_RULE_STRATEGY_PARAM_DEL = String.format(
       "ap FROM %s ap JOIN %s ars ON ap.id_algo_rule_strategy = ars.id_algo_rule_strategy WHERE ars.id_tenant = ?",
       AlgoRuleStrategy.ALGO_RULE_STRATEGY_PARAM, AlgoRuleStrategy.TABNAME);
@@ -201,6 +197,18 @@ public class MyDataExportDeleteDefinition {
   private static String UDF_METADATA_SECUIRTY_SELDEL = String.format(
       " ums.* FROM %s ums JOIN %s m ON ums.id_udf_metadata = m.id_udf_metadata WHERE m.id_user = ?",
       UDFMetadataSecurity.TABNAME, UDFMetadata.TABNAME);
+  private static String SECACCOUNT_TRADING_PERIOD_SELDEL = String.format(
+      "stp.* FROM %s stp JOIN %s sc ON stp.id_securitycash_account = sc.id_securitycash_account WHERE sc.id_tenant = ?",
+      SecaccountTradingPeriod.TABNAME, Securitycashaccount.TABNAME);
+  private static String STANDING_ORDER_CASHACCOUNT_SELDEL = String.format(
+      "soc.* FROM %s soc JOIN %s so ON soc.id_standing_order = so.id_standing_order WHERE so.id_tenant = ?",
+      StandingOrderCashaccount.TABNAME, StandingOrder.TABNAME);
+  private static String STANDING_ORDER_SECURITY_SELDEL = String.format(
+      "sos.* FROM %s sos JOIN %s so ON sos.id_standing_order = so.id_standing_order WHERE so.id_tenant = ?",
+      StandingOrderSecurity.TABNAME, StandingOrder.TABNAME);
+  private static String STANDING_ORDER_FAILURE_SELDEL = String.format(
+      "sof.* FROM %s sof JOIN %s so ON sof.id_standing_order = so.id_standing_order WHERE so.id_tenant = ?",
+      StandingOrderFailure.TABNAME, StandingOrder.TABNAME);
 
   /*
    * The order should only be changed carefully. Otherwise, the foreign key relationships can lead to errors.
@@ -226,6 +234,8 @@ public class MyDataExportDeleteDefinition {
       new ExportDefinition(Securitycashaccount.TABNAME, TENANT_USER.ID_TENANT, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       new ExportDefinition(Cashaccount.TABNAME, TENANT_USER.NONE, CASHACCOUNT_SELDEL,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      new ExportDefinition(SecaccountTradingPeriod.TABNAME, TENANT_USER.NONE, SECACCOUNT_TRADING_PERIOD_SELDEL,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       new ExportDefinition(Securityaccount.TABNAME, TENANT_USER.ID_TENANT, SECURITYACCOUNT_SELDEL,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
@@ -254,6 +264,15 @@ public class MyDataExportDeleteDefinition {
       new ExportDefinition(Watchlist.TABNAME, TENANT_USER.ID_TENANT, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       new ExportDefinition(Watchlist.TABNAME_SEC_CUR, TENANT_USER.NONE, WATCHLIST_SEC_CUR_SELDEL,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      // Standing orders — child tables before parent for delete (array runs backwards on delete)
+      new ExportDefinition(StandingOrderCashaccount.TABNAME, TENANT_USER.NONE,
+          STANDING_ORDER_CASHACCOUNT_SELDEL, ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      new ExportDefinition(StandingOrderSecurity.TABNAME, TENANT_USER.NONE,
+          STANDING_ORDER_SECURITY_SELDEL, ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      new ExportDefinition(StandingOrderFailure.TABNAME, TENANT_USER.NONE,
+          STANDING_ORDER_FAILURE_SELDEL, ExportDefinition.DELETE_USE),
+      new ExportDefinition(StandingOrder.TABNAME, TENANT_USER.ID_TENANT, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       new ExportDefinition(Transaction.TABNAME, TENANT_USER.ID_TENANT, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
@@ -285,11 +304,8 @@ public class MyDataExportDeleteDefinition {
       new ExportDefinition(AlgoSecurity.TABNAME, TENANT_USER.ID_TENANT, ALGO_SECURITY_DEL, ExportDefinition.DELETE_USE),
       new ExportDefinition(AlgoRuleStrategy.TABNAME, TENANT_USER.ID_TENANT, null, ExportDefinition.DELETE_USE),
       new ExportDefinition(AlgoStrategy.TABNAME, TENANT_USER.ID_TENANT, ALGO_STRATEGY_DEL, ExportDefinition.DELETE_USE),
-      new ExportDefinition(AlgoRule.TABNAME, TENANT_USER.ID_TENANT, ALGO_RULE_DEL, ExportDefinition.DELETE_USE),
       new ExportDefinition(AlgoRuleStrategy.ALGO_RULE_STRATEGY_PARAM, TENANT_USER.ID_TENANT,
-          ALGO_RULE_STRATEGY_PARAM_DEL, ExportDefinition.DELETE_USE),
-      new ExportDefinition(AlgoRule.ALGO_RULE_PARAM2, TENANT_USER.ID_TENANT, ALGO_RULE_PARAM_2_DEL,
-          ExportDefinition.DELETE_USE)
+          ALGO_RULE_STRATEGY_PARAM_DEL, ExportDefinition.DELETE_USE)
 
   };
 

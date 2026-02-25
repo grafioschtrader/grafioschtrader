@@ -35,6 +35,25 @@ The frontend should only contain:
 - Matching/comparison algorithms
 - Business rule enforcement beyond simple validation
 
+## Component Separation: Form Inputs + Table
+
+**CRITICAL**: Never combine form inputs (dropdowns, checkboxes, etc.) and a data table into a single monolithic component. Always split them:
+
+1. **Parent component** — Uses `dynamic-form` (with `{nonModal: true}`) for input controls (dropdowns, checkboxes, etc.). Handles data loading and passes results to the child. For summary/statistics display, extend `ShowRecordConfigBase` and use `getValueByPath()` with `ColumnConfig`.
+2. **Child table component** — Extends `TableConfigBase` (or appropriate base class). Receives data via `@Input()` and implements `OnChanges`. All column definitions, sorting, filtering, and translated value stores belong here.
+
+This separation ensures that the table gets proper sorting, filtering, column visibility, and translated value support from its base class. Mixing form logic with table logic in one component leads to missing functionality and violations of GT's data type formatting patterns.
+
+**Reference pattern**: `SingleRecordMasterViewBase` + child table (e.g., `SecurityaccountImportTransactionComponent` + `SecurityaccountImportTransactionTableComponent`).
+
+**Data flow**:
+```
+Parent: dynamic-form input changes → loadData() → response received
+  → pass details to child via @Input() binding
+  → display summary stats in fieldsets using ShowRecordConfigBase.createColumnConfig() + getValueByPath()
+Child: @Input() data changes → ngOnChanges → createTranslatedValueStore(data)
+```
+
 ## PrimeNG Table and Tree Components
 
 ### Mandatory Base Class Inheritance
@@ -45,6 +64,7 @@ Components that use PrimeNG tables (`p-table`) or trees (`p-tree`, `p-treeTable`
 |------------|----------|
 | `ShowRecordConfigBase` | Single record display or simple dialog tables without sorting/filtering needs |
 | `TableConfigBase` | **Standalone table view components** - tables with filtering, sorting, column visibility, user settings persistence |
+| `TableEditConfigBase` | **Editable table components** using `EditableTableComponent` - provides `addEditColumnFeqH()`, sorting, translated values |
 | `TableCrudSupportMenu` | Full CRUD tables with context menus, dialogs, and entity management |
 | `TableTreetableTotalBase` | Tables or tree-tables with total/subtotal calculations |
 
@@ -57,6 +77,54 @@ Components that use PrimeNG tables (`p-table`) or trees (`p-tree`, `p-treeTable`
 3. **Value Formatting**: `getValueByPath()` handles data type formatting, translations, and custom value functions
 4. **User Settings**: Column visibility and table configurations can be persisted to LocalStorage
 5. **Consistency**: All tables in the application follow the same patterns
+
+### Always Use GT Data Types for Value Formatting
+
+**CRITICAL**: All displayed/formatted values — whether in tables, summary statistics, single record views, or any other context — **MUST** use Grafioschtrader's data type infrastructure (`ColumnConfig`, `DataType`, `getValueByPath`). **Never** use raw Angular pipes (`| number`, `| percent`, `| currency`, `| date`) for formatting calculated or data-driven values.
+
+**Why**: GT's formatting system (`AppHelper.getValueByPathWithField()`) provides locale-aware number/date formatting consistent across the entire application. Raw Angular pipes bypass this and produce inconsistent formatting.
+
+**Pattern for values outside tables** (e.g., summary statistics displayed above/below a table):
+
+1. Create standalone `ColumnConfig` objects using `ShowRecordConfigBase.createColumnConfig()` with the appropriate `DataType`
+2. Translate the headers manually via `translateService.get()`
+3. Display using `getValueByPath(dataObject, columnConfig)` in the template
+
+```typescript
+// In the component class
+summaryFields: ColumnConfig[] = [];
+
+private initSummaryFields(): void {
+  this.summaryFields = [
+    ShowRecordConfigBase.createColumnConfig(DataType.String, 'planName', 'PLAN'),
+    ShowRecordConfigBase.createColumnConfig(DataType.NumericInteger, 'totalCount', 'TOTAL'),
+    ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'averageValue', 'AVERAGE_VALUE'),
+  ];
+  const headerKeys = this.summaryFields.map(f => f.headerKey);
+  this.translateService.get(headerKeys).subscribe(translations => {
+    this.summaryFields.forEach(f => f.headerTranslated = translations[f.headerKey]);
+  });
+}
+```
+
+```html
+<!-- In the template -->
+@for (sf of summaryFields; track sf.field) {
+  <span><strong>{{ sf.headerTranslated }}:</strong> {{ getValueByPath(responseData, sf) }}</span>
+}
+```
+
+**DO**:
+```typescript
+ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'meanError', 'MEAN_ERROR')
+// then: {{ getValueByPath(response, field) }}
+```
+
+**DON'T**:
+```html
+{{ response.meanError | number:'1.2-2' }}
+{{ response.totalCount | number:'1.0-0' }}
+```
 
 ### Using ConfigurableTableComponent
 
@@ -98,30 +166,113 @@ this.createTranslatedValueStore(this.entityList);
 - `prepareTableAndTranslate()` has been called
 - Data is available
 
+### Dropdown Selection Filters (FilterType.withOptions)
+
+**CRITICAL**: Columns using `FilterType.withOptions` require **three method calls** after data loads. Missing any step results in an empty or broken dropdown.
+
+| Step | Method | Purpose |
+|------|--------|---------|
+| 1 | `createTranslatedValueStoreAndFilterField(data)` | Builds `translatedValueMap` on columns with `translateValues`, creates `field$` properties |
+| 2 | `prepareFilter(data)` | Populates `field.filterValues` (the `ValueLabelHtmlSelectOptions[]`) that the `<p-select>` dropdown reads |
+
+Without `prepareFilter(data)`, the dropdown renders but has **no options**.
+
+**Column definition** — use `FilterType.withOptions` and, for enum columns, `TranslateValue.NORMAL`:
+
+```typescript
+// Translated enum values → dropdown shows translated labels
+this.addColumnFeqH(DataType.String, 'transactionType', true, false,
+  {translateValues: TranslateValue.NORMAL, filterType: FilterType.withOptions});
+
+// Plain string values → dropdown shows unique values from data
+this.addColumn(DataType.String, 'cashaccount.name', 'CASHACCOUNT', true, false,
+  {filterType: FilterType.withOptions});
+
+// Text input filter (not a dropdown)
+this.addColumnFeqH(DataType.String, 'securityName', true, false,
+  {filterType: FilterType.likeDataType});
+```
+
+**How `prepareFilter` works internally**: For translated columns, it reads `field.translatedValueMap` (built by `createTranslatedValueStore`) and creates sorted dropdown options with translated labels. For plain string columns, it extracts unique values from the data. In both cases it populates `field.filterValues` which the template's `<p-select>` binds to.
+
 In components using `OnChanges` with `@Input()` data, note that `ngOnChanges` is called **before** `ngOnInit`. Use a flag to ensure proper ordering:
 
 ```typescript
 private fieldsInitialized = false;
 
-ngOnChanges(changes: SimpleChanges): void {
-  if (changes['data'] && this.data) {
-    // Only create translated value store if fields have been initialized
-    if (this.fieldsInitialized) {
-      this.createTranslatedValueStore(this.data);
-    }
-  }
-}
-
-ngOnInit(): void {
-  this.addColumn(...);
+constructor(...) {
+  super(...);
+  this.addColumnFeqH(DataType.String, 'status', true, false,
+    {translateValues: TranslateValue.NORMAL, filterType: FilterType.withOptions});
+  // ... more columns ...
   this.prepareTableAndTranslate();
   this.fieldsInitialized = true;
+}
 
-  // If data was already provided before ngOnInit, create translated value store now
-  if (this.data?.length > 0) {
-    this.createTranslatedValueStore(this.data);
+ngOnChanges(changes: SimpleChanges): void {
+  if (changes['data'] && this.data && this.fieldsInitialized) {
+    this.createTranslatedValueStoreAndFilterField(this.data);
+    this.prepareFilter(this.data);
   }
 }
+```
+
+### Using EditableTableComponent
+
+**CRITICAL**: Components that use `EditableTableComponent` **MUST** be implemented as a **separate component** extending `TableEditConfigBase`. Do NOT embed `EditableTableComponent` directly in a dialog component or any component that does not extend a table base class. Without the proper base class:
+- **Sorting will not work** — `EditableTableComponent` uses `enableCustomSort = true` by default, which requires a `customSortFn` callback. `TableConfigBase.customSort()` provides this.
+- **Translated enum values will not sort correctly** — the base class `getValueByPath()` resolves translated values for sorting
+- **`createTranslatedValueStoreAndFilterField()` is unavailable** — enum columns will show raw keys instead of translated text
+
+**Required pattern**: Create a standalone component that extends `TableEditConfigBase`, define columns with `addEditColumnFeqH()`, and bind `[customSortFn]="customSort.bind(this)"` and `[valueGetterFn]="getValueByPath.bind(this)"`:
+
+```typescript
+@Component({
+  selector: 'my-editable-table',
+  template: `
+    <editable-table #entityTable
+      [data]="items" [fields]="fields" dataKey="id"
+      [batchMode]="true" [startInEditMode]="true"
+      [valueGetterFn]="getValueByPath.bind(this)"
+      [customSortFn]="customSort.bind(this)"
+      [baseLocale]="baseLocale">
+    </editable-table>
+  `,
+  standalone: true,
+  imports: [EditableTableComponent]
+})
+export class MyEditableTableComponent extends TableEditConfigBase {
+  constructor(filterService: FilterService, usersettingsService: UserSettingsService,
+              translateService: TranslateService, gps: GlobalparameterService) {
+    super(filterService, usersettingsService, translateService, gps);
+    // Define columns here using addEditColumnFeqH()
+    this.prepareTableAndTranslate();
+  }
+}
+```
+
+**Reference implementations**:
+- `TradingPeriodTableComponent` — batch-mode editable table embedded in a dialog
+- `MailForwardSettingTableEditComponent` — standalone editable table with row-by-row save and `IGlobalMenuAttach`
+
+### Prefer addColumnFeqH over addColumn
+
+Just as `DynamicFieldHelper` provides `*HeqF` methods for form fields, `ShowRecordConfigBase` provides `addColumnFeqH` for table columns. It derives the header/translation key automatically from the field name using the same `UPPER_SNAKE_CASE` conversion.
+
+**Rule**: **Always use `addColumnFeqH` by default.** Only use `addColumn` with an explicit header key when:
+- The field uses a **dotted path** (e.g., `cashaccount.name`) where the derived key would be wrong (`NAME` instead of `CASHACCOUNT`)
+- There is a **conflict** with an existing NLS key that has a different meaning
+
+```typescript
+// DEFAULT: Use addColumnFeqH — header key auto-derived from field name
+this.addColumnFeqH(DataType.Numeric, 'cashaccountAmount', true, false);    // → 'CASHACCOUNT_AMOUNT'
+this.addColumnFeqH(DataType.DateString, 'validFrom', true, false);         // → 'VALID_FROM'
+this.addColumnFeqH(DataType.String, 'transactionType', true, false,        // → 'TRANSACTION_TYPE'
+  {translateValues: TranslateValue.NORMAL});
+
+// EXCEPTION: Dotted paths — derived key strips prefix (cashaccount.name → 'NAME'), so use explicit key
+this.addColumn(DataType.String, 'cashaccount.name', 'CASHACCOUNT', true, false);
+this.addColumn(DataType.String, 'security.name', 'SECURITY', true, false);
 ```
 
 ## PrimeNG Button Patterns (PrimeNG 17+)
@@ -364,6 +515,19 @@ export class MyTableDialogComponent extends ShowRecordConfigBase {
 
 **Rule**: **Always use `*HeqF` methods by default.** If the required NLS key doesn't exist, create it in the translation files. Only use standard methods with explicit header keys when there is a **conflict with an existing NLS key that has a different meaning**.
 
+### Textarea vs Input: Use Textarea for maxLength > 80
+
+**Rule**: When a string field has `maxLength > 80`, use `createFieldTextareaInputString*` instead of `createFieldInputString*`. A single-line input becomes too narrow for long values; a textarea gives the user room to see and edit the full content.
+
+```typescript
+// maxLength <= 80 → single-line input
+DynamicFieldHelper.createFieldInputStringHeqF('shortId', 32, true)
+
+// maxLength > 80 → textarea
+DynamicFieldHelper.createFieldTextareaInputStringHeqF('readableName', 100, true)
+DynamicFieldHelper.createFieldTextareaInputStringHeqF('domainUrl', 255, true)
+```
+
 ### Field Name to Header Key Conversion
 
 | Field Name | Derived Header Key |
@@ -421,11 +585,12 @@ The `usedLayoutColumns` option controls field width using a 12-column grid syste
 - **6**: Half width (two fields per row)
 - **4**: One-third width (three fields per row)
 
-**Rule**: Only use `usedLayoutColumns` in **non-modal views** where multiple fields should appear side-by-side. **Never use it in modal dialogs** - dialogs should use full-width fields (omit the option).
+**Rule**: Only use `usedLayoutColumns` in **non-modal views** where multiple fields should appear side-by-side. **Do not use it in modal dialogs** — with one exception: **InputButton fields** (created via `createFieldInputButtonHeqF`) should share a line with the input they belong to, even in dialogs. Place the InputButton field directly after its associated input and give both `usedLayoutColumns: 6`.
 
 | Context | usedLayoutColumns | Example |
 |---------|-------------------|---------|
 | Modal dialog (`<p-dialog>`) | **Omit** (full width) | `HistoryquoteDeleteDialogComponent` |
+| Modal dialog with InputButton | `6` for the input + `6` for the InputButton | `StandingOrderSecurityEditComponent` |
 | Non-modal view with `formConfig: {nonModal: true}` | `6` for side-by-side | `GTNetSecurityImportComponent` |
 | Master view with dropdown + note | `6` for both fields | `SecurityaccountImportTransactionComponent` |
 
@@ -576,6 +741,10 @@ Adding a translation for a component in `src/app/lib/globalsettings/`:
 - Use UPPER_SNAKE_CASE for keys
 - Add tooltip translations with `_TOOLTIP` suffix (e.g., `FIELD_NAME_TOOLTIP`)
 - Both `en.json` and `de.json` must be updated together
+
+### Backend-Frontend NLS Key Correspondence
+
+Backend `.properties` files use `dot.separated.lowercase` keys (e.g., `reference.date=Reference date`), while frontend `.json` files use `UPPER_SNAKE_CASE` keys (e.g., `"REFERENCE_DATE": "Reference date"`). These are independent translation systems — the backend resolves keys server-side via `MessageSource`, and the frontend resolves keys client-side via `TranslateService`. Not all backend field labels need frontend counterparts; some only appear in server-side error messages sent as pre-translated strings.
 
 ## IGlobalMenuAttach Interface Pattern
 

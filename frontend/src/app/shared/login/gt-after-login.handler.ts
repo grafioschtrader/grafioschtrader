@@ -26,6 +26,9 @@ export class GtAfterLoginHandler extends AfterLoginHandler {
     // Store tenant-level closed-until date for transaction period locking
     sessionStorage.setItem(GlobalGTSessionNames.TENANT_CLOSED_UNTIL, configurationWithLogin.tenantClosedUntil || '');
 
+    // Store earliest trading day supported by the backend
+    sessionStorage.setItem(GlobalSessionNames.OLDEST_TRADING_DAY, configurationWithLogin.oldestTradingDay);
+
     BaseSettings.resetInterFractionLimit(AppSettings, GlobalSessionNames.STANDARD_CURRENCY_PRECISIONS_AND_LIMITS);
   }
 }

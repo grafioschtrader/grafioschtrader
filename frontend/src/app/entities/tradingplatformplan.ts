@@ -8,6 +8,7 @@ export class TradingPlatformPlan extends Auditable implements BaseID {
   platformPlanNameNLS: MultilanguageString = new MultilanguageString();
   transactionFeePlan: string = null;
   importTransactionPlatform: ImportTransactionPlatform;
+  feeModelYaml?: string = null;
 
   public override getId(): number {
     return this.idTradingPlatformPlan;

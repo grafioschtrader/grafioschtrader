@@ -28,4 +28,5 @@ export class AlgoCallParam {
 export class AlgoStrategyParamCall {
   algoStrategy: AlgoStrategy;
   fieldDescriptorShow: FieldDescriptorInputAndShow[];
+  isComplexStrategy: boolean;
 }

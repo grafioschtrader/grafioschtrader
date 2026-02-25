@@ -22,6 +22,26 @@ public interface HoldSecurityaccountSecurityJpaRepository
   @UpdateQuery(value = "DELETE FROM hold_securityaccount_security WHERE id_securitycash_account = ?1", nativeQuery = true)
   void removeAllByIdSecuritycashAccount(Integer idSecuritycashAccount);
 
+  //@formatter:off
+  /**
+   * Retrieves all open security positions for a tenant at a given reference date.
+   * A position is considered open when the reference date falls within the hold period
+   * (from_hold_date &le; refDate and to_hold_date is null or &ge; refDate) and the holdings are non-zero.
+   *
+   * @param idTenant the tenant ID
+   * @param refDate  the reference date at which to evaluate positions
+   * @return a list of holding records with non-zero positions active at the reference date
+   */
+  //@formatter:on
+  @Query("""
+      SELECT hss FROM HoldSecurityaccountSecurity hss
+      WHERE hss.idTenant = :idTenant
+        AND hss.hssk.fromHoldDate <= :refDate
+        AND (hss.toHoldDate IS NULL OR hss.toHoldDate >= :refDate)
+        AND hss.hodlings <> 0""")
+  List<HoldSecurityaccountSecurity> findOpenPositionsAtDate(@Param("idTenant") Integer idTenant,
+      @Param("refDate") LocalDate refDate);
+
   void deleteByHsskIdSecuritycashAccountAndHsskIdSecuritycurrency(Integer idSecuritycashAccount,
       Integer idSecuritycurrency);
 

@@ -2,6 +2,8 @@ package grafiosch.repository;
 
 import java.util.List;
 
+import org.springframework.data.jpa.repository.Query;
+
 import grafiosch.entities.GTNetEntity;
 
 /**
@@ -19,9 +21,11 @@ public interface GTNetEntityJpaRepository extends GTNetEntityJpaRepositoryBase {
    *
    * This method is specific to Grafioschtrader's trading functionality where entities
    * can be configured to accept or reject different types of data exchange requests.
+   * "Accepting" means acceptRequest > 0 (AC_OPEN or AC_PUSH_OPEN).
    *
    * @param entityKind the entity kind byte value (0=LAST_PRICE, 1=HISTORICAL_PRICES, etc.)
    * @return list of GTNetEntity entries that accept requests for the specified kind
    */
-  List<GTNetEntity> findByEntityKindAndAcceptRequestTrue(byte entityKind);
+  @Query("SELECT g FROM GTNetEntity g WHERE g.entityKind = ?1 AND g.acceptRequest > 0")
+  List<GTNetEntity> findByEntityKindAndAccepting(byte entityKind);
 }

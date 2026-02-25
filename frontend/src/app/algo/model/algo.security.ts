@@ -8,6 +8,7 @@ import {AlgoStrategyImplementationType} from '../../shared/types/algo.strategy.i
 
 export class AlgoSecurity extends AlgoAssetclassSecurity implements AlgoTreeName {
   idAlgoSecurityParent: number;
+  activatable: boolean = true;
   security: Security = null;
 
   @Exclude()

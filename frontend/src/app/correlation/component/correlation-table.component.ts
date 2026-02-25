@@ -38,6 +38,7 @@ import {TranslateModule} from '@ngx-translate/core';
 import {TableModule} from 'primeng/table';
 import {CorrelationAddInstrumentComponent} from './correlation-add-instrument.component';
 import {InstrumentStatisticsResultComponent} from '../../securitycurrency/component/instrument-statistics-result.component';
+import {GlobalSessionNames} from '../../lib/global.session.names';
 
 /**
  * This component serves as the main table view for correlation sets, displaying securities and currency pairs
@@ -553,7 +554,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    */
   private prepareCharDataAndSentToChart(crsArray: CorrelationRollingResult[]): void {
     let minDate = moment();
-    let maxDate = moment('2000-01-01');
+    let maxDate = moment(sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK);
     const legendTooltipMap = new Map<string, string>();
     crsArray.forEach(crs => {
       const traceName = this.getTickerOrName(crs.securitycurrencyList[0]) + '<->' + this.getTickerOrName(crs.securitycurrencyList[1]);

@@ -48,9 +48,12 @@ public enum TaskTypeExtended implements ITaskType {
   UDF_USER_0_FILL_PERSISTENT_FIELDS_WITH_VALUES((byte) 19),
   /** Resets retry counters (history and intra) for connector(s) on active instruments. */
   RESET_CONNECTOR_RETRY_COUNTERS((byte) 21),
+  /** Evaluates indicator-based algo alert conditions (MA crossing, RSI, expression) */
+  ALGO_ALARM_INDICATOR_EVALUATION((byte) 22),
   /** Imports securities from GTNet peers for GTNetSecurityImpHead positions */
   GTNET_SECURITY_IMPORT_POSITIONS((byte) 27),
-  
+   /** Processes due standing orders, creating transactions for the previous day */
+  STANDING_ORDER_EXECUTION((byte) 28),
 
   // Task which used oldValueNumber or oldValueString can not created by the admin
   ///////////////////////////////////////////////////////////////////////////////

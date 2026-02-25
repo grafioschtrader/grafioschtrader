@@ -12,14 +12,16 @@ public class InputAndShowDefinitionStrategy implements Serializable {
   public List<FieldDescriptorInputAndShow> topFormDefinitionList;
   public List<FieldDescriptorInputAndShow> assetclassFormDefinitionList;
   public List<FieldDescriptorInputAndShow> securityFormDefinitionList;
+  public boolean isComplexStrategy;
 
   public InputAndShowDefinitionStrategy(List<FieldDescriptorInputAndShow> topFormDefinitionList,
       List<FieldDescriptorInputAndShow> assetclassFormDefinitionList,
-      List<FieldDescriptorInputAndShow> securityFormDefinitionList) {
+      List<FieldDescriptorInputAndShow> securityFormDefinitionList, boolean isComplexStrategy) {
     super();
     this.topFormDefinitionList = topFormDefinitionList;
     this.assetclassFormDefinitionList = assetclassFormDefinitionList;
     this.securityFormDefinitionList = securityFormDefinitionList;
+    this.isComplexStrategy = isComplexStrategy;
   }
 
 }

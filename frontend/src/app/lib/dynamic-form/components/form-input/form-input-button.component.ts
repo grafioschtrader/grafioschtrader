@@ -4,6 +4,8 @@ import {BaseInputComponent} from '../base.input.component';
 import {ReactiveFormsModule} from '@angular/forms';
 import {TranslateModule} from '@ngx-translate/core';
 import {ButtonModule} from 'primeng/button';
+import {InputGroup} from 'primeng/inputgroup';
+import {InputGroupAddon} from 'primeng/inputgroupaddon';
 import {UpperCaseDirective} from './upper-case.directive';
 
 /**
@@ -13,7 +15,7 @@ import {UpperCaseDirective} from './upper-case.directive';
     selector: 'form-input-button',
   template: `
     <ng-container [formGroup]="group">
-      <div class="p-inputgroup">
+      <p-inputgroup>
         <input
           #input
           [style.background-color]="'white'"
@@ -30,19 +32,21 @@ import {UpperCaseDirective} from './upper-case.directive';
           [max]="config.max"
           [upperCase]="config.upperCase">
         @if (config.fieldSuffix) {
-          <span class="p-inputgroup-addon">{{config.fieldSuffix|translate}}</span>
+          <p-inputgroup-addon>{{config.fieldSuffix|translate}}</p-inputgroup-addon>
         }
         <button pButton type="button" [attr.disabled]="config.disabled"
                 (click)="config.buttonFN(config)">
           <i [class]="config.icon || 'pi pi-search'" pButtonIcon></i>
         </button>
-      </div>
+      </p-inputgroup>
     </ng-container>
   `,
     imports: [
     ReactiveFormsModule,
     TranslateModule,
     ButtonModule,
+    InputGroup,
+    InputGroupAddon,
     UpperCaseDirective
 ],
     standalone: true

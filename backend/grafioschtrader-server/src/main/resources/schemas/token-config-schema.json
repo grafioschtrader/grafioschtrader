@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Token Acquisition Configuration",
+  "description": "Configures automatic token acquisition for APIs requiring SAML/SSO or similar auth flows.",
+  "type": "object",
+  "required": ["seed", "login", "ttlSeconds"],
+  "additionalProperties": false,
+  "properties": {
+    "seed": { "$ref": "#/$defs/SeedConfig" },
+    "login": { "$ref": "#/$defs/LoginConfig" },
+    "refresh": { "$ref": "#/$defs/RefreshConfig" },
+    "ttlSeconds": {
+      "type": "integer",
+      "minimum": 10,
+      "description": "Token lifetime in seconds. Use a value slightly less than actual expiry."
+    }
+  },
+  "$defs": {
+    "SeedConfig": {
+      "type": "object",
+      "required": ["url", "regex"],
+      "additionalProperties": false,
+      "properties": {
+        "url": { "type": "string", "description": "URL to GET for seed HTML page" },
+        "regex": { "type": "string", "description": "Regex with capture group(1) to extract value from HTML" }
+      }
+    },
+    "LoginConfig": {
+      "type": "object",
+      "required": ["url", "body", "jwtPath"],
+      "additionalProperties": false,
+      "properties": {
+        "url": { "type": "string", "description": "Full URL to POST for initial login" },
+        "body": { "type": "string", "description": "POST body template. {seedValue} is replaced at runtime." },
+        "contentType": {
+          "type": "string",
+          "default": "application/json",
+          "description": "Content-Type for the login POST. Use 'application/x-www-form-urlencoded' for form-encoded SAML flows."
+        },
+        "base64EncodeSeed": {
+          "type": "boolean",
+          "default": false,
+          "description": "When true, Base64-encode the seed value before template substitution (needed for SAML XML)."
+        },
+        "jwtPath": { "type": "string", "description": "JSON dot-path to JWT in response" },
+        "sessionPath": { "type": "string", "description": "JSON dot-path to session ID (optional, needed for refresh)" }
+      }
+    },
+    "RefreshConfig": {
+      "type": "object",
+      "required": ["url", "sidHeader"],
+      "additionalProperties": false,
+      "properties": {
+        "url": { "type": "string", "description": "URL to POST for token refresh" },
+        "sidHeader": { "type": "string", "description": "Header name for session ID in refresh request" }
+      }
+    }
+  }
+}

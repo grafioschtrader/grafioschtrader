@@ -28,6 +28,7 @@ import {GTNetMessageEditComponent} from './gtnet-message-edit.component';
 import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.component';
 import {ProcessedAction} from '../../types/processed.action';
 import {ProcessedActionData} from '../../types/processed.action.data';
+import {GlobalSessionNames} from '../../global.session.names';
 
 @Component({
   standalone: true,
@@ -114,7 +115,7 @@ import {ProcessedActionData} from '../../types/processed.action.data';
 export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   @ViewChildren(GTNetMessageTreeTableComponent) messageTreeTables: QueryList<GTNetMessageTreeTableComponent>;
 
-  minDate: Date = new Date('2000-01-01');
+  minDate: Date = new Date(sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK);
   maxDate: Date = new Date('2099-12-31');
   private readonly domainRemoteName = 'domainRemoteName';
   callParam: GTNetCallParam;
