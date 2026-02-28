@@ -10,7 +10,7 @@ import {
   ViewChild
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {FormsModule} from '@angular/forms';
+import {FormsModule, Validators} from '@angular/forms';
 import {Table, TableModule} from 'primeng/table';
 import {ContextMenuModule} from 'primeng/contextmenu';
 import {TooltipModule} from 'primeng/tooltip';
@@ -147,7 +147,7 @@ export interface ValidationErrorEvent<T> {
                     [pTooltip]="field.headerTooltipTranslated"
                     [style.max-width.px]="field.width"
                     [ngStyle]="field.width ? {'flex-basis': '0 0 ' + field.width + 'px'} : {}">
-                  {{ field.headerTranslated }}
+                  {{ field.headerTranslated }}@if (isFieldRequired(field)) {<span class="et-required-marker"> *</span>}
                   <p-sortIcon [field]="field.field"></p-sortIcon>
                 </th>
               }
@@ -286,6 +286,7 @@ export interface ValidationErrorEvent<T> {
           <!-- Select/Dropdown -->
           @case (EditInputType.Select) {
             <select class="form-control input-sm"
+                    [class.required-input]="isFieldRequired(field)"
                     [(ngModel)]="rowData[field.field]"
                     (ngModelChange)="onFieldChange(field, rowData, $event)"
                     [style.width.px]="field.width">
@@ -300,6 +301,7 @@ export interface ValidationErrorEvent<T> {
           <!-- Number Input -->
           @case (EditInputType.Number) {
             <input pInputText type="number"
+                   [class.required-input]="isFieldRequired(field)"
                    [(ngModel)]="rowData[field.field]"
                    (ngModelChange)="onFieldChange(field, rowData, $event)"
                    [min]="field.cec?.min"
@@ -316,7 +318,8 @@ export interface ValidationErrorEvent<T> {
                           [maxFractionDigits]="field.cec?.maxFractionDigits || field.maxFractionDigits || 2"
                           [min]="field.cec?.min"
                           [max]="field.cec?.max"
-                          [placeholder]="field.cec?.placeholder || ''">
+                          [placeholder]="field.cec?.placeholder || ''"
+                          [inputStyleClass]="isFieldRequired(field) ? 'required-input' : ''">
             </p-inputNumber>
           }
 
@@ -331,7 +334,8 @@ export interface ValidationErrorEvent<T> {
                          selectionMode="single"
                          [showOnFocus]="false"
                          [showIcon]="true"
-                         appendTo="body">
+                         appendTo="body"
+                         [inputStyleClass]="isFieldRequired(field) ? 'required-input' : ''">
             </p-datepicker>
           }
 
@@ -351,6 +355,7 @@ export interface ValidationErrorEvent<T> {
           <!-- Text Input (default) -->
           @default {
             <input pInputText type="text"
+                   [class.required-input]="isFieldRequired(field)"
                    [(ngModel)]="rowData[field.field]"
                    (ngModelChange)="onFieldChange(field, rowData, $event)"
                    [maxlength]="field.cec?.maxLength"
@@ -1017,6 +1022,11 @@ export class EditableTableComponent<T = any> implements OnChanges {
       field.cec?.optionsProviderFn ||
       (field.cec?.dependsOnField && field.cec?.optionsMap)
     );
+  }
+
+  /** Checks if a field has Validators.required in its validation rules */
+  isFieldRequired(field: ColumnConfig): boolean {
+    return field.cec?.validation?.includes(Validators.required) ?? false;
   }
 
   // ============================================================================

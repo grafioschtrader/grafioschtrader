@@ -503,6 +503,85 @@ export class MyTableDialogComponent extends ShowRecordConfigBase {
 }
 ```
 
+## Conditional Field Dependencies (Required + Enable/Disable)
+
+When form fields only make sense given specific values in other fields, use `DynamicFieldHelper.resetValidator()` combined with `formControl.enable()/disable()` to dynamically toggle field state.
+
+### Standard Helper Methods
+
+Add these private methods to dialog components that need conditional dependencies:
+
+```typescript
+private enableField(fieldName: string, required: boolean): void {
+  const fc = this.configObject[fieldName];
+  fc.formControl.enable();
+  DynamicFieldHelper.resetValidator(fc, required ? [Validators.required] : []);
+}
+
+private disableAndClearField(fieldName: string): void {
+  const fc = this.configObject[fieldName];
+  fc.formControl.setValue(null);
+  DynamicFieldHelper.resetValidator(fc, []);
+  fc.formControl.disable();
+}
+```
+
+- `enableField` enables the control and sets/removes the required validator (with visual asterisk via `resetValidator`)
+- `disableAndClearField` clears the value, removes validators, and disables the control. The `setValue(null)` is required because `cleanMaskAndTransferValuesToBusinessObject` copies disabled field values too
+
+### Subscription Lifecycle
+
+1. **Subscribe before `setDefaultValuesAndEnableSubmit()`** — subscriptions must be in place before the form is initialized
+2. **Call the update method initially** — pass the entity's existing value (for edit mode) or `undefined` (for create mode) to set the correct initial state
+3. **No explicit cleanup needed** — the dialog component is recreated each time it opens, so subscriptions are naturally garbage-collected
+
+```typescript
+protected override initialize(): void {
+  // 1. Set dropdown options
+  // 2. Subscribe to valueChanges + call initial state
+  this.configObject.myField.formControl.valueChanges.subscribe(value =>
+    this.updateMyFieldDependencies(value));
+  this.updateMyFieldDependencies(this.entity?.myField);
+
+  // 3. Enable form
+  this.form.setDefaultValuesAndEnableSubmit();
+
+  // 4. Transfer existing entity values (edit case)
+  if (this.entity) {
+    this.form.transferBusinessObjectToForm(this.entity);
+  }
+}
+```
+
+### Cascading Dependencies
+
+When field A controls field B, and field B controls field C, cascade from the parent update method:
+
+```typescript
+private updateResponseFormatDependencies(format: string): void {
+  if (format === 'JSON') {
+    this.enableField('jsonDataStructure', true);
+    // Cascade into jsonDataStructure dependencies
+    this.updateJsonDataStructureDependencies(this.configObject.jsonDataStructure.formControl.value);
+  }
+}
+```
+
+Guard child subscriptions so they only apply when the parent is in the correct state:
+
+```typescript
+this.configObject.childField.formControl.valueChanges.subscribe(value => {
+  if (this.configObject.parentField.formControl.value === 'EXPECTED_VALUE') {
+    this.updateChildDependencies(value);
+  }
+});
+```
+
+### Reference Implementations
+
+- `GenericConnectorEndpointEditComponent` — `responseFormat` → JSON/CSV/HTML fields, `htmlExtractMode` → regex/split fields, `jsonDataStructure` → columnNamesPath, `tickerBuildStrategy` → currencyPair fields
+- `GenericConnectorDefEditComponent` — `rateLimitType` → requests/period/concurrent fields
+
 ## DynamicFieldHelper Methods
 
 ### Always Use HeqF Methods by Default

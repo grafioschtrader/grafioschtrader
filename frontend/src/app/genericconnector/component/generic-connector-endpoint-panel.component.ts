@@ -43,6 +43,7 @@ import {GenericConnectorFieldMappingTableComponent} from './generic-connector-fi
     <generic-connector-field-mapping-table
       [fieldMappings]="endpoint?.fieldMappings"
       [feedSupport]="endpoint?.feedSupport"
+      [responseFormat]="endpoint?.responseFormat"
       [editable]="editable"
       (fieldMappingsChange)="onFieldMappingsChange($event)">
     </generic-connector-field-mapping-table>

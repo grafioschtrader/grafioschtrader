@@ -13,13 +13,13 @@ import grafiosch.exceptions.DataViolationException;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 
 /**
-* Utility interface providing static helper methods for REST API operations.
-* 
-* <p>This interface contains common utility methods used across REST controllers and
-* services for validation, error handling, and security operations. All methods are
-* static and designed to be used without instantiation, providing centralized
-* functionality for REST API processing.</p>
-*/
+ * Utility interface providing static helper methods for REST API operations.
+ *
+ * <p>This interface contains common utility methods used across REST controllers and
+ * services for validation, error handling, and security operations. All methods are
+ * static and designed to be used without instantiation, providing centralized
+ * functionality for REST API processing.</p>
+ */
 public interface RestHelper {
   
   
@@ -98,5 +98,29 @@ public interface RestHelper {
       validationErrorDTO.addFieldError(field, localizedErrorMessage);
     }
     return validationErrorDTO;
+  }
+
+  /**
+   * Converts a camelCase field name to dot.separated.lowercase format for backend NLS lookup.
+   * Example: "readableName" → "readable.name", "rateLimitType" → "rate.limit.type"
+   *
+   * @param camelCase the camelCase field name to convert
+   * @return the dot-separated lowercase equivalent
+   */
+  public static String camelCaseToDotSeparated(String camelCase) {
+    return camelCase.replaceAll("([a-z])([A-Z])", "$1.$2").toLowerCase();
+  }
+
+  /**
+   * Resolves the current user's locale from SecurityContext, falling back to ENGLISH.
+   *
+   * @return the authenticated user's locale, or Locale.ENGLISH if not available
+   */
+  public static Locale getUserLocale() {
+    var authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication != null && authentication.getDetails() instanceof User user) {
+      return user.createAndGetJavaLocale();
+    }
+    return Locale.ENGLISH;
   }
 }

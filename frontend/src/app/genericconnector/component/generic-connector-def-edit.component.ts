@@ -1,4 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
+import {Validators} from '@angular/forms';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
@@ -61,9 +62,9 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
     this.config = [
       DynamicFieldHelper.createFieldInputStringHeqF('shortId', 32, true),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('readableName', 100, true),
-      DynamicFieldHelper.createFieldTextareaInputString('en', 'DESCRIPTION', 2000, false,
+      DynamicFieldHelper.createFieldTextareaInputString('en', 'DESCRIPTION', 2000, true,
         {labelSuffix: 'EN', dataproperty: 'descriptionNLS.map.en'}),
-      DynamicFieldHelper.createFieldTextareaInputString('de', 'DESCRIPTION', 2000, false,
+      DynamicFieldHelper.createFieldTextareaInputString('de', 'DESCRIPTION', 2000, true,
         {labelSuffix: 'DE', dataproperty: 'descriptionNLS.map.de'}),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('domainUrl', 255, true),
       DynamicFieldHelper.createFieldCheckboxHeqF('needsApiKey'),
@@ -85,6 +86,12 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
   protected override initialize(): void {
     this.configObject.rateLimitType.valueKeyHtmlOptions =
       SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, RateLimitType);
+
+    this.configObject.rateLimitType.formControl.valueChanges.subscribe(value =>
+      this.updateRateLimitTypeDependencies(value));
+    this.updateRateLimitTypeDependencies(this.callParam?.rateLimitType != null
+      ? RateLimitType[this.callParam.rateLimitType] : null);
+
     this.form.setDefaultValuesAndEnableSubmit();
     if (this.callParam) {
       this.form.transferBusinessObjectToForm(this.callParam);
@@ -94,6 +101,35 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
     }
     this.configObject.shortId.elementRef.nativeElement.focus();
     this.tokenConfigYamlValue = this.callParam?.tokenConfigYaml || '';
+  }
+
+  private enableField(fieldName: string, required: boolean): void {
+    const fc = this.configObject[fieldName];
+    fc.formControl.enable();
+    DynamicFieldHelper.resetValidator(fc, required ? [Validators.required] : []);
+  }
+
+  private disableAndClearField(fieldName: string): void {
+    const fc = this.configObject[fieldName];
+    fc.formControl.setValue(null);
+    DynamicFieldHelper.resetValidator(fc, []);
+    fc.formControl.disable();
+  }
+
+  private updateRateLimitTypeDependencies(rateLimitType: string): void {
+    if (rateLimitType === 'TOKEN_BUCKET') {
+      this.enableField('rateLimitRequests', true);
+      this.enableField('rateLimitPeriodSec', true);
+      this.disableAndClearField('rateLimitConcurrent');
+    } else if (rateLimitType === 'SEMAPHORE') {
+      this.disableAndClearField('rateLimitRequests');
+      this.disableAndClearField('rateLimitPeriodSec');
+      this.enableField('rateLimitConcurrent', true);
+    } else {
+      this.disableAndClearField('rateLimitRequests');
+      this.disableAndClearField('rateLimitPeriodSec');
+      this.disableAndClearField('rateLimitConcurrent');
+    }
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: {[name: string]: any}): GenericConnectorDef {

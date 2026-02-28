@@ -56,6 +56,21 @@ throw new DataViolationException("reference.date", "algo.no.positions.at.date", 
 
 Before using a field name, verify the key exists in the matching module's `messages.properties` (see placement table above). If the key does not exist, create it in both EN and DE property files.
 
+### Bean Validation Field NLS Keys (`@Valid` / `@Size` / `@NotNull`)
+
+Entity fields with Bean Validation annotations (`@Size`, `@NotNull`, `@Min`, `@Max`, etc.) also need backend NLS keys in `dot.separated.lowercase` format. When `@Valid` validation fails on a REST request body, `RestErrorHandler.restValidError()` converts the camelCase Java field name to dot-separated format via `RestHelper.camelCaseToDotSeparated()` and translates it via `messageSource.getMessage()`.
+
+**Example**: The entity field `readableName` with `@Size(min = 1, max = 100)` needs:
+```properties
+# In messages.properties
+readable.name=Display name
+
+# In messages_de.properties
+readable.name=Anzeigename
+```
+
+If no NLS key exists, the dot-separated field name (e.g., `readable.name`) is used as fallback — functional but not user-friendly.
+
 ### No-Duplicate Rule
 
 Each property key must appear **exactly once** within the same `.properties` file. Before adding a key, search all four backend properties files to avoid collisions:

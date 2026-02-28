@@ -1,0 +1,14 @@
+Payload:
+{"noteRequestOrReject":null,"createdBy":null,"creationTime":null,"lastModifiedBy":null,"lastModifiedTime":null,"version":null,"idGenericConnector":null,"shortId":"sixgroup","readableName":"SIX Swiss Exchange","domainUrl":"https://www.six-group.com/","needsApiKey":null,"rateLimitType":"NONE","rateLimitRequests":null,"rateLimitPeriodSec":null,"rateLimitConcurrent":null,"intradayDelaySeconds":900,"regexUrlPattern":"^([A-Z]{2})([A-Z0-9]{9})([0-9]{1})[A-Za-z]{3}\\d$","supportsSecurity":true,"supportsCurrency":null,"needHistoryGapFiller":null,"gbxDividerEnabled":null,"tokenConfigYaml":null,"descriptionNLS":{"map":{"en":null,"de":null}},"activated":false,"instrumentCount":0,"endpoints":[],"httpHeaders":[]}
+Response:
+{
+    "error": {
+        "fieldErrors": [
+            {
+                "field": "descriptionNLS",
+                "message": "Validation failed for argument [0] in public org.springframework.http.ResponseEntity<T> grafiosch.rest.UpdateCreateResource.create(T) throws java.lang.Exception: [Field error in object 'genericConnectorDef' on field 'descriptionNLS': rejected value [grafiosch.entities.MultilanguageString@16a45e44]; codes [ValidMultilanguage.genericConnectorDef.descriptionNLS,ValidMultilanguage.descriptionNLS,ValidMultilanguage.grafiosch.entities.MultilanguageString,ValidMultilanguage]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [genericConnectorDef.descriptionNLS,descriptionNLS]; arguments []; default message [descriptionNLS]]; default message [Die Kombination EN/DE ist nicht korrekt eingegeben!]] "
+            }
+        ]
+    },
+    "className": "ValidationError"
+}

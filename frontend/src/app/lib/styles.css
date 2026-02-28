@@ -219,6 +219,11 @@ legend {
   border-left: inherit;
 }
 
+.et-required-marker {
+  color: #42A948;
+  font-weight: bold;
+}
+
 .nestedtable th {
   white-space: normal;
 }

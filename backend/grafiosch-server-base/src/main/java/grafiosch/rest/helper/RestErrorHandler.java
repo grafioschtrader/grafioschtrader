@@ -313,13 +313,16 @@ public class RestErrorHandler {
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ErrorWrapper restValidError(final MethodArgumentNotValidException ex) {
     final ValidationError validationErrorDTO = new ValidationError();
+    final Locale locale = RestHelper.getUserLocale();
     if (ex.getBindingResult().getFieldErrors().isEmpty()) {
       for (ObjectError error : ex.getBindingResult().getAllErrors()) {
         validationErrorDTO.addFieldError("", error.getDefaultMessage());
       }
     } else {
       for (FieldError error : ex.getBindingResult().getFieldErrors()) {
-        validationErrorDTO.addFieldError(error.getField(), ex.getMessage());
+        String fieldKey = RestHelper.camelCaseToDotSeparated(error.getField());
+        String translatedField = messageSource.getMessage(fieldKey, null, fieldKey, locale);
+        validationErrorDTO.addFieldError(translatedField, error.getDefaultMessage());
       }
     }
     return new ErrorWrapper(validationErrorDTO);

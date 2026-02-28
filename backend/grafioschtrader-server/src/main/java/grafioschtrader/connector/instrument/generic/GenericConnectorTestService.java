@@ -64,7 +64,7 @@ public class GenericConnectorTestService {
 
     GenericFeedConnector tempConnector = new GenericFeedConnector(def, apiKey);
     return tempConnector.testEndpoint(request.getFeedSupport(), request.getInstrumentType(), ticker,
-        request.getFromDate(), request.getToDate());
+        request.getFromDate(), request.getToDate(), request.getFromCurrency(), request.getToCurrency());
   }
 
   private GenericConnectorEndpoint findMatchingEndpoint(GenericConnectorDef def, String feedSupport,

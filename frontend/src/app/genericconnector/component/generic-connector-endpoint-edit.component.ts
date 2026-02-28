@@ -1,4 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
+import {Validators} from '@angular/forms';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
@@ -61,7 +62,7 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('urlTemplate', 1000, true),
       DynamicFieldHelper.createFieldSelectStringHeqF('httpMethod', true),
       DynamicFieldHelper.createFieldSelectStringHeqF('responseFormat', true),
-      DynamicFieldHelper.createFieldSelectStringHeqF('numberFormat', false),
+      DynamicFieldHelper.createFieldSelectStringHeqF('numberFormat', true),
       DynamicFieldHelper.createFieldSelectStringHeqF('dateFormatType', true),
       DynamicFieldHelper.createFieldInputStringHeqF('dateFormatPattern', 64, false),
       DynamicFieldHelper.createFieldSelectStringHeqF('jsonDataStructure', false),
@@ -76,7 +77,7 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('htmlTextCleanup', 255, false),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('htmlExtractRegex', 512, false),
       DynamicFieldHelper.createFieldInputStringHeqF('htmlSplitDelimiter', 16, false),
-      DynamicFieldHelper.createFieldSelectStringHeqF('tickerBuildStrategy', false),
+      DynamicFieldHelper.createFieldSelectStringHeqF('tickerBuildStrategy', true),
       DynamicFieldHelper.createFieldInputStringHeqF('currencyPairSeparator', 4, false),
       DynamicFieldHelper.createFieldInputStringHeqF('currencyPairSuffix', 20, false),
       DynamicFieldHelper.createFieldCheckboxHeqF('tickerUppercase'),
@@ -110,7 +111,7 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
         Object.values(ResponseFormatType).map(v => new ValueKeyHtmlSelectOptions(v, v)), false);
     this.configObject.numberFormat.valueKeyHtmlOptions =
       SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(t,
-        Object.values(NumberFormatType).map(v => new ValueKeyHtmlSelectOptions(v, v)), true);
+        Object.values(NumberFormatType).map(v => new ValueKeyHtmlSelectOptions(v, v)), false);
     this.configObject.dateFormatType.valueKeyHtmlOptions =
       SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(t,
         Object.values(DateFormatType).map(v => new ValueKeyHtmlSelectOptions(v, v)), false);
@@ -122,7 +123,7 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
         Object.values(HtmlExtractMode).map(v => new ValueKeyHtmlSelectOptions(v, v)), true);
     this.configObject.tickerBuildStrategy.valueKeyHtmlOptions =
       SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(t,
-        Object.values(TickerBuildStrategy).map(v => new ValueKeyHtmlSelectOptions(v, v)), true);
+        Object.values(TickerBuildStrategy).map(v => new ValueKeyHtmlSelectOptions(v, v)), false);
 
     this.updateEndpointOptionsForFeed(this.endpoint?.feedSupport);
     this.configObject.feedSupportInstrumentType.formControl.valueChanges.subscribe(combo => {
@@ -132,6 +133,30 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
       const validKeys = (ENDPOINT_OPTION_BY_FEED[feedSupport] || []).map(o => o as string);
       this.configObject.endpointOptions.formControl.setValue(current.filter(v => validKeys.includes(v)));
     });
+
+    this.configObject.dateFormatType.formControl.valueChanges.subscribe(value =>
+      this.updateDateFormatPatternRequired(value));
+    this.updateDateFormatPatternRequired(this.endpoint?.dateFormatType);
+
+    this.configObject.responseFormat.formControl.valueChanges.subscribe(value =>
+      this.updateResponseFormatDependencies(value));
+    this.updateResponseFormatDependencies(this.endpoint?.responseFormat);
+
+    this.configObject.htmlExtractMode.formControl.valueChanges.subscribe(value => {
+      if (this.configObject.responseFormat.formControl.value === ResponseFormatType.HTML) {
+        this.updateHtmlExtractModeDependencies(value);
+      }
+    });
+
+    this.configObject.jsonDataStructure.formControl.valueChanges.subscribe(value => {
+      if (this.configObject.responseFormat.formControl.value === ResponseFormatType.JSON) {
+        this.updateJsonDataStructureDependencies(value);
+      }
+    });
+
+    this.configObject.tickerBuildStrategy.formControl.valueChanges.subscribe(value =>
+      this.updateTickerBuildStrategyDependencies(value));
+    this.updateTickerBuildStrategyDependencies(this.endpoint?.tickerBuildStrategy);
 
     this.form.setDefaultValuesAndEnableSubmit();
     if (this.endpoint) {
@@ -144,11 +169,101 @@ export class GenericConnectorEndpointEditComponent extends SimpleEditBase implem
     }
   }
 
+  private updateDateFormatPatternRequired(dateFormatType: string): void {
+    const fieldConfig = this.configObject.dateFormatPattern;
+    if (dateFormatType === DateFormatType.PATTERN) {
+      fieldConfig.formControl.enable();
+      DynamicFieldHelper.resetValidator(fieldConfig, [Validators.required]);
+    } else {
+      fieldConfig.formControl.setValue(null);
+      DynamicFieldHelper.resetValidator(fieldConfig, []);
+      fieldConfig.formControl.disable();
+    }
+  }
+
   private updateEndpointOptionsForFeed(feedSupport: string): void {
     const options = feedSupport ? (ENDPOINT_OPTION_BY_FEED[feedSupport] || []) : Object.values(EndpointOption);
     this.configObject.endpointOptions.valueKeyHtmlOptions =
       SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(this.translateService,
         options.map(v => new ValueKeyHtmlSelectOptions(v, v)), false);
+  }
+
+  private enableField(fieldName: string, required: boolean): void {
+    const fc = this.configObject[fieldName];
+    fc.formControl.enable();
+    DynamicFieldHelper.resetValidator(fc, required ? [Validators.required] : []);
+  }
+
+  private disableAndClearField(fieldName: string): void {
+    const fc = this.configObject[fieldName];
+    fc.formControl.setValue(null);
+    DynamicFieldHelper.resetValidator(fc, []);
+    fc.formControl.disable();
+  }
+
+  private updateResponseFormatDependencies(responseFormat: string): void {
+    const jsonFields = ['jsonDataStructure', 'jsonDataPath', 'jsonColumnNamesPath', 'jsonStatusPath', 'jsonStatusOkValue'];
+    const csvFields = ['csvDelimiter', 'csvSkipHeaderLines'];
+    const htmlFields = ['htmlCssSelector', 'htmlExtractMode', 'htmlTextCleanup', 'htmlExtractRegex', 'htmlSplitDelimiter'];
+
+    if (responseFormat === ResponseFormatType.JSON) {
+      this.enableField('jsonDataStructure', true);
+      ['jsonDataPath', 'jsonColumnNamesPath', 'jsonStatusPath', 'jsonStatusOkValue'].forEach(f => this.enableField(f, false));
+      csvFields.forEach(f => this.disableAndClearField(f));
+      htmlFields.forEach(f => this.disableAndClearField(f));
+      this.updateJsonDataStructureDependencies(this.configObject.jsonDataStructure.formControl.value);
+    } else if (responseFormat === ResponseFormatType.CSV) {
+      jsonFields.forEach(f => this.disableAndClearField(f));
+      csvFields.forEach(f => this.enableField(f, false));
+      htmlFields.forEach(f => this.disableAndClearField(f));
+    } else if (responseFormat === ResponseFormatType.HTML) {
+      jsonFields.forEach(f => this.disableAndClearField(f));
+      csvFields.forEach(f => this.disableAndClearField(f));
+      this.enableField('htmlCssSelector', true);
+      this.enableField('htmlExtractMode', true);
+      this.enableField('htmlTextCleanup', false);
+      this.enableField('htmlExtractRegex', false);
+      this.enableField('htmlSplitDelimiter', false);
+      this.updateHtmlExtractModeDependencies(this.configObject.htmlExtractMode.formControl.value);
+    } else {
+      jsonFields.forEach(f => this.disableAndClearField(f));
+      csvFields.forEach(f => this.disableAndClearField(f));
+      htmlFields.forEach(f => this.disableAndClearField(f));
+    }
+  }
+
+  private updateHtmlExtractModeDependencies(htmlExtractMode: string): void {
+    if (htmlExtractMode === HtmlExtractMode.REGEX_GROUPS) {
+      this.enableField('htmlCssSelector', true);
+      this.enableField('htmlExtractRegex', true);
+      this.disableAndClearField('htmlSplitDelimiter');
+    } else if (htmlExtractMode === HtmlExtractMode.SPLIT_POSITIONS) {
+      this.enableField('htmlCssSelector', true);
+      this.disableAndClearField('htmlExtractRegex');
+      this.enableField('htmlSplitDelimiter', false);
+    } else if (htmlExtractMode === HtmlExtractMode.MULTI_SELECTOR) {
+      this.enableField('htmlCssSelector', false);
+      this.disableAndClearField('htmlExtractRegex');
+      this.disableAndClearField('htmlSplitDelimiter');
+    }
+  }
+
+  private updateJsonDataStructureDependencies(jsonDataStructure: string): void {
+    if (jsonDataStructure === JsonDataStructure.COLUMN_ROW_ARRAYS) {
+      this.enableField('jsonColumnNamesPath', true);
+    } else {
+      this.enableField('jsonColumnNamesPath', false);
+    }
+  }
+
+  private updateTickerBuildStrategyDependencies(tickerBuildStrategy: string): void {
+    if (tickerBuildStrategy === TickerBuildStrategy.URL_EXTEND) {
+      this.disableAndClearField('currencyPairSeparator');
+      this.disableAndClearField('currencyPairSuffix');
+    } else {
+      this.enableField('currencyPairSeparator', false);
+      this.enableField('currencyPairSuffix', false);
+    }
   }
 
   submit(value: { [name: string]: any }): void {

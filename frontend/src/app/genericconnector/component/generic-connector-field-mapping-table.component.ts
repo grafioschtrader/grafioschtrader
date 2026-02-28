@@ -59,6 +59,7 @@ export class GenericConnectorFieldMappingTableComponent extends TableEditConfigB
 
   @Input() fieldMappings: GenericConnectorFieldMapping[] = [];
   @Input() feedSupport: string;
+  @Input() responseFormat: string;
   @Input() editable: boolean = true;
   @Output() fieldMappingsChange = new EventEmitter<GenericConnectorFieldMapping[]>();
 
@@ -76,6 +77,9 @@ export class GenericConnectorFieldMappingTableComponent extends TableEditConfigB
     }
     if (changes['feedSupport']) {
       this.updateTargetFieldOptions();
+    }
+    if (changes['responseFormat']) {
+      this.hideShowColumnByFileHeader('CSV_COLUMN_INDEX', this.responseFormat === 'CSV');
     }
   }
 
