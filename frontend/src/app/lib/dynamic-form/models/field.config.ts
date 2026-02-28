@@ -51,6 +51,9 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinit
   /** Contains the items for a PrimeNG Dropdown */
   groupItem?: GroupItem[];
 
+  /** Enables a search/filter input inside PrimeNG dropdown (p-select) overlay */
+  filter?: boolean;
+
   /**
    * A short hint that describes the expected value of an input field.
    * The short hint is displayed in the input field before the user enters a value.

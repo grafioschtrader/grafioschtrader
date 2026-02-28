@@ -32,6 +32,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import grafiosch.common.DateHelper;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
@@ -156,11 +157,17 @@ public class SixFeedConnector extends BaseFeedConnector {
 
   @Override
   public String getSecurityHistoricalDownloadLink(final Security security) {
+    final DateFormat dateFormat = new SimpleDateFormat(FROM_DATE_FORMAT_SIX);
+    return getSecurityHistoricalDownloadLink(security, dateFormat, DateHelper.setTimeToZeroAndAddDay(new Date(), -7));
+  }
+  
+  private String getSecurityHistoricalDownloadLink(final Security security, final DateFormat dateFormat, final Date from) {
     return DOMAIN_NAME_WITH_PROTO + "itf/fqs/delayed/charts.json?select=ISIN,ClosingPrice,"
         + "ClosingPerformance,PreviousClosingPrice,LatestTradeTime,LatestTradeDate&where=ValorId="
         + security.getUrlHistoryExtend()
-        + "&columns=Date,Time,Close,Open,Low,High,TotalVolume&netting=1440&nd=true&type=2";
+        + "&columns=Date,Time,Close,Open,Low,High,TotalVolume&netting=1440&nd=true&type=2&fromdate=" + dateFormat.format(from);
   }
+  
 
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
@@ -169,7 +176,7 @@ public class SixFeedConnector extends BaseFeedConnector {
     final List<Historyquote> historyquotes = new ArrayList<>();
     final DateFormat dateFormat = new SimpleDateFormat(FROM_DATE_FORMAT_SIX);
     objectMapper.setDateFormat(dateFormat);
-    final String urlStr = getSecurityHistoricalDownloadLink(security) + "&fromdate=" + dateFormat.format(from);
+    final String urlStr = getSecurityHistoricalDownloadLink(security, dateFormat, from);
     final HistoryQuote readHistoryquotes = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr).body(),
         HistoryQuote.class);
 

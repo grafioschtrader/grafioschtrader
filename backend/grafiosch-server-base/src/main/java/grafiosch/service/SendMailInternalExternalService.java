@@ -98,7 +98,7 @@ public class SendMailInternalExternalService {
       return sendInternalAdminMessageToEveryUser(mailSendRecv);
     } else {
       MessageComType mct = isAdmin && mailSendRecv.getIdReplyToLocal() == null && mailSendRecv.getIdRoleTo() == null
-          ? MessageComType.USER_ADMIN_PERSONAL_TO_USER
+          && mailSendRecv.getRoleNameTo() == null ? MessageComType.USER_ADMIN_PERSONAL_TO_USER
           : null;
       if (mct != null) {
         sendMailInternAndOrExternal(mailSendRecv.getIdUserFrom(), mailSendRecv.getIdUserTo(), mailSendRecv.getSubject(),

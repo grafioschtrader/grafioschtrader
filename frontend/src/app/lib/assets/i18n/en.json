@@ -1,4 +1,8 @@
 {
+  "ADMIN_SELF_RELEASE_CONFIRM": "Confirm self-release",
+  "ADMIN_SELF_RELEASE_QUESTION": "As an administrator, you can release yourself from the lockout. Both the security breach counter and the request limit counter will be reset. Do you want to proceed?",
+  "ADMIN_SELF_RELEASE_SUCCESS": "Self-release successful. You are now logged in.",
+  "ADMIN_SELF_RELEASE_TITLE": "Admin self-release from lockout",
   "ALERT": "Alert",
   "API_KEY": "API key",
   "APPLY_LIMIT_TITLE": "Request higher daily limit",

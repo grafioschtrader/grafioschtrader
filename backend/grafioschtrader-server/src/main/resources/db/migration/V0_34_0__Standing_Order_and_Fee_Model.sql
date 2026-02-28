@@ -616,6 +616,102 @@ VALUES (@intra_ep_id, 'volume', 'ACVOL_1', 0);
 INSERT INTO generic_connector_http_header (id_generic_connector, header_name, header_value)
 VALUES (@def_id, 'jwt', '{apiKey}');
 
+-- =============================================================================
+-- OTC-X (Berner Kantonalbank) Generic Connector Configuration
+-- Uses the public OTC-X API (www.otc-x.ch/api/) for price data of Swiss
+-- OTC-traded securities.
+--
+-- No API key needed (public API). Ticker is the ISIN of the security.
+-- OTC securities may not trade daily; the gap filler compensates for missing data.
+--
+-- Idempotent: safe to re-run. Deletes existing otcx config first.
+-- =============================================================================
+
+-- 0) Remove old otcx config (child tables cascade)
+DELETE FROM generic_connector_def WHERE short_id = 'otcx';
+
+-- 1a) Multilanguage description (help text shown in security edit dialog)
+INSERT INTO multilinguestring () VALUES ();
+SET @otcx_nls_id = LAST_INSERT_ID();
+
+DELETE FROM multilinguestrings WHERE id_string = @otcx_nls_id;
+INSERT INTO multilinguestrings (id_string, language, text) VALUES
+(@otcx_nls_id, 'en', 'Enter the ISIN of the security traded on <a href="https://www.otc-x.ch/" target="_blank">OTC-X</a> (Berner Kantonalbank), e.g. <b>CH1350861261</b>. Find the ISIN on the OTC-X website. No API key needed (public API). Note: OTC securities may not trade daily — the gap filler compensates for missing data. Intraday data is delayed by 15 minutes.'),
+(@otcx_nls_id, 'de', 'Geben Sie die ISIN des auf <a href="https://www.otc-x.ch/" target="_blank">OTC-X</a> (Berner Kantonalbank) gehandelten Wertpapiers ein, z.B. <b>CH1350861261</b>. Die ISIN finden Sie auf der OTC-X-Webseite. Kein API-Schlüssel nötig (öffentliche API). Hinweis: OTC-Wertpapiere werden nicht täglich gehandelt — der Lückenfüller gleicht fehlende Daten aus. Intraday-Daten sind um 15 Minuten verzögert.');
+
+-- 1b) Connector Definition
+INSERT INTO generic_connector_def (
+  short_id, readable_name, domain_url, needs_api_key,
+  rate_limit_type, rate_limit_requests, rate_limit_period_sec, rate_limit_concurrent,
+  intraday_delay_seconds, regex_url_pattern,
+  supports_security, supports_currency, need_history_gap_filler, gbx_divider_enabled,
+  activated, description_nls
+) VALUES (
+  'otcx', 'OTC-X (Berner Kantonalbank)', 'https://www.otc-x.ch/api/', 0,
+  0, NULL, NULL, NULL,
+  900, '^[A-Z]{2}[A-Z0-9]{9}[0-9]$',
+  1, 0, 1, 0,
+  0,
+  @otcx_nls_id
+);
+
+SET @otcx_def_id = LAST_INSERT_ID();
+
+-- 2) FS_HISTORY Endpoint (daily chart data)
+INSERT INTO generic_connector_endpoint (
+  id_generic_connector, feed_support, instrument_type,
+  url_template, http_method,
+  response_format, number_format, date_format_type,
+  json_data_structure, json_data_path,
+  ticker_build_strategy, ticker_uppercase,
+  max_data_points, endpoint_options
+) VALUES (
+  @otcx_def_id, 'FS_HISTORY', 'SECURITY',
+  'market/securities/{ticker}/chartData?type=PRICE_HISTORY&from={fromDate}&until={toDate}&interval=DAY',
+  'GET',
+  1, 4, 4,
+  1, 'data',
+  1, 1,
+  1500, 3
+);
+
+SET @otcx_hist_ep_id = LAST_INSERT_ID();
+
+-- 3) FS_HISTORY Field Mappings
+INSERT INTO generic_connector_field_mapping (id_endpoint, target_field, source_expression, is_required)
+VALUES (@otcx_hist_ep_id, 'date', 'x', 1);
+INSERT INTO generic_connector_field_mapping (id_endpoint, target_field, source_expression, is_required)
+VALUES (@otcx_hist_ep_id, 'close', 'values.0', 1);
+
+
+-- 4) FS_INTRA Endpoint (current price)
+INSERT INTO generic_connector_endpoint (
+  id_generic_connector, feed_support, instrument_type,
+  url_template, http_method,
+  response_format, number_format, date_format_type,
+  json_data_structure,
+  ticker_build_strategy, ticker_uppercase
+) VALUES (
+  @otcx_def_id, 'FS_INTRA', 'SECURITY',
+  'market/securities/{ticker}',
+  'GET',
+  1, 4, 5,
+  3,
+  1, 1
+);
+
+SET @otcx_intra_ep_id = LAST_INSERT_ID();
+
+-- 5) FS_INTRA Field Mappings
+INSERT INTO generic_connector_field_mapping (id_endpoint, target_field, source_expression, is_required)
+VALUES (@otcx_intra_ep_id, 'high', 'askPricePoint', 0);
+
+INSERT INTO generic_connector_field_mapping (id_endpoint, target_field, source_expression, is_required)
+VALUES (@otcx_intra_ep_id, 'last', 'lastPrice', 1);
+
+INSERT INTO generic_connector_field_mapping (id_endpoint, target_field, source_expression, is_required)
+VALUES (@otcx_intra_ep_id, 'low', 'bidPricePoint', 0);
+
 UPDATE trading_platform_plan tpp JOIN multilinguestring ms ON ms.id = tpp.platform_plan_name_nls JOIN multilinguestrings mss ON mss.id_string = ms.id AND mss.language = 'de' SET tpp.fee_model_yaml = 'rules:\n  - name: "Keine Transaktionskosten"\n    condition: "true"\n    expression: "0.0"' WHERE mss.text = 'Migros Bank Vorsorge';
 UPDATE trading_platform_plan tpp JOIN multilinguestring ms ON ms.id = tpp.platform_plan_name_nls JOIN multilinguestrings mss ON mss.id_string = ms.id AND mss.language = 'de' SET tpp.fee_model_yaml = 'rules:\n  # Schweizer Börse ab CHF 100''000 (offizieller Zuschlag + Ausführungsgebühr)\n  - name: "Börsenplatz Schweiz ab CHF 100''000"\n    condition: ''tradeValue >= 100000 && mic == "XSWX"''\n    expression: "40.0 + tradeValue * 0.00035"\n\n  # Schweizer Börse unter CHF 100''000 (Pauschale + Ausführungsgebühr Börse ~0.015%)\n  - name: "Börsenplatz Schweiz"\n    condition: ''mic == "XSWX"''\n    expression: "40.0 + tradeValue * 0.00015"\n\n  # Ausland ab CHF 100''000 (offizieller Zuschlag + Ausführungsgebühr)\n  - name: "Börsenplatz Ausland ab CHF 100''000"\n    condition: "tradeValue >= 100000"\n    expression: "40.0 + tradeValue * 0.0012"\n\n  # Standard-Pauschale (inkl. geschätzte Ausführungsgebühr Ausland ~0.015%)\n  - name: "Standard E-Banking Pauschale"\n    condition: "true"\n    expression: "40.0 + tradeValue * 0.00015"' WHERE mss.text = 'Migros Bank Standard';
 UPDATE trading_platform_plan tpp JOIN multilinguestring ms ON ms.id = tpp.platform_plan_name_nls JOIN multilinguestrings mss ON mss.id_string = ms.id AND mss.language = 'de' SET tpp.fee_model_yaml = '# ============================================================================\n# PostFinance E-Trading Gebührenmodell (kalibriert)\n# Stand: 1. Januar 2026\n# ============================================================================\n# Kalibrierung:\n#   - Basierend auf 749 verglichenen Transaktionen (2006–2023).\n#   - Transaktionen mit Depotgebühren-Gutschrift (Anfang Jahr/Quartal)\n#     sowie 2024/2025-Daten wurden bei der Kalibrierung ausgeschlossen.\n#   - SIX-Gebühren enthalten neben der Courtage auch Börsengebühren\n#     (Umsatzabgabe, SIX Trading Fee etc.).\n#   - Bei Obligationen können Stückzinsen den Abrechnungsbetrag über die\n#     nächste Tarifstufe heben – dies ist modellbedingt nicht abbildbar.\n# ============================================================================\n\nrules:\n\n  # ==========================================================================\n  # FONDS\n  # ==========================================================================\n  - name: "Fonds Zeichnung (Subscription)"\n    condition: ''instrument == "MUTUAL_FUND" && tradeDirection == 0''\n    expression: "MAX(20.0, MIN(1000.0, tradeValue * 0.01))"\n\n  - name: "Fonds Rücknahme (Redemption)"\n    condition: ''instrument == "MUTUAL_FUND" && tradeDirection == 1''\n    expression: "0.0"\n\n  # ==========================================================================\n  # SPARPLÄNE\n  # ==========================================================================\n  - name: "Sparplan Ausführung"\n    condition: ''instrument == "PENSION_FUNDS"''\n    expression: "MAX(1.0, tradeValue * 0.01)"\n\n  # ==========================================================================\n  # OBLIGATIONEN OTC\n  # ==========================================================================\n  - name: "Obligationen OTC"\n    condition: ''assetclass == "FIXED_INCOME" && mic == "OTCB"''\n    expression: "MAX(50.0, tradeValue * 0.0025)"\n\n  # ==========================================================================\n  # BÖRSENPLATZ-GRUPPE 1: SIX Swiss Exchange, BX Swiss (CHF)\n  # MICs: XSWX, XBRN\n  # --------------------------------------------------------------------------\n  # Kalibriert auf Basis von ~500 Transaktionen. Enthält Courtage plus\n  # Börsengebühren. Typische Ist-Werte pro Stufe:\n  #   ≤ 5''000:   ~27–29      ≤ 20''000:  ~72–73\n  #   ≤ 10''000:  ~37–38.50   ≤ 30''000:  ~97–101\n  #   ≤ 15''000:  ~52–53.50   ≤ 50''000:  ~132–135\n  # ==========================================================================\n  - name: "SIX Swiss Exchange / BX Swiss"\n    condition: ''mic == "XSWX" || mic == "XBRN"''\n    expression: >-\n      IF(tradeValue <= 500, 8.0,\n      IF(tradeValue <= 1000, 15.0,\n      IF(tradeValue <= 5000, 28.0,\n      IF(tradeValue <= 10000, 38.0,\n      IF(tradeValue <= 15000, 53.0,\n      IF(tradeValue <= 20000, 73.0,\n      IF(tradeValue <= 30000, 100.0,\n      IF(tradeValue <= 50000, 135.0,\n      IF(tradeValue <= 100000, 185.0,\n      IF(tradeValue <= 150000, 265.0,\n      330.0))))))))))\n\n  # ==========================================================================\n  # BÖRSENPLATZ-GRUPPE 2: SIX Structured Products, Off-exchange Switzerland\n  # MICs: XSTX, OFCH\n  # ==========================================================================\n  - name: "SIX Structured Products / Off-exchange CH"\n    condition: ''mic == "XSTX" || mic == "OFCH"''\n    expression: >-\n      IF(tradeValue <= 1000, 15.0,\n      IF(tradeValue <= 5000, 25.0,\n      IF(tradeValue <= 10000, 38.0,\n      IF(tradeValue <= 15000, 50.0,\n      IF(tradeValue <= 20000, 70.0,\n      IF(tradeValue <= 30000, 95.0,\n      95.0))))))\n\n  # ==========================================================================\n  # BÖRSENPLATZ-GRUPPE 3: Swiss DOTS (CHF)\n  # MIC: SDOT\n  # ==========================================================================\n  - name: "Swiss DOTS"\n    condition: ''mic == "SDOT"''\n    expression: >-\n      IF(tradeValue <= 1000, 9.0,\n      IF(tradeValue <= 5000, 12.0,\n      IF(tradeValue <= 10000, 20.0,\n      IF(tradeValue <= 50000, 28.0,\n      36.0))))\n\n  # ==========================================================================\n  # BÖRSENPLATZ-GRUPPE 4: Europäische Börsen (EUR)\n  # MICs: XFRA, XETR, XPAR, XAMS, XBRU, XCSE, XSTO, XHEL, XMIL, XMAD, XWBO\n  # --------------------------------------------------------------------------\n  # Kalibriert: Mindestgebühr 35 CHF, konsistent über alle Transaktionen.\n  #   ≤ 5''000:  immer 35    ≤ 10''000: 40    ≤ 15''000: 50\n  # ==========================================================================\n  - name: "Europäische Börsen (EUR)"\n    condition: >-\n      mic == "XFRA" || mic == "XETR" || mic == "XPAR" ||\n      mic == "XAMS" || mic == "XBRU" || mic == "XCSE" ||\n      mic == "XSTO" || mic == "XHEL" || mic == "XMIL" ||\n      mic == "XMAD" || mic == "XWBO"\n    expression: >-\n      IF(tradeValue <= 5000, 35.0,\n      IF(tradeValue <= 10000, 40.0,\n      IF(tradeValue <= 15000, 50.0,\n      IF(tradeValue <= 20000, 65.0,\n      IF(tradeValue <= 30000, 90.0,\n      IF(tradeValue <= 50000, 120.0,\n      IF(tradeValue <= 100000, 180.0,\n      IF(tradeValue <= 150000, 260.0,\n      320.0))))))))\n\n  # ==========================================================================\n  # BÖRSENPLATZ-GRUPPE 5: EUWAX, Off-exchange Germany (EUR)\n  # MICs: XSTU, OFDE\n  # ==========================================================================\n  - name: "EUWAX / Off-exchange DE"\n    condition: ''mic == "XSTU" || mic == "OFDE"''\n    expression: >-\n      IF(tradeValue <= 1000, 15.0,\n      IF(tradeValue <= 5000, 25.0,\n      IF(tradeValue <= 10000, 35.0,\n      IF(tradeValue <= 15000, 45.0,\n      IF(tradeValue <= 20000, 65.0,\n      IF(tradeValue <= 30000, 90.0,\n      90.0))))))\n\n  # ==========================================================================\n  # BÖRSENPLATZ-GRUPPE 6: London Stock Exchange (GBP)\n  # MIC: XLON\n  # ==========================================================================\n  - name: "London Stock Exchange (GBP)"\n    condition: ''mic == "XLON"''\n    expression: >-\n      IF(tradeValue <= 5000, 35.0,\n      IF(tradeValue <= 10000, 40.0,\n      IF(tradeValue <= 15000, 50.0,\n      IF(tradeValue <= 20000, 65.0,\n      IF(tradeValue <= 30000, 90.0,\n      IF(tradeValue <= 50000, 120.0,\n      IF(tradeValue <= 100000, 180.0,\n      IF(tradeValue <= 150000, 260.0,\n      320.0))))))))\n\n  # ==========================================================================\n  # BÖRSENPLATZ-GRUPPE 7: NYSE, NASDAQ, NYSE American (USD)\n  # MICs: XNYS, XNAS, XASE\n  # --------------------------------------------------------------------------\n  # Kalibriert: ≤ 5''000 → 35 (beobachtet bei TV 3''000–3''600)\n  # ==========================================================================\n  - name: "US-Börsen (USD)"\n    condition: ''mic == "XNYS" || mic == "XNAS" || mic == "XASE"''\n    expression: >-\n      IF(tradeValue <= 5000, 35.0,\n      IF(tradeValue <= 10000, 40.0,\n      IF(tradeValue <= 15000, 50.0,\n      IF(tradeValue <= 20000, 65.0,\n      IF(tradeValue <= 30000, 90.0,\n      IF(tradeValue <= 50000, 120.0,\n      IF(tradeValue <= 100000, 180.0,\n      IF(tradeValue <= 150000, 260.0,\n      320.0))))))))\n\n  # ==========================================================================\n  # BÖRSENPLATZ-GRUPPE 8: Toronto TSX, TSX Venture (CAD)\n  # MICs: XTSE, XTSX\n  # ==========================================================================\n  - name: "Kanadische Börsen (CAD)"\n    condition: ''mic == "XTSE" || mic == "XTSX"''\n    expression: >-\n      IF(tradeValue <= 5000, 35.0,\n      IF(tradeValue <= 10000, 40.0,\n      IF(tradeValue <= 15000, 50.0,\n      IF(tradeValue <= 20000, 65.0,\n      IF(tradeValue <= 30000, 90.0,\n      IF(tradeValue <= 50000, 120.0,\n      IF(tradeValue <= 100000, 180.0,\n      IF(tradeValue <= 150000, 260.0,\n      320.0))))))))\n\n  # ==========================================================================\n  # AUFFANGREGEL (Fallback)\n  # ==========================================================================\n  - name: "Standard (unbekannter Börsenplatz)"\n    condition: "true"\n    expression: >-\n      IF(tradeValue <= 5000, 35.0,\n      IF(tradeValue <= 10000, 40.0,\n      IF(tradeValue <= 15000, 50.0,\n      IF(tradeValue <= 20000, 65.0,\n      IF(tradeValue <= 30000, 90.0,\n      IF(tradeValue <= 50000, 120.0,\n      IF(tradeValue <= 100000, 180.0,\n      IF(tradeValue <= 150000, 260.0,\n      320.0))))))))' WHERE mss.text = 'E-Trading - PostFinance Standard';
@@ -627,3 +723,15 @@ UPDATE trading_platform_plan tpp JOIN multilinguestring ms ON ms.id = tpp.platfo
 
 
 
+
+-- Generic connector endpoint usage tracking
+ALTER TABLE generic_connector_endpoint ADD COLUMN IF NOT EXISTS ever_used_successfully TINYINT(1) NOT NULL DEFAULT 0;
+
+-- COLUMN_ROW_ARRAYS support: path to column names array
+ALTER TABLE generic_connector_endpoint ADD COLUMN IF NOT EXISTS json_column_names_path VARCHAR(255) NULL;
+
+-- V0.34.0 Release Notes
+DELETE FROM release_note WHERE version = '0.34.0';
+INSERT INTO release_note (version, language, note) VALUES
+('0.34.0', 'EN', 'Standing orders for recurring transactions, generic database-configurable feed connectors, YAML fee models on trading platform plans, flexible trading periods per instrument, borrowing rate on cash accounts, inline table editing, and stock exchange close-based price updates.'),
+('0.34.0', 'DE', 'Daueraufträge für wiederkehrende Transaktionen, generische datenbankbasierte Feed-Konnektoren, YAML-Gebührenmodelle auf Handelsplattform-Plänen, flexible Handelsperioden pro Instrument, Sollzins auf Kassakonten, Inline-Tabellenbearbeitung und börsenschlussbasierte Kursaktualisierungen.');

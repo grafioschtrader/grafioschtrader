@@ -123,6 +123,34 @@ public class DataHelper {
   }
 
   /**
+   * Compares two objects of the same class by reflecting over fields annotated with the given annotation. Returns
+   * {@code true} when every annotated field has an equal value (via getter) in both objects. Comparison uses
+   * {@link PropertyUtils#getProperty}, so enum-backed getters and {@code is*} boolean accessors are handled
+   * transparently. Short-circuits on the first difference found.
+   *
+   * @param a               The first object.
+   * @param b               The second object.
+   * @param annotationClass The annotation that marks the fields to compare.
+   * @return {@code true} if all annotated fields are equal, {@code false} otherwise.
+   */
+  public static boolean areAnnotatedFieldsEqual(Object a, Object b, Class<? extends Annotation> annotationClass) {
+    try {
+      for (Field field : FieldUtils.getAllFieldsList(a.getClass())) {
+        if (field.isAnnotationPresent(annotationClass)) {
+          Object va = PropertyUtils.getProperty(a, field.getName());
+          Object vb = PropertyUtils.getProperty(b, field.getName());
+          if (!Objects.equals(va, vb)) {
+            return false;
+          }
+        }
+      }
+      return true;
+    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
+      throw new RuntimeException("Reflective comparison failed on " + a.getClass().getSimpleName(), ex);
+    }
+  }
+
+  /**
    * Checks if a field is annotated with any of the specified annotation classes.
    *
    * @param field                      The field to check.

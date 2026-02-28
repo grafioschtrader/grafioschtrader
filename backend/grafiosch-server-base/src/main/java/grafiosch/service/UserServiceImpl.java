@@ -335,4 +335,11 @@ public class UserServiceImpl implements UserService {
     return userJpaRepository.save(user);
   }
 
+  @Override
+  public User resetLimitCounters(User user) {
+    user.setSecurityBreachCount((short) 0);
+    user.setLimitRequestExceedCount((short) 0);
+    return userJpaRepository.save(user);
+  }
+
 }

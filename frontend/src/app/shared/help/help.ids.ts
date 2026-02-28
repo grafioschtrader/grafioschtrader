@@ -60,6 +60,8 @@ export const AppHelpIds: Record<string, string> = {
   HELP_BASEDATA_STOCKEXCHANGE: 'basedata/instrumentbased/stockexchange',
   HELP_BASEDATA_TRADING_PLATFORM_PLAN: 'basedata/tradingplatformplan',
   HELP_BASEDATA_GENERIC_CONNECTOR: 'basedata/genericconnector',
+  HELP_BASEDATA_GENERIC_CONNECTOR_ENDPOINTS: 'basedata/genericconnector/endpoints',
+
   HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_GROUP: 'basedata/imptranstemplate',
   HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_TEMPLATE: 'basedata/imptranstemplate/createimptranstemplate',
   HELP_BASEDATA_UDF_METADATA_SECURITY: 'basedata/udfmetadata/instruments',

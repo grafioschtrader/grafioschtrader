@@ -11,7 +11,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.text.NumberFormat;
 import java.text.ParseException;
 import java.time.DayOfWeek;
 import java.time.Duration;
@@ -19,16 +18,17 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Base64;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,10 +46,10 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
 import grafiosch.common.DateHelper;
 import grafiosch.entities.User;
-import grafioschtrader.dto.TokenConfig;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
+import grafioschtrader.dto.TokenConfig;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.GenericConnectorDef;
 import grafioschtrader.entities.GenericConnectorEndpoint;
@@ -341,6 +341,10 @@ public class GenericFeedConnector extends BaseFeedConnector {
           DayOfWeek dow = hq.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getDayOfWeek();
           return dow == DayOfWeek.SATURDAY || dow == DayOfWeek.SUNDAY;
         });
+      }
+      if (endpoint.getEndpointOptions().contains(EndpointOption.REMOVE_DUPLICATE_DATES)) {
+        Set<Date> seenDates = new HashSet<>();
+        quotes.removeIf(hq -> !seenDates.add(hq.getDate()));
       }
       if (security != null && connectorDef.isGbxDividerEnabled()) {
         double divider = FeedConnectorHelper.getGBXLondonDivider(security);
@@ -727,6 +731,26 @@ public class GenericFeedConnector extends BaseFeedConnector {
           quotes.add(hq);
         }
       }
+    } else if (structure == JsonDataStructure.COLUMN_ROW_ARRAYS) {
+      Map<String, Integer> colIndex = buildColumnIndex(root, endpoint);
+      for (JsonNode row : dataNode) {
+        if (!row.isArray()) {
+          continue;
+        }
+        Historyquote hq = new Historyquote();
+        for (GenericConnectorFieldMapping mapping : endpoint.getFieldMappings()) {
+          Integer idx = colIndex.get(mapping.getSourceExpression());
+          if (idx != null && idx < row.size()) {
+            JsonNode valueNode = row.get(idx);
+            if (valueNode != null && !valueNode.isNull()) {
+              setHistoryField(hq, mapping, valueNode.asText(), endpoint);
+            }
+          }
+        }
+        if (hq.getDate() != null) {
+          quotes.add(hq);
+        }
+      }
     }
 
     return quotes;
@@ -745,22 +769,54 @@ public class GenericFeedConnector extends BaseFeedConnector {
 
     JsonNode dataNode = endpoint.getJsonDataPath() != null ? navigatePath(root, endpoint.getJsonDataPath()) : root;
 
-    if (dataNode.isArray() && dataNode.size() > 0) {
-      dataNode = dataNode.get(0);
-    }
-
     Map<String, Double> values = new HashMap<>();
-    for (GenericConnectorFieldMapping mapping : endpoint.getFieldMappings()) {
-      JsonNode valueNode = navigatePath(dataNode, mapping.getSourceExpression());
-      if (valueNode != null && !valueNode.isNull()) {
-        double val = parseNumber(valueNode.asText(), endpoint.getNumberFormat());
-        if (mapping.getDividerExpression() != null) {
-          val /= Double.parseDouble(mapping.getDividerExpression());
+    if (endpoint.getJsonDataStructure() == JsonDataStructure.COLUMN_ROW_ARRAYS) {
+      Map<String, Integer> colIndex = buildColumnIndex(root, endpoint);
+      JsonNode row = dataNode.isArray() && dataNode.size() > 0 ? dataNode.get(0) : dataNode;
+      if (row != null && row.isArray()) {
+        for (GenericConnectorFieldMapping mapping : endpoint.getFieldMappings()) {
+          Integer idx = colIndex.get(mapping.getSourceExpression());
+          if (idx != null && idx < row.size()) {
+            JsonNode valueNode = row.get(idx);
+            if (valueNode != null && !valueNode.isNull()) {
+              double val = parseNumber(valueNode.asText(), endpoint.getNumberFormat());
+              if (mapping.getDividerExpression() != null) {
+                val /= Double.parseDouble(mapping.getDividerExpression());
+              }
+              values.put(mapping.getTargetField(), val);
+            }
+          }
         }
-        values.put(mapping.getTargetField(), val);
+      }
+    } else {
+      if (dataNode.isArray() && dataNode.size() > 0) {
+        dataNode = dataNode.get(0);
+      }
+      for (GenericConnectorFieldMapping mapping : endpoint.getFieldMappings()) {
+        JsonNode valueNode = navigatePath(dataNode, mapping.getSourceExpression());
+        if (valueNode != null && !valueNode.isNull()) {
+          double val = parseNumber(valueNode.asText(), endpoint.getNumberFormat());
+          if (mapping.getDividerExpression() != null) {
+            val /= Double.parseDouble(mapping.getDividerExpression());
+          }
+          values.put(mapping.getTargetField(), val);
+        }
       }
     }
     return values;
+  }
+
+  private Map<String, Integer> buildColumnIndex(JsonNode root, GenericConnectorEndpoint endpoint) {
+    Map<String, Integer> colIndex = new HashMap<>();
+    if (endpoint.getJsonColumnNamesPath() != null) {
+      JsonNode colNamesNode = navigatePath(root, endpoint.getJsonColumnNamesPath());
+      if (colNamesNode != null && colNamesNode.isArray()) {
+        for (int i = 0; i < colNamesNode.size(); i++) {
+          colIndex.put(colNamesNode.get(i).asText(), i);
+        }
+      }
+    }
+    return colIndex;
   }
 
   private JsonNode navigatePath(JsonNode node, String dotPath) {
@@ -1108,6 +1164,91 @@ public class GenericFeedConnector extends BaseFeedConnector {
   private void releaseRateLimit() {
     if (rateLimitSemaphore != null) {
       rateLimitSemaphore.release();
+    }
+  }
+
+  // ======================== Endpoint Testing ========================
+
+  /**
+   * Tests a single endpoint by performing one HTTP request, parsing the response, and returning the result without any
+   * side effects (no pagination, no EndpointOption post-processing, no marking endpoint as used). The caller is
+   * responsible for building the ticker string (including CURRENCY_PAIR composition).
+   *
+   * @param feedSupport    "FS_HISTORY" or "FS_INTRA"
+   * @param instrumentType "SECURITY" or "CURRENCY"
+   * @param ticker         pre-built ticker string
+   * @param fromDate       start date for FS_HISTORY (ignored for FS_INTRA)
+   * @param toDate         end date for FS_HISTORY (ignored for FS_INTRA)
+   * @return test result with request URL, HTTP status, raw response, parsed data, and timing
+   */
+  public GenericConnectorTestResult testEndpoint(String feedSupport, String instrumentType, String ticker,
+      LocalDate fromDate, LocalDate toDate) {
+    long startTime = System.currentTimeMillis();
+    GenericConnectorEndpoint endpoint = findEndpoint(feedSupport, instrumentType);
+    if (endpoint == null) {
+      return GenericConnectorTestResult.error(null, 0, null,
+          "No endpoint found for " + feedSupport + " + " + instrumentType, System.currentTimeMillis() - startTime);
+    }
+
+    Date from = null;
+    Date to = null;
+    if ("FS_HISTORY".equals(feedSupport)) {
+      from = fromDate != null ? Date.from(fromDate.atStartOfDay(ZoneId.systemDefault()).toInstant()) : new Date();
+      to = toDate != null ? Date.from(toDate.atStartOfDay(ZoneId.systemDefault()).toInstant()) : new Date();
+    } else if (needsDatePlaceholders(endpoint)) {
+      from = new Date();
+      to = new Date();
+    }
+
+    String url = buildUrl(endpoint, ticker, from, to);
+    String maskedUrl = hideApiKeyForError(url);
+    try {
+      acquireRateLimit();
+      try {
+        ensureTokenValid();
+        HttpResponse<String> response = doHttpGet(url);
+        int status = response.statusCode();
+        String body = response.body();
+        String snippet = body != null && body.length() > 5000 ? body.substring(0, 5000) : body;
+
+        if (status != 200) {
+          return GenericConnectorTestResult.error(maskedUrl, status, snippet,
+              "HTTP " + status, System.currentTimeMillis() - startTime);
+        }
+
+        List<Map<String, String>> parsedRows;
+        if ("FS_HISTORY".equals(feedSupport)) {
+          List<Historyquote> quotes = parseHistoryResponse(endpoint, body);
+          parsedRows = new ArrayList<>();
+          int limit = Math.min(quotes.size(), 200);
+          for (int i = 0; i < limit; i++) {
+            Historyquote hq = quotes.get(i);
+            Map<String, String> row = new LinkedHashMap<>();
+            row.put("date", hq.getDate() != null ? hq.getDate().toString() : "");
+            row.put("open", String.valueOf(hq.getOpen()));
+            row.put("high", String.valueOf(hq.getHigh()));
+            row.put("low", String.valueOf(hq.getLow()));
+            row.put("close", String.valueOf(hq.getClose()));
+            row.put("volume", String.valueOf(hq.getVolume()));
+            parsedRows.add(row);
+          }
+        } else {
+          Map<String, Double> values = parseIntradayResponse(endpoint, body);
+          Map<String, String> row = new LinkedHashMap<>();
+          for (Map.Entry<String, Double> entry : values.entrySet()) {
+            row.put(entry.getKey(), String.valueOf(entry.getValue()));
+          }
+          parsedRows = List.of(row);
+        }
+
+        return GenericConnectorTestResult.success(maskedUrl, status, snippet, parsedRows,
+            System.currentTimeMillis() - startTime);
+      } finally {
+        releaseRateLimit();
+      }
+    } catch (Exception e) {
+      return GenericConnectorTestResult.error(maskedUrl, 0, null,
+          e.getClass().getSimpleName() + ": " + e.getMessage(), System.currentTimeMillis() - startTime);
     }
   }
 

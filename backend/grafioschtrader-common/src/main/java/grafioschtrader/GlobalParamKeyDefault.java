@@ -11,6 +11,7 @@ import grafiosch.entities.Globalparameters;
 import grafiosch.entities.ProposeUserTask;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Currencypair;
+import grafioschtrader.entities.GenericConnectorDef;
 import grafioschtrader.entities.ImportTransactionPlatform;
 import grafioschtrader.entities.ImportTransactionTemplate;
 import grafioschtrader.entities.Security;
@@ -155,6 +156,8 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
       + UDFMetadataSecurity.class.getSimpleName();
   public static final String GLOB_KEY_LIMIT_DAY_GTNETSECURITYIMPORT = GlobalConstants.GT_LIMIT_DAY
       + "GTNetSecurityImport";
+  public static final String GLOB_KEY_LIMIT_DAY_GENERICCONNECTORDEF = GlobalConstants.GT_LIMIT_DAY
+      + GenericConnectorDef.class.getSimpleName();
   public static final String GLOB_KEY_MAX_SIMULATION_ENVIRONMENTS = GlobalConstants.GT_PREFIX + MAX
       + "simulation.environments";
   public static final String GLOB_KEY_MAX_STANDING_ORDER = GlobalConstants.GT_PREFIX + MAX + "standing.order";
@@ -189,8 +192,7 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
 
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_UDFMETADATASEUCIRTY, new MaxDefaultDBValue(20));
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_GTNETSECURITYIMPORT, new MaxDefaultDBValue(150));
-
-    // TODO Other entities -> otherwise null pointer exception
+    defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_GENERICCONNECTORDEF, new MaxDefaultDBValue(10));
 
   }
 

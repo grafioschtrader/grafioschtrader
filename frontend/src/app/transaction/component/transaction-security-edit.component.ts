@@ -489,7 +489,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     // Apply the same quotation adjustments as calcPosTotal(data, false)
     let quotation = data.quotation;
     if (this.isOpenMarginInstrument) {
-      quotation = 0;
+      quotation = data.quotation * -1;
     } else if (this.isCloseMarginInstrument) {
       if (this.securityOpenPositionPerSecurityaccount) {
         quotation -= this.transactionCallParam.closeMarginPosition.quotationOpenPosition /
@@ -516,9 +516,9 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     // else:                            cashAmount = rawTotal * exRate => exRate = cashAmount / rawTotal
     let exRate: number;
     if (this.currencyCashaccount === this.currencypair.fromCurrency) {
-      exRate = rawTotal / cashaccountAmount;
+      exRate = Math.abs(rawTotal) / Math.abs(cashaccountAmount);
     } else {
-      exRate = cashaccountAmount / rawTotal;
+      exRate = Math.abs(cashaccountAmount) / Math.abs(rawTotal);
     }
     this.configObject.currencyExRate.formControl.setValue(exRate);
   }

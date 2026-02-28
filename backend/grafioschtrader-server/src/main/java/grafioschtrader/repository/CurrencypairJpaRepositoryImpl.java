@@ -72,6 +72,9 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   @Autowired
   private GTNetHistoryquoteService gtNetHistoryquoteService;
 
+  @Autowired
+  private GenericConnectorEndpointJpaRepository genericConnectorEndpointJpaRepository;
+
   ////////////////////////////////////////////////////////////////
   // Historical prices
   ////////////////////////////////////////////////////////////////
@@ -79,11 +82,11 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   @PostConstruct
   private void postConstruct() {
     HistoryquoteThruConnector<Currencypair> connectorThru = new HistoryquoteThruConnector<>(entityManager,
-        globalparametersService, feedConnectorbeans, this, Currencypair.class);
+        globalparametersService, feedConnectorbeans, this, Currencypair.class, genericConnectorEndpointJpaRepository);
     historyquoteThruConnector = new HistoryquoteThruGTNet<>(connectorThru, gtNetHistoryquoteService,
         globalparametersJpaRepository, currencypairJpaRepository);
     intradayThruConnector = new IntradayThruConnector<>(currencypairJpaRepository, globalparametersService,
-        feedConnectorbeans, this);
+        feedConnectorbeans, this, genericConnectorEndpointJpaRepository);
   }
 
   @Override

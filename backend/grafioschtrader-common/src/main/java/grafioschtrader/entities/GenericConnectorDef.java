@@ -5,12 +5,13 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.common.LockedWhenUsed;
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
 import grafiosch.entities.Auditable;
 import grafiosch.entities.MultilanguageString;
-import grafioschtrader.validation.ValidMultilanguage;
 import grafioschtrader.types.RateLimitType;
+import grafioschtrader.validation.ValidMultilanguage;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -24,6 +25,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -53,6 +55,7 @@ public class GenericConnectorDef extends Auditable implements Serializable {
   @Column(name = "short_id")
   @Schema(description = "Unique short identifier, becomes gt.datafeed.<shortId> as the connector ID")
   @PropertySelectiveUpdatableOrWhenNull
+  @LockedWhenUsed
   private String shortId;
 
   @NotNull
@@ -60,6 +63,7 @@ public class GenericConnectorDef extends Auditable implements Serializable {
   @Column(name = "readable_name")
   @Schema(description = "Display name shown in the UI connector dropdowns")
   @PropertyAlwaysUpdatable
+  @LockedWhenUsed
   private String readableName;
 
   @NotNull
@@ -67,31 +71,37 @@ public class GenericConnectorDef extends Auditable implements Serializable {
   @Column(name = "domain_url")
   @Schema(description = "Base domain URL including trailing slash, e.g. https://api.twelvedata.com/")
   @PropertySelectiveUpdatableOrWhenNull
+  @LockedWhenUsed
   private String domainUrl;
 
   @Column(name = "needs_api_key")
   @Schema(description = "Whether this connector requires an API key from the connector_apikey table")
   @PropertySelectiveUpdatableOrWhenNull
+  @LockedWhenUsed
   private boolean needsApiKey;
 
   @Column(name = "rate_limit_type")
   @Schema(description = "Rate limiting strategy: NONE, TOKEN_BUCKET, or SEMAPHORE")
   @PropertySelectiveUpdatableOrWhenNull
+  @LockedWhenUsed
   private byte rateLimitType;
 
   @Column(name = "rate_limit_requests")
   @Schema(description = "Maximum requests per period for TOKEN_BUCKET rate limiting")
   @PropertySelectiveUpdatableOrWhenNull
+  @LockedWhenUsed
   private Short rateLimitRequests;
 
   @Column(name = "rate_limit_period_sec")
   @Schema(description = "Period in seconds for TOKEN_BUCKET rate limiting")
   @PropertySelectiveUpdatableOrWhenNull
+  @LockedWhenUsed
   private Short rateLimitPeriodSec;
 
   @Column(name = "rate_limit_concurrent")
   @Schema(description = "Maximum concurrent requests for SEMAPHORE rate limiting")
   @PropertySelectiveUpdatableOrWhenNull
+  @LockedWhenUsed
   private Short rateLimitConcurrent;
 
   @Column(name = "intraday_delay_seconds")
@@ -103,14 +113,17 @@ public class GenericConnectorDef extends Auditable implements Serializable {
   @Column(name = "regex_url_pattern")
   @Schema(description = "Regex pattern to validate urlExtend values for this connector")
   @PropertyAlwaysUpdatable
+  @LockedWhenUsed
   private String regexUrlPattern;
 
   @Column(name = "supports_security")
   @PropertySelectiveUpdatableOrWhenNull
+  @LockedWhenUsed
   private boolean supportsSecurity = true;
 
   @Column(name = "supports_currency")
   @PropertySelectiveUpdatableOrWhenNull
+  @LockedWhenUsed
   private boolean supportsCurrency;
 
   @Column(name = "need_history_gap_filler")
@@ -146,6 +159,10 @@ public class GenericConnectorDef extends Auditable implements Serializable {
 
   @OneToMany(mappedBy = "genericConnectorDef", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
   private List<GenericConnectorHttpHeader> httpHeaders;
+
+  @Transient
+  @Schema(description = "Number of securities and currency pairs currently referencing this connector")
+  private long instrumentCount;
 
   @Override
   public Integer getId() {
@@ -319,5 +336,13 @@ public class GenericConnectorDef extends Auditable implements Serializable {
 
   public void setHttpHeaders(List<GenericConnectorHttpHeader> httpHeaders) {
     this.httpHeaders = httpHeaders;
+  }
+
+  public long getInstrumentCount() {
+    return instrumentCount;
+  }
+
+  public void setInstrumentCount(long instrumentCount) {
+    this.instrumentCount = instrumentCount;
   }
 }

@@ -53,6 +53,12 @@ const MyPreset = definePreset(Aura, {
         paddingY: "0rem",
       }
     },
+    textarea: {
+      root: {
+        paddingX: "0.1rem",
+        paddingY: "0rem",
+      }
+    },
     menubar: {
       root: {
         padding: "0rem 0rem",

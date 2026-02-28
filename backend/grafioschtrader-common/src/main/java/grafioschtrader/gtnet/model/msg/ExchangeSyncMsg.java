@@ -6,7 +6,6 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import grafiosch.BaseConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**

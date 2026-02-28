@@ -18,7 +18,14 @@ public enum EndpointOption implements StableEnum {
    * Skip historical price rows that fall on Saturday or Sunday. Some data providers incorrectly deliver weekend data
    * that Grafioschtrader cannot process.
    */
-  SKIP_WEEKEND_DATA((byte) 0, "FS_HISTORY");
+  SKIP_WEEKEND_DATA((byte) 0, "FS_HISTORY"),
+
+  /**
+   * Remove duplicate date entries from the historical price response. Some generic connector sources return overlapping
+   * data across pagination batches or duplicate rows within a single response. When enabled, only the first entry per
+   * date is kept.
+   */
+  REMOVE_DUPLICATE_DATES((byte) 1, "FS_HISTORY");
 
   private final Byte value;
   private final String applicableFeedSupports;

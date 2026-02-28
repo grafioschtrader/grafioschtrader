@@ -192,6 +192,15 @@ public abstract class TenantLimitsHelper {
    */
   private static int getMaxValueByMaxDefaultDBValueWithKey(EntityManager entityManager,
       MaxDefaultDBValueWithKey maxDefaultDBValueWithKey) {
+    if (maxDefaultDBValueWithKey.maxDefaultDBValue == null) {
+      // Key not registered in Globalparameters.defaultLimitMap — fall back to database lookup only
+      Globalparameters globalParameter = entityManager.find(Globalparameters.class, maxDefaultDBValueWithKey.key);
+      if (globalParameter != null) {
+        return globalParameter.getPropertyInt();
+      }
+      throw new IllegalStateException("No daily limit configured for key '" + maxDefaultDBValueWithKey.key
+          + "'. Register it in defaultLimitMap (GlobalParamKeyDefault or GlobalParamKeyBaseDefault).");
+    }
     if (maxDefaultDBValueWithKey.maxDefaultDBValue.getDbValue() == null) {
       Globalparameters globalParameter = entityManager.find(Globalparameters.class, maxDefaultDBValueWithKey.key);
       int value = (globalParameter != null) ? globalParameter.getPropertyInt()

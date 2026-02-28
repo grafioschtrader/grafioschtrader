@@ -24,7 +24,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import grafiosch.dto.UserDTO;
 import grafiosch.entities.ProposeUserTask;
 import grafiosch.entities.User;
+import grafiosch.entities.Role;
 import grafiosch.error.ErrorWithLogout;
+import grafiosch.error.ErrorWithLogoutAdmin;
 import grafiosch.error.ImpatientAtLoginError;
 import grafiosch.exceptions.RequestLimitAndSecurityBreachException;
 import grafiosch.repository.ProposeUserTaskJpaRepository;
@@ -177,8 +179,11 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
       SecurityContextHolder.getContext().setAuthentication(userAuthentication);
 
     } catch (RequestLimitAndSecurityBreachException lee) {
-      // User has to many times misused the limits (requests/period or security breach) of this application
-      if (holdUserValue.note != null) {
+      // User has too many times misused the limits (requests/period or security breach) of this application
+      if (holdUserValue.note != null && isAdminSelfReleaseNote(holdUserValue.note)
+          && isAdmin((User) authenticatedUser)) {
+        performAdminSelfRelease((User) authenticatedUser, response, holdUserValue);
+      } else if (holdUserValue.note != null) {
         processUserUnlockNoteRequest(authenticatedUser, response, lee, holdUserValue);
       } else {
         requestForUserUnlock(authenticatedUser, response, lee);
@@ -247,15 +252,20 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
   private void requestForUserUnlock(final UserDetails authenticatedUser, final HttpServletResponse response,
       RequestLimitAndSecurityBreachException lee) throws IOException {
     SecurityContextHolder.clearContext();
-    List<ProposeUserTask> existingProposeUserTasks = proposeUserTaskJpaRepository.findByIdTargetUserAndUserTaskType(
-        ((User) authenticatedUser).getIdUser(), UserTaskType.RELEASE_LOGOUT.getValue());
-    if (existingProposeUserTasks.isEmpty()) {
+    if (isAdmin((User) authenticatedUser)) {
       RestErrorHandler.createErrorResponseForServlet(response, HttpStatus.TOO_MANY_REQUESTS,
-          new ErrorWithLogout(lee.getMessage()));
+          new ErrorWithLogoutAdmin(lee.getMessage()));
     } else {
-      RestErrorHandler.createErrorResponseForServlet(response, HttpStatus.TOO_MANY_REQUESTS,
-          new ImpatientAtLoginError(messages.getMessage("rights.limit.send", null,
-              Locale.forLanguageTag(((User) authenticatedUser).getLocaleStr()))));
+      List<ProposeUserTask> existingProposeUserTasks = proposeUserTaskJpaRepository.findByIdTargetUserAndUserTaskType(
+          ((User) authenticatedUser).getIdUser(), UserTaskType.RELEASE_LOGOUT.getValue());
+      if (existingProposeUserTasks.isEmpty()) {
+        RestErrorHandler.createErrorResponseForServlet(response, HttpStatus.TOO_MANY_REQUESTS,
+            new ErrorWithLogout(lee.getMessage()));
+      } else {
+        RestErrorHandler.createErrorResponseForServlet(response, HttpStatus.TOO_MANY_REQUESTS,
+            new ImpatientAtLoginError(messages.getMessage("rights.limit.send", null,
+                Locale.forLanguageTag(((User) authenticatedUser).getLocaleStr()))));
+      }
     }
   }
 
@@ -275,6 +285,38 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
       user = this.userService.updateTimezoneOffset(user, timezoneOffst);
     }
     return user;
+  }
+
+  private static final String ADMIN_SELF_RELEASE_NOTE = "ADMIN_SELF_RELEASE";
+
+  private boolean isAdmin(User user) {
+    return Role.ROLE_ADMIN.equals(user.getMostPrivilegedRole());
+  }
+
+  private boolean isAdminSelfReleaseNote(String note) {
+    return ADMIN_SELF_RELEASE_NOTE.equals(note);
+  }
+
+  /**
+   * Performs admin self-release by resetting limit counters and issuing a JWT token.
+   *
+   * <p>This is only invoked when the authenticated user has ROLE_ADMIN and sent the
+   * sentinel note "ADMIN_SELF_RELEASE". It resets both security breach and request limit
+   * counters, updates the timezone, and issues a normal JWT login response.</p>
+   */
+  private void performAdminSelfRelease(User user, HttpServletResponse response,
+      HoldUserValues holdUserValue) throws IOException {
+    short previousSecurityBreachCount = user.getSecurityBreachCount();
+    short previousLimitRequestExceedCount = user.getLimitRequestExceedCount();
+    user = userService.resetLimitCounters(user);
+    log.warn("Admin self-release for user {} (id={}). Previous counters: securityBreachCount={}, "
+        + "limitRequestExceedCount={}", user.getUsername(), user.getIdUser(),
+        previousSecurityBreachCount, previousLimitRequestExceedCount);
+    emailToTimezoneOffsetMap.remove(user.getUsername());
+    user = updateTimezoneOffset(user, holdUserValue.timezoneOffset);
+    final UserAuthentication userAuthentication = new UserAuthentication(user);
+    tokenAuthentication.addJwtTokenToHeader(response, userAuthentication, holdUserValue.passwordRegexOk);
+    SecurityContextHolder.getContext().setAuthentication(userAuthentication);
   }
 
   /**

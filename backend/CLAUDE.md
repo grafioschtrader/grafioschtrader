@@ -211,6 +211,27 @@ private LocalDate transactionDate;
 
 **Rule**: Every `LocalDate` field in a non-entity DTO class must have `@JsonFormat(shape = STRING, pattern = "yyyy-MM-dd")`. Without it, the frontend will show "Invalid date".
 
+## Daily Limit Registration for Entity CRUD Operations
+
+**IMPORTANT**: Every entity managed through a `*Resource` class extending `UpdateCreate` / `DailyLimitUpdCreateLogger` must have a corresponding daily limit key registered in `Globalparameters.defaultLimitMap`. Without this, a `NullPointerException` occurs in `TenantLimitsHelper.getMaxValueByMaxDefaultDBValueWithKey()` when a limited-editing user performs a CUD operation.
+
+**Required steps when adding a new entity with CUD operations:**
+
+1. Define a constant for the limit key in `GlobalParamKeyDefault` (or `GlobalParamKeyBaseDefault` for base-module entities):
+   ```java
+   public static final String GLOB_KEY_LIMIT_DAY_MYENTITY = G_LIMIT_DAY + "MyEntity";
+   ```
+   The suffix must match the entity's **simple class name** exactly (`entity.getClass().getSimpleName()`).
+
+2. Register a default value in the same class's static initializer block:
+   ```java
+   defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_MYENTITY, new MaxDefaultDBValue(10));
+   ```
+
+3. Override `getPrefixEntityLimit()` in the Resource class to return the correct prefix (usually `GlobalParamKeyBaseDefault.G_LIMIT_DAY` or a `gt.` variant).
+
+**How the lookup works**: `DailyLimitUpdCreateLogger.checkDailyLimitOnCRUDOperations()` builds the key as `getPrefixEntityLimit() + entity.getClass().getSimpleName()` and looks it up via `Globalparameters.defaultLimitMap`. If the key is missing from the map, `maxDefaultDBValue` will be `null`.
+
 ## Common Annotations for Native Queries
 
 ```java

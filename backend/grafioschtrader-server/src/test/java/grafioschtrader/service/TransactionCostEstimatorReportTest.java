@@ -206,7 +206,7 @@ class TransactionCostEstimatorReportTest {
     return req;
   }
 
-  @SuppressWarnings("unchecked")
+  
   private Map<Integer, TradingPlatformPlan> loadPlansBySecurityAccount() {
     List<Securityaccount> accounts = entityManager
         .createQuery("SELECT sa FROM Securityaccount sa", Securityaccount.class)

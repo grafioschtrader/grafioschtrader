@@ -15,8 +15,8 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.entities.GTNet;
-import grafiosch.entities.MultilanguageString;
 import grafiosch.entities.GTNetConfig;
+import grafiosch.entities.MultilanguageString;
 import grafiosch.gtnet.GTNetMessageCode;
 import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
@@ -29,9 +29,10 @@ import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.connector.instrument.generic.GenericFeedConnector;
+import grafioschtrader.entities.Assetclass;
+import grafioschtrader.entities.GTNetSecurityImpPos;
 import grafioschtrader.entities.GenericConnectorDef;
 import grafioschtrader.entities.GenericConnectorEndpoint;
-import grafioschtrader.entities.Assetclass;
 import grafioschtrader.gtnet.model.ConnectorHint;
 import grafioschtrader.gtnet.model.ConnectorHint.ConnectorCapability;
 import grafioschtrader.gtnet.model.SecurityGtnetLookupDTO;
@@ -39,13 +40,12 @@ import grafioschtrader.gtnet.model.SecurityGtnetLookupRequest;
 import grafioschtrader.gtnet.model.SecurityGtnetLookupResponse;
 import grafioschtrader.gtnet.model.SubCategoryDetector;
 import grafioschtrader.gtnet.model.SubCategoryScheme;
-import grafioschtrader.entities.GTNetSecurityImpPos;
-import grafioschtrader.repository.AssetclassJpaRepository;
-import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.gtnet.model.msg.SecurityBatchLookupMsg;
 import grafioschtrader.gtnet.model.msg.SecurityBatchLookupResponseMsg;
 import grafioschtrader.gtnet.model.msg.SecurityLookupMsg;
 import grafioschtrader.gtnet.model.msg.SecurityLookupResponseMsg;
+import grafioschtrader.repository.AssetclassJpaRepository;
+import grafioschtrader.repository.SecurityJpaRepository;
 
 /**
  * Service for looking up security metadata from GTNet peers.

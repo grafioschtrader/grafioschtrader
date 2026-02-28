@@ -2,6 +2,7 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {ConfirmationService, MenuItem} from 'primeng/api';
+import {combineLatest} from 'rxjs';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {SingleRecordMasterViewBase} from '../../lib/masterdetail/component/single.record.master.view.base';
 import {GenericConnectorDef} from '../../entities/generic.connector.def';
@@ -28,6 +29,11 @@ import {GenericConnectorDefEditComponent} from './generic-connector-def-edit.com
 import {GenericConnectorEndpointEditComponent} from './generic-connector-endpoint-edit.component';
 import {GenericConnectorHttpHeaderTableComponent} from './generic-connector-http-header-table.component';
 import {GenericConnectorHttpHeader} from '../../entities/generic.connector.http.header';
+import {GenericConnectorTestDialogComponent} from './generic-connector-test-dialog.component';
+import {DialogService} from 'primeng/dynamicdialog';
+import {DynamicDialogs} from '../../lib/dynamicdialog/component/dynamic.dialogs';
+import {MailSendParam} from '../../lib/dynamicdialog/component/mail.send.dynamic.component';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
  * Top-level component for managing generic connector definitions.
@@ -54,6 +60,7 @@ import {GenericConnectorHttpHeader} from '../../entities/generic.connector.http.
 
         <generic-connector-http-header-table
           [httpHeaders]="selectedEntity.httpHeaders"
+          [editable]="canEditConnectorDef()"
           (httpHeadersChange)="onHttpHeadersChange($event)">
         </generic-connector-http-header-table>
 
@@ -69,6 +76,7 @@ import {GenericConnectorHttpHeader} from '../../entities/generic.connector.http.
                 <p-accordion-content>
                   <generic-connector-endpoint-panel
                     [endpoint]="endpoint"
+                    [editable]="canEditEndpoint(endpoint)"
                     (editEndpoint)="handleEditEndpoint(endpoint)"
                     (fieldMappingsChange)="onFieldMappingsChange($event, endpoint)">
                   </generic-connector-endpoint-panel>
@@ -91,6 +99,12 @@ import {GenericConnectorHttpHeader} from '../../entities/generic.connector.http.
         (closeDialog)="handleCloseEndpointDialog($event)">
       </generic-connector-endpoint-edit>
     }
+    @if (visibleTestDialog) {
+      <generic-connector-test-dialog [visibleDialog]="visibleTestDialog"
+        [endpoint]="selectedEndpoint" [connectorDef]="selectedEntity"
+        (closeDialog)="handleCloseTestDialog($event)">
+      </generic-connector-test-dialog>
+    }
   `,
   standalone: true,
   imports: [
@@ -103,7 +117,8 @@ import {GenericConnectorHttpHeader} from '../../entities/generic.connector.http.
     GenericConnectorEndpointPanelComponent,
     GenericConnectorDefEditComponent,
     GenericConnectorEndpointEditComponent,
-    GenericConnectorHttpHeaderTableComponent
+    GenericConnectorHttpHeaderTableComponent,
+    GenericConnectorTestDialogComponent
   ]
 })
 export class GenericConnectorComponent
@@ -111,16 +126,19 @@ export class GenericConnectorComponent
   implements OnInit, OnDestroy {
 
   visibleEndpointDialog = false;
+  visibleTestDialog = false;
   selectedEndpoint: GenericConnectorEndpoint;
+  private lastSelectedConnectorId: number = null;
 
   constructor(private genericConnectorDefService: GenericConnectorDefService,
+              private dialogService: DialogService,
               gps: GlobalparameterService,
               confirmationService: ConfirmationService,
               messageToastService: MessageToastService,
               activePanelService: ActivePanelService,
               translateService: TranslateService) {
     super(gps, AppHelpIds.HELP_BASEDATA_GENERIC_CONNECTOR, 'idGenericConnector',
-      'GENERIC_CONNECTOR_DEF', genericConnectorDefService,
+      AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF), genericConnectorDefService,
       confirmationService, messageToastService, activePanelService, translateService);
 
     this.formConfig = {labelColumns: 2, nonModal: true};
@@ -159,14 +177,59 @@ export class GenericConnectorComponent
   }
 
   setChildData(selectedEntity: GenericConnectorDef): void {
-    this.selectedEndpoint = null;
+    const newId = selectedEntity?.idGenericConnector ?? null;
+    if (newId !== this.lastSelectedConnectorId) {
+      this.selectedEndpoint = null;
+      this.initExpandedPanels();
+      this.lastSelectedConnectorId = newId;
+    }
     this.childEntityList = selectedEntity?.endpoints || [];
-    this.initExpandedPanels();
     this.refreshMenus();
+  }
+
+  /**
+   * Returns true if the current user can edit the connector definition (def-level fields + headers).
+   * Admin can always edit. Creator can edit only if no endpoint has been used successfully.
+   */
+  canEditConnectorDef(): boolean {
+    if (this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
+      return true;
+    }
+    if (!this.selectedEntity || !this.gps.isEntityCreatedByUser(this.selectedEntity)) {
+      return false;
+    }
+    return !this.selectedEntity.endpoints?.some(e => e.everUsedSuccessfully);
+  }
+
+  /**
+   * Returns true if the current user can edit the given endpoint.
+   * Admin can always edit. Creator can edit only if the endpoint has not been used successfully.
+   */
+  canEditEndpoint(endpoint: GenericConnectorEndpoint): boolean {
+    if (this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
+      return true;
+    }
+    if (!this.selectedEntity || !this.gps.isEntityCreatedByUser(this.selectedEntity)) {
+      return false;
+    }
+    return !endpoint.everUsedSuccessfully;
   }
 
   prepareEditMenu(): MenuItem[] {
     const menuItems: MenuItem[] = this.getBaseEditMenu('GENERIC_CONNECTOR_DEF');
+
+    // Override edit/delete disabled state for def-level based on usage permissions
+    if (menuItems.length > 0) {
+      const editItem = menuItems.find(m => m.label?.startsWith('EDIT_RECORD'));
+      if (editItem) {
+        editItem.disabled = !this.selectedEntity || !this.canEditConnectorDef();
+      }
+      const deleteItem = menuItems.find(m => m.label?.startsWith('DELETE_RECORD'));
+      if (deleteItem) {
+        deleteItem.disabled = !this.selectedEntity || !this.canEditConnectorDef()
+          || (this.selectedEntity?.instrumentCount > 0);
+      }
+    }
 
     if (this.selectedEntity && !this.selectedEntity.activated && this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
       menuItems.push({separator: true});
@@ -175,29 +238,41 @@ export class GenericConnectorComponent
         command: () => this.handleActivate(this.selectedEntity)
       });
     }
-    if (this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
+    if (this.selectedEntity && this.selectedEntity.activated && this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
+      menuItems.push({separator: true});
       menuItems.push({
-        label: 'RELOAD_CONNECTORS' + BaseSettings.DIALOG_MENU_SUFFIX,
-        command: () => this.handleReload()
+        label: 'DEACTIVATE' + BaseSettings.DIALOG_MENU_SUFFIX,
+        command: () => this.handleDeactivate(this.selectedEntity)
       });
     }
-
     if (this.selectedEntity) {
+      const isAdmin = this.gps.hasRole(BaseSettings.ROLE_ADMIN);
+      const isCreator = this.gps.isEntityCreatedByUser(this.selectedEntity);
       menuItems.push({separator: true});
       menuItems.push({
         label: 'CREATE|ENDPOINT' + BaseSettings.DIALOG_MENU_SUFFIX,
         command: () => this.handleCreateEndpoint(),
-        disabled: this.selectedEntity.endpoints?.length >= 2
+        disabled: this.selectedEntity.endpoints?.length >= 4 || (!isAdmin && !isCreator)
       });
       menuItems.push({
         label: 'EDIT_RECORD|ENDPOINT' + BaseSettings.DIALOG_MENU_SUFFIX,
         command: () => this.handleEditEndpoint(this.selectedEndpoint),
-        disabled: !this.selectedEndpoint
+        disabled: !this.selectedEndpoint || !this.canEditEndpoint(this.selectedEndpoint)
       });
       menuItems.push({
         label: 'DELETE_RECORD|ENDPOINT',
         command: () => this.handleDeleteEndpoint(this.selectedEndpoint),
+        disabled: !this.selectedEndpoint || !this.canEditEndpoint(this.selectedEndpoint)
+      });
+      menuItems.push({
+        label: 'TEST_ENDPOINT' + BaseSettings.DIALOG_MENU_SUFFIX,
+        command: () => this.handleTestEndpoint(this.selectedEndpoint),
         disabled: !this.selectedEndpoint
+      });
+      menuItems.push({separator: true});
+      menuItems.push({
+        label: 'MAIL_TO_ADMIN' + BaseSettings.DIALOG_MENU_SUFFIX,
+        command: () => this.mailToAdmin()
       });
     }
 
@@ -246,6 +321,12 @@ export class GenericConnectorComponent
       });
   }
 
+  private mailToAdmin(): void {
+    const subject = this.selectedEntity.shortId + ' - ' + this.selectedEntity.readableName;
+    DynamicDialogs.getOpenedMailSendComponent(this.translateService, this.dialogService,
+      new MailSendParam(0, null, subject, BaseSettings.ROLE_ADMIN));
+  }
+
   handleCloseEndpointDialog(processedActionData: ProcessedActionData): void {
     this.visibleEndpointDialog = false;
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
@@ -254,6 +335,15 @@ export class GenericConnectorComponent
       }
       this.saveConnector();
     }
+  }
+
+  handleTestEndpoint(endpoint: GenericConnectorEndpoint): void {
+    this.selectedEndpoint = endpoint;
+    this.visibleTestDialog = true;
+  }
+
+  handleCloseTestDialog(): void {
+    this.visibleTestDialog = false;
   }
 
   // --- Field Mapping handling ---
@@ -270,22 +360,38 @@ export class GenericConnectorComponent
 
   private handleActivate(entity: GenericConnectorDef): void {
     this.genericConnectorDefService.activateConnector(entity.idGenericConnector).subscribe(() => {
-      this.messageToastService.showMessageI18n(null, 'MSG_RECORD_SAVED');
+      this.messageToastService.showMessageI18n(null, 'MSG_RECORD_SAVED',
+        {i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF)});
       this.readData();
     });
   }
 
-  private handleReload(): void {
-    this.genericConnectorDefService.reloadConnectors().subscribe(() => {
-      this.messageToastService.showMessageI18n(null, 'MSG_RECORD_SAVED');
+  private handleDeactivate(entity: GenericConnectorDef): void {
+    combineLatest([
+      this.translateService.get('MSG_CONFIRM_DEACTIVATE_CONNECTOR', {count: entity.instrumentCount}),
+      this.translateService.get('MSG_GENERAL_HEADER')
+    ]).subscribe(([msg, header]) => {
+      this.confirmationService.confirm({
+        message: msg,
+        header: header,
+        accept: () => {
+          this.genericConnectorDefService.deactivateConnector(entity.idGenericConnector).subscribe(() => {
+            this.messageToastService.showMessageI18n(null, 'MSG_RECORD_SAVED',
+              {i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF)});
+            this.readData();
+          });
+        }
+      });
     });
   }
 
   private saveConnector(): void {
     this.genericConnectorDefService.update(this.selectedEntity).subscribe(updated => {
-      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED');
+      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED',
+        {i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF)});
       this.selectedEntity = updated;
       this.readData();
+      this.genericConnectorDefService.reloadConnectors().subscribe();
     });
   }
 

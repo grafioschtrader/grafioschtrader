@@ -61,6 +61,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   private countriesAsKeyValue: { [cc: string]: string } = {};
   private onlyMainStockexchangeSubscribe: Subscription;
   private micSubscribe: Subscription;
+  private countryCodeSubscribe: Subscription;
 
   constructor(translateService: TranslateService,
     gps: GlobalparameterService,
@@ -79,7 +80,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
       DynamicFieldHelper.createFieldCheckboxHeqF('onlyMainStockexchange',
         {defaultValue: true, disabled: !this.canAssignMic()}),
       DynamicFieldHelper.createFieldDropdownStringHeqF('mic', false,
-        {groupItemUseOrLoading: true, disabled: !this.canAssignMic()}),
+        {groupItemUseOrLoading: true, disabled: !this.canAssignMic(), filter: true}),
       DynamicFieldHelper.createFieldInputStringHeqF('name', this.nameMaxLength, true, {minLength: 2}),
       DynamicFieldHelper.createFieldSelectStringHeqF('countryCode', true),
       DynamicFieldHelper.createFieldCheckboxHeqF('secondaryMarket', {defaultValue: true}),
@@ -107,7 +108,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   protected override initialize(): void {
     const observables: Observable<any>[] = [this.gps.getTimezones()];
     if (this.callParam.stockexchange) {
-      observables.push(this.getSecurityObservable());
+      observables.push(this.getSecurityObservable(this.callParam.stockexchange.countryCode));
     }
     combineLatest(observables).subscribe(data => {
       this.countriesAsKeyValue = StockexchangeHelper.transform(this.callParam.countriesAsHtmlOptions);
@@ -124,6 +125,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
         this.configObject.idIndexUpdCalendar.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
           'idSecuritycurrency', 'name', data[1] as Security[], true);
       }
+      this.valueChangedOnCountryCode();
       if (this.canAssignMic()) {
         this.valueChangedOnOnlyMainStockexchange();
         this.valueChangedOnMic();
@@ -148,6 +150,21 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
       this.configObject.website.formControl.setValue(sm.website);
       this.configObject.timeZone.formControl.setValue(sm.timeZone);
       this.disableEnableCountry();
+    });
+  }
+
+  private valueChangedOnCountryCode(): void {
+    this.countryCodeSubscribe = this.configObject.countryCode.formControl.valueChanges.subscribe(countryCode => {
+      this.configObject.idIndexUpdCalendar.formControl.setValue(null);
+      if (countryCode) {
+        this.getSecurityObservable(countryCode).subscribe(securities => {
+          this.configObject.idIndexUpdCalendar.valueKeyHtmlOptions =
+            SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
+              'idSecuritycurrency', 'name', securities, true);
+        });
+      } else {
+        this.configObject.idIndexUpdCalendar.valueKeyHtmlOptions = [new ValueKeyHtmlSelectOptions('', '')];
+      }
     });
   }
 
@@ -213,18 +230,19 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
     return stockexchange;
   }
 
-  private getSecurityObservable(): Observable<Security[]> {
+  private getSecurityObservable(countryCode: string): Observable<Security[]> {
     const securitycurrencySearch = new SecuritycurrencySearch();
     securitycurrencySearch.assetclassType = AssetclassType[AssetclassType.EQUITIES];
     securitycurrencySearch.specialInvestmentInstruments = SpecialInvestmentInstruments[SpecialInvestmentInstruments.NON_INVESTABLE_INDICES];
     securitycurrencySearch.activeDate = moment().format(BaseSettings.FORMAT_DATE_SHORT_US);
-    securitycurrencySearch.stockexchangeCountryCode = this.callParam.stockexchange.countryCode;
+    securitycurrencySearch.stockexchangeCountryCode = countryCode;
     return this.securityService.searchByCriteria(securitycurrencySearch);
   }
 
   override onHide(event): void {
     this.onlyMainStockexchangeSubscribe && this.onlyMainStockexchangeSubscribe.unsubscribe();
     this.micSubscribe && this.micSubscribe.unsubscribe();
+    this.countryCodeSubscribe && this.countryCodeSubscribe.unsubscribe();
     super.onHide(event);
   }
 

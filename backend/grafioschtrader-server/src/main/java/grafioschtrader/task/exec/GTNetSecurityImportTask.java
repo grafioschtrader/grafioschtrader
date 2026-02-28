@@ -36,12 +36,14 @@ import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.GTNetSecurityImpGap;
 import grafioschtrader.entities.GTNetSecurityImpHead;
 import grafioschtrader.entities.GTNetSecurityImpPos;
+import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.gtnet.GTNetSecurityLookupService;
 import grafioschtrader.gtnet.model.ConnectorHint;
 import grafioschtrader.gtnet.model.ConnectorHint.ConnectorCapability;
 import grafioschtrader.gtnet.model.SecurityGtnetLookupDTO;
+import grafioschtrader.gtnet.model.msg.HistoryquoteCoverageResponseMsg;
 import grafioschtrader.repository.AssetclassJpaRepository;
 import grafioschtrader.repository.GTNetSecurityImpGapJpaRepository;
 import grafioschtrader.repository.GTNetSecurityImpHeadJpaRepository;
@@ -52,11 +54,9 @@ import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.StockexchangeJpaRepository;
 import grafioschtrader.service.GTNetHistoricalImportService;
 import grafioschtrader.service.GTNetHistoricalImportService.PeerSelection;
-import grafioschtrader.gtnet.model.msg.HistoryquoteCoverageResponseMsg;
 import grafioschtrader.types.DistributionFrequency;
 import grafioschtrader.types.GapCodeType;
 import grafioschtrader.types.TaskTypeExtended;
-import grafioschtrader.entities.Historyquote;
 
 /**
  * Background task that imports securities from GTNet peers for positions in a GTNetSecurityImpHead batch.

@@ -138,6 +138,10 @@ label {
   font-size: 14px;
 }
 
+.p-textarea {
+  line-height: 1.1;
+}
+
 /* Pencil-Icon und Edit-Button verkleinern */
 .p-datatable .p-datatable-row-editor-init {
   width: 1rem;

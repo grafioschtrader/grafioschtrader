@@ -7,8 +7,6 @@ import {AppHelper} from '../../lib/helper/app.helper';
 import {GenericConnectorDef} from '../../entities/generic.connector.def';
 import {RateLimitType} from '../../shared/types/rate.limit.type';
 import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
-import {AuditHelper} from '../../lib/helper/audit.helper';
-import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
@@ -43,7 +41,6 @@ import {MultilanguageString} from '../../lib/entities/multilanguage.string';
 })
 export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<GenericConnectorDef> implements OnInit {
   @Input() callParam: GenericConnectorDef;
-  @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
 
   tokenConfigYamlValue = '';
   tokenConfigSchema: any;
@@ -53,7 +50,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
               translateService: TranslateService,
               gps: GlobalparameterService,
               messageToastService: MessageToastService) {
-    super(AppHelpIds.HELP_BASEDATA_GENERIC_CONNECTOR, AppSettings.GENERIC_CONNECTOR_DEF.toUpperCase(),
+    super(AppHelpIds.HELP_BASEDATA_GENERIC_CONNECTOR, AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF),
       translateService, gps, messageToastService, genericConnectorDefService);
     this.loadTokenConfigSchema();
   }
@@ -80,7 +77,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
       DynamicFieldHelper.createFieldCheckboxHeqF('supportsCurrency'),
       DynamicFieldHelper.createFieldCheckboxHeqF('needHistoryGapFiller'),
       DynamicFieldHelper.createFieldCheckboxHeqF('gbxDividerEnabled'),
-      ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
+      DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
@@ -89,15 +86,19 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
     this.configObject.rateLimitType.valueKeyHtmlOptions =
       SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, RateLimitType);
     this.form.setDefaultValuesAndEnableSubmit();
-    AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.gps, this.callParam,
-      this.form, this.configObject, this.proposeChangeEntityWithEntity);
+    if (this.callParam) {
+      this.form.transferBusinessObjectToForm(this.callParam);
+      if (this.callParam.instrumentCount > 0) {
+        this.configObject.shortId.formControl.disable();
+      }
+    }
     this.configObject.shortId.elementRef.nativeElement.focus();
     this.tokenConfigYamlValue = this.callParam?.tokenConfigYaml || '';
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: {[name: string]: any}): GenericConnectorDef {
     const entity = new GenericConnectorDef();
-    this.copyFormToPublicBusinessObject(entity, this.callParam, this.proposeChangeEntityWithEntity);
+    this.copyFormToPublicBusinessObject(entity, this.callParam, null);
     this.form.cleanMaskAndTransferValuesToBusinessObject(entity);
     const values: any = {};
     this.form.cleanMaskAndTransferValuesToBusinessObject(values, true);

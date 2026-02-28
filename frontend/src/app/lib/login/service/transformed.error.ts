@@ -4,6 +4,7 @@ export class TransformedError {
   public msgKey: string;
   public errorClass: GetTransformedError;
   public bringUpDialog: boolean;
+  public bringUpAdminSelfReleaseDialog: boolean;
 
   constructor(public msg: string = '', public interpolateParams: any = {}) {
   }

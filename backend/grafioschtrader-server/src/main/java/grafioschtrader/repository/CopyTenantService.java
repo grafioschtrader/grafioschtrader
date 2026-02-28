@@ -27,6 +27,7 @@ import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.Securitycashaccount;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.StandingOrder;
+import grafioschtrader.entities.StandingOrderCashaccount;
 import grafioschtrader.entities.StandingOrderSecurity;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;

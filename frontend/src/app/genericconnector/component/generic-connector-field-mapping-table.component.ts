@@ -23,7 +23,7 @@ import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key
                     (dataChange)="onDataChange($event)"
                     [fields]="fields"
                     dataKey="idFieldMapping"
-                    [showEditColumn]="true"
+                    [showEditColumn]="editable"
                     [editColumnWidth]="120"
                     [selectionMode]="null"
                     [contextMenuEnabled]="false"
@@ -40,7 +40,9 @@ import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key
                     [stripedRows]="true">
       <div caption style="display: flex; align-items: center;">
         <h6 style="margin: 0;">{{ 'FIELD_MAPPINGS' | translate }}</h6>
-        <p-button icon="pi pi-plus" [rounded]="true" [text]="true" (click)="entityTable.addNewRow()" [style]="{'margin-left': '0.5rem'}" />
+        @if (editable) {
+          <p-button icon="pi pi-plus" [rounded]="true" [text]="true" (click)="entityTable.addNewRow()" [style]="{'margin-left': '0.5rem'}" />
+        }
       </div>
     </editable-table>
   `,
@@ -57,6 +59,7 @@ export class GenericConnectorFieldMappingTableComponent extends TableEditConfigB
 
   @Input() fieldMappings: GenericConnectorFieldMapping[] = [];
   @Input() feedSupport: string;
+  @Input() editable: boolean = true;
   @Output() fieldMappingsChange = new EventEmitter<GenericConnectorFieldMapping[]>();
 
   constructor(filterService: FilterService,

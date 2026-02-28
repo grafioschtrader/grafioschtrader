@@ -9,7 +9,6 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {TranslateService} from '@ngx-translate/core';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
-import {HelpIds} from '../../lib/help/help.ids';
 
 export abstract class CalendarNavigation implements IGlobalMenuAttach {
   readonly NEW_DATE_COLOR = 'yellow';
@@ -28,9 +27,9 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
   contextMenuItems: MenuItem[];
 
   protected constructor(public translateService: TranslateService,
-              protected gps: GlobalparameterService,
-              protected activePanelService: ActivePanelService,
-              protected markExistingColors: string[]) {
+    protected gps: GlobalparameterService,
+    protected activePanelService: ActivePanelService,
+    protected markExistingColors: string[]) {
 
     const language: string = gps.getUserLang();
 
@@ -48,8 +47,8 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
   abstract onRangeSelect(range: RangeSelectDays, ranges: RangeSelectDays[]): void;
 
   setYearsBoundaries(fromYear: number, toYear: number) {
-    this.possibleYears = Array.from({ length: toYear - fromYear + 1 },
-      (_, index) => ({ value: fromYear + index, label: (fromYear + index).toString() }));
+    this.possibleYears = Array.from({length: toYear - fromYear + 1},
+      (_, index) => ({value: fromYear + index, label: (fromYear + index).toString()}));
     this.selectedYear = this.yearCalendarData.year;
   }
 

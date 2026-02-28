@@ -140,7 +140,12 @@
       "mcp__primeng__get_component_props",
       "WebFetch(domain:www.otc-x.ch)",
       "WebFetch(domain:www.gettex.de)",
-      "WebFetch(domain:lseg-widgets.financial.com)"
+      "WebFetch(domain:lseg-widgets.financial.com)",
+      "Bash(pkill:*)",
+      "Bash(gh milestone:*)",
+      "Bash(gh api:*)",
+      "Bash(do echo:*)",
+      "Bash(do:*)"
     ],
     "deny": [],
     "ask": []

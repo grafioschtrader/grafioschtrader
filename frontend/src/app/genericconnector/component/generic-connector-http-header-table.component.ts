@@ -21,13 +21,14 @@ import {GenericConnectorHttpHeader} from '../../entities/generic.connector.http.
                     (dataChange)="onDataChange($event)"
                     [fields]="fields"
                     dataKey="idHttpHeader"
-                    [showEditColumn]="true"
+                    [showEditColumn]="editable"
                     [editColumnWidth]="120"
                     [selectionMode]="null"
                     [contextMenuEnabled]="false"
                     [createNewEntityFn]="createNewEntity.bind(this)"
                     (rowEditSave)="onRowEditSave($event)"
                     (rowEditCancel)="onRowEditCancel($event)"
+                    [canDeleteRowFn]="canDeleteRow"
                     (rowDelete)="onRowDelete($event)"
                     [valueGetterFn]="getValueByPath.bind(this)"
                     [customSortFn]="customSort.bind(this)"
@@ -37,7 +38,9 @@ import {GenericConnectorHttpHeader} from '../../entities/generic.connector.http.
                     [stripedRows]="true">
       <div caption style="display: flex; align-items: center;">
         <h6 style="margin: 0;">{{ 'HTTP_HEADERS' | translate }}</h6>
-        <p-button icon="pi pi-plus" [rounded]="true" [text]="true" (click)="entityTable.addNewRow()" [style]="{'margin-left': '0.5rem'}" />
+        @if (editable) {
+          <p-button icon="pi pi-plus" [rounded]="true" [text]="true" (click)="entityTable.addNewRow()" [style]="{'margin-left': '0.5rem'}" />
+        }
       </div>
     </editable-table>
   `,
@@ -49,6 +52,7 @@ export class GenericConnectorHttpHeaderTableComponent extends TableEditConfigBas
   @ViewChild('entityTable') entityTable: EditableTableComponent<GenericConnectorHttpHeader>;
 
   @Input() httpHeaders: GenericConnectorHttpHeader[] = [];
+  @Input() editable: boolean = true;
   @Output() httpHeadersChange = new EventEmitter<GenericConnectorHttpHeader[]>();
 
   constructor(filterService: FilterService,
@@ -64,6 +68,8 @@ export class GenericConnectorHttpHeaderTableComponent extends TableEditConfigBas
       this.createTranslatedValueStoreAndFilterField(this.httpHeaders);
     }
   }
+
+  canDeleteRow = (_row: GenericConnectorHttpHeader): boolean => true;
 
   createNewEntity = (): GenericConnectorHttpHeader => {
     const header = new GenericConnectorHttpHeader();

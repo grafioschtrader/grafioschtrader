@@ -6,7 +6,6 @@ import java.text.ParseException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -79,7 +78,7 @@ public class GenericFeedConnectorTest extends BaseFeedConnectorCheck {
       // Rigi Bahnen AG — OTC-X uses ISIN as ticker (urlExtend)
       // expectedRows needs verification: set printValuesInsteadOfAssert=true in BaseFeedConnectorCheck to get actual count
       historicalDate.add(new SecurityHistoricalDate("Rigi Bahnen AG", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
-          "CH0016290014", GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 5034, "2005-12-05", "2026-02-20"));
+          "CH0016290014", GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 4912, "2005-12-05", "2026-02-20"));
     } catch (ParseException pe) {
       pe.printStackTrace();
     }

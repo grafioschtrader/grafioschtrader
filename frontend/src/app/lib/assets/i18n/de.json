@@ -1,4 +1,8 @@
 {
+  "ADMIN_SELF_RELEASE_CONFIRM": "Selbstfreigabe bestätigen",
+  "ADMIN_SELF_RELEASE_QUESTION": "Als Administrator können Sie sich selbst aus der Sperrung befreien. Sowohl der Sicherheitsverstoss-Zähler als auch der Anfragelimit-Zähler werden zurückgesetzt. Möchten Sie fortfahren?",
+  "ADMIN_SELF_RELEASE_SUCCESS": "Selbstfreigabe erfolgreich. Sie sind jetzt angemeldet.",
+  "ADMIN_SELF_RELEASE_TITLE": "Admin-Selbstfreigabe aus der Sperrung",
   "ALERT": "Alarm",
   "API_KEY": "API-Key",
   "APPLY_LIMIT_TITLE": "Anforderung höheres Tageslimit",

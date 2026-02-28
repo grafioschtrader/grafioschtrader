@@ -478,6 +478,15 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   @Query(nativeQuery = true)
   void resetRetryIntraByConnector(Date activeOnDate, String connectorId);
 
+  /**
+   * Counts securities where any of the four connector fields matches the given connector ID.
+   *
+   * @param connectorId the full connector ID (e.g., "gt.datafeed.myconnector")
+   * @return the number of securities referencing this connector
+   */
+  @Query("SELECT COUNT(s) FROM Security s WHERE s.idConnectorHistory = ?1 OR s.idConnectorIntra = ?1 OR s.idConnectorDividend = ?1 OR s.idConnectorSplit = ?1")
+  long countByAnyConnectorId(String connectorId);
+
   @Override
   void calcGainLossBasedOnDateOrNewestPrice(List<SecurityPositionSummary> securitycurrencyPositionSummary,
       Date untilDate);

@@ -10,9 +10,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.DownloadLink;
+import grafioschtrader.connector.instrument.generic.GenericFeedConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
+import grafioschtrader.repository.GenericConnectorEndpointJpaRepository;
 import grafioschtrader.service.GlobalparametersService;
 
 /**
@@ -37,21 +39,25 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
   private final List<IFeedConnector> feedConnectorbeans;
   private final JpaRepository<S, Integer> jpaRepository;
   private final IIntradayEntityAccess<S> intraEntityAccess;
+  private final GenericConnectorEndpointJpaRepository genericConnectorEndpointJpaRepository;
 
   /**
    * Constructs an intraday connector-based price updater.
-   * 
+   *
    * @param jpaRepository           repository for persisting security currency entities
    * @param globalparametersService service for accessing global configuration parameters
    * @param feedConnectorbeans      list of available feed connector implementations
    * @param intraEntityAccess       interface for executing entity-specific intraday updates
+   * @param genericConnectorEndpointJpaRepository repository for marking generic endpoints as used (may be null)
    */
   public IntradayThruConnector(JpaRepository<S, Integer> jpaRepository, GlobalparametersService globalparametersService,
-      List<IFeedConnector> feedConnectorbeans, IIntradayEntityAccess<S> intraEntityAccess) {
+      List<IFeedConnector> feedConnectorbeans, IIntradayEntityAccess<S> intraEntityAccess,
+      GenericConnectorEndpointJpaRepository genericConnectorEndpointJpaRepository) {
     super(globalparametersService);
     this.jpaRepository = jpaRepository;
     this.feedConnectorbeans = feedConnectorbeans;
     this.intraEntityAccess = intraEntityAccess;
+    this.genericConnectorEndpointJpaRepository = genericConnectorEndpointJpaRepository;
   }
 
   @Override
@@ -67,6 +73,7 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
       try {
         intraEntityAccess.updateIntraSecurityCurrency(securitycurrency, feedConnector);
         securitycurrency.setRetryIntraLoad((short) 0);
+        markGenericEndpointUsed(feedConnector, securitycurrency);
       } catch (final Exception e) {
         log.error("Last price update failed securitycurrency={}", securitycurrency.toString(), e);
         securitycurrency.setRetryIntraLoad((short) (securitycurrency.getRetryIntraLoad() + 1));
@@ -101,6 +108,22 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
     } else {
       // The content of the request is created by this backend.
       return getDownlinkWithApiKey(securitycurrency, true);
+    }
+  }
+
+  /**
+   * Marks the generic connector endpoint as successfully used if the feed connector is a GenericFeedConnector.
+   * Also transfers ownership to system (createdBy=0) if all endpoints of the connector have been used.
+   */
+  private void markGenericEndpointUsed(IFeedConnector feedConnector, S securitycurrency) {
+    if (genericConnectorEndpointJpaRepository != null && feedConnector instanceof GenericFeedConnector gfc) {
+      String instrumentType = securitycurrency instanceof Security ? "SECURITY" : "CURRENCY";
+      Integer idConnector = gfc.getConnectorDef().getIdGenericConnector();
+      int updated = genericConnectorEndpointJpaRepository.markEndpointUsedSuccessfully(
+          idConnector, IFeedConnector.FeedSupport.FS_INTRA.name(), instrumentType);
+      if (updated > 0) {
+        genericConnectorEndpointJpaRepository.transferOwnershipIfAllEndpointsUsed(idConnector);
+      }
     }
   }
 

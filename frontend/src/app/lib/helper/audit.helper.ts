@@ -206,7 +206,8 @@ export class AuditHelper {
    * @param targetEntity Target entity to receive the note value
    */
   public static copyNoteRequestToEntity(formBase: FormBase, targetEntity: ProposeTransientTransfer): void {
-    if (!formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT].invisible
+    if (formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT]
+      && !formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT].invisible
       && !formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.disabled) {
       targetEntity.noteRequestOrReject = formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.value;
     }

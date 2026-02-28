@@ -13,8 +13,8 @@ import grafioschtrader.algo.strategy.model.alerts.HoldingGainLosePercentAlert;
 import grafioschtrader.algo.strategy.model.alerts.MaCrossingAlert;
 import grafioschtrader.algo.strategy.model.alerts.PeriodPriceGainLosePercentAlert;
 import grafioschtrader.algo.strategy.model.alerts.RsiThresholdAlert;
-import grafioschtrader.algo.strategy.model.rebalacing.RebalancingAssetclassSecurity;
 import grafioschtrader.algo.strategy.model.complex.StrategyConfig;
+import grafioschtrader.algo.strategy.model.rebalacing.RebalancingAssetclassSecurity;
 import grafioschtrader.algo.strategy.model.rebalacing.RebalancingTop;
 
 public abstract class StrategyHelper {

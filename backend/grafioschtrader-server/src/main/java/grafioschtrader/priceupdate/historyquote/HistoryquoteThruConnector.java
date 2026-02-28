@@ -24,6 +24,7 @@ import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.DownloadLink;
+import grafioschtrader.connector.instrument.generic.GenericFeedConnector;
 import grafioschtrader.dto.IHistoryquoteQualityFlat;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
@@ -31,6 +32,7 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
+import grafioschtrader.repository.GenericConnectorEndpointJpaRepository;
 import grafioschtrader.repository.ISecuritycurrencyService;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.service.GlobalparametersService;
@@ -56,15 +58,17 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   private final List<IFeedConnector> feedConnectorbeans;
   private final IHistoryquoteEntityAccess<S> historyquoteEntityAccess;
   private final Class<S> entityType;
+  private final GenericConnectorEndpointJpaRepository genericConnectorEndpointJpaRepository;
 
   public HistoryquoteThruConnector(EntityManager entityManager, GlobalparametersService globalparametersService,
       List<IFeedConnector> feedConnectorbeans, IHistoryquoteEntityAccess<S> historyquoteEntityAccess,
-      Class<S> entityType) {
+      Class<S> entityType, GenericConnectorEndpointJpaRepository genericConnectorEndpointJpaRepository) {
     super(globalparametersService, historyquoteEntityAccess);
     this.entityManager = entityManager;
     this.feedConnectorbeans = feedConnectorbeans;
     this.historyquoteEntityAccess = historyquoteEntityAccess;
     this.entityType = entityType;
+    this.genericConnectorEndpointJpaRepository = genericConnectorEndpointJpaRepository;
   }
 
   @Override
@@ -90,6 +94,7 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
               .findByIdSecuritycurrency(securitycurrency.getIdSecuritycurrency());
         }
         restryHistoryLoad = 0;
+        markGenericEndpointUsed(feedConnector, securitycurrency);
         addHistoryquotesToSecurity(securitycurrency, hdc.historyquotes, hdc.correctedFromDate, hdc.toDateCalc);
 
         if (needGapFiller) {
@@ -177,6 +182,22 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
       }
     } else {
       return getDownlinkWithApiKey(securitycurrency, false);
+    }
+  }
+
+  /**
+   * Marks the generic connector endpoint as successfully used if the feed connector is a GenericFeedConnector.
+   * Also transfers ownership to system (createdBy=0) if all endpoints of the connector have been used.
+   */
+  private void markGenericEndpointUsed(IFeedConnector feedConnector, S securitycurrency) {
+    if (genericConnectorEndpointJpaRepository != null && feedConnector instanceof GenericFeedConnector gfc) {
+      String instrumentType = securitycurrency instanceof Security ? "SECURITY" : "CURRENCY";
+      Integer idConnector = gfc.getConnectorDef().getIdGenericConnector();
+      int updated = genericConnectorEndpointJpaRepository.markEndpointUsedSuccessfully(
+          idConnector, IFeedConnector.FeedSupport.FS_HISTORY.name(), instrumentType);
+      if (updated > 0) {
+        genericConnectorEndpointJpaRepository.transferOwnershipIfAllEndpointsUsed(idConnector);
+      }
     }
   }
 

@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import grafiosch.entities.ConnectorApiKey;
 import grafiosch.repository.ConnectorApiKeyJpaRepository;
-import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.entities.GenericConnectorDef;
 import grafioschtrader.repository.GenericConnectorDefJpaRepository;
 import grafioschtrader.repository.SecuritycurrencyService;

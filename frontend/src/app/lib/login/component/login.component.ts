@@ -122,7 +122,11 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
         }, error: (errorBackend) => {
           this.configObject.submit.disabled = false;
 
-          if (errorBackend.bringUpDialog) {
+          if (errorBackend.bringUpAdminSelfReleaseDialog) {
+            DynamicDialogs.getOpenedAdminSelfReleaseDynamicComponent(
+              this.translateService, this.dialogService, this.loginService, this.gps,
+              this.router, value.email, value.password);
+          } else if (errorBackend.bringUpDialog) {
             DynamicDialogs.getOpenedLogoutReleaseRequestDynamicComponent(
               this.translateService, this.dialogService, value.email, value.password);
           }

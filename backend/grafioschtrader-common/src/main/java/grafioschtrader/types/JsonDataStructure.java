@@ -5,11 +5,14 @@ package grafioschtrader.types;
  * ARRAY_OF_OBJECTS: Each element is an object with named fields (most common).
  * PARALLEL_ARRAYS: Separate arrays for each field, correlated by index (e.g., Finnhub).
  * SINGLE_OBJECT: A single JSON object with direct field access (e.g., intraday quotes).
+ * COLUMN_ROW_ARRAYS: Column names in one array and row values in separate arrays, correlated by position
+ * (e.g., SIX Swiss Exchange).
  */
 public enum JsonDataStructure {
   ARRAY_OF_OBJECTS((byte) 1),
   PARALLEL_ARRAYS((byte) 2),
-  SINGLE_OBJECT((byte) 3);
+  SINGLE_OBJECT((byte) 3),
+  COLUMN_ROW_ARRAYS((byte) 4);
 
   private final Byte value;
 

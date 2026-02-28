@@ -81,7 +81,7 @@ export class FeeModelComparisonTableComponent extends TableConfigBase implements
     this.addColumnFeqH(DataType.String, 'currency', true, true,
       {filterType: FilterType.likeDataType});
     this.addColumnFeqH(DataType.Numeric, 'tradeValue', true, true, {maxFractionDigits: 2});
-    this.addColumnFeqH(DataType.Numeric, 'quotation', true, true);
+    this.addColumn(DataType.Numeric, 'quotation', 'SHARE_PRICE', true, true);
     this.addColumnFeqH(DataType.Numeric, 'units', true, true);
 
     this.addColumnFeqH(DataType.String, 'matchedRuleName', true, true,

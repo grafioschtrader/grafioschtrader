@@ -23,6 +23,7 @@ export class GenericConnectorDef extends Auditable implements BaseID {
   tokenConfigYaml: string = null;
   descriptionNLS: MultilanguageString = new MultilanguageString();
   activated = false;
+  instrumentCount = 0;
   endpoints: GenericConnectorEndpoint[] = [];
   httpHeaders: GenericConnectorHttpHeader[] = [];
 

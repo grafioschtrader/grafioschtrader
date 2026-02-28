@@ -245,4 +245,15 @@ public interface UserService extends UserDetailsService {
    * @return SuccessfullyChanged object with success status and localized confirmation message
    */
   SuccessfullyChanged updateNicknameLocal(UserOwnProjection userOwnProjection);
+
+  /**
+   * Resets both security breach and request limit exceed counters to zero.
+   *
+   * <p>Used for admin self-release from lockout when the locked-out user is the admin
+   * and cannot approve their own release request through the normal ProposeUserTask flow.</p>
+   *
+   * @param user the User entity whose counters should be reset
+   * @return updated User entity with both counters set to zero
+   */
+  User resetLimitCounters(User user);
 }

@@ -43,6 +43,7 @@ import {GenericConnectorFieldMappingTableComponent} from './generic-connector-fi
     <generic-connector-field-mapping-table
       [fieldMappings]="endpoint?.fieldMappings"
       [feedSupport]="endpoint?.feedSupport"
+      [editable]="editable"
       (fieldMappingsChange)="onFieldMappingsChange($event)">
     </generic-connector-field-mapping-table>
   `,
@@ -51,6 +52,7 @@ import {GenericConnectorFieldMappingTableComponent} from './generic-connector-fi
 })
 export class GenericConnectorEndpointPanelComponent extends SingleRecordConfigBase implements OnChanges {
   @Input() endpoint: GenericConnectorEndpoint;
+  @Input() editable: boolean = true;
   @Output() editEndpoint = new EventEmitter<void>();
   @Output() fieldMappingsChange = new EventEmitter<GenericConnectorFieldMapping[]>();
 
@@ -74,6 +76,7 @@ export class GenericConnectorEndpointPanelComponent extends SingleRecordConfigBa
     this.addFieldPropertyFeqH(DataType.String, 'jsonDataStructure',
       {translateValues: TranslateValue.NORMAL, fieldsetName: 'JSON_SETTINGS'});
     this.addFieldPropertyFeqH(DataType.String, 'jsonDataPath', {fieldsetName: 'JSON_SETTINGS'});
+    this.addFieldPropertyFeqH(DataType.String, 'jsonColumnNamesPath', {fieldsetName: 'JSON_SETTINGS'});
     this.addFieldPropertyFeqH(DataType.String, 'jsonStatusPath', {fieldsetName: 'JSON_SETTINGS'});
     this.addFieldPropertyFeqH(DataType.String, 'jsonStatusOkValue', {fieldsetName: 'JSON_SETTINGS'});
 

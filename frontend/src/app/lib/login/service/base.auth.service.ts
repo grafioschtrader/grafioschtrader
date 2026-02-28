@@ -82,6 +82,9 @@ export abstract class BaseAuthService<T> extends BaseService {
       const getTransformedError: GetTransformedError = Object.assign(new BaseAuthService.classNameClassMap[errorWrapper.className](),
         errorWrapper.error);
       transformedError = getTransformedError.getTransformedError();
+    } else if (errorWrapper.className === 'ErrorWithLogoutAdmin') {
+      transformedError.bringUpAdminSelfReleaseDialog = true;
+      this.toLogout();
     } else if (errorWrapper.className === 'ErrorWithLogout') {
       transformedError.bringUpDialog = true;
       this.toLogout();

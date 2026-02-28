@@ -1090,6 +1090,8 @@ export interface FieldOptions {
   handleChangeFileInputFN?: (fileList: FileList) => void;
   /** Context menu items for right-click menu on input fields */
   contextMenuItems?: MenuItem[];
+  /** Enables a search/filter input inside the PrimeNG dropdown overlay */
+  filter?: boolean;
 }
 
 /**

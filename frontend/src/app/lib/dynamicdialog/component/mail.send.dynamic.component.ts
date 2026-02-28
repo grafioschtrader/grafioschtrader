@@ -141,6 +141,10 @@ export class MailSendDynamicComponent extends FormBase implements OnInit {
         [BaseSettings.ROLE_ALL_EDIT, BaseSettings.ROLE_ADMIN].concat(
           this.gps.hasRole(BaseSettings.ROLE_ADMIN) ? [BaseSettings.ROLE_USER, BaseSettings.ROLE_LIMIT_EDIT,
             BaseSettings.ROLE_EVERY_USER] : []));
+      if (this.mailSendParam.roleName) {
+        this.configObject[this.ROLE_NAME_TO].formControl.setValue(this.mailSendParam.roleName);
+        this.configObject[this.ROLE_NAME_TO].formControl.disable();
+      }
     }
     if (this.mailSendParam.mailSendRecv) {
       this.sendResponseToMessage();
@@ -180,7 +184,9 @@ export class MailSendParam {
    * @param idUserTo A message can be a response for a specific user. If it is -1, the user can be selected.
    * @param mailSendRecv A message can be a specific response to an existing message.
    * @param subject The subject can be predefined for a message.
+   * @param roleName Optional role name to pre-select and lock the role dropdown (e.g. BaseSettings.ROLE_ADMIN).
    */
-  constructor(public idUserTo: number, public mailSendRecv?: MailSendRecv, public subject?: string) {
+  constructor(public idUserTo: number, public mailSendRecv?: MailSendRecv, public subject?: string,
+    public roleName?: string) {
   }
 }

@@ -291,6 +291,15 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
   List<Currencypair> getHoldCashaccountOutDatetedCurrencypairs();
 
   /**
+   * Counts currency pairs where either the history or intraday connector field matches the given connector ID.
+   *
+   * @param connectorId the full connector ID (e.g., "gt.datafeed.myconnector")
+   * @return the number of currency pairs referencing this connector
+   */
+  @Query("SELECT COUNT(c) FROM Currencypair c WHERE c.idConnectorHistory = ?1 OR c.idConnectorIntra = ?1")
+  long countByAnyConnectorId(String connectorId);
+
+  /**
    * Resets retry_history_load counter to zero for all currency pairs, optionally filtered by connector. Only affects
    * currency pairs where a history connector is configured and retry counter is greater than zero.
    *
