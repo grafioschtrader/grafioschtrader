@@ -81,6 +81,8 @@ export abstract class TransactionTable extends TransactionContextMenu {
       {filterType: FilterType.likeDataType, maxFractionDigits: gps.getMaxFractionDigits()});
     this.addColumn(DataType.String, 'currencypair.fromCurrency', 'CURRENCY', true, false,
       {filterType: FilterType.withOptions});
+    this.addColumnFeqH(DataType.NumericInteger, 'idStandingOrder', true, false,
+      {filterType: FilterType.likeDataType})
     this.addColumn(DataType.Numeric, 'currencyExRate', 'EXCHANGE_RATE', true, false,
       {maxFractionDigits: gps.getMaxFractionDigits(), filterType: FilterType.likeDataType});
 

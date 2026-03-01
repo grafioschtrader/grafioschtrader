@@ -24,6 +24,7 @@ export class StandingOrder {
   nextExecutionDate?: Date = null;
   transactionCost?: number = null;
   hasTransactions?: boolean;
+  transactionCount?: number;
   failureCount?: number;
 }
 

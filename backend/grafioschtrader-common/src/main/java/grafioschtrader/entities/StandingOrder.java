@@ -5,10 +5,12 @@ import static jakarta.persistence.InheritanceType.JOINED;
 import java.io.Serializable;
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import grafiosch.common.LockedWhenUsed;
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.entities.TenantBaseID;
 import grafioschtrader.types.PeriodDayPosition;
@@ -75,6 +77,7 @@ public abstract class StandingOrder extends TenantBaseID implements Serializable
   @JoinColumn(name = "id_cash_account", referencedColumnName = "id_securitycash_account")
   @ManyToOne
   @NotNull
+  @LockedWhenUsed
   private Cashaccount cashaccount;
 
   @Column(name = "note")
@@ -128,32 +131,41 @@ public abstract class StandingOrder extends TenantBaseID implements Serializable
   @Schema(description = "Start date of the standing order's active period (inclusive)")
   @Column(name = "valid_from")
   @NotNull
-  @PropertyAlwaysUpdatable
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+  @LockedWhenUsed
   private LocalDate validFrom;
 
   @Schema(description = "End date of the standing order's active period (inclusive)")
   @Column(name = "valid_to")
   @NotNull
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
   @PropertyAlwaysUpdatable
   private LocalDate validTo;
 
   @Schema(description = "Date of the most recent transaction creation, null if never executed")
   @Column(name = "last_execution_date")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
   @PropertyAlwaysUpdatable
   private LocalDate lastExecutionDate;
 
   @Schema(description = "Next scheduled execution date, null when deactivated or past validTo")
   @Column(name = "next_execution_date")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
   @PropertyAlwaysUpdatable
   private LocalDate nextExecutionDate;
 
   @Schema(description = "Fixed transaction cost per execution (optional)")
+  @LockedWhenUsed
   @Column(name = "transaction_cost")
   private Double transactionCost;
 
   @Schema(description = "Whether this standing order has already created transactions (transient, not persisted)")
   @Transient
   private boolean hasTransactions;
+
+  @Schema(description = "Number of successful transactions created by this standing order (transient, not persisted)")
+  @Transient
+  private int transactionCount;
 
   @Schema(description = "Number of persisted execution failures for this standing order (transient, not persisted)")
   @Transient
@@ -309,6 +321,14 @@ public abstract class StandingOrder extends TenantBaseID implements Serializable
 
   public void setHasTransactions(boolean hasTransactions) {
     this.hasTransactions = hasTransactions;
+  }
+
+  public int getTransactionCount() {
+    return transactionCount;
+  }
+
+  public void setTransactionCount(int transactionCount) {
+    this.transactionCount = transactionCount;
   }
 
   public int getFailureCount() {

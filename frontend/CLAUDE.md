@@ -144,6 +144,24 @@ When using `ConfigurableTableComponent`, **always** bind the `valueGetterFn`:
 - The table will show raw enum/status values instead of localized text
 - Sorting on translated columns will not work correctly
 
+**CRITICAL**: For sorting to work, you **must** also bind `[customSortFn]` and `[multiSortMeta]`. The component defaults `enableCustomSort = true`, which requires a `customSortFn` callback — without it, clicking column headers does nothing silently.
+
+```html
+<configurable-table
+  [data]="dataList"
+  [fields]="fields"
+  [customSortFn]="customSort.bind(this)"
+  [multiSortMeta]="multiSortMeta"
+  [valueGetterFn]="getValueByPath.bind(this)"
+  [baseLocale]="baseLocale">
+</configurable-table>
+```
+
+The `customSort` method is provided by `TableConfigBase`. Initialize default sort order in `ngOnInit()`:
+```typescript
+this.multiSortMeta.push({field: 'myDateField', order: -1}); // -1 = descending
+```
+
 ### Translation of Table Values
 
 For columns with translatable values (enums, status codes, etc.):
@@ -914,6 +932,28 @@ export class MyTableComponent extends TableEditConfigBase implements OnInit, IGl
 ### Why This Pattern Is Required
 
 Without the `activePanelService.activatePanel()` call, menu items will only appear in the context menu when right-clicking. The main menu bar at the top of the application will not show the component's menu items, breaking the consistent UI pattern used throughout the application.
+
+### Nested Components and `consumedGT` Event Guard
+
+**CRITICAL**: When a parent component can contain nested child components that also register with `ActivePanelService` (e.g., an expandable table with an editable child table inside row expansions), the parent's `onComponentClick` **must** check `event[this.consumedGT]` before calling `resetMenu()`. Without this guard, native DOM click events bubble from the child up to the parent's `(click)` handler, causing the parent to overwrite the child's active panel registration — the child's context menu items disappear and only the parent's menu shows.
+
+```typescript
+// WRONG — unconditionally overwrites child's active panel
+onComponentClick(event: any): void {
+  this.resetMenu();
+}
+
+// CORRECT — skips when click was already handled by a nested component
+onComponentClick(event: any): void {
+  if (!event[this.consumedGT]) {
+    this.resetMenu();
+  }
+}
+```
+
+The child component (e.g., one extending `TransactionContextMenu`) marks the event as consumed in its own `onComponentClick` via `event[this.consumedGT] = true`. The `consumedGT` property (`'consumedGT'`) is defined on `TableConfigBase`.
+
+**Reference**: `StandingOrderTableBase.onComponentClick` (parent) + `StandingOrderTransactionTableComponent` (nested child via row expansion).
 
 ### Reference Implementations
 

@@ -1,5 +1,6 @@
 package grafioschtrader.entities;
 
+import grafiosch.common.LockedWhenUsed;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
@@ -37,26 +38,31 @@ public class StandingOrderSecurity extends StandingOrder {
   @JoinColumn(name = "id_securitycurrency", referencedColumnName = "id_securitycurrency")
   @ManyToOne
   @NotNull
+  @LockedWhenUsed
   private Security security;
 
   @Schema(description = "Security account where the security is held")
   @Column(name = "id_security_account")
   @NotNull
+  @LockedWhenUsed
   private Integer idSecurityaccount;
 
   @Schema(description = "Currency pair ID when the transaction involves currency conversion")
   @Column(name = "id_currency_pair")
+  @LockedWhenUsed
   private Integer idCurrencypair;
 
   @Schema(description = """
       Number of units for unit-based mode. Mutually exclusive with investAmount —
       exactly one of units or investAmount must be non-null.""")
   @Column(name = "units")
+  @LockedWhenUsed
   private Double units;
 
   @Schema(description = """
       Investment amount for amount-based mode. Units are calculated at execution time as investAmount / quotation.
       Mutually exclusive with units — exactly one of units or investAmount must be non-null.""")
+  @LockedWhenUsed
   @Column(name = "invest_amount")
   private Double investAmount;
 
@@ -64,6 +70,7 @@ public class StandingOrderSecurity extends StandingOrder {
       Controls whether the invest amount includes costs (gross mode) or costs are added on top (net mode).
       When true (1): investAmount is the total cash outflow, costs are deducted before calculating units.
       When false (0, default): investAmount is the net investment, costs are added on top.""")
+  @LockedWhenUsed
   @Column(name = "amount_includes_costs")
   @NotNull
   private boolean amountIncludesCosts = false;
@@ -71,6 +78,7 @@ public class StandingOrderSecurity extends StandingOrder {
   @Schema(description = """
       Whether fractional units are allowed. When true (default): calculated units can be fractional (e.g. 5.237).
       When false: units are rounded down to whole numbers.""")
+  @LockedWhenUsed
   @Column(name = "fractional_units")
   @NotNull
   private boolean fractionalUnits = true;
@@ -79,6 +87,7 @@ public class StandingOrderSecurity extends StandingOrder {
       EvalEx formula for computing tax cost. Available variables: u (units), q (quotation/price), a (amount = u*q).
       Mutually exclusive with taxCost — when taxCost has a value, this formula is ignored.""")
   @Column(name = "tax_cost_formula")
+  @LockedWhenUsed
   @Size(max = 200)
   private String taxCostFormula;
 
@@ -86,12 +95,14 @@ public class StandingOrderSecurity extends StandingOrder {
       EvalEx formula for computing transaction cost. Available variables: u (units), q (quotation/price),
       a (amount = u*q). Mutually exclusive with transactionCost — when transactionCost has a value,
       this formula is ignored.""")
+  @LockedWhenUsed
   @Column(name = "transaction_cost_formula")
   @Size(max = 200)
   private String transactionCostFormula;
 
   @Schema(description = "Fixed tax cost fallback, used when taxCostFormula is null")
   @Column(name = "tax_cost")
+  @LockedWhenUsed
   private Double taxCost;
 
   public Security getSecurity() {

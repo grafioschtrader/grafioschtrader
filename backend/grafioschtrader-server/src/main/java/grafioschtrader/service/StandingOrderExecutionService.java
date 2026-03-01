@@ -8,11 +8,14 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +24,9 @@ import com.ezylang.evalex.Expression;
 import com.ezylang.evalex.data.EvaluationValue;
 
 import grafiosch.common.DateHelper;
+import grafiosch.exceptions.DataViolation;
+import grafiosch.exceptions.DataViolationException;
+import grafiosch.repository.UserJpaRepository;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.StandingOrder;
@@ -65,6 +71,12 @@ public class StandingOrderExecutionService {
 
   @Autowired
   private TradingDaysMinusJpaRepository tradingDaysMinusJpaRepository;
+
+  @Autowired
+  private MessageSource messageSource;
+
+  @Autowired
+  private UserJpaRepository userJpaRepository;
 
   @Autowired
   @Lazy
@@ -137,6 +149,11 @@ public class StandingOrderExecutionService {
         log.warn("Standing order {} execution skipped for date {}: {}", so.getIdStandingOrder(), effectiveDate,
             e.getMessage());
         failures.add(new StandingOrderFailure(so.getIdStandingOrder(), effectiveDate, e.getMessage(), null));
+      } catch (DataViolationException dvex) {
+        String translatedMsg = translateDataViolation(dvex, so.getIdTenant());
+        log.warn("Standing order {} validation failed for date {}: {}", so.getIdStandingOrder(), effectiveDate,
+            translatedMsg);
+        failures.add(new StandingOrderFailure(so.getIdStandingOrder(), effectiveDate, translatedMsg, null));
       } catch (Exception e) {
         log.warn("Standing order {} execution failed for date {}: {}", so.getIdStandingOrder(), effectiveDate,
             e.getMessage());
@@ -339,7 +356,7 @@ public class StandingOrderExecutionService {
    * @param lastScheduledDate the last scheduled date (before weekend adjustment) from which to advance
    * @return the next scheduled date
    */
-  static LocalDate computeNextExecutionDate(StandingOrder so, LocalDate lastScheduledDate) {
+  public static LocalDate computeNextExecutionDate(StandingOrder so, LocalDate lastScheduledDate) {
     RepeatUnit repeatUnit = so.getRepeatUnit();
     int interval = so.getRepeatInterval();
     PeriodDayPosition dayPosition = so.getPeriodDayPosition();
@@ -369,7 +386,7 @@ public class StandingOrderExecutionService {
    * @param dayOfExecution the specific day (1-28) for SPECIFIC_DAY position, may be null
    * @return the date with the resolved day-of-month
    */
-  static LocalDate resolveDayInMonth(LocalDate date, PeriodDayPosition dayPosition, Byte dayOfExecution) {
+  public static LocalDate resolveDayInMonth(LocalDate date, PeriodDayPosition dayPosition, Byte dayOfExecution) {
     switch (dayPosition) {
     case FIRST_DAY:
       return date.withDayOfMonth(1);
@@ -411,6 +428,30 @@ public class StandingOrderExecutionService {
       }
     }
     return 0.0;
+  }
+
+  /**
+   * Translates the {@link DataViolation} entries of a {@link DataViolationException} into a human-readable string
+   * using the tenant user's locale. Follows the same translation logic as
+   * {@link grafiosch.rest.helper.RestHelper#createValidationError} but produces a plain String for storage in
+   * {@link StandingOrderFailure#businessError}.
+   *
+   * @param dvex     the exception containing one or more data violations
+   * @param idTenant the tenant ID used to look up the user's locale
+   * @return translated violation messages joined with "; "
+   */
+  private String translateDataViolation(DataViolationException dvex, Integer idTenant) {
+    Locale locale = userJpaRepository.findByIdTenant(idTenant)
+        .map(user -> user.createAndGetJavaLocale())
+        .orElse(Locale.ENGLISH);
+
+    return dvex.getDataViolation().stream().map(dv -> {
+      String field = dv.isTranslateFieldName()
+          ? messageSource.getMessage(dv.getField(), null, dv.getField(), locale)
+          : dv.getField();
+      String message = messageSource.getMessage(dv.getMessageKey(), dv.getData(), dv.getMessageKey(), locale);
+      return field + ": " + message;
+    }).collect(Collectors.joining("; "));
   }
 
   /**

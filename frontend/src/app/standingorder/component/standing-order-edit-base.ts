@@ -7,17 +7,16 @@ import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
 import {StandingOrder} from '../../entities/standing.order';
 import {StandingOrderService} from '../service/standing.order.service';
 import {StandingOrderCallParam} from '../model/standing.order.call.param';
-import {AppHelpIds} from '../../shared/help/help.ids';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {Portfolio} from '../../entities/portfolio';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {AppSettings} from '../../shared/app.settings';
 import {RepeatUnit} from '../../shared/types/repeat.unit';
 import {PeriodDayPosition} from '../../shared/types/period.day.position';
 import {WeekendAdjustType} from '../../shared/types/weekend.adjust.type';
 import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
+import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
 
 /**
  * Abstract base class for standing order edit dialogs. Provides shared scheduling field definitions,
@@ -62,7 +61,7 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
       DynamicFieldHelper.createFieldInputNumberHeqF('repeatInterval', true, 3, 0, false, {fieldsetName: fs}),
       DynamicFieldHelper.createFieldSelectStringHeqF('periodDayPosition', true, {fieldsetName: fs}),
       DynamicFieldHelper.createFieldInputNumberHeqF('dayOfExecution', false, 2, 0, false, {fieldsetName: fs}),
-      DynamicFieldHelper.createFieldInputNumberHeqF('monthOfExecution', false, 2, 0, false, {fieldsetName: fs}),
+      DynamicFieldHelper.createFieldSelectNumberHeqF('monthOfExecution', false, {fieldsetName: fs}),
       DynamicFieldHelper.createFieldSelectStringHeqF('weekendAdjust', true, {fieldsetName: fs}),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'validFrom', true, {fieldsetName: fs}),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'validTo', true, {fieldsetName: fs}),
@@ -84,6 +83,8 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
       SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, PeriodDayPosition);
     this.configObject.weekendAdjust.valueKeyHtmlOptions =
       SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, WeekendAdjustType);
+    this.configObject.monthOfExecution.valueKeyHtmlOptions =
+      SelectOptionsHelper.createMonthOptions(this.gps.getUserLang());
     this.setupRepeatUnitListener();
     this.setupPeriodDayPositionListener();
     this.loadCashaccountsFromPortfolios();
@@ -101,17 +102,20 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
   protected abstract setExistingValues(): void;
 
   /**
-   * Disables all fields in the FS_TRANSACTION fieldset when the standing order has already created transactions.
-   * Only scheduling fields remain editable so the user can adjust the execution schedule.
+   * Applies two-tier field locking that mirrors the backend annotation levels:
+   * 1. transactionType has no update annotation — always disabled on edit (never updatable after creation).
+   * 2. @LockedWhenUsed fields — disabled once the standing order has created transactions.
+   * Must be called AFTER all other state adjustments (e.g., applyCostFormulaState) so nothing re-enables locked fields.
    */
-  protected disableTransactionFieldsIfExecuted(so: StandingOrder): void {
+  protected disableFieldsForEdit(so: StandingOrder): void {
+    // transactionType has no update annotation in the backend — never updatable after creation
+    FormHelper.disableEnableFieldConfigs(true, [this.configObject.transactionType]);
+    // @LockedWhenUsed fields — locked once the standing order has created transactions
     if (so?.hasTransactions) {
-      this.config.filter(f => f.fieldsetName === StandingOrderEditBase.FS_TRANSACTION)
-        .forEach(f => {
-          if (this.configObject[f.field]) {
-            this.configObject[f.field].formControl.disable();
-          }
-        });
+      FormHelper.disableEnableFieldConfigs(true,
+        this.config.filter(f => f.fieldsetName === StandingOrderEditBase.FS_TRANSACTION));
+      // validFrom is in FS_SCHEDULE but annotated @LockedWhenUsed in the backend
+      FormHelper.disableEnableFieldConfigs(true, [this.configObject.validFrom]);
     }
   }
 

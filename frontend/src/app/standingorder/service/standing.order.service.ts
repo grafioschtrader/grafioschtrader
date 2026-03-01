@@ -8,6 +8,7 @@ import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {LoginService} from '../../lib/login/service/log-in.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {StandingOrder, StandingOrderFailure} from '../../entities/standing.order';
+import {Transaction} from '../../entities/transaction';
 import {AppSettings} from '../../shared/app.settings';
 import {BaseSettings} from '../../lib/base.settings';
 
@@ -27,6 +28,12 @@ export class StandingOrderService extends AuthServiceWithLogout<StandingOrder> i
 
   update(standingOrder: StandingOrder): Observable<StandingOrder> {
     return this.updateEntity(standingOrder, standingOrder.idStandingOrder, AppSettings.STANDING_ORDER_KEY);
+  }
+
+  getTransactions(idStandingOrder: number): Observable<Transaction[]> {
+    return <Observable<Transaction[]>>
+      this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.STANDING_ORDER_KEY}/${idStandingOrder}/transactions`,
+        this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   getFailures(idStandingOrder: number): Observable<StandingOrderFailure[]> {

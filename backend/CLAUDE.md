@@ -213,18 +213,23 @@ Each enum used in this pattern must provide:
 2. A `getValue()` method returning the `byte`/`Byte`
 3. A static lookup method (e.g., `getByValue(byte)`) for the getter conversion
 
-## LocalDate Serialization in DTOs
+## LocalDate Serialization — @JsonFormat Required
 
 **CRITICAL**: The global Jackson setting `WRITE_DATES_AS_TIMESTAMPS: true` (in `application.yaml`) causes `java.time.LocalDate` to serialize as a JSON array `[2024, 1, 15]` instead of a string `"2024-01-15"`. The frontend's `moment()` cannot parse this array format, resulting in **"Invalid date"** in the UI.
 
-JPA entities are not affected because Spring Data REST applies string formatting automatically. But **hand-crafted DTOs** (`*Detail`, `*Response`, etc.) that contain `LocalDate` fields **must** add `@JsonFormat`:
+This affects **both DTOs and JPA entities** when they are returned from custom `@RestController` endpoints (e.g., `StandingOrderResource`, any class extending `UpdateCreateDeleteWithTenantResource`). Only Spring Data REST auto-exposed repositories (`@RepositoryRestResource`) apply string formatting automatically — custom controllers use standard Jackson serialization.
+
+**Rule**: Every `LocalDate` field in any class serialized to JSON — whether a DTO or a JPA entity — **must** have `@JsonFormat`. For `LocalDateTime`, use the datetime pattern:
 
 ```java
 @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
 private LocalDate transactionDate;
+
+@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+private LocalDateTime createdAt;
 ```
 
-**Rule**: Every `LocalDate` field in a non-entity DTO class must have `@JsonFormat(shape = STRING, pattern = "yyyy-MM-dd")`. Without it, the frontend will show "Invalid date".
+Without this annotation, the frontend will show "Invalid date".
 
 ## Daily Limit Registration for Entity CRUD Operations
 

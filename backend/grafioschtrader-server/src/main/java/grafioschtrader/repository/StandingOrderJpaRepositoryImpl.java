@@ -8,12 +8,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import grafiosch.entities.User;
+import grafiosch.common.DataHelper;
+import grafiosch.common.LockedWhenUsed;
+import grafiosch.common.PropertyAlwaysUpdatable;
+import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.repository.BaseRepositoryImpl;
 import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.repository.RepositoryHelper;
 import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.entities.StandingOrder;
+import grafioschtrader.service.StandingOrderExecutionService;
 import grafioschtrader.entities.StandingOrderCashaccount;
 import grafioschtrader.entities.StandingOrderSecurity;
 import grafioschtrader.types.PeriodDayPosition;
@@ -51,11 +56,25 @@ public class StandingOrderJpaRepositoryImpl extends BaseRepositoryImpl<StandingO
             new Object[] {maxAllowed});
       }
     }
+    if (existingEntity != null
+        && transactionJpaRepository.countByIdStandingOrder(existingEntity.getIdStandingOrder()) > 0
+        && !DataHelper.areAnnotatedFieldsEqual(standingOrder, existingEntity, LockedWhenUsed.class)) {
+      throw new DataViolationException("standing.order", "standing.order.fields.locked", null);
+    }
     validateStandingOrder(standingOrder);
     LocalDate today = LocalDate.now();
-    if (standingOrder.getNextExecutionDate() == null
-        && !today.isBefore(standingOrder.getValidFrom()) && !today.isAfter(standingOrder.getValidTo())) {
+    if (standingOrder.getNextExecutionDate() == null && standingOrder.getLastExecutionDate() == null
+        && !today.isBefore(standingOrder.getValidFrom())) {
+      // Brand new standing order: use validFrom as first execution date
       standingOrder.setNextExecutionDate(computeInitialNextExecutionDate(standingOrder));
+    } else if (standingOrder.getNextExecutionDate() == null && standingOrder.getLastExecutionDate() != null
+        && standingOrder.getValidTo() != null && !standingOrder.getValidTo().isBefore(today)) {
+      // Reactivation: validTo was extended, recalculate from lastExecutionDate
+      LocalDate nextDate = StandingOrderExecutionService.computeNextExecutionDate(
+          standingOrder, standingOrder.getLastExecutionDate());
+      if (nextDate != null && !nextDate.isAfter(standingOrder.getValidTo())) {
+        standingOrder.setNextExecutionDate(nextDate);
+      }
     }
     return RepositoryHelper.saveOnlyAttributes(standingOrderJpaRepository, standingOrder, existingEntity,
         updatePropertyLevelClasses);
@@ -66,6 +85,15 @@ public class StandingOrderJpaRepositoryImpl extends BaseRepositoryImpl<StandingO
       throw new DataViolationException("standing.order", "standing.order.has.transactions", null);
     }
     return standingOrderJpaRepository.deleteByIdStandingOrderAndIdTenant(idStandingOrder, idTenant);
+  }
+
+  @Override
+  public Set<Class<? extends Annotation>> getUpdatePropertyLevels(final StandingOrder existingEntity) {
+    if (existingEntity != null
+        && transactionJpaRepository.countByIdStandingOrder(existingEntity.getIdStandingOrder()) > 0) {
+      return Set.of(PropertySelectiveUpdatableOrWhenNull.class, PropertyAlwaysUpdatable.class);
+    }
+    return Set.of(PropertySelectiveUpdatableOrWhenNull.class, PropertyAlwaysUpdatable.class, LockedWhenUsed.class);
   }
 
   private void validateStandingOrder(StandingOrder so) {

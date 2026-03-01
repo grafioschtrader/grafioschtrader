@@ -21,7 +21,6 @@ import {StandingOrderCallParam} from '../model/standing.order.call.param';
 import {TransactionType} from '../../shared/types/transaction.type';
 import moment from 'moment';
 import {BaseSettings} from '../../lib/base.settings';
-import {FilterType} from '../../lib/datashowbase/filter.type';
 
 /**
  * Abstract base class for standing order table components. Provides shared column definitions,
@@ -61,6 +60,8 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
     this.addColumnFeqH(DataType.DateString, 'nextExecutionDate', true, false);
     this.addColumnFeqH(DataType.DateString, 'validFrom', true, false);
     this.addColumnFeqH(DataType.DateString, 'validTo', true, false);
+    this.addColumnFeqH(DataType.NumericInteger, 'transactionCount', true, false);
+    this.addColumnFeqH(DataType.NumericInteger, 'failureCount', true, false);
   }
 
   /** Subclasses add their specific columns (called between transactionType and repeatUnit). */
@@ -87,7 +88,9 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
   }
 
   onComponentClick(event: any): void {
-    this.resetMenu();
+    if (!event[this.consumedGT]) {
+      this.resetMenu();
+    }
   }
 
   onRowSelect(event: any): void {
@@ -111,16 +114,20 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
   }
 
   canExpandRow(so: StandingOrder): boolean {
-    return (so.failureCount ?? 0) > 0;
+    return (so.transactionCount ?? 0) > 0 || (so.failureCount ?? 0) > 0;
   }
 
   onRowExpand(event: { data: StandingOrder }): void {
     const so = event.data;
-    if (!this.failuresMap.has(so.idStandingOrder)) {
+    if ((so.failureCount ?? 0) > 0 && !this.failuresMap.has(so.idStandingOrder)) {
       this.standingOrderService.getFailures(so.idStandingOrder).subscribe(failures => {
         this.failuresMap.set(so.idStandingOrder, failures);
       });
     }
+  }
+
+  onTransactionChanged(processedActionData: ProcessedActionData): void {
+    this.loadData();
   }
 
   getFailuresForOrder(so: StandingOrder): StandingOrderFailure[] {
@@ -128,6 +135,7 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
   }
 
   protected loadData(): void {
+    const previousFailureIds = new Set(this.failuresMap.keys());
     this.failuresMap.clear();
     this.standingOrderService.getAllForTenant().subscribe((all: StandingOrder[]) => {
       const today = moment().format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
@@ -135,6 +143,13 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
         && (this.showInactive || moment(so.validTo).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE) >= today));
       this.prepareTableAndTranslate();
       this.createTranslatedValueStore(this.standingOrders);
+      this.standingOrders
+        .filter(so => previousFailureIds.has(so.idStandingOrder) && (so.failureCount ?? 0) > 0)
+        .forEach(so => {
+          this.standingOrderService.getFailures(so.idStandingOrder).subscribe(failures => {
+            this.failuresMap.set(so.idStandingOrder, failures);
+          });
+        });
     });
   }
 

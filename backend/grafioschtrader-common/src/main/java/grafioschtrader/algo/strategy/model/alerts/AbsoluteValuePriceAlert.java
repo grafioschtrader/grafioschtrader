@@ -13,4 +13,12 @@ public class AbsoluteValuePriceAlert {
 
   @Min(value = 0)
   Double upperValue;
+
+  public Double getLowerValue() {
+    return lowerValue;
+  }
+
+  public Double getUpperValue() {
+    return upperValue;
+  }
 }

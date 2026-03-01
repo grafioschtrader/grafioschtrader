@@ -376,6 +376,23 @@ export class SelectOptionsHelper {
   }
 
 
+  /**
+   * Creates select options for months 1-12 with localized full month names.
+   * Uses Intl.DateTimeFormat for locale-aware month names, capitalizing the first letter.
+   *
+   * @param language BCP 47 language tag (e.g., 'en', 'de')
+   * @returns Array of ValueKeyHtmlSelectOptions with key 1-12 and localized month names
+   */
+  public static createMonthOptions(language: string): ValueKeyHtmlSelectOptions[] {
+    const formatter = new Intl.DateTimeFormat(language, {month: 'long'});
+    const options: ValueKeyHtmlSelectOptions[] = [];
+    for (let m = 0; m < 12; m++) {
+      const name = formatter.format(new Date(2000, m, 1));
+      options.push(new ValueKeyHtmlSelectOptions(m + 1, name.charAt(0).toUpperCase() + name.slice(1)));
+    }
+    return options;
+  }
+
   // Primeng SelectItem[]
   /////////////////////////////////////////////////////////////
 

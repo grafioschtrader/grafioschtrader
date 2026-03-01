@@ -21,4 +21,16 @@ public class PeriodPriceGainLosePercentAlert {
   @Min(value = 1)
   @Max(value = 500)
   Integer losePercentage;
+
+  public Integer getDaysInPeriod() {
+    return daysInPeriod;
+  }
+
+  public Integer getGainPercentage() {
+    return gainPercentage;
+  }
+
+  public Integer getLosePercentage() {
+    return losePercentage;
+  }
 }

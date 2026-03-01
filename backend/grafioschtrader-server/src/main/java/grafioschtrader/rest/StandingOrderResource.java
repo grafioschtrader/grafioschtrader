@@ -20,6 +20,7 @@ import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
 import grafioschtrader.entities.StandingOrder;
 import grafioschtrader.entities.StandingOrderFailure;
+import grafioschtrader.entities.Transaction;
 import grafioschtrader.repository.StandingOrderFailureJpaRepository;
 import grafioschtrader.repository.StandingOrderJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
@@ -56,12 +57,19 @@ public class StandingOrderResource extends UpdateCreateDeleteWithTenantResource<
   public ResponseEntity<List<StandingOrder>> getAllForTenant() {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     List<StandingOrder> orders = standingOrderJpaRepository.findByIdTenant(user.getIdTenant());
-    orders.forEach(so -> so.setHasTransactions(
-        transactionJpaRepository.countByIdStandingOrder(so.getIdStandingOrder()) > 0));
 
-    // Batch-load failure counts
     List<Integer> ids = orders.stream().map(StandingOrder::getIdStandingOrder).collect(Collectors.toList());
     if (!ids.isEmpty()) {
+      // Batch-load transaction counts
+      Map<Integer, Long> txCounts = transactionJpaRepository.countByStandingOrderIds(ids).stream()
+          .collect(Collectors.toMap(row -> (Integer) row[0], row -> (Long) row[1]));
+      orders.forEach(so -> {
+        long count = txCounts.getOrDefault(so.getIdStandingOrder(), 0L);
+        so.setTransactionCount((int) count);
+        so.setHasTransactions(count > 0);
+      });
+
+      // Batch-load failure counts
       Map<Integer, Long> failureCounts = standingOrderFailureJpaRepository.countByStandingOrderIds(ids).stream()
           .collect(Collectors.toMap(row -> (Integer) row[0], row -> (Long) row[1]));
       orders.forEach(so -> so.setFailureCount(failureCounts.getOrDefault(so.getIdStandingOrder(), 0L).intValue()));
@@ -85,6 +93,21 @@ public class StandingOrderResource extends UpdateCreateDeleteWithTenantResource<
     return new ResponseEntity<>(
         standingOrderFailureJpaRepository.findByIdStandingOrderOrderByExecutionDateDesc(idStandingOrder),
         HttpStatus.OK);
+  }
+
+  @Operation(summary = "Returns transactions created by a specific standing order",
+      description = "Returns all transactions for the given standing order with security and cashaccount details, "
+          + "newest first. Only accessible if the standing order belongs to the current user's tenant.",
+      tags = {RequestGTMappings.STANDINGORDER})
+  @GetMapping(value = "/{idStandingOrder}/transactions", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<Transaction>> getTransactions(@PathVariable Integer idStandingOrder) {
+    User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    StandingOrder so = standingOrderJpaRepository.findById(idStandingOrder).orElse(null);
+    if (so == null || !so.getIdTenant().equals(user.getIdTenant())) {
+      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+    return new ResponseEntity<>(
+        transactionJpaRepository.findByIdStandingOrderWithDetails(idStandingOrder), HttpStatus.OK);
   }
 
   @Override

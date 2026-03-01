@@ -14,7 +14,6 @@ import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
 import {DialogModule} from 'primeng/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 import {AppSettings} from '../../shared/app.settings';
@@ -94,7 +93,7 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
       DynamicFieldHelper.createFieldSelectNumber('idCashaccount', AppSettings.CASHACCOUNT.toUpperCase(), true,
         {dataproperty: 'cashaccount.idSecuritycashAccount', fieldsetName: fs}),
       DynamicFieldHelper.createFieldInputButtonHeqF(DataType.String, 'securityName',
-        this.handleSecuritySearchClick.bind(this), true, {fieldsetName: fs }),
+        this.handleSecuritySearchClick.bind(this), true, {fieldsetName: fs}),
       DynamicFieldHelper.createFieldSelectNumberHeqF('investMode', true, {fieldsetName: fs}),
       DynamicFieldHelper.createFieldInputNumberHeqF('units', false,
         AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_MAX_DIGITS - AppSettings.FID_STANDARD_INTEGER_DIGITS, false,
@@ -161,7 +160,6 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
       const mode = so.investAmount != null ? InvestMode.INVEST_MODE_AMOUNT : InvestMode.INVEST_MODE_UNITS;
       this.configObject.investMode.formControl.setValue(InvestMode[mode]);
       this.applyInvestMode(mode);
-      this.disableTransactionFieldsIfExecuted(so);
     } else if (this.callParam?.transaction) {
       const t = this.callParam.transaction;
       this.configObject.transactionType.formControl.setValue(t.transactionType);
@@ -188,6 +186,10 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
       this.applyInvestMode(InvestMode.INVEST_MODE_UNITS);
     }
     this.applyCostFormulaState();
+    // Apply field locking LAST — after all state adjustments, so nothing re-enables locked fields
+    if (so) {
+      this.disableFieldsForEdit(so);
+    }
   }
 
   /** Opens the security search dialog when the security name button is clicked. */
@@ -207,7 +209,7 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
     this.visibleSetSecurityDialog = false;
   }
 
-  protected override getNewOrExistingInstanceBeforeSave(value: {[name: string]: any}): StandingOrderSecurity {
+  protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): StandingOrderSecurity {
     const so = new StandingOrderSecurity();
     const existing = this.callParam?.standingOrder as StandingOrderSecurity;
     this.copyFormToPrivateBusinessObject(so, existing);

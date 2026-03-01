@@ -32,5 +32,7 @@
 "XFRA","Frankfurt Stock Exchange","DE","false","true","09:00:00","17:30:00","Europe/Berlin","//www.deutsche-boerse.com"
 "HAMA","boerse hamburg - regulierter mar","DE","false","true","08:00:00","22:00:00","Europe/Zurich","https://www.boerse-hamburg.de/"
 "BIVA","Bolsa institucional de valores","MX","false","true","08:30:00","15:00:00","America/Mexico_City","//www.biva.mx"
-"XCAI","the egyptian exchange","EG","false","true","06:00:00","12:00:00","Africa/Cairo","//www.egyptse.com"
+"XCAI","The Egyptian Exchange","EG","false","true","06:00:00","12:00:00","Africa/Cairo","//www.egyptse.com"
 "XKRX","korean stock exchange","KR","false","true","09:00:00","15:30:00","Asia/Seoul","http://eng.krx.co.kr"
+"XMUN","Börse München","DE","false","true","07:30:00","23:00:00","Europe/Berlin","//www.boerse-muenchen.de"
+"OTXB","Berner kantonalbank otc-x","CH","false","true","08:30:00","17:00:00","Europe/Zurich","//www.otc-x.ch"

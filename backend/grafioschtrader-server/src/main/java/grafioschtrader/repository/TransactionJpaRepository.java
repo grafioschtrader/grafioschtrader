@@ -18,6 +18,26 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   long countByIdStandingOrder(Integer idStandingOrder);
 
   /**
+   * Counts the number of transactions per standing order for a batch of standing order IDs.
+   * Used to populate the transactionCount transient field without N+1 queries.
+   *
+   * @param ids list of standing order IDs
+   * @return list of [idStandingOrder, count] pairs
+   */
+  @Query("SELECT t.idStandingOrder, COUNT(t) FROM Transaction t WHERE t.idStandingOrder IN :ids GROUP BY t.idStandingOrder")
+  List<Object[]> countByStandingOrderIds(@Param("ids") List<Integer> ids);
+
+  /**
+   * Retrieves all transactions created by a specific standing order, with security and cashaccount eagerly fetched.
+   *
+   * @param idStandingOrder the standing order ID
+   * @return transactions ordered by transaction time descending
+   */
+  @Query("SELECT t FROM Transaction t LEFT JOIN FETCH t.security LEFT JOIN FETCH t.cashaccount "
+      + "WHERE t.idStandingOrder = :idStandingOrder ORDER BY t.transactionTime DESC")
+  List<Transaction> findByIdStandingOrderWithDetails(@Param("idStandingOrder") Integer idStandingOrder);
+
+  /**
    * Returns transaction summaries grouped by (specialInvestmentInstrument, categoryType)
    * for a given security account. Used to prevent deletion or shortening of trading periods
    * that still cover existing transactions.

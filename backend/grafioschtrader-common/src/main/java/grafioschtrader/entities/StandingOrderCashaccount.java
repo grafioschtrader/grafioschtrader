@@ -1,5 +1,6 @@
 package grafioschtrader.entities;
 
+import grafiosch.common.LockedWhenUsed;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
@@ -27,6 +28,7 @@ public class StandingOrderCashaccount extends StandingOrder {
   @Schema(description = "Cash amount for each DEPOSIT or WITHDRAWAL execution")
   @Column(name = "cashaccount_amount")
   @NotNull
+  @LockedWhenUsed
   private Double cashaccountAmount;
 
   public Double getCashaccountAmount() {

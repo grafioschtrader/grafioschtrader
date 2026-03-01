@@ -29,8 +29,11 @@ import grafiosch.entities.MailEntity;
 import grafiosch.repository.MailEntityJpaRepository;
 import grafiosch.service.SendMailInternalExternalService;
 import grafioschtrader.algo.strategy.model.AlgoStrategyImplementationType;
+import grafioschtrader.algo.strategy.model.alerts.AbsoluteValuePriceAlert;
 import grafioschtrader.algo.strategy.model.alerts.ExpressionAlert;
+import grafioschtrader.algo.strategy.model.alerts.HoldingGainLosePercentAlert;
 import grafioschtrader.algo.strategy.model.alerts.MaCrossingAlert;
+import grafioschtrader.algo.strategy.model.alerts.PeriodPriceGainLosePercentAlert;
 import grafioschtrader.algo.strategy.model.alerts.RsiThresholdAlert;
 import grafioschtrader.config.FeatureConfig;
 import grafioschtrader.entities.AlgoMessageAlert;
@@ -233,18 +236,19 @@ public class AlgoAlarmEvaluationService {
       return;
     }
     try {
-      Map<String, Object> config = objectMapper.readValue(strategy.getStrategyConfig(), Map.class);
-      Double lowerValue = toDouble(config.get("lowerValue"));
-      Double upperValue = toDouble(config.get("upperValue"));
+      AbsoluteValuePriceAlert config = objectMapper.readValue(strategy.getStrategyConfig(),
+          AbsoluteValuePriceAlert.class);
       double lastPrice = security.getSLast();
       boolean triggered = false;
       String details;
-      if (lowerValue != null && lastPrice <= lowerValue) {
+      if (config.getLowerValue() != null && lastPrice <= config.getLowerValue()) {
         triggered = true;
-        details = String.format("{\"threshold\":%.4f,\"actual\":%.4f,\"direction\":\"BELOW\"}", lowerValue, lastPrice);
-      } else if (upperValue != null && lastPrice >= upperValue) {
+        details = String.format("{\"threshold\":%.4f,\"actual\":%.4f,\"direction\":\"BELOW\"}", config.getLowerValue(),
+            lastPrice);
+      } else if (config.getUpperValue() != null && lastPrice >= config.getUpperValue()) {
         triggered = true;
-        details = String.format("{\"threshold\":%.4f,\"actual\":%.4f,\"direction\":\"ABOVE\"}", upperValue, lastPrice);
+        details = String.format("{\"threshold\":%.4f,\"actual\":%.4f,\"direction\":\"ABOVE\"}", config.getUpperValue(),
+            lastPrice);
       } else {
         return;
       }
@@ -263,14 +267,19 @@ public class AlgoAlarmEvaluationService {
       return;
     }
     try {
-      Map<String, Object> config = objectMapper.readValue(strategy.getStrategyConfig(), Map.class);
-      Double thresholdPercent = toDouble(config.get("thresholdPercent"));
-      if (thresholdPercent == null) {
-        return;
-      }
+      HoldingGainLosePercentAlert config = objectMapper.readValue(strategy.getStrategyConfig(),
+          HoldingGainLosePercentAlert.class);
       double changePercent = ((security.getSLast() - security.getSPrevClose()) / security.getSPrevClose()) * 100.0;
-      if (Math.abs(changePercent) >= Math.abs(thresholdPercent)) {
-        String details = String.format("{\"changePercent\":%.2f,\"threshold\":%.2f}", changePercent, thresholdPercent);
+      boolean triggered = false;
+      if (changePercent >= 0 && config.getGainPercentage() != null && changePercent >= config.getGainPercentage()) {
+        triggered = true;
+      } else if (changePercent < 0 && config.getLosePercentage() != null
+          && Math.abs(changePercent) >= config.getLosePercentage()) {
+        triggered = true;
+      }
+      if (triggered) {
+        String details = String.format("{\"changePercent\":%.2f,\"gainThreshold\":%s,\"loseThreshold\":%s}",
+            changePercent, config.getGainPercentage(), config.getLosePercentage());
         fireAlert(idTenant, alertName, strategy, security.getIdSecuritycurrency(), (byte) 1, details);
       }
     } catch (Exception e) {
@@ -284,14 +293,13 @@ public class AlgoAlarmEvaluationService {
       return;
     }
     try {
-      Map<String, Object> config = objectMapper.readValue(strategy.getStrategyConfig(), Map.class);
-      Double thresholdPercent = toDouble(config.get("thresholdPercent"));
-      Integer daysInPeriod = toInteger(config.get("daysInPeriod"));
-      if (thresholdPercent == null || daysInPeriod == null || daysInPeriod <= 0) {
+      PeriodPriceGainLosePercentAlert config = objectMapper.readValue(strategy.getStrategyConfig(),
+          PeriodPriceGainLosePercentAlert.class);
+      if (config.getDaysInPeriod() == null || config.getDaysInPeriod() <= 0) {
         return;
       }
-      Date fromDate = Date
-          .from(LocalDate.now().minusDays(daysInPeriod + 5).atStartOfDay(ZoneId.systemDefault()).toInstant());
+      Date fromDate = Date.from(
+          LocalDate.now().minusDays(config.getDaysInPeriod() + 5).atStartOfDay(ZoneId.systemDefault()).toInstant());
       Date toDate = new Date();
       List<Historyquote> hqs = historyquoteJpaRepository
           .findByIdSecuritycurrencyAndDateBetweenOrderByDate(security.getIdSecuritycurrency(), fromDate, toDate);
@@ -304,10 +312,18 @@ public class AlgoAlarmEvaluationService {
         return;
       }
       double changePercent = ((security.getSLast() - referenceClose) / referenceClose) * 100.0;
-      if (Math.abs(changePercent) >= Math.abs(thresholdPercent)) {
+      boolean triggered = false;
+      if (changePercent >= 0 && config.getGainPercentage() != null && changePercent >= config.getGainPercentage()) {
+        triggered = true;
+      } else if (changePercent < 0 && config.getLosePercentage() != null
+          && Math.abs(changePercent) >= config.getLosePercentage()) {
+        triggered = true;
+      }
+      if (triggered) {
         String details = String.format(
-            "{\"changePercent\":%.2f,\"threshold\":%.2f,\"daysInPeriod\":%d,\"referenceClose\":%.4f}", changePercent,
-            thresholdPercent, daysInPeriod, referenceClose);
+            "{\"changePercent\":%.2f,\"gainThreshold\":%s,\"loseThreshold\":%s,\"daysInPeriod\":%d,\"referenceClose\":%.4f}",
+            changePercent, config.getGainPercentage(), config.getLosePercentage(), config.getDaysInPeriod(),
+            referenceClose);
         fireAlert(idTenant, alertName, strategy, security.getIdSecuritycurrency(), (byte) 1, details);
       }
     } catch (Exception e) {
@@ -646,31 +662,4 @@ public class AlgoAlarmEvaluationService {
     return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
   }
 
-  private static Double toDouble(Object value) {
-    if (value == null) {
-      return null;
-    }
-    if (value instanceof Number n) {
-      return n.doubleValue();
-    }
-    try {
-      return Double.valueOf(value.toString());
-    } catch (NumberFormatException e) {
-      return null;
-    }
-  }
-
-  private static Integer toInteger(Object value) {
-    if (value == null) {
-      return null;
-    }
-    if (value instanceof Number n) {
-      return n.intValue();
-    }
-    try {
-      return Integer.valueOf(value.toString());
-    } catch (NumberFormatException e) {
-      return null;
-    }
-  }
 }

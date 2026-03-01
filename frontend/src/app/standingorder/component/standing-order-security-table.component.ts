@@ -11,6 +11,7 @@ import {StandingOrderService} from '../service/standing.order.service';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {StandingOrderSecurityEditComponent} from './standing-order-security-edit.component';
 import {StandingOrderFailureTableComponent} from './standing-order-failure-table.component';
+import {StandingOrderTransactionTableComponent} from './standing-order-transaction-table.component';
 import {StandingOrderTableBase} from './standing-order-table-base';
 import {TransactionType} from '../../shared/types/transaction.type';
 
@@ -35,16 +36,24 @@ import {TransactionType} from '../../shared/types/transaction.type';
         [showContextMenu]="isActivated()"
         [expandable]="true"
         [canExpandFn]="canExpandRow.bind(this)"
-        [expandedRowTemplate]="failureExpansion"
+        [expandedRowTemplate]="detailExpansion"
         (rowExpand)="onRowExpand($event)"
         [valueGetterFn]="getValueByPath.bind(this)"
         [baseLocale]="baseLocale">
       </configurable-table>
     </div>
 
-    <ng-template #failureExpansion let-so>
-      <standing-order-failure-table [failures]="getFailuresForOrder(so)">
-      </standing-order-failure-table>
+    <ng-template #detailExpansion let-so>
+      @if ((so.transactionCount ?? 0) > 0) {
+        <standing-order-transaction-table
+          [standingOrder]="so"
+          (dateChanged)="onTransactionChanged($event)">
+        </standing-order-transaction-table>
+      }
+      @if ((so.failureCount ?? 0) > 0) {
+        <standing-order-failure-table [failures]="getFailuresForOrder(so)">
+        </standing-order-failure-table>
+      }
     </ng-template>
 
     @if (visibleEditDialog) {
@@ -57,7 +66,8 @@ import {TransactionType} from '../../shared/types/transaction.type';
   `,
   standalone: true,
   imports: [CommonModule, TranslateModule, ConfigurableTableComponent,
-    StandingOrderSecurityEditComponent, StandingOrderFailureTableComponent]
+    StandingOrderSecurityEditComponent, StandingOrderFailureTableComponent,
+    StandingOrderTransactionTableComponent]
 })
 export class StandingOrderSecurityTableComponent extends StandingOrderTableBase implements OnInit {
 

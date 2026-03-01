@@ -73,7 +73,7 @@ export class StandingOrderCashaccountEditComponent extends StandingOrderEditBase
     const so = this.callParam?.standingOrder as StandingOrderCashaccount;
     if (so) {
       this.form.transferBusinessObjectToForm(so);
-      this.disableTransactionFieldsIfExecuted(so);
+      this.disableFieldsForEdit(so);
     } else if (this.callParam?.transaction) {
       const t = this.callParam.transaction;
       this.configObject.transactionType.formControl.setValue(t.transactionType);
