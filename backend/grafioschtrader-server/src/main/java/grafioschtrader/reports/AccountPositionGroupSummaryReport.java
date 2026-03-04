@@ -1,9 +1,9 @@
 package grafioschtrader.reports;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import grafiosch.BaseConstants;
-import grafiosch.common.DateHelper;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.common.DataBusinessHelper.CashaccountTransfer;
 import grafioschtrader.entities.Cashaccount;
@@ -126,7 +125,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
    * @return comprehensive grand summary containing all portfolio positions grouped as specified
    */
   public AccountPositionGrandSummary getAccountGrandSummaryIdTenant(final Integer idTenant,
-      final AccountGroupMap<?> grouping, final Date untilDate) {
+      final AccountGroupMap<?> grouping, final LocalDate untilDate) {
     final Tenant tenant = tenantJpaRepository.getReferenceById(idTenant);
 
     final CompletableFuture<List<Object[]>> dateTransactionCurrencyFuture = CompletableFuture
@@ -136,7 +135,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 
     final DateTransactionCurrencypairMap dateCurrencyMap = new DateTransactionCurrencypairMap(tenant.getCurrency(),
         untilDate, dateTransactionCurrencyFuture.join(), currencypairsFuture.join(),
-        tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(DateHelper.getLocalDate(untilDate)), false);
+        tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate), false);
     getAccountSummaryPositionSummary(tenant.getPortfolioList(), grouping, tenant.getCurrency(), idTenant,
         tenant.isExcludeDivTax(), dateCurrencyMap);
 
@@ -161,7 +160,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
    * @throws SecurityException if the portfolio doesn't belong to the specified tenant
    */
   public AccountPositionGroupSummary getAccountGrandSummaryPortfolio(Integer idTenant, final Integer idPortfolio,
-      final Date untilDate) {
+      final LocalDate untilDate) {
 
     final Portfolio portfolio = this.portfolioJpaRepository.getReferenceById(idPortfolio);
     if (portfolio.getIdTenant().equals(idTenant)) {
@@ -177,7 +176,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 
         final DateTransactionCurrencypairMap dateCurrencyMap = new DateTransactionCurrencypairMap(
             portfolio.getCurrency(), untilDate, dateTransactionCurrencyFuture.join(), currencypairsFuture.join(),
-            tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(DateHelper.getLocalDate(untilDate)), false);
+            tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate), false);
         getAccountSummaryPositionSummary(Arrays.asList(portfolio), groupPortfolio, portfolio.getCurrency(),
             portfolio.getIdTenant(), tenant.isExcludeDivTax(), dateCurrencyMap);
         final AccountPositionGroupSummary accountPositionGroupSummary = groupPortfolio.getGroupSummaryList().get(0);
@@ -218,7 +217,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
     Map<Integer, Double> exchangeRateConnectedTransactionMap = new HashMap<>();
     ReportHelper.loadUntilDateHistoryquotes(idTenant, historyquoteJpaRepository, dateCurrencyMap);
 
-    final long untilDateTime = DateHelper.setTimeToZeroAndAddDay(dateCurrencyMap.getUntilDate(), 1).getTime();
+    final java.time.LocalDateTime untilDateTime = dateCurrencyMap.getUntilDate().plusDays(1).atStartOfDay();
     final AccessCashaccountPositionSummary accessCashaccountPositionSummary = new AccessCashaccountPositionSummary(
         globalparametersService.getCurrencyPrecision());
 
@@ -231,7 +230,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
       portfolio.getCashaccountList().forEach(cashaccount -> {
         accessCashaccountPositionSummary.createAndAddCashaccountPositionSummary(cashaccount, dateCurrencyMap);
         everyKindOfTransactionsUntilDate.addAll(cashaccount.getTransactionList().stream()
-            .filter(transaction -> transaction.getTransactionTime().getTime() < untilDateTime)
+            .filter(transaction -> transaction.getTransactionTime().isBefore(untilDateTime))
             .collect(Collectors.toList()));
       });
 
@@ -396,7 +395,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
             || transaction.getTransactionType() == TransactionType.WITHDRAWAL)) {
       // it is a deposit or withdrawal on foreign cash account without currency
       // exchange
-      final Double exchangeRate = dateCurrencyMap.getPriceByDateAndFromCurrency(transaction.getTransactionDateAsDate(),
+      final Double exchangeRate = dateCurrencyMap.getPriceByDateAndFromCurrency(transaction.getTransactionDateAsLocalDate(),
           accountPositionSummary.securitycurrency.getFromCurrency(), true);
 
       accountPositionSummary.balanceCurrencyTransaction += transaction.getCashaccountAmount();
@@ -437,7 +436,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
       Double exchangeRate = acps.exchangeRateConnectedTransactionMap.get(transaction.getIdTransaction());
       if (exchangeRate == null) {
         // different currency, for example USD/GBP when USD nor GBP is main currency
-        exchangeRate = dateCurrencyMap.getPriceByDateAndFromCurrency(transaction.getTransactionDateAsDate(),
+        exchangeRate = dateCurrencyMap.getPriceByDateAndFromCurrency(transaction.getTransactionDateAsLocalDate(),
             accountPositionSummary.securitycurrency.getFromCurrency(), true);
 
         double normalizedExchangeRate = currencypair.getFromCurrency()
@@ -454,7 +453,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
       accountPositionSummary.balanceCurrencyTransaction += transaction.getCashaccountAmount();
       accountPositionSummary.balanceCurrencyTransactionMC += transaction.getCashaccountAmount() * exchangeRate;
     } else {
-      final Double exchangeRate = dateCurrencyMap.getPriceByDateAndFromCurrency(transaction.getTransactionDateAsDate(),
+      final Double exchangeRate = dateCurrencyMap.getPriceByDateAndFromCurrency(transaction.getTransactionDateAsLocalDate(),
           accountPositionSummary.securitycurrency.getFromCurrency(), true);
       // Transaction between to currencies when main currency is not involved.
       // TODO Fix many currency should not be involved

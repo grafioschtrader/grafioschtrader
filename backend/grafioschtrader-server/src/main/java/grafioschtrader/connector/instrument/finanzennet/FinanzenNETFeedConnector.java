@@ -2,8 +2,9 @@ package grafioschtrader.connector.instrument.finanzennet;
 
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -72,7 +73,7 @@ public class FinanzenNETFeedConnector extends FinanzenConnetorBase {
   }
 
   @Override
-  public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
+  public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
     return null;
   }
@@ -83,8 +84,8 @@ public class FinanzenNETFeedConnector extends FinanzenConnetorBase {
   }
 
   @Override
-  public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
-      throws Exception {
+  public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final LocalDate from,
+      final LocalDate to) throws Exception {
     return null;
   }
 
@@ -136,7 +137,7 @@ public class FinanzenNETFeedConnector extends FinanzenConnetorBase {
           securitycurrency.setSLast(format.parse(lastPriceStr).doubleValue());
           securitycurrency.setSOpen(securitycurrency.getSLast() - format.parse(changeStr).doubleValue());
           securitycurrency.setSChangePercentage(format.parse(changePercentageStr).doubleValue());
-          securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds()));
+          securitycurrency.setSTimestamp(LocalDateTime.now().minusSeconds(getIntradayDelayedSeconds()));
           return;
         } catch (ParseException e) {
           lastParseException = e;

@@ -2,12 +2,10 @@ package grafioschtrader.entities;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import grafiosch.BaseConstants;
-import grafiosch.common.DateHelper;
 import grafioschtrader.types.CreateType;
 import grafioschtrader.validation.ValidCurrencyCode;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -141,8 +139,8 @@ public class Dividend extends DividendSplit implements Serializable {
   }
 
   @Override
-  public Date getEventDate() {
-    return DateHelper.getDateFromLocalDate(exDate);
+  public LocalDate getEventDate() {
+    return exDate;
   }
 
 }

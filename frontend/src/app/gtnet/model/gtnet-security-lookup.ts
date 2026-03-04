@@ -102,7 +102,7 @@ export interface SecurityGtnetLookupDTO {
   retrySplitLoad?: number;
 
   // Intraday timestamp
-  sTimestamp?: number;
+  sTimestamp?: string;
 
   // History quality data (from historyquote_quality table)
   historyMinDate?: string;

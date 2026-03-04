@@ -4,13 +4,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetMessage.GTNetMessageParam;
 import grafiosch.entities.GTNetMessageAnswer;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Context object containing all information needed for GTNet message processing.
@@ -116,7 +115,7 @@ public class GTNetMessageContext {
   /**
    * Returns the request timestamp.
    */
-  public java.util.Date getTimestamp() {
+  public java.time.LocalDateTime getTimestamp() {
     return request.timestamp;
   }
 

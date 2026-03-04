@@ -138,12 +138,12 @@ export class BusinessHelper {
    * @param currencyExRateFormControl Angular form control to update with the exchange rate
    */
   public static getAndSetQuotationCurrencypair(currencypairService: CurrencypairService, currencypair: Currencypair,
-    transactionTime: number, currencyExRateFormControl: AbstractControl): void {
+    transactionTime: Date, currencyExRateFormControl: AbstractControl): void {
     currencypairService.getCurrencypairWithHistoryquoteByIdSecuritycurrencyAndDate(currencypair,
       moment(transactionTime).format('YYYYMMDD')).subscribe((cWh: CurrencypairWithHistoryquote) => {
       if (cWh.currencypair) {
         currencypair.idSecuritycurrency = cWh.currencypair.idSecuritycurrency;
-        if (transactionTime > cWh.currencypair.sTimestamp || moment(transactionTime).isSame(new Date(), 'day')) {
+        if (moment(transactionTime).isAfter(moment(cWh.currencypair.sTimestamp)) || moment(transactionTime).isSame(new Date(), 'day')) {
           currencyExRateFormControl.setValue(cWh.currencypair.sLast);
         } else {
           currencyExRateFormControl.setValue(cWh.historyquote.close);
@@ -227,7 +227,7 @@ export class BusinessHelper {
   public static setHistoryquoteCloseToFormControl(messageToastService: MessageToastService,
     historyquoteService: HistoryquoteService,
     gps: GlobalparameterService,
-    transactionTime: number, idSecuritycurrency: number,
+    transactionTime: Date, idSecuritycurrency: number,
     asTraded: boolean, formControl: AbstractControl): void {
     historyquoteService.getCertainOrOlderDayInHistoryquoteByIdSecuritycurrency(idSecuritycurrency,
       moment(transactionTime).format('YYYYMMDD'), asTraded).subscribe((historyquote: ISecuritycurrencyIdDateClose) => {

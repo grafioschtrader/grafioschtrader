@@ -1,6 +1,6 @@
 package grafiosch.m2m;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetMessage;
@@ -46,7 +46,7 @@ public abstract class GTNetMessageHelper {
    * @return SendResult containing reachability status and response
    */
   public static SendResult sendPingWithStatus(BaseDataClient baseDataClient, GTNet sourceGTNet, GTNet targetGTNet) {
-    GTNetMessage gtNetMessagePing = new GTNetMessage(null, new Date(), SendReceivedType.SEND.getValue(), null,
+    GTNetMessage gtNetMessagePing = new GTNetMessage(null, LocalDateTime.now(), SendReceivedType.SEND.getValue(), null,
         GNetCoreMessageCode.GT_NET_PING.getValue(), null, null);
 
     MessageEnvelope meRequest = new MessageEnvelope(sourceGTNet, gtNetMessagePing);

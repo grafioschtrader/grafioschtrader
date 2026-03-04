@@ -1,7 +1,7 @@
 package grafioschtrader.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +27,7 @@ public class PushOpenServerContext {
    * Map of GTNet ID to a map of (instrument key -> received timestamp).
    * The instrument key format is "ISIN:CURRENCY" for securities or "FROM:TO" for currency pairs.
    */
-  private final Map<Integer, Map<String, Date>> serverReceivedTimestamps = new HashMap<>();
+  private final Map<Integer, Map<String, LocalDateTime>> serverReceivedTimestamps = new HashMap<>();
 
   /** List of PUSH_OPEN servers that were contacted during the exchange. */
   private final List<GTNet> contactedServers = new ArrayList<>();
@@ -51,7 +51,7 @@ public class PushOpenServerContext {
     }
 
     // Initialize or get the timestamp map for this server
-    Map<String, Date> timestamps = serverReceivedTimestamps.computeIfAbsent(
+    Map<String, LocalDateTime> timestamps = serverReceivedTimestamps.computeIfAbsent(
         server.getIdGtNet(), k -> new HashMap<>());
 
     // Record security timestamps
@@ -85,7 +85,7 @@ public class PushOpenServerContext {
   public LastpriceExchangeMsg getPricesToPushForServer(GTNet server,
       List<Security> allSecurities, List<Currencypair> allCurrencypairs) {
 
-    Map<String, Date> serverBaseline = serverReceivedTimestamps.get(server.getIdGtNet());
+    Map<String, LocalDateTime> serverBaseline = serverReceivedTimestamps.get(server.getIdGtNet());
 
     List<InstrumentPriceDTO> securitiesToPush = new ArrayList<>();
     List<InstrumentPriceDTO> currencypairsToPush = new ArrayList<>();
@@ -100,7 +100,7 @@ public class PushOpenServerContext {
         InstrumentPriceDTO dto = InstrumentPriceDTO.fromSecurity(security);
         String key = dto.getKey();
 
-        Date baseline = serverBaseline != null ? serverBaseline.get(key) : null;
+        LocalDateTime baseline = serverBaseline != null ? serverBaseline.get(key) : null;
         if (shouldPush(security.getSTimestamp(), baseline)) {
           securitiesToPush.add(dto);
         }
@@ -117,7 +117,7 @@ public class PushOpenServerContext {
         InstrumentPriceDTO dto = InstrumentPriceDTO.fromCurrencypair(currencypair);
         String key = dto.getKey();
 
-        Date baseline = serverBaseline != null ? serverBaseline.get(key) : null;
+        LocalDateTime baseline = serverBaseline != null ? serverBaseline.get(key) : null;
         if (shouldPush(currencypair.getSTimestamp(), baseline)) {
           currencypairsToPush.add(dto);
         }
@@ -135,13 +135,13 @@ public class PushOpenServerContext {
    * @param baseline the timestamp the server originally sent (null if server didn't have it)
    * @return true if the price should be pushed (newer or server didn't have it)
    */
-  private boolean shouldPush(Date current, Date baseline) {
+  private boolean shouldPush(LocalDateTime current, LocalDateTime baseline) {
     // Push if server didn't have this instrument at all
     if (baseline == null) {
       return true;
     }
     // Push if our price is strictly newer
-    return current.after(baseline);
+    return current.isAfter(baseline);
   }
 
   /**

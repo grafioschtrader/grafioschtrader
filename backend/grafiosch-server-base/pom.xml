@@ -74,15 +74,10 @@
 		</dependency>
         
         <dependency>
-			<groupId>com.github.vladimir-bukhtoyarov</groupId>
+			<groupId>com.bucket4j</groupId>
 			<artifactId>bucket4j-core</artifactId>
 		</dependency>
 		
-		<dependency>
-			<groupId>org.junit.platform</groupId>
-			<artifactId>junit-platform-runner</artifactId>
-			<scope>test</scope>
-		</dependency>
 
         <dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -91,9 +86,8 @@
 		
 
         <dependency>
-           <groupId>org.hibernate</groupId>
+           <groupId>org.hibernate.orm</groupId>
            <artifactId>hibernate-jcache</artifactId>
-           <version>${hibernate.version}</version>
         </dependency>
 
 		<dependency>
@@ -108,16 +102,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-impl</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-jackson</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.json</groupId>

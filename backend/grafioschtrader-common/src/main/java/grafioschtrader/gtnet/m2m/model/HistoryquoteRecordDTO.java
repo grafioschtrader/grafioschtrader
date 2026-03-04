@@ -1,10 +1,11 @@
 package grafioschtrader.gtnet.m2m.model;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import grafiosch.BaseConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -19,8 +20,8 @@ public class HistoryquoteRecordDTO implements Serializable {
   private static final long serialVersionUID = 1L;
 
   @Schema(description = "Trading date for this historical quote")
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-  private Date date;
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  private LocalDate date;
 
   @Schema(description = "Opening price for this trading day")
   private Double open;
@@ -40,7 +41,7 @@ public class HistoryquoteRecordDTO implements Serializable {
   public HistoryquoteRecordDTO() {
   }
 
-  public HistoryquoteRecordDTO(Date date, Double open, Double high, Double low, Double close, Long volume) {
+  public HistoryquoteRecordDTO(LocalDate date, Double open, Double high, Double low, Double close, Long volume) {
     this.date = date;
     this.open = open;
     this.high = high;
@@ -51,11 +52,11 @@ public class HistoryquoteRecordDTO implements Serializable {
 
   // Getters and setters
 
-  public Date getDate() {
+  public LocalDate getDate() {
     return date;
   }
 
-  public void setDate(Date date) {
+  public void setDate(LocalDate date) {
     this.date = date;
   }
 

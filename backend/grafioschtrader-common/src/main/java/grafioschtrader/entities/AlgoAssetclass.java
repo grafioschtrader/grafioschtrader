@@ -2,6 +2,7 @@ package grafioschtrader.entities;
 
 import java.util.List;
 
+import grafiosch.common.PropertyAlwaysUpdatable;
 import grafioschtrader.algo.strategy.model.StrategyHelper;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
@@ -15,6 +16,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = AlgoAssetclass.TABNAME)
@@ -36,6 +38,15 @@ public class AlgoAssetclass extends AlgoAssetclassSecurity {
       If both are zero, it applies to all securities accounts.""")
   @Column(name = "id_algo_assetclass_parent")
   private Integer idAlgoAssetclassParent;
+
+  @Schema(description = """
+      Optional custom category name. When set, this node acts as a freeform category (e.g. "Gambling Games")
+      under which any watchlist security can be added, regardless of asset class. Mutually exclusive with
+      assetclass, categoryType, and specialInvestmentInstrument — if name is non-null, those fields must be null.""")
+  @Column(name = "name")
+  @Size(max = 40)
+  @PropertyAlwaysUpdatable
+  private String name;
 
   @Schema(description = "Can refer to an asset class. This is the most granular grouping.")
   @JoinColumn(name = "id_asset_class", referencedColumnName = "id_asset_class")
@@ -75,8 +86,17 @@ public class AlgoAssetclass extends AlgoAssetclassSecurity {
   private Float addedPercentage;
 
   public Float getAddedPercentage() {
-    addedPercentage = (float) algoSecurityList.stream().mapToDouble(algoSecurity -> algoSecurity.getPercentage()).sum();
+    addedPercentage = algoSecurityList == null ? 0f
+        : (float) algoSecurityList.stream().mapToDouble(algoSecurity -> algoSecurity.getPercentage()).sum();
     return addedPercentage;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
   }
 
   public Integer getIdAlgoAssetclassParent() {

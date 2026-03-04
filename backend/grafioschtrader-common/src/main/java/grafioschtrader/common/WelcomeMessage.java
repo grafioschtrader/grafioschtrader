@@ -1,6 +1,10 @@
 package grafioschtrader.common;
 
-import java.util.Date;
+import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import grafiosch.BaseConstants;
 
 /**
  * Data transfer object (DTO) for transferring data from the server to the client. This object encapsulates the response
@@ -16,12 +20,14 @@ import java.util.Date;
 public class WelcomeMessage {
 
   private String message;
-  private Date createdOn;
+
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
+  private LocalDateTime createdOn;
 
   public WelcomeMessage() {
   }
 
-  public WelcomeMessage(String message, Date createdOn) {
+  public WelcomeMessage(String message, LocalDateTime createdOn) {
     this.message = message;
     this.createdOn = createdOn;
   }
@@ -34,11 +40,11 @@ public class WelcomeMessage {
     this.message = message;
   }
 
-  public Date getCreatedOn() {
+  public LocalDateTime getCreatedOn() {
     return createdOn;
   }
 
-  public void setCreatedOn(Date createdOn) {
+  public void setCreatedOn(LocalDateTime createdOn) {
     this.createdOn = createdOn;
   }
 }

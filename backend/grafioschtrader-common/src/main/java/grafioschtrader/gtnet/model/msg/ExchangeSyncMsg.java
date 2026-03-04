@@ -1,11 +1,13 @@
 package grafioschtrader.gtnet.model.msg;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -27,7 +29,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public class ExchangeSyncMsg {
 
   @Schema(description = "Timestamp since when changes are included (for incremental sync)")
-  public Date sinceTimestamp;
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
+  public LocalDateTime sinceTimestamp;
 
   @Schema(description = "List of exchange configuration entries")
   public List<ExchangeSyncItem> items = new ArrayList<>();
@@ -42,7 +45,7 @@ public class ExchangeSyncMsg {
    * @param items the list of exchange sync items
    * @return the constructed ExchangeSyncMsg
    */
-  public static ExchangeSyncMsg forRequest(Date sinceTimestamp, List<ExchangeSyncItem> items) {
+  public static ExchangeSyncMsg forRequest(LocalDateTime sinceTimestamp, List<ExchangeSyncItem> items) {
     ExchangeSyncMsg msg = new ExchangeSyncMsg();
     msg.sinceTimestamp = sinceTimestamp;
     msg.items = items != null ? items : new ArrayList<>();
@@ -111,7 +114,8 @@ public class ExchangeSyncMsg {
     public Short retryIntraLoad;
 
     @Schema(description = "Timestamp of last intraday price update")
-    public Date sTimestamp;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
+    public LocalDateTime sTimestamp;
 
     public ExchangeSyncItem() {
     }

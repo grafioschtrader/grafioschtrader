@@ -1,9 +1,9 @@
 package grafioschtrader.algo;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 public interface Indicator {
-  Date getDate();
+  LocalDate getDate();
 
   double getValue();
 }

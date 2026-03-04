@@ -1,7 +1,7 @@
 package grafioschtrader.gtnet.handler.impl.historyquote;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -103,7 +103,7 @@ public class PushOpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStra
       }
 
       // Calculate threshold date (10 days ago)
-      Date thresholdDate = addDays(new Date(), -THRESHOLD_DAYS);
+      LocalDate thresholdDate = addDays(LocalDate.now(), -THRESHOLD_DAYS);
 
       // Process local instruments with batch query
       processLocalSecurities(localInstruments, localityMap, tuplesAndMap.requestMap(), thresholdDate, foundKeys,
@@ -164,7 +164,7 @@ public class PushOpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStra
       }
 
       // Calculate threshold date (10 days ago)
-      Date thresholdDate = addDays(new Date(), -THRESHOLD_DAYS);
+      LocalDate thresholdDate = addDays(LocalDate.now(), -THRESHOLD_DAYS);
 
       // Process local instruments with batch query
       processLocalCurrencypairs(localInstruments, localityMap, tuplesAndMap.requestMap(), thresholdDate, foundKeys,
@@ -184,7 +184,7 @@ public class PushOpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStra
    * Processes local securities using batch query with 10-day optimization.
    */
   private void processLocalSecurities(List<GTNetInstrumentSecurity> instruments, Map<Integer, Integer> localityMap,
-      Map<String, InstrumentHistoryquoteDTO> requestMap, Date thresholdDate, Set<String> foundKeys,
+      Map<String, InstrumentHistoryquoteDTO> requestMap, LocalDate thresholdDate, Set<String> foundKeys,
       List<InstrumentHistoryquoteDTO> result) {
 
     if (instruments.isEmpty()) {
@@ -192,7 +192,7 @@ public class PushOpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStra
     }
 
     // Determine batch fromDate based on requests
-    Date batchFromDate = determineBatchFromDate(instruments, requestMap, thresholdDate,
+    LocalDate batchFromDate = determineBatchFromDate(instruments, requestMap, thresholdDate,
         i -> i.getIsin() + ":" + i.getCurrency());
 
     // Collect local security IDs for batch query
@@ -237,7 +237,7 @@ public class PushOpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStra
    * Processes foreign securities using batch query with 10-day optimization.
    */
   private void processForeignSecurities(List<GTNetInstrumentSecurity> instruments,
-      Map<String, InstrumentHistoryquoteDTO> requestMap, Date thresholdDate, Set<String> foundKeys,
+      Map<String, InstrumentHistoryquoteDTO> requestMap, LocalDate thresholdDate, Set<String> foundKeys,
       List<InstrumentHistoryquoteDTO> result) {
 
     if (instruments.isEmpty()) {
@@ -245,7 +245,7 @@ public class PushOpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStra
     }
 
     // Determine batch fromDate based on requests
-    Date batchFromDate = determineBatchFromDate(instruments, requestMap, thresholdDate,
+    LocalDate batchFromDate = determineBatchFromDate(instruments, requestMap, thresholdDate,
         i -> i.getIsin() + ":" + i.getCurrency());
 
     // Collect GTNet instrument IDs for batch query
@@ -289,7 +289,7 @@ public class PushOpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStra
    * Processes local currency pairs using batch query with 10-day optimization.
    */
   private void processLocalCurrencypairs(List<GTNetInstrumentCurrencypair> instruments, Map<Integer, Integer> localityMap,
-      Map<String, InstrumentHistoryquoteDTO> requestMap, Date thresholdDate, Set<String> foundKeys,
+      Map<String, InstrumentHistoryquoteDTO> requestMap, LocalDate thresholdDate, Set<String> foundKeys,
       List<InstrumentHistoryquoteDTO> result) {
 
     if (instruments.isEmpty()) {
@@ -297,7 +297,7 @@ public class PushOpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStra
     }
 
     // Determine batch fromDate based on requests
-    Date batchFromDate = determineBatchFromDate(instruments, requestMap, thresholdDate,
+    LocalDate batchFromDate = determineBatchFromDate(instruments, requestMap, thresholdDate,
         i -> i.getFromCurrency() + ":" + i.getToCurrency());
 
     // Collect local currency pair IDs for batch query
@@ -342,7 +342,7 @@ public class PushOpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStra
    * Processes foreign currency pairs using batch query with 10-day optimization.
    */
   private void processForeignCurrencypairs(List<GTNetInstrumentCurrencypair> instruments,
-      Map<String, InstrumentHistoryquoteDTO> requestMap, Date thresholdDate, Set<String> foundKeys,
+      Map<String, InstrumentHistoryquoteDTO> requestMap, LocalDate thresholdDate, Set<String> foundKeys,
       List<InstrumentHistoryquoteDTO> result) {
 
     if (instruments.isEmpty()) {
@@ -350,7 +350,7 @@ public class PushOpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStra
     }
 
     // Determine batch fromDate based on requests
-    Date batchFromDate = determineBatchFromDate(instruments, requestMap, thresholdDate,
+    LocalDate batchFromDate = determineBatchFromDate(instruments, requestMap, thresholdDate,
         i -> i.getFromCurrency() + ":" + i.getToCurrency());
 
     // Collect GTNet instrument IDs for batch query

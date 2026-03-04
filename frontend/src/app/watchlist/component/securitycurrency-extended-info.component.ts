@@ -101,7 +101,7 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
    * previous close, high/low values, and trading volume. All fields are grouped under QUOTATION_DATA fieldset.
    */
   private addQuotationDataFields(): void {
-    this.addFieldProperty(DataType.DateTimeNumeric, this.SECURITYCURRENCY + 'sTimestamp', 'TIMEDATE',
+    this.addFieldProperty(DataType.DateTimeString, this.SECURITYCURRENCY + 'sTimestamp', 'TIMEDATE',
       {fieldsetName: this.QUOTATION_DATA});
     this.addFieldProperty(DataType.Numeric, this.SECURITYCURRENCY + 'sLast', 'LAST', {
       fieldsetName: this.QUOTATION_DATA, maxFractionDigits: this.gps.getMaxFractionDigits()

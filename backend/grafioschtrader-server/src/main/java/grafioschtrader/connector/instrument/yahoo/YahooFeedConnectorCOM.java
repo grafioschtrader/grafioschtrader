@@ -6,9 +6,9 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -18,10 +18,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.common.DateHelper;
 import grafioschtrader.GlobalConstants;
@@ -37,6 +33,9 @@ import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.CreateType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /*-
  * Stock, Bond, ETF:
@@ -53,7 +52,8 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper = JsonMapper.builder()
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
   private static final String DIVDEND_EVENT = "div";
   private static final String SPLIT_EVENT = "splits";
   private static final String URL_NORMAL_REGEX = "^\\^?[A-Za-z\\-0-9]+(\\.[A-Za-z]+)?$";
@@ -92,7 +92,6 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   }
 
   private <S extends Securitycurrency<S>> void getLastPrice(String urlStr, S securitycurrency) throws Exception {
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     HttpResponse<String> response = FeedConnectorHelper.getByHttpClient(urlStr, true);
     if (response.statusCode() == 200) {
       final TopLevelChart topLevelChart = objectMapper.readerWithView(Views.TimestampIndicatorsView.class)
@@ -109,7 +108,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
         }
         securitycurrency.setSChangePercentage(
             m.chartPreviousClose != 0 ? (m.regularMarketPrice - m.chartPreviousClose) / m.chartPreviousClose * 100 : 0);
-        securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds()));
+        securitycurrency.setSTimestamp(LocalDateTime.now().minusSeconds(getIntradayDelayedSeconds()));
       }
 
     } else {
@@ -151,7 +150,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   }
 
   @Override
-  public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
+  public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
     return this.getEodHistory(security.getUrlHistoryExtend(), from, to, false,
         FeedConnectorHelper.getGBXLondonDivider(security),
@@ -159,8 +158,8 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   }
 
   @Override
-  public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
-      throws Exception {
+  public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final LocalDate from,
+      final LocalDate to) throws Exception {
     return FeedConnectorHelper.checkFirstLastHistoryquoteAndRemoveWhenOutsideDateRange(from, to,
         getEodHistory(getCurrencyPairSymbol(currencyPair), from, to, true, 1.0, 0), currencyPair.getName());
   }
@@ -197,15 +196,14 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     }
   }
 
-  private List<Historyquote> getEodHistory(String symbol, Date startDate, Date endDate, final boolean isCurrency,
-      final double divider, final int diffUTCSeconds)
-      throws JsonMappingException, JsonProcessingException, IOException, InterruptedException {
+  private List<Historyquote> getEodHistory(String symbol, LocalDate startDate, LocalDate endDate,
+      final boolean isCurrency, final double divider, final int diffUTCSeconds) throws Exception {
     symbol = URLEncoder.encode(symbol, StandardCharsets.UTF_8);
 
     List<Historyquote> historyquotes = new ArrayList<>();
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     String urlStr = String.format(DOMAIN_NAME_WITH_8_VERSION_Q2 + "%s?period1=%s&period2=%s&interval=1d&events=history",
-        symbol, startDate.getTime() / 1000, endDate.getTime() / 1000 + 23 * 60 * 60);
+        symbol, DateHelper.LocalDateToEpocheSeconds(startDate),
+        DateHelper.LocalDateToEpocheSeconds(endDate) + 23 * 60 * 60);
 
     HttpResponse<String> response = FeedConnectorHelper.getByHttpClient(urlStr, true);
     if (response.statusCode() == 200) {
@@ -220,12 +218,12 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
           Quotes quotes = resultData.indicators.quote.get(0);
 
           // Variable to hold the date of the last added Historyquote
-          Date lastAddedDate = null;
+          LocalDate lastAddedDate = null;
 
           for (int i = 0; i < timestamps.size(); i++) {
             // Calculate the date for the current item
-            Date quoteDate = DateHelper.setTimeToZeroAndAddDay(new Date((timestamps.get(i) + diffUTCSeconds) * 1000),
-                0);
+            LocalDate quoteDate = Instant.ofEpochSecond(timestamps.get(i) + diffUTCSeconds)
+                .atZone(ZoneId.systemDefault()).toLocalDate();
 
             // Check if quote data is valid
             if (quotes.close.get(i) != null) {
@@ -242,7 +240,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
                 historyquote.setLow(quotes.low.get(i) / divider);
                 historyquote.setOpen(quotes.open.get(i) / divider);
                 historyquote.setVolume(quotes.volume.get(i));
-                historyquote.setDate(quoteDate); // Set the calculated date
+                historyquote.setDate(quoteDate);
 
                 // Update the last added date after successful addition
                 lastAddedDate = quoteDate;
@@ -306,7 +304,6 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   private Events getSplitDividendEvent(String urlExtend, LocalDate fromDate, LocalDate toDate, String event)
       throws Exception {
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     HttpResponse<String> response = FeedConnectorHelper
         .getByHttpClient(getSplitHistoricalDownloadLink(urlExtend, fromDate, toDate, event), true);
     if (response.statusCode() == 200) {
@@ -329,7 +326,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     if (events != null && events.splits != null) {
       return events.splits.entrySet().stream()
           .map(entry -> new Securitysplit(security.getIdSecuritycurrency(),
-              DateHelper.setTimeToZeroAndAddDay(new Date(entry.getValue().date * 1000), 0),
+              Instant.ofEpochSecond(entry.getValue().date).atZone(ZoneId.systemDefault()).toLocalDate(),
               entry.getValue().denominator, entry.getValue().numerator, CreateType.CONNECTOR_CREATED))
           .collect(Collectors.toList());
     }

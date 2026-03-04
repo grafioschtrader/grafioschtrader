@@ -1,6 +1,6 @@
 package grafioschtrader.entities;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import jakarta.annotation.Generated;
 import jakarta.persistence.metamodel.ListAttribute;
@@ -27,7 +27,7 @@ public abstract class Securitycurrency_ extends grafiosch.entities.Auditable_ {
   public static volatile SingularAttribute<Securitycurrency<?>, Double> sChangePercentage;
   public static volatile SingularAttribute<Securitycurrency<?>, Double> sLow;
   public static volatile SingularAttribute<Securitycurrency<?>, String> stockexchangeLink;
-  public static volatile SingularAttribute<Securitycurrency<?>, Date> sTimestamp;
-  public static volatile SingularAttribute<Securitycurrency<?>, Date> fullLoadTimestamp;
+  public static volatile SingularAttribute<Securitycurrency<?>, LocalDateTime> sTimestamp;
+  public static volatile SingularAttribute<Securitycurrency<?>, LocalDateTime> fullLoadTimestamp;
 
 }

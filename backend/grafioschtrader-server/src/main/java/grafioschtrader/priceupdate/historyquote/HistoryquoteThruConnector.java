@@ -1,11 +1,10 @@
 package grafioschtrader.priceupdate.historyquote;
 
 import java.text.ParseException;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -17,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import grafiosch.common.DateHelper;
 import grafiosch.entities.Globalparameters;
 import grafiosch.entities.User;
 import grafioschtrader.GlobalParamKeyDefault;
@@ -74,7 +72,7 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   @Override
   @Transactional
   public S createHistoryQuotesAndSave(final ISecuritycurrencyService<S> securitycurrencyService, S securitycurrency,
-      final Date fromDate, final Date toDate) {
+      final LocalDate fromDate, final LocalDate toDate) {
     short restryHistoryLoad = securitycurrency.getRetryHistoryLoad();
 
     try {
@@ -112,7 +110,7 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
     }
     securitycurrency.setRetryHistoryLoad(restryHistoryLoad);
     if (fromDate == null && toDate == null) {
-      securitycurrency.setFullLoadTimestamp(new Date(System.currentTimeMillis()));
+      securitycurrency.setFullLoadTimestamp(LocalDateTime.now());
     }
     return securitycurrencyService.getJpaRepository().save(securitycurrency);
   }
@@ -131,7 +129,7 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
    */
   @Transactional
   public S savePrefetchedHistoryQuotes(final ISecuritycurrencyService<S> securitycurrencyService, S securitycurrency,
-      final List<Historyquote> historyquotes, final Date fromDate, final Date toDate) {
+      final List<Historyquote> historyquotes, final LocalDate fromDate, final LocalDate toDate) {
 
     if (historyquotes == null || historyquotes.isEmpty()) {
       return securitycurrency;
@@ -154,7 +152,7 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
 
     // Update full load timestamp if this was a full load
     if (fromDate == null && toDate == null) {
-      securitycurrency.setFullLoadTimestamp(new Date(System.currentTimeMillis()));
+      securitycurrency.setFullLoadTimestamp(LocalDateTime.now());
     }
 
     return securitycurrencyService.getJpaRepository().save(securitycurrency);
@@ -240,40 +238,40 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
    * @return the corrected calendar for EOD date calculation, and the list of instruments needing updates
    */
   public PartialFillData<S> getPartialFillData(List<Integer> idsStockexchange) {
-    final Calendar currentCalendar = corretToCalendarForDayAfterUpdate(
+    final LocalDate currentDate = correctToDateForDayAfterUpdate(
         idsStockexchange == null || idsStockexchange.size() == 0);
     final List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList = historyquoteEntityAccess
         .getMaxHistoryquoteResult(globalparametersService.getMaxHistoryRetry(), this, idsStockexchange);
-    return new PartialFillData<>(currentCalendar, historySecurityCurrencyList);
+    return new PartialFillData<>(currentDate, historySecurityCurrencyList);
   }
 
   /**
-   * Corrects calendar for day-after-update scenarios (Sunday/Monday adjustments).
+   * Corrects date for day-after-update scenarios (Sunday/Monday adjustments).
    * Exposed for decorator usage.
    */
-  private Calendar corretToCalendarForDayAfterUpdate(boolean adjustForDayAfterUpd) {
-    final Calendar currentCalendar = DateHelper.getCalendar(new Date());
-    if (adjustForDayAfterUpd && (currentCalendar.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY
-        || currentCalendar.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY)) {
-      currentCalendar.add(Calendar.DATE, currentCalendar.get(Calendar.DAY_OF_WEEK) * -1);
+  private LocalDate correctToDateForDayAfterUpdate(boolean adjustForDayAfterUpd) {
+    LocalDate currentDate = LocalDate.now();
+    if (adjustForDayAfterUpd && (currentDate.getDayOfWeek() == DayOfWeek.SUNDAY
+        || currentDate.getDayOfWeek() == DayOfWeek.MONDAY)) {
+      currentDate = currentDate.minusDays(currentDate.getDayOfWeek().getValue() % 7);
     }
-    return currentCalendar;
+    return currentDate;
   }
 
   /**
    * Data class holding partial fill information for decorator pattern support.
    */
   public static class PartialFillData<S extends Securitycurrency<S>> {
-    private final Calendar currentCalendar;
+    private final LocalDate currentDate;
     private final List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList;
 
-    public PartialFillData(Calendar currentCalendar, List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList) {
-      this.currentCalendar = currentCalendar;
+    public PartialFillData(LocalDate currentDate, List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList) {
+      this.currentDate = currentDate;
       this.historySecurityCurrencyList = historySecurityCurrencyList;
     }
 
-    public Calendar getCurrentCalendar() {
-      return currentCalendar;
+    public LocalDate getCurrentDate() {
+      return currentDate;
     }
 
     public List<SecurityCurrencyMaxHistoryquoteData<S>> getHistorySecurityCurrencyList() {
@@ -283,18 +281,18 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
 
   private HistoryquoteDataChange createWithHistoryQuoteWithConnector(
       final ISecuritycurrencyService<S> securitycurrencyService, final S securitycurrency,
-      final IFeedConnector feedConnector, final Date fromDate, final Date toDate, boolean needGapFiller)
+      final IFeedConnector feedConnector, final LocalDate fromDate, final LocalDate toDate, boolean needGapFiller)
       throws Exception {
 
     HistoryquoteDataChange hdc = new HistoryquoteDataChange(getCorrectedFromDate(securitycurrency, fromDate));
-    hdc.toDateCalc = (toDate == null) ? new Date() : toDate;
-    Date correctedFromDateGapFill = securitycurrency instanceof Security
+    hdc.toDateCalc = (toDate == null) ? LocalDate.now() : toDate;
+    LocalDate correctedFromDateGapFill = securitycurrency instanceof Security
         ? getFirstGapFillByAfterLastRealEOD((Security) securitycurrency, needGapFiller, hdc.correctedFromDate)
         : hdc.correctedFromDate;
 
     hdc.historyquotes = historyquoteEntityAccess.getHistoryQuote(securitycurrency,
         substractSomeDays(
-            correctedFromDateGapFill.before(hdc.correctedFromDate) ? correctedFromDateGapFill : hdc.correctedFromDate,
+            correctedFromDateGapFill.isBefore(hdc.correctedFromDate) ? correctedFromDateGapFill : hdc.correctedFromDate,
             hdc.toDateCalc),
         hdc.toDateCalc, feedConnector);
 
@@ -302,17 +300,17 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
         correctedFromDateGapFill);
 
     hdc.historyquotes = hdc.historyquotes.stream().parallel()
-        .filter(historyquote -> hdc.removeFromDate != null || !historyquote.getDate().before(hdc.correctedFromDate))
+        .filter(historyquote -> hdc.removeFromDate != null || !historyquote.getDate().isBefore(hdc.correctedFromDate))
         .peek(h -> h.setIdSecuritycurrency(securitycurrency.getIdSecuritycurrency())).collect(Collectors.toList());
 
     return hdc;
 
   }
 
-  private Date removeFillGap(final S securitycurrency, List<Historyquote> historyquotes, boolean needGapFiller,
-      Date correctedFromDate, Date correctedFromDateGapFill) {
-    boolean hasGapFillRemoved = needGapFiller && correctedFromDateGapFill.before(correctedFromDate)
-        && !historyquotes.isEmpty() && historyquotes.get(0).getDate().before(correctedFromDate);
+  private LocalDate removeFillGap(final S securitycurrency, List<Historyquote> historyquotes, boolean needGapFiller,
+      LocalDate correctedFromDate, LocalDate correctedFromDateGapFill) {
+    boolean hasGapFillRemoved = needGapFiller && correctedFromDateGapFill.isBefore(correctedFromDate)
+        && !historyquotes.isEmpty() && historyquotes.get(0).getDate().isBefore(correctedFromDate);
     return hasGapFillRemoved ? historyquotes.get(0).getDate() : null;
   }
 
@@ -325,7 +323,7 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
    * @param toDateCalc
    * @return
    */
-  private Date getFirstGapFillByAfterLastRealEOD(Security security, boolean needGapFiller, Date correctedFromDate) {
+  private LocalDate getFirstGapFillByAfterLastRealEOD(Security security, boolean needGapFiller, LocalDate correctedFromDate) {
     if (needGapFiller && security.getHistoryquoteList() != null) {
       int i = security.getHistoryquoteList().size();
       do {
@@ -347,18 +345,15 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
    * @param toDate
    * @return
    */
-  private Date substractSomeDays(final Date fromDate, final Date toDate) {
-
-    final LocalDate toDateLocal = toDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-    LocalDate fromDateLocal = fromDate instanceof java.sql.Date ? ((java.sql.Date) fromDate).toLocalDate()
-        : fromDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-    if (toDateLocal.until(LocalDate.now(), ChronoUnit.DAYS) < 3) {
-      final long daysBeetweenFromTo = fromDateLocal.until(toDateLocal, ChronoUnit.DAYS);
-      if (daysBeetweenFromTo <= 2) {
-        fromDateLocal = fromDateLocal.minusDays(5);
+  private LocalDate substractSomeDays(final LocalDate fromDate, final LocalDate toDate) {
+    LocalDate adjustedFromDate = fromDate;
+    if (ChronoUnit.DAYS.between(toDate, LocalDate.now()) < 3) {
+      final long daysBetweenFromTo = ChronoUnit.DAYS.between(adjustedFromDate, toDate);
+      if (daysBetweenFromTo <= 2) {
+        adjustedFromDate = adjustedFromDate.minusDays(5);
       }
     }
-    return Date.from(fromDateLocal.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    return adjustedFromDate;
   }
 
   @Override
@@ -406,12 +401,12 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   }
 
   private static class HistoryquoteDataChange {
-    public Date correctedFromDate;
-    public Date toDateCalc;
+    public LocalDate correctedFromDate;
+    public LocalDate toDateCalc;
     public List<Historyquote> historyquotes;
-    public Date removeFromDate;
+    public LocalDate removeFromDate;
 
-    public HistoryquoteDataChange(Date correctedFromDate) {
+    public HistoryquoteDataChange(LocalDate correctedFromDate) {
       this.correctedFromDate = correctedFromDate;
     }
   }

@@ -1,6 +1,6 @@
 package grafioschtrader.service;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -8,8 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfig;
@@ -25,6 +23,7 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.model.msg.LastpriceExchangeMsg;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Async service for pushing updated prices back to previously contacted PUSH_OPEN servers.
@@ -128,7 +127,7 @@ public class GTNetLastpricePushService {
     pushEnvelope.sourceGtNet = new GTNetPublicDTO(myGTNet);
     pushEnvelope.serverBusy = myGTNet.isServerBusy();
     pushEnvelope.messageCode = GTNetMessageCodeType.GT_NET_LASTPRICE_PUSH_SEL_C.getValue();
-    pushEnvelope.timestamp = new Date();
+    pushEnvelope.timestamp = LocalDateTime.now();
     pushEnvelope.payload = objectMapper.valueToTree(pricesToPush);
 
     log.debug("Pushing {} securities and {} pairs to {}",

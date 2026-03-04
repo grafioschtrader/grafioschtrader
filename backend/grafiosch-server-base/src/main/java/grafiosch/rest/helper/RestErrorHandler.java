@@ -25,8 +25,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import grafiosch.entities.User;
 import grafiosch.error.ErrorWithLogout;
 import grafiosch.error.ErrorWrapper;
@@ -42,6 +40,7 @@ import grafiosch.types.UserRightLimitCounter;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Global exception handler for REST controllers in the Grafiosch application framework.

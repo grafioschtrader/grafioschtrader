@@ -1,12 +1,9 @@
 package grafioschtrader.service;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -22,7 +19,6 @@ import org.springframework.stereotype.Service;
 import com.ezylang.evalex.Expression;
 import com.ezylang.evalex.config.ExpressionConfiguration;
 import com.ezylang.evalex.data.EvaluationValue;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.BaseConstants;
 import grafiosch.entities.MailEntity;
@@ -60,6 +56,7 @@ import grafioschtrader.ta.indicator.calc.RelativeStrengthIndex;
 import grafioschtrader.ta.indicator.calc.SimpleMovingAverage;
 import grafioschtrader.types.MessageGTComType;
 import jakarta.mail.MessagingException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Core alarm evaluation service implementing a two-tier hybrid approach:
@@ -214,13 +211,13 @@ public class AlgoAlarmEvaluationService {
         continue;
       }
       switch (implType) {
-      case AS_ABSOLUTE_PRICE_ALERT:
+      case AS_OBSERVED_SECURITY_ABSOLUTE_PRICE:
         evaluateAbsolutePriceAlert(idTenant, alertName, strategy, security);
         break;
-      case AS_HOLDING_GAIN_LOSE_PERCENTAGE_ALERT:
+      case AS_HOLDING_TOP_GAIN_LOSE:
         evaluateGainLossPercentageAlert(idTenant, alertName, strategy, security);
         break;
-      case AS_PERIOD_PRICE_GAIN_LOSE_PERCENT_ALERT:
+      case AS_OBSERVED_SECURITY_PERIOD_PRICE_GAIN_LOSE_PERCENT:
         evaluatePeriodPriceAlert(idTenant, alertName, strategy, security);
         break;
       default:
@@ -263,27 +260,45 @@ public class AlgoAlarmEvaluationService {
 
   private void evaluateGainLossPercentageAlert(Integer idTenant, String alertName, AlgoStrategy strategy,
       Security security) {
-    if (security.getSLast() == null || security.getSPrevClose() == null || strategy.getStrategyConfig() == null) {
+    if (security.getSLast() == null || strategy.getStrategyConfig() == null) {
       return;
     }
     try {
       HoldingGainLosePercentAlert config = objectMapper.readValue(strategy.getStrategyConfig(),
           HoldingGainLosePercentAlert.class);
-      double changePercent = ((security.getSLast() - security.getSPrevClose()) / security.getSPrevClose()) * 100.0;
+      double lastPrice = security.getSLast();
       boolean triggered = false;
-      if (changePercent >= 0 && config.getGainPercentage() != null && changePercent >= config.getGainPercentage()) {
-        triggered = true;
-      } else if (changePercent < 0 && config.getLosePercentage() != null
-          && Math.abs(changePercent) >= config.getLosePercentage()) {
-        triggered = true;
+
+      // Check percentage thresholds (requires prevClose)
+      Double changePercent = null;
+      if (security.getSPrevClose() != null && security.getSPrevClose() != 0) {
+        changePercent = ((lastPrice - security.getSPrevClose()) / security.getSPrevClose()) * 100.0;
+        if (changePercent >= 0 && config.getGainPercentage() != null && changePercent >= config.getGainPercentage()) {
+          triggered = true;
+        } else if (changePercent < 0 && config.getLosePercentage() != null
+            && Math.abs(changePercent) >= config.getLosePercentage()) {
+          triggered = true;
+        }
       }
+
+      // Check absolute price thresholds
+      if (!triggered) {
+        if (config.getLowerValue() != null && lastPrice <= config.getLowerValue()) {
+          triggered = true;
+        } else if (config.getUpperValue() != null && lastPrice >= config.getUpperValue()) {
+          triggered = true;
+        }
+      }
+
       if (triggered) {
-        String details = String.format("{\"changePercent\":%.2f,\"gainThreshold\":%s,\"loseThreshold\":%s}",
-            changePercent, config.getGainPercentage(), config.getLosePercentage());
+        String details = String.format(
+            "{\"changePercent\":%s,\"gainThreshold\":%s,\"loseThreshold\":%s,\"upperValue\":%s,\"lowerValue\":%s,\"lastPrice\":%.4f}",
+            changePercent != null ? String.format("%.2f", changePercent) : "null", config.getGainPercentage(),
+            config.getLosePercentage(), config.getUpperValue(), config.getLowerValue(), lastPrice);
         fireAlert(idTenant, alertName, strategy, security.getIdSecuritycurrency(), (byte) 1, details);
       }
     } catch (Exception e) {
-      log.warn("Error evaluating gain/loss % alert for strategy {}: {}", strategy.getIdAlgoRuleStrategy(),
+      log.warn("Error evaluating gain/loss alert for strategy {}: {}", strategy.getIdAlgoRuleStrategy(),
           e.getMessage());
     }
   }
@@ -298,9 +313,8 @@ public class AlgoAlarmEvaluationService {
       if (config.getDaysInPeriod() == null || config.getDaysInPeriod() <= 0) {
         return;
       }
-      Date fromDate = Date.from(
-          LocalDate.now().minusDays(config.getDaysInPeriod() + 5).atStartOfDay(ZoneId.systemDefault()).toInstant());
-      Date toDate = new Date();
+      LocalDate fromDate = LocalDate.now().minusDays(config.getDaysInPeriod() + 5);
+      LocalDate toDate = LocalDate.now();
       List<Historyquote> hqs = historyquoteJpaRepository
           .findByIdSecuritycurrencyAndDateBetweenOrderByDate(security.getIdSecuritycurrency(), fromDate, toDate);
       if (hqs.isEmpty()) {
@@ -371,7 +385,8 @@ public class AlgoAlarmEvaluationService {
     long staleThreshold = System.currentTimeMillis() - STALE_THRESHOLD_MS;
     List<Security> staleSecurities = standaloneAlerts.stream()
         .map(AlgoSecurity::getSecurity)
-        .filter(s -> s.getSTimestamp() == null || s.getSTimestamp().getTime() < staleThreshold)
+        .filter(s -> s.getSTimestamp() == null
+            || s.getSTimestamp().atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli() < staleThreshold)
         .collect(Collectors.toList());
     if (!staleSecurities.isEmpty()) {
       log.debug("Refreshing {} stale securities for standalone alerts", staleSecurities.size());
@@ -404,7 +419,9 @@ public class AlgoAlarmEvaluationService {
     for (Securitycurrency<?> sc : securities) {
       if (sc instanceof Security security) {
         allSecurities.add(security);
-        if (security.getSTimestamp() == null || security.getSTimestamp().getTime() < staleThreshold) {
+        if (security.getSTimestamp() == null
+            || security.getSTimestamp().atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+                < staleThreshold) {
           staleSecurities.add(security);
         }
       }
@@ -436,13 +453,13 @@ public class AlgoAlarmEvaluationService {
     }
     try {
       switch (implType) {
-      case AS_MA_CROSSING_ALERT:
+      case AS_OBSERVED_SECURITY_MA_CROSSING:
         evaluateMaCrossingAlert(idTenant, alertName, strategy, security);
         break;
-      case AS_RSI_THRESHOLD_ALERT:
+      case AS_OBSERVED_SECURITY_RSI_THRESHOLD:
         evaluateRsiThresholdAlert(idTenant, alertName, strategy, security);
         break;
-      case AS_EXPRESSION_ALERT:
+      case AS_OBSERVED_SECURITY_EXPRESSION:
         evaluateExpressionAlert(idTenant, alertName, strategy, security);
         break;
       default:
@@ -469,13 +486,13 @@ public class AlgoAlarmEvaluationService {
     if ("EMA".equals(config.getIndicatorType())) {
       ExponentialMovingAverage ema = new ExponentialMovingAverage(config.getPeriod(), hqs.size());
       for (Historyquote hq : hqs) {
-        ema.addData(dateToLocalDate(hq.getDate()), hq.getClose());
+        ema.addData(hq.getDate(), hq.getClose());
       }
       maData = ema.getTaIndicatorData();
     } else {
       SimpleMovingAverage sma = new SimpleMovingAverage(config.getPeriod(), hqs.size());
       for (Historyquote hq : hqs) {
-        sma.addData(dateToLocalDate(hq.getDate()), hq.getClose());
+        sma.addData(hq.getDate(), hq.getClose());
       }
       maData = sma.getTaIndicatorData();
     }
@@ -510,7 +527,7 @@ public class AlgoAlarmEvaluationService {
     }
     RelativeStrengthIndex rsi = new RelativeStrengthIndex(config.getRsiPeriod(), hqs.size());
     for (Historyquote hq : hqs) {
-      rsi.addData(dateToLocalDate(hq.getDate()), hq.getClose());
+      rsi.addData(hq.getDate(), hq.getClose());
     }
     TaIndicatorData[] rsiData = rsi.getTaIndicatorData();
     if (rsiData.length == 0) {
@@ -623,7 +640,7 @@ public class AlgoAlarmEvaluationService {
     alert.setIdSecurityCurrency(idSecuritycurrency);
     alert.setAlarmType(alarmType);
     alert.setAlarmDetails(alarmDetails);
-    alert.setAlertTime(Timestamp.from(Instant.now()));
+    alert.setAlertTime(LocalDateTime.now());
     algoMessageAlertJpaRepository.save(alert);
 
     // Send notification
@@ -651,15 +668,10 @@ public class AlgoAlarmEvaluationService {
 
   private List<Historyquote> loadHistoryForIndicator(Integer idSecuritycurrency, int minDays) {
     int daysToLoad = Math.min(Math.max(minDays, 100), MAX_HISTORY_DAYS);
-    Date fromDate = Date
-        .from(LocalDate.now().minusDays(daysToLoad).atStartOfDay(ZoneId.systemDefault()).toInstant());
-    Date toDate = new Date();
+    LocalDate fromDate = LocalDate.now().minusDays(daysToLoad);
+    LocalDate toDate = LocalDate.now();
     return historyquoteJpaRepository.findByIdSecuritycurrencyAndDateBetweenOrderByDate(idSecuritycurrency, fromDate,
         toDate);
-  }
-
-  private static LocalDate dateToLocalDate(Date date) {
-    return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
   }
 
 }

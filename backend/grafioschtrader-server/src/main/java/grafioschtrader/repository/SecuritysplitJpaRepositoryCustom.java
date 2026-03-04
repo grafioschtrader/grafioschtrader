@@ -1,6 +1,6 @@
 package grafioschtrader.repository;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -28,12 +28,12 @@ public interface SecuritysplitJpaRepositoryCustom {
    * split. It is possible that the split from the calendar was internally assigned to a wrong security, therefore the
    * repetitive query is terminated after a certain time.
    */
-  List<String> loadAllSplitDataFromConnectorForSecurity(Security security, Date requestedSplitdate);
+  List<String> loadAllSplitDataFromConnectorForSecurity(Security security, LocalDate requestedSplitdate);
 
   /**
    * Loads the historical price data of a security if it reflects the split, otherwise another task is created for the
    * future which repeats this process.
    */
   public void historicalDataUpdateWhenAdjusted(Security security, List<Securitysplit> securitysplits,
-      Optional<Date> youngestSplitDate, boolean requireHoldingBuild, boolean originSplitCalendar) throws Exception;
+      Optional<LocalDate> youngestSplitDate, boolean requireHoldingBuild, boolean originSplitCalendar) throws Exception;
 }

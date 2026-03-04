@@ -1,11 +1,9 @@
 package grafioschtrader.reports;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -281,11 +279,9 @@ public class SecurityDividendsReport {
     final Map<Integer, Double> cashAccountsAmountMap = new HashMap<>();
     final Map<Integer, Map<Integer, MarginTracker>> marginOpenTransaction = new HashMap<>();
 
-    final Calendar calendar = new GregorianCalendar();
     SecurityDividendsYearGroup securityDividendsYearGroup = null;
     for (final Transaction transaction : transactions) {
-      calendar.setTime(transaction.getTransactionTime());
-      year = calendar.get(Calendar.YEAR);
+      year = transaction.getTransactionTime().getYear();
       if (yearChangeWatcher != year) {
         fillEmptyAccountYears(cashAccountsMap, securityDividendsGrandTotal, yearChangeWatcher, year,
             cashAccountsAmountMap);
@@ -307,7 +303,7 @@ public class SecurityDividendsReport {
       amount += transaction.getCashaccountAmount();
       cashAccountsAmountMap.put(transaction.getCashaccount().getIdSecuritycashAccount(), amount);
       if (transaction.getSecurity() != null) {
-        dateCurrencyMap.setUntilDate(new GregorianCalendar(year, 11, 31).getTime());
+        dateCurrencyMap.setUntilDate(LocalDate.of(year, 12, 31));
         calcSecurityTransaction(dateCurrencyMap, marginOpenTransaction, securityDividendsYearGroup, transaction,
             security, securitysplitMap, unitsCounterBySecurityMap);
       } else {
@@ -401,7 +397,7 @@ public class SecurityDividendsReport {
             securitysplitMap.get(security.getIdSecuritycurrency()));
 
     final SplitFactorAfterBefore splitFactorAfterBefore = Securitysplit.calcSplitFatorForFromDateAndToDate(
-        security.getIdSecuritycurrency(), transaction.getTransactionTime(), dateCurrencyMap.getUntilDate(),
+        security.getIdSecuritycurrency(), transaction.getTransactionTime().toLocalDate(), dateCurrencyMap.getUntilDate(),
         securitysplitMap);
     // Calculates the split factor until the end of the year for this transaction.
     // This allows the units to be calculated at the end of the year.
@@ -550,14 +546,8 @@ public class SecurityDividendsReport {
    */
   private Map<Integer, Map<Integer, Historyquote>> getSecuritycurrencyHistoryEndOfYearsByIdTenant(
       final Integer idTenant) {
-    final Calendar calendar = new GregorianCalendar();
-    final Function<Date, Integer> tranformDateToYear = (date) -> {
-      calendar.setTime(date);
-      return calendar.get(Calendar.YEAR);
-    };
-
     return historyquoteJpaRepository.getSecuritycurrencyHistoryEndOfYearsByIdTenant(idTenant).stream()
-        .collect(Collectors.groupingBy(historyquote -> tranformDateToYear.apply(historyquote.getDate()),
+        .collect(Collectors.groupingBy(historyquote -> historyquote.getDate().getYear(),
             Collectors.toMap(Historyquote::getIdSecuritycurrency, Function.identity())));
   }
 

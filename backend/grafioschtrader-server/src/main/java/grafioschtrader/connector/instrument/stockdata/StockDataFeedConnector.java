@@ -4,11 +4,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -16,19 +15,17 @@ import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.core.exc.StreamReadException;
-import com.fasterxml.jackson.databind.DatabindException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import grafiosch.BaseConstants;
-import grafiosch.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
+import tools.jackson.core.exc.StreamReadException;
+import tools.jackson.databind.DatabindException;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * The historical price data should be subscribed to "Standard", as otherwise the period of the price data offered is
@@ -43,8 +40,8 @@ public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
   private static final String DOMAIN_NAME_WITH_VERSION = "https://api.stockdata.org/v1/";
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
 
-  private static final ObjectMapper objectMapper = new ObjectMapper()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  private static final ObjectMapper objectMapper = JsonMapper.builder()
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 
   static {
     supportedFeed = new HashMap<>();
@@ -64,27 +61,27 @@ public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
 
   @Override
   public String getSecurityHistoricalDownloadLink(final Security security) {
-    Date toDate = new Date();
-    LocalDate fromLocalDate = DateHelper.getLocalDate(toDate).minusDays(7);
-    return getSecurityHistoricalDownloadLink(security, DateHelper.getDateFromLocalDate(fromLocalDate), toDate);
+    LocalDate toDate = LocalDate.now();
+    LocalDate fromDate = toDate.minusDays(7);
+    return getSecurityHistoricalDownloadLink(security, fromDate, toDate);
   }
 
-  private String getSecurityHistoricalDownloadLink(final Security security, Date from, Date to) {
+  private String getSecurityHistoricalDownloadLink(final Security security, LocalDate from, LocalDate to) {
     return getSecurityCurrencyHistoricalDownloadLink(security.getUrlHistoryExtend().toUpperCase(), from, to);
   }
 
-  private String getSecurityCurrencyHistoricalDownloadLink(String ticker, Date from, Date to) {
-    final SimpleDateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
+  private String getSecurityCurrencyHistoricalDownloadLink(String ticker, LocalDate from, LocalDate to) {
+    final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern(BaseConstants.STANDARD_DATE_FORMAT);
     return DOMAIN_NAME_WITH_VERSION + "data/eod?symbols=" + ticker + "&date_from=" + dateFormat.format(from)
         + "&date_to=" + dateFormat.format(to) + getApiKeyString(false);
   }
 
-  private String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair, Date from, Date to) {
+  private String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair, LocalDate from, LocalDate to) {
     return getSecurityCurrencyHistoricalDownloadLink(getCurrencyPairSymbol(currencypair), from, to);
   }
 
   @Override
-  public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
+  public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
     return getEodSecurityCurrencypairHistory(from, to,
         new URI(getSecurityHistoricalDownloadLink(security, from, to)).toURL());
@@ -92,27 +89,29 @@ public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
 
   @Override
   public String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair) {
-    Date toDate = new Date();
-    LocalDate fromLocalDate = DateHelper.getLocalDate(toDate).minusDays(7);
-    return getCurrencypairHistoricalDownloadLink(currencypair, DateHelper.getDateFromLocalDate(fromLocalDate), toDate);
+    LocalDate toDate = LocalDate.now();
+    LocalDate fromDate = toDate.minusDays(7);
+    return getCurrencypairHistoricalDownloadLink(currencypair, fromDate, toDate);
   }
 
   @Override
-  public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
-      throws IOException, ParseException, URISyntaxException {
+  public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final LocalDate from,
+      final LocalDate to) throws IOException, URISyntaxException {
     return getEodSecurityCurrencypairHistory(from, to,
         new URI(getCurrencypairHistoricalDownloadLink(currencyPair, from, to)).toURL());
   }
 
-  private List<Historyquote> getEodSecurityCurrencypairHistory(final Date from, final Date to, URL url)
+  private List<Historyquote> getEodSecurityCurrencypairHistory(final LocalDate from, final LocalDate to, URL url)
       throws StreamReadException, DatabindException, IOException {
     final List<Historyquote> historyquotes = new ArrayList<>();
-    final EODMetaData eodData = objectMapper.readValue(url, EODMetaData.class);
+    final EODMetaData eodData = objectMapper.readValue(url.openStream(), EODMetaData.class);
+
     for (EODData data : eodData.data) {
-      if (!(data.date.before(from) || data.date.after(to))) {
+      LocalDate date = LocalDate.parse(data.date.substring(0, 10));
+      if (!date.isBefore(from) && !date.isAfter(to)) {
         final Historyquote histroyquote = new Historyquote();
         historyquotes.add(histroyquote);
-        histroyquote.setDate(data.date);
+        histroyquote.setDate(date);
         histroyquote.setClose(data.close);
         histroyquote.setOpen(data.open);
         histroyquote.setLow(data.low);
@@ -131,7 +130,7 @@ public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
 
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
-    final QuoteSecurity quote = objectMapper.readValue(new URI(getSecurityIntradayDownloadLink(security)).toURL(),
+    final QuoteSecurity quote = objectMapper.readValue(new URI(getSecurityIntradayDownloadLink(security)).toURL().openStream(),
         QuoteSecurity.class);
     for (QuoteDataSecurity data : quote.data) {
       data.setValues(security);
@@ -152,7 +151,7 @@ public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
   @Override
   public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws Exception {
     final QuoteCurrencypair quote = objectMapper
-        .readValue(new URI(getCurrencypairIntradayDownloadLink(currencypair)).toURL(), QuoteCurrencypair.class);
+        .readValue(new URI(getCurrencypairIntradayDownloadLink(currencypair)).toURL().openStream(), QuoteCurrencypair.class);
     for (QuoteDataCurrencypair data : quote.data[0]) {
       data.setValues(currencypair);
     }
@@ -170,8 +169,7 @@ public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
   }
 
   private static class EODData {
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
-    public Date date;
+    public String date;
     public Double open;
     public Double high;
     public Double low;
@@ -202,7 +200,7 @@ public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
       securitycurrency.setSLow(day_low);
       securitycurrency.setSHigh(day_high);
       securitycurrency.setSPrevClose(previous_close_price);
-      securitycurrency.setSTimestamp(new Date());
+      securitycurrency.setSTimestamp(LocalDateTime.now());
     }
 
   }

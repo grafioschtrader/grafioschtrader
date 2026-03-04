@@ -1,6 +1,6 @@
 package grafioschtrader.dto;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -11,8 +11,8 @@ public interface ISecuritycurrencyIdDateClose {
   Integer getIdSecuritycurrency();
 
   @Schema(type = "string", description = "Date as string, format yyyy-mm-dd", example = "2020-04-16")
-  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
-  Date getDate();
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  LocalDate getDate();
 
   double getClose();
 }

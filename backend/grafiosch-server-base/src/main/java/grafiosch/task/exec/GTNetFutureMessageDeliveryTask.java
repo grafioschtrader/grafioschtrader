@@ -4,7 +4,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -15,9 +14,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.BaseConstants;
 import grafiosch.entities.GTNet;
@@ -45,6 +41,8 @@ import grafiosch.task.ITask;
 import grafiosch.types.ITaskType;
 import grafiosch.types.TaskDataExecPriority;
 import grafiosch.types.TaskTypeBase;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Background task that delivers pending future-oriented GTNet messages and handles cleanup.
@@ -182,11 +180,10 @@ public class GTNetFutureMessageDeliveryTask implements ITask {
         continue;
       }
 
-      Date messageTimestamp = message.getTimestamp();
+      LocalDateTime messageTimestamp = message.getTimestamp();
 
       // Find all GTNetConfigs (completed handshakes) that occurred after this message
-      List<GTNetConfig> newPartners = gtNetConfigJpaRepository.findByHandshakeTimestampAfter(
-          messageTimestamp.toInstant().atZone(java.time.ZoneOffset.UTC).toLocalDateTime());
+      List<GTNetConfig> newPartners = gtNetConfigJpaRepository.findByHandshakeTimestampAfter(messageTimestamp);
 
       for (GTNetConfig config : newPartners) {
         // Skip our own entry

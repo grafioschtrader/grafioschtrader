@@ -1,10 +1,12 @@
 package grafioschtrader.entities;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import grafiosch.entities.TenantBaseID;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
@@ -54,8 +56,9 @@ public class AlgoMessageAlert extends TenantBaseID implements Serializable {
   private Integer idAlgoStrategy;
 
   @Schema(description = "Timestamp when the alarm condition was detected")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "alert_time")
-  private Timestamp alertTime;
+  private LocalDateTime alertTime;
 
   @Schema(description = """
       Numeric alarm type code. Values: 1=PRICE_ALERT, 2=ENTRY_SIGNAL, 3=PROFIT_TAKE, 4=STOP_LOSS,
@@ -114,11 +117,11 @@ public class AlgoMessageAlert extends TenantBaseID implements Serializable {
     this.idAlgoStrategy = idAlgoStrategy;
   }
 
-  public Timestamp getAlertTime() {
+  public LocalDateTime getAlertTime() {
     return alertTime;
   }
 
-  public void setAlertTime(Timestamp alertTime) {
+  public void setAlertTime(LocalDateTime alertTime) {
     this.alertTime = alertTime;
   }
 

@@ -14,8 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import grafiosch.dto.ConfigurationWithLogin;
 import grafiosch.dto.ConfigurationWithLogin.EntityNameWithKeyName;
 import grafiosch.entities.User;
@@ -25,6 +23,7 @@ import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.SingularAttribute;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Abstract base class for JWT-based authentication and configuration management.

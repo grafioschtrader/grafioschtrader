@@ -1,8 +1,7 @@
 package grafioschtrader;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 import grafiosch.GlobalParamKeyBaseDefault;
@@ -50,7 +49,7 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
   /** Default additional delay in seconds for GTNet lastprice freshness calculation. */
   public static final int DEFAULT_GTNET_LASTPRICE_DELAY_SECONDS = 300;
   public static final int DEFUALT_MAX_WATCHLIST = 30;
-  public static final Date DEFAULT_START_FEED_DATE = new GregorianCalendar(2000, Calendar.JANUARY, 1).getTime();
+  public static final LocalDate DEFAULT_START_FEED_DATE = LocalDate.of(2000, 1, 1);
   public static final int DEFAULT_INTRADAY_OBSERVATION_OR_DAYS_BACK = 60;
   public static final int DEFAULT_INTRADAY_OBSERVATION_RETRY_MINUS = 0;
   public static final int DEFAULT_INTRADAY_OBSERVATION_FALLING_PERCENTAGE = 80;
@@ -111,7 +110,7 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
   /** Timestamp of last GTNet exchange synchronization with peers. */
   public static final String GLOB_KEY_GTNET_EXCHANGE_SYNC_TIMESTAMP = GlobalConstants.GT_PREFIX + "gtnet.exchange.sync.timestamp";
   /** Default value for GTNet exchange sync timestamp - epoch start means never synced. */
-  public static final Date DEFAULT_GTNET_EXCHANGE_SYNC_TIMESTAMP = new Date(0L);
+  public static final LocalDateTime DEFAULT_GTNET_EXCHANGE_SYNC_TIMESTAMP = LocalDateTime.of(1970, 1, 1, 0, 0, 0);
   /** GTNet message deletion retention (PropertyString: LP=days,HP=days, range 1-10). */
   public static final String GLOB_KEY_GTNET_DEL_MESSAGE_RECV = GlobalConstants.GT_PREFIX + "gtnet.del.message.recv";
   /** Default retention: LP (LastPrice codes 60,61) = 1 day, HP (HistoryPrice codes 80,81) = 5 days. */

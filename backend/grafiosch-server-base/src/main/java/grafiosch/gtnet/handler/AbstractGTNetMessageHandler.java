@@ -1,14 +1,10 @@
 package grafiosch.gtnet.handler;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfig;
@@ -20,6 +16,9 @@ import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.repository.GTNetConfigJpaRepositoryBase;
 import grafiosch.repository.GTNetJpaRepository;
 import grafiosch.repository.GTNetMessageJpaRepositoryBase;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Abstract base class providing common functionality for GTNet message handlers.
@@ -80,7 +79,7 @@ public abstract class AbstractGTNetMessageHandler implements GTNetMessageHandler
       String message, Map<String, GTNetMessageParam> params, GTNetMessage replyToMessage) {
     Integer idGtNet = context.getRemoteGTNet() != null ? context.getRemoteGTNet().getIdGtNet() : null;
 
-    GTNetMessage responseMsg = new GTNetMessage(idGtNet, new Date(), SendReceivedType.SEND.getValue(),
+    GTNetMessage responseMsg = new GTNetMessage(idGtNet, LocalDateTime.now(), SendReceivedType.SEND.getValue(),
         replyToMessage != null ? replyToMessage.getIdGtNetMessage() : null, responseCode.getValue(), message, params);
 
     return gtNetMessageJpaRepository.saveMsg(responseMsg);

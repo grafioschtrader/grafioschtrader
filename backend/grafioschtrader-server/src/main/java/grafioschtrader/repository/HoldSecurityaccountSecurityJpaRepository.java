@@ -2,7 +2,6 @@ package grafioschtrader.repository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -183,7 +182,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
   //@formatter:on
   @Query(nativeQuery = true)
   List<HoldSecurityaccountSecurity> getByISINAndSecurityAccountAndDate(String isin, Integer idSecurityaccount,
-      Date transactinDate);
+      LocalDate transactinDate);
 
   //@formatter:off
   /**
@@ -202,7 +201,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
    */
   //@formatter:on
   @Query(nativeQuery = true)
-  Set<Date> getMissingsQuoteDaysByTenant(Integer idTenant);
+  Set<LocalDate> getMissingsQuoteDaysByTenant(Integer idTenant);
 
   //@formatter:off
   /**
@@ -219,7 +218,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
    */
   //@formatter:on
   @Query(nativeQuery = true)
-  Set<Date> getMissingsQuoteDaysByPortfolio(Integer idPortfolio);
+  Set<LocalDate> getMissingsQuoteDaysByPortfolio(Integer idPortfolio);
 
   //@formatter:off
   /**
@@ -236,7 +235,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
    */
   //@formatter:on
   @Query(nativeQuery = true)
-  Set<Date> getCombinedHolidayOfHoldingsByTenant(Integer idTenant);
+  Set<LocalDate> getCombinedHolidayOfHoldingsByTenant(Integer idTenant);
 
   //@formatter:off
   /**
@@ -252,7 +251,7 @@ public interface HoldSecurityaccountSecurityJpaRepository
    */
   //@formatter:on
   @Query(nativeQuery = true)
-  Set<Date> getCombinedHolidayOfHoldingsByPortfolio(Integer idPortfolio);
+  Set<LocalDate> getCombinedHolidayOfHoldingsByPortfolio(Integer idPortfolio);
 
   //@formatter:off
   /**

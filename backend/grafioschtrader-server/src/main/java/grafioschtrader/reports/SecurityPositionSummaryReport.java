@@ -1,8 +1,8 @@
 package grafioschtrader.reports;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +15,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
-import grafiosch.common.DateHelper;
 import grafiosch.entities.User;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
@@ -125,7 +124,7 @@ public abstract class SecurityPositionSummaryReport {
   @Transactional
   @Modifying
   public SecurityPositionGrandSummary getSecurityPositionGrandSummaryIdTenant(final boolean includeClosedPosition,
-      Date untilDate) throws Exception {
+      LocalDate untilDate) throws Exception {
     final Integer idTenant = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails()).getIdTenant();
 
     final Tenant tenant = tenantJpaRepository.getReferenceById(idTenant);
@@ -163,7 +162,7 @@ public abstract class SecurityPositionSummaryReport {
   @Transactional
   @Modifying
   public SecurityPositionGrandSummary getSecurityPositionGrandSummaryIdPortfolio(final Integer idPortfolio,
-      final boolean includeClosedPosition, Date untilDate) throws Exception {
+      final boolean includeClosedPosition, LocalDate untilDate) throws Exception {
     final Integer idTenant = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails()).getIdTenant();
     final List<Securityaccount> securityaccountList = securityaccountJpaRepository
         .findByPortfolio_IdPortfolioAndIdTenant(idPortfolio, idTenant);
@@ -181,7 +180,7 @@ public abstract class SecurityPositionSummaryReport {
       final DateTransactionCurrencypairMap dateCurrencyMap = new DateTransactionCurrencypairMap(
           securityaccountList.get(0).getPortfolio().getCurrency(), untilDate, dateTransactionCurrencyFuture.join(),
           currencypairsFuture.join(),
-          tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(DateHelper.getLocalDate(untilDate)));
+          tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate));
       return getSecurityPositionGrandSummary(tenant, securityaccountList, includeClosedPosition,
           tenant.isExcludeDivTax(), dateCurrencyMap);
     }
@@ -207,7 +206,7 @@ public abstract class SecurityPositionSummaryReport {
   @Transactional
   @Modifying
   public SecurityPositionGrandSummary getSecurityPositionGrandSummaryIdSecurityaccount(final Integer idSecurityaccount,
-      final boolean includeClosedPosition, Date untilDate) throws Exception {
+      final boolean includeClosedPosition, LocalDate untilDate) throws Exception {
     final Integer idTenant = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails()).getIdTenant();
     final Securityaccount securityaccount = this.securityaccountJpaRepository
         .findByIdSecuritycashAccountAndIdTenant(idSecurityaccount, idTenant);
@@ -226,7 +225,7 @@ public abstract class SecurityPositionSummaryReport {
       final DateTransactionCurrencypairMap dateCurrencyMap = new DateTransactionCurrencypairMap(
           securityaccount.getPortfolio().getCurrency(), untilDate, dateTransactionCurrencyFuture.join(),
           currencypairsFuture.join(),
-          tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(DateHelper.getLocalDate(untilDate)));
+          tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate));
 
       return getSecurityPositionGrandSummary(tenant, securityList, includeClosedPosition, tenant.isExcludeDivTax(),
           dateCurrencyMap);
@@ -251,7 +250,7 @@ public abstract class SecurityPositionSummaryReport {
       final List<Securityaccount> securityaccountList, final boolean includeClosedPosition,
       final boolean excludeDivTaxcost, final DateTransactionCurrencypairMap dateCurrencyMap) throws Exception {
 
-    Date untilDatePlus = DateHelper.setTimeToZeroAndAddDay(dateCurrencyMap.getUntilDate(), 1);
+    LocalDate untilDatePlus = dateCurrencyMap.getUntilDate().plusDays(1);
 
     final Map<Security, SecurityPositionSummary> securityPositionSummaryMap = new HashMap<>();
     securityaccountList.stream().forEach((securityaccount) -> createPositionSummaryForSecurityaccount(securityaccount,
@@ -286,13 +285,13 @@ public abstract class SecurityPositionSummaryReport {
    */
   private void createPositionSummaryForSecurityaccount(final Securityaccount securityaccount,
       final Map<Security, SecurityPositionSummary> summarySecurityMap, final boolean excludeDivTaxcost,
-      final Date untilDatePlus, final DateTransactionCurrencypairMap dateCurrencyMap) {
+      final LocalDate untilDatePlus, final DateTransactionCurrencypairMap dateCurrencyMap) {
 
     final Map<Integer, List<Securitysplit>> securitysplitMap = securitysplitJpaRepository
         .getSecuritysplitMapByIdSecuritycashaccount(securityaccount.getIdSecuritycashAccount());
 
     for (final Transaction transaction : securityaccount.getSecurityTransactionList()) {
-      if (transaction.getTransactionTime().after(untilDatePlus)) {
+      if (!transaction.getTransactionTime().isBefore(untilDatePlus.atStartOfDay())) {
         break;
       }
 

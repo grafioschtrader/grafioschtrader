@@ -1,11 +1,14 @@
 package grafioschtrader.gtnet.model;
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.DistributionFrequency;
 import grafioschtrader.types.SpecialInvestmentInstruments;
@@ -75,10 +78,12 @@ public class SecurityGtnetLookupDTO {
   private String productLink;
 
   @Schema(description = "Date from which the security is actively traded")
-  private Date activeFromDate;
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  private LocalDate activeFromDate;
 
   @Schema(description = "Date until which the security is actively traded")
-  private Date activeToDate;
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  private LocalDate activeToDate;
 
   // Connector retry counters
   @Schema(description = "Retry counter for historical price data loading")
@@ -96,7 +101,8 @@ public class SecurityGtnetLookupDTO {
   // Intraday timestamp
   @Schema(description = "Timestamp of the last intraday price update")
   @JsonProperty("sTimestamp")
-  private Date sTimestamp;
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
+  private LocalDateTime sTimestamp;
 
   // History quality data (from historyquote_quality table)
   @Schema(description = "Earliest available historical quote date (YYYY-MM-DD)")
@@ -286,19 +292,19 @@ public class SecurityGtnetLookupDTO {
     this.productLink = productLink;
   }
 
-  public Date getActiveFromDate() {
+  public LocalDate getActiveFromDate() {
     return activeFromDate;
   }
 
-  public void setActiveFromDate(Date activeFromDate) {
+  public void setActiveFromDate(LocalDate activeFromDate) {
     this.activeFromDate = activeFromDate;
   }
 
-  public Date getActiveToDate() {
+  public LocalDate getActiveToDate() {
     return activeToDate;
   }
 
-  public void setActiveToDate(Date activeToDate) {
+  public void setActiveToDate(LocalDate activeToDate) {
     this.activeToDate = activeToDate;
   }
 
@@ -430,11 +436,11 @@ public class SecurityGtnetLookupDTO {
     this.retrySplitLoad = retrySplitLoad;
   }
 
-  public Date getSTimestamp() {
+  public LocalDateTime getSTimestamp() {
     return sTimestamp;
   }
 
-  public void setSTimestamp(Date sTimestamp) {
+  public void setSTimestamp(LocalDateTime sTimestamp) {
     this.sTimestamp = sTimestamp;
   }
 

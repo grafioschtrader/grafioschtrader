@@ -1,6 +1,6 @@
 package grafioschtrader.repository;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -77,10 +77,10 @@ public interface DividendJpaRepository extends JpaRepository<Dividend, Integer>,
     double getHoldings();
 
     /** Ex‐date of the dividend */
-    Date getExDate();
+    LocalDate getExDate();
 
     /** Pay‐date of the dividend */
-    Date getPayDate();
+    LocalDate getPayDate();
 
     /** Dividend amount per share */
     double getAmount();

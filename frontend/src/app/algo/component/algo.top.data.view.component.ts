@@ -365,7 +365,8 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
     this.addColumnToFields(fieldsAssetclass, DataType.String, 'assetclass.specialInvestmentInstrument',
       '', true, false, {translateValues: TranslateValue.NORMAL});
 
-    TranslateHelper.createTranslatedValueStore(this.translateService, fieldsAssetclass, this.algoTop.algoAssetclassList);
+    const nonCustomAssetclasses = this.algoTop.algoAssetclassList.filter(ac => !ac.isCustomCategory());
+    TranslateHelper.createTranslatedValueStore(this.translateService, fieldsAssetclass, nonCustomAssetclasses);
   }
 
   private translateDataForStrategy(): void {
@@ -513,7 +514,10 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
   private addEdit(algoDialogVisible: AlgoDialogVisible, parent: AlgoTop | AlgoAssetclass | AlgoSecurity,
     thisObject: AlgoTop | AlgoAssetclass | AlgoSecurity | AlgoStrategy,
     algoStrategyDefinitionForm?: AlgoStrategyDefinitionForm): void {
-    this.algoCallParam = new AlgoCallParam(parent, thisObject, algoStrategyDefinitionForm);
+    const idWatchlist = (algoDialogVisible === AlgoDialogVisible.ALGO_SECURITY
+      && parent instanceof AlgoAssetclass && parent.isCustomCategory())
+      ? this.algoTop.idWatchlist : undefined;
+    this.algoCallParam = new AlgoCallParam(parent, thisObject, algoStrategyDefinitionForm, idWatchlist);
     this.visibleDialogs[algoDialogVisible] = true;
   }
 

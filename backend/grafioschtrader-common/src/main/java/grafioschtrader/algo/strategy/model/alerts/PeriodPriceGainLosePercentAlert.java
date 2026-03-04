@@ -4,9 +4,8 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
 /**
- * Alert when a security gain or lose a certain percentage in a certain days period.<br>
- * Only securities of users watch list on top and asset class level are supervised.<br>
- *
+ * Alert when a security gains or loses a certain percentage in a certain days period.
+ * Restricted to the security level only.
  */
 public class PeriodPriceGainLosePercentAlert {
 

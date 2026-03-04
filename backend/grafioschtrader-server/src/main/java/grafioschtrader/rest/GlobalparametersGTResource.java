@@ -2,8 +2,7 @@ package grafioschtrader.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.text.ParseException;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.EnumMap;
 import java.util.List;
 
@@ -40,7 +39,7 @@ public class GlobalparametersGTResource {
 
   @Operation(summary = "Return start date of historical data", description = "", tags = { Globalparameters.TABNAME })
   @GetMapping(value = "/startfeeddate", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Date> getStartFeedDate() throws ParseException {
+  public ResponseEntity<LocalDate> getStartFeedDate() {
     return new ResponseEntity<>(globalparametersService.getStartFeedDate(), HttpStatus.OK);
   }
 

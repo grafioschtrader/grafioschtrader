@@ -1,7 +1,8 @@
 package grafioschtrader.priceupdate.intraday;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -81,8 +82,9 @@ public class IntradayThruCalculation<S extends Securitycurrency<S>> extends Base
   @Override
   public Security updateLastPriceSecurityCurrency(Security security, short maxIntraRetry, int scIntradayUpdateTimeout) {
 
-    Date now = new Date();
-    if ((security.getRetryIntraLoad() < maxIntraRetry || maxIntraRetry == -1) && security.isActiveForIntradayUpdate(now)
+    LocalDateTime now = LocalDateTime.now();
+    if ((security.getRetryIntraLoad() < maxIntraRetry || maxIntraRetry == -1)
+        && security.isActiveForIntradayUpdate(now.toLocalDate())
         && allowDelayedIntradayUpdate(security, scIntradayUpdateTimeout, now)) {
 
       SecurityCurrencypairDerivedLinks scdl = securityDerivedLinkJpaRepository
@@ -121,9 +123,12 @@ public class IntradayThruCalculation<S extends Securitycurrency<S>> extends Base
    * @param now current timestamp for timing calculations
    * @return true if the security should be updated (no previous timestamp or timeout period has elapsed), false otherwise
    */
-  private boolean allowDelayedIntradayUpdate(final Security security, final int scIntradayUpdateTimeout, Date now) {
-    final long lessThenPossible = now.getTime() - 1000 * scIntradayUpdateTimeout;
-    return security.getSTimestamp() == null || security.getSTimestamp().getTime() < lessThenPossible;
+  private boolean allowDelayedIntradayUpdate(final Security security, final int scIntradayUpdateTimeout,
+      LocalDateTime now) {
+    final long lessThenPossible = now.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        - 1000L * scIntradayUpdateTimeout;
+    return security.getSTimestamp() == null
+        || security.getSTimestamp().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() < lessThenPossible;
   }
 
   /**

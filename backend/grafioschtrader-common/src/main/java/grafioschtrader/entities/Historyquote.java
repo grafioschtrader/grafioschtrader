@@ -7,8 +7,7 @@ package grafioschtrader.entities;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -28,8 +27,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 
 @Schema(description = "Contains a single qoute for end of day data")
 @Entity
@@ -45,14 +42,13 @@ public class Historyquote extends ProposeTransientTransfer implements Serializab
   private Integer idHistoryQuote;
 
   @Schema(description = "Trading date to which these data belong")
-  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = BaseConstants.STANDARD_DATE_FORMAT)
   @Basic(optional = false)
   @Column(name = "date")
-  @Temporal(TemporalType.DATE)
   @PropertyOnlyCreation
   @ImportDataRequired
-  private Date date;
+  private LocalDate date;
 
   @Schema(description = "Close price of the day")
   @Basic(optional = false)
@@ -86,9 +82,9 @@ public class Historyquote extends ProposeTransientTransfer implements Serializab
   private byte createType;
 
   @Schema(description = "When was this recored added or last time modified")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "create_modify_time")
-  @Temporal(TemporalType.TIMESTAMP)
-  private Date createModifyTime;
+  private LocalDateTime createModifyTime;
 
   @Column(name = "id_securitycurrency")
   private Integer idSecuritycurrency;
@@ -97,7 +93,7 @@ public class Historyquote extends ProposeTransientTransfer implements Serializab
     this.createType = HistoryquoteCreateType.CONNECTOR_CREATED.getValue();
   }
 
-  public Historyquote(Integer idSecuritycurrency, HistoryquoteCreateType historyquoteCreateType, Date date,
+  public Historyquote(Integer idSecuritycurrency, HistoryquoteCreateType historyquoteCreateType, LocalDate date,
       double close) {
     this.idSecuritycurrency = idSecuritycurrency;
     this.createType = historyquoteCreateType.getValue();
@@ -105,7 +101,7 @@ public class Historyquote extends ProposeTransientTransfer implements Serializab
     this.close = close;
   }
 
-  public Historyquote(Integer idSecuritycurrency, HistoryquoteCreateType historyquoteCreateType, Date date) {
+  public Historyquote(Integer idSecuritycurrency, HistoryquoteCreateType historyquoteCreateType, LocalDate date) {
     this.idSecuritycurrency = idSecuritycurrency;
     this.createType = historyquoteCreateType.getValue();
     this.date = date;
@@ -115,7 +111,7 @@ public class Historyquote extends ProposeTransientTransfer implements Serializab
     this(idSecuritycurrency, historyquoteCreateType, null);
   }
 
-  public Historyquote(Date date) {
+  public Historyquote(LocalDate date) {
     this.date = date;
   }
 
@@ -124,7 +120,7 @@ public class Historyquote extends ProposeTransientTransfer implements Serializab
     return this.idHistoryQuote;
   }
 
-  public Historyquote(Integer idhistoryQuote, Date date, double close) {
+  public Historyquote(Integer idhistoryQuote, LocalDate date, double close) {
     this.idHistoryQuote = idhistoryQuote;
     this.date = date;
     this.close = close;
@@ -138,16 +134,12 @@ public class Historyquote extends ProposeTransientTransfer implements Serializab
     this.idHistoryQuote = idhistoryQuote;
   }
 
-  public Date getDate() {
+  public LocalDate getDate() {
     return date;
   }
 
-  public void setDate(Date date) {
+  public void setDate(LocalDate date) {
     this.date = date;
-  }
-
-  public void setDateLD(LocalDate localDate) {
-    this.date = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
   }
 
   public double getClose() {
@@ -206,11 +198,11 @@ public class Historyquote extends ProposeTransientTransfer implements Serializab
     this.createType = historyquoteCreateType.getValue();
   }
 
-  public Date getCreateModifyTime() {
+  public LocalDateTime getCreateModifyTime() {
     return createModifyTime;
   }
 
-  public void setCreateModifyTime(Date createModifyTime) {
+  public void setCreateModifyTime(LocalDateTime createModifyTime) {
     this.createModifyTime = createModifyTime;
   }
 
@@ -220,7 +212,7 @@ public class Historyquote extends ProposeTransientTransfer implements Serializab
     this.setLow(sourceHistoryquote.getLow());
     this.setOpen(sourceHistoryquote.getOpen());
     this.setVolume(sourceHistoryquote.getVolume());
-    this.setCreateModifyTime(new Date());
+    this.setCreateModifyTime(LocalDateTime.now());
   }
 
   @Override

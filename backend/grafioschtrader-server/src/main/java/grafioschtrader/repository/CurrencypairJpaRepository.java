@@ -1,6 +1,6 @@
 package grafioschtrader.repository;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -48,7 +48,7 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
    * Also includes currency pairs where gtNetLastModifiedTime is NULL (never synced before).
    */
   @Query("SELECT c FROM Currencypair c WHERE c.gtNetLastModifiedTime > ?1 OR c.gtNetLastModifiedTime IS NULL")
-  List<Currencypair> findByGtNetLastModifiedTimeAfter(Date timestamp);
+  List<Currencypair> findByGtNetLastModifiedTimeAfter(LocalDateTime timestamp);
 
   /**
    * Finds all currency pairs with GTNet send flags enabled (lastprice or historical).

@@ -14,10 +14,9 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.connector.yahoo.YahooFinanceDTO.QueryOperand;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Abstract base class for Yahoo Finance connectors that provides common functionality for making HTTP requests to the

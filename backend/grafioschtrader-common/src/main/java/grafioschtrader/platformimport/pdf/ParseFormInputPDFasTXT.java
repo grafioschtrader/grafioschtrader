@@ -218,8 +218,9 @@ public class ParseFormInputPDFasTXT {
         ImportTransactionTemplate importTransactionTemplate = templateScannedMap.get(templateConfigurationPDFasTXT);
         ImportProperties importProperties = entry.getValue().get(0);
 
-        if (importTransactionTemplate.getValidSince().getTime() < importProperties.getDatetime().getTime()) {
-          timeMatchingPropertiesMap.put(importTransactionTemplate.getValidSince().getTime(), entry.getValue());
+        if (importTransactionTemplate.getValidSince().atStartOfDay()
+            .isBefore(importProperties.getDatetime())) {
+          timeMatchingPropertiesMap.put(importTransactionTemplate.getValidSince().toEpochDay(), entry.getValue());
         }
       }
       return timeMatchingPropertiesMap.lastEntry().getValue();

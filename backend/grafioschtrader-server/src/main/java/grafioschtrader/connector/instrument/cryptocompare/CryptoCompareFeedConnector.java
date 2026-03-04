@@ -4,26 +4,29 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * It has a max row limit
@@ -66,9 +69,9 @@ public class CryptoCompareFeedConnector extends BaseFeedApiKeyConnector {
     };
     final URL url = new URI(getCurrencypairIntradayDownloadLink(currencypair)).toURL();
 
-    final Map<String, Double> map = objectMapper.readValue(url, typeRef);
+    final Map<String, Double> map = objectMapper.readValue(url.openStream(), typeRef);
     currencypair.setSLast(map.get(currencypair.getToCurrency()));
-    currencypair.setSTimestamp(new Date());
+    currencypair.setSTimestamp(LocalDateTime.now());
   }
 
   @Override
@@ -78,35 +81,36 @@ public class CryptoCompareFeedConnector extends BaseFeedApiKeyConnector {
 
   @Override
   public String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair) {
-    return getCurrencypairHistoricalDownloadLink(currencypair, 20, new Date());
+    return getCurrencypairHistoricalDownloadLink(currencypair, 20, LocalDate.now());
   }
 
-  public String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair, int limit, Date toDate) {
+  public String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair, int limit, LocalDate toDate) {
     return DOMAIN_NAME + "v2/histoday?fsym=" + currencypair.getFromCurrency() + "&tsym=" + currencypair.getToCurrency()
-        + "&limit=" + limit + "&toTs=" + (toDate.getTime() / 1000) + "&" + TOKEN_PARAM_NAME + "=" + getApiKey();
+        + "&limit=" + limit + "&toTs=" + DateHelper.LocalDateToEpocheSeconds(toDate) + "&" + TOKEN_PARAM_NAME + "="
+        + getApiKey();
   }
 
   @Override
-  public List<Historyquote> getEodCurrencyHistory(Currencypair currencyPair, Date fromDate, Date toDate)
+  public List<Historyquote> getEodCurrencyHistory(Currencypair currencyPair, LocalDate fromDate, LocalDate toDate)
       throws Exception {
     final List<Historyquote> historyquotes = new ArrayList<>();
-    Date fromDateCalc = fromDate;
-    Date toDateCalc = null;
+    LocalDate fromDateCalc = fromDate;
+    LocalDate toDateCalc;
     do {
-      int limit = (int) DateHelper.getDateDiff(fromDateCalc, toDate, TimeUnit.DAYS);
+      int limit = (int) ChronoUnit.DAYS.between(fromDateCalc, toDate);
       int rows = Math.min(limit, MAX_ROWS);
-      toDateCalc = DateHelper.setTimeToZeroAndAddDay(fromDateCalc, rows);
-      fromDateCalc = DateHelper.setTimeToZeroAndAddDay(toDateCalc, 1);
+      toDateCalc = fromDateCalc.plusDays(rows);
+      fromDateCalc = toDateCalc.plusDays(1);
 
       final URL url = new URI(getCurrencypairHistoricalDownloadLink(currencyPair, rows, toDateCalc)).toURL();
-      final CryptoCompareInput ci = objectMapper.readValue(url, CryptoCompareInput.class);
+      final CryptoCompareInput ci = objectMapper.readValue(url.openStream(), CryptoCompareInput.class);
       List<Historyquote> readHistroyquotes = readCurrencyHistory(ci);
       if (!readHistroyquotes.isEmpty()) {
         log.debug("First append: {}", readHistroyquotes.get(0));
         log.debug("Last append: {}", readHistroyquotes.get(readHistroyquotes.size() - 1));
       }
       historyquotes.addAll(readHistroyquotes);
-    } while (fromDateCalc.before(toDate));
+    } while (fromDateCalc.isBefore(toDate));
 
     return historyquotes;
   }
@@ -118,7 +122,8 @@ public class CryptoCompareFeedConnector extends BaseFeedApiKeyConnector {
       if (ds.close > 0) {
         final Historyquote histroyquote = new Historyquote();
         historyquotes.add(histroyquote);
-        histroyquote.setDate(new Date(ds.time * 1000));
+        histroyquote.setDate(
+            Instant.ofEpochSecond(ds.time).atZone(ZoneId.systemDefault()).toLocalDate());
         histroyquote.setClose(ds.close);
         histroyquote.setOpen(ds.open);
         histroyquote.setLow(ds.low);
@@ -156,8 +161,8 @@ public class CryptoCompareFeedConnector extends BaseFeedApiKeyConnector {
   @JsonIgnoreProperties(ignoreUnknown = true)
   static class TopData {
     public boolean Aggregated;
-    public Date TimeFrom;
-    public Date TimeTo;
+    public long TimeFrom;
+    public long TimeTo;
     public List<DataSingle> Data;
   }
 

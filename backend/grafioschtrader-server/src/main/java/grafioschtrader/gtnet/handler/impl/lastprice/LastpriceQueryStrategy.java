@@ -1,6 +1,6 @@
 package grafioschtrader.gtnet.handler.impl.lastprice;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -28,7 +28,7 @@ public interface LastpriceQueryStrategy {
    * @return list of prices to return to the requester
    */
   List<InstrumentPriceDTO> querySecurities(List<InstrumentPriceDTO> requested, Set<Integer> sendableIds,
-      Date minAcceptableTimestamp);
+      LocalDateTime minAcceptableTimestamp);
 
   /**
    * Queries currency pairs and returns prices that are newer than requested and meet freshness threshold.
@@ -39,5 +39,5 @@ public interface LastpriceQueryStrategy {
    * @return list of prices to return to the requester
    */
   List<InstrumentPriceDTO> queryCurrencypairs(List<InstrumentPriceDTO> requested, Set<Integer> sendableIds,
-      Date minAcceptableTimestamp);
+      LocalDateTime minAcceptableTimestamp);
 }

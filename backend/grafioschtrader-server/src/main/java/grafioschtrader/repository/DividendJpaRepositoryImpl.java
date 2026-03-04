@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import grafiosch.common.DateHelper;
 import grafiosch.entities.Globalparameters;
 import grafiosch.repository.GlobalparametersJpaRepository;
 import grafioschtrader.GlobalConstants;
@@ -198,7 +196,7 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
       retryDividendLoad = 0;
       combineConnectorReadsWithCalendar(dividendsConnectorRead, youngestCalendarDividends);
       security.setDividendEarliestNextCheck(
-          DateHelper.setTimeToZeroAndAddDay(new Date(), GlobalConstants.DIVIDEND_FROM_NOW_FOR_NEXT_CHECK_IN_DAYS));
+          LocalDate.now().plusDays(GlobalConstants.DIVIDEND_FROM_NOW_FOR_NEXT_CHECK_IN_DAYS).atStartOfDay());
       if (!replaceAlways && dividendsConnectorRead.size() == userCreatedDividends.size()
           || dividendsConnectorRead.isEmpty() || (!userCreatedDividends.isEmpty()
               && dividendsConnectorRead.getLast().getExDate().equals(userCreatedDividends.getLast().getExDate()))) {
@@ -267,7 +265,7 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
 
     for (Dividend dividend : dividendsRead) {
       double factor = Securitysplit.calcSplitFatorForFromDate(securitysplitList,
-          DateHelper.getDateFromLocalDate(dividend.getExDate()));
+          dividend.getExDate());
       if (isSplitAdjusted) {
         dividend.setAmount(dividend.getAmountAdjusted() * factor);
       } else {

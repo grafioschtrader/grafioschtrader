@@ -1,6 +1,5 @@
 package grafioschtrader.connector.yahoo;
 
-import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -12,15 +11,13 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.entities.MicProviderMap;
 import grafioschtrader.entities.MicProviderMap.IdProviderMic;
 import grafioschtrader.repository.MicProviderMapRepository;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * The Yahoo Finance symbol for a specific security may be required for certain functions. This can be determined with
@@ -126,7 +123,7 @@ public class YahooSymbolSearch {
       } else {
         log.error("Get status code {} for query {} and symbol {}", response.statusCode(), query, symbol);
       }
-    } catch (IOException | InterruptedException e) {
+    } catch (Exception e) {
       log.error("Symbol search", e);
     }
     return null;
@@ -154,8 +151,8 @@ public class YahooSymbolSearch {
     return params.toString();
   }
 
-  private List<Quote> mapToObject(String body) throws JsonMappingException, JsonProcessingException {
-    ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  private List<Quote> mapToObject(String body) throws Exception {
+    ObjectMapper mapper = JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
     YahooFinanceSearchResponse response = mapper.readValue(body, YahooFinanceSearchResponse.class);
     return response.quotes;
   }

@@ -7,11 +7,10 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -24,12 +23,8 @@ import org.apache.commons.math3.fraction.FractionFormat;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import grafiosch.BaseConstants;
-import grafiosch.common.DateHelper;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
@@ -40,6 +35,9 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.types.CreateType;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * There is no regex pattern check for the URL. The URL check with connection establishment can only be used for
@@ -56,8 +54,9 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
   private static final String JSON_PARAM = "fmt=json";
   private static final String TOKEN_PARAM_NAME = "api_token";
 
-  private static final ObjectMapper objectMapper = new ObjectMapper()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).registerModule(new JavaTimeModule());
+  private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+  private static final ObjectMapper objectMapper = JsonMapper.builder()
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 
   private final Semaphore semaphoreLastPrice = new Semaphore(5);
 
@@ -86,37 +85,29 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
 
   @Override
   public String getSecurityHistoricalDownloadLink(final Security security) {
-    Date toDate = new Date();
-    final SimpleDateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
-    LocalDate fromLocalDate = DateHelper.getLocalDate(toDate).minusDays(7);
-    return getSecurityHistoricalDownloadLink(security, DateHelper.getDateFromLocalDate(fromLocalDate), toDate,
-        dateFormat);
+    LocalDate toDate = LocalDate.now();
+    LocalDate fromDate = toDate.minusDays(7);
+    return getSecurityHistoricalDownloadLink(security, fromDate, toDate);
   }
 
   @Override
   public String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair) {
-    Date toDate = new Date();
-    final SimpleDateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
-    LocalDate fromLocalDate = DateHelper.getLocalDate(toDate).minusDays(7);
-    return getCurrencypairHistoricalDownloadLink(currencypair, DateHelper.getDateFromLocalDate(fromLocalDate), toDate,
-        dateFormat);
+    LocalDate toDate = LocalDate.now();
+    LocalDate fromDate = toDate.minusDays(7);
+    return getCurrencypairHistoricalDownloadLink(currencypair, fromDate, toDate);
   }
 
-  private String getSecurityHistoricalDownloadLink(final Security security, Date from, Date to,
-      final SimpleDateFormat dateFormat) {
-    return getSecurityCurrencyHistoricalDownloadLink(security.getUrlHistoryExtend().toUpperCase(), from, to,
-        dateFormat);
+  private String getSecurityHistoricalDownloadLink(final Security security, LocalDate from, LocalDate to) {
+    return getSecurityCurrencyHistoricalDownloadLink(security.getUrlHistoryExtend().toUpperCase(), from, to);
   }
 
-  private String getSecurityCurrencyHistoricalDownloadLink(String ticker, Date from, Date to,
-      final SimpleDateFormat dateFormat) {
-    return DOMAIN_NAME_API + "eod/" + ticker + "?from=" + dateFormat.format(from) + "&to=" + dateFormat.format(to)
+  private String getSecurityCurrencyHistoricalDownloadLink(String ticker, LocalDate from, LocalDate to) {
+    return DOMAIN_NAME_API + "eod/" + ticker + "?from=" + from.format(DATE_FORMAT) + "&to=" + to.format(DATE_FORMAT)
         + getApiKeyString();
   }
 
-  private String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair, Date from, Date to,
-      final SimpleDateFormat dateFormat) {
-    return getSecurityCurrencyHistoricalDownloadLink(getCurrencyPairSymbol(currencypair), from, to, dateFormat);
+  private String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair, LocalDate from, LocalDate to) {
+    return getSecurityCurrencyHistoricalDownloadLink(getCurrencyPairSymbol(currencypair), from, to);
   }
 
   private String getCurrencyPairSymbol(final Currencypair currencypair) {
@@ -128,24 +119,21 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
   }
 
   @Override
-  public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
+  public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
-    final SimpleDateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
     return getEodSecurityCurrencypairHistory(
-        new URI(getSecurityHistoricalDownloadLink(security, from, to, dateFormat)).toURL(), dateFormat,
+        new URI(getSecurityHistoricalDownloadLink(security, from, to)).toURL(),
         FeedConnectorHelper.getGBXLondonDivider(security));
   }
 
   @Override
-  public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
-      throws Exception {
-    final SimpleDateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
+  public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final LocalDate from,
+      final LocalDate to) throws Exception {
     return getEodSecurityCurrencypairHistory(
-        new URI(getCurrencypairHistoricalDownloadLink(currencyPair, from, to, dateFormat)).toURL(), dateFormat, 1.0);
+        new URI(getCurrencypairHistoricalDownloadLink(currencyPair, from, to)).toURL(), 1.0);
   }
 
-  private List<Historyquote> getEodSecurityCurrencypairHistory(URL url, SimpleDateFormat dateFormat, double divider)
-      throws Exception {
+  private List<Historyquote> getEodSecurityCurrencypairHistory(URL url, double divider) throws Exception {
     final List<Historyquote> historyquotes = new ArrayList<>();
 
     URLConnection connection = url.openConnection();
@@ -160,7 +148,7 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
         }
         final String[] items = inputLine.split(",");
         if (items.length == 7) {
-          historyquotes.add(parseResponseLineItems(items, dateFormat, divider));
+          historyquotes.add(parseResponseLineItems(items, divider));
         }
       }
     }
@@ -171,10 +159,9 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
    * Date,Open,High,Low,Close,Adjusted_close,Volume 2021-02-01,300.95,301.5,299,300.65,300.65,8813
    * 2021-02-02,302.15,306.55,302.15,305.85,305.85,4859
    */
-  private Historyquote parseResponseLineItems(final String[] items, SimpleDateFormat dateFormat, double divider)
-      throws ParseException {
+  private Historyquote parseResponseLineItems(final String[] items, double divider) {
     Historyquote historyquote = new Historyquote();
-    historyquote.setDate(dateFormat.parse(items[0]));
+    historyquote.setDate(LocalDate.parse(items[0], DATE_FORMAT));
     historyquote.setOpen(Double.parseDouble(items[1]) / divider);
     historyquote.setHigh(Double.parseDouble(items[2]) / divider);
     historyquote.setLow(Double.parseDouble(items[3]) / divider);
@@ -239,7 +226,7 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
     List<Dividend> dividends = new ArrayList<>();
     DividendRead[] dividendRead = objectMapper
         .readValue(new URI(getDividendSplitHistoricalDownloadLink(security.getUrlDividendExtend(), fromDate,
-            LocalDate.now(), DIVDEND_EVENT)).toURL(), DividendRead[].class);
+            LocalDate.now(), DIVDEND_EVENT)).toURL().openStream(), DividendRead[].class);
     for (DividendRead element : dividendRead) {
       Dividend dividend = new Dividend(security.getIdSecuritycurrency(), element.date, element.paymentDate,
           element.unadjustedValue, element.value, element.currency, CreateType.CONNECTOR_CREATED);
@@ -265,7 +252,7 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
     List<Securitysplit> securitySplits = new ArrayList<>();
     Split[] splits = objectMapper.readValue(
         new URI(getDividendSplitHistoricalDownloadLink(security.getUrlSplitExtend(), fromDate, toDate, SPLIT_EVENT))
-            .toURL(),
+            .toURL().openStream(),
         Split[].class);
     FractionFormat fractionFormat = new FractionFormat(NumberFormat.getInstance(Locale.US));
     for (Split split : splits) {
@@ -296,7 +283,7 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
       securitycurrency.setSHigh(high / divider);
       securitycurrency.setSChangePercentage(change_p);
       securitycurrency.setSPrevClose(previousClose / divider);
-      securitycurrency.setSTimestamp(new Date(new Date().getTime() - delaySeconds * 1000));
+      securitycurrency.setSTimestamp(LocalDateTime.now().minusSeconds(delaySeconds));
     }
   }
 
@@ -314,7 +301,7 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
 
   private static class Split {
     @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
-    public Date date;
+    public LocalDate date;
     public String split;
   }
 

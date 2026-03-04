@@ -5,15 +5,15 @@
  */
 package grafioschtrader.repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -27,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import grafiosch.common.DataHelper;
-import grafiosch.common.DateHelper;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.entities.User;
 import grafiosch.repository.TaskDataChangeJpaRepository;
@@ -129,16 +128,16 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   }
 
   @Override
-  public Double getClosePriceForDate(Currencypair currencypair, Date closeDate) {
-    if (DateHelper.isTodayOrAfter(closeDate)) {
+  public Double getClosePriceForDate(Currencypair currencypair, LocalDate closeDate) {
+    if (!closeDate.isBefore(LocalDate.now())) {
       return currencypair.getSLast();
     } else {
       Optional<Historyquote> historyquoteOpt = historyquoteJpaRepository
           .findByIdSecuritycurrencyAndDate(currencypair.getIdSecuritycurrency(), closeDate);
       if (historyquoteOpt.isPresent()) {
         return historyquoteOpt.get().getClose();
-      } else if (DateHelper.setTimeToZeroAndAddDay(closeDate, GlobalConstants.EX_CHANGE_RATE_DAYS_LIMIT_LATEST_PRICE)
-          .after(new Date())) {
+      } else if (closeDate.plusDays(GlobalConstants.EX_CHANGE_RATE_DAYS_LIMIT_LATEST_PRICE)
+          .isAfter(LocalDate.now())) {
         currencypair.getSLast();
       }
     }
@@ -181,14 +180,14 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
       for (int i = currencypair.getHistoryquoteList().size() - 1; i >= 1; i--) {
         final Historyquote dayBeforHoleHistoryquote = currencypair.getHistoryquoteList().get(i - 1);
         final Historyquote dayAfterHoleHistoryquote = currencypair.getHistoryquoteList().get(i);
-        final long datediff = DateHelper.getDateDiff(dayBeforHoleHistoryquote.getDate(),
-            dayAfterHoleHistoryquote.getDate(), TimeUnit.DAYS);
+        final long datediff = ChronoUnit.DAYS.between(dayBeforHoleHistoryquote.getDate(),
+            dayAfterHoleHistoryquote.getDate());
 
         if (datediff > maxFillDays) {
           // Try to get the missing dates from data provider
           int sizeBefore = currencypair.getHistoryquoteList().size();
-          Date fromDate = DateHelper.setTimeToZeroAndAddDay(dayBeforHoleHistoryquote.getDate(), 1);
-          Date toDate = DateHelper.setTimeToZeroAndAddDay(dayAfterHoleHistoryquote.getDate(), -1);
+          LocalDate fromDate = dayBeforHoleHistoryquote.getDate().plusDays(1);
+          LocalDate toDate = dayAfterHoleHistoryquote.getDate().plusDays(-1);
           log.info("Difference: {} for currency pair {}/{}, Date: {} to {}", datediff, currencypair.getFromCurrency(),
               currencypair.getToCurrency(), fromDate, toDate);
           currencypair = historyquoteThruConnector.createHistoryQuotesAndSave(currencypairJpaRepository, currencypair,
@@ -235,11 +234,11 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
       Integer idWatchlist) {
     return historyquoteThruConnector.fillHistoryquoteForSecuritiesCurrencies(currencypairJpaRepository
         .findWithConnectorByIdTenantAndIdWatchlistWhenRetryHistoryGreaterThan0(idTenant, idWatchlist),
-        DateHelper.getCalendar(new Date()));
+        LocalDate.now());
   }
 
   @Override
-  public List<Historyquote> getHistoryQuote(final Currencypair currencypair, final Date fromDate, final Date toDate,
+  public List<Historyquote> getHistoryQuote(final Currencypair currencypair, final LocalDate fromDate, final LocalDate toDate,
       final IFeedConnector feedConector) throws Exception {
     return feedConector.getEodCurrencyHistory(currencypair, fromDate, toDate);
   }
@@ -247,8 +246,8 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   @Override
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   @Modifying
-  public Currencypair catchUpSecurityCurrencypairHisotry(Currencypair currencypair, final Date fromDate,
-      final Date toDate) {
+  public Currencypair catchUpSecurityCurrencypairHisotry(Currencypair currencypair, final LocalDate fromDate,
+      final LocalDate toDate) {
     currencypair = currencypairJpaRepository.findByIdSecuritycurrency(currencypair.getIdSecuritycurrency());
     return historyquoteThruConnector.createHistoryQuotesAndSave(currencypairJpaRepository, currencypair, fromDate,
         toDate);
@@ -385,7 +384,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
 
   @Override
   public void calcGainLossBasedOnDateOrNewestPrice(
-      final List<CashaccountPositionSummary> securitycurrencyPositionSummary, final Date untilDate) {
+      final List<CashaccountPositionSummary> securitycurrencyPositionSummary, final LocalDate untilDate) {
     super.calcGainLossBasedOnDateOrNewestPrice(securitycurrencyPositionSummary, this, untilDate);
 
   }

@@ -13,8 +13,8 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +32,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import grafiosch.common.DateHelper;
 import grafiosch.entities.User;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafiosch.types.Language;
@@ -359,7 +358,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
       Securitycurrency<S> securitycurrency) {
     if (urlCheckSet.contains(UrlCheck.HISTORY)) {
       if (specInst != null) {
-        if (((Security) securitycurrency).isActiveForIntradayUpdate(new Date())) {
+        if (((Security) securitycurrency).isActiveForIntradayUpdate(LocalDate.now())) {
           checkUrl(getSecurityHistoricalDownloadLink((Security) securitycurrency),
               "gt.connector.historical.url.connect.failure", FeedSupport.FS_HISTORY);
         }
@@ -382,7 +381,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
       Securitycurrency<S> securitycurrency) {
     if (urlCheckSet.contains(UrlCheck.INTRADAY)) {
       if (specInst != null) {
-        if (((Security) securitycurrency).isActiveForIntradayUpdate(new Date())) {
+        if (((Security) securitycurrency).isActiveForIntradayUpdate(LocalDate.now())) {
           checkUrl(getSecurityIntradayDownloadLink((Security) securitycurrency),
               "gt.connector.intra.url.connect.failure", FeedSupport.FS_INTRA);
         }
@@ -621,9 +620,9 @@ public abstract class BaseFeedConnector implements IFeedConnector {
    * @return number of days to wait, or null if no further attempts should be made
    */
   @Override
-  public Integer getNextAttemptInDaysForSplitHistorical(Date splitDate) {
+  public Integer getNextAttemptInDaysForSplitHistorical(LocalDate splitDate) {
     Integer addDaysForNextAttempt = null;
-    long diffNowSplitDate = DateHelper.getDateDiff(splitDate, new Date(), TimeUnit.DAYS);
+    long diffNowSplitDate = ChronoUnit.DAYS.between(splitDate, LocalDate.now());
     if (diffNowSplitDate < 5) {
       return 1;
     } else if (diffNowSplitDate < 10) {
@@ -645,8 +644,8 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   }
 
   @Override
-  public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
-      throws Exception {
+  public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final LocalDate from,
+      final LocalDate to) throws Exception {
     throw new UnsupportedOperationException("Not supported yet.");
   }
 
@@ -662,7 +661,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   }
 
   @Override
-  public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
+  public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
     throw new UnsupportedOperationException("Not supported yet.");
   }

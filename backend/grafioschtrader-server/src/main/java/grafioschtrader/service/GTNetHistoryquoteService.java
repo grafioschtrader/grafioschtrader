@@ -1,9 +1,8 @@
 package grafioschtrader.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -16,9 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfig;
@@ -52,6 +48,7 @@ import grafioschtrader.repository.GTNetInstrumentCurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentSecurityJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Service for orchestrating historical price exchange with GTNet providers.
@@ -138,7 +135,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
    * @param toDate the end date (inclusive)
    * @return the number of records received and stored
    */
-  public int requestHistoryquotesForSecurity(String isin, String currency, Date fromDate, Date toDate) {
+  public int requestHistoryquotesForSecurity(String isin, String currency, LocalDate fromDate, LocalDate toDate) {
     if (!globalparametersJpaRepository.isGTNetEnabled()) {
       return 0;
     }
@@ -159,7 +156,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
    * @param toDate the end date (inclusive)
    * @return the number of records received and stored
    */
-  public int requestHistoryquotesForCurrencypair(String fromCurrency, String toCurrency, Date fromDate, Date toDate) {
+  public int requestHistoryquotesForCurrencypair(String fromCurrency, String toCurrency, LocalDate fromDate, LocalDate toDate) {
     if (!globalparametersJpaRepository.isGTNetEnabled()) {
       return 0;
     }
@@ -192,12 +189,12 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
    * Also tracks "want to receive" markers for later push-back of connector-fetched data.
    *
    * @param historySecurityCurrencyList the list of instruments from BaseHistoryquoteThru requiring updates
-   * @param untilCalendar the target end date for historyquote loading
+   * @param untilDate the target end date for historyquote loading
    * @param <S> Security or Currencypair
    * @return result containing unfilled instruments, filled instruments, and want-to-receive map
    */
   public <S extends Securitycurrency<S>> HistoryquoteExchangeResult<S> requestHistoryquotesFromBaseThru(
-      List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, Calendar untilCalendar) {
+      List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, LocalDate untilDate) {
 
     // Check GTNet enabled
     if (!globalparametersJpaRepository.isGTNetEnabled() || historySecurityCurrencyList.isEmpty()) {
@@ -212,14 +209,13 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
 
     // Build the exchange set with GTNet-enabled instruments
     HistoryquoteExchangeSet<S> exchangeSet = new HistoryquoteExchangeSet<>();
-    Date toDate = untilCalendar.getTime();
 
     for (SecurityCurrencyMaxHistoryquoteData<S> data : historySecurityCurrencyList) {
       S instrument = data.getSecurityCurrency();
       if (gtNetEnabledIds.contains(instrument.getIdSecuritycurrency())) {
         // Calculate fromDate: day after most recent historyquote
-        Date fromDate = calculateFromDate(data.getDate());
-        exchangeSet.addInstrument(data, fromDate, toDate);
+        LocalDate fromDate = calculateFromDate(data.getDate());
+        exchangeSet.addInstrument(data, fromDate, untilDate);
       }
     }
 
@@ -398,23 +394,12 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
    * Calculates the fromDate for historyquote request.
    * Returns the day after the most recent historyquote date, or oldest allowed date if null.
    */
-  private Date calculateFromDate(Date mostRecentDate) {
+  private LocalDate calculateFromDate(LocalDate mostRecentDate) {
     if (mostRecentDate == null) {
       // Use globalparametersService for oldest allowed date
-      try {
-        return globalparametersService.getStartFeedDate();
-      } catch (Exception e) {
-        // Fallback to 10 years ago
-        Calendar oldest = Calendar.getInstance();
-        oldest.add(Calendar.YEAR, -10);
-        return oldest.getTime();
-      }
+      return globalparametersService.getStartFeedDate();
     }
-
-    Calendar cal = Calendar.getInstance();
-    cal.setTime(mostRecentDate);
-    cal.add(Calendar.DAY_OF_MONTH, 1);
-    return cal.getTime();
+    return mostRecentDate.plusDays(1);
   }
 
   /**
@@ -426,7 +411,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
     HistoryquoteExchangeMsg pushPayload = new HistoryquoteExchangeMsg();
 
     for (InstrumentHistoryquoteDTO wanted : wantedInstruments) {
-      Date fromDate = wanted.getWantsDataFromDate();
+      LocalDate fromDate = wanted.getWantsDataFromDate();
       if (fromDate == null) {
         continue;
       }
@@ -485,7 +470,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
     pushEnvelope.sourceGtNet = new GTNetPublicDTO(myGTNet);
     pushEnvelope.serverBusy = myGTNet.isServerBusy();
     pushEnvelope.messageCode = GTNetMessageCodeType.GT_NET_HISTORYQUOTE_PUSH_SEL_C.getValue();
-    pushEnvelope.timestamp = new Date();
+    pushEnvelope.timestamp = LocalDateTime.now();
     pushEnvelope.payload = objectMapper.valueToTree(pushPayload);
 
     log.info("Pushing {} securities, {} pairs to {}",
@@ -583,7 +568,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
     requestEnvelope.sourceGtNet = new GTNetPublicDTO(myGTNet);
     requestEnvelope.serverBusy = myGTNet.isServerBusy();
     requestEnvelope.messageCode = GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_SEL_C.getValue();
-    requestEnvelope.timestamp = new Date();
+    requestEnvelope.timestamp = LocalDateTime.now();
     requestEnvelope.payload = objectMapper.valueToTree(request);
 
     log.debug("Sending historyquote request to {} with {} securities, {} pairs",
@@ -642,7 +627,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
 
       return new QueryResult(recordCount, responsePayload, wantToReceive);
 
-    } catch (JsonProcessingException e) {
+    } catch (Exception e) {
       log.error("Failed to parse historyquote response from {}", supplier.getDomainRemoteName(), e);
       return new QueryResult(0, null, null);
     }
@@ -718,7 +703,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
     pushEnvelope.sourceGtNet = new GTNetPublicDTO(myGTNet);
     pushEnvelope.serverBusy = myGTNet.isServerBusy();
     pushEnvelope.messageCode = GTNetMessageCodeType.GT_NET_HISTORYQUOTE_PUSH_SEL_C.getValue();
-    pushEnvelope.timestamp = new Date();
+    pushEnvelope.timestamp = LocalDateTime.now();
     pushEnvelope.payload = objectMapper.valueToTree(pushPayload);
 
     log.info("Pushing {} securities, {} pairs historical data to {}",
@@ -744,7 +729,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
    * Queries local historyquote for a security by ISIN+currency and date range.
    */
   private InstrumentHistoryquoteDTO queryLocalSecurityHistoryquote(String isin, String currency,
-      Date fromDate, Date toDate) {
+      LocalDate fromDate, LocalDate toDate) {
     // Find the local security by ISIN and currency
     Security security = securityJpaRepository.findByIsinAndCurrency(isin, currency);
     if (security == null) {
@@ -771,7 +756,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
    * Queries local historyquote for a currency pair by currencies and date range.
    */
   private InstrumentHistoryquoteDTO queryLocalCurrencypairHistoryquote(String fromCurrency, String toCurrency,
-      Date fromDate, Date toDate) {
+      LocalDate fromDate, LocalDate toDate) {
     // Find the local currency pair
     Currencypair pair = currencypairJpaRepository.findByFromCurrencyAndToCurrency(fromCurrency, toCurrency);
     if (pair == null) {
@@ -814,10 +799,8 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
   /**
    * Returns yesterday's date (used as default toDate for push requests).
    */
-  private Date getYesterday() {
-    Calendar cal = Calendar.getInstance();
-    cal.add(Calendar.DAY_OF_MONTH, -1);
-    return cal.getTime();
+  private LocalDate getYesterday() {
+    return LocalDate.now().minusDays(1);
   }
 
   /**

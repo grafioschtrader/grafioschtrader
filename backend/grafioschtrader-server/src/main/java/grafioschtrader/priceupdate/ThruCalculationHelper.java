@@ -1,9 +1,9 @@
 package grafioschtrader.priceupdate;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,8 +69,8 @@ public abstract class ThruCalculationHelper {
    */
   public static List<Historyquote> loadDataAndCreateHistoryquotes(
       final SecurityDerivedLinkJpaRepository securityDerivedLinkJpaRepository,
-      HistoryquoteJpaRepository historyquoteJpaRepository, IFormulaInSecurity security, Date correctedFromDate,
-      Date toDateCalc) {
+      HistoryquoteJpaRepository historyquoteJpaRepository, IFormulaInSecurity security, LocalDate correctedFromDate,
+      LocalDate toDateCalc) {
     List<Historyquote> historyquotes = null;
     List<SecurityDerivedLink> securityDerivedLinks = Collections.emptyList();
     if (security.isCalculatedPrice()) {
@@ -106,7 +106,7 @@ public abstract class ThruCalculationHelper {
    * @return list of newly created historyquote entries, ordered by date descending
    */
   public static List<Historyquote> fillGaps(final SecurityDerivedLinkJpaRepository securityDerivedLinkJpaRepository,
-      HistoryquoteJpaRepository historyquoteJpaRepository, IFormulaInSecurity security, Date maxDate) {
+      HistoryquoteJpaRepository historyquoteJpaRepository, IFormulaInSecurity security, LocalDate maxDate) {
     List<Historyquote> historyquotes = historyquoteJpaRepository
         .getMissingDerivedSecurityEOD(security.getIdSecuritycurrency(), maxDate);
     List<SecurityDerivedLink> securityDerivedLinks = securityDerivedLinkJpaRepository
@@ -194,7 +194,7 @@ public abstract class ThruCalculationHelper {
       List<Historyquote> historyquotes, Expression expression, List<SecurityDerivedLink> securityDerivedLinks)
       throws EvaluationException, ParseException {
     List<Historyquote> createdHistoryquotes = new ArrayList<>();
-    Date groupDate = null;
+    LocalDate groupDate = null;
     Map<Integer, String> idSecurityToVarNameMap = ThruCalculationHelper.createIdSecurityToVarNameMap(security,
         securityDerivedLinks);
     for (Historyquote historyquote : historyquotes) {
@@ -219,7 +219,7 @@ public abstract class ThruCalculationHelper {
    * @throws EvaluationException if formula evaluation fails
    * @throws ParseException      if formula parsing fails
    */
-  private static void addCreatedHistoryquote(List<Historyquote> createdHistoryquotes, Date groupDate,
+  private static void addCreatedHistoryquote(List<Historyquote> createdHistoryquotes, LocalDate groupDate,
       IFormulaInSecurity security, Expression expression) throws EvaluationException, ParseException {
     if (groupDate != null) {
       Historyquote historyquoteDerived = new Historyquote(security.getIdSecuritycurrency(),

@@ -1,8 +1,7 @@
 package grafioschtrader.task.exec;
 
-import java.time.ZoneId;
+import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,8 +75,8 @@ public class ResetConnectorRetryCountersTask implements ITask {
       }
     }
 
-    // Convert earliestStartTime to Date for active check
-    Date checkDate = Date.from(taskDataChange.getEarliestStartTime().atZone(ZoneId.systemDefault()).toInstant());
+    // Convert earliestStartTime to LocalDate for active check
+    LocalDate checkDate = taskDataChange.getEarliestStartTime().toLocalDate();
 
     // Reset counters (only retry_history_load and retry_intra_load)
     // Currency pairs first (no date filter - always active)

@@ -1,10 +1,9 @@
 package grafiosch.entities;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.Objects;
 
-import grafiosch.common.DateHelper;
 import grafiosch.types.OperationType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
@@ -88,7 +87,7 @@ public class UserEntityChangeCount {
 
     @Schema(description = "Date of the count")
     @Column(name = "date")
-    private Date date;
+    private LocalDate date;
 
     @Schema(description = "Name of the entity which is counted")
     @Column(name = "entity_name")
@@ -97,9 +96,9 @@ public class UserEntityChangeCount {
     public UserEntityChangeCountId() {
     }
 
-    public UserEntityChangeCountId(Integer idUser, Date date, String tablename) {
+    public UserEntityChangeCountId(Integer idUser, LocalDate date, String tablename) {
       this.idUser = idUser;
-      this.date = DateHelper.setTimeToZeroAndAddDay(date, 0);
+      this.date = date;
       this.entityName = tablename;
     }
 

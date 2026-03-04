@@ -1,10 +1,9 @@
 package grafioschtrader.instrument;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-import grafiosch.common.DateHelper;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.config.NegativeIdNumberCreater;
 import grafioschtrader.entities.Cashaccount;
@@ -234,15 +233,15 @@ public abstract class SecurityBaseCalc {
       final DateTransactionCurrencypairMap dateCurrencyMap, Transaction openMarginTransaction) {
     SplitFactorAfterBefore splitToOpenTransaction = null;
     final SplitFactorAfterBefore splitFactorAfterBefore = Securitysplit.calcSplitFatorForFromDateAndToDate(
-        transaction.getSecurity().getIdSecuritycurrency(), transaction.getTransactionTime(),
+        transaction.getSecurity().getIdSecuritycurrency(), transaction.getTransactionTime().toLocalDate(),
         dateCurrencyMap == null ? null : dateCurrencyMap.getUntilDate(), securitysplitMap);
     if (openMarginTransaction != null) {
       splitToOpenTransaction = Securitysplit.calcSplitFatorForFromDateAndToDate(
-          transaction.getSecurity().getIdSecuritycurrency(), openMarginTransaction.getTransactionTime(),
-          dateCurrencyMap == null ? null : transaction.getTransactionTime(), securitysplitMap);
+          transaction.getSecurity().getIdSecuritycurrency(), openMarginTransaction.getTransactionTime().toLocalDate(),
+          dateCurrencyMap == null ? null : transaction.getTransactionTime().toLocalDate(), securitysplitMap);
       transaction.setSplitFactorFromBaseTransaction(splitToOpenTransaction.fromToDateFactor);
       if (dateCurrencyMap != null
-          && DateHelper.isSameDay(transaction.getTransactionTime(), dateCurrencyMap.getUntilDate())) {
+          && transaction.getTransactionTime().toLocalDate().isEqual(dateCurrencyMap.getUntilDate())) {
         securityPositionSummary.splitFactorFromBaseTransaction = splitToOpenTransaction.fromToDateFactor;
       }
     } else {
@@ -351,7 +350,7 @@ public abstract class SecurityBaseCalc {
       final SecurityPositionSummary securityPositionSummary, final double lastPrice,
       NegativeIdNumberCreater negativeIdNumberCreater) {
     final Transaction transaction = new Transaction(null, lastPrice * securityPositionSummary.units, transactionType,
-        new Date());
+        LocalDateTime.now());
     transaction.setIdTransaction(negativeIdNumberCreater.getNegativeId());
     final Cashaccount cashaccount = new Cashaccount();
     cashaccount.setCurrency(securityPositionSummary.getSecurity().getCurrency());

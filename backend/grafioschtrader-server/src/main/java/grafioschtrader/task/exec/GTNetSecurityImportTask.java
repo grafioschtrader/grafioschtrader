@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -15,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafiosch.common.DateHelper;
 import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.GTNet;
 import grafiosch.entities.TaskDataChange;
@@ -480,9 +478,9 @@ public class GTNetSecurityImportTask implements ITask {
     security.setDistributionFrequency(dto.getDistributionFrequency() != null
         ? dto.getDistributionFrequency() : DistributionFrequency.DF_NONE);
     security.setActiveFromDate(dto.getActiveFromDate() != null
-        ? dto.getActiveFromDate() : new Date());
+        ? dto.getActiveFromDate() : LocalDate.now());
     security.setActiveToDate(dto.getActiveToDate() != null
-        ? dto.getActiveToDate() : DateHelper.getDateFromLocalDate(LocalDate.of(2099, 12, 31)));
+        ? dto.getActiveToDate() : LocalDate.of(2099, 12, 31));
   }
 
   /**
@@ -561,8 +559,8 @@ public class GTNetSecurityImportTask implements ITask {
    */
   private void logSecurityCreation(Integer idUser) {
     UserEntityChangeCount userEntityChangeCount = userEntityChangeCountJpaRepository
-        .findById(new UserEntityChangeCountId(idUser, new Date(), ENTITY_NAME_GTNET_SECURITY_IMPORT))
-        .orElse(new UserEntityChangeCount(new UserEntityChangeCountId(idUser, new Date(), ENTITY_NAME_GTNET_SECURITY_IMPORT)));
+        .findById(new UserEntityChangeCountId(idUser, LocalDate.now(), ENTITY_NAME_GTNET_SECURITY_IMPORT))
+        .orElse(new UserEntityChangeCount(new UserEntityChangeCountId(idUser, LocalDate.now(), ENTITY_NAME_GTNET_SECURITY_IMPORT)));
     userEntityChangeCount.incrementCounter(OperationType.ADD);
     userEntityChangeCountJpaRepository.save(userEntityChangeCount);
   }

@@ -22,7 +22,6 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import grafiosch.common.DateHelper;
 import grafiosch.common.ValueFormatConverter;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.entities.Cashaccount;
@@ -266,8 +265,8 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
 
       if (parseLineSuccessError.hasSuccess()) {
         if (!importPropertiesDuringDay.isEmpty()
-            && !DateHelper.isSameDay(importPropertiesDuringDay.get(0).getDatetime(),
-                parseLineSuccessError.importProperties.getDatetime())) {
+            && !importPropertiesDuringDay.get(0).getDatetime().toLocalDate().equals(
+                parseLineSuccessError.importProperties.getDatetime().toLocalDate())) {
           // Day of transaction has changed
 
           transferToImportTransactionPosForOneDay(importPropertiesDuringDay, uploadFile.getOriginalFilename(),

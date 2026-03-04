@@ -1,8 +1,11 @@
 package grafiosch.entities;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import grafiosch.BaseConstants;
 import grafiosch.common.PropertyAlwaysUpdatable;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
@@ -49,12 +52,13 @@ public class UserEntityChangeLimit extends Auditable implements AdminEntity, Ser
   @NotNull
   @Column(name = "until_date")
   @PropertyAlwaysUpdatable
-  private Date untilDate;
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  private LocalDate untilDate;
 
   public UserEntityChangeLimit() {
   }
 
-  public UserEntityChangeLimit(Integer idUser, String entityName, Date untilDate, Integer dayLimit) {
+  public UserEntityChangeLimit(Integer idUser, String entityName, LocalDate untilDate, Integer dayLimit) {
     this.idUser = idUser;
     this.entityName = entityName;
     this.untilDate = untilDate;
@@ -85,11 +89,11 @@ public class UserEntityChangeLimit extends Auditable implements AdminEntity, Ser
     this.dayLimit = dayLimit;
   }
 
-  public Date getUntilDate() {
+  public LocalDate getUntilDate() {
     return untilDate;
   }
 
-  public void setUntilDate(Date untilDate) {
+  public void setUntilDate(LocalDate untilDate) {
     this.untilDate = untilDate;
   }
 

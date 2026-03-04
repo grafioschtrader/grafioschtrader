@@ -1,6 +1,6 @@
 package grafioschtrader.priceupdate.historyquote;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 import grafioschtrader.connector.instrument.IFeedConnector;
@@ -13,7 +13,7 @@ public interface IHistoryquoteEntityAccess<S extends Securitycurrency<S>> extend
   /**
    * Gets the new prices and creates history quotes for adding to the security or currency pair.
    */
-  List<Historyquote> getHistoryQuote(S securitycurrency, Date fromDate, Date toDate, IFeedConnector feedConector)
+  List<Historyquote> getHistoryQuote(S securitycurrency, LocalDate fromDate, LocalDate toDate, IFeedConnector feedConector)
       throws Exception;
 
   HistoryquoteJpaRepository getHistoryquoteJpaRepository();

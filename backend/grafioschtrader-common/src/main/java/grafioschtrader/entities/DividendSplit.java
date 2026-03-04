@@ -1,17 +1,18 @@
 package grafioschtrader.entities;
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import grafiosch.entities.BaseID;
 import grafioschtrader.types.CreateType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotNull;
 
 @MappedSuperclass
@@ -28,13 +29,13 @@ public abstract class DividendSplit extends BaseID<Integer> {
   protected byte createType;
 
   @Schema(description = "When was this recored added or last time modified")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "create_modify_time")
   @NotNull
-  @Temporal(TemporalType.TIMESTAMP)
-  private Date createModifyTime;
+  private LocalDateTime createModifyTime;
 
   @JsonIgnore
-  public abstract Date getEventDate();
+  public abstract LocalDate getEventDate();
 
   public DividendSplit() {
   }
@@ -61,11 +62,11 @@ public abstract class DividendSplit extends BaseID<Integer> {
     this.createType = createType.getValue();
   }
 
-  public Date getCreateModifyTime() {
+  public LocalDateTime getCreateModifyTime() {
     return createModifyTime;
   }
 
-  public void setCreateModifyTime(Date createModifyTime) {
+  public void setCreateModifyTime(LocalDateTime createModifyTime) {
     this.createModifyTime = createModifyTime;
   }
 

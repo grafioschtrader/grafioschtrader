@@ -4,9 +4,9 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -148,9 +148,9 @@ public class HistoryquoteImport {
   private Collection<Historyquote> readFile(Integer idSecuritycurrency, final UserAuditable userAuditable,
       BufferedReader reader, UploadHistoryquotesSuccess uploadHistoryquotesSuccess,
       ValueFormatConverter valueFormatConverter) throws Exception {
-    Map<Date, Historyquote> historyquoteNewMap = new HashMap<>();
-    Set<Date> existingHistoryquoteDateSet = this.getExistingHistoryquotes(idSecuritycurrency);
-    Date oldestDate = DateBusinessHelper.getOldestTradingDay();
+    Map<LocalDate, Historyquote> historyquoteNewMap = new HashMap<>();
+    Set<LocalDate> existingHistoryquoteDateSet = this.getExistingHistoryquotes(idSecuritycurrency);
+    LocalDate oldestDate = DateBusinessHelper.getOldestTradingDayAsLocalDate();
     List<FieldColumnMapping> fieldColumnMappings = null;
     int lineCounter = 0;
     while (reader.ready()) {
@@ -168,9 +168,9 @@ public class HistoryquoteImport {
           uploadHistoryquotesSuccess.validationErrors++;
         } else if (!existingHistoryquoteDateSet.contains(historyquote.getDate())) {
           if ((userAuditable.auditable instanceof Security
-              && (historyquote.getDate().before(((Security) userAuditable.auditable).getActiveFromDate())
-                  || historyquote.getDate().after(((Security) userAuditable.auditable).getActiveToDate())))
-              || historyquote.getDate().before(oldestDate)) {
+              && (historyquote.getDate().isBefore(((Security) userAuditable.auditable).getActiveFromDate())
+                  || historyquote.getDate().isAfter(((Security) userAuditable.auditable).getActiveToDate())))
+              || historyquote.getDate().isBefore(oldestDate)) {
             uploadHistoryquotesSuccess.outOfDateRange++;
             continue;
           } else if (historyquoteNewMap.get(historyquote.getDate()) != null) {
@@ -192,8 +192,8 @@ public class HistoryquoteImport {
    * @param idSecuritycurrency the security ID to check
    * @return set of existing quote dates
    */
-  private Set<Date> getExistingHistoryquotes(Integer idSecuritycurrency) {
-    Set<Date> existingHistoryquotesMap = new HashSet<>();
+  private Set<LocalDate> getExistingHistoryquotes(Integer idSecuritycurrency) {
+    Set<LocalDate> existingHistoryquotesMap = new HashSet<>();
     List<SecurityCurrencyIdAndDate> existingHistoryquotesStream = historyquoteJpaRepository
         .findByIdSecuritycurrency(idSecuritycurrency);
     existingHistoryquotesStream.forEach(scd -> existingHistoryquotesMap.add(scd.getDate()));
@@ -225,7 +225,7 @@ public class HistoryquoteImport {
       try {
         String value = data[fieldColumnMapping.col];
         if (value != null && !value.isBlank() || fieldColumnMapping.required) {
-          if (fieldColumnMapping.field.getType() == Date.class) {
+          if (fieldColumnMapping.field.getType() == LocalDate.class) {
             value = value.startsWith("\"") ? value.substring(1, value.length() - 1)
                 : value.substring(0, value.length());
           }

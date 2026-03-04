@@ -1,6 +1,6 @@
 package grafioschtrader.repository;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 import grafioschtrader.dto.CrossRateRequest;
@@ -61,7 +61,7 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
    * @param closeDate    The specific date for which the close price is requested.
    * @return The closing price as a {@link Double}, or null if not found.
    */
-  Double getClosePriceForDate(Currencypair currencypair, Date closeDate);
+  Double getClosePriceForDate(Currencypair currencypair, LocalDate closeDate);
 
   /**
    * Updates the last (most recent) price for all currency pairs from their intraday data providers.
@@ -141,7 +141,7 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
    *                                   used.
    */
   void calcGainLossBasedOnDateOrNewestPrice(List<CashaccountPositionSummary> securitycurrencyPositionSummary,
-      Date untilDate);
+      LocalDate untilDate);
 
   /**
    * Creates a non-existing currency pair defined by 'from' and 'to' currency codes. A currency pair can be created by

@@ -1,9 +1,11 @@
 package grafioschtrader.reportviews;
 
-import java.util.Date;
+import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.entities.Securitycurrency;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -24,7 +26,8 @@ public abstract class SecuritycurrencyPositionSummary<T extends Securitycurrency
 
   @Schema(description = "Latest available price for the financial instrument, may be real-time or historical")
   public Double closePrice = null;
-  
+
   @Schema(description = "Timestamp when the close price was determined, indicating data freshness and validity")
-  public Date closeDate;
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  public LocalDate closeDate;
 }

@@ -1,7 +1,7 @@
 package grafioschtrader.gtnet;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,8 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfig;
@@ -46,6 +44,7 @@ import grafioschtrader.gtnet.model.msg.SecurityLookupMsg;
 import grafioschtrader.gtnet.model.msg.SecurityLookupResponseMsg;
 import grafioschtrader.repository.AssetclassJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Service for looking up security metadata from GTNet peers.
@@ -152,7 +151,7 @@ public class GTNetSecurityLookupService {
         requestEnvelope.sourceGtNet = new GTNetPublicDTO(myGTNet);
         requestEnvelope.serverBusy = myGTNet.isServerBusy();
         requestEnvelope.messageCode = GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_SEL_C.getValue();
-        requestEnvelope.timestamp = new Date();
+        requestEnvelope.timestamp = LocalDateTime.now();
         requestEnvelope.payload = objectMapper.valueToTree(requestPayload);
 
         log.debug("Sending security lookup request to {}", supplier.getDomainRemoteName());
@@ -336,7 +335,7 @@ public class GTNetSecurityLookupService {
         requestEnvelope.sourceGtNet = new GTNetPublicDTO(myGTNet);
         requestEnvelope.serverBusy = myGTNet.isServerBusy();
         requestEnvelope.messageCode = GTNetMessageCodeType.GT_NET_SECURITY_BATCH_LOOKUP_SEL_C.getValue();
-        requestEnvelope.timestamp = new Date();
+        requestEnvelope.timestamp = LocalDateTime.now();
         requestEnvelope.payload = objectMapper.valueToTree(batchRequest);
 
         log.debug("Sending batch lookup request ({} queries) to {}", batchRequest.size(), supplier.getDomainRemoteName());

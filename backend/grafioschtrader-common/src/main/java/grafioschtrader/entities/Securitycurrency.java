@@ -8,10 +8,12 @@ package grafioschtrader.entities;
 import static jakarta.persistence.InheritanceType.JOINED;
 
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -36,8 +38,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.Size;
 
 /**
@@ -72,8 +72,9 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
 
   @Schema(description = "All historical price data was loaded for the last time on this date.")
   @Basic(optional = false)
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "full_load_timestamp")
-  protected Date fullLoadTimestamp;
+  protected LocalDateTime fullLoadTimestamp;
 
   @Schema(description = "This is the reference to the corresponding connector of the intraday price data.")
   @Column(name = "id_connector_intra")
@@ -129,10 +130,10 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
 
   @Schema(description = "Time of the last instraday price update")
   @Basic(optional = false)
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "s_timestamp")
   // @NotNull
-  @Temporal(TemporalType.TIMESTAMP)
-  protected Date sTimestamp;
+  protected LocalDateTime sTimestamp;
 
   @Schema(description = "Opening price for the last or current trading day")
   @Column(name = "s_open")
@@ -177,9 +178,9 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
   private boolean gtNetHistoricalSend = false;
 
   @Schema(description = "Timestamp when GTNet exchange settings were last modified.")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "gt_net_last_modified_time")
-  @Temporal(TemporalType.TIMESTAMP)
-  private Date gtNetLastModifiedTime;
+  private LocalDateTime gtNetLastModifiedTime;
 
   public abstract String getName();
 
@@ -193,7 +194,7 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
     this.idSecuritycurrency = idSecuritycurrency;
   }
 
-  public Securitycurrency(Integer idSecuritycurrency, Date sTimestamp) {
+  public Securitycurrency(Integer idSecuritycurrency, LocalDateTime sTimestamp) {
     this.idSecuritycurrency = idSecuritycurrency;
     this.sTimestamp = sTimestamp;
   }
@@ -304,11 +305,11 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
     return sChangePercentage == null ? null : DataBusinessHelper.roundStandard(sChangePercentage);
   }
 
-  public Date getFullLoadTimestamp() {
+  public LocalDateTime getFullLoadTimestamp() {
     return fullLoadTimestamp;
   }
 
-  public void setFullLoadTimestamp(Date fullLoadTimestamp) {
+  public void setFullLoadTimestamp(LocalDateTime fullLoadTimestamp) {
     this.fullLoadTimestamp = fullLoadTimestamp;
   }
 
@@ -317,11 +318,11 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
   }
 
   @JsonProperty("sTimestamp")
-  public Date getSTimestamp() {
+  public LocalDateTime getSTimestamp() {
     return sTimestamp;
   }
 
-  public void setSTimestamp(Date sTimestamp) {
+  public void setSTimestamp(LocalDateTime sTimestamp) {
     this.sTimestamp = sTimestamp;
   }
 
@@ -400,11 +401,11 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
     this.gtNetHistoricalSend = gtNetHistoricalSend;
   }
 
-  public Date getGtNetLastModifiedTime() {
+  public LocalDateTime getGtNetLastModifiedTime() {
     return gtNetLastModifiedTime;
   }
 
-  public void setGtNetLastModifiedTime(Date gtNetLastModifiedTime) {
+  public void setGtNetLastModifiedTime(LocalDateTime gtNetLastModifiedTime) {
     this.gtNetLastModifiedTime = gtNetLastModifiedTime;
   }
 
@@ -413,7 +414,7 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
     urlIntraExtend = idConnectorIntra != null ? urlIntraExtend : null;
   }
 
-  public boolean isActiveForIntradayUpdate(Date now) {
+  public boolean isActiveForIntradayUpdate(LocalDate now) {
     return true;
   }
 

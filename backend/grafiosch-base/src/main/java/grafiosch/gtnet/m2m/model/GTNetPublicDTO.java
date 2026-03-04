@@ -1,7 +1,7 @@
 package grafiosch.gtnet.m2m.model;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import grafiosch.entities.GTNet;
@@ -48,7 +48,7 @@ public class GTNetPublicDTO {
   private List<GTNetEntityPublicDTO> gtNetEntities = new ArrayList<>();
 
   @Schema(description = "Timestamp when this entry was last modified, used to determine freshness during server list exchange")
-  private Date lastModifiedTime;
+  private LocalDateTime lastModifiedTime;
 
   public GTNetPublicDTO() {
   }
@@ -146,11 +146,11 @@ public class GTNetPublicDTO {
     this.gtNetEntities = gtNetEntities;
   }
 
-  public Date getLastModifiedTime() {
+  public LocalDateTime getLastModifiedTime() {
     return lastModifiedTime;
   }
 
-  public void setLastModifiedTime(Date lastModifiedTime) {
+  public void setLastModifiedTime(LocalDateTime lastModifiedTime) {
     this.lastModifiedTime = lastModifiedTime;
   }
 }

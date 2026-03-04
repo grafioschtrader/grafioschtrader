@@ -16,11 +16,11 @@ import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -40,11 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
-import grafiosch.common.DateHelper;
 import grafiosch.entities.User;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
@@ -67,6 +63,9 @@ import grafioschtrader.types.ResponseFormatType;
 import grafioschtrader.types.TickerBuildStrategy;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 /**
  * A feed connector that is configured entirely from a GenericConnectorDef database entity rather than from code.
@@ -218,7 +217,7 @@ public class GenericFeedConnector extends BaseFeedConnector {
   // ======================== Historical Data ========================
 
   @Override
-  public List<Historyquote> getEodSecurityHistory(Security security, Date from, Date to) throws Exception {
+  public List<Historyquote> getEodSecurityHistory(Security security, LocalDate from, LocalDate to) throws Exception {
     GenericConnectorEndpoint endpoint = findEndpoint("FS_HISTORY", "SECURITY");
     if (endpoint == null) {
       throw new UnsupportedOperationException("No FS_HISTORY+SECURITY endpoint configured for " + getShortID());
@@ -228,7 +227,7 @@ public class GenericFeedConnector extends BaseFeedConnector {
   }
 
   @Override
-  public List<Historyquote> getEodCurrencyHistory(Currencypair currencyPair, Date from, Date to) throws Exception {
+  public List<Historyquote> getEodCurrencyHistory(Currencypair currencyPair, LocalDate from, LocalDate to) throws Exception {
     GenericConnectorEndpoint endpoint = findEndpoint("FS_HISTORY", "CURRENCY");
     if (endpoint == null) {
       throw new UnsupportedOperationException("No FS_HISTORY+CURRENCY endpoint configured for " + getShortID());
@@ -244,7 +243,7 @@ public class GenericFeedConnector extends BaseFeedConnector {
       return null;
     }
     String ticker = buildTicker(endpoint, security.getUrlHistoryExtend(), null);
-    return buildUrl(endpoint, ticker, new Date(), new Date(), null);
+    return buildUrl(endpoint, ticker, LocalDate.now(), LocalDate.now(), null);
   }
 
   @Override
@@ -254,7 +253,7 @@ public class GenericFeedConnector extends BaseFeedConnector {
       return null;
     }
     String ticker = buildTicker(endpoint, currencypair.getUrlHistoryExtend(), currencypair);
-    return buildUrl(endpoint, ticker, new Date(), new Date(), currencypair);
+    return buildUrl(endpoint, ticker, LocalDate.now(), LocalDate.now(), currencypair);
   }
 
   // ======================== Intraday Data ========================
@@ -288,7 +287,7 @@ public class GenericFeedConnector extends BaseFeedConnector {
       return null;
     }
     String ticker = buildTicker(endpoint, security.getUrlIntraExtend(), null);
-    Date now = needsDatePlaceholders(endpoint) ? new Date() : null;
+    LocalDate now = needsDatePlaceholders(endpoint) ? LocalDate.now() : null;
     return buildUrl(endpoint, ticker, now, now, null);
   }
 
@@ -299,37 +298,37 @@ public class GenericFeedConnector extends BaseFeedConnector {
       return null;
     }
     String ticker = buildTicker(endpoint, currencypair.getUrlIntraExtend(), currencypair);
-    Date now = needsDatePlaceholders(endpoint) ? new Date() : null;
+    LocalDate now = needsDatePlaceholders(endpoint) ? LocalDate.now() : null;
     return buildUrl(endpoint, ticker, now, now, currencypair);
   }
 
   // ======================== Core Fetch Logic ========================
 
-  private List<Historyquote> fetchHistory(GenericConnectorEndpoint endpoint, String ticker, Date from, Date to,
+  private List<Historyquote> fetchHistory(GenericConnectorEndpoint endpoint, String ticker, LocalDate from, LocalDate to,
       Security security, Currencypair currencyPair) throws Exception {
     if (endpoint.getMaxDataPoints() == null) {
       return fetchSingleHistory(endpoint, ticker, from, to, security, currencyPair);
     }
     List<Historyquote> allQuotes = new ArrayList<>();
-    Date currentFrom = from;
+    LocalDate currentFrom = from;
     for (int i = 0; i < 100; i++) {
       List<Historyquote> batch = fetchSingleHistory(endpoint, ticker, currentFrom, to, security, currencyPair);
       if (batch.isEmpty()) {
         break;
       }
       allQuotes.addAll(batch);
-      Date lastDate = batch.get(batch.size() - 1).getDate();
-      if (!lastDate.before(to)) {
+      LocalDate lastDate = batch.get(batch.size() - 1).getDate();
+      if (!lastDate.isBefore(to)) {
         break;
       }
-      currentFrom = DateHelper.setTimeToZeroAndAddDay(lastDate, 1);
+      currentFrom = lastDate.plusDays(1);
       log.info("Chunked fetch {}: batch {} returned {} rows, last date {}. Next from: {}",
           getShortID(), i + 1, batch.size(), lastDate, currentFrom);
     }
     return allQuotes;
   }
 
-  private List<Historyquote> fetchSingleHistory(GenericConnectorEndpoint endpoint, String ticker, Date from, Date to,
+  private List<Historyquote> fetchSingleHistory(GenericConnectorEndpoint endpoint, String ticker, LocalDate from, LocalDate to,
       Security security, Currencypair currencyPair) throws Exception {
     String url = buildUrl(endpoint, ticker, from, to, currencyPair);
     acquireRateLimit();
@@ -338,12 +337,12 @@ public class GenericFeedConnector extends BaseFeedConnector {
       List<Historyquote> quotes = parseHistoryResponse(endpoint, body);
       if (endpoint.getEndpointOptions().contains(EndpointOption.SKIP_WEEKEND_DATA)) {
         quotes.removeIf(hq -> {
-          DayOfWeek dow = hq.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getDayOfWeek();
+          DayOfWeek dow = hq.getDate().getDayOfWeek();
           return dow == DayOfWeek.SATURDAY || dow == DayOfWeek.SUNDAY;
         });
       }
       if (endpoint.getEndpointOptions().contains(EndpointOption.REMOVE_DUPLICATE_DATES)) {
-        Set<Date> seenDates = new HashSet<>();
+        Set<LocalDate> seenDates = new HashSet<>();
         quotes.removeIf(hq -> !seenDates.add(hq.getDate()));
       }
       if (security != null && connectorDef.isGbxDividerEnabled()) {
@@ -365,11 +364,11 @@ public class GenericFeedConnector extends BaseFeedConnector {
 
   private Map<String, Double> fetchIntraday(GenericConnectorEndpoint endpoint, String ticker,
       Currencypair currencyPair) throws Exception {
-    Date from = null;
-    Date to = null;
+    LocalDate from = null;
+    LocalDate to = null;
     if (needsDatePlaceholders(endpoint)) {
-      from = new Date();
-      to = new Date();
+      from = LocalDate.now();
+      to = LocalDate.now();
     }
     String url = buildUrl(endpoint, ticker, from, to, currencyPair);
     acquireRateLimit();
@@ -383,7 +382,7 @@ public class GenericFeedConnector extends BaseFeedConnector {
 
   // ======================== URL Building ========================
 
-  private String buildUrl(GenericConnectorEndpoint endpoint, String ticker, Date from, Date to,
+  private String buildUrl(GenericConnectorEndpoint endpoint, String ticker, LocalDate from, LocalDate to,
       Currencypair currencyPair) {
     String template = endpoint.getUrlTemplate();
 
@@ -394,23 +393,21 @@ public class GenericFeedConnector extends BaseFeedConnector {
     }
 
     if (from != null && to != null) {
-      LocalDate fromDate = from.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-      LocalDate toDate = to.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-      long fromUnix = from.getTime() / 1000;
-      long toUnix = to.getTime() / 1000;
+      long fromUnix = from.atStartOfDay(ZoneId.systemDefault()).toEpochSecond();
+      long toUnix = to.atStartOfDay(ZoneId.systemDefault()).toEpochSecond();
 
-      template = template.replace("{fromDate}", formatDate(endpoint, fromDate, false));
-      template = template.replace("{toDate}", formatDate(endpoint, toDate, true));
+      template = template.replace("{fromDate}", formatDate(endpoint, from, false));
+      template = template.replace("{toDate}", formatDate(endpoint, to, true));
       template = template.replace("{fromUnix}", String.valueOf(fromUnix));
       template = template.replace("{toUnix}", String.valueOf(toUnix));
-      template = template.replace("{fromUnixMs}", String.valueOf(from.getTime()));
-      template = template.replace("{toUnixMs}", String.valueOf(to.getTime()));
-      template = template.replace("{fromDay}", String.valueOf(fromDate.getDayOfMonth()));
-      template = template.replace("{fromMonth}", String.valueOf(fromDate.getMonthValue()));
-      template = template.replace("{fromYear}", String.valueOf(fromDate.getYear()));
-      template = template.replace("{toDay}", String.valueOf(toDate.getDayOfMonth()));
-      template = template.replace("{toMonth}", String.valueOf(toDate.getMonthValue()));
-      template = template.replace("{toYear}", String.valueOf(toDate.getYear()));
+      template = template.replace("{fromUnixMs}", String.valueOf(fromUnix * 1000));
+      template = template.replace("{toUnixMs}", String.valueOf(toUnix * 1000));
+      template = template.replace("{fromDay}", String.valueOf(from.getDayOfMonth()));
+      template = template.replace("{fromMonth}", String.valueOf(from.getMonthValue()));
+      template = template.replace("{fromYear}", String.valueOf(from.getYear()));
+      template = template.replace("{toDay}", String.valueOf(to.getDayOfMonth()));
+      template = template.replace("{toMonth}", String.valueOf(to.getMonthValue()));
+      template = template.replace("{toYear}", String.valueOf(to.getYear()));
     }
 
     if (currencyPair != null) {
@@ -620,13 +617,13 @@ public class GenericFeedConnector extends BaseFeedConnector {
     if (jwtNode == null || jwtNode.isNull()) {
       throw new RuntimeException("JWT not found at path '" + tokenConfig.getLogin().getJwtPath() + "' for " + getShortID());
     }
-    this.apiKey = jwtNode.asText();
+    this.apiKey = jwtNode.asString();
     this.tokenExpiresAt = Instant.now().plusSeconds(tokenConfig.getTtlSeconds());
 
     if (tokenConfig.getLogin().getSessionPath() != null) {
       JsonNode sidNode = navigatePath(loginJson, tokenConfig.getLogin().getSessionPath());
       if (sidNode != null && !sidNode.isNull()) {
-        this.cachedSid = sidNode.asText();
+        this.cachedSid = sidNode.asString();
       }
     }
     log.info("Auto-token acquired for {} (ttl={}s, sid={})", getShortID(), tokenConfig.getTtlSeconds(), cachedSid != null);
@@ -660,7 +657,7 @@ public class GenericFeedConnector extends BaseFeedConnector {
     if (jwtNode == null || jwtNode.isNull()) {
       throw new RuntimeException("JWT not found in refresh response");
     }
-    this.apiKey = jwtNode.asText();
+    this.apiKey = jwtNode.asString();
     this.tokenExpiresAt = Instant.now().plusSeconds(tokenConfig.getTtlSeconds());
     log.debug("Auto-token refreshed for {} (ttl={}s)", getShortID(), tokenConfig.getTtlSeconds());
   }
@@ -701,8 +698,8 @@ public class GenericFeedConnector extends BaseFeedConnector {
     if (endpoint.getJsonStatusPath() != null) {
       JsonNode statusNode = navigatePath(root, endpoint.getJsonStatusPath());
       if (statusNode != null && endpoint.getJsonStatusOkValue() != null
-          && !endpoint.getJsonStatusOkValue().equals(statusNode.asText())) {
-        throw new RuntimeException("Data provider status error: " + statusNode.asText());
+          && !endpoint.getJsonStatusOkValue().equals(statusNode.asString())) {
+        throw new RuntimeException("Data provider status error: " + statusNode.asString());
       }
     }
 
@@ -716,7 +713,7 @@ public class GenericFeedConnector extends BaseFeedConnector {
         for (GenericConnectorFieldMapping mapping : endpoint.getFieldMappings()) {
           JsonNode valueNode = navigatePath(row, mapping.getSourceExpression());
           if (valueNode != null && !valueNode.isNull()) {
-            setHistoryField(hq, mapping, valueNode.asText(), endpoint);
+            setHistoryField(hq, mapping, valueNode.asString(), endpoint);
           }
         }
         if (hq.getDate() != null) {
@@ -737,7 +734,7 @@ public class GenericFeedConnector extends BaseFeedConnector {
         for (GenericConnectorFieldMapping mapping : endpoint.getFieldMappings()) {
           JsonNode arr = arrays.get(mapping.getTargetField());
           if (arr != null && i < arr.size()) {
-            setHistoryField(hq, mapping, arr.get(i).asText(), endpoint);
+            setHistoryField(hq, mapping, arr.get(i).asString(), endpoint);
           }
         }
         if (hq.getDate() != null) {
@@ -756,7 +753,7 @@ public class GenericFeedConnector extends BaseFeedConnector {
           if (idx != null && idx < row.size()) {
             JsonNode valueNode = row.get(idx);
             if (valueNode != null && !valueNode.isNull()) {
-              setHistoryField(hq, mapping, valueNode.asText(), endpoint);
+              setHistoryField(hq, mapping, valueNode.asString(), endpoint);
             }
           }
         }
@@ -775,8 +772,8 @@ public class GenericFeedConnector extends BaseFeedConnector {
     if (endpoint.getJsonStatusPath() != null) {
       JsonNode statusNode = navigatePath(root, endpoint.getJsonStatusPath());
       if (statusNode != null && endpoint.getJsonStatusOkValue() != null
-          && !endpoint.getJsonStatusOkValue().equals(statusNode.asText())) {
-        throw new RuntimeException("Data provider status error: " + statusNode.asText());
+          && !endpoint.getJsonStatusOkValue().equals(statusNode.asString())) {
+        throw new RuntimeException("Data provider status error: " + statusNode.asString());
       }
     }
 
@@ -792,7 +789,7 @@ public class GenericFeedConnector extends BaseFeedConnector {
           if (idx != null && idx < row.size()) {
             JsonNode valueNode = row.get(idx);
             if (valueNode != null && !valueNode.isNull()) {
-              double val = parseNumber(valueNode.asText(), endpoint.getNumberFormat());
+              double val = parseNumber(valueNode.asString(), endpoint.getNumberFormat());
               if (mapping.getDividerExpression() != null) {
                 val /= Double.parseDouble(mapping.getDividerExpression());
               }
@@ -808,7 +805,7 @@ public class GenericFeedConnector extends BaseFeedConnector {
       for (GenericConnectorFieldMapping mapping : endpoint.getFieldMappings()) {
         JsonNode valueNode = navigatePath(dataNode, mapping.getSourceExpression());
         if (valueNode != null && !valueNode.isNull()) {
-          double val = parseNumber(valueNode.asText(), endpoint.getNumberFormat());
+          double val = parseNumber(valueNode.asString(), endpoint.getNumberFormat());
           if (mapping.getDividerExpression() != null) {
             val /= Double.parseDouble(mapping.getDividerExpression());
           }
@@ -825,7 +822,7 @@ public class GenericFeedConnector extends BaseFeedConnector {
       JsonNode colNamesNode = navigatePath(root, endpoint.getJsonColumnNamesPath());
       if (colNamesNode != null && colNamesNode.isArray()) {
         for (int i = 0; i < colNamesNode.size(); i++) {
-          colIndex.put(colNamesNode.get(i).asText(), i);
+          colIndex.put(colNamesNode.get(i).asString(), i);
         }
       }
     }
@@ -1095,7 +1092,7 @@ public class GenericFeedConnector extends BaseFeedConnector {
     if (values.containsKey("prevClose")) {
       security.setSPrevClose(values.get("prevClose"));
     }
-    security.setSTimestamp(new Date());
+    security.setSTimestamp(LocalDateTime.now());
   }
 
   private void applyIntradayValues(Currencypair currencyPair, Map<String, Double> values) {
@@ -1117,30 +1114,27 @@ public class GenericFeedConnector extends BaseFeedConnector {
     if (values.containsKey("prevClose")) {
       currencyPair.setSPrevClose(values.get("prevClose"));
     }
-    currencyPair.setSTimestamp(new Date());
+    currencyPair.setSTimestamp(LocalDateTime.now());
   }
 
   // ======================== Date & Number Parsing ========================
 
-  private Date parseDate(String rawValue, GenericConnectorEndpoint endpoint) {
+  private LocalDate parseDate(String rawValue, GenericConnectorEndpoint endpoint) {
     DateFormatType dft = endpoint.getDateFormatType();
     try {
       switch (dft) {
       case UNIX_SECONDS:
         long epochSec = Long.parseLong(rawValue);
-        return Date.from(Instant.ofEpochSecond(epochSec));
+        return Instant.ofEpochSecond(epochSec).atZone(ZoneId.systemDefault()).toLocalDate();
       case UNIX_MILLIS:
         long epochMs = Long.parseLong(rawValue);
-        return Date.from(Instant.ofEpochMilli(epochMs));
+        return Instant.ofEpochMilli(epochMs).atZone(ZoneId.systemDefault()).toLocalDate();
       case PATTERN:
-        LocalDate ld = LocalDate.parse(rawValue, DateTimeFormatter.ofPattern(endpoint.getDateFormatPattern()));
-        return Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        return LocalDate.parse(rawValue, DateTimeFormatter.ofPattern(endpoint.getDateFormatPattern()));
       case ISO_DATE:
-        LocalDate isoDate = LocalDate.parse(rawValue);
-        return Date.from(isoDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        return LocalDate.parse(rawValue);
       case ISO_DATE_TIME:
-        LocalDate isoDt = LocalDate.parse(rawValue.substring(0, Math.min(rawValue.length(), 10)));
-        return Date.from(isoDt.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        return LocalDate.parse(rawValue.substring(0, Math.min(rawValue.length(), 10)));
       default:
         return null;
       }
@@ -1211,14 +1205,14 @@ public class GenericFeedConnector extends BaseFeedConnector {
           "No endpoint found for " + feedSupport + " + " + instrumentType, System.currentTimeMillis() - startTime);
     }
 
-    Date from = null;
-    Date to = null;
+    LocalDate from = null;
+    LocalDate to = null;
     if ("FS_HISTORY".equals(feedSupport)) {
-      from = fromDate != null ? Date.from(fromDate.atStartOfDay(ZoneId.systemDefault()).toInstant()) : new Date();
-      to = toDate != null ? Date.from(toDate.atStartOfDay(ZoneId.systemDefault()).toInstant()) : new Date();
+      from = fromDate != null ? fromDate : LocalDate.now();
+      to = toDate != null ? toDate : LocalDate.now();
     } else if (needsDatePlaceholders(endpoint)) {
-      from = new Date();
-      to = new Date();
+      from = LocalDate.now();
+      to = LocalDate.now();
     }
 
     Currencypair currencyPair = null;

@@ -112,13 +112,13 @@ public abstract class DataBusinessHelper {
           && !dateCurrencyMap.getMainCurrency().equals(transaction.getSecurity().getCurrency())) {
         // Both cash account and security currency are different to the main currency
 
-        exchangeRate = dateCurrencyMap.getPriceByDateAndFromCurrency(transaction.getTransactionDateAsDate(),
+        exchangeRate = dateCurrencyMap.getPriceByDateAndFromCurrency(transaction.getTransactionDateAsLocalDate(),
             transaction.getSecurity().getCurrency(), false);
         if (exchangeRate == null) {
 
           // For example: Main currency CHF and transaction which does not involved this
           // main currency.
-          exchangeRate = dateCurrencyMap.getPriceByDateAndFromCurrency(transaction.getTransactionDateAsDate(),
+          exchangeRate = dateCurrencyMap.getPriceByDateAndFromCurrency(transaction.getTransactionDateAsLocalDate(),
               transaction.getCashaccount().getCurrency(), true);
 
           // System.err.println("Try: " + transaction.getTransactionTime() + " "

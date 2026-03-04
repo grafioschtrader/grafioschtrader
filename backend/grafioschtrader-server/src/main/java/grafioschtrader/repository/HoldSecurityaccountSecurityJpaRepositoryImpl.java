@@ -1,7 +1,6 @@
 package grafioschtrader.repository;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -23,7 +22,6 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafiosch.common.DateHelper;
 import grafiosch.entities.User;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.MissingQuotesWithSecurities;
@@ -257,7 +255,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
         && hstbs.getIdSecurityaccount().equals(hstbsNext.getIdSecurityaccount())) {
       Transaction marginTransaction = marginTransactionMap.get(hstbs.getIdTransactionMargin());
       Transaction marginTransactionNext = marginTransactionMap.get(hstbsNext.getIdTransactionMargin());
-      return DateHelper.isSameDay(marginTransaction.getTransactionTime(), marginTransactionNext.getTransactionTime());
+      return marginTransaction.getTransactionTime().toLocalDate().equals(marginTransactionNext.getTransactionTime().toLocalDate());
     }
     return false;
   }
@@ -432,7 +430,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
         // Must be a margin
         Transaction marginTransactionNext = marginTransactionMap.get(tssNext.getIdTransactionMargin());
         return marginTransactionNext != null
-            && DateHelper.isSameDay(marginTransaction.getTransactionTime(), marginTransactionNext.getTransactionTime());
+            && marginTransaction.getTransactionTime().toLocalDate().equals(marginTransactionNext.getTransactionTime().toLocalDate());
       }
     }
     return false;
@@ -548,7 +546,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
 
     TransactionSecuritySplit tssNew = new TransactionSecuritySplit(transaction.getIdTransaction(),
         transaction.getSecurity().getIdSecuritycurrency(),
-        transaction.getTransactionTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
+        transaction.getTransactionTime(),
         (transaction.getTransactionType() == TransactionType.ACCUMULATE ? 1 : -1) * transaction.getUnits(), null,
         transaction.getSecurity().getCurrency());
 
@@ -757,7 +755,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
           // Close full or partly margin position
           Transaction openTransaction = marginTransactionMap.get(marginTransaction.getConnectedIdTransaction());
           SplitFactorAfterBefore splitFactorAfterBefore = Securitysplit.calcSplitFatorForFromDateAndToDate(
-              tss.getIdSecuritycurrency(), openTransaction.getTransactionTime(), marginTransaction.getTransactionTime(),
+              tss.getIdSecuritycurrency(), openTransaction.getTransactionTime().toLocalDate(), marginTransaction.getTransactionTime().toLocalDate(),
               css.securitysplitMap);
           if (units - openTransaction.getUnitsMultiplyValuePerPoint() * buySellFactor != 0d) {
             openMarginSum += openTransaction.getSeucritiesNetPrice() / openTransaction.getUnitsMultiplyValuePerPoint()

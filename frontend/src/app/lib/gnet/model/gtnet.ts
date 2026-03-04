@@ -168,7 +168,7 @@ export interface GTNetExchangeFields {
   gtNetHistoricalRecv?: boolean;
   gtNetLastpriceSend?: boolean;
   gtNetHistoricalSend?: boolean;
-  gtNetLastModifiedTime?: Date;
+  gtNetLastModifiedTime?: string;
 }
 
 /**
@@ -196,7 +196,7 @@ export interface GTNetSupplierDetailHist {
  */
 export interface GTNetSupplierDetailLast {
   retryIntraLoad?: number;
-  sTimestamp?: number;
+  sTimestamp?: string;
 }
 
 /**

@@ -121,7 +121,7 @@ export abstract class TransactionBaseOperations {
    * @param event Event object from user interaction
    */
   getTimeDependingExchangeRate(event): void {
-    const transactionTime: number = +this.configObject.transactionTime.formControl.value;
+    const transactionTime: Date = this.configObject.transactionTime.formControl.value;
     if (this.currencypair.idSecuritycurrency) {
       BusinessHelper.setHistoryquoteCloseToFormControl(this.messageToastService, this.historyquoteService,
         this.gps,

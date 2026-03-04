@@ -149,7 +149,7 @@ outputs:
 /**
  * Allows editing a new or existing strategy. The input fields will be different according to the selected strategy.
  * For simple strategies, input fields are created dynamically from FieldDescriptorInputAndShow definitions.
- * For complex strategies (e.g. AS_MEAN_REVERSION_DIP), a Monaco YAML editor is shown to edit the nested JSON config
+ * For complex strategies (e.g. AS_OBSERVED_SECURITY_MEAN_REVERSION_DIP), a Monaco YAML editor is shown to edit the nested JSON config
  * with syntax highlighting, autocompletion, validation, and hover documentation.
  */
 @Component({

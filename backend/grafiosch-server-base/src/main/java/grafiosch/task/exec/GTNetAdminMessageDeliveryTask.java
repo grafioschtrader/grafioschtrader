@@ -10,8 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetMessage;
 import grafiosch.entities.GTNetMessageAttempt;
@@ -29,6 +27,7 @@ import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.task.ITask;
 import grafiosch.types.ITaskType;
 import grafiosch.types.TaskTypeBase;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Background task that delivers pending GTNet admin messages to multiple targets.

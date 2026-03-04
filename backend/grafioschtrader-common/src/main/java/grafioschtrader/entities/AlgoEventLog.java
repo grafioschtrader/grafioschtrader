@@ -1,11 +1,13 @@
 package grafioschtrader.entities;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import grafiosch.entities.TenantBaseID;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
@@ -63,6 +65,7 @@ public class AlgoEventLog extends TenantBaseID implements Serializable {
   @Schema(description = "Business date on which the event occurred (simulation date or real calendar date)")
   @Basic(optional = false)
   @NotNull
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "event_date")
   private LocalDate eventDate;
 
@@ -73,8 +76,9 @@ public class AlgoEventLog extends TenantBaseID implements Serializable {
   private String details;
 
   @Schema(description = "Auto-maintained row creation timestamp")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "created_at", insertable = false, updatable = false)
-  private Timestamp createdAt;
+  private LocalDateTime createdAt;
 
   @JsonIgnore
   @Override
@@ -140,7 +144,7 @@ public class AlgoEventLog extends TenantBaseID implements Serializable {
     this.details = details;
   }
 
-  public Timestamp getCreatedAt() {
+  public LocalDateTime getCreatedAt() {
     return createdAt;
   }
 }

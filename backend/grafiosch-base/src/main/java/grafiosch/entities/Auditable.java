@@ -1,7 +1,7 @@
 package grafiosch.entities;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -9,12 +9,13 @@ import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import grafiosch.BaseConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.persistence.Version;
 
 /**
@@ -32,21 +33,21 @@ public abstract class Auditable extends ProposeTransientTransfer implements Seri
   @Column(name = "created_by")
   protected Integer createdBy;
 
-  @Schema(description = "The timestamp when the entity was created", example = "2025-03-29T10:15:30Z", nullable = true)
+  @Schema(description = "The timestamp when the entity was created", example = "2025-03-29T10:15:30", nullable = true)
   @CreatedDate
-  @Temporal(TemporalType.TIMESTAMP)
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "creation_time")
-  protected Date creationTime;
+  protected LocalDateTime creationTime;
 
-  @Schema(description = "The timestamp when the entity was last modified.", example = "2025-03-29T14:20:45Z", nullable = true)
+  @Schema(description = "The timestamp when the entity was last modified.", example = "2025-03-29T14:20:45", nullable = true)
   @LastModifiedBy
   @Column(name = "last_modified_by")
   protected Integer lastModifiedBy;
 
   @LastModifiedDate
-  @Temporal(TemporalType.TIMESTAMP)
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "last_modified_time")
-  protected Date lastModifiedTime;
+  protected LocalDateTime lastModifiedTime;
 
   @Schema(description = "The version number of the entity for optimistic locking.", example = "1", nullable = true)
   @Version
@@ -61,11 +62,11 @@ public abstract class Auditable extends ProposeTransientTransfer implements Seri
     this.createdBy = createdBy;
   }
 
-  public Date getCreationTime() {
+  public LocalDateTime getCreationTime() {
     return creationTime;
   }
 
-  public void setCreationTime(Date creationTime) {
+  public void setCreationTime(LocalDateTime creationTime) {
     this.creationTime = creationTime;
   }
 
@@ -77,11 +78,11 @@ public abstract class Auditable extends ProposeTransientTransfer implements Seri
     this.lastModifiedBy = lastModifiedBy;
   }
 
-  public Date getLastModifiedTime() {
+  public LocalDateTime getLastModifiedTime() {
     return lastModifiedTime;
   }
 
-  public void setLastModifiedTime(Date lastModifiedTime) {
+  public void setLastModifiedTime(LocalDateTime lastModifiedTime) {
     this.lastModifiedTime = lastModifiedTime;
   }
 

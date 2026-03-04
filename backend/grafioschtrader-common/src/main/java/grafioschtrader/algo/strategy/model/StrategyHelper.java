@@ -27,31 +27,33 @@ public abstract class StrategyHelper {
 
   static {
     strategyBindingMap = new HashMap<>();
-    strategyBindingMap.put(AlgoStrategyImplementationType.AS_REBALANCING,
-        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_REBALANCING, RebalancingTop.class,
-            RebalancingAssetclassSecurity.class, RebalancingAssetclassSecurity.class, null, false));
-    strategyBindingMap.put(AlgoStrategyImplementationType.AS_ABSOLUTE_PRICE_ALERT, new StrategyClassBindingDefinition(
-        AlgoStrategyImplementationType.AS_ABSOLUTE_PRICE_ALERT, null, null, AbsoluteValuePriceAlert.class, null, true));
-    strategyBindingMap.put(AlgoStrategyImplementationType.AS_HOLDING_GAIN_LOSE_PERCENTAGE_ALERT,
-        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_HOLDING_GAIN_LOSE_PERCENTAGE_ALERT,
+    strategyBindingMap.put(AlgoStrategyImplementationType.AS_HOLDING_TOP_REBALANCING,
+        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_HOLDING_TOP_REBALANCING,
+            RebalancingTop.class, RebalancingAssetclassSecurity.class, RebalancingAssetclassSecurity.class, null,
+            false));
+    strategyBindingMap.put(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_ABSOLUTE_PRICE,
+        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_ABSOLUTE_PRICE, null,
+            null, AbsoluteValuePriceAlert.class, null, true));
+    strategyBindingMap.put(AlgoStrategyImplementationType.AS_HOLDING_TOP_GAIN_LOSE,
+        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_HOLDING_TOP_GAIN_LOSE,
             HoldingGainLosePercentAlert.class, HoldingGainLosePercentAlert.class, HoldingGainLosePercentAlert.class,
             null, true));
-    strategyBindingMap.put(AlgoStrategyImplementationType.AS_PERIOD_PRICE_GAIN_LOSE_PERCENT_ALERT,
-        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_PERIOD_PRICE_GAIN_LOSE_PERCENT_ALERT,
-            PeriodPriceGainLosePercentAlert.class, PeriodPriceGainLosePercentAlert.class,
+    strategyBindingMap.put(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_PERIOD_PRICE_GAIN_LOSE_PERCENT,
+        new StrategyClassBindingDefinition(
+            AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_PERIOD_PRICE_GAIN_LOSE_PERCENT, null, null,
             PeriodPriceGainLosePercentAlert.class, null, true));
-    strategyBindingMap.put(AlgoStrategyImplementationType.AS_MEAN_REVERSION_DIP,
-        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_MEAN_REVERSION_DIP,
+    strategyBindingMap.put(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_MEAN_REVERSION_DIP,
+        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_MEAN_REVERSION_DIP,
             null, null, null, StrategyConfig.class, null, false));
-    strategyBindingMap.put(AlgoStrategyImplementationType.AS_MA_CROSSING_ALERT,
-        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_MA_CROSSING_ALERT,
-            null, null, MaCrossingAlert.class, null, true));
-    strategyBindingMap.put(AlgoStrategyImplementationType.AS_RSI_THRESHOLD_ALERT,
-        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_RSI_THRESHOLD_ALERT,
-            null, null, RsiThresholdAlert.class, null, true));
-    strategyBindingMap.put(AlgoStrategyImplementationType.AS_EXPRESSION_ALERT,
-        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_EXPRESSION_ALERT,
-            null, null, ExpressionAlert.class, null, true));
+    strategyBindingMap.put(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_MA_CROSSING,
+        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_MA_CROSSING, null,
+            null, MaCrossingAlert.class, null, true));
+    strategyBindingMap.put(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_RSI_THRESHOLD,
+        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_RSI_THRESHOLD, null,
+            null, RsiThresholdAlert.class, null, true));
+    strategyBindingMap.put(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_EXPRESSION,
+        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_EXPRESSION, null,
+            null, ExpressionAlert.class, null, true));
   }
 
   public static Set<AlgoStrategyImplementationType> getUnusedStrategiesForManualAdding(

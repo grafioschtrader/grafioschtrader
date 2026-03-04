@@ -8,28 +8,23 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import grafiosch.BaseConstants;
-import grafiosch.common.DateHelper;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
@@ -41,6 +36,9 @@ import grafioschtrader.types.SubscriptionType;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Refill;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Twelvedata's pricing model regulates both the number of accesses per minute and the availability of the
@@ -57,8 +55,8 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
   private static final String TOKEN_PARAM_NAME = "apikey";
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-  private static final ObjectMapper objectMapper = new ObjectMapper()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  private static final ObjectMapper objectMapper = JsonMapper.builder()
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 
   private final Bucket bucket;
 
@@ -113,36 +111,34 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
 
   @Override
   public String getSecurityHistoricalDownloadLink(final Security security) {
-    Date toDate = new Date();
-    LocalDate fromLocalDate = DateHelper.getLocalDate(toDate).minusDays(7);
-    return getSecurityCurrencyHistoricalDownloadLink(security.getUrlHistoryExtend(),
-        DateHelper.getDateFromLocalDate(fromLocalDate), toDate);
+    LocalDate toDate = LocalDate.now();
+    LocalDate fromDate = toDate.minusDays(7);
+    return getSecurityCurrencyHistoricalDownloadLink(security.getUrlHistoryExtend(), fromDate, toDate);
   }
 
   @Override
   public String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair) {
-    Date toDate = new Date();
-    LocalDate fromLocalDate = DateHelper.getLocalDate(toDate).minusDays(7);
-    return getSecurityCurrencyHistoricalDownloadLink(getCurrencypairSymbol(currencypair),
-        DateHelper.getDateFromLocalDate(fromLocalDate), toDate);
+    LocalDate toDate = LocalDate.now();
+    LocalDate fromDate = toDate.minusDays(7);
+    return getSecurityCurrencyHistoricalDownloadLink(getCurrencypairSymbol(currencypair), fromDate, toDate);
   }
 
-  private String getSecurityCurrencyHistoricalDownloadLink(String ticker, Date from, Date to) {
-    final SimpleDateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
+  private String getSecurityCurrencyHistoricalDownloadLink(String ticker, LocalDate from, LocalDate to) {
+    final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern(BaseConstants.STANDARD_DATE_FORMAT);
     return DOMAIN_NAME + "time_series?symbol=" + ticker.toUpperCase() + "&format=CSV&interval=1day&start_date="
         + dateFormat.format(from) + "&end_date=" + dateFormat.format(to) + "+23:59:59" + getApiKeyString();
   }
 
   @Override
-  public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
+  public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
     return getEodSecurityCurrencypairHistory(security.getUrlHistoryExtend(), from, to,
         FeedConnectorHelper.getGBXLondonDivider(security), true);
   }
 
   @Override
-  public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
-      throws Exception {
+  public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final LocalDate from,
+      final LocalDate to) throws Exception {
     return getEodSecurityCurrencypairHistory(getCurrencypairSymbol(currencyPair), from, to, 1.0, false);
   }
 
@@ -150,18 +146,18 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
     return currencyPair.getFromCurrency() + "/" + currencyPair.getToCurrency();
   }
 
-  private List<Historyquote> getEodSecurityCurrencypairHistory(String ticker, final Date from, Date to, double divider,
-      boolean hasVolume) throws Exception {
-    final SimpleDateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
+  private List<Historyquote> getEodSecurityCurrencypairHistory(String ticker, final LocalDate from, LocalDate to,
+      double divider, boolean hasVolume) throws Exception {
+    final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern(BaseConstants.STANDARD_DATE_FORMAT);
     final List<Historyquote> historyquotes = new ArrayList<>();
-    Date toDate = null;
-    if (DateHelper.getDateDiff(from, to, TimeUnit.DAYS) / 7 * 5 > MAX_DATA_POINTS - 100) {
-      toDate = DateHelper.setTimeToZeroAndAddDay(from, (MAX_DATA_POINTS - 100) / 5 * 7);
+    LocalDate toDate = null;
+    if (ChronoUnit.DAYS.between(from, to) / 7 * 5 > MAX_DATA_POINTS - 100) {
+      toDate = from.plusDays((MAX_DATA_POINTS - 100) / 5 * 7);
       historyquotes.addAll(getEodSecurityCurrencypairHistoryMax5000(
           new URI(getSecurityCurrencyHistoricalDownloadLink(ticker, from, toDate)).toURL(), dateFormat, divider,
           hasVolume));
     }
-    Date fromDate = toDate == null ? from : DateHelper.setTimeToZeroAndAddDay(toDate, 1);
+    LocalDate fromDate = toDate == null ? from : toDate.plusDays(1);
     historyquotes.addAll(getEodSecurityCurrencypairHistoryMax5000(
         new URI(getSecurityCurrencyHistoricalDownloadLink(ticker, fromDate, to)).toURL(), dateFormat, divider,
         hasVolume));
@@ -169,7 +165,7 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
     return historyquotes;
   }
 
-  private List<Historyquote> getEodSecurityCurrencypairHistoryMax5000(URL url, SimpleDateFormat dateFormat,
+  private List<Historyquote> getEodSecurityCurrencypairHistoryMax5000(URL url, DateTimeFormatter dateFormat,
       double divider, boolean hasVolume) throws Exception {
     final List<Historyquote> historyquotes = new ArrayList<>();
     waitForTokenOrGo(bucket);
@@ -206,10 +202,10 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
    * @return
    * @throws ParseException
    */
-  private Historyquote parseResponseLineItems(final String[] items, SimpleDateFormat dateFormat, double divider,
-      boolean hasVolume) throws ParseException {
+  private Historyquote parseResponseLineItems(final String[] items, DateTimeFormatter dateFormat, double divider,
+      boolean hasVolume) {
     Historyquote historyquote = new Historyquote();
-    historyquote.setDate(dateFormat.parse(items[0]));
+    historyquote.setDate(LocalDate.parse(items[0], dateFormat));
     historyquote.setOpen(Double.parseDouble(items[1]) / divider);
     historyquote.setHigh(Double.parseDouble(items[2]) / divider);
     historyquote.setLow(Double.parseDouble(items[3]) / divider);
@@ -228,7 +224,7 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
     waitForTokenOrGo(bucket);
-    var quote = objectMapper.readValue(new URI(getSecurityIntradayDownloadLink(security)).toURL(), Quote.class);
+    var quote = objectMapper.readValue(new URI(getSecurityIntradayDownloadLink(security)).toURL().openStream(), Quote.class);
     quote.setValues(security, FeedConnectorHelper.getGBXLondonDivider(security), getIntradayDelayedSeconds());
   }
 
@@ -244,7 +240,7 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
   @Override
   public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws Exception {
     waitForTokenOrGo(bucket);
-    var quote = objectMapper.readValue(new URI(getCurrencypairIntradayDownloadLink(currencypair)).toURL(), Quote.class);
+    var quote = objectMapper.readValue(new URI(getCurrencypairIntradayDownloadLink(currencypair)).toURL().openStream(), Quote.class);
     quote.setValues(currencypair, 1.0, getIntradayDelayedSeconds());
   }
 
@@ -265,7 +261,7 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
       securitycurrency.setSHigh(high / divider);
       securitycurrency.setSChangePercentage(percent_change);
       securitycurrency.setSPrevClose(previous_close / divider);
-      securitycurrency.setSTimestamp(new Date(new Date().getTime() - delaySeconds * 1000));
+      securitycurrency.setSTimestamp(LocalDateTime.now().minusSeconds(delaySeconds));
     }
   }
 

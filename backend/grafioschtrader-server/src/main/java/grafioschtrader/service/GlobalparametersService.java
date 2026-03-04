@@ -1,8 +1,8 @@
 package grafioschtrader.service;
 
-import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Currency;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import grafiosch.BaseConstants;
 import grafiosch.GlobalParamKeyBaseDefault;
-import grafiosch.common.DateHelper;
 import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafiosch.entities.Globalparameters;
 import grafiosch.entities.User;
@@ -187,9 +186,9 @@ public class GlobalparametersService {
    *
    * @return the minimum acceptable timestamp for GTNet prices
    */
-  public Date getGTNetLastpriceMinAcceptableTimestamp() {
+  public LocalDateTime getGTNetLastpriceMinAcceptableTimestamp() {
     int totalDelaySeconds = getWatchlistIntradayUpdateTimeout() + getGTNetLastpriceDelaySeconds();
-    return new Date(System.currentTimeMillis() - (totalDelaySeconds * 1000L));
+    return LocalDateTime.now().minusSeconds(totalDelaySeconds);
   }
 
   
@@ -222,9 +221,9 @@ public class GlobalparametersService {
    * @return the last sync timestamp, or epoch (0L) if never synced
    * @see GlobalParamKeyDefault#GLOB_KEY_GTNET_EXCHANGE_SYNC_TIMESTAMP
    */
-  public Date getGTNetExchangeSyncTimestamp() {
+  public LocalDateTime getGTNetExchangeSyncTimestamp() {
     return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_GTNET_EXCHANGE_SYNC_TIMESTAMP)
-        .map(g -> DateHelper.convertToDateViaInstant(g.getPropertyDateTime()))
+        .map(Globalparameters::getPropertyDateTime)
         .orElse(GlobalParamKeyDefault.DEFAULT_GTNET_EXCHANGE_SYNC_TIMESTAMP);
   }
 
@@ -379,13 +378,10 @@ public class GlobalparametersService {
    * performance.
    * 
    * @return the start date for data feed operations
-   * @throws ParseException if the configured date string cannot be parsed
-   * @see GlobalParamKeyDefault#GLOB_KEY_START_FEED_DATE
-   * @see GlobalParamKeyDefault#DEFAULT_START_FEED_DATE
    */
-  public Date getStartFeedDate() throws ParseException {
+  public LocalDate getStartFeedDate() {
     return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_START_FEED_DATE)
-        .map(g -> DateHelper.getDateFromLocalDate(g.getPropertyDate()))
+        .map(Globalparameters::getPropertyDate)
         .orElse(GlobalParamKeyDefault.DEFAULT_START_FEED_DATE);
   }
 

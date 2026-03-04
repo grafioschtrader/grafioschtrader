@@ -1,14 +1,14 @@
 package grafioschtrader.reports.udfalluserfields;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -77,7 +77,7 @@ public class YahooUDFConnect extends AbstractYahooFinanceConnector {
   private static final Map<Integer, String> CACHE_SYMBOL = new PassiveExpiringMap<>(TimeUnit.DAYS.toMillis(1));
 
   
-  private final SimpleDateFormat dateFormatEarnings = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
+  private static final DateTimeFormatter DATE_FORMAT_EARNINGS = DateTimeFormatter.ofPattern(BaseConstants.STANDARD_DATE_FORMAT);
 
   public YahooUDFConnect() {
     super(10); // 10 seconds connection timeout
@@ -134,7 +134,7 @@ public class YahooUDFConnect extends AbstractYahooFinanceConnector {
   }
 
   String getEarningURL(String yahooSymbol) {
-    return YahooHelper.YAHOO_CALENDAR + "earnings?day=" + dateFormatEarnings.format(new Date()) + "&symbol="
+    return YahooHelper.YAHOO_CALENDAR + "earnings?day=" + LocalDate.now().format(DATE_FORMAT_EARNINGS) + "&symbol="
         + yahooSymbol;
   }
 

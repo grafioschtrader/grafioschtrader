@@ -1,6 +1,6 @@
 package grafioschtrader.priceupdate.historyquote;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 /**
  * Projection interface for retrieving the most recent history quote date for a security currency.
@@ -21,5 +21,5 @@ public interface SecurityCurrencyMaxHistoryquoteData<S> {
    *
    * @return the most recent quote date
    */
-  Date getDate();
+  LocalDate getDate();
 }

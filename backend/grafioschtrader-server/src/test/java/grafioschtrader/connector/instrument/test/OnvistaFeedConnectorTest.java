@@ -4,11 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.text.ParseException;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -67,13 +65,11 @@ class OnvistaFeedConnectorTest extends BaseFeedConnectorCheck {
     currencies.add(ConnectorTestHelper.createHistoricalCurrencyPair(GlobalConstants.MC_GBP, GlobalConstants.MC_USD,
         "CURRENCY/GBPUSD/eod_history?idNotation=1305587"));
     final LocalDate from = LocalDate.parse("03.01.2000", germanFormatter);
-    final Date fromDate = Date.from(from.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     final LocalDate to = LocalDate.parse("08.12.2023", germanFormatter);
-    Date toDate = Date.from(to.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     currencies.parallelStream().forEach(currencyPair -> {
       List<Historyquote> historyquote = new ArrayList<>();
       try {
-        historyquote = onvistafeedConnector.getEodCurrencyHistory(currencyPair, fromDate, toDate);
+        historyquote = onvistafeedConnector.getEodCurrencyHistory(currencyPair, from, to);
       } catch (Exception e) {
         e.printStackTrace();
       }

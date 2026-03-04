@@ -1,11 +1,13 @@
 package grafioschtrader.gtnet.model.msg;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.gtnet.m2m.model.InstrumentPriceDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -41,7 +43,8 @@ public class LastpriceExchangeMsg {
       should be rejected by the supplier as stale. Calculated by the requester as:
       current_time - (gt.w.intra.update.timeout.seconds + gt.gtnet.lastprice.delay.seconds).
       Only populated in GT_NET_LASTPRICE_EXCHANGE_SEL_C requests.""")
-  public Date minAcceptableTimestamp;
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
+  public LocalDateTime minAcceptableTimestamp;
 
   public LastpriceExchangeMsg() {
   }
@@ -55,7 +58,7 @@ public class LastpriceExchangeMsg {
    * @return configured request message
    */
   public static LastpriceExchangeMsg forRequest(List<InstrumentPriceDTO> securities,
-      List<InstrumentPriceDTO> currencypairs, Date minAcceptableTimestamp) {
+      List<InstrumentPriceDTO> currencypairs, LocalDateTime minAcceptableTimestamp) {
     LastpriceExchangeMsg msg = new LastpriceExchangeMsg();
     msg.securities = securities != null ? securities : new ArrayList<>();
     msg.currencypairs = currencypairs != null ? currencypairs : new ArrayList<>();

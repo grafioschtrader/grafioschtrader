@@ -3,18 +3,15 @@ package grafioschtrader.repository;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +28,6 @@ import org.springframework.util.ClassUtils;
 import com.ezylang.evalex.EvaluationException;
 
 import grafiosch.BaseConstants;
-import grafiosch.common.DateHelper;
 import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.Auditable;
 import grafiosch.entities.TaskDataChange;
@@ -39,7 +35,6 @@ import grafiosch.entities.User;
 import grafiosch.repository.BaseRepositoryImpl;
 import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.types.TaskDataExecPriority;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.DeleteHistoryquotesSuccess;
 import grafioschtrader.dto.HistoryquoteChartResponse;
@@ -107,13 +102,13 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
   @Override
   public ISecuritycurrencyIdDateClose getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(
       final Integer idSecuritycurrency, final String dateString, final boolean asTraded) throws ParseException {
-    final Date date = new SimpleDateFormat(GlobalConstants.SHORT_STANDARD_DATE_FORMAT).parse(dateString);
+    final LocalDate date = LocalDate.parse(dateString);
     return getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(idSecuritycurrency, date, asTraded);
   }
 
   @Override
   public ISecuritycurrencyIdDateClose getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(
-      final Integer idSecuritycurrency, final Date date, final boolean asTraded) {
+      final Integer idSecuritycurrency, final LocalDate date, final boolean asTraded) {
     final List<Integer> securitycurrencies = new ArrayList<>();
     securitycurrencies.add(idSecuritycurrency);
     final List<ISecuritycurrencyIdDateClose> securitycurrencyIdDateCloseList = historyquoteJpaRepository
@@ -131,7 +126,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
             }
 
             @Override
-            public Date getDate() {
+            public LocalDate getDate() {
               return securitycurrencyIdDateClose.getDate();
             }
 
@@ -185,7 +180,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
     if (existingEntity != null && !historyquote.getDate().equals(existingEntity.getDate())) {
       throw new SecurityException(BaseConstants.FILED_EDIT_SECURITY_BREACH);
     }
-    historyquote.setCreateModifyTime(new Date());
+    historyquote.setCreateModifyTime(LocalDateTime.now());
     historyquote.setCreateType(HistoryquoteCreateType.ADD_MODIFIED_USER);
     Historyquote historyquoteSaved = historyquoteJpaRepository.save(historyquote);
     updateHolidaysWeekendHistoryquotes(historyquoteSaved);
@@ -203,16 +198,14 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
 
   private long checkDatePastMinus1Day(Historyquote historyquote) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    Calendar calendarHistoryquote = Calendar.getInstance();
-    calendarHistoryquote.setTime(historyquote.getDate());
-    if (calendarHistoryquote.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY
-        || calendarHistoryquote.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
+    LocalDate hqDate = historyquote.getDate();
+    java.time.DayOfWeek dow = hqDate.getDayOfWeek();
+    if (dow == java.time.DayOfWeek.SATURDAY || dow == java.time.DayOfWeek.SUNDAY) {
       throw new IllegalArgumentException("The date must be a working day!");
     }
 
-    Calendar calendarNow = DateHelper.getCalendar(new Date());
-    calendarNow.add(Calendar.MINUTE, user.getTimezoneOffset() * -1);
-    long days = ChronoUnit.DAYS.between(calendarHistoryquote.toInstant(), calendarNow.toInstant());
+    LocalDate nowDate = LocalDate.now(java.time.ZoneOffset.ofTotalSeconds(user.getTimezoneOffset() * -60));
+    long days = ChronoUnit.DAYS.between(hqDate, nowDate);
     if (days < 1) {
       throw new IllegalArgumentException("The date must be yesterday or older!");
     }
@@ -282,7 +275,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
       if (historyquote.getCreateType() != HistoryquoteCreateType.FILLED_NON_TRADE_DAY) {
         break;
       }
-      if (DateHelper.getDateDiff(historyquoteBefore.getDate(), historyquote.getDate(), TimeUnit.DAYS) == i + 1) {
+      if (ChronoUnit.DAYS.between(historyquoteBefore.getDate(), historyquote.getDate()) == i + 1) {
         historyquote.updateThis(historyquoteBefore);
         toSaveHistoryquotes.add(historyquote);
       }
@@ -327,17 +320,17 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
   public void fillMissingPeriodWithHistoryquotes(final Historyquote dayBeforHoleHistoryquote,
       final Historyquote dayAfterHoleHistoryquote) {
     Integer idSecuritycurrency = dayBeforHoleHistoryquote.getIdSecuritycurrency();
-    Date fromDate = dayBeforHoleHistoryquote.getDate();
-    Date toDate = dayAfterHoleHistoryquote.getDate();
+    LocalDate fromDate = dayBeforHoleHistoryquote.getDate();
+    LocalDate toDate = dayAfterHoleHistoryquote.getDate();
 
     // Query existing dates to avoid duplicate inserts during concurrent processing
-    Set<Date> existingDates = historyquoteJpaRepository.findDatesByIdSecuritycurrencyAndDateBetweenExclusive(
+    Set<LocalDate> existingDates = historyquoteJpaRepository.findDatesByIdSecuritycurrencyAndDateBetweenExclusive(
         idSecuritycurrency, fromDate, toDate);
 
-    Date targetDate = DateHelper.setTimeToZeroAndAddDay(fromDate, 1);
+    LocalDate targetDate = fromDate.plusDays(1);
     List<Historyquote> toCreateHistoryquotes = new ArrayList<>();
 
-    while (targetDate.getTime() < toDate.getTime()) {
+    while (targetDate.isBefore(toDate)) {
       // Only create quote if no record exists for this date
       if (!existingDates.contains(targetDate)) {
         final Historyquote historyquote = new Historyquote();
@@ -347,7 +340,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
         historyquote.setIdSecuritycurrency(idSecuritycurrency);
         toCreateHistoryquotes.add(historyquote);
       }
-      targetDate = DateHelper.setTimeToZeroAndAddDay(targetDate, 1);
+      targetDate = targetDate.plusDays(1);
     }
 
     if (!toCreateHistoryquotes.isEmpty()) {

@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafiosch.common.DateHelper;
 import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.ProposeChangeEntity;
 import grafiosch.entities.ProposeChangeField;
@@ -52,19 +51,19 @@ public class HistoryquotePeriodJpaRepositoryImpl implements HistoryquotePeriodJp
     } else if (historyquotePeriods.size() == 1) {
       // Adjust period for active period
       HistoryquotePeriod hp = historyquotePeriods.get(0);
-      hp.setFromDate(DateHelper.getLocalDate(security.getActiveFromDate()));
-      hp.setToDate(DateHelper.getLocalDate(security.getActiveToDate()));
+      hp.setFromDate(security.getActiveFromDate());
+      hp.setToDate(security.getActiveToDate());
       historyquotePeriodJpaRepository.save(hp);
     } else {
       // There is more than one period
       HistoryquotePeriod hpFirst = historyquotePeriods.get(0);
-      if (hpFirst.getFromDate().isAfter(DateHelper.getLocalDate(security.getActiveFromDate()))) {
-        hpFirst.setFromDate(DateHelper.getLocalDate(security.getActiveFromDate()));
+      if (hpFirst.getFromDate().isAfter(security.getActiveFromDate())) {
+        hpFirst.setFromDate(security.getActiveFromDate());
         historyquotePeriodJpaRepository.save(hpFirst);
       }
       HistoryquotePeriod hpLast = historyquotePeriods.get(historyquotePeriods.size() - 1);
-      if (hpLast.getToDate().isBefore(DateHelper.getLocalDate(security.getActiveToDate()))) {
-        hpLast.setToDate(DateHelper.getLocalDate(security.getActiveToDate()));
+      if (hpLast.getToDate().isBefore(security.getActiveToDate())) {
+        hpLast.setToDate(security.getActiveToDate());
         historyquotePeriodJpaRepository.save(hpLast);
       }
     }
@@ -88,7 +87,7 @@ public class HistoryquotePeriodJpaRepositoryImpl implements HistoryquotePeriodJp
 
       Arrays.sort(hpdacm.getHistoryquotePeriods(), (hp1, hp2) -> hp1.getFromDate().compareTo(hp2.getFromDate()));
 
-      LocalDate activeToDate = ((java.sql.Date) security.getActiveToDate()).toLocalDate();
+      LocalDate activeToDate = security.getActiveToDate();
       List<HistoryquotePeriod> hpsNewSorted = Arrays.stream(hpdacm.getHistoryquotePeriods())
           .filter(hp -> !hp.getFromDate().isAfter(activeToDate)).collect(Collectors.toList());
       if (!DataBusinessHelper.compareCollectionsSorted(hpsNewSorted, historyquotePeriodsExisting, hpCompare)) {
@@ -108,15 +107,8 @@ public class HistoryquotePeriodJpaRepositoryImpl implements HistoryquotePeriodJp
    * @return A new {@link HistoryquotePeriod} instance.
    */
   private HistoryquotePeriod getSystemCreatedPeriod(Security security) {
-    if (security.getActiveFromDate() instanceof java.sql.Date) {
-      return new HistoryquotePeriod(security.getIdSecuritycurrency(),
-          ((java.sql.Date) security.getActiveFromDate()).toLocalDate(),
-          ((java.sql.Date) security.getActiveToDate()).toLocalDate(), security.getDenomination());
-    } else {
-      return new HistoryquotePeriod(security.getIdSecuritycurrency(),
-          DateHelper.getLocalDate(security.getActiveFromDate()), DateHelper.getLocalDate(security.getActiveToDate()),
-          security.getDenomination());
-    }
+    return new HistoryquotePeriod(security.getIdSecuritycurrency(),
+        security.getActiveFromDate(), security.getActiveToDate(), security.getDenomination());
   }
 
   /**
@@ -157,8 +149,8 @@ public class HistoryquotePeriodJpaRepositoryImpl implements HistoryquotePeriodJp
           }
           prevHp = hp;
         }
-        LocalDate activeFromDate = ((java.sql.Date) security.getActiveFromDate()).toLocalDate();
-        LocalDate activeToDate = ((java.sql.Date) security.getActiveToDate()).toLocalDate();
+        LocalDate activeFromDate = security.getActiveFromDate();
+        LocalDate activeToDate = security.getActiveToDate();
 
         if (activeFromDate.isBefore(hpsNewSorted.get(0).getFromDate())) {
           HistoryquotePeriod hp = getSystemCreatedPeriod(security);

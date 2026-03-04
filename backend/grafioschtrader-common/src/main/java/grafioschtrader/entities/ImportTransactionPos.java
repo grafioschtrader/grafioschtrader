@@ -1,6 +1,7 @@
 package grafioschtrader.entities;
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -34,8 +35,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Size;
 
@@ -84,14 +83,13 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
 
   @Basic(optional = false)
   @Column(name = "transaction_time")
-  @Temporal(TemporalType.TIMESTAMP)
-  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
-  private Date transactionTime;
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
+  private LocalDateTime transactionTime;
 
   @Schema(description = "Transferred after transactions, if set.")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "ex_date")
-  @Temporal(TemporalType.DATE)
-  private Date exDate;
+  private LocalDate exDate;
 
   @Schema(description = "The cash account is determined from the currency of the transaction receipt.")
   @JoinColumn(name = "id_cash_account", referencedColumnName = "id_securitycash_account")
@@ -273,19 +271,19 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
     this.transactionType = transactionType;
   }
 
-  public Date getTransactionTime() {
+  public LocalDateTime getTransactionTime() {
     return transactionTime;
   }
 
-  public void setTransactionTime(Date transactionTime) {
+  public void setTransactionTime(LocalDateTime transactionTime) {
     this.transactionTime = transactionTime;
   }
 
-  public Date getExDate() {
+  public LocalDate getExDate() {
     return exDate;
   }
 
-  public void setExDate(Date exDate) {
+  public void setExDate(LocalDate exDate) {
     this.exDate = exDate;
   }
 

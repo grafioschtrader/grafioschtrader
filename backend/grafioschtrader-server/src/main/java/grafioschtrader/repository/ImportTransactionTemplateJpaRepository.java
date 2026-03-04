@@ -1,6 +1,6 @@
 package grafioschtrader.repository;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,7 +15,7 @@ public interface ImportTransactionTemplateJpaRepository extends JpaRepository<Im
     ImportTransactionTemplateJpaRepositoryCustom, UpdateCreateJpaRepository<ImportTransactionTemplate> {
 
   Optional<ImportTransactionTemplate> findByIdTransactionImportPlatformAndTemplateCategoryAndTemplateFormatTypeAndValidSinceAndTemplateLanguage(
-      Integer idTransactionImportPlatform, byte templateCategory, byte templateFormatType, Date validSince,
+      Integer idTransactionImportPlatform, byte templateCategory, byte templateFormatType, LocalDate validSince,
       String templateLanguage);
 
   List<ImportTransactionTemplate> findByIdTransactionImportPlatformOrderByTemplatePurpose(

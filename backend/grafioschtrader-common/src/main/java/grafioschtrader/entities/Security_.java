@@ -1,6 +1,7 @@
 package grafioschtrader.entities;
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import jakarta.annotation.Generated;
 import jakarta.persistence.metamodel.SingularAttribute;
@@ -10,10 +11,10 @@ import jakarta.persistence.metamodel.StaticMetamodel;
 @StaticMetamodel(Security.class)
 public abstract class Security_ extends grafioschtrader.entities.Securitycurrency_ {
 
-  public static volatile SingularAttribute<Security, Date> activeFromDate;
+  public static volatile SingularAttribute<Security, LocalDate> activeFromDate;
   public static volatile SingularAttribute<Security, Short> retryDividendLoad;
   public static volatile SingularAttribute<Security, String> dividendCurrency;
-  public static volatile SingularAttribute<Security, Date> activeToDate;
+  public static volatile SingularAttribute<Security, LocalDate> activeToDate;
   public static volatile SingularAttribute<Security, String> formulaPrices;
   public static volatile SingularAttribute<Security, Stockexchange> stockexchange;
   public static volatile SingularAttribute<Security, Integer> idTenantPrivate;
@@ -23,7 +24,7 @@ public abstract class Security_ extends grafioschtrader.entities.Securitycurrenc
   public static volatile SingularAttribute<Security, Assetclass> assetClass;
   public static volatile SingularAttribute<Security, Byte> distributionFrequency;
   public static volatile SingularAttribute<Security, Integer> idLinkSecuritycurrency;
-  public static volatile SingularAttribute<Security, Date> dividendEarliestNextCheck;
+  public static volatile SingularAttribute<Security, LocalDateTime> dividendEarliestNextCheck;
   public static volatile SingularAttribute<Security, Integer> denomination;
   public static volatile SingularAttribute<Security, String> idConnectorDividend;
   public static volatile SingularAttribute<Security, Long> sVolume;

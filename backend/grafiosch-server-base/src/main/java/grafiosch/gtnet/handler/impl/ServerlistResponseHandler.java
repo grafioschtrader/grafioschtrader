@@ -8,8 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetMessage;
 import grafiosch.gtnet.GNetCoreMessageCode;
@@ -19,6 +17,7 @@ import grafiosch.gtnet.handler.AbstractResponseHandler;
 import grafiosch.gtnet.handler.GTNetMessageContext;
 import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
 import grafiosch.repository.GTNetJpaRepository;
+import tools.jackson.core.type.TypeReference;
 
 /**
  * Handler for server list response messages (accept and reject).
@@ -170,7 +169,7 @@ public class ServerlistResponseHandler extends AbstractResponseHandler {
       // We have no timestamp - remote is definitely more informative
       return true;
     }
-    return dto.getLastModifiedTime().after(existing.getLastModifiedTime());
+    return dto.getLastModifiedTime().isAfter(existing.getLastModifiedTime());
   }
 
   /**

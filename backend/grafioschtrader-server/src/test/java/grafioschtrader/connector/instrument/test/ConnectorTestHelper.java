@@ -4,18 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.security.SecureRandom;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import grafiosch.BaseConstants;
-import grafiosch.common.DateHelper;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.entities.Assetclass;
@@ -37,10 +33,9 @@ public class ConnectorTestHelper {
 
   final static SecureRandom rnd = new SecureRandom();
 
-  final static SimpleDateFormat sdf = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
 
   public static void checkHistoryquoteUniqueDate(String name, List<Historyquote> historyquotes) {
-    Set<Date> dateSet = new HashSet<>();
+    Set<LocalDate> dateSet = new HashSet<>();
 
     List<Historyquote> historyquotesDuplicateByDate = historyquotes.stream().filter(h -> !dateSet.add(h.getDate()))
         .collect(Collectors.toList());
@@ -215,8 +210,7 @@ public class ConnectorTestHelper {
     splitCount.parallelStream().forEach(sc -> {
       List<Securitysplit> seucritysplitList = new ArrayList<>();
       try {
-        seucritysplitList = baseFeedConnector.getSplitHistory(sc.security, DateHelper.getLocalDate(sc.from),
-            DateHelper.getLocalDate(sc.to));
+        seucritysplitList = baseFeedConnector.getSplitHistory(sc.security, sc.from, sc.to);
       } catch (final Exception e) {
         e.printStackTrace();
       }
@@ -243,8 +237,8 @@ public class ConnectorTestHelper {
     dividendCount.parallelStream().forEach(dc -> {
       List<Dividend> dividends = new ArrayList<>();
       try {
-        dividends = baseFeedConnector.getDividendHistory(dc.security, DateHelper.getLocalDate(dc.from)).stream()
-            .filter(d -> !d.getEventDate().after(dc.to)).collect(Collectors.toList());
+        dividends = baseFeedConnector.getDividendHistory(dc.security, dc.from).stream()
+            .filter(d -> !d.getEventDate().isAfter(dc.to)).collect(Collectors.toList());
 
       } catch (final Exception e) {
         e.printStackTrace();
@@ -271,28 +265,15 @@ public class ConnectorTestHelper {
 
   public static class HistoricalDate {
     public int expectedRows;
-    public Date from;
-    public Date to;
+    public LocalDate from;
+    public LocalDate to;
 
     public HistoricalDate(int expectedRows, String fromStr, String toStr) throws ParseException {
       if (fromStr != null) {
         this.expectedRows = expectedRows;
-        this.from = sdf.parse(fromStr);
-        this.to = sdf.parse(toStr);
+        this.from = LocalDate.parse(fromStr);
+        this.to = LocalDate.parse(toStr);
       }
-    }
-
-  }
-
-  public static class HistoricalDateLocalDate {
-    public int expectedRows;
-    public LocalDate from;
-    public LocalDate to;
-
-    public HistoricalDateLocalDate(int expectedRows, String fromStr, String toStr) throws ParseException {
-      this.expectedRows = expectedRows;
-      this.from = LocalDate.parse(fromStr);
-      this.to = LocalDate.parse(toStr);
     }
 
   }
@@ -366,7 +347,7 @@ public class ConnectorTestHelper {
       security.setIsin(isin);
       security.setUrlHistoryExtend(urlExtend);
       security.setCurrency(currency);
-      security.setActiveToDate(DateHelper.setTimeToZeroAndAddDay(new Date(), 365));
+      security.setActiveToDate(LocalDate.now().plusDays(365));
 
       setAssetclassAndStockexchange(security, specialInvestmentInstrument, assetclassType, mic);
     }
@@ -379,7 +360,7 @@ public class ConnectorTestHelper {
       security.setName(name);
       security.setUrlHistoryExtend(urlExtend);
       security.setCurrency(currency);
-      security.setActiveToDate(DateHelper.setTimeToZeroAndAddDay(new Date(), 365));
+      security.setActiveToDate(LocalDate.now().plusDays(365));
 
       setAssetclassAndStockexchange(security, specialInvestmentInstrument, mic);
     }

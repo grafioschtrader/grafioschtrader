@@ -4,11 +4,9 @@ import java.beans.PropertyDescriptor;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -36,7 +34,6 @@ import grafiosch.BaseConstants;
  */
 public class ValueFormatConverter {
   private NumberFormat numberFormat;
-  private SimpleDateFormat simpleDateFormat;
   private DateTimeFormatter localTimeFormater;
   private DateTimeFormatter localDateFormatter;
   private DateTimeFormatter localDateFormatterFallback;
@@ -49,7 +46,6 @@ public class ValueFormatConverter {
    */
   public ValueFormatConverter() {
     this.numberFormat = NumberFormat.getInstance(Locale.getDefault());
-    simpleDateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
     localDateFormatter = DateTimeFormatter.ofPattern(BaseConstants.STANDARD_DATE_FORMAT);
     this.thousandSeparatorsPattern = Pattern.quote("" + "" + new DecimalFormatSymbols().getDecimalSeparator());
   }
@@ -68,7 +64,7 @@ public class ValueFormatConverter {
   public ValueFormatConverter(String dateFormat, String localTimeFormat, char thousandSeparators,
       String thousandSeparatorsPattern, char decimalSeparator, Locale userLocale) {
     if (localTimeFormat == null) {
-      simpleDateFormat = new SimpleDateFormat(dateFormat, Locale.ENGLISH);
+      localDateFormatter = DateTimeFormatter.ofPattern(dateFormat, Locale.ENGLISH);
     } else {
       localTimeFormater = DateTimeFormatter.ofPattern(localTimeFormat);
       localDateFormatter = DateTimeFormatter.ofPattern(dateFormat, userLocale);
@@ -82,9 +78,8 @@ public class ValueFormatConverter {
 
   public ValueFormatConverter(char decimalSeparator, String dateFormat, char thousandSeparators) {
     this(decimalSeparator, thousandSeparators);
-    simpleDateFormat = userLocale == null ? new SimpleDateFormat(dateFormat)
-        : new SimpleDateFormat(dateFormat, userLocale);
-
+    localDateFormatter = userLocale == null ? DateTimeFormatter.ofPattern(dateFormat)
+        : DateTimeFormatter.ofPattern(dateFormat, userLocale);
   }
 
   public ValueFormatConverter(char decimalSeparator, char thousandSeparators) {
@@ -143,12 +138,6 @@ public class ValueFormatConverter {
     } else if (Long.class == dataType || long.class == dataType) {
       value = cleanThousandSeparator(value);
       convertValue = numberFormat.parse(value).longValue();
-    } else if (Date.class == dataType) {
-      if (simpleDateFormat != null) {
-        convertValue = simpleDateFormat.parse(value);
-      } else {
-        convertValue = new Date(numberFormat.parse(value).longValue() * 1000);
-      }
     } else if (LocalDate.class == dataType) {
       try {
         convertValue = LocalDate.parse(value, localDateFormatter);

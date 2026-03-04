@@ -1,7 +1,6 @@
 package grafioschtrader.evalex;
 
 import java.math.BigDecimal;
-import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +49,7 @@ public class SmaFunction extends AbstractFunction {
     }
     SimpleMovingAverage sma = new SimpleMovingAverage(period, historyquotes.size());
     for (Historyquote hq : historyquotes) {
-      sma.addData(hq.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), hq.getClose());
+      sma.addData(hq.getDate(), hq.getClose());
     }
     TaIndicatorData[] data = sma.getTaIndicatorData();
     return data.length > 0 ? data[data.length - 1].value : 0.0;

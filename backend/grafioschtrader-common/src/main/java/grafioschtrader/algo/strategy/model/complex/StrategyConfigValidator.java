@@ -3,13 +3,12 @@ package grafioschtrader.algo.strategy.model.complex;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.ValidationException;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Utility for parsing and validating a {@link StrategyConfig} from JSON. Uses Jakarta Bean Validation to cascade

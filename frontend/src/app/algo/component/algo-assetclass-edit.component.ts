@@ -1,4 +1,5 @@
 import {Component, OnInit} from '@angular/core';
+import {Validators} from '@angular/forms';
 import {AlgoAssetclass} from '../model/algo.assetclass';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
@@ -7,7 +8,7 @@ import {AlgoAssetclassService} from '../service/algo.assetclass.service';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {AssetclassService} from '../../assetclass/service/assetclass.service';
-import {combineLatest, Observable} from 'rxjs';
+import {combineLatest, Observable, of} from 'rxjs';
 import {Assetclass} from '../../entities/assetclass';
 import {Portfolio} from '../../entities/portfolio';
 import {AlgoTop} from '../model/algo.top';
@@ -20,9 +21,6 @@ import {BusinessSelectOptionsHelper} from '../../shared/securitycurrency/busines
 import {DialogModule} from 'primeng/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
-/**
- * Project: Grafioschtrader
- */
 @Component({
     selector: 'algo-assetclass-edit',
     template: `
@@ -53,31 +51,48 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
       messageToastService, algoAssetclassService);
   }
 
-
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, this.helpLink.bind(this));
 
     this.config = [
+      DynamicFieldHelper.createFieldCheckboxHeqF('customCategory'),
+      DynamicFieldHelper.createFieldInputStringHeqF('name', 40, false),
       DynamicFieldHelper.createFieldSelectStringHeqF(AppSettings.ASSETCLASS_KEY, true,
         {dataproperty: 'assetclass.idAssetClass'}),
       ...this.getFieldDefinition()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
-
   }
 
   protected override initialize(): void {
     const allSecurityaccountsObservable: Observable<Portfolio[]> = this.portfolioService.getPortfoliosForTenantOrderByName();
     this.valueChangedOnSecurityaccount1();
-    combineLatest([this.getAssetclassObserver(), allSecurityaccountsObservable]).subscribe(
+
+    // Detect custom category mode for existing entity
+    const isCustom = this.algoCallParam.thisObject && (<AlgoAssetclass>this.algoCallParam.thisObject).name != null;
+
+    // Subscribe to customCategory checkbox changes
+    this.configObject.customCategory.formControl.valueChanges.subscribe((checked: boolean) => {
+      this.updateCustomCategoryDependencies(checked);
+    });
+
+    const assetclassObservable = isCustom ? of([] as Assetclass[]) : this.getAssetclassObserver();
+
+    combineLatest([assetclassObservable, allSecurityaccountsObservable]).subscribe(
       (data: [Assetclass | Assetclass[], Portfolio[]]) => {
         this.configObject.assetclass.referencedDataObject = Array.isArray(data[0]) ? data[0] : [data[0]];
         this.configObject.assetclass.valueKeyHtmlOptions = BusinessSelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
           this.gps, this.translateService, this.configObject.assetclass.referencedDataObject);
         this.portfolios = data[1];
         this.setSecurityaccounts();
-        this.disableEnableInputForExisting(this.algoCallParam.thisObject != null);
+
+        if (isCustom) {
+          this.configObject.customCategory.formControl.setValue(true);
+        } else {
+          this.updateCustomCategoryDependencies(false);
+          this.disableEnableInputForExisting(this.algoCallParam.thisObject != null);
+        }
       });
   }
 
@@ -87,8 +102,40 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
       Object.assign(algoAssetclass, this.algoCallParam.thisObject);
     }
     this.form.cleanMaskAndTransferValuesToBusinessObject(algoAssetclass);
+    if (this.configObject.customCategory.formControl.value) {
+      algoAssetclass.assetclass = null;
+    } else {
+      algoAssetclass.name = null;
+    }
     algoAssetclass.idAlgoAssetclassParent = (<AlgoTop>this.algoCallParam.parentObject).idAlgoAssetclassSecurity;
     return algoAssetclass;
+  }
+
+  private updateCustomCategoryDependencies(isCustom: boolean): void {
+    if (isCustom) {
+      this.enableField('name', true);
+      this.disableAndClearField('assetclass');
+    } else {
+      this.disableAndClearField('name');
+      this.enableField('assetclass', true);
+    }
+    // Disable customCategory checkbox in edit mode
+    if (this.algoCallParam.thisObject != null) {
+      this.configObject.customCategory.formControl.disable();
+    }
+  }
+
+  private enableField(fieldName: string, required: boolean): void {
+    const fc = this.configObject[fieldName];
+    fc.formControl.enable();
+    DynamicFieldHelper.resetValidator(fc, required ? [Validators.required] : []);
+  }
+
+  private disableAndClearField(fieldName: string): void {
+    const fc = this.configObject[fieldName];
+    fc.formControl.setValue(null);
+    DynamicFieldHelper.resetValidator(fc, []);
+    fc.formControl.disable();
   }
 
   private getAssetclassObserver(): Observable<Assetclass> | Observable<Assetclass[]> {

@@ -1,13 +1,12 @@
 package grafioschtrader.instrument;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import grafiosch.common.DateHelper;
 import grafioschtrader.config.NegativeIdNumberCreater;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
@@ -60,16 +59,16 @@ public class SecurityCalcService {
   public void calcTransactions(Security security, final boolean excludeDivTaxcost,
       final SecurityTransactionSummary securityTransactionSummary,
       final Map<Integer, List<Securitysplit>> securitySplitMap, final List<Transaction> transactions,
-      final Date untilDate, DateTransactionCurrencypairMap dateCurrencyMap) {
+      final LocalDate untilDate, DateTransactionCurrencypairMap dateCurrencyMap) {
 
     boolean isMarginInstrument = securityTransactionSummary.securityPositionSummary.getSecurity().isMarginInstrument();
 
     if (dateCurrencyMap == null) {
       dateCurrencyMap = new DateTransactionCurrencypairMap(untilDate,
-          tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(DateHelper.getLocalDate(untilDate)));
+          tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate));
     }
     for (final Transaction transaction : transactions) {
-      if (transaction.getTransactionTime().getTime() > untilDate.getTime()) {
+      if (transaction.getTransactionTime().toLocalDate().isAfter(untilDate)) {
         return;
       }
       if (!isMarginInstrument) {

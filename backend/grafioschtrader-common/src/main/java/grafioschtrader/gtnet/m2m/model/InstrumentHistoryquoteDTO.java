@@ -1,13 +1,14 @@
 package grafioschtrader.gtnet.m2m.model;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -36,12 +37,12 @@ public class InstrumentHistoryquoteDTO implements Serializable {
   private String toCurrency;
 
   @Schema(description = "Start date of the requested/provided date range (inclusive)")
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-  private Date fromDate;
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  private LocalDate fromDate;
 
   @Schema(description = "End date of the requested/provided date range (inclusive)")
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-  private Date toDate;
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  private LocalDate toDate;
 
   @Schema(description = """
       When true in a response, indicates the supplier is interested in receiving historical data for this instrument
@@ -51,8 +52,8 @@ public class InstrumentHistoryquoteDTO implements Serializable {
   @Schema(description = """
       The date from which the supplier wants to receive historical data (typically the day after their most recent
       data). Only populated when wantsToReceive is true.""")
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-  private Date wantsDataFromDate;
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  private LocalDate wantsDataFromDate;
 
   @Schema(description = "List of historical price records within the date range")
   private List<HistoryquoteRecordDTO> records = new ArrayList<>();
@@ -63,7 +64,8 @@ public class InstrumentHistoryquoteDTO implements Serializable {
   /**
    * Creates a request DTO for a security (identified by ISIN + currency).
    */
-  public static InstrumentHistoryquoteDTO forSecurityRequest(String isin, String currency, Date fromDate, Date toDate) {
+  public static InstrumentHistoryquoteDTO forSecurityRequest(String isin, String currency, LocalDate fromDate,
+      LocalDate toDate) {
     InstrumentHistoryquoteDTO dto = new InstrumentHistoryquoteDTO();
     dto.isin = isin;
     dto.currency = currency;
@@ -77,7 +79,7 @@ public class InstrumentHistoryquoteDTO implements Serializable {
    * Creates a request DTO for a currency pair (identified by fromCurrency + toCurrency).
    */
   public static InstrumentHistoryquoteDTO forCurrencypairRequest(String fromCurrency, String toCurrency,
-      Date fromDate, Date toDate) {
+      LocalDate fromDate, LocalDate toDate) {
     InstrumentHistoryquoteDTO dto = new InstrumentHistoryquoteDTO();
     dto.isin = null;
     dto.currency = fromCurrency;
@@ -95,7 +97,8 @@ public class InstrumentHistoryquoteDTO implements Serializable {
    * @param currency the currency of the security
    * @param wantsFromDate the date from which data is wanted (typically most recent local data + 1 day)
    */
-  public static InstrumentHistoryquoteDTO forSecurityWantToReceive(String isin, String currency, Date wantsFromDate) {
+  public static InstrumentHistoryquoteDTO forSecurityWantToReceive(String isin, String currency,
+      LocalDate wantsFromDate) {
     InstrumentHistoryquoteDTO dto = new InstrumentHistoryquoteDTO();
     dto.isin = isin;
     dto.currency = currency;
@@ -113,7 +116,7 @@ public class InstrumentHistoryquoteDTO implements Serializable {
    * @param wantsFromDate the date from which data is wanted (typically most recent local data + 1 day)
    */
   public static InstrumentHistoryquoteDTO forCurrencypairWantToReceive(String fromCurrency, String toCurrency,
-      Date wantsFromDate) {
+      LocalDate wantsFromDate) {
     InstrumentHistoryquoteDTO dto = new InstrumentHistoryquoteDTO();
     dto.currency = fromCurrency;
     dto.toCurrency = toCurrency;
@@ -192,19 +195,19 @@ public class InstrumentHistoryquoteDTO implements Serializable {
     this.toCurrency = toCurrency;
   }
 
-  public Date getFromDate() {
+  public LocalDate getFromDate() {
     return fromDate;
   }
 
-  public void setFromDate(Date fromDate) {
+  public void setFromDate(LocalDate fromDate) {
     this.fromDate = fromDate;
   }
 
-  public Date getToDate() {
+  public LocalDate getToDate() {
     return toDate;
   }
 
-  public void setToDate(Date toDate) {
+  public void setToDate(LocalDate toDate) {
     this.toDate = toDate;
   }
 
@@ -216,11 +219,11 @@ public class InstrumentHistoryquoteDTO implements Serializable {
     this.wantsToReceive = wantsToReceive;
   }
 
-  public Date getWantsDataFromDate() {
+  public LocalDate getWantsDataFromDate() {
     return wantsDataFromDate;
   }
 
-  public void setWantsDataFromDate(Date wantsDataFromDate) {
+  public void setWantsDataFromDate(LocalDate wantsDataFromDate) {
     this.wantsDataFromDate = wantsDataFromDate;
   }
 

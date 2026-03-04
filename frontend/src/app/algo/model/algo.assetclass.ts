@@ -9,6 +9,8 @@ export class AlgoAssetclass extends AlgoAssetclassSecurity implements AlgoTreeNa
 
   idAlgoAssetclassParent: number;
 
+  name: string = null;
+
   assetclass: Assetclass = null;
 
   @Type(() => AlgoSecurity)
@@ -17,7 +19,15 @@ export class AlgoAssetclass extends AlgoAssetclassSecurity implements AlgoTreeNa
   addedPercentage: number;
 
   @Exclude()
+  isCustomCategory(): boolean {
+    return this.name != null;
+  }
+
+  @Exclude()
   getNameByLanguage(language: string): string {
+    if (this.isCustomCategory()) {
+      return this.name;
+    }
     return this.assetclass['categoryType$'] + ', ' + this.assetclass.subCategoryNLS.map[language] + ', '
       + this.assetclass[`specialInvestmentInstrument$`];
   }

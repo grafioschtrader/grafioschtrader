@@ -1,7 +1,6 @@
 package grafioschtrader.connector.instrument;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -258,7 +257,7 @@ public interface IFeedConnector {
    * @return list of historical quotes sorted by date
    * @throws Exception if data retrieval fails due to connectivity, authentication, or parsing errors
    */
-  List<Historyquote> getEodSecurityHistory(Security security, Date from, Date to) throws Exception;
+  List<Historyquote> getEodSecurityHistory(Security security, LocalDate from, LocalDate to) throws Exception;
 
   /**
    * Updates the security with the latest intraday price information including
@@ -286,7 +285,7 @@ public interface IFeedConnector {
    * @return list of historical exchange rate quotes sorted by date
    * @throws Exception if data retrieval fails
    */
-  List<Historyquote> getEodCurrencyHistory(Currencypair currencyPair, Date from, Date to) throws Exception;
+  List<Historyquote> getEodCurrencyHistory(Currencypair currencyPair, LocalDate from, LocalDate to) throws Exception;
 
   /**
    * Updates the currency pair with the latest exchange rate information.
@@ -340,7 +339,7 @@ public interface IFeedConnector {
    * @param splitDate the date when the stock split occurred
    * @return number of days to wait before next check, or null if no further checks needed
    */
-  Integer getNextAttemptInDaysForSplitHistorical(Date splitDate);
+  Integer getNextAttemptInDaysForSplitHistorical(LocalDate splitDate);
 
   /**
    * Returns which data provider the content of the links for the frontend must be created in the backend. Normally, the

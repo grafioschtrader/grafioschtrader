@@ -12,7 +12,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -29,15 +28,13 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import grafiosch.common.DateHelper;
 import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.IConnectorNames;
 import grafioschtrader.connector.calendar.ISplitCalendarFeedConnector;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.types.CreateType;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class InvestingSplitCalendar implements ISplitCalendarFeedConnector {
@@ -155,7 +152,7 @@ public class InvestingSplitCalendar implements ISplitCalendarFeedConnector {
   private Securitysplit getSecuritySplit(String splitText, LocalDate forDate, FractionFormat fractionFormat) {
     String fractionStr = splitText.replace(":", "/").replaceAll("\\s+", "");
     Fraction fraction = fractionFormat.parse(fractionStr);
-    return new Securitysplit(null, DateHelper.getDateFromLocalDate(forDate), fraction.getDenominator(),
+    return new Securitysplit(null, forDate, fraction.getDenominator(),
         fraction.getNumerator(), CreateType.CONNECTOR_CREATED);
   }
 
@@ -171,8 +168,8 @@ public class InvestingSplitCalendar implements ISplitCalendarFeedConnector {
 
   static class SplitCalendarResponse {
     public String timeframe;
-    public Date dateFrom;
-    public Date dateTo;
+    public LocalDate dateFrom;
+    public LocalDate dateTo;
     public String data;
     public int rows_num;
     public int last_time_scope;

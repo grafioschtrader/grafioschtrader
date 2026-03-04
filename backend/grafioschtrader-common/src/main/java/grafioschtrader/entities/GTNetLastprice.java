@@ -1,7 +1,10 @@
 package grafioschtrader.entities;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import grafiosch.BaseConstants;
 import grafiosch.entities.BaseID;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
@@ -13,8 +16,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 
 /**
  * Intraday price data for instruments in the GT-Network pool.
@@ -60,9 +61,9 @@ public class GTNetLastprice extends BaseID<Integer> {
   private GTNetInstrument gtNetInstrument;
 
   @Schema(description = "Time of the last intraday price update")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "timestamp")
-  @Temporal(TemporalType.TIMESTAMP)
-  private Date timestamp;
+  private LocalDateTime timestamp;
 
   @Schema(description = "Opening price for the last or current trading day")
   @Column(name = "open")
@@ -100,11 +101,11 @@ public class GTNetLastprice extends BaseID<Integer> {
     this.gtNetInstrument = gtNetInstrument;
   }
 
-  public Date getTimestamp() {
+  public LocalDateTime getTimestamp() {
     return timestamp;
   }
 
-  public void setTimestamp(Date timestamp) {
+  public void setTimestamp(LocalDateTime timestamp) {
     this.timestamp = timestamp;
   }
 

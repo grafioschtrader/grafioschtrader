@@ -2,7 +2,7 @@ package grafioschtrader.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,7 +88,7 @@ public class PortfolioResource extends UpdateCreateDeleteWithTenantResource<Port
       Portfolio.TABNAME })
   @GetMapping(value = "/securitycashaccountsummary/portfolio", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<AccountPositionGrandSummary> getAccountPositionSummaryGroupPortfolioTenant(
-      @Parameter(description = "Until which date are transactions included", required = true) @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) {
+      @Parameter(description = "Until which date are transactions included", required = true) @RequestParam() @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(accountPositionGroupSummaryReport.getAccountGrandSummaryIdTenant(user.getIdTenant(),
         new GroupPortfolio(), untilDate), HttpStatus.OK);
@@ -98,7 +98,7 @@ public class PortfolioResource extends UpdateCreateDeleteWithTenantResource<Port
       Portfolio.TABNAME })
   @GetMapping(value = "/securitycashaccountsummary/currency", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<AccountPositionGrandSummary> getAccountPositionSummaryGroupCurrencyTenant(
-      @Parameter(description = "Until which date are transactions included", required = true) @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) {
+      @Parameter(description = "Until which date are transactions included", required = true) @RequestParam() @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(accountPositionGroupSummaryReport.getAccountGrandSummaryIdTenant(user.getIdTenant(),
         new GroupCurrency(), untilDate), HttpStatus.OK);

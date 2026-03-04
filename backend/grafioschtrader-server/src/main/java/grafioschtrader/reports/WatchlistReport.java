@@ -1,13 +1,12 @@
 package grafioschtrader.reports;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Month;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -272,12 +271,12 @@ public class WatchlistReport {
 
     // Check if price update is needed and save watchlist in main transaction to avoid
     // stale entity issues with async operations (MariaDB 11.x row version detection)
-    final Date timeframe = new Date(
-        System.currentTimeMillis() - 1000 * globalparametersService.getWatchlistIntradayUpdateTimeout());
+    final LocalDateTime timeframe = LocalDateTime.now()
+        .minusSeconds(globalparametersService.getWatchlistIntradayUpdateTimeout());
     final boolean needsPriceUpdate = watchlist.getLastTimestamp() == null
-        || timeframe.after(watchlist.getLastTimestamp());
+        || timeframe.isAfter(watchlist.getLastTimestamp());
     if (needsPriceUpdate) {
-      watchlist.setLastTimestamp(new Date(System.currentTimeMillis()));
+      watchlist.setLastTimestamp(LocalDateTime.now());
       watchlist = watchlistJpaRepository.saveAndFlush(watchlist);
       log.info("Intraday update for {}", watchlist.getName());
     }
@@ -418,9 +417,8 @@ public class WatchlistReport {
 
   private Map<Integer, ISecuritycurrencyIdDateClose> getTimeFrameHistoryquotesByIdWatchlistAndDate(
       final Integer idWatchlist, final LocalDate localDateTimeFrame) {
-    final Date date = Date.from(localDateTimeFrame.atStartOfDay(ZoneId.systemDefault()).toInstant());
     final List<ISecuritycurrencyIdDateClose> historyquotes = this.historyquoteJpaRepository
-        .getCertainOrOlderDayInHistorquoteForSecuritycurrencyByWatchlist(idWatchlist, date);
+        .getCertainOrOlderDayInHistorquoteForSecuritycurrencyByWatchlist(idWatchlist, localDateTimeFrame);
     return historyquotes.stream()
         .collect(Collectors.toMap(ISecuritycurrencyIdDateClose::getIdSecuritycurrency, Function.identity()));
   }
@@ -577,7 +575,7 @@ public class WatchlistReport {
               securitycurrencyPosition.positionGainLossPercentage = securityPositionSummary
                   .getPositionGainLossPercentage();
             }
-          }, new Date());
+          }, LocalDate.now());
     }
   }
 

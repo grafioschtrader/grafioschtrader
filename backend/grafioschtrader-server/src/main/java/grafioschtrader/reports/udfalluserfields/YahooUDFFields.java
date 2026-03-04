@@ -84,7 +84,7 @@ public abstract class YahooUDFFields extends AllUserFieldsSecurity {
     List<SecuritycurrencyPosition<Security>> filteredList = securitycurrencyUDFGroup.securityPositionList.stream()
         .filter(
             s -> matchAssetclassAndSpecialInvestmentInstruments(udfMetaDataSecurity, s.securitycurrency.getAssetClass())
-                && ((java.sql.Date) s.securitycurrency.getActiveToDate()).toLocalDate().isAfter(now))
+                && s.securitycurrency.getActiveToDate().isAfter(now))
         .collect(Collectors.toList());
 
     forkJoinPool.submit(() -> filteredList.parallelStream().forEach(s -> {

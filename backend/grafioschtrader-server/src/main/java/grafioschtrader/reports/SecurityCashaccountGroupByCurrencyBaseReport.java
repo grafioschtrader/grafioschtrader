@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
 import grafiosch.BaseConstants;
-import grafiosch.common.DateHelper;
 import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionCurrenyGroupSummary;
@@ -180,7 +179,7 @@ public class SecurityCashaccountGroupByCurrencyBaseReport {
         if (currencyExchangeRate == null) {
           // Not found a EOD price for this date
           boolean hasTradingDaysBetweenUntilDateAndYesterday = tradingDaysPlusJpaRepository
-              .hasTradingDayBetweenUntilYesterday(DateHelper.getLocalDate(dateCurrencyMap.getUntilDate()));
+              .hasTradingDayBetweenUntilYesterday(dateCurrencyMap.getUntilDate());
 
           if (hasTradingDaysBetweenUntilDateAndYesterday) {
             log.warn("Currencypair {}/{} for Date {} ist not updated!", currency, dateCurrencyMap.getMainCurrency(),

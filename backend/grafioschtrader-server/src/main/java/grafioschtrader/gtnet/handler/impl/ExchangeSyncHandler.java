@@ -1,6 +1,6 @@
 package grafioschtrader.gtnet.handler.impl;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -77,7 +77,7 @@ public class ExchangeSyncHandler extends AbstractGTNetMessageHandler {
     }
 
     // Build response with our changed items since the requester's timestamp
-    Date sinceTimestamp = request.sinceTimestamp != null ? request.sinceTimestamp : new Date(0);
+    LocalDateTime sinceTimestamp = request.sinceTimestamp != null ? request.sinceTimestamp : LocalDateTime.of(1970, 1, 1, 0, 0);
     List<ExchangeSyncItem> ourItems = exchangeSyncService.getChangedExchangeItems(sinceTimestamp);
     ExchangeSyncMsg response = ExchangeSyncMsg.forRequest(sinceTimestamp, ourItems);
 

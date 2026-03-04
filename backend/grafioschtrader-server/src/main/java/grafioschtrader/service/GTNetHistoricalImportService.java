@@ -1,8 +1,9 @@
 package grafioschtrader.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,8 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfig;
@@ -37,6 +36,7 @@ import grafioschtrader.gtnet.model.msg.HistoryquoteCoverageResponseMsg.Instrumen
 import grafioschtrader.gtnet.model.msg.HistoryquoteExchangeMsg;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Service for importing historical price data from GTNet peers after security creation.
@@ -183,7 +183,7 @@ public class GTNetHistoricalImportService extends BaseGTNetExchangeService {
    * @param toDate   the end date (inclusive)
    * @return list of historyquotes, or empty list if fetch failed
    */
-  public List<Historyquote> fetchFromPeer(GTNet peer, Security security, Date fromDate, Date toDate) {
+  public List<Historyquote> fetchFromPeer(GTNet peer, Security security, LocalDate fromDate, LocalDate toDate) {
     if (peer == null || security == null || security.getIsin() == null) {
       return Collections.emptyList();
     }
@@ -210,7 +210,7 @@ public class GTNetHistoricalImportService extends BaseGTNetExchangeService {
     envelope.sourceGtNet = new GTNetPublicDTO(myGTNet);
     envelope.serverBusy = myGTNet.isServerBusy();
     envelope.messageCode = GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_SEL_C.getValue();
-    envelope.timestamp = new Date();
+    envelope.timestamp = LocalDateTime.now();
     envelope.payload = objectMapper.valueToTree(request);
 
     log.debug("Fetching historyquotes from {} for {} ({}) from {} to {}", peer.getDomainRemoteName(), security.getIsin(),
@@ -288,8 +288,8 @@ public class GTNetHistoricalImportService extends BaseGTNetExchangeService {
     }
 
     try {
-      Date startDate = globalparametersService.getStartFeedDate();
-      Date endDate = new Date();
+      LocalDate startDate = globalparametersService.getStartFeedDate();
+      LocalDate endDate = LocalDate.now();
 
       // Directly call the connector's method to get historical quotes
       List<Historyquote> quotes = connector.getEodSecurityHistory(security, startDate, endDate);
@@ -330,7 +330,7 @@ public class GTNetHistoricalImportService extends BaseGTNetExchangeService {
     envelope.sourceGtNet = new GTNetPublicDTO(myGTNet);
     envelope.serverBusy = myGTNet.isServerBusy();
     envelope.messageCode = GTNetMessageCodeType.GT_NET_HISTORYQUOTE_COVERAGE_SEL_C.getValue();
-    envelope.timestamp = new Date();
+    envelope.timestamp = LocalDateTime.now();
     envelope.payload = objectMapper.valueToTree(query);
 
     SendResult result = baseDataClient.sendToMsgWithStatus(config.getTokenRemote(), peer.getDomainRemoteName(),
@@ -380,11 +380,11 @@ public class GTNetHistoricalImportService extends BaseGTNetExchangeService {
    */
   public static class PeerSelection {
     public final GTNet peer;
-    public final Date minDate;
-    public final Date maxDate;
+    public final LocalDate minDate;
+    public final LocalDate maxDate;
     public final long coverageDays;
 
-    public PeerSelection(GTNet peer, Date minDate, Date maxDate, long coverageDays) {
+    public PeerSelection(GTNet peer, LocalDate minDate, LocalDate maxDate, long coverageDays) {
       this.peer = peer;
       this.minDate = minDate;
       this.maxDate = maxDate;

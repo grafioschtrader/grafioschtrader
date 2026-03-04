@@ -1,9 +1,8 @@
 package grafioschtrader.task.exec;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -179,7 +178,7 @@ public class GTNetExchangeLogAggregationAndDelGTNetMessagesTask implements ITask
     int hpDays = msgConfig.getIntValue("HP", 5);
 
     // Delete old LastPrice exchange messages (codes 60, 61)
-    Date lpThreshold = Date.from(today.minusDays(lpDays).atStartOfDay(ZoneId.systemDefault()).toInstant());
+    LocalDateTime lpThreshold = today.minusDays(lpDays).atStartOfDay();
     // First delete replies to avoid FK constraint violation on reply_to
     int lpRepliesDeleted = gtNetMessageJpaRepository.deleteRepliesToOldMessages(LASTPRICE_MESSAGE_CODES, lpThreshold);
     int lpDeleted = gtNetMessageJpaRepository.deleteOldMessagesByCodesAndDate(LASTPRICE_MESSAGE_CODES, lpThreshold);
@@ -189,7 +188,7 @@ public class GTNetExchangeLogAggregationAndDelGTNetMessagesTask implements ITask
     }
 
     // Delete old HistoryPrice exchange messages (codes 80, 81)
-    Date hpThreshold = Date.from(today.minusDays(hpDays).atStartOfDay(ZoneId.systemDefault()).toInstant());
+    LocalDateTime hpThreshold = today.minusDays(hpDays).atStartOfDay();
     // First delete replies to avoid FK constraint violation on reply_to
     int hpRepliesDeleted = gtNetMessageJpaRepository.deleteRepliesToOldMessages(HISTORYQUOTE_MESSAGE_CODES, hpThreshold);
     int hpDeleted = gtNetMessageJpaRepository.deleteOldMessagesByCodesAndDate(HISTORYQUOTE_MESSAGE_CODES, hpThreshold);

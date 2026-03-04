@@ -2,8 +2,8 @@ package grafioschtrader.connector.instrument.ecb;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -53,15 +53,16 @@ public class EcbCrossRateConnector extends BaseFeedConnector {
   }
 
   @Override
-  public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
-      throws IOException, ParseException, InterruptedException {
+  public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final LocalDate from,
+      final LocalDate to) throws IOException, ParseException, InterruptedException {
     List<CalcRates> calcRates = null;
     final List<Historyquote> historyquotes = new ArrayList<>();
 
     if (currencyPair.getFromCurrency().equals(GlobalConstants.MC_EUR)) {
       calcRates = ecbExchangeRatesRepository.getRatesByFromToDate(currencyPair.getToCurrency(), from, to, true);
     } else if (currencyPair.getToCurrency().equals(GlobalConstants.MC_EUR)) {
-      calcRates = ecbExchangeRatesRepository.getRatesByFromToDate(currencyPair.getFromCurrency(), from, to, false);
+      calcRates = ecbExchangeRatesRepository.getRatesByFromToDate(currencyPair.getFromCurrency(), from, to,
+          false);
     } else {
       // Cross currency calculation
       calcRates = ecbExchangeRatesRepository.getCrossCurrencyRateForPeriod(currencyPair.getFromCurrency(),

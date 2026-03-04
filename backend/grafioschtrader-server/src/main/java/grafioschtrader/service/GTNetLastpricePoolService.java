@@ -1,6 +1,6 @@
 package grafioschtrader.service;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -362,7 +362,7 @@ public class GTNetLastpricePoolService {
    * @return true if the entry was created or updated
    */
   private boolean updateLastpriceIfNewer(GTNetInstrument instrument, Map<Integer, GTNetLastprice> lastpriceMap,
-      Date timestamp, Double open, Double high, Double low, Double last, Long volume) {
+      LocalDateTime timestamp, Double open, Double high, Double low, Double last, Long volume) {
 
     Integer instrumentId = instrument.getIdGtNetInstrument();
     GTNetLastprice existing = lastpriceMap.get(instrumentId);
@@ -385,7 +385,7 @@ public class GTNetLastpricePoolService {
     return false;
   }
 
-  private void updateLastpriceFields(GTNetLastprice lastprice, Date timestamp,
+  private void updateLastpriceFields(GTNetLastprice lastprice, LocalDateTime timestamp,
       Double open, Double high, Double low, Double last, Long volume) {
     lastprice.setTimestamp(timestamp);
     lastprice.setOpen(open);
@@ -395,13 +395,13 @@ public class GTNetLastpricePoolService {
     lastprice.setVolume(volume);
   }
 
-  private boolean isNewer(Date newTimestamp, Date existingTimestamp) {
+  private boolean isNewer(LocalDateTime newTimestamp, LocalDateTime existingTimestamp) {
     if (newTimestamp == null) {
       return false;
     }
     if (existingTimestamp == null) {
       return true;
     }
-    return newTimestamp.after(existingTimestamp);
+    return newTimestamp.isAfter(existingTimestamp);
   }
 }

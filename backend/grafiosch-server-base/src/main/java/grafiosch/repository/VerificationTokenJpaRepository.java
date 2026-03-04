@@ -1,6 +1,6 @@
 package grafiosch.repository;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -15,5 +15,5 @@ public interface VerificationTokenJpaRepository
 
   @Modifying
   @Query("DELETE FROM VerificationToken t WHERE t.expiryDate <= ?1")
-  void deleteAllExpiredSince(Date now);
+  void deleteAllExpiredSince(LocalDateTime now);
 }

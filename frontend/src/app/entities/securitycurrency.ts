@@ -6,7 +6,7 @@ export class Securitycurrency extends Auditable {
   dtype?: string;
   idSecuritycurrency?: number = null;
   note?: string = null;
-  fullLoadTimestamp: number;
+  fullLoadTimestamp: string;
   retryHistoryLoad?: number = null;
   idConnectorHistory?: string = null;
   urlHistoryExtend?: string = null;
@@ -23,7 +23,7 @@ export class Securitycurrency extends Auditable {
   historyquoteList?: Historyquote[];
   name: string = null;
 
-  sTimestamp?: number = null;
+  sTimestamp?: string = null;
 
   /** Receive intraday prices for this instrument via GTNet. */
   gtNetLastpriceRecv?: boolean = false;
@@ -34,7 +34,7 @@ export class Securitycurrency extends Auditable {
   /** Share historical price data of this instrument via GTNet. */
   gtNetHistoricalSend?: boolean = false;
   /** Timestamp when GTNet exchange settings were last modified. */
-  gtNetLastModifiedTime?: Date;
+  gtNetLastModifiedTime?: string;
 
   public override getId(): number {
     return this.idSecuritycurrency;

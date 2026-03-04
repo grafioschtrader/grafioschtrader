@@ -4,10 +4,10 @@ import java.lang.annotation.Annotation;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.commons.codec.binary.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.Modifying;
@@ -80,7 +80,7 @@ public class PortfolioJpaRepositoryImpl extends BaseRepositoryImpl<Portfolio> im
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
 
     boolean currencyChanged = existingEntity == null
-        || !StringUtils.equals(existingEntity.getCurrency(), portfolio.getCurrency());
+        || !Objects.equals(existingEntity.getCurrency(), portfolio.getCurrency());
 
     Portfolio portfolioNew = RepositoryHelper.saveOnlyAttributes(portfolioJpaRepository, portfolio, existingEntity,
         updatePropertyLevelClasses);

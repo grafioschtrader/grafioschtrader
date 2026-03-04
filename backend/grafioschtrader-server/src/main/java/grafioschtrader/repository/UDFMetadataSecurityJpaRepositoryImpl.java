@@ -1,8 +1,8 @@
 package grafioschtrader.repository;
 
 import java.lang.annotation.Annotation;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +71,7 @@ public class UDFMetadataSecurityJpaRepositoryImpl extends UDFMetadataBase<UDFMet
         .collect(Collectors.toSet());
     Set<UDFMetadataSecurity> udfMSSet = uMetaSecurityRepository.getByUdfSpecialTypeInAndIdUser(
         udfForEveryUserSet.stream().map(u -> u.getUDFSpecialType().getValue()).collect(Collectors.toSet()), 0);
-    Date now = new Date();
+    LocalDate now = LocalDate.now();
     // It is possible that two user-defined fields have the same selection criteria.
     // This means that the second query can be avoided and processing can be carried out on the securities that have
     // already been selected.

@@ -3,11 +3,9 @@ package grafioschtrader.platformimport;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.Map;
 
-import grafiosch.common.DateHelper;
 import grafioschtrader.types.ImportKnownOtherFlags;
 import grafioschtrader.types.TransactionType;
 import grafioschtrader.validation.ISINValidator;
@@ -27,7 +25,7 @@ public class ImportProperties {
   public static final String ORDER = "order";
 
   /** Date of Transaction */
-  private Date datetime;
+  private LocalDateTime datetime;
 
   /** Date component when date and time are provided separately. */
   private LocalDate date;
@@ -36,7 +34,7 @@ public class ImportProperties {
   private LocalTime time;
 
   /** Date of ex dividend */
-  private Date exdiv;
+  private LocalDate exdiv;
 
   /** Transaction type as text from the document (validated against transactionTypesMap). */
   private String transType;
@@ -143,15 +141,15 @@ public class ImportProperties {
    * 
    * @return Complete transaction timestamp
    */
-  public Date getDatetime() {
+  public LocalDateTime getDatetime() {
     if (datetime == null && date != null && time != null) {
-      datetime = DateHelper.convertToDateViaInstant(LocalDateTime.of(date, time));
+      datetime = LocalDateTime.of(date, time);
     }
     return datetime;
   }
 
-  public void setDatetime(Date date) {
-    this.datetime = date;
+  public void setDatetime(LocalDateTime datetime) {
+    this.datetime = datetime;
   }
 
   public void setDate(LocalDate date) {
@@ -170,11 +168,11 @@ public class ImportProperties {
     this.time = time;
   }
 
-  public Date getExdiv() {
+  public LocalDate getExdiv() {
     return exdiv;
   }
 
-  public void setExdiv(Date exdiv) {
+  public void setExdiv(LocalDate exdiv) {
     this.exdiv = exdiv;
   }
 

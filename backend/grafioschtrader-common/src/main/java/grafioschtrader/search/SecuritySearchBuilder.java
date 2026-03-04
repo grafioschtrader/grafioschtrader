@@ -1,7 +1,7 @@
 package grafioschtrader.search;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.jpa.domain.Specification;
@@ -197,9 +197,9 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
   private void addActiveDate(final Root<Security> securityRoot, final CriteriaBuilder builder,
       final List<Predicate> mainPredicates) {
     if (securitycurrencySearch.getActiveDate() != null) {
-      mainPredicates.add(builder.and(builder.lessThanOrEqualTo(securityRoot.<Date>get(Security_.activeFromDate),
+      mainPredicates.add(builder.and(builder.lessThanOrEqualTo(securityRoot.<LocalDate>get(Security_.activeFromDate),
           securitycurrencySearch.getActiveDate())));
-      mainPredicates.add(builder.and(builder.greaterThanOrEqualTo(securityRoot.<Date>get(Security_.activeToDate),
+      mainPredicates.add(builder.and(builder.greaterThanOrEqualTo(securityRoot.<LocalDate>get(Security_.activeToDate),
           securitycurrencySearch.getActiveDate())));
     }
   }
@@ -222,9 +222,9 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
   private void addFromToActiveDate(final Root<Security> securityRoot, final CriteriaBuilder builder,
       final List<Predicate> mainPredicates) {
     if (securitycurrencySearch.getMaxFromDate() != null && securitycurrencySearch.getMinToDate() != null) {
-      mainPredicates.add(builder.and(builder.lessThanOrEqualTo(securityRoot.<Date>get(Security_.activeFromDate),
+      mainPredicates.add(builder.and(builder.lessThanOrEqualTo(securityRoot.<LocalDate>get(Security_.activeFromDate),
           securitycurrencySearch.getMinToDate())));
-      mainPredicates.add(builder.and(builder.greaterThanOrEqualTo(securityRoot.<Date>get(Security_.activeToDate),
+      mainPredicates.add(builder.and(builder.greaterThanOrEqualTo(securityRoot.<LocalDate>get(Security_.activeToDate),
           securitycurrencySearch.getMaxFromDate())));
     }
   }

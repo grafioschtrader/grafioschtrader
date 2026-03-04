@@ -5,10 +5,9 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Duration;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -16,7 +15,6 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import grafiosch.common.DateHelper;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
@@ -191,21 +189,20 @@ public class FeedConnectorHelper {
    * Parses a single line of German-formatted financial data response into a Historyquote object. Expected format is
    * semicolon-separated values: date;open;high;low;close;volume Only creates a Historyquote if the parsed date falls
    * within the specified date range.
-   * 
+   *
    * @param inputLine  the semicolon-separated line to parse
    * @param from       the start date of the acceptable range (inclusive)
    * @param to         the end date of the acceptable range (inclusive)
-   * @param dateFormat the SimpleDateFormat to use for parsing the date field
+   * @param dateFormat the DateTimeFormatter to use for parsing the date field
    * @return a new Historyquote object if the date is within range, null otherwise
-   * @throws ParseException if the date field cannot be parsed using the provided format
    */
-  public static Historyquote parseResponseLineGE(final String inputLine, final Date from, final Date to,
-      final SimpleDateFormat dateFormat) throws ParseException {
+  public static Historyquote parseResponseLineGE(final String inputLine, final LocalDate from, final LocalDate to,
+      final DateTimeFormatter dateFormat) {
     Historyquote historyquote = null;
     final String[] item = inputLine.split(";", -1);
 
-    Date readDate = dateFormat.parse(item[0]);
-    if (readDate.getTime() >= from.getTime() && readDate.getTime() <= to.getTime()) {
+    LocalDate readDate = LocalDate.parse(item[0], dateFormat);
+    if (!readDate.isBefore(from) && !readDate.isAfter(to)) {
       historyquote = new Historyquote();
       historyquote.setDate(readDate);
       historyquote.setOpen(FeedConnectorHelper.parseDoubleGE(item[1]));
@@ -222,19 +219,18 @@ public class FeedConnectorHelper {
    * Validates and cleans a list of history quotes by removing entries that fall outside the specified date range.
    * Checks only the first and last entries for efficiency, as the list is expected to be sorted. Logs warnings when
    * quotes are removed.
-   * 
+   *
    * @param fromDate       the start date of the acceptable range (inclusive)
    * @param toDate         the end date of the acceptable range (inclusive)
    * @param historyquotes  the list of history quotes to validate and clean
    * @param instrumentName the name of the financial instrument for logging purposes
    * @return the cleaned list with out-of-range quotes removed
    */
-  public static List<Historyquote> checkFirstLastHistoryquoteAndRemoveWhenOutsideDateRange(Date fromDate, Date toDate,
-      List<Historyquote> historyquotes, String instrumentName) {
+  public static List<Historyquote> checkFirstLastHistoryquoteAndRemoveWhenOutsideDateRange(LocalDate fromDate,
+      LocalDate toDate, List<Historyquote> historyquotes, String instrumentName) {
     for (int i = 0; !historyquotes.isEmpty() && i < historyquotes.size(); i += Math.max(historyquotes.size() - 1, 1)) {
       Historyquote historyquote = historyquotes.get(i);
-      var fromDateCheck = DateHelper.setTimeToZeroAndAddDay(fromDate, 0);
-      if (historyquote.getDate().before(fromDateCheck) || historyquote.getDate().after(toDate)) {
+      if (historyquote.getDate().isBefore(fromDate) || historyquote.getDate().isAfter(toDate)) {
         log.warn("Removed historyquote with date {} from instrument {}. Date range was {}-{}", historyquote.getDate(),
             instrumentName, fromDate, toDate);
         historyquotes.remove(i);

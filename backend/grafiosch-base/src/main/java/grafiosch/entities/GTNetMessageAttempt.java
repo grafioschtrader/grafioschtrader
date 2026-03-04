@@ -1,7 +1,10 @@
 package grafiosch.entities;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import grafiosch.BaseConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -9,8 +12,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 
 /**
  * Tracks per-target delivery status for future-oriented GTNet broadcast messages.
@@ -74,9 +75,9 @@ public class GTNetMessageAttempt extends BaseID<Integer> {
   @Schema(description = """
       UTC timestamp when the message was successfully delivered to the target.
       Null until delivery succeeds. Useful for tracking delivery timing and future analysis.""")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "send_timestamp")
-  @Temporal(TemporalType.TIMESTAMP)
-  private Date sendTimestamp;
+  private LocalDateTime sendTimestamp;
 
   public GTNetMessageAttempt() {
   }
@@ -87,7 +88,7 @@ public class GTNetMessageAttempt extends BaseID<Integer> {
     this.hasSend = false;
   }
 
-  public GTNetMessageAttempt(Integer idGtNet, Integer idGtNetMessage, boolean hasSend, Date sendTimestamp) {
+  public GTNetMessageAttempt(Integer idGtNet, Integer idGtNetMessage, boolean hasSend, LocalDateTime sendTimestamp) {
     this.idGtNet = idGtNet;
     this.idGtNetMessage = idGtNetMessage;
     this.hasSend = hasSend;
@@ -131,11 +132,11 @@ public class GTNetMessageAttempt extends BaseID<Integer> {
     this.hasSend = hasSend;
   }
 
-  public Date getSendTimestamp() {
+  public LocalDateTime getSendTimestamp() {
     return sendTimestamp;
   }
 
-  public void setSendTimestamp(Date sendTimestamp) {
+  public void setSendTimestamp(LocalDateTime sendTimestamp) {
     this.sendTimestamp = sendTimestamp;
   }
 
@@ -144,7 +145,7 @@ public class GTNetMessageAttempt extends BaseID<Integer> {
    */
   public void markAsSent() {
     this.hasSend = true;
-    this.sendTimestamp = new Date();
+    this.sendTimestamp = LocalDateTime.now();
   }
 
 }

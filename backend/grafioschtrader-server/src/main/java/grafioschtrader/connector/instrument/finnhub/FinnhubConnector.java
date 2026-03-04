@@ -3,9 +3,11 @@ package grafioschtrader.connector.instrument.finnhub;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -14,9 +16,6 @@ import java.util.Map;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriUtils;
-
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.common.DateHelper;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
@@ -28,6 +27,9 @@ import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.types.CreateType;
 import grafioschtrader.types.SubscriptionType;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Finnhub connector
@@ -43,8 +45,8 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private final static String TOKEN_PARAM_NAME = "token";
 
-  private static final ObjectMapper objectMapper = new ObjectMapper()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  private static final ObjectMapper objectMapper = JsonMapper.builder()
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 
   static {
     supportedFeed = new HashMap<>();
@@ -62,14 +64,15 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
 
   @Override
   public String getSecurityHistoricalDownloadLink(final Security security) {
-    Date toDate = new Date();
-    LocalDate fromLocalDate = DateHelper.getLocalDate(toDate).minusDays(7);
-    return getSecurityHistoricalDownloadLink(security, DateHelper.getDateFromLocalDate(fromLocalDate), toDate);
+    LocalDate toDate = LocalDate.now();
+    LocalDate fromDate = toDate.minusDays(7);
+    return getSecurityHistoricalDownloadLink(security, fromDate, toDate);
   }
 
-  private String getSecurityHistoricalDownloadLink(final Security security, Date from, Date to) {
+  private String getSecurityHistoricalDownloadLink(final Security security, LocalDate from, LocalDate to) {
     return DOMAIN_NAME_WITH_VERSION + "stock/candle?symbol=" + security.getUrlHistoryExtend().toUpperCase() + "&from="
-        + (from.getTime() / 1000) + "&to=" + (to.getTime() / 1000) + "&resolution=D" + getTokenParam();
+        + DateHelper.LocalDateToEpocheSeconds(from) + "&to=" + DateHelper.LocalDateToEpocheSeconds(to)
+        + "&resolution=D" + getTokenParam();
   }
 
   @Override
@@ -82,17 +85,17 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
   }
 
   @Override
-  public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
+  public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
     final List<Historyquote> historyquotes = new ArrayList<>();
 
     URL url = new URI(getSecurityHistoricalDownloadLink(security, from, to)).toURL();
-    final CandleData candleData = objectMapper.readValue(url, CandleData.class);
+    final CandleData candleData = objectMapper.readValue(url.openStream(), CandleData.class);
 
     if (candleData.s.equals("ok")) {
       for (int i = 0; i < candleData.t.length; i++) {
-        Date date = new Date(candleData.t[i] * 1000);
-        if (date.getTime() >= from.getTime() && date.getTime() <= to.getTime()) {
+        LocalDate date = Instant.ofEpochSecond(candleData.t[i]).atZone(ZoneId.systemDefault()).toLocalDate();
+        if (!date.isBefore(from) && !date.isAfter(to)) {
           final Historyquote histroyquote = new Historyquote();
           historyquotes.add(histroyquote);
           histroyquote.setDate(date);
@@ -111,13 +114,13 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
   public void updateSecurityLastPrice(final Security security) throws Exception {
     var urlStr = UriUtils.encodeFragment(getSecurityIntradayDownloadLink(security), StandardCharsets.UTF_8);
     URL url = new URI(urlStr).toURL();
-    final Quote quote = objectMapper.readValue(url, Quote.class);
+    final Quote quote = objectMapper.readValue(url.openStream(), Quote.class);
     security.setSLast(quote.c);
     security.setSOpen(quote.o);
     security.setSLow(quote.l);
     security.setSHigh(quote.h);
     security.setSPrevClose(quote.pc);
-    security.setSTimestamp(new Date(quote.t * 1000));
+    security.setSTimestamp(LocalDateTime.ofInstant(Instant.ofEpochSecond(quote.t), ZoneId.systemDefault()));
     security.setSChangePercentage(quote.dp);
   }
 
@@ -157,7 +160,7 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
   public List<Securitysplit> getSplitHistory(Security security, LocalDate fromDate, LocalDate toDate) throws Exception {
     URL url = new URI(getSplitHistoricalDownloadLink(security, fromDate, toDate)).toURL();
     final List<Securitysplit> securitysplits = new ArrayList<>();
-    final Split[] splits = objectMapper.readValue(url, Split[].class);
+    final Split[] splits = objectMapper.readValue(url.openStream(), Split[].class);
     for (Split split : splits) {
       Securitysplit securitysplit = new Securitysplit(security.getIdSecuritycurrency(), split.date, split.fromFactor,
           split.toFactor, CreateType.CONNECTOR_CREATED);
@@ -215,7 +218,7 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
 
   private static class Split {
     // public String symbol;
-    public Date date;
+    public LocalDate date;
     public int fromFactor;
     public int toFactor;
 

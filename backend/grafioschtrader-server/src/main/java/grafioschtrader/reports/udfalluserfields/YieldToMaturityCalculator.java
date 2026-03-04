@@ -69,7 +69,7 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
     LocalDate now = LocalDate.now();
     securitycurrencyUDFGroup.securityPositionList.stream()
         .filter(s -> matchAssetclassAndSpecialInvestmentInstruments(udfYTM, s.securitycurrency.getAssetClass())
-            && ((java.sql.Date) s.securitycurrency.getActiveToDate()).toLocalDate().isAfter(now)
+            && s.securitycurrency.getActiveToDate().isAfter(now)
             && s.securitycurrency.getDistributionFrequency().getValue() > 0
             && s.securitycurrency.getDistributionFrequency().getValue() <= 12)
         .forEach(s -> {
@@ -347,7 +347,7 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
     if (matcher.find() && !matcher.group(0).isEmpty()) {
       Double annualCouponRate = Double.parseDouble(matcher.group(0).replace(",", ".")) / 100;
       double ytm = DataHelper.round(
-          yieldToMaturity(now, ((java.sql.Date) security.getActiveToDate()).toLocalDate(), annualCouponRate,
+          yieldToMaturity(now, security.getActiveToDate(), annualCouponRate,
               security.getSLast(), 100, security.getDistributionFrequency().getValue(), 4) * 100,
           udfYTM.getFieldSizeSuffix());
       putValueToJsonValue(securitycurrencyUDFGroup, udfYTM, security.getIdSecuritycurrency(), ytm, false);

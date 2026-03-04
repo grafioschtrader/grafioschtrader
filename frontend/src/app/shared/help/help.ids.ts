@@ -30,9 +30,9 @@ export const AppHelpIds: Record<string, string> = {
   HELP_STANDING_ORDER_SECURITY: 'transaction/standingorder/security',
 
   // Algo trading
-  HELP_ALGO: 'algo',
-  HELP_ALGO_RULE: 'algo/rule',
-  HELP_ALGO_STRATEGY: 'algo/strategy',
+  HELP_ALGO: 'algoalert',
+  HELP_ALGO_RULE: 'algoalert/rule',
+  HELP_ALGO_STRATEGY: 'algoalert/strategy',
 
   // Watchlist
   HELP_WATCHLIST: 'watchlistinstrument',

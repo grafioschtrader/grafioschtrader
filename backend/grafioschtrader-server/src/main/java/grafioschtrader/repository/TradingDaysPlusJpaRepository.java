@@ -1,7 +1,6 @@
 package grafioschtrader.repository;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -28,5 +27,5 @@ public interface TradingDaysPlusJpaRepository
    * Get global holidays from 2001-01-01 until now. Normally first of first of January and December 25 for each year.
    */
   @Query(nativeQuery = true)
-  Set<Date> getGlobalHolidays();
+  Set<LocalDate> getGlobalHolidays();
 }

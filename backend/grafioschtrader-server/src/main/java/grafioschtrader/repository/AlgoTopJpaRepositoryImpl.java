@@ -1,7 +1,6 @@
 package grafioschtrader.repository;
 
 import java.lang.annotation.Annotation;
-import java.sql.Date;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -115,9 +114,8 @@ public class AlgoTopJpaRepositoryImpl extends BaseRepositoryImpl<AlgoTop> implem
     List<Integer> allPriceIds = new ArrayList<>(allIds);
     allPriceIds.addAll(fxPairIds);
 
-    Date sqlDate = Date.valueOf(refDate);
     List<ISecuritycurrencyIdDateClose> priceResults = historyquoteJpaRepository.getIdDateCloseByIdsAndDate(
-        allPriceIds, sqlDate);
+        allPriceIds, refDate);
 
     Map<Integer, Double> priceById = new HashMap<>();
     for (ISecuritycurrencyIdDateClose pc : priceResults) {

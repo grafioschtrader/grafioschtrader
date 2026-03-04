@@ -1,7 +1,7 @@
 package grafioschtrader.repository;
 
 import java.lang.annotation.Annotation;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -13,7 +13,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import grafiosch.BaseConstants;
-import grafiosch.common.DateHelper;
 import grafiosch.dto.TenantLimit;
 import grafiosch.entities.User;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
@@ -95,15 +94,19 @@ public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<Correlat
       final SecuritycurrencySearch securitycurrencySearch, CorrelationSet correlationSet) {
 
     List<Security> securities = correlationSet.getSecurityList();
-    securitycurrencySearch.setMaxFromDate(DateHelper.getDateFromLocalDate(correlationSet.getDateFrom()));
-    securitycurrencySearch.setMinToDate(DateHelper.getDateFromLocalDate(correlationSet.getDateTo()));
+    securitycurrencySearch.setMaxFromDate(correlationSet.getDateFrom());
+    securitycurrencySearch.setMinToDate(correlationSet.getDateTo());
     if (!securities.isEmpty()) {
-      securitycurrencySearch.setMaxFromDate(
-          DateHelper.getMaxMinDate(securities.stream().map(Security::getActiveFromDate).max(Date::compareTo).get(),
-              securitycurrencySearch.getMaxFromDate(), true));
-      securitycurrencySearch.setMinToDate(
-          DateHelper.getMaxMinDate(securities.stream().map(Security::getActiveToDate).min(Date::compareTo).get(),
-              securitycurrencySearch.getMinToDate(), false));
+      LocalDate latestActiveFrom = securities.stream().map(Security::getActiveFromDate)
+          .max(LocalDate::compareTo).get();
+      if (latestActiveFrom.isAfter(securitycurrencySearch.getMaxFromDate())) {
+        securitycurrencySearch.setMaxFromDate(latestActiveFrom);
+      }
+      LocalDate earliestActiveTo = securities.stream().map(Security::getActiveToDate)
+          .min(LocalDate::compareTo).get();
+      if (earliestActiveTo.isBefore(securitycurrencySearch.getMinToDate())) {
+        securitycurrencySearch.setMinToDate(earliestActiveTo);
+      }
     }
   }
 

@@ -2,10 +2,10 @@ package grafiosch.repository;
 
 import java.lang.annotation.Annotation;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +61,7 @@ public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User>
         .collect(Collectors.toMap(Role::getRolename, Function.identity()));
     existingEntity.setRoleMap(roleMap);
     if (!existingEntity.getMostPrivilegedRole().equals(user.getMostPrivilegedRole())) {
-      existingEntity.setLastRoleModifiedTime(new Date());
+      existingEntity.setLastRoleModifiedTime(LocalDateTime.now());
     }
     return RepositoryHelper.saveOnlyAttributes(userJpaRepository, user, existingEntity, updatePropertyLevelClasses);
   }

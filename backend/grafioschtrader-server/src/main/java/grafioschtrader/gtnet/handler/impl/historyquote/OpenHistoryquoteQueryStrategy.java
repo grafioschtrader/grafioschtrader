@@ -1,7 +1,7 @@
 package grafioschtrader.gtnet.handler.impl.historyquote;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -93,10 +93,10 @@ public class OpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStrategy
     }
 
     // Calculate threshold date (10 days ago)
-    Date thresholdDate = addDays(new Date(), -THRESHOLD_DAYS);
+    LocalDate thresholdDate = addDays(LocalDate.now(), -THRESHOLD_DAYS);
 
     // Determine batch fromDate based on requests
-    Date batchFromDate = determineBatchFromDate(sendableSecurities, tuplesAndMap.requestMap(), thresholdDate,
+    LocalDate batchFromDate = determineBatchFromDate(sendableSecurities, tuplesAndMap.requestMap(), thresholdDate,
         s -> s.getIsin() + ":" + s.getCurrency());
 
     // Collect security IDs for batch query
@@ -146,14 +146,14 @@ public class OpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStrategy
    * The marker indicates the date from which we need historical data.
    */
   private void addWantToReceiveMarkerForSecurity(List<InstrumentHistoryquoteDTO> result, Security security) {
-    Date latestDate = historyquoteJpaRepository.getMaxDateByIdSecurity(security.getIdSecuritycurrency());
+    LocalDate latestDate = historyquoteJpaRepository.getMaxDateByIdSecurity(security.getIdSecuritycurrency());
     if (latestDate != null) {
-      Date wantsFromDate = addDays(latestDate, 1);
+      LocalDate wantsFromDate = addDays(latestDate, 1);
       result.add(InstrumentHistoryquoteDTO.forSecurityWantToReceive(
           security.getIsin(), security.getCurrency(), wantsFromDate));
     } else {
       // No local data at all - want data from the security's active date
-      Date activeFrom = security.getActiveFromDate();
+      LocalDate activeFrom = security.getActiveFromDate();
       if (activeFrom != null) {
         result.add(InstrumentHistoryquoteDTO.forSecurityWantToReceive(
             security.getIsin(), security.getCurrency(), activeFrom));
@@ -208,10 +208,10 @@ public class OpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStrategy
     }
 
     // Calculate threshold date (10 days ago)
-    Date thresholdDate = addDays(new Date(), -THRESHOLD_DAYS);
+    LocalDate thresholdDate = addDays(LocalDate.now(), -THRESHOLD_DAYS);
 
     // Determine batch fromDate based on requests
-    Date batchFromDate = determineBatchFromDate(sendablePairs, tuplesAndMap.requestMap(), thresholdDate,
+    LocalDate batchFromDate = determineBatchFromDate(sendablePairs, tuplesAndMap.requestMap(), thresholdDate,
         p -> p.getFromCurrency() + ":" + p.getToCurrency());
 
     // Collect currency pair IDs for batch query
@@ -261,9 +261,9 @@ public class OpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStrategy
    * The marker indicates the date from which we need historical data.
    */
   private void addWantToReceiveMarkerForCurrencypair(List<InstrumentHistoryquoteDTO> result, Currencypair currencypair) {
-    Date latestDate = historyquoteJpaRepository.getMaxDateByIdSecurity(currencypair.getIdSecuritycurrency());
+    LocalDate latestDate = historyquoteJpaRepository.getMaxDateByIdSecurity(currencypair.getIdSecuritycurrency());
     if (latestDate != null) {
-      Date wantsFromDate = addDays(latestDate, 1);
+      LocalDate wantsFromDate = addDays(latestDate, 1);
       result.add(InstrumentHistoryquoteDTO.forCurrencypairWantToReceive(
           currencypair.getFromCurrency(), currencypair.getToCurrency(), wantsFromDate));
     }

@@ -2,8 +2,6 @@ package grafioschtrader.entities;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -22,8 +20,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -44,13 +40,12 @@ public class Securitysplit extends DividendSplit implements Serializable {
   private Integer idSecuritysplit;
 
   @Schema(description = "The date of the split, on this day the split was carried out before the stock exchange opened")
-  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Basic(optional = false)
   @NotNull
   @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "split_date")
-  @Temporal(TemporalType.DATE)
-  private Date splitDate;
+  private LocalDate splitDate;
 
   @Schema(description = "From factor")
   @Basic(optional = false)
@@ -72,7 +67,7 @@ public class Securitysplit extends DividendSplit implements Serializable {
   }
 
   public Securitysplit(Integer idSecuritycurrency,
-      @NotNull @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = "yyyy-MM-dd") Date splitDate,
+      @NotNull @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = "yyyy-MM-dd") LocalDate splitDate,
       @NotNull @Min(1) @Max(99_999) Integer fromFactor, @NotNull @Min(1) @Max(99_999) Integer toFactor,
       CreateType createType) {
     super(idSecuritycurrency, createType);
@@ -89,11 +84,11 @@ public class Securitysplit extends DividendSplit implements Serializable {
     this.idSecuritysplit = idSecuritysplit;
   }
 
-  public Date getSplitDate() {
+  public LocalDate getSplitDate() {
     return splitDate;
   }
 
-  public void setSplitDate(Date splitDate) {
+  public void setSplitDate(LocalDate splitDate) {
     this.splitDate = splitDate;
   }
 
@@ -114,14 +109,8 @@ public class Securitysplit extends DividendSplit implements Serializable {
   }
 
   @Override
-  public Date getEventDate() {
+  public LocalDate getEventDate() {
     return this.splitDate;
-  }
-
-  public static double calcSplitFatorForFromDate(Integer idSecuritycurrency, LocalDate toDate,
-      Map<Integer, List<Securitysplit>> securitysplitMap) {
-    return calcSplitFatorForFromDate(idSecuritycurrency,
-        Date.from(toDate.atStartOfDay(ZoneId.systemDefault()).toInstant()), securitysplitMap);
   }
 
   @JsonIgnore
@@ -141,17 +130,17 @@ public class Securitysplit extends DividendSplit implements Serializable {
    *         date.
    *
    */
-  public static double calcSplitFatorForFromDate(Integer idSecuritycurrency, Date toDate,
+  public static double calcSplitFatorForFromDate(Integer idSecuritycurrency, LocalDate toDate,
       Map<Integer, List<Securitysplit>> securitysplitMap) {
     return calcSplitFatorForFromDate(securitysplitMap.get(idSecuritycurrency), toDate);
   }
 
-  public static double calcSplitFatorForFromDate(List<Securitysplit> securitysplitList, Date toDate) {
+  public static double calcSplitFatorForFromDate(List<Securitysplit> securitysplitList, LocalDate toDate) {
     double factor = 1;
 
     if (securitysplitList != null) {
       for (Securitysplit securitySplit : securitysplitList) {
-        if (toDate.before(securitySplit.getSplitDate())) {
+        if (toDate.isBefore(securitySplit.getSplitDate())) {
           factor *= securitySplit.getFactor();
         }
       }
@@ -174,15 +163,15 @@ public class Securitysplit extends DividendSplit implements Serializable {
    *         date.
    *
    */
-  public static SplitFactorAfterBefore calcSplitFatorForFromDateAndToDate(Integer idSecuritycurrency, Date fromDate,
-      Date toDate, Map<Integer, List<Securitysplit>> securitysplitMap) {
+  public static SplitFactorAfterBefore calcSplitFatorForFromDateAndToDate(Integer idSecuritycurrency, LocalDate fromDate,
+      LocalDate toDate, Map<Integer, List<Securitysplit>> securitysplitMap) {
     SplitFactorAfterBefore splitFactorAfterBefore = new SplitFactorAfterBefore();
     List<Securitysplit> securitysplitList = securitysplitMap.get(idSecuritycurrency);
 
     if (securitysplitList != null) {
       for (Securitysplit securitySplit : securitysplitList) {
-        if (securitySplit.getSplitDate().after(fromDate)) {
-          if (toDate == null || securitySplit.getSplitDate().before(toDate)) {
+        if (securitySplit.getSplitDate().isAfter(fromDate)) {
+          if (toDate == null || securitySplit.getSplitDate().isBefore(toDate)) {
             splitFactorAfterBefore.fromToDateFactor *= securitySplit.getFactor();
           } else {
             splitFactorAfterBefore.toDateUntilNow *= securitySplit.getFactor();

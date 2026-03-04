@@ -6,12 +6,14 @@
 package grafioschtrader.entities;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.entities.TenantBaseID;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -68,8 +70,9 @@ public class Watchlist extends TenantBaseID implements Serializable {
   private Integer idTenant;
 
   @Schema(description = "Time of the last intraday price update, used to determine the time interval for the next earliest possible price update.")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "last_timestamp")
-  protected Date lastTimestamp;
+  protected LocalDateTime lastTimestamp;
 
   public Watchlist() {
   }
@@ -130,11 +133,11 @@ public class Watchlist extends TenantBaseID implements Serializable {
     return resultSecuritycurrency;
   }
 
-  public Date getLastTimestamp() {
+  public LocalDateTime getLastTimestamp() {
     return lastTimestamp;
   }
 
-  public void setLastTimestamp(Date lastTimestamp) {
+  public void setLastTimestamp(LocalDateTime lastTimestamp) {
     this.lastTimestamp = lastTimestamp;
   }
 

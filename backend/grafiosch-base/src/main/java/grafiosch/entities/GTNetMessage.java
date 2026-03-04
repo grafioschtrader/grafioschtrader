@@ -1,11 +1,14 @@
 package grafiosch.entities;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import grafiosch.BaseConstants;
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.common.PropertyOnlyCreation;
 import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
@@ -27,8 +30,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapKeyColumn;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -99,9 +100,9 @@ public class GTNetMessage extends BaseID<Integer> {
   @Schema(description = """
       UTC timestamp when this message was created. All timestamps in GTNet use UTC to ensure consistent ordering
       across time zones and enable proper correlation of request-response pairs.""")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "timestamp")
-  @Temporal(TemporalType.TIMESTAMP)
-  private Date timestamp;
+  private LocalDateTime timestamp;
 
   @Schema(description = """
       Direction indicator for the message. Uses SendReceivedType enum: SEND (0) for outgoing messages, RECEIVED (1)
@@ -204,8 +205,8 @@ public class GTNetMessage extends BaseID<Integer> {
   public GTNetMessage() {
   }
 
-  public GTNetMessage(Integer idGtNet, Date timestamp, byte sendRecv, Integer replyTo, byte messageCode, String message,
-      Map<String, GTNetMessageParam> gtNetMessageParamMap) {
+  public GTNetMessage(Integer idGtNet, LocalDateTime timestamp, byte sendRecv, Integer replyTo, byte messageCode,
+      String message, Map<String, GTNetMessageParam> gtNetMessageParamMap) {
     super();
     this.idGtNet = idGtNet;
     this.timestamp = timestamp;
@@ -232,11 +233,11 @@ public class GTNetMessage extends BaseID<Integer> {
     this.idGtNet = idGtNet;
   }
 
-  public Date getTimestamp() {
+  public LocalDateTime getTimestamp() {
     return timestamp;
   }
 
-  public void setTimestamp(Date timestamp) {
+  public void setTimestamp(LocalDateTime timestamp) {
     this.timestamp = timestamp;
   }
 

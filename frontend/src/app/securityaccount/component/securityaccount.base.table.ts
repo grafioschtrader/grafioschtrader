@@ -267,7 +267,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     this.addColumn(DataType.Numeric, 'units', 'HOLDING', true, false, {width: 55});
     this.addColumnFeqH(DataType.String, 'security.currency', true, false, {width: 35});
 
-    this.addColumn(DataType.DateTimeNumeric, 'closeDate', 'TIMEDATE', true, false,
+    this.addColumn(DataType.DateString, 'closeDate', 'TIMEDATE', true, false,
       {width: 90});
     this.addColumn(DataType.Numeric, 'closePrice', 'LAST', true, false,
       {columnGroupConfigs: [new ColumnGroupConfig(null, 'TOTAL')], width: 60});

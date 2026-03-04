@@ -1,6 +1,6 @@
 package grafioschtrader.repository;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,7 +31,7 @@ public interface GTNetHistoryquoteJpaRepository extends JpaRepository<GTNetHisto
    * @param date the trading date
    * @return the quote if found
    */
-  Optional<GTNetHistoryquote> findByGtNetInstrumentIdGtNetInstrumentAndDate(Integer idGtNetInstrument, Date date);
+  Optional<GTNetHistoryquote> findByGtNetInstrumentIdGtNetInstrumentAndDate(Integer idGtNetInstrument, LocalDate date);
 
   /**
    * Finds all historical quotes for a specific instrument.
@@ -56,7 +56,7 @@ public interface GTNetHistoryquoteJpaRepository extends JpaRepository<GTNetHisto
         AND hq.date >= ?2
         AND hq.date <= ?3
       ORDER BY hq.date ASC""")
-  List<GTNetHistoryquote> findByInstrumentIdAndDateRange(Integer idGtNetInstrument, Date fromDate, Date toDate);
+  List<GTNetHistoryquote> findByInstrumentIdAndDateRange(Integer idGtNetInstrument, LocalDate fromDate, LocalDate toDate);
 
   /**
    * Finds all historical quotes for a list of instrument IDs.
@@ -81,7 +81,7 @@ public interface GTNetHistoryquoteJpaRepository extends JpaRepository<GTNetHisto
         AND hq.date >= :fromDate
       ORDER BY hq.gtNetInstrument.idGtNetInstrument, hq.date""")
   List<GTNetHistoryquote> findByInstrumentIdsAndDateGreaterThanEqual(
-      @Param("ids") List<Integer> instrumentIds, @Param("fromDate") Date fromDate);
+      @Param("ids") List<Integer> instrumentIds, @Param("fromDate") LocalDate fromDate);
 
   /**
    * Finds the earliest date with historical data for an instrument.
@@ -90,7 +90,7 @@ public interface GTNetHistoryquoteJpaRepository extends JpaRepository<GTNetHisto
    * @return the earliest date, or null if no data exists
    */
   @Query("SELECT MIN(hq.date) FROM GTNetHistoryquote hq WHERE hq.gtNetInstrument.idGtNetInstrument = ?1")
-  Date findEarliestDateByInstrumentId(Integer idGtNetInstrument);
+  LocalDate findEarliestDateByInstrumentId(Integer idGtNetInstrument);
 
   /**
    * Finds the latest date with historical data for an instrument.
@@ -99,7 +99,7 @@ public interface GTNetHistoryquoteJpaRepository extends JpaRepository<GTNetHisto
    * @return the latest date, or null if no data exists
    */
   @Query("SELECT MAX(hq.date) FROM GTNetHistoryquote hq WHERE hq.gtNetInstrument.idGtNetInstrument = ?1")
-  Date findLatestDateByInstrumentId(Integer idGtNetInstrument);
+  LocalDate findLatestDateByInstrumentId(Integer idGtNetInstrument);
 
   /**
    * Counts the number of historical quotes for an instrument.
@@ -122,7 +122,7 @@ public interface GTNetHistoryquoteJpaRepository extends JpaRepository<GTNetHisto
       WHERE hq.gtNetInstrument.idGtNetInstrument = ?1
         AND hq.date >= ?2
         AND hq.date <= ?3""")
-  long countByInstrumentIdAndDateRange(Integer idGtNetInstrument, Date fromDate, Date toDate);
+  long countByInstrumentIdAndDateRange(Integer idGtNetInstrument, LocalDate fromDate, LocalDate toDate);
 
   /**
    * Deletes all historical quotes for a specific instrument.
@@ -148,7 +148,7 @@ public interface GTNetHistoryquoteJpaRepository extends JpaRepository<GTNetHisto
       WHERE hq.gtNetInstrument.idGtNetInstrument = ?1
         AND hq.date >= ?2
         AND hq.date <= ?3""")
-  void deleteByInstrumentIdAndDateRange(Integer idGtNetInstrument, Date fromDate, Date toDate);
+  void deleteByInstrumentIdAndDateRange(Integer idGtNetInstrument, LocalDate fromDate, LocalDate toDate);
 
   /**
    * Finds all dates that have historical data for an instrument.
@@ -158,6 +158,6 @@ public interface GTNetHistoryquoteJpaRepository extends JpaRepository<GTNetHisto
    * @return list of dates with data, ordered ascending
    */
   @Query("SELECT hq.date FROM GTNetHistoryquote hq WHERE hq.gtNetInstrument.idGtNetInstrument = ?1 ORDER BY hq.date")
-  List<Date> findExistingDatesByInstrumentId(Integer idGtNetInstrument);
+  List<LocalDate> findExistingDatesByInstrumentId(Integer idGtNetInstrument);
 
 }

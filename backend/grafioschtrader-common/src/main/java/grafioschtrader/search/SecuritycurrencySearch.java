@@ -1,12 +1,14 @@
 package grafioschtrader.search;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDate;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -61,7 +63,8 @@ public class SecuritycurrencySearch implements Serializable {
   
   @Schema(description = "Date to check if the security/currency is active. Format: yyyyMMdd")
   @DateTimeFormat(pattern = "yyyyMMdd")
-  private Date activeDate;
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  private LocalDate activeDate;
  
   @Schema(description = "Flag to indicate if the search should consider instruments that the tenant has holdings in.")
   private boolean withHoldings;
@@ -76,13 +79,13 @@ public class SecuritycurrencySearch implements Serializable {
    * A correlation matrix must have historical price data for a specific time period. This date defines the start date.
    */
   @JsonIgnore
-  private Date maxFromDate;
+  private LocalDate maxFromDate;
 
   /**
    * A correlation matrix must have historical price data for a specific time period. This date defines the end date.
    */
   @JsonIgnore
-  private Date minToDate;
+  private LocalDate minToDate;
 
   public String getIsin() {
     return isin;
@@ -164,11 +167,11 @@ public class SecuritycurrencySearch implements Serializable {
     this.onlyTenantPrivate = onlyTenantPrivate;
   }
 
-  public Date getActiveDate() {
+  public LocalDate getActiveDate() {
     return activeDate;
   }
 
-  public void setActiveDate(Date activeDate) {
+  public void setActiveDate(LocalDate activeDate) {
     this.activeDate = activeDate;
   }
 
@@ -220,19 +223,19 @@ public class SecuritycurrencySearch implements Serializable {
     this.noMarketValue = noMarketValue;
   }
 
-  public Date getMaxFromDate() {
+  public LocalDate getMaxFromDate() {
     return maxFromDate;
   }
 
-  public void setMaxFromDate(Date maxFromDate) {
+  public void setMaxFromDate(LocalDate maxFromDate) {
     this.maxFromDate = maxFromDate;
   }
 
-  public Date getMinToDate() {
+  public LocalDate getMinToDate() {
     return minToDate;
   }
 
-  public void setMinToDate(Date minToDate) {
+  public void setMinToDate(LocalDate minToDate) {
     this.minToDate = minToDate;
   }
 

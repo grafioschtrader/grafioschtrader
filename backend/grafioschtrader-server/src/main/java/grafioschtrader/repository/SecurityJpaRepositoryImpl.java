@@ -1,15 +1,12 @@
 package grafioschtrader.repository;
 
 import java.lang.reflect.InvocationTargetException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -18,7 +15,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Lazy;
@@ -29,7 +25,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
-import grafiosch.common.DateHelper;
 import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.entities.User;
@@ -173,7 +168,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
       Integer idWatchlist) {
     return historyquoteThruConnector.fillHistoryquoteForSecuritiesCurrencies(
         securityJpaRepository.findByIdTenantAndIdWatchlistWhenRetryHistroyGreaterThan0(idTenant, idWatchlist),
-        DateHelper.getCalendar(new Date()));
+        LocalDate.now());
   }
 
   @Override
@@ -185,7 +180,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   /// call back for historyquoteThruConnector
   /////////////////////////////////////////////
   @Override
-  public List<Historyquote> getHistoryQuote(final Security security, final Date fromDate, final Date toDate,
+  public List<Historyquote> getHistoryQuote(final Security security, final LocalDate fromDate, final LocalDate toDate,
       final IFeedConnector feedConnector) throws Exception {
     return feedConnector.getEodSecurityHistory(security, fromDate, toDate);
   }
@@ -201,14 +196,14 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Override
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   @Modifying
-  public Security catchUpSecurityCurrencypairHisotry(Security security, final Date fromDate, final Date toDate) {
+  public Security catchUpSecurityCurrencypairHisotry(Security security, final LocalDate fromDate, final LocalDate toDate) {
     security = securityJpaRepository.findByIdSecuritycurrency(security.getIdSecuritycurrency());
     return getHistorquoteLoad(security).createHistoryQuotesAndSave(securityJpaRepository, security, fromDate, toDate);
   }
 
   @Override
   protected boolean historyNeedToBeReloaded(final Security securityCurrencyChanged, final Security targetSecurity) {
-    if (securityCurrencyChanged.getActiveToDate().getTime() <= System.currentTimeMillis()) {
+    if (!securityCurrencyChanged.getActiveToDate().isAfter(LocalDate.now())) {
       return false;
     }
     if (securityCurrencyChanged.isDerivedInstrument()) {
@@ -230,7 +225,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
    * @return true if active from date was moved to an earlier date, false otherwise
    */
   private boolean activeFromDateWasSetToOlder(final Security securityCurrencyChanged, final Security targetSecurity) {
-    return securityCurrencyChanged.getActiveFromDate().before(targetSecurity.getActiveFromDate());
+    return securityCurrencyChanged.getActiveFromDate().isBefore(targetSecurity.getActiveFromDate());
   }
 
 
@@ -356,9 +351,9 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Override
   public void updateAllLastPrices() {
     List<Security> securities = securityJpaRepository.findAll();
-    Date now = new Date();
+    LocalDate now = LocalDate.now();
     List<Security> updatedSecurities = intradayThruConnector.updateLastPriceOfSecuritycurrency(securities.stream()
-        .filter(s -> !s.isDerivedInstrument() && !now.after(s.getActiveToDate()) && !now.before(s.getActiveFromDate())
+        .filter(s -> !s.isDerivedInstrument() && !now.isAfter(s.getActiveToDate()) && !now.isBefore(s.getActiveFromDate())
             && s.getRetryIntraLoad() < globalparametersService.getMaxIntraRetry() && s.getIdConnectorIntra() != null)
         .collect(Collectors.toList()), true);
     List<Security> updatedDerived = intradayThruCalculation.updateLastPriceOfSecuritycurrency(
@@ -413,7 +408,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   }
 
   @Override
-  public List<SecurityPositionSummary> processOpenPositionsWithActualPrice(final Date untilDate,
+  public List<SecurityPositionSummary> processOpenPositionsWithActualPrice(final LocalDate untilDate,
       final Map<Security, SecurityPositionSummary> summarySecurityMap) {
 
     final List<SecurityPositionSummary> securityPositionSummaryList = summarySecurityMap.entrySet().stream()
@@ -426,7 +421,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
   @Override
   public void calcGainLossBasedOnDateOrNewestPrice(final List<SecurityPositionSummary> securitycurrencyPositionSummary,
-      final Date untilDate) {
+      final LocalDate untilDate) {
     super.calcGainLossBasedOnDateOrNewestPrice(securitycurrencyPositionSummary, this, untilDate);
   }
 
@@ -470,16 +465,16 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   }
 
   @Override
-  public List<Security> getTradableSecuritiesByTenantAndIdWatschlist(Integer idWatchlist) throws ParseException {
+  public List<Security> getTradableSecuritiesByTenantAndIdWatschlist(Integer idWatchlist) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return securityJpaRepository.getTradableSecuritiesByTenantAndIdWatschlist(user.getIdTenant(), idWatchlist);
 
   }
 
   @Override
-  public List<Security> findByActiveToDateGreaterThanEqualOrderByName(final String dateString) throws ParseException {
+  public List<Security> findByActiveToDateGreaterThanEqualOrderByName(final String dateString) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    final Date untilDate = new SimpleDateFormat(GlobalConstants.SHORT_STANDARD_DATE_FORMAT).parse(dateString);
+    final LocalDate untilDate = LocalDate.parse(dateString);
     return securityJpaRepository.findByActiveToDateGreaterThanEqualAndIdTenantPrivateIsNullOrIdTenantPrivateOrderByName(
         untilDate, user.getIdTenant());
   }
@@ -495,16 +490,16 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     if (!maxSecuritysplitOpt.isEmpty()) {
       Securitysplit youngestSplit = maxSecuritysplitOpt.get();
 
-      Date fromDate = DateHelper.setTimeToZeroAndAddDay(youngestSplit.getSplitDate(),
+      LocalDate fromDate = youngestSplit.getSplitDate().plusDays(
           GlobalConstants.SPLIT_DAYS_LOCK_BACK_START_DATE * -1);
-      Date toDate = DateHelper.setTimeToZeroAndAddDay(youngestSplit.getSplitDate(),
+      LocalDate toDate = youngestSplit.getSplitDate().plusDays(
           GlobalConstants.SPLIT_DAYS_LOOK_BACK_END_DATE_BEFORE_SPLIT * -1);
 
       List<Historyquote> hqConnectorList = getDataByConnnector(security, fromDate, toDate);
       List<Historyquote> hqPersistentList = historyquoteJpaRepository
           .findByIdSecuritycurrencyAndDateBetweenOrderByDate(security.getIdSecuritycurrency(), fromDate, toDate);
 
-      Map<Date, Historyquote> hqPersistentMap = hqPersistentList.stream()
+      Map<LocalDate, Historyquote> hqPersistentMap = hqPersistentList.stream()
           .collect(Collectors.toMap(Historyquote::getDate, Function.identity()));
 
       int differentCloseCount = 0;
@@ -528,13 +523,13 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     return sahr;
   }
 
-  private Integer getNextAttemptInDaysForSplitHistorical(Security security, Date splitDate) throws Exception {
+  private Integer getNextAttemptInDaysForSplitHistorical(Security security, LocalDate splitDate) throws Exception {
     IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
         security.getIdConnectorHistory(), IFeedConnector.FeedSupport.FS_HISTORY);
     return feedConnector.getNextAttemptInDaysForSplitHistorical(splitDate);
   }
 
-  private List<Historyquote> getDataByConnnector(Security security, Date fromDate, Date toDate) throws Exception {
+  private List<Historyquote> getDataByConnnector(Security security, LocalDate fromDate, LocalDate toDate) throws Exception {
     IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
         security.getIdConnectorHistory(), IFeedConnector.FeedSupport.FS_HISTORY);
     return getHistoryQuote(security, fromDate, toDate, feedConnector);
@@ -602,8 +597,8 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     }
 
     if ((securityBefore != null
-        && !(StringUtils.equals(security.getIdConnectorSplit(), securityBefore.getIdConnectorSplit())
-            && StringUtils.equals(security.getUrlSplitExtend(), securityBefore.getUrlSplitExtend())))
+        && !(Objects.equals(security.getIdConnectorSplit(), securityBefore.getIdConnectorSplit())
+            && Objects.equals(security.getUrlSplitExtend(), securityBefore.getUrlSplitExtend())))
         || (securityBefore == null && security.getIdConnectorSplit() != null)) {
       // Split connector has changed
       taskDataChangeJpaRepository.save(
@@ -612,8 +607,8 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     }
 
     if ((securityBefore != null
-        && !(StringUtils.equals(security.getIdConnectorDividend(), securityBefore.getIdConnectorDividend())
-            && StringUtils.equals(security.getUrlDividendExtend(), securityBefore.getUrlDividendExtend())))
+        && !(Objects.equals(security.getIdConnectorDividend(), securityBefore.getIdConnectorDividend())
+            && Objects.equals(security.getUrlDividendExtend(), securityBefore.getUrlDividendExtend())))
         || (securityBefore == null && security.getIdConnectorDividend() != null)) {
       // Dividend connector has changed
       taskDataChangeJpaRepository.save(
@@ -672,7 +667,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
   @Override
   public List<Historyquote> fillGap(Security security) {
-    List<Date> missingDates = historyquoteJpaRepository.getMissingEODForSecurityByUpdCalendarIndex(
+    List<LocalDate> missingDates = historyquoteJpaRepository.getMissingEODForSecurityByUpdCalendarIndex(
         security.getStockexchange().getIdIndexUpdCalendar(), security.getIdSecuritycurrency());
     List<Historyquote> historyquotesFill = new ArrayList<>();
     if (!missingDates.isEmpty()) {
@@ -701,14 +696,14 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
    * @param missingDateCounter The starting index in {@code missingDates} to process.
    */
   private void fillGapEODBeforeFirstHistoryquote(Security security, List<Historyquote> historyquotesFill,
-      List<Date> missingDates, int missingDateCounter) {
+      List<LocalDate> missingDates, int missingDateCounter) {
     do {
       historyquotesFill
           .add(new Historyquote(security.getIdSecuritycurrency(), HistoryquoteCreateType.FILL_GAP_BY_CONNECTOR,
               missingDates.get(missingDateCounter), security.getHistoryquoteList().get(0).getClose()));
       missingDateCounter++;
     } while (missingDateCounter < missingDates.size()
-        && security.getHistoryquoteList().get(0).getDate().after(missingDates.get(missingDateCounter)));
+        && security.getHistoryquoteList().get(0).getDate().isAfter(missingDates.get(missingDateCounter)));
     fillGapEODAfterFirstHistoryquote(security, historyquotesFill, 0, missingDates, missingDateCounter);
   }
 
@@ -725,11 +720,11 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
    * @param missingDateCounter The starting index in {@code missingDates} to process.
    */
   private void fillGapEODAfterFirstHistoryquote(Security security, List<Historyquote> historyquotesFill, int historyIdx,
-      List<Date> missingDates, int missingDateCounter) {
+      List<LocalDate> missingDates, int missingDateCounter) {
     List<Historyquote> hql = security.getHistoryquoteList();
     while (missingDateCounter < missingDates.size()) {
       if (historyIdx == hql.size()
-          || historyIdx < hql.size() && missingDates.get(missingDateCounter).before(hql.get(historyIdx).getDate())) {
+          || historyIdx < hql.size() && missingDates.get(missingDateCounter).isBefore(hql.get(historyIdx).getDate())) {
         historyquotesFill
             .add(new Historyquote(security.getIdSecuritycurrency(), HistoryquoteCreateType.FILL_GAP_BY_CONNECTOR,
                 missingDates.get(missingDateCounter), hql.get(historyIdx - 1).getClose()));
@@ -755,7 +750,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
   @Override
   @Transactional
-  public void resetRetryCountersByConnector(String connectorId, Date activeOnDate) {
+  public void resetRetryCountersByConnector(String connectorId, LocalDate activeOnDate) {
     securityJpaRepository.resetRetryHistoryByConnector(activeOnDate, connectorId);
     securityJpaRepository.resetRetryIntraByConnector(activeOnDate, connectorId);
   }

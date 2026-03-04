@@ -1,7 +1,10 @@
 package grafioschtrader.reportviews.securitycurrency;
 
-import java.util.Date;
+import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import grafiosch.BaseConstants;
 import grafioschtrader.entities.Securitycurrency;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -47,7 +50,8 @@ public class SecuritycurrencyPosition<T extends Securitycurrency<T>> implements 
   public boolean watchlistSecurityHasEver;
 
   @Schema(description = "Youngest historical data")
-  public Date youngestHistoryDate;
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  public LocalDate youngestHistoryDate;
 
   // ISecurityDataProviderUrls implementation
 

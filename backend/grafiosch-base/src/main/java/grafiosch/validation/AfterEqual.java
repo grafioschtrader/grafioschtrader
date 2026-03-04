@@ -21,7 +21,7 @@ import jakarta.validation.Payload;
  * Null values are considered valid (use @NotNull for mandatory fields).
  */
 @Documented
-@Constraint(validatedBy = {AfterEqualDateValidator.class, AfterEqualLocalDateValidator.class})
+@Constraint(validatedBy = {AfterEqualLocalDateValidator.class})
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
 public @interface AfterEqual {

@@ -11,11 +11,11 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -29,15 +29,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import grafiosch.common.DateHelper;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /*-
  * Stock, Bond, ETF:
@@ -64,7 +63,8 @@ public class SixFeedConnector extends BaseFeedConnector {
   }
 
   private static final String DOMAIN_NAME_WITH_PROTO = "https://www.six-group.com/";
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper = JsonMapper.builder()
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
   private static final String FROM_DATE_FORMAT_SIX = GlobalConstants.SHORT_STANDARD_DATE_FORMAT;
   private static final String DATE_FORMAT_SIX = "yyyyMMdd HH:mm:ss";
   private static final String URL_EXTENDED_REGEX = "^([A-Z]{2})([A-Z0-9]{9})([0-9]{1})[A-Za-z]{3}\\d$";
@@ -104,7 +104,7 @@ public class SixFeedConnector extends BaseFeedConnector {
     parseJsonData(security, response.body());
   }
 
-  private void parseJsonData(final Security security, final String jsonData) throws JSONException, ParseException {
+  private void parseJsonData(final Security security, final String jsonData) throws JSONException {
     /*-
      * 0: ValorSymbol
      * 1: MarketDate,
@@ -140,9 +140,8 @@ public class SixFeedConnector extends BaseFeedConnector {
     // Set Time "delayedDateTime": "20170802T18:28:17.313",
 
     final String dateTimeString = obj.getString("delayedDateTime").replace('T', ' ').substring(0, 17);
-    final DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_SIX);
-    dateFormat.setTimeZone(TimeZone.getTimeZone("Europe/Zurich"));
-    security.setSTimestamp(dateFormat.parse(dateTimeString));
+    final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern(DATE_FORMAT_SIX).withZone(ZoneId.of("Europe/Zurich"));
+    security.setSTimestamp(LocalDateTime.parse(dateTimeString, dateFormat));
 
     // Set performance data
     final JSONArray rowDataJsonArrayOuter = obj.getJSONArray("rowData");
@@ -157,33 +156,33 @@ public class SixFeedConnector extends BaseFeedConnector {
 
   @Override
   public String getSecurityHistoricalDownloadLink(final Security security) {
-    final DateFormat dateFormat = new SimpleDateFormat(FROM_DATE_FORMAT_SIX);
-    return getSecurityHistoricalDownloadLink(security, dateFormat, DateHelper.setTimeToZeroAndAddDay(new Date(), -7));
+    final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern(FROM_DATE_FORMAT_SIX);
+    return getSecurityHistoricalDownloadLink(security, dateFormat, LocalDate.now().minusDays(7));
   }
-  
-  private String getSecurityHistoricalDownloadLink(final Security security, final DateFormat dateFormat, final Date from) {
+
+  private String getSecurityHistoricalDownloadLink(final Security security, final DateTimeFormatter dateFormat,
+      final LocalDate from) {
     return DOMAIN_NAME_WITH_PROTO + "itf/fqs/delayed/charts.json?select=ISIN,ClosingPrice,"
         + "ClosingPerformance,PreviousClosingPrice,LatestTradeTime,LatestTradeDate&where=ValorId="
         + security.getUrlHistoryExtend()
-        + "&columns=Date,Time,Close,Open,Low,High,TotalVolume&netting=1440&nd=true&type=2&fromdate=" + dateFormat.format(from);
+        + "&columns=Date,Time,Close,Open,Low,High,TotalVolume&netting=1440&nd=true&type=2&fromdate="
+        + dateFormat.format(from);
   }
   
 
   @Override
-  public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
+  public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Historyquote> historyquotes = new ArrayList<>();
-    final DateFormat dateFormat = new SimpleDateFormat(FROM_DATE_FORMAT_SIX);
-    objectMapper.setDateFormat(dateFormat);
+    final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern(FROM_DATE_FORMAT_SIX);
     final String urlStr = getSecurityHistoricalDownloadLink(security, dateFormat, from);
     final HistoryQuote readHistoryquotes = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr).body(),
         HistoryQuote.class);
 
     DataValues dataValues = readHistoryquotes.valors[0].data;
     for (int i = 0; i < dataValues.Date.length; i++) {
-      Date date = dateFormat.parse(dataValues.Date[i]);
-      if (date.getTime() >= from.getTime() && date.getTime() <= to.getTime()) {
+      LocalDate date = LocalDate.parse(dataValues.Date[i], dateFormat);
+      if (!date.isBefore(from) && !date.isAfter(to)) {
         final Historyquote histroyquote = new Historyquote();
         historyquotes.add(histroyquote);
         histroyquote.setDate(date);
@@ -212,7 +211,7 @@ class Valors {
   public double ClosingPerformance;
   public double PreviousClosingPrice;
   public String LatestTradeTime;
-  public Date LatestTradeDate;
+  public String LatestTradeDate;
   public DataValues data;
 
 }

@@ -2,16 +2,16 @@ package grafioschtrader.entities;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
-import grafiosch.common.DateHelper;
 import grafiosch.entities.TenantBaseID;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.validation.AfterEqual;
@@ -32,8 +32,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Null;
@@ -112,11 +110,11 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
       The transaction time is the date and time when the transaction took place. The exact time is not so important,
       but it should be noted that the transaction time determines the sequence of transactions.""")
   @Basic(optional = false)
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "transaction_time")
-  @Temporal(TemporalType.TIMESTAMP)
   @NotNull
   @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = BaseConstants.STANDARD_DATE_FORMAT)
-  private Date transactionTime;
+  private LocalDateTime transactionTime;
 
   @Schema(description = """
       The transaction date is defined when an entity is saved, whereby only the date without the time is taken from 'transactionTime'.
@@ -128,11 +126,11 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   @Schema(description = """
       Sometimes the dividend is paid after a security has been sold, in which case the
       dividend date must be given.""")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "ex_date")
-  @Temporal(TemporalType.DATE)
   @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = BaseConstants.STANDARD_DATE_FORMAT)
   @Null(groups = { CashTransaction.class })
-  private Date exDate;
+  private LocalDate exDate;
 
   @Schema(description = "Transaction on a security must be connected with a security account")
   @JoinColumn(name = "id_securitycurrency", referencedColumnName = "id_securitycurrency")
@@ -192,7 +190,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   }
 
   public Transaction(Cashaccount cashaccount, Double cashaccountAmount, TransactionType transactionType,
-      Date transactionTime) {
+      LocalDateTime transactionTime) {
     this.cashaccount = cashaccount;
     this.cashaccountAmount = cashaccountAmount;
     this.transactionType = transactionType.getValue();
@@ -200,7 +198,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   }
 
   public Transaction(Cashaccount cashAccount, Double cashaccountAmount, TransactionType transactionType,
-      Double currencyExRate, Date transactionTime, Integer idSecurityaccount, Double taxCost, String note) {
+      Double currencyExRate, LocalDateTime transactionTime, Integer idSecurityaccount, Double taxCost, String note) {
     this(cashAccount, cashaccountAmount, transactionType, transactionTime);
     this.currencyExRate = currencyExRate;
     this.idSecurityaccount = idSecurityaccount;
@@ -210,7 +208,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
 
   public Transaction(Integer idSecurityaccount, Cashaccount cashAccount, Security security, Double units,
       Double quotation, TransactionType transactionType, Double taxCost, Double transactionCost, Double accruedInterest,
-      Date transactionTime, Double currencyExRate) {
+      LocalDateTime transactionTime, Double currencyExRate) {
     this(idSecurityaccount, cashAccount, security, null, units, quotation, transactionType, taxCost, transactionCost,
         accruedInterest, transactionTime, currencyExRate, null, null, null);
   }
@@ -237,8 +235,8 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
    */
   public Transaction(Integer idSecurityaccount, Cashaccount cashAccount, Security security, Double cashaccountAmount,
       Double units, Double quotation, TransactionType transactionType, Double taxCost, Double transactionCost,
-      Double assetInvestmentValue1, Date transactionTime, Double currencyExRate, Integer idCurrencypair, Date exDate,
-      Boolean taxableInterest) {
+      Double assetInvestmentValue1, LocalDateTime transactionTime, Double currencyExRate, Integer idCurrencypair,
+      LocalDate exDate, Boolean taxableInterest) {
     this(cashAccount, cashaccountAmount, transactionType, transactionTime);
     this.idSecurityaccount = idSecurityaccount;
     this.units = units;
@@ -255,12 +253,12 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
 
   @PrePersist
   public void onPrePersist() {
-    transactionDate = DateHelper.getLocalDate(this.transactionTime);
+    transactionDate = this.transactionTime.toLocalDate();
   }
 
   @PreUpdate
   public void onPreUpdate() {
-    transactionDate = DateHelper.getLocalDate(this.transactionTime);
+    transactionDate = this.transactionTime.toLocalDate();
   }
 
   @JsonIgnore
@@ -361,7 +359,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     this.note = note;
   }
 
-  public Date getTransactionTime() {
+  public LocalDateTime getTransactionTime() {
     return transactionTime;
   }
 
@@ -370,20 +368,19 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   }
 
   @JsonIgnore
-  public java.sql.Date getTransactionDateAsDate() {
-    return idTransaction < 0 ? java.sql.Date.valueOf(DateHelper.getLocalDate(this.transactionTime))
-        : java.sql.Date.valueOf(transactionDate);
+  public LocalDate getTransactionDateAsLocalDate() {
+    return idTransaction < 0 ? this.transactionTime.toLocalDate() : transactionDate;
   }
 
-  public Date getExDate() {
+  public LocalDate getExDate() {
     return exDate;
   }
 
-  public void setExDate(Date exDate) {
+  public void setExDate(LocalDate exDate) {
     this.exDate = exDate;
   }
 
-  public void setTransactionTime(Date transactionTime) {
+  public void setTransactionTime(LocalDateTime transactionTime) {
     this.transactionTime = transactionTime;
   }
 
@@ -563,7 +560,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
 
       exchangeRateToMC = dateTransactionCurrencyMap.getPriceByDateAndFromCurrency(
           dateTransactionCurrencyMap.isUseUntilDateForFeeAndInterest() ? dateTransactionCurrencyMap.getUntilDate()
-              : getTransactionDateAsDate(),
+              : getTransactionDateAsLocalDate(),
           getCashaccount().getCurrency(), true);
     }
     return exchangeRateToMC;

@@ -6,8 +6,9 @@
 package grafioschtrader.entities;
 
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -43,8 +44,6 @@ import jakarta.persistence.NamedAttributeNode;
 import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.NamedStoredProcedureQuery;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -126,22 +125,20 @@ public class Security extends Securitycurrency<Security>
   private String productLink;
 
   @Schema(description = "A security has a life span. This is defined with two dates. This is the date for trading from.")
-  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "active_from_date")
-  @Temporal(TemporalType.DATE)
   @PropertyAlwaysUpdatable
   @NotNull
   @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = BaseConstants.STANDARD_DATE_FORMAT)
-  private Date activeFromDate;
+  private LocalDate activeFromDate;
 
   @Schema(description = "A security has a life span. This is defined with two dates. This is the date for delisting, due date, etc.")
-  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "active_to_date")
-  @Temporal(TemporalType.DATE)
   @PropertyAlwaysUpdatable
   @NotNull
   @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = BaseConstants.STANDARD_DATE_FORMAT)
-  private Date activeToDate;
+  private LocalDate activeToDate;
 
   @Schema(description = """
       Some security pays dividend or interest in a certain frequency.
@@ -223,9 +220,9 @@ public class Security extends Securitycurrency<Security>
   @Schema(description = """
       If new dividends are contacted using the PULL procedure, this should be suspended until this date.
       This prevents the data provider from being contacted too frequently.""")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "div_earliest_next_check")
-  @Temporal(TemporalType.TIMESTAMP)
-  private Date dividendEarliestNextCheck;
+  private LocalDateTime dividendEarliestNextCheck;
 
   @Schema(description = """
       A derived instrument can refer to more than one instrument.
@@ -250,8 +247,9 @@ public class Security extends Securitycurrency<Security>
     super();
   }
 
-  public Security(String name, String currency, Assetclass assetClass, Stockexchange stockexchange, Date activeFromDate,
-      Date activeToDate, DistributionFrequency distributionFrequency, String tickerSymbol, String isin) {
+  public Security(String name, String currency, Assetclass assetClass, Stockexchange stockexchange,
+      LocalDate activeFromDate, LocalDate activeToDate, DistributionFrequency distributionFrequency,
+      String tickerSymbol, String isin) {
     this.name = name;
     this.currency = currency;
     this.assetClass = assetClass;
@@ -321,19 +319,19 @@ public class Security extends Securitycurrency<Security>
     this.stockexchange = stockexchange;
   }
 
-  public Date getActiveFromDate() {
+  public LocalDate getActiveFromDate() {
     return activeFromDate;
   }
 
-  public void setActiveFromDate(Date activeFromDate) {
+  public void setActiveFromDate(LocalDate activeFromDate) {
     this.activeFromDate = activeFromDate;
   }
 
-  public Date getActiveToDate() {
+  public LocalDate getActiveToDate() {
     return activeToDate;
   }
 
-  public void setActiveToDate(Date activeToDate) {
+  public void setActiveToDate(LocalDate activeToDate) {
     this.activeToDate = activeToDate;
   }
 
@@ -505,17 +503,17 @@ public class Security extends Securitycurrency<Security>
     this.retrySplitLoad = retrySplitLoad;
   }
 
-  public Date getDividendEarliestNextCheck() {
+  public LocalDateTime getDividendEarliestNextCheck() {
     return dividendEarliestNextCheck;
   }
 
-  public void setDividendEarliestNextCheck(Date dividendEarliestNextCheck) {
+  public void setDividendEarliestNextCheck(LocalDateTime dividendEarliestNextCheck) {
     this.dividendEarliestNextCheck = dividendEarliestNextCheck;
   }
 
   @Override
-  public boolean isActiveForIntradayUpdate(Date now) {
-    return !now.after(getActiveToDate());
+  public boolean isActiveForIntradayUpdate(LocalDate now) {
+    return !now.isAfter(getActiveToDate());
   }
 
   @JsonIgnore

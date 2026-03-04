@@ -3,18 +3,16 @@ package grafioschtrader.priceupdate.historyquote;
 import java.text.ParseException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import grafiosch.common.DateHelper;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.ThreadHelper;
 import grafioschtrader.entities.Historyquote;
@@ -74,11 +72,11 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
    */
   private List<S> particialFillHistoryquote(List<Integer> idsStockexchange) {
     final boolean isExchangeSpecificUpdate = idsStockexchange != null && !idsStockexchange.isEmpty();
-    final Calendar currentCalendar = corretToCalendarForDayAfterUpdate(!isExchangeSpecificUpdate);
+    final LocalDate currentDate = correctToDateForDayAfterUpdate(!isExchangeSpecificUpdate);
     final List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList = historyqouteEntityBaseAccess
         .getMaxHistoryquoteResult(globalparametersService.getMaxHistoryRetry(), this, idsStockexchange);
 
-    return fillHistoryquoteForSecuritiesCurrencies(historySecurityCurrencyList, currentCalendar, isExchangeSpecificUpdate);
+    return fillHistoryquoteForSecuritiesCurrencies(historySecurityCurrencyList, currentDate, isExchangeSpecificUpdate);
   }
 
   /**
@@ -88,30 +86,33 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
    *                             to-date is determined differently.
    * @return
    */
-  private Calendar corretToCalendarForDayAfterUpdate(boolean adjustForDayAfterUpd) {
-    final Calendar currentCalendar = DateHelper.getCalendar(new Date());
-
-    if (adjustForDayAfterUpd && (currentCalendar.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY
-        || currentCalendar.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY)) {
-      currentCalendar.add(Calendar.DATE, currentCalendar.get(Calendar.DAY_OF_WEEK) * -1);
+  private LocalDate correctToDateForDayAfterUpdate(boolean adjustForDayAfterUpd) {
+    LocalDate currentDate = LocalDate.now();
+    if (adjustForDayAfterUpd) {
+      DayOfWeek dow = currentDate.getDayOfWeek();
+      if (dow == DayOfWeek.SUNDAY) {
+        currentDate = currentDate.minusDays(2);
+      } else if (dow == DayOfWeek.MONDAY) {
+        currentDate = currentDate.minusDays(3);
+      }
     }
-    return currentCalendar;
+    return currentDate;
   }
 
   @Override
   public List<S> fillHistoryquoteForSecuritiesCurrencies(
-      List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, final Calendar currentCalendar) {
-    return fillHistoryquoteForSecuritiesCurrencies(historySecurityCurrencyList, currentCalendar, false);
+      List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, final LocalDate currentDate) {
+    return fillHistoryquoteForSecuritiesCurrencies(historySecurityCurrencyList, currentDate, false);
   }
 
   @Override
   public List<S> fillHistoryquoteForSecuritiesCurrencies(
-      List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, final Calendar currentCalendar,
+      List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, final LocalDate currentDate,
       boolean isExchangeSpecificUpdate) {
     final List<S> catchUp = new ArrayList<>();
     ThreadHelper.executeForkJoinPool(
         () -> historySecurityCurrencyList.parallelStream()
-            .forEach(queryObject -> catchUpHistoryquote(queryObject, currentCalendar, catchUp, isExchangeSpecificUpdate)),
+            .forEach(queryObject -> catchUpHistoryquote(queryObject, currentDate, catchUp, isExchangeSpecificUpdate)),
         GlobalConstants.FORK_JOIN_POOL_CORE_MULTIPLIER);
     return catchUp;
   }
@@ -129,8 +130,8 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
     return catchUp;
   }
 
-  protected void addHistoryquotesToSecurity(S securitycurrency, List<Historyquote> historyquotes, Date fromDate,
-      Date toDate) {
+  protected void addHistoryquotesToSecurity(S securitycurrency, List<Historyquote> historyquotes, LocalDate fromDate,
+      LocalDate toDate) {
     if (securitycurrency.getHistoryquoteList() == null || securitycurrency.getHistoryquoteList().isEmpty()) {
       securitycurrency.setHistoryquoteList(historyquotes);
     } else {
@@ -139,11 +140,11 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
       }
     }
     if (fromDate == null && toDate == null) {
-      securitycurrency.setFullLoadTimestamp(new Date(System.currentTimeMillis()));
+      securitycurrency.setFullLoadTimestamp(LocalDateTime.now());
     }
   }
 
-  protected Date getCorrectedFromDate(final S securitycurrency, final Date fromDate) throws ParseException {
+  protected LocalDate getCorrectedFromDate(final S securitycurrency, final LocalDate fromDate) throws ParseException {
     if (fromDate == null) {
       return securitycurrency instanceof Security ? ((Security) securitycurrency).getActiveFromDate()
           : this.globalparametersService.getStartFeedDate();
@@ -201,13 +202,13 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
    *                                  exchange closes). For global daily updates, diffInDays must be > 1.
    */
   private void catchUpHistoryquote(final SecurityCurrencyMaxHistoryquoteData<S> queryObject,
-      final Calendar untilCalendar, final List<S> catchUp, boolean isExchangeSpecificUpdate) {
+      final LocalDate untilDate, final List<S> catchUp, boolean isExchangeSpecificUpdate) {
     final S securitycurrency = queryObject.getSecurityCurrency();
 
     // Get current date in the exchange's local timezone
     final LocalDate currentDateInExchangeZone = getCurrentLocalDateForSecurityCurrency(
         securitycurrency, !isExchangeSpecificUpdate);
-    final LocalDate lastQuoteDate = DateHelper.getLocalDate(queryObject.getDate());
+    final LocalDate lastQuoteDate = queryObject.getDate();
 
     final long diffInDays = ChronoUnit.DAYS.between(lastQuoteDate, currentDateInExchangeZone);
 
@@ -219,7 +220,7 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
           diffInDays, securitycurrency);
       final LocalDate fromDate = lastQuoteDate.plusDays(1);
       final S execSecuritycurrency = historyqouteEntityBaseAccess.catchUpSecurityCurrencypairHisotry(securitycurrency,
-          DateHelper.getDateFromLocalDate(fromDate), DateHelper.getDateFromLocalDate(currentDateInExchangeZone));
+          fromDate, currentDateInExchangeZone);
       if (execSecuritycurrency.getRetryHistoryLoad() == 0) {
         catchUp.add(execSecuritycurrency);
       }

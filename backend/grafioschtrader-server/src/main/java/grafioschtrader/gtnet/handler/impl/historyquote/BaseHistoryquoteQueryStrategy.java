@@ -1,8 +1,7 @@
 package grafioschtrader.gtnet.handler.impl.historyquote;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -140,7 +139,7 @@ public abstract class BaseHistoryquoteQueryStrategy implements HistoryquoteQuery
    * @param records the historyquote records
    * @return populated InstrumentHistoryquoteDTO or null if records is empty
    */
-  protected InstrumentHistoryquoteDTO buildSecurityResponse(String isin, String currency, Date fromDate, Date toDate,
+  protected InstrumentHistoryquoteDTO buildSecurityResponse(String isin, String currency, LocalDate fromDate, LocalDate toDate,
       List<HistoryquoteRecordDTO> records) {
     if (records.isEmpty()) {
       return null;
@@ -165,8 +164,8 @@ public abstract class BaseHistoryquoteQueryStrategy implements HistoryquoteQuery
    * @param records the historyquote records
    * @return populated InstrumentHistoryquoteDTO or null if records is empty
    */
-  protected InstrumentHistoryquoteDTO buildCurrencypairResponse(String fromCurrency, String toCurrency, Date fromDate,
-      Date toDate, List<HistoryquoteRecordDTO> records) {
+  protected InstrumentHistoryquoteDTO buildCurrencypairResponse(String fromCurrency, String toCurrency, LocalDate fromDate,
+      LocalDate toDate, List<HistoryquoteRecordDTO> records) {
     if (records.isEmpty()) {
       return null;
     }
@@ -187,11 +186,8 @@ public abstract class BaseHistoryquoteQueryStrategy implements HistoryquoteQuery
    * @param days number of days to add (can be negative)
    * @return new Date with days added
    */
-  protected Date addDays(Date date, int days) {
-    Calendar cal = Calendar.getInstance();
-    cal.setTime(date);
-    cal.add(Calendar.DAY_OF_MONTH, days);
-    return cal.getTime();
+  protected LocalDate addDays(LocalDate date, int days) {
+    return date.plusDays(days);
   }
 
   /**
@@ -202,12 +198,12 @@ public abstract class BaseHistoryquoteQueryStrategy implements HistoryquoteQuery
    * @param toDate end date (inclusive)
    * @return filtered list containing only records within the date range
    */
-  protected List<HistoryquoteRecordDTO> filterRecordsByDateRange(List<HistoryquoteRecordDTO> records, Date fromDate,
-      Date toDate) {
+  protected List<HistoryquoteRecordDTO> filterRecordsByDateRange(List<HistoryquoteRecordDTO> records, LocalDate fromDate,
+      LocalDate toDate) {
     List<HistoryquoteRecordDTO> filtered = new ArrayList<>();
     for (HistoryquoteRecordDTO record : records) {
-      Date recordDate = record.getDate();
-      if (recordDate != null && !recordDate.before(fromDate) && !recordDate.after(toDate)) {
+      LocalDate recordDate = record.getDate();
+      if (recordDate != null && !recordDate.isBefore(fromDate) && !recordDate.isAfter(toDate)) {
         filtered.add(record);
       }
     }
@@ -227,20 +223,20 @@ public abstract class BaseHistoryquoteQueryStrategy implements HistoryquoteQuery
    * @param keyExtractor function to extract the lookup key from an instrument
    * @return the optimal batch fromDate
    */
-  protected <T> Date determineBatchFromDate(List<T> instruments, Map<String, InstrumentHistoryquoteDTO> requestMap,
-      Date thresholdDate, java.util.function.Function<T, String> keyExtractor) {
+  protected <T> LocalDate determineBatchFromDate(List<T> instruments, Map<String, InstrumentHistoryquoteDTO> requestMap,
+      LocalDate thresholdDate, java.util.function.Function<T, String> keyExtractor) {
 
-    Date oldestFromDate = null;
+    LocalDate oldestFromDate = null;
     boolean hasOlderThanThreshold = false;
 
     for (T instrument : instruments) {
       String key = keyExtractor.apply(instrument);
       InstrumentHistoryquoteDTO req = requestMap.get(key);
       if (req != null && req.getFromDate() != null) {
-        if (oldestFromDate == null || req.getFromDate().before(oldestFromDate)) {
+        if (oldestFromDate == null || req.getFromDate().isBefore(oldestFromDate)) {
           oldestFromDate = req.getFromDate();
         }
-        if (req.getFromDate().before(thresholdDate)) {
+        if (req.getFromDate().isBefore(thresholdDate)) {
           hasOlderThanThreshold = true;
         }
       }

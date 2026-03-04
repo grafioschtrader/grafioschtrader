@@ -1,7 +1,7 @@
 package grafioschtrader.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -315,14 +315,14 @@ public class LastpricePoolQueryService {
   /**
    * Checks if the local timestamp is newer than the requested timestamp.
    */
-  private boolean isNewer(Date local, Date requested) {
+  private boolean isNewer(LocalDateTime local, LocalDateTime requested) {
     if (local == null) {
       return false;
     }
     if (requested == null) {
       return true; // Requester has no data, any local data is newer
     }
-    return local.after(requested);
+    return local.isAfter(requested);
   }
 
   /**

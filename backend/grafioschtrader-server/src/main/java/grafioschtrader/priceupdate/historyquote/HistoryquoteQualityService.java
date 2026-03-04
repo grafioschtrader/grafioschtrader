@@ -2,9 +2,7 @@ package grafioschtrader.priceupdate.historyquote;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
-import grafiosch.common.DateHelper;
 import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.User;
 import grafioschtrader.dto.HisotryqouteLinearFilledSummary;
@@ -48,7 +45,7 @@ public class HistoryquoteQualityService {
 
     Security security = securityJpaRepository.getReferenceById(idSecuritycurrency);
     if ((UserAccessHelper.hasRightsOrPrivilegesForEditingOrDelete(user, security)
-        && security.getActiveToDate().before(new Date()) && security.getIdTenantPrivate() == null)
+        && security.getActiveToDate().isBefore(java.time.LocalDate.now()) && security.getIdTenantPrivate() == null)
         || UserAccessHelper.isAdmin(user)) {
       if (moveWeekendToFriday) {
         moveWeekendDayToBusinessDay(idSecuritycurrency, hisotryqouteLinearFilledSummary);
@@ -109,15 +106,15 @@ public class HistoryquoteQualityService {
     List<Historyquote> historyquotesForSave = new ArrayList<>();
     for (int i = 0; i < historyquotes.size() - 1; i++) {
       Historyquote historyquote = historyquotes.get(i);
-      LocalDate localDate = ((java.sql.Date) historyquote.getDate()).toLocalDate();
+      LocalDate localDate = historyquote.getDate();
       if (localDate.getDayOfWeek() == DayOfWeek.SUNDAY || localDate.getDayOfWeek() == DayOfWeek.SATURDAY) {
         LocalDate dayBefore = localDate.minusDays(1);
-        LocalDate historyqouteDayBefore = ((java.sql.Date) historyquotes.get(i + 1).getDate()).toLocalDate();
+        LocalDate historyqouteDayBefore = historyquotes.get(i + 1).getDate();
         if (dayBefore.isEqual(historyqouteDayBefore)) {
           // Remove it -> exists other history quote
           historyquotesForDelete.add(historyquote);
         } else {
-          historyquote.setDate(Date.from(dayBefore.atStartOfDay(ZoneId.systemDefault()).toInstant()));
+          historyquote.setDate(dayBefore);
           if (localDate.getDayOfWeek() == DayOfWeek.SATURDAY) {
             // Modify Saturday history quote to Friday
             historyquotesForSave.add(historyquote);
@@ -161,7 +158,7 @@ public class HistoryquoteQualityService {
       for (int i = 0; i < missingDays.size(); i++) {
         missingHistoryquoteList
             .add(new Historyquote(idSecuritycurrency, HistoryquoteCreateType.FILLED_CLOSED_LINEAR_TRADING_DAY,
-                DateHelper.getDateFromLocalDate(missingDays.get(i)), startPrice + (i + 1) * slope));
+                missingDays.get(i), startPrice + (i + 1) * slope));
       }
       hisotryqouteLinearFilledSummary.gapsTotalFilled++;
       missingDays.clear();

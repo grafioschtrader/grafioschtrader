@@ -4,10 +4,10 @@ import java.lang.annotation.Annotation;
 import java.time.LocalDateTime;
 import java.util.Currency;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.commons.codec.binary.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.core.Authentication;
@@ -77,7 +77,7 @@ public class TenantJpaRepositoryImpl extends TenantBaseImpl<Tenant> implements T
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
     Tenant createEditTenant = tenant;
     boolean currencyChanged = existingEntity == null
-        || !StringUtils.equals(existingEntity.getCurrency(), tenant.getCurrency());
+        || !Objects.equals(existingEntity.getCurrency(), tenant.getCurrency());
     User user = null;
     if (tenant.getIdTenant() != null) {
       createEditTenant = tenantJpaRepository.getReferenceById(tenant.getIdTenant());

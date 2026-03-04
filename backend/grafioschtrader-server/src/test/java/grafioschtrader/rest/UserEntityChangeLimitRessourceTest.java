@@ -19,7 +19,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import grafiosch.common.DateHelper;
 import grafiosch.entities.BaseID;
 import grafiosch.entities.UserEntityChangeLimit;
 import grafiosch.rest.RequestMappings;
@@ -45,7 +44,7 @@ class UserEntityChangeLimitRessourceTest extends BaseIntegrationTest  {
     for (String nickname : RestTestHelper.LIMIT_USERS) {
       UserEntityChangeLimit userEntityChangeLimit = new UserEntityChangeLimit(
           RestTestHelper.getUserByNickname(nickname).idUser, clazz.getSimpleName(),
-          DateHelper.getDateFromLocalDate(localDate), 1000);
+          localDate, 1000);
 
       ResponseEntity<UserEntityChangeLimit> response = restTemplate.exchange(
           RestTestHelper.createURLWithPort(RequestMappings.USER_ENTITY_CHANGE_LIMIT_MAP, port), HttpMethod.POST,

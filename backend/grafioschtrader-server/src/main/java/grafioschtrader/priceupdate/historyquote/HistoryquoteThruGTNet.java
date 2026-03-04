@@ -1,8 +1,7 @@
 package grafioschtrader.priceupdate.historyquote;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -72,7 +71,7 @@ public class HistoryquoteThruGTNet<S extends Securitycurrency<S>> implements IHi
     HistoryquoteThruConnector.PartialFillData<S> partialFillData = connectorThru.getPartialFillData(idsStockexchange);
     catchUp.addAll(this.fillHistoryquoteForSecuritiesCurrencies(
         partialFillData.getHistorySecurityCurrencyList(),
-        partialFillData.getCurrentCalendar(),
+        partialFillData.getCurrentDate(),
         isExchangeSpecificUpdate));
 
     return catchUp;
@@ -87,7 +86,7 @@ public class HistoryquoteThruGTNet<S extends Securitycurrency<S>> implements IHi
 
   @Override
   public S createHistoryQuotesAndSave(ISecuritycurrencyService<S> securitycurrencyService, S securitycurrency,
-      Date fromDate, Date toDate) {
+      LocalDate fromDate, LocalDate toDate) {
     return connectorThru.createHistoryQuotesAndSave(securitycurrencyService, securitycurrency, fromDate, toDate);
   }
 
@@ -113,8 +112,8 @@ public class HistoryquoteThruGTNet<S extends Securitycurrency<S>> implements IHi
    */
   @Override
   public List<S> fillHistoryquoteForSecuritiesCurrencies(
-      List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, Calendar currentCalendar) {
-    return fillHistoryquoteForSecuritiesCurrencies(historySecurityCurrencyList, currentCalendar, false);
+      List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, LocalDate currentDate) {
+    return fillHistoryquoteForSecuritiesCurrencies(historySecurityCurrencyList, currentDate, false);
   }
 
   /**
@@ -127,19 +126,19 @@ public class HistoryquoteThruGTNet<S extends Securitycurrency<S>> implements IHi
    * 4. Push connector-fetched data back to interested GTNet suppliers
    *
    * @param historySecurityCurrencyList list of securities/currencies with their maximum historical quote dates
-   * @param currentCalendar current calendar for determining the update range
+   * @param currentDate current calendar for determining the update range
    * @param isExchangeSpecificUpdate true for exchange-specific updates (requires 1+ day difference),
    *                                  false for global daily updates (requires 2+ days difference)
    * @return list of updated securities or currency pairs
    */
   @Override
   public List<S> fillHistoryquoteForSecuritiesCurrencies(
-      List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, Calendar currentCalendar,
+      List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, LocalDate currentDate,
       boolean isExchangeSpecificUpdate) {
 
     if (!globalparametersJpaRepository.isGTNetEnabled() || historySecurityCurrencyList.isEmpty()) {
       // GTNet disabled - pass through to connector with correct flag
-      return connectorThru.fillHistoryquoteForSecuritiesCurrencies(historySecurityCurrencyList, currentCalendar,
+      return connectorThru.fillHistoryquoteForSecuritiesCurrencies(historySecurityCurrencyList, currentDate,
           isExchangeSpecificUpdate);
     }
 
@@ -147,14 +146,14 @@ public class HistoryquoteThruGTNet<S extends Securitycurrency<S>> implements IHi
 
     // 1. Query GTNet first (returns data WITHOUT storing)
     HistoryquoteExchangeResult<S> gtNetResult = gtNetHistoryquoteService
-        .requestHistoryquotesFromBaseThru(historySecurityCurrencyList, currentCalendar);
+        .requestHistoryquotesFromBaseThru(historySecurityCurrencyList, currentDate);
 
     // 2. Save GTNet-filled data through proper flow
-    List<S> gtNetCatchUp = saveGTNetFilledData(gtNetResult, currentCalendar);
+    List<S> gtNetCatchUp = saveGTNetFilledData(gtNetResult, currentDate);
 
     // 3. Connector fallback for remaining instruments with correct flag
     List<S> connectorCatchUp = connectorThru.fillHistoryquoteForSecuritiesCurrencies(
-        gtNetResult.getRemainingForConnector(), currentCalendar, isExchangeSpecificUpdate);
+        gtNetResult.getRemainingForConnector(), currentDate, isExchangeSpecificUpdate);
 
     // 4. Push connector-fetched data back to interested suppliers
     if (gtNetResult.hasWantToReceive() && !connectorCatchUp.isEmpty()) {
@@ -178,7 +177,7 @@ public class HistoryquoteThruGTNet<S extends Securitycurrency<S>> implements IHi
    * @param currentCalendar the target end date for historyquote loading
    * @return list of successfully saved instruments
    */
-  private List<S> saveGTNetFilledData(HistoryquoteExchangeResult<S> gtNetResult, Calendar currentCalendar) {
+  private List<S> saveGTNetFilledData(HistoryquoteExchangeResult<S> gtNetResult, LocalDate currentDate) {
     List<S> savedInstruments = new ArrayList<>();
 
     for (SecurityCurrencyMaxHistoryquoteData<S> filled : gtNetResult.getFilledByGTNet()) {
@@ -192,8 +191,8 @@ public class HistoryquoteThruGTNet<S extends Securitycurrency<S>> implements IHi
               securitycurrency.getIdSecuritycurrency());
 
           // Calculate dates
-          Date fromDate = filled.getDate() != null ? addOneDay(filled.getDate()) : null;
-          Date toDate = currentCalendar.getTime();
+          LocalDate fromDate = filled.getDate() != null ? filled.getDate().plusDays(1) : null;
+          LocalDate toDate = currentDate;
 
           // Save through connector's proper flow
           S saved = connectorThru.savePrefetchedHistoryQuotes(securitycurrencyService, securitycurrency, historyquotes,
@@ -233,13 +232,4 @@ public class HistoryquoteThruGTNet<S extends Securitycurrency<S>> implements IHi
     return historyquotes;
   }
 
-  /**
-   * Adds one day to the given date.
-   */
-  private Date addOneDay(Date date) {
-    Calendar cal = Calendar.getInstance();
-    cal.setTime(date);
-    cal.add(Calendar.DAY_OF_MONTH, 1);
-    return cal.getTime();
-  }
 }

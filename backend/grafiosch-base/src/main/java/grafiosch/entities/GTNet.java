@@ -1,15 +1,17 @@
 package grafiosch.entities;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import grafiosch.BaseConstants;
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.common.PropertyOnlyCreation;
 import grafiosch.gtnet.GTNetServerOnlineStatusTypes;
@@ -27,8 +29,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -131,9 +131,9 @@ public class GTNet extends BaseID<Integer> {
       Timestamp when this GTNet entry was last modified. Used to determine which server has more recent information
       when exchanging server lists between peers. Automatically updated by JPA auditing.""")
   @LastModifiedDate
-  @Temporal(TemporalType.TIMESTAMP)
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "last_modified_time")
-  private Date lastModifiedTime;
+  private LocalDateTime lastModifiedTime;
 
   public Integer getIdGtNet() {
     return idGtNet;
@@ -199,11 +199,11 @@ public class GTNet extends BaseID<Integer> {
     this.allowServerCreation = allowServerCreation;
   }
 
-  public Date getLastModifiedTime() {
+  public LocalDateTime getLastModifiedTime() {
     return lastModifiedTime;
   }
 
-  public void setLastModifiedTime(Date lastModifiedTime) {
+  public void setLastModifiedTime(LocalDateTime lastModifiedTime) {
     this.lastModifiedTime = lastModifiedTime;
   }
 

@@ -22,12 +22,6 @@
 	</properties>
 
 
-	<repositories>
-		<repository>
-			<id>jcenter</id>
-			<url>https://jcenter.bintray.com/</url>
-		</repository>
-	</repositories>
 
 
 	<build>
@@ -76,10 +70,6 @@
 		</dependency>
 
 
-		<dependency>
-			<groupId>com.fasterxml.jackson.datatype</groupId>
-			<artifactId>jackson-datatype-jsr310</artifactId>
-		</dependency>
 
 		<!-- <dependency> <groupId>com.fasterxml.jackson.core</groupId> <artifactId>jackson-databind</artifactId> 
 			</dependency> -->
@@ -119,7 +109,7 @@
 		
 		<dependency>
     		<groupId>io.hypersistence</groupId>
-    		<artifactId>hypersistence-utils-hibernate-63</artifactId>
+    		<artifactId>hypersistence-utils-hibernate-71</artifactId>
 		</dependency>
 		
 		<dependency>

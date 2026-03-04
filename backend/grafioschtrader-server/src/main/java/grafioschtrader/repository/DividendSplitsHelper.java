@@ -1,12 +1,11 @@
 package grafioschtrader.repository;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import grafiosch.common.DateHelper;
 import grafioschtrader.entities.DividendSplit;
 import grafioschtrader.entities.Security;
 import grafioschtrader.types.CreateType;
@@ -29,10 +28,10 @@ public abstract class DividendSplitsHelper {
 
     List<S> canCreateDividendSplits = dividendSplitsRead.stream()
         .filter(ns -> existingDividendsSplits.stream()
-            .filter(es -> DateHelper.isSameDay(es.getEventDate(), ns.getEventDate())).findFirst().isEmpty())
+            .filter(es -> es.getEventDate().isEqual(ns.getEventDate())).findFirst().isEmpty())
         .peek(ns -> {
           ns.setCreateType(CreateType.CONNECTOR_CREATED);
-          ns.setCreateModifyTime(new Date());
+          ns.setCreateModifyTime(LocalDateTime.now());
         }).collect(Collectors.toList());
     return jpaRepository.saveAll(canCreateDividendSplits);
   }

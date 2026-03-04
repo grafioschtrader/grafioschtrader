@@ -1,7 +1,7 @@
 package grafioschtrader.repository;
 
 import java.time.LocalDate;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -31,7 +31,7 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
     JpaSpecificationExecutor<Security>, SecurityJpaRepositoryCustom, UpdateCreateJpaRepository<Security> {
 
 
-  List<Security> findByActiveToDateAfterAndIsinIsNotNull(Date date);
+  List<Security> findByActiveToDateAfterAndIsinIsNotNull(LocalDate date);
 
   /**
    * Returns IDs of securities configured to receive intraday prices via GTNet.
@@ -62,7 +62,7 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
    * Also includes securities where gtNetLastModifiedTime is NULL (never synced before).
    */
   @Query("SELECT s FROM Security s WHERE (s.gtNetLastModifiedTime > ?1 OR s.gtNetLastModifiedTime IS NULL) AND s.isin IS NOT NULL")
-  List<Security> findByGtNetLastModifiedTimeAfterAndIsinIsNotNull(Date timestamp);
+  List<Security> findByGtNetLastModifiedTimeAfterAndIsinIsNotNull(LocalDateTime timestamp);
 
   /**
    * Finds all securities with GTNet send flags enabled (lastprice or historical).
@@ -96,13 +96,13 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
 
   List<Security> findByTickerSymbol(String tickerSymbol);
 
-  List<Security> findByActiveToDateGreaterThanEqualAndIdTenantPrivateIsNullOrIdTenantPrivateOrderByName(Date date,
+  List<Security> findByActiveToDateGreaterThanEqualAndIdTenantPrivateIsNullOrIdTenantPrivateOrderByName(LocalDate date,
       Integer idTenantPrivate);
 
   List<Security> findByTickerSymbolInOrderByIdSecuritycurrency(Set<String> tickers);
 
   List<Security> findByAssetClass_CategoryTypeInAndAssetClass_SpecialInvestmentInstrumentInAndActiveToDateAfterAndIdTenantPrivateIsNull(
-      Set<Byte> categoryTypes, Set<Byte> specialInvestmentInstruments, Date date);
+      Set<Byte> categoryTypes, Set<Byte> specialInvestmentInstruments, LocalDate date);
 
   // Catch history quotes as well for this Security
   @Override
@@ -348,6 +348,22 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   List<Security> getUnusedSecurityForAlgo(Integer idTenantPrivate, Integer idAlgoAssetclassSecurity);
 
   /**
+   * Lists securities from a watchlist that are not yet assigned under a custom category AlgoAssetclass.
+   * Used when the parent AlgoAssetclass is a custom category (name IS NOT NULL), allowing any watchlist
+   * security regardless of asset class.
+   *
+   * Named query: Security.getUnusedSecurityForAlgoCustom
+   *
+   * @param idWatchlist              the watchlist ID from the parent AlgoTop
+   * @param idTenantPrivate          tenant-private ID filter (nullable)
+   * @param idAlgoAssetclassSecurity the custom category AlgoAssetclass ID
+   * @return a list of Securities from the watchlist not yet assigned to this custom category
+   */
+  @Query(nativeQuery = true)
+  List<Security> getUnusedSecurityForAlgoCustom(Integer idWatchlist, Integer idTenantPrivate,
+      Integer idAlgoAssetclassSecurity);
+
+  /**
    * Streams flat projections of historyquote quality metrics grouped by connector. Each projection includes connector
    * ID, stockexchange name and ID, category type, special investment instrument, counts of securities, active
    * securities, and aggregated create_type counts, plus average qualityPercentage.
@@ -462,7 +478,7 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   @Transactional
   @Modifying
   @Query(nativeQuery = true)
-  void resetRetryHistoryByConnector(Date activeOnDate, String connectorId);
+  void resetRetryHistoryByConnector(LocalDate activeOnDate, String connectorId);
 
   /**
    * Resets retry_intra_load counter to zero for securities active on the given date, optionally filtered by connector.
@@ -476,7 +492,7 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   @Transactional
   @Modifying
   @Query(nativeQuery = true)
-  void resetRetryIntraByConnector(Date activeOnDate, String connectorId);
+  void resetRetryIntraByConnector(LocalDate activeOnDate, String connectorId);
 
   /**
    * Counts securities where any of the four connector fields matches the given connector ID.
@@ -489,7 +505,7 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
 
   @Override
   void calcGainLossBasedOnDateOrNewestPrice(List<SecurityPositionSummary> securitycurrencyPositionSummary,
-      Date untilDate);
+      LocalDate untilDate);
 
   public static class SplitAdjustedHistoryquotesResult {
     public SplitAdjustedHistoryquotes sah;

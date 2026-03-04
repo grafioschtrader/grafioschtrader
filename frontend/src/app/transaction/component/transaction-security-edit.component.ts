@@ -820,8 +820,8 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     if (this.transactionCallParam.transactionType === TransactionType.ACCUMULATE ||
       this.transactionCallParam.transactionType === TransactionType.REDUCE) {
       if(!this.transactionCallParam.transaction) {
-        const transactionTime: number = +this.configObject.transactionTime.formControl.value;
-        if (transactionTime > security.sTimestamp || moment(transactionTime).isSame(new Date(), 'day')) {
+        const transactionTime: Date = this.configObject.transactionTime.formControl.value;
+        if (moment(transactionTime).isAfter(moment(security.sTimestamp)) || moment(transactionTime).isSame(new Date(), 'day')) {
           if (security.sLast) {
             this.setValueToControl(this.configObject.quotation, security.sLast);
           }
@@ -934,7 +934,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   private updateCurrencyExchangeRate(): void {
     if (this.currencypair && this.hasChangedOnExistingTransaction()) {
       BusinessHelper.getAndSetQuotationCurrencypair(this.currencypairService, this.currencypair,
-        +this.configObject.transactionTime.formControl.value, this.configObject.currencyExRate.formControl);
+        this.configObject.transactionTime.formControl.value, this.configObject.currencyExRate.formControl);
     }
   }
 
@@ -1038,9 +1038,9 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
 class ChangedIdSecurityAndTime {
   private idSecuritycurrency: number;
-  private checkTime: number;
+  private checkTime: any;
 
-  hasChanged(idSecuritycurrency: number, checkTime: number): boolean {
+  hasChanged(idSecuritycurrency: number, checkTime: any): boolean {
     if (this.idSecuritycurrency !== idSecuritycurrency || this.checkTime !== checkTime) {
       this.idSecuritycurrency = idSecuritycurrency;
       this.checkTime = checkTime;

@@ -21,7 +21,8 @@ export class AlgoStrategyDefinitionForm {
 export class AlgoCallParam {
   constructor(public parentObject: AlgoTop | AlgoAssetclass | AlgoSecurity,
               public thisObject: AlgoTop | AlgoAssetclass | AlgoSecurity | AlgoStrategy,
-              public algoStrategyDefinitionForm?: AlgoStrategyDefinitionForm) {
+              public algoStrategyDefinitionForm?: AlgoStrategyDefinitionForm,
+              public idWatchlist?: number) {
   }
 }
 

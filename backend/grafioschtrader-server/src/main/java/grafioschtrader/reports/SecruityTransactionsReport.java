@@ -1,11 +1,11 @@
 package grafioschtrader.reports;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -19,7 +19,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import grafiosch.BaseConstants;
-import grafiosch.common.DateHelper;
 import grafiosch.entities.User;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Portfolio;
@@ -108,7 +107,7 @@ public class SecruityTransactionsReport {
    * @return transaction summary with security objects cleared from transactions
    */
   public SecurityTransactionSummary getTransactionsByIdTenantAndIdSecurityAndClearSecurity(final Integer idTenant,
-      final Integer idSecuritycurrency, final Date untilDate,
+      final Integer idSecuritycurrency, final LocalDate untilDate,
       final Set<SecruityTransactionsReportOptions> secruityTransactionsReportOptions) {
     secruityTransactionsReportOptions.add(SecruityTransactionsReportOptions.CLEAR_TRANSACTION_SECURITY);
     return getTransactionsByIdTenantAndIdSecurity(idTenant, null, idSecuritycurrency, untilDate,
@@ -125,7 +124,7 @@ public class SecruityTransactionsReport {
    * @return transaction summary with security objects cleared from transactions
    */
   public SecurityTransactionSummary getTransactionsByIdPortfolioAndIdSecurityAndClearSecurity(final Integer idPortfolio,
-      final Integer idSecuritycurrency, final Date untilDate,
+      final Integer idSecuritycurrency, final LocalDate untilDate,
       final Set<SecruityTransactionsReportOptions> secruityTransactionsReportOptions) {
     secruityTransactionsReportOptions.add(SecruityTransactionsReportOptions.CLEAR_TRANSACTION_SECURITY);
     return getTransactionsByIdPortfolioAndIdSecurity(idPortfolio, idSecuritycurrency, untilDate,
@@ -142,7 +141,7 @@ public class SecruityTransactionsReport {
    * @return transaction summary with security objects cleared from transactions
    */
   public SecurityTransactionSummary getTransactionsByIdSecurityaccountsAndIdSecurityAndClearSecurity(
-      final List<Integer> idsSecurityaccount, final Integer idSecuritycurrency, final Date untilDate,
+      final List<Integer> idsSecurityaccount, final Integer idSecuritycurrency, final LocalDate untilDate,
       final Set<SecruityTransactionsReportOptions> secruityTransactionsReportOptions) {
     secruityTransactionsReportOptions.add(SecruityTransactionsReportOptions.CLEAR_TRANSACTION_SECURITY);
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -171,14 +170,15 @@ public class SecruityTransactionsReport {
    */ 
   public SecurityOpenPositionPerSecurityaccount getOpenPositionByIdTenantAndIdSecuritycurrency(final Integer idTenant,
       final Integer idSecuritycurrency, final String dateString, final boolean before,
-      final Integer excludeIdTransaction, Integer idOpenMarginTransaction) throws ParseException {
+      final Integer excludeIdTransaction, Integer idOpenMarginTransaction) {
 
     // We need to convert the date to UTC time zone;
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    Date untilDate = new SimpleDateFormat("yyyyMMddHHmm").parse(dateString);
+    LocalDateTime untilDateTime = LocalDateTime.parse(dateString, DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
     if (before) {
-      untilDate = new Date(untilDate.getTime() - 1 + user.getTimezoneOffset() * 60 * 1000);
+      untilDateTime = untilDateTime.minusNanos(1_000_000).plusMinutes(user.getTimezoneOffset());
     }
+    LocalDate untilDate = untilDateTime.toLocalDate();
     final SecurityOpenPositionPerSecurityaccount securityaccountOpenPositionSecurity = new SecurityOpenPositionPerSecurityaccount();
     SecurityTransactionSummary securityTransactionSummary = getTransactionsByIdTenantAndIdSecurity(idTenant, null,
         idSecuritycurrency, untilDate, Collections.<SecruityTransactionsReportOptions>emptySet(),
@@ -214,7 +214,7 @@ public class SecruityTransactionsReport {
    * @return comprehensive transaction summary with position and performance data
    */
   private SecurityTransactionSummary getTransactionsByIdTenantAndIdSecurity(final Integer idTenant,
-      final List<Integer> idsSecurityaccount, final Integer idSecuritycurrency, final Date untilDate,
+      final List<Integer> idsSecurityaccount, final Integer idSecuritycurrency, final LocalDate untilDate,
       final Set<SecruityTransactionsReportOptions> secruityTransactionsReportOptions, Integer idOpenMarginTransaction) {
 
     final Tenant tenant = tenantJpaRepository.getReferenceById(idTenant);
@@ -233,7 +233,7 @@ public class SecruityTransactionsReport {
     final CompletableFuture<DateTransactionCurrencypairMap> dateCurrencyMapFuture = CompletableFuture
         .supplyAsync(() -> new DateTransactionCurrencypairMap(tenant.getCurrency(), untilDate,
             dateTransactionCurrencyFuture.join(), currencypairsFuture.join(),
-            this.tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(DateHelper.getLocalDate(untilDate))));
+            this.tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate)));
     return calcSummaryForTransactions(transactionsFuture.join(),
         securityJpaRepository.getReferenceById(idSecuritycurrency), untilDate, secruityTransactionsReportOptions,
         dateCurrencyMapFuture.join());
@@ -250,7 +250,7 @@ public class SecruityTransactionsReport {
    * @throws SecurityException if user lacks access to the portfolio
    */
   private SecurityTransactionSummary getTransactionsByIdPortfolioAndIdSecurity(final Integer idPortfolio,
-      final Integer idSecuritycurrency, final Date untilDate,
+      final Integer idSecuritycurrency, final LocalDate untilDate,
       final Set<SecruityTransactionsReportOptions> secruityTransactionsReportOptions) {
     final Integer idTenant = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails()).getIdTenant();
 
@@ -267,7 +267,7 @@ public class SecruityTransactionsReport {
       final CompletableFuture<DateTransactionCurrencypairMap> dateCurrencyMapFuture = CompletableFuture
           .supplyAsync(() -> new DateTransactionCurrencypairMap(portfolio.getCurrency(), untilDate,
               dateTransactionCurrencyFuture.join(), currencypairsFuture.join(), this.tradingDaysPlusJpaRepository
-                  .hasTradingDayBetweenUntilYesterday(DateHelper.getLocalDate(untilDate))));
+                  .hasTradingDayBetweenUntilYesterday(untilDate)));
       return calcSummaryForTransactions(transactionsFuture.join(),
           securityJpaRepository.getReferenceById(idSecuritycurrency), untilDate, secruityTransactionsReportOptions,
           dateCurrencyMapFuture.join());
@@ -287,7 +287,7 @@ public class SecruityTransactionsReport {
    * @return transaction summary for the security account scope
    */
   private SecurityTransactionSummary getTransactionsByIdSecurityaccountAndIdSecurity(final Integer idTenant,
-      final Integer idSecuritycashAccount, final Integer idSecuritycurrency, final Date untilDate,
+      final Integer idSecuritycashAccount, final Integer idSecuritycurrency, final LocalDate untilDate,
       final Set<SecruityTransactionsReportOptions> secruityTransactionsReportOptions) {
     final Portfolio portfolio = portfolioJpaRepository
         .findBySecuritycashaccountList_idSecuritycashAccountAndIdTenant(idSecuritycashAccount, idTenant);
@@ -301,7 +301,7 @@ public class SecruityTransactionsReport {
     final CompletableFuture<DateTransactionCurrencypairMap> dateCurrencyMapFuture = CompletableFuture
         .supplyAsync(() -> new DateTransactionCurrencypairMap(portfolio.getCurrency(), untilDate,
             dateTransactionCurrencyFuture.join(), currencypairsFuture.join(),
-            this.tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(DateHelper.getLocalDate(untilDate))));
+            this.tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate)));
     return calcSummaryForTransactions(transactionsFuture.join(),
         securityJpaRepository.getReferenceById(idSecuritycurrency), untilDate, secruityTransactionsReportOptions,
         dateCurrencyMapFuture.join());
@@ -344,7 +344,7 @@ public class SecruityTransactionsReport {
    * @return comprehensive transaction summary with positions and performance data
    */
   private SecurityTransactionSummary calcSummaryForTransactions(final List<Transaction> transactions,
-      final Security security, final Date untilDate,
+      final Security security, final LocalDate untilDate,
       final Set<SecruityTransactionsReportOptions> secruityTransactionsReportOptions,
       final DateTransactionCurrencypairMap dateCurrencyMap) {
 
@@ -419,7 +419,8 @@ public class SecruityTransactionsReport {
           int splitIndex = securitySplits.size() - 1;
           double factor = 1.0;
           while (splitIndex >= 0
-              && transaction.getTransactionTime().getTime() < securitySplits.get(splitIndex).getSplitDate().getTime()) {
+              && transaction.getTransactionTime().toLocalDate()
+                  .isBefore(securitySplits.get(splitIndex).getSplitDate())) {
             final Securitysplit securitysplit = securitySplits.get(splitIndex);
             factor /= (double) securitysplit.getToFactor() / securitysplit.getFromFactor();
             splitIndex--;

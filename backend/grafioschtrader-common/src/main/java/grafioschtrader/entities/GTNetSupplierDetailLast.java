@@ -1,9 +1,11 @@
 package grafioschtrader.entities;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import grafiosch.entities.GTNetSupplierDetail;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
@@ -12,8 +14,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 
 /**
  * Stores intraday (last price) settings for a GTNet supplier detail entry.
@@ -43,9 +43,9 @@ public class GTNetSupplierDetailLast {
   private Short retryIntraLoad = 0;
 
   @Schema(description = "Timestamp of the last intraday price update.")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "s_timestamp")
-  @Temporal(TemporalType.TIMESTAMP)
-  private Date sTimestamp;
+  private LocalDateTime sTimestamp;
 
   public GTNetSupplierDetailLast() {
   }
@@ -70,11 +70,11 @@ public class GTNetSupplierDetailLast {
     this.retryIntraLoad = retryIntraLoad;
   }
 
-  public Date getSTimestamp() {
+  public LocalDateTime getSTimestamp() {
     return sTimestamp;
   }
 
-  public void setSTimestamp(Date sTimestamp) {
+  public void setSTimestamp(LocalDateTime sTimestamp) {
     this.sTimestamp = sTimestamp;
   }
 }

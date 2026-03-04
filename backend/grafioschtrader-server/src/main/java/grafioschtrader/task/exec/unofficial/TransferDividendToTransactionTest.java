@@ -1,6 +1,6 @@
 package grafioschtrader.task.exec.unofficial;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafiosch.common.DateHelper;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.task.ITask;
 import grafiosch.types.ITaskType;
@@ -92,12 +91,12 @@ public class TransferDividendToTransactionTest implements ITask {
       double cashaccountAmount = dfh.getHoldings() * dfh.getAmount();
       double taxCost = subCategory.contains("Schweiz") ? DataBusinessHelper.round(cashaccountAmount * 0.35) : 0;
       cashaccountAmount -= taxCost;
-      Date transactionTime = dfh.getPayDate() == null ? DateHelper.setTimeToZeroAndAddDay(dfh.getExDate(), 28)
-          : new Date(dfh.getPayDate().getTime());
+      LocalDateTime transactionTime = dfh.getPayDate() == null ? dfh.getExDate().plusDays(28).atStartOfDay()
+          : dfh.getPayDate().atStartOfDay();
 
       Transaction transaction = new Transaction(idSecurityaccount, cashaccount, security, cashaccountAmount,
           dfh.getHoldings(), dfh.getAmount(), TransactionType.DIVIDEND, taxCost, null, null, transactionTime, null,
-          null, new Date(dfh.getExDate().getTime()), true);
+          null, dfh.getExDate(), true);
       transaction.setNote("System-Created");
       transaction.setTaxableInterest(true);
       transaction.setIdTenant(idTenant);

@@ -1,6 +1,6 @@
 package grafiosch.repository;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -110,7 +110,7 @@ public interface GTNetMessageJpaRepository extends GTNetMessageJpaRepositoryBase
   @Transactional
   @Modifying
   @Query(nativeQuery = true)
-  int deleteRepliesToOldMessages(List<Byte> messageCodes, Date beforeDate);
+  int deleteRepliesToOldMessages(List<Byte> messageCodes, LocalDateTime beforeDate);
 
   /**
    * Deletes old GTNet messages by message codes and timestamp threshold.
@@ -126,7 +126,7 @@ public interface GTNetMessageJpaRepository extends GTNetMessageJpaRepositoryBase
   @Transactional
   @Modifying
   @Query(nativeQuery = true)
-  int deleteOldMessagesByCodesAndDate(List<Byte> messageCodes, Date beforeDate);
+  int deleteOldMessagesByCodesAndDate(List<Byte> messageCodes, LocalDateTime beforeDate);
 
   /**
    * Converts the count query result to a Map for efficient lookup.

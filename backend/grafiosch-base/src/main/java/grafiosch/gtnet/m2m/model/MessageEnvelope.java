@@ -1,14 +1,13 @@
 package grafiosch.gtnet.m2m.model;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Map;
-
-import com.fasterxml.jackson.databind.JsonNode;
 
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetMessage;
 import grafiosch.entities.GTNetMessage.GTNetMessageParam;
 import io.swagger.v3.oas.annotations.media.Schema;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Wrapper for all machine-to-machine (M2M) communication between GTNet instances.
@@ -40,7 +39,7 @@ public class MessageEnvelope {
   public Integer idSourceGtNetMessage;
 
   @Schema(description = "UTC timestamp when the message was created. Used for ordering and staleness detection.")
-  public Date timestamp;
+  public LocalDateTime timestamp;
 
   @Schema(description = "Message type code from GTNetMessageCodeType. Determines how the receiver processes this message.")
   public byte messageCode;

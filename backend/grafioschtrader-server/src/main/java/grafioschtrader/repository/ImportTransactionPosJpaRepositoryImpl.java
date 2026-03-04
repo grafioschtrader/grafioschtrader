@@ -1,10 +1,11 @@
 package grafioschtrader.repository;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -350,16 +351,14 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
    * @param date Date to be checked and potentially adjusted
    * @return Adjusted date: Friday for Saturday dates, Monday for Sunday dates, unchanged for weekdays
    */
-  private Date adjustIfWeekend(Date date) {
-    Calendar calendar = Calendar.getInstance();
-    calendar.setTime(date);
-    int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
-    if (dayOfWeek == Calendar.SATURDAY) {
-      calendar.add(Calendar.DAY_OF_MONTH, -1);
-    } else if (dayOfWeek == Calendar.SUNDAY) {
-      calendar.add(Calendar.DAY_OF_MONTH, 1);
+  private LocalDateTime adjustIfWeekend(LocalDateTime date) {
+    DayOfWeek dayOfWeek = date.getDayOfWeek();
+    if (dayOfWeek == DayOfWeek.SATURDAY) {
+      return date.minusDays(1);
+    } else if (dayOfWeek == DayOfWeek.SUNDAY) {
+      return date.plusDays(1);
     }
-    return calendar.getTime();
+    return date;
   }
 
   @Override
@@ -531,7 +530,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
    */
   private Optional<HoldSecurityaccountSecurity> getHoldings(ImportTransactionHead importTransactionHead,
       ImportTransactionPos itp, boolean unitsMustMatch) {
-    Date exDateOrTransactionDate = itp.getExDate() != null ? itp.getExDate() : itp.getTransactionTime();
+    LocalDate exDateOrTransactionDate = itp.getExDate() != null ? itp.getExDate() : itp.getTransactionTime().toLocalDate();
     List<HoldSecurityaccountSecurity> hssList = holdSecurityaccountSecurityJpaRepository
         .getByISINAndSecurityAccountAndDate(itp.getIsin(),
             importTransactionHead.getSecurityaccount().getIdSecuritycashAccount(), exDateOrTransactionDate);
@@ -569,7 +568,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
       Integer idCurrencypair = this.currencypairJpaRepository.findOrCreateCurrencypairByFromAndToCurrency(
           currencypair.getFromCurrency(), currencypair.getToCurrency(), true).getIdSecuritycurrency();
       ISecuritycurrencyIdDateClose idc = historyquoteJpaRepository
-          .getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(idCurrencypair, itp.getTransactionTime(), false);
+          .getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(idCurrencypair, itp.getTransactionTime().toLocalDate(), false);
       itp.setCurrencyExRate(idc.getClose());
       if (itp.getTaxCost() != null) {
         itp.setTaxCost(itp.getTaxCost() / idc.getClose(), 0.0, false);

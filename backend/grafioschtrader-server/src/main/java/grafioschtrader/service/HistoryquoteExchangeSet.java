@@ -1,7 +1,7 @@
 package grafioschtrader.service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -34,8 +34,8 @@ import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteD
 public class HistoryquoteExchangeSet<S extends Securitycurrency<S>> {
 
   private final Map<String, SecurityCurrencyMaxHistoryquoteData<S>> instruments = new HashMap<>();
-  private final Map<String, Date> fromDates = new HashMap<>();
-  private final Map<String, Date> toDates = new HashMap<>();
+  private final Map<String, LocalDate> fromDates = new HashMap<>();
+  private final Map<String, LocalDate> toDates = new HashMap<>();
   private final Set<String> filledKeys = new HashSet<>();
   private final Map<GTNet, List<InstrumentHistoryquoteDTO>> wantToReceiveBySupplier = new HashMap<>();
   private final Map<String, InstrumentHistoryquoteDTO> receivedData = new HashMap<>();
@@ -47,7 +47,7 @@ public class HistoryquoteExchangeSet<S extends Securitycurrency<S>> {
    * @param fromDate the start date for historyquote request
    * @param toDate the end date for historyquote request
    */
-  public void addInstrument(SecurityCurrencyMaxHistoryquoteData<S> data, Date fromDate, Date toDate) {
+  public void addInstrument(SecurityCurrencyMaxHistoryquoteData<S> data, LocalDate fromDate, LocalDate toDate) {
     String key = buildKey(data.getSecurityCurrency());
     if (key != null) {
       instruments.put(key, data);

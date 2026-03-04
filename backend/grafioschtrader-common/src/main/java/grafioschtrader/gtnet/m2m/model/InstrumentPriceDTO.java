@@ -1,10 +1,12 @@
 package grafioschtrader.gtnet.m2m.model;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -34,7 +36,8 @@ public class InstrumentPriceDTO implements Serializable {
   private String toCurrency;
 
   @Schema(description = "Timestamp of the last price update. Null in request means no local data available")
-  private Date timestamp;
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
+  private LocalDateTime timestamp;
 
   @Schema(description = "Opening price for the trading day")
   private Double open;
@@ -143,11 +146,11 @@ public class InstrumentPriceDTO implements Serializable {
     this.toCurrency = toCurrency;
   }
 
-  public Date getTimestamp() {
+  public LocalDateTime getTimestamp() {
     return timestamp;
   }
 
-  public void setTimestamp(Date timestamp) {
+  public void setTimestamp(LocalDateTime timestamp) {
     this.timestamp = timestamp;
   }
 

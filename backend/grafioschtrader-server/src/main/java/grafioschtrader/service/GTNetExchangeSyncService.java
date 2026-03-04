@@ -1,6 +1,6 @@
 package grafioschtrader.service;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -9,9 +9,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfig;
@@ -40,6 +37,7 @@ import grafioschtrader.repository.GTNetSupplierDetailHistJpaRepository;
 import grafioschtrader.repository.GTNetSupplierDetailLastJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Service for synchronizing GTNetExchange configurations between GTNet peers.
@@ -99,7 +97,7 @@ public class GTNetExchangeSyncService {
    * @param sinceTimestamp only include changes after this timestamp
    * @return true if sync was successful
    */
-  public boolean syncWithPeer(GTNet peer, Date sinceTimestamp) {
+  public boolean syncWithPeer(GTNet peer, LocalDateTime sinceTimestamp) {
     return syncWithPeer(peer, sinceTimestamp, false);
   }
 
@@ -112,7 +110,7 @@ public class GTNetExchangeSyncService {
    * @return true if sync was successful
    */
   @Transactional
-  public boolean syncWithPeer(GTNet peer, Date sinceTimestamp, boolean fullRecreation) {
+  public boolean syncWithPeer(GTNet peer, LocalDateTime sinceTimestamp, boolean fullRecreation) {
     GTNetConfig config = peer.getGtNetConfig();
     if (config == null) {
       log.debug("Skipping peer without config: {}", peer.getDomainRemoteName());
@@ -137,7 +135,7 @@ public class GTNetExchangeSyncService {
     requestEnvelope.sourceGtNet = new GTNetPublicDTO(myGTNet);
     requestEnvelope.serverBusy = myGTNet.isServerBusy();
     requestEnvelope.messageCode = GTNetMessageCodeType.GT_NET_EXCHANGE_SYNC_SEL_RR_C.getValue();
-    requestEnvelope.timestamp = new Date();
+    requestEnvelope.timestamp = LocalDateTime.now();
     requestEnvelope.payload = objectMapper.valueToTree(requestPayload);
 
     log.debug("Sending exchange sync to {} with {} items (fullRecreation={})",
@@ -172,7 +170,7 @@ public class GTNetExchangeSyncService {
       log.info("Exchange sync with {} complete: sent {}, received {} (fullRecreation={})",
           peer.getDomainRemoteName(), itemsToSend.size(), responsePayload.getItemCount(), fullRecreation);
       return true;
-    } catch (JsonProcessingException e) {
+    } catch (Exception e) {
       log.error("Failed to parse exchange sync response from {}", peer.getDomainRemoteName(), e);
       return false;
     }
@@ -185,7 +183,7 @@ public class GTNetExchangeSyncService {
    * @param sinceTimestamp the timestamp after which to find changes
    * @return list of exchange sync items with send flags and settings enabled
    */
-  public List<ExchangeSyncItem> getChangedExchangeItems(Date sinceTimestamp) {
+  public List<ExchangeSyncItem> getChangedExchangeItems(LocalDateTime sinceTimestamp) {
     List<ExchangeSyncItem> items = new java.util.ArrayList<>();
 
     // Get changed securities with GTNet send enabled

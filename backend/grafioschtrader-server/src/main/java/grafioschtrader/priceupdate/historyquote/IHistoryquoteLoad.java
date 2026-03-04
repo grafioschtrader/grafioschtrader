@@ -1,7 +1,6 @@
 package grafioschtrader.priceupdate.historyquote;
 
-import java.util.Calendar;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.context.MessageSource;
@@ -63,7 +62,7 @@ public interface IHistoryquoteLoad<S extends Securitycurrency<S>> {
    * @return the updated security or currency pair with persisted historical quotes
    */
   S createHistoryQuotesAndSave(final ISecuritycurrencyService<S> securitycurrencyService, final S securitycurrency,
-      final Date fromDate, final Date toDate);
+      final LocalDate fromDate, final LocalDate toDate);
 
   /**
    * Updates historical quotes for a list of currency pairs and securities.
@@ -76,7 +75,7 @@ public interface IHistoryquoteLoad<S extends Securitycurrency<S>> {
    * @return list of updated securities or currency pairs
    */
   List<S> fillHistoryquoteForSecuritiesCurrencies(
-      List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, final Calendar currentCalendar);
+      List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, final LocalDate currentDate);
 
   /**
    * Updates historical quotes for a list of currency pairs and securities with explicit update mode.
@@ -85,13 +84,13 @@ public interface IHistoryquoteLoad<S extends Securitycurrency<S>> {
    * Any previous retry indicators are ignored.</p>
    *
    * @param historySecurityCurrencyList list of securities/currencies with their maximum historical quote dates
-   * @param currentCalendar current calendar for determining the update range
+   * @param currentDate current date for determining the update range
    * @param isExchangeSpecificUpdate true for exchange-specific updates (requires 1+ day difference),
    *                                  false for global daily updates (requires 2+ days difference)
    * @return list of updated securities or currency pairs
    */
   List<S> fillHistoryquoteForSecuritiesCurrencies(
-      List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, final Calendar currentCalendar,
+      List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, final LocalDate currentDate,
       boolean isExchangeSpecificUpdate);
 
   /**

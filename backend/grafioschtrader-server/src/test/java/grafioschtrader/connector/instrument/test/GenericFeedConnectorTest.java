@@ -3,8 +3,6 @@ package grafioschtrader.connector.instrument.test;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.text.ParseException;
-import java.time.Instant;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -100,9 +98,8 @@ public class GenericFeedConnectorTest extends BaseFeedConnectorCheck {
     Assertions.assertThat(historyquotes)
         .as("History quotes should not be null or empty for " + hd.security.getName()).isNotEmpty();
 
-    var zoneId = ZoneId.systemDefault();
-    var firstDate = Instant.ofEpochMilli(historyquotes.getFirst().getDate().getTime()).atZone(zoneId).toLocalDate();
-    var lastDate = Instant.ofEpochMilli(historyquotes.getLast().getDate().getTime()).atZone(zoneId).toLocalDate();
+    var firstDate = historyquotes.getFirst().getDate();
+    var lastDate = historyquotes.getLast().getDate();
 
     // Discovery mode: print actual values so expectedRows can be filled in later
     System.out.println(String.format("[gettex] Security: %s, Actual Rows: %d, First Quote Date: %s, Last Quote Date: %s",

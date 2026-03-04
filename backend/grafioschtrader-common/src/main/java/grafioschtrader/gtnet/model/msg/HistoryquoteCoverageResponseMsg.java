@@ -1,13 +1,16 @@
 package grafioschtrader.gtnet.model.msg;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -101,10 +104,12 @@ public class HistoryquoteCoverageResponseMsg {
     private String toCurrency;
 
     @Schema(description = "Earliest date with historical data")
-    private Date minDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
+    private LocalDate minDate;
 
     @Schema(description = "Most recent date with historical data")
-    private Date maxDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
+    private LocalDate maxDate;
 
     @Schema(description = "Total number of historical price records available")
     private int recordCount;
@@ -118,7 +123,7 @@ public class HistoryquoteCoverageResponseMsg {
     /**
      * Creates coverage data for a security.
      */
-    public static InstrumentCoverageDTO forSecurity(String isin, String currency, Date minDate, Date maxDate,
+    public static InstrumentCoverageDTO forSecurity(String isin, String currency, LocalDate minDate, LocalDate maxDate,
         int recordCount) {
       InstrumentCoverageDTO dto = new InstrumentCoverageDTO();
       dto.isin = isin;
@@ -133,8 +138,8 @@ public class HistoryquoteCoverageResponseMsg {
     /**
      * Creates coverage data for a currency pair.
      */
-    public static InstrumentCoverageDTO forCurrencypair(String fromCurrency, String toCurrency, Date minDate,
-        Date maxDate, int recordCount) {
+    public static InstrumentCoverageDTO forCurrencypair(String fromCurrency, String toCurrency, LocalDate minDate,
+        LocalDate maxDate, int recordCount) {
       InstrumentCoverageDTO dto = new InstrumentCoverageDTO();
       dto.currency = fromCurrency;
       dto.toCurrency = toCurrency;
@@ -184,19 +189,19 @@ public class HistoryquoteCoverageResponseMsg {
       this.toCurrency = toCurrency;
     }
 
-    public Date getMinDate() {
+    public LocalDate getMinDate() {
       return minDate;
     }
 
-    public void setMinDate(Date minDate) {
+    public void setMinDate(LocalDate minDate) {
       this.minDate = minDate;
     }
 
-    public Date getMaxDate() {
+    public LocalDate getMaxDate() {
       return maxDate;
     }
 
-    public void setMaxDate(Date maxDate) {
+    public void setMaxDate(LocalDate maxDate) {
       this.maxDate = maxDate;
     }
 
@@ -246,7 +251,7 @@ public class HistoryquoteCoverageResponseMsg {
       if (!available || minDate == null || maxDate == null) {
         return 0;
       }
-      return (maxDate.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24);
+      return ChronoUnit.DAYS.between(minDate, maxDate);
     }
   }
 }

@@ -1,6 +1,6 @@
 package grafioschtrader.repository;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
@@ -65,7 +65,7 @@ public interface SecuritysplitJpaRepository
    */
   //@formatter:on
   @Query(nativeQuery = true)
-  Double getSplitFactorAfterThanEqualDate(Integer idSecuritycurrency, Date date);
+  Double getSplitFactorAfterThanEqualDate(Integer idSecuritycurrency, LocalDate date);
 
 //@formatter:off
   /**

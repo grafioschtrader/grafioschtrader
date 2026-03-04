@@ -2,26 +2,24 @@ package grafioschtrader.algo.strategy.model;
 
 public enum AlgoStrategyImplementationType {
 
-  // Must have a definition on every level
-  // -------------------------------------
-  AS_REBALANCING((byte) 1),
-  // Can be used with other strategies
-  // ---------------------------------
+  // HOLDING strategies: evaluate positions held in the portfolio
+  // Must have a definition on every level (TOP = all 3 levels)
+  AS_HOLDING_TOP_REBALANCING((byte) 1),
+  // Holdings gain/lose: percentage and/or absolute price thresholds (TOP = all 3 levels)
+  AS_HOLDING_TOP_GAIN_LOSE((byte) 66),
 
-  AS_ABSOLUTE_PRICE_ALERT((byte) 65),
-  // If the portfolio, asset class or security held loses a certain percentage.
-  AS_HOLDING_GAIN_LOSE_PERCENTAGE_ALERT((byte) 66),
-  // If the asset class or security gains or loses a certain percentage in a given
-  // period.
-  AS_PERIOD_PRICE_GAIN_LOSE_PERCENT_ALERT((byte) 67),
+  // OBSERVED strategies: monitor watchlist securities for buy signals (SECURITY level only)
+  AS_OBSERVED_SECURITY_ABSOLUTE_PRICE((byte) 65),
+  // Period price gain/lose: restricted to security level only
+  AS_OBSERVED_SECURITY_PERIOD_PRICE_GAIN_LOSE_PERCENT((byte) 67),
   // Complex strategy with JSON config: mean reversion dip buying
-  AS_MEAN_REVERSION_DIP((byte) 68),
-  // Watchlist alarm: price vs moving average crossing
-  AS_MA_CROSSING_ALERT((byte) 69),
-  // Watchlist alarm: RSI threshold breach
-  AS_RSI_THRESHOLD_ALERT((byte) 70),
-  // Watchlist alarm: custom EvalEx expression
-  AS_EXPRESSION_ALERT((byte) 71);
+  AS_OBSERVED_SECURITY_MEAN_REVERSION_DIP((byte) 68),
+  // Price vs moving average crossing
+  AS_OBSERVED_SECURITY_MA_CROSSING((byte) 69),
+  // RSI threshold breach
+  AS_OBSERVED_SECURITY_RSI_THRESHOLD((byte) 70),
+  // Custom EvalEx expression
+  AS_OBSERVED_SECURITY_EXPRESSION((byte) 71);
 
   private final Byte value;
 

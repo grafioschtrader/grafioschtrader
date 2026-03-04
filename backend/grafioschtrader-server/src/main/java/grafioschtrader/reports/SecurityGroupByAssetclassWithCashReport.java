@@ -1,11 +1,10 @@
 package grafioschtrader.reports;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import grafiosch.common.DateHelper;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Tenant;
@@ -119,7 +118,7 @@ public class SecurityGroupByAssetclassWithCashReport extends SecurityGroupByBase
     assetclassMainCurrency.setCategoryType(AssetclassType.CURRENCY_CASH);
     Assetclass assetclassForeignCurrency = new Assetclass();
     assetclassForeignCurrency.setCategoryType(AssetclassType.CURRENCY_FOREIGN);
-    Date untilDatePlus = DateHelper.setTimeToZeroAndAddDay(dateCurrencyMap.getUntilDate(), 1);
+    LocalDate untilDatePlus = dateCurrencyMap.getUntilDate().plusDays(1);
 
     tenant.getPortfolioList().forEach(portfolio -> {
       portfolio.getCashaccountList().forEach(cashaccount -> {
@@ -131,7 +130,7 @@ public class SecurityGroupByAssetclassWithCashReport extends SecurityGroupByBase
             security, globalparametersService.getCurrencyPrecision());
         securityPositionSummaryList.add(securityPositionSummary);
 
-        securityPositionSummary.valueSecurity = cashaccount.calculateBalanceOnTransactions(untilDatePlus);
+        securityPositionSummary.valueSecurity = cashaccount.calculateBalanceOnTransactions(untilDatePlus.atStartOfDay());
         // securityPositionSummary.valueSecurity = cashaccount.getBalance();
         if (cashaccount.getCurrency().equals(dateCurrencyMap.getMainCurrency())) {
           security.setAssetClass(assetclassMainCurrency);

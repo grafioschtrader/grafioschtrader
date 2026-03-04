@@ -8,7 +8,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafiosch.common.DateHelper;
 import grafiosch.entities.User;
 import grafioschtrader.dto.FeeModelComparisonDetail;
 import grafioschtrader.dto.FeeModelComparisonResponse;
@@ -151,7 +150,7 @@ public class FeeModelComparisonService {
     FeeModelComparisonDetail detail = new FeeModelComparisonDetail();
     detail.setTransactionDate(tx.getTransactionDate() != null
         ? tx.getTransactionDate()
-        : DateHelper.getLocalDate(tx.getTransactionTime()));
+        : tx.getTransactionTime().toLocalDate());
     detail.setTransactionType(tx.getTransactionType().name());
     detail.setSecurityName(tx.getSecurity() != null ? tx.getSecurity().getName() : "?");
 
@@ -206,7 +205,7 @@ public class FeeModelComparisonService {
     req.setFixedAssets(0.0);
     req.setTransactionDate(tx.getTransactionDate() != null
         ? tx.getTransactionDate().toString()
-        : (tx.getTransactionTime() != null ? DateHelper.getLocalDate(tx.getTransactionTime()).toString() : null));
+        : (tx.getTransactionTime() != null ? tx.getTransactionTime().toLocalDate().toString() : null));
 
     return req;
   }

@@ -1,6 +1,6 @@
 package grafioschtrader.entities;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import jakarta.annotation.Generated;
 import jakarta.persistence.metamodel.ListAttribute;
@@ -13,7 +13,7 @@ public abstract class Watchlist_ {
 
   public static volatile SingularAttribute<Watchlist, Integer> idTenant;
   public static volatile SingularAttribute<Watchlist, Integer> idWatchlist;
-  public static volatile SingularAttribute<Watchlist, Date> lastTimestamp;
+  public static volatile SingularAttribute<Watchlist, LocalDateTime> lastTimestamp;
   public static volatile SingularAttribute<Watchlist, String> name;
   public static volatile ListAttribute<Watchlist, Securitycurrency<?>> securitycurrencyList;
 

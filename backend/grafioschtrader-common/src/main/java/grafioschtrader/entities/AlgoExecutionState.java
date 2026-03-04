@@ -1,11 +1,13 @@
 package grafioschtrader.entities;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import grafiosch.entities.TenantBaseID;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
@@ -75,10 +77,12 @@ public class AlgoExecutionState extends TenantBaseID implements Serializable {
   private Integer addsDone;
 
   @Schema(description = "Date of the most recent buy transaction for this position")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "last_buy_date")
   private LocalDate lastBuyDate;
 
   @Schema(description = "Date of the most recent sell transaction for this position")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "last_sell_date")
   private LocalDate lastSellDate;
 
@@ -95,8 +99,9 @@ public class AlgoExecutionState extends TenantBaseID implements Serializable {
   private String stateData;
 
   @Schema(description = "Auto-maintained timestamp of the last row update")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "updated_at", insertable = false, updatable = false)
-  private Timestamp updatedAt;
+  private LocalDateTime updatedAt;
 
   @JsonIgnore
   @Override
@@ -218,7 +223,7 @@ public class AlgoExecutionState extends TenantBaseID implements Serializable {
     this.stateData = stateData;
   }
 
-  public Timestamp getUpdatedAt() {
+  public LocalDateTime getUpdatedAt() {
     return updatedAt;
   }
 }

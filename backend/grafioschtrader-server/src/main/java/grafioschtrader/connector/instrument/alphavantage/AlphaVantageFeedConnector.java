@@ -7,21 +7,18 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.springframework.stereotype.Component;
 
-import grafiosch.BaseConstants;
-import grafiosch.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
@@ -45,6 +42,7 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
   private static final int TIMEOUT = 15000;
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static final String TOKEN_PARAM_NAME = "apikey";
+  private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
   /**
    * returns only the latest 100 data points
@@ -99,7 +97,7 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
    */
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
-    Date date = new Date();
+    LocalDate date = LocalDate.now();
     final List<Historyquote> historyquotes = this.getEodSecurityHistory(security, date, date, true);
     if (historyquotes.size() == 1) {
       Historyquote historyquote = historyquotes.get(0);
@@ -107,7 +105,7 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
       security.setSHigh(historyquote.getHigh());
       security.setSLow(historyquote.getLow());
       security.setSLast(historyquote.getClose());
-      security.setSTimestamp(new Date());
+      security.setSTimestamp(LocalDateTime.now());
     }
   }
 
@@ -122,17 +120,16 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
    *  2020-11-20,118.64,118.77,117.29,117.34,117.34,73604287,0.0000,1.0
    */
   @Override
-  public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
+  public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
     return getEodSecurityHistory(security, from, to, false);
   }
 
-  public synchronized List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to,
-      boolean intraday) throws Exception {
+  public synchronized List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from,
+      final LocalDate to, boolean intraday) throws Exception {
 
-    final SimpleDateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
     final List<Historyquote> historyquotes = new ArrayList<>();
-    String outputsize = DateHelper.getDateDiff(from, new Date(), TimeUnit.DAYS) / 7 * 5 >= 100.0 ? FULL : COMPACT;
+    String outputsize = ChronoUnit.DAYS.between(from, LocalDate.now()) / 7 * 5 >= 100 ? FULL : COMPACT;
 
     URL request = new URI((intraday) ? getSecurityIntradayDownloadLink(security)
         : getSecurityHistoricalDownloadLink(security, outputsize)).toURL();
@@ -151,7 +148,7 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
         if (intraday) {
           parseResponseLineAndSetIndraday(security, inputLine);
         } else {
-          final Historyquote historyquote = parseResponseLine(inputLine, from, to, dateFormat);
+          final Historyquote historyquote = parseResponseLine(inputLine, from, to);
           if (historyquote != null) {
             historyquotes.add(historyquote);
           }
@@ -162,16 +159,13 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
     return historyquotes;
   }
 
-  private Historyquote parseResponseLine(final String inputLine, final Date from, final Date to,
-      final SimpleDateFormat dateFormat) throws ParseException {
+  private Historyquote parseResponseLine(final String inputLine, final LocalDate from, final LocalDate to) {
     Historyquote historyquote = null;
     final String[] item = inputLine.split(",");
-    final Calendar day = Calendar.getInstance();
-    day.setTime(dateFormat.parse(item[0]));
-    DateHelper.setTimeToZero(day);
-    if (day.getTime().getTime() >= from.getTime() && day.getTime().getTime() <= to.getTime()) {
+    LocalDate day = LocalDate.parse(item[0], DATE_FORMAT);
+    if (!day.isBefore(from) && !day.isAfter(to)) {
       historyquote = new Historyquote();
-      historyquote.setDate(day.getTime());
+      historyquote.setDate(day);
       historyquote.setOpen(Double.parseDouble(item[1]));
       historyquote.setHigh(Double.parseDouble(item[2]));
       historyquote.setLow(Double.parseDouble(item[3]));
@@ -181,7 +175,7 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
     return historyquote;
   }
 
-  private void parseResponseLineAndSetIndraday(final Security security, final String inputLine) throws ParseException {
+  private void parseResponseLineAndSetIndraday(final Security security, final String inputLine) {
     final String[] item = inputLine.split(",");
     security.setSOpen(Double.parseDouble(item[1]));
     security.setSHigh(Double.parseDouble(item[2]));

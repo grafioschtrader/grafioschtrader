@@ -1,9 +1,9 @@
 package grafioschtrader.platformimport.pdf;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -234,7 +234,7 @@ public class TemplateConfigurationPDFasTXT extends TemplateConfiguration {
       typeRegext = stringTypeRegex;
     } else if (Double.class == dataType || Integer.class == dataType) {
       typeRegext = numberTypeRegex;
-    } else if (Date.class == dataType || LocalDate.class == dataType) {
+    } else if (LocalDateTime.class == dataType || LocalDate.class == dataType) {
       typeRegext = dateTypeRegex;
     } else if (LocalTime.class == dataType) {
       typeRegext = timeTypeRegex;

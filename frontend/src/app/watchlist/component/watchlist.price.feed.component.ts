@@ -167,7 +167,7 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
       {fieldValueFN: this.getFeedConnectorReadableName.bind(this)});
     this.addColumn(DataType.DateString, 'youngestHistoryDate', 'YOUNGEST_EOD', true, true);
     this.addColumn(DataType.NumericInteger, 'securitycurrency.' + this.f_retryHistoryLoad, 'RETRY_HISTORY_LOAD', true, true);
-    this.addColumn(DataType.DateTimeNumeric, 'securitycurrency.fullLoadTimestamp', 'FULL_LOAD_DATE', true, true);
+    this.addColumn(DataType.DateTimeString, 'securitycurrency.fullLoadTimestamp', 'FULL_LOAD_DATE', true, true);
     this.prepareTableAndTranslate();
     this.watchlistHasModifiedFromOutside();
   }

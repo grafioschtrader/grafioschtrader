@@ -3,13 +3,13 @@ package grafioschtrader.connector.instrument.xetra;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -19,15 +19,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import grafiosch.common.DateHelper;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * No regex check of the URL extension is performed. This is usually the ISIN, but a URL such as "ARIVA:US631101102" is
@@ -47,8 +46,8 @@ public class XetraFeedConnector extends BaseFeedConnector {
   private static final String DOMAIN_INTRADAY = "https://api.live.deutsche-boerse.com/v1/data/price_information/single";
   private static final String DAY_RESOLUTION = "1D";
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
-  private static final ObjectMapper objectMapper = new ObjectMapper()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  private static final ObjectMapper objectMapper = JsonMapper.builder()
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -74,7 +73,7 @@ public class XetraFeedConnector extends BaseFeedConnector {
 
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
-    final PriceInformation priceInfo = objectMapper.readValue(new URI(getSecurityIntradayDownloadLink(security)).toURL(),
+    final PriceInformation priceInfo = objectMapper.readValue(new URI(getSecurityIntradayDownloadLink(security)).toURL().openStream(),
         PriceInformation.class);
     if (priceInfo.lastPrice != null) {
       security.setSLast(priceInfo.lastPrice);
@@ -131,59 +130,56 @@ public class XetraFeedConnector extends BaseFeedConnector {
    * @param timestamp the ISO 8601 formatted timestamp (e.g., "2024-01-15T14:30:00+01:00")
    * @return the parsed Date object
    */
-  private Date parseIso8601Timestamp(String timestamp) {
+  private LocalDateTime parseIso8601Timestamp(String timestamp) {
     OffsetDateTime odt = OffsetDateTime.parse(timestamp, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-    return Date.from(odt.toInstant());
+    return odt.toLocalDateTime();
   }
 
   @Override
   public String getSecurityHistoricalDownloadLink(final Security security) {
-    Date toDate = new Date();
-    LocalDate fromLocalDate = DateHelper.getLocalDate(toDate).minusDays(7);
-    return getSecurityDownloadLink(security, DateHelper.getDateFromLocalDate(fromLocalDate), toDate,
-        security.getUrlHistoryExtend(), DAY_RESOLUTION, null);
+    LocalDate toDate = LocalDate.now();
+    LocalDate fromDate = toDate.minusDays(7);
+    return getSecurityDownloadLink(security, fromDate, toDate, security.getUrlHistoryExtend(), DAY_RESOLUTION, null);
   }
 
-  private String getSecurityDownloadLink(final Security security, Date from, Date to, String urlExtend,
+  private String getSecurityDownloadLink(final Security security, LocalDate from, LocalDate to, String urlExtend,
       String resolution, Integer countback) {
     String prefix = DOMAIN_VERSION + "tradingview/history?symbol="
         + (urlExtend.contains(":") ? urlExtend : security.getStockexchange().getMic() + ":" + urlExtend);
-    return prefix + "&resolution=" + resolution + "&from=" + (from.getTime() / 1000) + "&to=" + (to.getTime() / 1000)
-        + (countback == null ? "" : "&countback=" + countback);
+    return prefix + "&resolution=" + resolution + "&from=" + DateHelper.LocalDateToEpocheSeconds(from) + "&to="
+        + DateHelper.LocalDateToEpocheSeconds(to) + (countback == null ? "" : "&countback=" + countback);
   }
 
   @Override
-  public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
+  public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
     List<Historyquote> historyquotes = new ArrayList<>();
-    Date currentFrom = from;
+    LocalDate currentFrom = from;
 
     // Calculate the end date for the first chunk (up to 10 years from 'from')
-    Calendar calendar = Calendar.getInstance();
-    calendar.setTime(from);
-    calendar.add(Calendar.YEAR, 10);
-    Date chunkEndDate = calendar.getTime();
+    LocalDate chunkEndDate = from.plusYears(10);
 
     // Ensure the chunk end date does not exceed the overall 'to' date
-    if (chunkEndDate.after(to)) {
+    if (chunkEndDate.isAfter(to)) {
       chunkEndDate = to;
     }
 
-    while (!currentFrom.after(to)) {
+    while (!currentFrom.isAfter(to)) {
       // Get the download link for the current chunk
       String url = getSecurityDownloadLink(security, currentFrom, chunkEndDate, security.getUrlHistoryExtend(),
           DAY_RESOLUTION, null);
       log.debug("Fetching data for period: {} to {} using URL: {}", currentFrom, chunkEndDate, url);
 
       try {
-        final Quotes quotes = objectMapper.readValue(new URI(url).toURL(), Quotes.class);
+        final Quotes quotes = objectMapper.readValue(new URI(url).toURL().openStream(), Quotes.class);
 
         if (quotes.s.equals("ok")) {
           for (int i = 0; i < quotes.t.length; i++) {
             final Historyquote historyquote = new Historyquote();
             // Add only if the date is within the requested range (can happen with chunking)
-            Date quoteDate = DateHelper.setTimeToZeroAndAddDay(new Date(quotes.t[i].getTime() * 1000), 0);
-            if (!quoteDate.before(from) && !quoteDate.after(to)) {
+            LocalDate quoteDate = Instant.ofEpochSecond(quotes.t[i])
+                .atZone(ZoneId.systemDefault()).toLocalDate();
+            if (!quoteDate.isBefore(from) && !quoteDate.isAfter(to)) {
               historyquotes.add(historyquote);
               historyquote.setDate(quoteDate);
               historyquote.setClose(quotes.c[i]);
@@ -206,15 +202,13 @@ public class XetraFeedConnector extends BaseFeedConnector {
       }
 
       // Move to the next chunk
-      currentFrom = DateHelper.setTimeToZeroAndAddDay(chunkEndDate, 1);
+      currentFrom = chunkEndDate.plusDays(1);
 
       // Calculate the end date for the next chunk
-      calendar.setTime(currentFrom);
-      calendar.add(Calendar.YEAR, 10);
-      chunkEndDate = calendar.getTime();
+      chunkEndDate = currentFrom.plusYears(10);
 
       // Ensure the next chunk end date does not exceed the overall 'to' date
-      if (chunkEndDate.after(to)) {
+      if (chunkEndDate.isAfter(to)) {
         chunkEndDate = to;
       }
     }
@@ -231,8 +225,7 @@ public class XetraFeedConnector extends BaseFeedConnector {
    */
   private static class Quotes {
     public String s;
-    @JsonFormat(shape = JsonFormat.Shape.NUMBER, pattern = "s")
-    public Timestamp[] t;
+    public long[] t;
     public double[] c;
     public double[] o;
     public double[] h;

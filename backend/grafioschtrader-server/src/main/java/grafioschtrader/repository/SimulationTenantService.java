@@ -1,11 +1,9 @@
 package grafioschtrader.repository;
 
-import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -322,13 +320,13 @@ public class SimulationTenantService {
     Map<Integer, Integer> connectIdToIdMap = new HashMap<>();
 
     // Convert referenceDate to end-of-day timestamp for inclusive comparison
-    Timestamp cutoff = Timestamp.valueOf(LocalDateTime.of(referenceDate, LocalTime.MAX));
+    LocalDateTime cutoff = LocalDateTime.of(referenceDate, LocalTime.MAX);
 
     TypedQuery<Transaction> q = em.createQuery(
         "SELECT t FROM Transaction t WHERE t.idTenant = ?1 AND t.transactionTime <= ?2 ORDER BY t.transactionTime",
         Transaction.class);
     List<Transaction> transactionList = q.setParameter(1, sourceIdTenant)
-        .setParameter(2, new Date(cutoff.getTime())).getResultList();
+        .setParameter(2, cutoff).getResultList();
     em.clear();
 
     for (Transaction tx : transactionList) {
@@ -367,7 +365,7 @@ public class SimulationTenantService {
 
   private void createDepositTransactions(Integer simIdTenant, Map<Integer, Cashaccount> cashAccountMap,
       Map<Integer, Double> cashBalances) {
-    Date now = new Date();
+    LocalDateTime now = LocalDateTime.now();
 
     for (Map.Entry<Integer, Double> entry : cashBalances.entrySet()) {
       Integer originalCashAccountId = entry.getKey();

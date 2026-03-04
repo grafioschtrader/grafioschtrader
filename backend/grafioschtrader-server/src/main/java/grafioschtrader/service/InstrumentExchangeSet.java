@@ -1,7 +1,7 @@
 package grafioschtrader.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -271,14 +271,14 @@ public class InstrumentExchangeSet {
     return fromCurrency + ":" + toCurrency;
   }
 
-  private static boolean isNewer(Date incoming, Date existing) {
+  private static boolean isNewer(LocalDateTime incoming, LocalDateTime existing) {
     if (existing == null) {
       return incoming != null;
     }
     if (incoming == null) {
       return false;
     }
-    return incoming.after(existing);
+    return incoming.isAfter(existing);
   }
 
   private void updateSecurityFromDTO(Security security, InstrumentPriceDTO dto) {

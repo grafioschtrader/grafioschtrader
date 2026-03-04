@@ -130,7 +130,7 @@ public class FirstHandshakeRequestHandler extends AbstractGTNetMessageHandler {
 
     // 9. Build and store the response message
     Map<String, GTNetMessageParam> responseParams = convertPojoToParamMap(new FirstHandshakeMsg(ourTokenForThem));
-    GTNetMessage responseMsg = new GTNetMessage(processedRemoteGTNet.getIdGtNet(), new java.util.Date(),
+    GTNetMessage responseMsg = new GTNetMessage(processedRemoteGTNet.getIdGtNet(), LocalDateTime.now(),
         SendReceivedType.SEND.getValue(), storedRequest.getIdGtNetMessage(),
         GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_ACCEPT_S.getValue(), null, responseParams);
     responseMsg = gtNetMessageJpaRepository.saveMsg(responseMsg);
@@ -228,7 +228,7 @@ public class FirstHandshakeRequestHandler extends AbstractGTNetMessageHandler {
   private HandlerResult<GTNetMessage, MessageEnvelope> createNotInListRejectionResponse(GTNetMessageContext context, GTNet remoteGTNet)
       throws Exception {
     // Create rejection message without persisting - no valid GTNet entry exists for unknown servers
-    GTNetMessage rejectMsg = new GTNetMessage(null, new java.util.Date(), SendReceivedType.ANSWER.getValue(), null,
+    GTNetMessage rejectMsg = new GTNetMessage(null, LocalDateTime.now(), SendReceivedType.ANSWER.getValue(), null,
         GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_REJECT_NOT_IN_LIST_S.getValue(),
         "You are not in my server list and we do not have automatic admission enabled.", null);
 

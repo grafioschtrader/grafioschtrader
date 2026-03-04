@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,7 +30,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 
-import grafiosch.common.DateHelper;
 import grafiosch.types.Language;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Assetclass;
@@ -95,8 +93,8 @@ class SecurityResourceTest extends BaseIntegrationTest  {
   @DisplayName("Create security with user 'limit1'")
   void createTest() throws ParseException {
     Security s = new Security();
-    s.setActiveFromDate(new SimpleDateFormat("yyyyMMdd").parse("20000101"));
-    s.setActiveToDate(new SimpleDateFormat("yyyyMMdd").parse("20251231"));
+    s.setActiveFromDate(LocalDate.of(2000, 1, 1));
+    s.setActiveToDate(LocalDate.of(2025, 12, 31));
     s.setAssetClass(assetclass);
     s.setCurrency(GlobalConstants.MC_CHF);
     s.setIdConnectorHistory("gt.datafeed.six");
@@ -157,8 +155,8 @@ class SecurityResourceTest extends BaseIntegrationTest  {
       s.setIsin(accessor.getString(1));
       s.setTickerSymbol(accessor.getString(2));
       s.setCurrency(accessor.getString(3));
-      s.setActiveFromDate(DateHelper.getDateFromLocalDate(accessor.get(4, LocalDate.class)));
-      s.setActiveToDate(DateHelper.getDateFromLocalDate(accessor.get(5, LocalDate.class)));
+      s.setActiveFromDate(accessor.get(4, LocalDate.class));
+      s.setActiveToDate(accessor.get(5, LocalDate.class));
       s.setDistributionFrequency(DistributionFrequency.getDistributionFrequency(accessor.getByte(6)));
       s.setDenomination(accessor.getInteger(7));
       s.setLeverageFactor(accessor.getFloat(8));

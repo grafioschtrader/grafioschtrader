@@ -134,7 +134,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
       templateName: 'greenRed', fieldValueFN: BusinessHelper.getDisplayLeverageFactor.bind(this)
     });
 
-    this.addColumn(DataType.DateTimeNumeric, 'securitycurrency.sTimestamp', 'TIMEDATE', true, true, {width: 80});
+    this.addColumn(DataType.DateTimeString, 'securitycurrency.sTimestamp', 'TIMEDATE', true, true, {width: 80});
     this.addColumn(DataType.Numeric, 'securitycurrency.sLast', 'LAST', true, true,
       {maxFractionDigits: gps.getMaxFractionDigits()});
     this.addColumn(DataType.Numeric, 'securitycurrency.sChangePercentage', 'DAILY_CHANGE', true, true, {

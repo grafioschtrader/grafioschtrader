@@ -2,7 +2,7 @@ package grafioschtrader.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -128,7 +128,7 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
   @GetMapping(value = "/tenantsecurityaccountsummary/assetclasstypewithcash", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityGroupByAssetclassWithCashReportByTenant(
       @RequestParam() final boolean includeClosedPosition,
-      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
+      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) throws Exception {
     return new ResponseEntity<>(securityGroupByAssetclassWithCashReport
         .getSecurityPositionGrandSummaryIdTenant(includeClosedPosition, untilDate), HttpStatus.OK);
   }
@@ -140,7 +140,7 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
   @GetMapping(value = "/tenantsecurityaccountsummary/currency", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryTenant(
       @RequestParam() final boolean includeClosedPosition,
-      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
+      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) throws Exception {
     return new ResponseEntity<>(
         securityPositionGrandSummaryReport.getSecurityPositionGrandSummaryIdTenant(includeClosedPosition, untilDate),
         HttpStatus.OK);
@@ -153,7 +153,7 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
   @GetMapping(value = "/tenantsecurityaccountsummary/assetclasstype", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryByAssetclassTypeAndTenant(
       @RequestParam() final boolean includeClosedPosition,
-      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
+      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) throws Exception {
     return new ResponseEntity<>(
         getDynamicGroupReport(AssetclassType.class, SecurityGroupByBaseReport.ASSETCLASS_CATEGORY_FIELD_NAME)
             .getSecurityPositionGrandSummaryIdTenant(includeClosedPosition, untilDate),
@@ -168,7 +168,7 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
   @GetMapping(value = "tenantsecurityaccountsummary/specialinvestmentinstrument", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryBySpecInvestInstAndTenant(
       @RequestParam() final boolean includeClosedPosition,
-      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
+      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) throws Exception {
     return new ResponseEntity<>(getDynamicGroupReport(SpecialInvestmentInstruments.class,
         SecurityGroupByBaseReport.ASSETCLASS_SPEC_INVEST_INST_FIELD_NAME)
             .getSecurityPositionGrandSummaryIdTenant(includeClosedPosition, untilDate),
@@ -184,7 +184,7 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
   @GetMapping(value = "/tenantsecurityaccountsummary/subcategorynls", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryBySubCategoryNLSAndTenant(
       @RequestParam() final boolean includeClosedPosition,
-      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
+      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) throws Exception {
     return new ResponseEntity<>(
         getAssetclassSubCategoryReport().getSecurityPositionGrandSummaryIdTenant(includeClosedPosition, untilDate),
         HttpStatus.OK);
@@ -197,7 +197,7 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
   @GetMapping(value = "tenantsecurityaccountsummary/idassetclass", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryByAssetclassAndTenant(
       @RequestParam() final boolean includeClosedPosition,
-      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
+      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) throws Exception {
     return new ResponseEntity<>(
         getDynamicGroupReport(Integer.class, SecurityGroupByBaseReport.ASSETCLASS_ID_ASSETCLASS_FIELD_NAME)
             .getSecurityPositionGrandSummaryIdTenant(includeClosedPosition, untilDate),
@@ -217,7 +217,7 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
   @GetMapping(value = "/{idPortfolio}/portfoliosecurityaccountsummary/currency", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryPortfolio(
       @PathVariable final Integer idPortfolio, @RequestParam() final boolean includeClosedPosition,
-      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
+      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) throws Exception {
     return new ResponseEntity<>(securityPositionGrandSummaryReport
         .getSecurityPositionGrandSummaryIdPortfolio(idPortfolio, includeClosedPosition, untilDate), HttpStatus.OK);
   }
@@ -232,7 +232,7 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
   @GetMapping(value = "/{idPortfolio}/portfoliosecurityaccountsummary/assetclasstype", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryByAssetclassTypeAndPortfolio(
       @PathVariable final Integer idPortfolio, @RequestParam() final boolean includeClosedPosition,
-      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
+      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) throws Exception {
     return new ResponseEntity<>(
         getDynamicGroupReport(AssetclassType.class, SecurityGroupByBaseReport.ASSETCLASS_CATEGORY_FIELD_NAME)
             .getSecurityPositionGrandSummaryIdPortfolio(idPortfolio, includeClosedPosition, untilDate),
@@ -249,7 +249,7 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
   @GetMapping(value = "/{idPortfolio}/portfoliosecurityaccountsummary/specialinvestmentinstrument", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryBySpecInvestInstAndPortfolio(
       @PathVariable final Integer idPortfolio, @RequestParam() final boolean includeClosedPosition,
-      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
+      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) throws Exception {
     return new ResponseEntity<>(
         getDynamicGroupReport(SpecialInvestmentInstruments.class,
             SecurityGroupByBaseReport.ASSETCLASS_SPEC_INVEST_INST_FIELD_NAME)
@@ -267,7 +267,7 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
   @GetMapping(value = "/{idPortfolio}/portfoliosecurityaccountsummary/subcategorynls", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryBySubCategoryNLSAndPortfolio(
       @PathVariable final Integer idPortfolio, @RequestParam() final boolean includeClosedPosition,
-      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
+      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) throws Exception {
     return new ResponseEntity<>(getAssetclassSubCategoryReport().getSecurityPositionGrandSummaryIdPortfolio(idPortfolio,
         includeClosedPosition, untilDate), HttpStatus.OK);
   }
@@ -282,7 +282,7 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
   @GetMapping(value = "/{idPortfolio}/portfoliosecurityaccountsummary/idassetclass", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryByAssetclassAndPortfolio(
       @PathVariable final Integer idPortfolio, @RequestParam() final boolean includeClosedPosition,
-      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
+      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) throws Exception {
     return new ResponseEntity<>(
         getDynamicGroupReport(Integer.class, SecurityGroupByBaseReport.ASSETCLASS_ID_ASSETCLASS_FIELD_NAME)
             .getSecurityPositionGrandSummaryIdPortfolio(idPortfolio, includeClosedPosition, untilDate),
@@ -304,7 +304,7 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
   @GetMapping(value = "/{idSecurityaccount}/securityaccountsummary/currency", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getPostionSummarySecurityaccount(
       @PathVariable final Integer idSecurityaccount, @RequestParam() final boolean includeClosedPosition,
-      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
+      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) throws Exception {
     return new ResponseEntity<>(securityPositionGrandSummaryReport.getSecurityPositionGrandSummaryIdSecurityaccount(
         idSecurityaccount, includeClosedPosition, untilDate), HttpStatus.OK);
   }
@@ -319,7 +319,7 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
   @GetMapping(value = "/{idSecurityaccount}/securityaccountsummary/assetclasstype", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getPostionSummarySecurityaccountByAssetclassTypeAndSecurityaccount(
       @PathVariable final Integer idSecurityaccount, @RequestParam() final boolean includeClosedPosition,
-      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
+      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) throws Exception {
     return new ResponseEntity<>(
         getDynamicGroupReport(AssetclassType.class, SecurityGroupByBaseReport.ASSETCLASS_CATEGORY_FIELD_NAME)
             .getSecurityPositionGrandSummaryIdSecurityaccount(idSecurityaccount, includeClosedPosition, untilDate),
@@ -336,7 +336,7 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
   @GetMapping(value = "/{idSecurityaccount}/securityaccountsummary/specialinvestmentinstrument", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getPostionSummarySecurityaccountBySpecInvestInstAndSecurityaccount(
       @PathVariable final Integer idSecurityaccount, @RequestParam() final boolean includeClosedPosition,
-      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
+      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) throws Exception {
     return new ResponseEntity<>(
         getDynamicGroupReport(SpecialInvestmentInstruments.class,
             SecurityGroupByBaseReport.ASSETCLASS_SPEC_INVEST_INST_FIELD_NAME)
@@ -354,7 +354,7 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
   @GetMapping(value = "/{idSecurityaccount}/securityaccountsummary/subcategorynls", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryBySubCategoryNLSAndSecurityaccount(
       @PathVariable final Integer idSecurityaccount, @RequestParam() final boolean includeClosedPosition,
-      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
+      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) throws Exception {
     return new ResponseEntity<>(getAssetclassSubCategoryReport().getSecurityPositionGrandSummaryIdSecurityaccount(
         idSecurityaccount, includeClosedPosition, untilDate), HttpStatus.OK);
   }
@@ -369,7 +369,7 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
   @GetMapping(value = "/{idSecurityaccount}/securityaccountsummary/idassetclass", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryByAssetclassAndSecurityaccount(
       @PathVariable final Integer idSecurityaccount, @RequestParam() final boolean includeClosedPosition,
-      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) throws Exception {
+      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) throws Exception {
     return new ResponseEntity<>(
         getDynamicGroupReport(Integer.class, SecurityGroupByBaseReport.ASSETCLASS_ID_ASSETCLASS_FIELD_NAME)
             .getSecurityPositionGrandSummaryIdSecurityaccount(idSecurityaccount, includeClosedPosition, untilDate),

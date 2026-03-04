@@ -15,7 +15,6 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -29,10 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.common.DataHelper;
 import grafiosch.entities.GTNet;
@@ -79,6 +74,9 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements GTNetJpaRepositoryCustom {
 
@@ -393,7 +391,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     }
 
     // Create ONE message under sender's own entry (not per target)
-    GTNetMessage gtNetMessage = new GTNetMessage(sourceGTNet.getIdGtNet(), new Date(), SendReceivedType.SEND.getValue(),
+    GTNetMessage gtNetMessage = new GTNetMessage(sourceGTNet.getIdGtNet(), LocalDateTime.now(), SendReceivedType.SEND.getValue(),
         msgRequest.replyTo, messageCode.getValue(), msgRequest.message, msgRequest.gtNetMessageParamMap);
 
     // For cancellation messages, set idOriginalMessage to link to the original announcement
@@ -437,7 +435,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    * broadcast messages in their own server's message list.
    */
   private void saveBroadcastToOwnEntry(GTNet sourceGTNet, MsgRequest msgRequest, GTNetMessageCode messageCode) {
-    GTNetMessage gtNetMessage = new GTNetMessage(sourceGTNet.getIdGtNet(), new Date(), SendReceivedType.SEND.getValue(),
+    GTNetMessage gtNetMessage = new GTNetMessage(sourceGTNet.getIdGtNet(), LocalDateTime.now(), SendReceivedType.SEND.getValue(),
         null, messageCode.getValue(), msgRequest.message, msgRequest.gtNetMessageParamMap);
     // Set visibility from request (for admin messages)
     applyVisibility(gtNetMessage, msgRequest.visibility);
@@ -499,7 +497,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     }
 
     for (GTNet targetGTNet : gtNetList) {
-      GTNetMessage gtNetMessage = new GTNetMessage(targetGTNet.getIdGtNet(), new Date(), SendReceivedType.SEND.getValue(),
+      GTNetMessage gtNetMessage = new GTNetMessage(targetGTNet.getIdGtNet(), LocalDateTime.now(), SendReceivedType.SEND.getValue(),
           msgRequest.replyTo, messageCode.getValue(), msgRequest.message, msgRequest.gtNetMessageParamMap);
       // Set visibility from request (for admin messages)
       applyVisibility(gtNetMessage, msgRequest.visibility);
@@ -649,7 +647,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   private boolean updateServerFromDTO(GTNet existing, GTNetPublicDTO dto) {
     // Only update if remote data is newer than ours
     if (dto.getLastModifiedTime() != null && existing.getLastModifiedTime() != null
-        && !dto.getLastModifiedTime().after(existing.getLastModifiedTime())) {
+        && !dto.getLastModifiedTime().isAfter(existing.getLastModifiedTime())) {
       return false;
     }
 
@@ -766,7 +764,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     }
 
     for (GTNet targetGTNet : gtNetList) {
-      GTNetMessage gtNetMessage = new GTNetMessage(targetGTNet.getIdGtNet(), new Date(),
+      GTNetMessage gtNetMessage = new GTNetMessage(targetGTNet.getIdGtNet(), LocalDateTime.now(),
           SendReceivedType.SEND.getValue(), msgRequest.replyTo, messageCode.getValue(), msgRequest.message,
           msgRequest.gtNetMessageParamMap);
       // Set waitDaysApply if provided by admin
@@ -927,7 +925,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       String tokenForRemote = DataHelper.generateGUID();
       Map<String, GTNetMessageParam> msgMap = convertPojoToMap(new FirstHandshakeMsg(tokenForRemote));
       GTNetMessage gtNetMessageRequest = gtNetMessageJpaRepository
-          .saveMsg(new GTNetMessage(targetGTNet.getIdGtNet(), new Date(), SendReceivedType.SEND.getValue(), null,
+          .saveMsg(new GTNetMessage(targetGTNet.getIdGtNet(), LocalDateTime.now(), SendReceivedType.SEND.getValue(), null,
               GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_SEL_RR_S.getValue(), null, msgMap));
       // Send our GTNet entity in the payload so the receiver can register us
       SendResult sendResult = sendMessageWithResult(sourceGTNet, targetGTNet, gtNetMessageRequest, sourceGTNet);
@@ -1321,7 +1319,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    * Builds an error response envelope with the local server's busy status.
    */
   private MessageEnvelope buildErrorResponse(GTNet myGTNet, String errorCode, String message) {
-    GTNetMessage errorMsg = new GTNetMessage(null, new Date(), SendReceivedType.ANSWER.getValue(), null,
+    GTNetMessage errorMsg = new GTNetMessage(null, LocalDateTime.now(), SendReceivedType.ANSWER.getValue(), null,
         GNetCoreMessageCode.GT_NET_PING.getValue(), message, null);
     errorMsg.setErrorMsgCode(errorCode);
     MessageEnvelope errorEnvelope = new MessageEnvelope(myGTNet, errorMsg);
@@ -1334,7 +1332,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    * Uses GT_NET_PING as a lightweight ack code since it's already defined for status/health purposes.
    */
   private MessageEnvelope buildAckResponse(GTNet myGTNet) {
-    GTNetMessage ackMsg = new GTNetMessage(null, new Date(), SendReceivedType.ANSWER.getValue(), null,
+    GTNetMessage ackMsg = new GTNetMessage(null, LocalDateTime.now(), SendReceivedType.ANSWER.getValue(), null,
         GNetCoreMessageCode.GT_NET_PING.getValue(), null, null);
     return new MessageEnvelope(myGTNet, ackMsg);
   }
@@ -1423,7 +1421,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     // Single target: send synchronously (no background job)
     if (validTargets.size() == 1) {
       GTNet targetGTNet = validTargets.get(0);
-      GTNetMessage gtNetMessage = new GTNetMessage(targetGTNet.getIdGtNet(), new Date(),
+      GTNetMessage gtNetMessage = new GTNetMessage(targetGTNet.getIdGtNet(), LocalDateTime.now(),
           SendReceivedType.SEND.getValue(), null, GNetCoreMessageCode.GT_NET_ADMIN_MESSAGE_SEL_C.getValue(),
           multiTargetMsgRequest.message, multiTargetMsgRequest.gtNetMessageParamMap);
       applyVisibility(gtNetMessage, multiTargetMsgRequest.visibility);
@@ -1439,7 +1437,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       // Multiple targets: use background job for delivery
       int messagesCreated = 0;
       for (GTNet targetGTNet : validTargets) {
-        GTNetMessage gtNetMessage = new GTNetMessage(targetGTNet.getIdGtNet(), new Date(),
+        GTNetMessage gtNetMessage = new GTNetMessage(targetGTNet.getIdGtNet(), LocalDateTime.now(),
             SendReceivedType.SEND.getValue(), null, GNetCoreMessageCode.GT_NET_ADMIN_MESSAGE_SEL_C.getValue(),
             multiTargetMsgRequest.message, multiTargetMsgRequest.gtNetMessageParamMap);
         applyVisibility(gtNetMessage, multiTargetMsgRequest.visibility);

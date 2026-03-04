@@ -1,10 +1,12 @@
 package grafioschtrader.entities;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import grafiosch.entities.TenantBaseID;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
@@ -69,12 +71,14 @@ public class AlgoRecommendation extends TenantBaseID implements Serializable {
   private String rationale;
 
   @Schema(description = "Auto-maintained timestamp when the recommendation was created")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "created_at", insertable = false, updatable = false)
-  private Timestamp createdAt;
+  private LocalDateTime createdAt;
 
   @Schema(description = "Timestamp when the recommendation was acted upon. Null while pending.")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "executed_at")
-  private Timestamp executedAt;
+  private LocalDateTime executedAt;
 
   @Schema(description = "Foreign key to the transaction created when this recommendation was executed. Null while pending.")
   @Column(name = "id_transaction")
@@ -152,15 +156,15 @@ public class AlgoRecommendation extends TenantBaseID implements Serializable {
     this.rationale = rationale;
   }
 
-  public Timestamp getCreatedAt() {
+  public LocalDateTime getCreatedAt() {
     return createdAt;
   }
 
-  public Timestamp getExecutedAt() {
+  public LocalDateTime getExecutedAt() {
     return executedAt;
   }
 
-  public void setExecutedAt(Timestamp executedAt) {
+  public void setExecutedAt(LocalDateTime executedAt) {
     this.executedAt = executedAt;
   }
 

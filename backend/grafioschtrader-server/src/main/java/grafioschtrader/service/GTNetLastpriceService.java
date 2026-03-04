@@ -1,9 +1,9 @@
 package grafioschtrader.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -14,9 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfig;
@@ -43,6 +40,7 @@ import grafioschtrader.repository.GTNetExchangeLogJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentCurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentSecurityJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Service for orchestrating intraday price exchange with GTNet providers.
@@ -371,7 +369,7 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
     }
 
     // Calculate minimum acceptable timestamp for freshness filtering
-    Date minAcceptableTimestamp = globalparametersService.getGTNetLastpriceMinAcceptableTimestamp();
+    LocalDateTime minAcceptableTimestamp = globalparametersService.getGTNetLastpriceMinAcceptableTimestamp();
 
     LastpriceExchangeMsg requestPayload = LastpriceExchangeMsg.forRequest(securityDTOs, currencypairDTOs,
         minAcceptableTimestamp);
@@ -387,7 +385,7 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
     requestEnvelope.sourceGtNet = new GTNetPublicDTO(myGTNet);
     requestEnvelope.serverBusy = myGTNet.isServerBusy();
     requestEnvelope.messageCode = GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_SEL_C.getValue();
-    requestEnvelope.timestamp = new Date();
+    requestEnvelope.timestamp = LocalDateTime.now();
     requestEnvelope.payload = objectMapper.valueToTree(requestPayload);
 
     log.debug("Sending lastprice request to {} with {} securities, {} pairs",
@@ -446,7 +444,7 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
       gtNetExchangeLogService.logAsConsumer(supplier, GTNetExchangeKindType.LAST_PRICE,
           entitiesSent, updatedCount, responseCount);
 
-    } catch (JsonProcessingException e) {
+    } catch (Exception e) {
       log.error("Failed to parse lastprice response from {}", supplier.getDomainRemoteName(), e);
     }
   }

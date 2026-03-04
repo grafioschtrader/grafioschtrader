@@ -1,8 +1,7 @@
 package grafioschtrader.reports.dataverification;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -10,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafiosch.common.DateHelper;
 import grafioschtrader.reports.AccountPositionGroupSummaryReport;
 import grafioschtrader.reportviews.account.AccountPositionGrandSummary;
 import grafioschtrader.reportviews.account.AccountPositionGroupSummary;
@@ -31,13 +29,13 @@ class AccountPositionGroupSummaryReportTest {
 
   @Test
   @Disabled
-  void getAccountGrandSummaryPortfolioTest() throws ParseException {
-    final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
-    Date startDate = dateFormat.parse("01.03.2020");
-    final Date finishDate = dateFormat.parse("19.02.2021");
+  void getAccountGrandSummaryPortfolioTest() {
+    final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+    LocalDate startDate = LocalDate.parse("01.03.2020", dateFormat);
+    final LocalDate finishDate = LocalDate.parse("19.02.2021", dateFormat);
 
     do {
-      startDate = DateHelper.setTimeToZeroAndAddDay(startDate, 1);
+      startDate = startDate.plusDays(1);
       final AccountPositionGroupSummary apgs = accountPositionGroupSummaryReport.getAccountGrandSummaryPortfolio(7, 8,
           startDate);
       final double calculated = apgs.groupExternalCashTransferMC + apgs.groupAccountFeesMC * -1
@@ -45,20 +43,20 @@ class AccountPositionGroupSummaryReportTest {
           + apgs.groupGainLossSecuritiesMC;
       if (Math.abs(apgs.groupValueMC - calculated) > 5.00) {
         System.out.println(apgs);
-        System.err.println(dateFormat.format(startDate) + " " + (apgs.groupValueMC - calculated));
+        System.err.println(startDate.format(dateFormat) + " " + (apgs.groupValueMC - calculated));
       }
 
-    } while (startDate.before(finishDate));
+    } while (startDate.isBefore(finishDate));
   }
 
   @Test
   @Disabled
-  void getAccountGrandSummaryIdTenantTest() throws ParseException {
-    final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
-    Date startDate = dateFormat.parse("01.08.2023");
-    final Date finishDate = dateFormat.parse("18.07.2024");
+  void getAccountGrandSummaryIdTenantTest() {
+    final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+    LocalDate startDate = LocalDate.parse("01.08.2023", dateFormat);
+    final LocalDate finishDate = LocalDate.parse("18.07.2024", dateFormat);
     do {
-      startDate = DateHelper.setTimeToZeroAndAddDay(startDate, 1);
+      startDate = startDate.plusDays(1);
       final AccountPositionGrandSummary apgs = accountPositionGroupSummaryReport.getAccountGrandSummaryIdTenant(7,
           new GroupPortfolio(), startDate);
       final double calculated = apgs.grandExternalCashTransferMC + apgs.grandAccountFeesMC * -1
@@ -66,10 +64,10 @@ class AccountPositionGroupSummaryReportTest {
           + apgs.grandGainLossSecuritiesMC;
       if (Math.abs(apgs.grandValueMC - calculated) > 0.05) {
         System.out.println(apgs);
-        System.err.println(dateFormat.format(startDate) + " " + (apgs.grandValueMC - calculated));
+        System.err.println(startDate.format(dateFormat) + " " + (apgs.grandValueMC - calculated));
       }
 
-    } while (startDate.before(finishDate));
+    } while (startDate.isBefore(finishDate));
   }
 
 }

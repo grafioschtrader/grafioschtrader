@@ -4,24 +4,19 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import grafiosch.common.DateHelper;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
@@ -31,6 +26,9 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * A regex check of the URL extension is not active. The connector for checking the instrument always returns an HTTP
@@ -47,9 +45,9 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
 
   // Intraday main contain only a empty array when there was no trading. Because
   // of that ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT is enabled
-  private static final ObjectMapper objectMapper = new ObjectMapper()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-      .enable(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT);
+  private static final ObjectMapper objectMapper = JsonMapper.builder()
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .enable(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT).build();
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   static {
@@ -69,9 +67,9 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
     super(supportedFeed, BOURSORAMA_ID, "Boursorama", null, EnumSet.of(UrlCheck.HISTORY, UrlCheck.INTRADAY));
   }
 
-  private String getSecurityCurrecnypairHistoricalDownloadLink(final Securitycurrency<?> securitycurrency, Date from,
-      boolean useHistoricalExtend) {
-    long daysUntilNow = DateHelper.getDateDiff(from, new Date(), TimeUnit.DAYS);
+  private String getSecurityCurrecnypairHistoricalDownloadLink(final Securitycurrency<?> securitycurrency,
+      LocalDate from, boolean useHistoricalExtend) {
+    long daysUntilNow = ChronoUnit.DAYS.between(from, LocalDate.now());
     BoursoramaPeriodEOD boursoramaPeriod = boursoramaPeriods.stream().filter(bp -> daysUntilNow <= bp.maxDays)
         .findFirst().orElse(boursoramaPeriods.get(boursoramaPeriods.size() - 1));
     return BASE_URL + "GetTicksEOD?symbol="
@@ -81,14 +79,12 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
 
   @Override
   public String getSecurityHistoricalDownloadLink(final Security security) {
-    Date toDate = new Date();
-    LocalDate fromLocalDate = DateHelper.getLocalDate(toDate).minusDays(7);
-    return getSecurityCurrecnypairHistoricalDownloadLink(security, DateHelper.getDateFromLocalDate(fromLocalDate),
-        true);
+    LocalDate fromLocalDate = LocalDate.now().minusDays(7);
+    return getSecurityCurrecnypairHistoricalDownloadLink(security, fromLocalDate, true);
   }
 
   @Override
-  public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
+  public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
     return getEodSecurityCurrencypairHistory(from, to,
         getSecurityCurrecnypairHistoricalDownloadLink(security, from, true),
@@ -97,24 +93,22 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
 
   @Override
   public String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair) {
-    Date toDate = new Date();
-    LocalDate fromLocalDate = DateHelper.getLocalDate(toDate).minusDays(7);
-    return getSecurityCurrecnypairHistoricalDownloadLink(currencypair, DateHelper.getDateFromLocalDate(fromLocalDate),
-        true);
+    LocalDate fromLocalDate = LocalDate.now().minusDays(7);
+    return getSecurityCurrecnypairHistoricalDownloadLink(currencypair, fromLocalDate, true);
   }
 
   @Override
-  public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
-      throws Exception {
+  public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final LocalDate from,
+      final LocalDate to) throws Exception {
     return getEodSecurityCurrencypairHistory(from, to,
         getSecurityCurrecnypairHistoricalDownloadLink(currencyPair, from, true), 1.0);
   }
 
-  private List<Historyquote> getEodSecurityCurrencypairHistory(final Date from, final Date to, String urlStr,
+  private List<Historyquote> getEodSecurityCurrencypairHistory(final LocalDate from, final LocalDate to, String urlStr,
       double divider) throws Exception {
 
-    long startDay = DateHelper.getLocalDate(from).toEpochDay();
-    long endDay = DateHelper.getLocalDate(to).toEpochDay();
+    long startDay = from.toEpochDay();
+    long endDay = to.toEpochDay();
 
     final List<Historyquote> historyquotes = new ArrayList<>();
     final HeaderEOD header = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr, 40).body(),
@@ -124,7 +118,7 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
         final Historyquote histroyquote = new Historyquote();
         historyquotes.add(histroyquote);
         LocalDate localDate = LocalDate.ofEpochDay(data.d);
-        histroyquote.setDate(DateHelper.getDateFromLocalDate(localDate));
+        histroyquote.setDate(localDate);
         histroyquote.setClose(data.c / divider);
         histroyquote.setOpen(data.o / divider);
         histroyquote.setLow(data.l / divider);
@@ -138,7 +132,7 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
   @Override
   public String getSecurityIntradayDownloadLink(final Security security) {
     return isYearSecurityForLastPrice(security)
-        ? getSecurityCurrecnypairHistoricalDownloadLink(security, DateUtils.addDays(new Date(), -190), false)
+        ? getSecurityCurrecnypairHistoricalDownloadLink(security, LocalDate.now().minusDays(190), false)
         : getUpdateSecurityCurrecnypairLastPriceLink(security);
   }
 
@@ -189,7 +183,7 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
   }
 
   private void getLastPriceFromHistoryQuotes(Security security, String urlStr) throws Exception {
-    final HeaderEOD header = objectMapper.readValue(new URI(urlStr).toURL(), HeaderEOD.class);
+    final HeaderEOD header = objectMapper.readValue(new URI(urlStr).toURL().openStream(), HeaderEOD.class);
     QuoteTabEOD lastPrice = header.d.QuoteTab[header.d.QuoteTab.length - 1];
     lastPrice.setValues(security, FeedConnectorHelper.getGBXLondonDivider(security));
     setSTimestamp(security);
@@ -206,7 +200,7 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
   }
 
   private void setSTimestamp(Securitycurrency<?> securitycurrency) {
-    securitycurrency.setSTimestamp(new Date(new Date().getTime() - getIntradayDelayedSeconds() * 1000));
+    securitycurrency.setSTimestamp(LocalDateTime.now().minusSeconds(getIntradayDelayedSeconds()));
   }
 
   private static class BoursoramaPeriodEOD {

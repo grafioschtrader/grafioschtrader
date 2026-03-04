@@ -1,7 +1,6 @@
 package grafioschtrader.reportviews.performance;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -16,13 +15,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Comprehensive trading day metadata for performance report validation and date selection.
- * 
+ *
  * <p>
  * This immutable class contains all necessary trading day information required for performance analysis, including data
  * boundaries, holiday calendars, missing quote detection, and period limits. It serves as the foundation for validating
  * user date selections and ensuring data quality in performance calculations.
  * </p>
- * 
+ *
  * <p>
  * Key components include:
  * </p>
@@ -43,42 +42,42 @@ public class FirstAndMissingTradingDays {
   public final int minIncludeMonthLimit = GlobalConstants.PERFORMANCE_MIN_INCLUDE_MONTH_LIMIT;
 
   @Schema(description = "The earliest trading day in the complete holdings history")
-  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final LocalDate firstEverTradingDay;
 
   @Schema(description = "The second trading day in the holdings history, used for baseline calculations")
-  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final LocalDate secondEverTradingDay;
 
   @Schema(description = "The last valid trading day of the previous year for reference analysis")
-  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final LocalDate lastTradingDayOfLastYear;
 
   @Schema(description = "The second most recent trading day with complete data")
-  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final LocalDate secondLatestTradingDay;
 
-  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final LocalDate latestTradingDay;
 
   @Schema(description = "Most recent date for which the data is complete")
-  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final LocalDate leatestPossibleTradingDay;
 
   /**
    * Set of all holidays affecting the holdings in the analysis scope.
-   * 
+   *
    * <p>
    * Contains both global holidays (such as New Year's Day and Christmas) and security-specific market closures based on
    * the exchanges where held securities are traded. This set is used internally for trading day validation and is
    * excluded from JSON serialization to reduce API response size and avoid exposing internal validation data.
    */
   @JsonIgnore
-  public final Set<Date> allHolydays;
+  public final Set<LocalDate> allHolydays;
 
   /**
    * Set of trading days where end-of-day price quotes are missing for held securities.
-   * 
+   *
    * <p>
    * Identifies specific dates where historical price data is incomplete or unavailable, preventing accurate performance
    * calculations. Missing quotes can result from data provider issues, market disruptions, trading halts, or incomplete
@@ -87,11 +86,11 @@ public class FirstAndMissingTradingDays {
    * </p>
    */
   @JsonIgnore
-  public final Set<Date> missingQuoteDays;
+  public final Set<LocalDate> missingQuoteDays;
 
   /**
    * Constructs a new trading day metadata instance with all required boundaries and calendars.
-   * 
+   *
    * @param firstEverTradingDay       the earliest trading day in holdings history
    * @param secondEverTradingDay      the second trading day for baseline calculations
    * @param lastTradingDayOfLastYear  the last valid trading day of previous year
@@ -103,7 +102,7 @@ public class FirstAndMissingTradingDays {
    */
   public FirstAndMissingTradingDays(LocalDate firstEverTradingDay, LocalDate secondEverTradingDay,
       LocalDate lastTradingDayOfLastYear, LocalDate leatestPossibleTradingDay, LocalDate latestTradingDay,
-      LocalDate secondLatestTradingDay, Set<Date> allHolydays, Set<Date> missingQuoteDays) {
+      LocalDate secondLatestTradingDay, Set<LocalDate> allHolydays, Set<LocalDate> missingQuoteDays) {
     super();
     this.firstEverTradingDay = firstEverTradingDay;
     this.secondEverTradingDay = secondEverTradingDay;
@@ -121,22 +120,22 @@ public class FirstAndMissingTradingDays {
       providing a comprehensive view of all dates that should be excluded from performance
       analysis. Useful for UI components that need to display blocked dates to users.
       Return sorted list of all non-trading days (holidays and missing quote days combined""")
-  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
-  public List<Date> getHolidayAndMissingQuoteDays() {
-    Set<Date> combinedMissingQuoteDaysAndHoliday = new HashSet<>(allHolydays);
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  public List<LocalDate> getHolidayAndMissingQuoteDays() {
+    Set<LocalDate> combinedMissingQuoteDaysAndHoliday = new HashSet<>(allHolydays);
     combinedMissingQuoteDaysAndHoliday.addAll(missingQuoteDays);
     return combinedMissingQuoteDaysAndHoliday.stream().sorted().collect(Collectors.toList());
   }
 
-  public boolean isMissingQuoteDayOrHoliday(Date date) {
+  public boolean isMissingQuoteDayOrHoliday(LocalDate date) {
     return allHolydays.contains(date) || missingQuoteDays.contains(date);
   }
 
-  public boolean isHoliday(Date date) {
+  public boolean isHoliday(LocalDate date) {
     return allHolydays.contains(date);
   }
 
-  public boolean isMissingQuote(Date date) {
+  public boolean isMissingQuote(LocalDate date) {
     return missingQuoteDays.contains(date);
   }
 

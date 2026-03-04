@@ -35,8 +35,8 @@ public class AlgoStrategy extends AlgoRuleStrategy {
 
   @Schema(description = """
       JSON configuration specific to the strategy implementation type. Structure varies per type, e.g.
-      {"lowerValue": 90.0, "upperValue": 110.0} for AS_ABSOLUTE_PRICE_ALERT, or
-      {"indicatorType": "SMA", "period": 50, "crossDirection": "ABOVE"} for AS_MA_CROSSING_ALERT.""")
+      {"lowerValue": 90.0, "upperValue": 110.0} for AS_OBSERVED_SECURITY_ABSOLUTE_PRICE, or
+      {"indicatorType": "SMA", "period": 50, "crossDirection": "ABOVE"} for AS_OBSERVED_SECURITY_MA_CROSSING.""")
   @Column(name = "strategy_config", columnDefinition = "JSON")
   private String strategyConfig;
 

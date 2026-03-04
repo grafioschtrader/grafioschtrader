@@ -45,6 +45,12 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
+  getUnusedSecurityForAlgoCustom(idWatchlist: number, idAlgoAssetclassSecurity: number): Observable<Security[]> {
+    return <Observable<Security[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/`
+      + `algounusedcustom/${idWatchlist}/${idAlgoAssetclassSecurity}`,
+      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
   getSecurityByIdSecuritycurrency(idSecuritycurrency: number): Observable<Security> {
     return <Observable<Security>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idSecuritycurrency}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));

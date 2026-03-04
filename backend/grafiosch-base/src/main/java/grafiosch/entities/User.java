@@ -1,9 +1,9 @@
 package grafiosch.entities;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -138,7 +138,7 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   @Schema(description = "When was the user's role last changed? Is used for the message or mail system of this framework.")
   @JsonIgnore
   @Column(name = "last_role_modified_time")
-  private Date lastRoleModifiedTime;
+  private LocalDateTime lastRoleModifiedTime;
 
   @Schema(description = "Show if an entity was created by my in the user interface")
   @Column(name = "ui_show_my_property")
@@ -338,11 +338,11 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
     return roles.stream().filter(r -> r.getIdRole().equals(idRole)).findFirst().isPresent();
   }
 
-  public Date getLastRoleModifiedTime() {
+  public LocalDateTime getLastRoleModifiedTime() {
     return lastRoleModifiedTime;
   }
 
-  public void setLastRoleModifiedTime(Date lastRoleModifiedTime) {
+  public void setLastRoleModifiedTime(LocalDateTime lastRoleModifiedTime) {
     this.lastRoleModifiedTime = lastRoleModifiedTime;
   }
 

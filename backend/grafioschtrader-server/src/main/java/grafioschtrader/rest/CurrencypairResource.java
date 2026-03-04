@@ -3,8 +3,8 @@ package grafioschtrader.rest;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.text.ParseException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -230,7 +230,7 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
   public ResponseEntity<List<Currencypair>> batchUpdateCurrencypairsGTNetExchange(
       @RequestBody List<Currencypair> currencypairs) {
     List<Currencypair> updatedCurrencypairs = new ArrayList<>();
-    Date now = new Date();
+    LocalDateTime now = LocalDateTime.now();
 
     for (Currencypair currencypair : currencypairs) {
       Currencypair existing = currencypairJpaRepository.findById(currencypair.getIdSecuritycurrency()).orElse(null);

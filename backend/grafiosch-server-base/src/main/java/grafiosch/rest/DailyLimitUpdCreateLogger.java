@@ -1,6 +1,6 @@
 package grafiosch.rest;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,8 +72,8 @@ public abstract class DailyLimitUpdCreateLogger<T extends BaseID<Integer>> {
    */
   protected void logAddUpdDel(Integer idUser, String entityName, OperationType operationType) {
     UserEntityChangeCount userEntityChangeCount = userEntityChangeCountJpaRepository
-        .findById(new UserEntityChangeCountId(idUser, new Date(), entityName))
-        .orElse(new UserEntityChangeCount(new UserEntityChangeCountId(idUser, new Date(), entityName)));
+        .findById(new UserEntityChangeCountId(idUser, LocalDate.now(), entityName))
+        .orElse(new UserEntityChangeCount(new UserEntityChangeCountId(idUser, LocalDate.now(), entityName)));
     userEntityChangeCount.incrementCounter(operationType);
     userEntityChangeCountJpaRepository.save(userEntityChangeCount);
   }

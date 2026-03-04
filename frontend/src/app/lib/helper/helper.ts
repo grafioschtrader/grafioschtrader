@@ -94,7 +94,7 @@ export abstract class Helper {
           targetObject[config.field] = null;
         }
       } else if (config.dataType === DataType.DateTimeNumeric) {
-        targetObject[config.field] = config.formControl.value.getTime();
+        targetObject[config.field] = moment(config.formControl.value).format('YYYY-MM-DDTHH:mm:ss');
       } else if (config.dataType === DataType.DateStringShortUS) {
         this.formatDateString(config, targetObject, BaseSettings.FORMAT_DATE_SHORT_US);
       } else if (config.inputType === InputType.TriStateCheckbox && config.formControl.value === null) {

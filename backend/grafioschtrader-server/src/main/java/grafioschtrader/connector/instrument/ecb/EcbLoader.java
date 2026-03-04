@@ -6,12 +6,11 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -21,8 +20,6 @@ import javax.xml.stream.XMLStreamReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import grafiosch.BaseConstants;
-import grafiosch.common.DateHelper;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.EcbExchangeRates;
 import grafioschtrader.repository.EcbExchangeRatesRepository;
@@ -35,16 +32,17 @@ public class EcbLoader {
 
   static final String ECB_BASE_URL = "https://www.ecb.europa.eu/stats/eurofxref/";
   static final String ECB_SINGLE_DAY_EXTEND = "eurofxref-daily.xml";
+  private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   public void update(EcbExchangeRatesRepository ecbExchangeRatesRepository) {
     String volumeRequestUrlPart = ECB_SINGLE_DAY_EXTEND;
 
-    Date youngestDate = ecbExchangeRatesRepository.getMaxDate();
-    Date yesterDay = DateHelper.setTimeToZeroAndAddDay(new Date(), -1);
-    if (youngestDate == null || DateHelper.getDateDiff(youngestDate, yesterDay, TimeUnit.DAYS) > 88) {
+    LocalDate youngestDate = ecbExchangeRatesRepository.getMaxDate();
+    LocalDate yesterDay = LocalDate.now().minusDays(1);
+    if (youngestDate == null || ChronoUnit.DAYS.between(youngestDate, yesterDay) > 88) {
       volumeRequestUrlPart = "eurofxref-hist.xml";
-    } else if (DateHelper.getDateDiff(youngestDate, yesterDay, TimeUnit.DAYS) > 1) {
+    } else if (ChronoUnit.DAYS.between(youngestDate, yesterDay) > 1) {
       volumeRequestUrlPart = "eurofxref-hist-90d.xml";
     }
     log.info("Demand this '{}' period from ECB.", volumeRequestUrlPart);
@@ -55,16 +53,15 @@ public class EcbLoader {
     }
   }
 
-  private Date getFromDate(Date youngestDate) throws ParseException {
+  private LocalDate getFromDate(LocalDate youngestDate) {
     if (youngestDate == null) {
-      SimpleDateFormat sdf = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
-      return sdf.parse(GlobalConstants.OLDEST_TRADING_DAY);
+      return LocalDate.parse(GlobalConstants.OLDEST_TRADING_DAY, DATE_FORMAT);
     } else {
-      return DateHelper.setTimeToZeroAndAddDay(youngestDate, 1);
+      return youngestDate.plusDays(1);
     }
   }
 
-  private void readXMLDataAndSave(EcbExchangeRatesRepository ecbExchangeRatesRepository, Date fromDate,
+  private void readXMLDataAndSave(EcbExchangeRatesRepository ecbExchangeRatesRepository, LocalDate fromDate,
       String volumeRequestUrlPart) throws Exception {
     HttpURLConnection connection = null;
     try {
@@ -85,12 +82,10 @@ public class EcbLoader {
     }
   }
 
-  private List<EcbExchangeRates> readCubes(XMLStreamReader reader, Date fromDate)
-      throws XMLStreamException, ParseException {
+  private List<EcbExchangeRates> readCubes(XMLStreamReader reader, LocalDate fromDate) throws XMLStreamException {
 
-    SimpleDateFormat sdf = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
     List<EcbExchangeRates> ecbExchangeRatesList = new ArrayList<>();
-    Date readDate = null;
+    LocalDate readDate = null;
 
     while (reader.hasNext()) {
       int event = reader.next();
@@ -109,8 +104,8 @@ public class EcbLoader {
       } else {
         String time = reader.getAttributeValue(null, "time");
         if (time != null) {
-          readDate = sdf.parse(time);
-          if (readDate.before(fromDate)) {
+          readDate = LocalDate.parse(time, DATE_FORMAT);
+          if (readDate.isBefore(fromDate)) {
             readDate = null;
           }
         }

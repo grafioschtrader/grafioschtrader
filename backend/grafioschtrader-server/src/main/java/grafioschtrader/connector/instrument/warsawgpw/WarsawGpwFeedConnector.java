@@ -3,10 +3,12 @@ package grafioschtrader.connector.instrument.warsawgpw;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -19,16 +21,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import grafiosch.BaseConstants;
-import grafiosch.common.DateHelper;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * It seems that all instruments on the Warsaw Stock Exchange have an ISIN. This makes it unnecessary to enter a URL
@@ -44,8 +45,8 @@ public class WarsawGpwFeedConnector extends BaseFeedConnector {
   private static String DOMAIN_NAME_INDEX = "https://gpwbenchmark.pl/";
   private static String DOMAIN_NAME_CHART = DOMAIN_NAME_INDEX + "chart-json.php?req=";
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
-  private static final ObjectMapper objectMapper = new ObjectMapper()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  private static final ObjectMapper objectMapper = JsonMapper.builder()
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 
   static {
     supportedFeed = new HashMap<>();
@@ -96,29 +97,28 @@ public class WarsawGpwFeedConnector extends BaseFeedConnector {
     security.setSLast(FeedConnectorHelper.parseDoubleGE(div.selectFirst(".summary").text().replaceAll("[^\\d,]", "")));
     Element changeElement = div.selectFirst(".profit") == null ? div.selectFirst(".loss") : div.selectFirst(".profit");
     security.setSChangePercentage(FeedConnectorHelper.parseDoubleGE(changeElement.text().replaceAll("[^\\d,-]", "")));
-    security.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
+    security.setSTimestamp(LocalDateTime.now().minusSeconds(getIntradayDelayedSeconds()));
   }
 
   @Override
   public String getSecurityHistoricalDownloadLink(final Security security) {
-    Date toDate = new Date();
-    final SimpleDateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
-    LocalDate fromLocalDate = DateHelper.getLocalDate(toDate).minusDays(7);
-    return getSecurityHistoricalDownloadLink(security.getIsin(), DateHelper.getDateFromLocalDate(fromLocalDate), toDate,
-        dateFormat);
+    LocalDate toDate = LocalDate.now();
+    LocalDate fromDate = toDate.minusDays(7);
+    final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern(BaseConstants.STANDARD_DATE_FORMAT);
+    return getSecurityHistoricalDownloadLink(security.getIsin(), fromDate, toDate, dateFormat);
   }
 
   @Override
-  public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
+  public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
-    final SimpleDateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT);
+    final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern(BaseConstants.STANDARD_DATE_FORMAT);
     final List<Historyquote> historyquotes = new ArrayList<>();
     String urlStr = getSecurityHistoricalDownloadLink(security.getIsin(), from, to, dateFormat);
-    Response[] response = objectMapper.readValue(new URI(urlStr).toURL(), Response[].class);
+    Response[] response = objectMapper.readValue(new URI(urlStr).toURL().openStream(), Response[].class);
     int diffUTCSeconds = security.getStockexchange().getTimeDifferenceFromUTCInSeconds();
     for (SingleDay sd : response[0].data) {
       Historyquote historyquote = new Historyquote();
-      Date quoteDate = DateHelper.setTimeToZeroAndAddDay(new Date((sd.t + diffUTCSeconds) * 1000), 0);
+      LocalDate quoteDate = Instant.ofEpochSecond(sd.t + diffUTCSeconds).atZone(ZoneId.systemDefault()).toLocalDate();
       historyquote.setDate(quoteDate);
       historyquote.setOpen(sd.o);
       historyquote.setHigh(sd.h);
@@ -130,7 +130,8 @@ public class WarsawGpwFeedConnector extends BaseFeedConnector {
     return historyquotes;
   }
 
-  private String getSecurityHistoricalDownloadLink(String isin, Date from, Date to, SimpleDateFormat dateFormat) {
+  private String getSecurityHistoricalDownloadLink(String isin, LocalDate from, LocalDate to,
+      DateTimeFormatter dateFormat) {
     var rq = new RequestParam("RANGE", isin, dateFormat.format(from), dateFormat.format(to));
     String url = null;
     try {

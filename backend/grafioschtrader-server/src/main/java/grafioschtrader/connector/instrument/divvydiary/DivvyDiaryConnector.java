@@ -11,15 +11,13 @@ import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Security;
 import grafioschtrader.types.CreateType;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Only for dividends.
@@ -30,8 +28,8 @@ import grafioschtrader.types.CreateType;
 public class DivvyDiaryConnector extends BaseFeedConnector {
 
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
-  private static final ObjectMapper objectMapper = new ObjectMapper()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  private static final ObjectMapper objectMapper = JsonMapper.builder()
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 
   static {
     supportedFeed = new HashMap<>();
@@ -51,12 +49,9 @@ public class DivvyDiaryConnector extends BaseFeedConnector {
 
   @Override
   public List<Dividend> getDividendHistory(Security security, LocalDate fromDate) throws Exception {
-    objectMapper.registerModule(new JavaTimeModule());
-    objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-
     List<Dividend> dividends = new ArrayList<>();
     URL url = new URI(getDividendHistoricalDownloadLink(security)).toURL();
-    final DividendHead dividendHead = objectMapper.readValue(url, DividendHead.class);
+    final DividendHead dividendHead = objectMapper.readValue(url.openStream(), DividendHead.class);
 
     for (DividendDetail dd : dividendHead.dividends) {
       if (!dd.exDate.isBefore(fromDate)) {

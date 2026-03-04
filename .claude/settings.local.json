@@ -147,7 +147,15 @@
       "Bash(do echo:*)",
       "Bash(do:*)",
       "Bash(xxd:*)",
-      "WebFetch(domain:localhost)"
+      "WebFetch(domain:localhost)",
+      "WebFetch(domain:mvnrepository.com)",
+      "WebFetch(domain:spring.io)",
+      "WebFetch(domain:cowtowncoder.medium.com)",
+      "Bash(python3:*)",
+      "Bash(\"/c/Program Files/Python312/python\":*)",
+      "WebFetch(domain:central.sonatype.com)",
+      "Bash(jar xf:*)",
+      "Bash(javap:*)"
     ],
     "deny": [],
     "ask": []

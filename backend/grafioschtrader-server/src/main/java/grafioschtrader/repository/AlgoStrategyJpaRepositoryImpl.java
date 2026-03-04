@@ -9,8 +9,6 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import grafiosch.entities.User;
 import grafiosch.repository.BaseRepositoryImpl;
 import grafioschtrader.algo.strategy.model.AlgoLevelType;
@@ -19,6 +17,7 @@ import grafioschtrader.algo.strategy.model.StrategyClassBindingDefinition;
 import grafioschtrader.algo.strategy.model.StrategyHelper;
 import grafioschtrader.algo.strategy.model.complex.StrategyConfigValidator;
 import grafioschtrader.entities.AlgoStrategy;
+import tools.jackson.databind.ObjectMapper;
 
 public class AlgoStrategyJpaRepositoryImpl extends BaseRepositoryImpl<AlgoStrategy>
     implements AlgoStrategyJpaRepositoryCustom {

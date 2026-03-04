@@ -19,12 +19,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import grafiosch.dto.UserDTO;
 import grafiosch.entities.ProposeUserTask;
-import grafiosch.entities.User;
 import grafiosch.entities.Role;
+import grafiosch.entities.User;
 import grafiosch.error.ErrorWithLogout;
 import grafiosch.error.ErrorWithLogoutAdmin;
 import grafiosch.error.ImpatientAtLoginError;
@@ -41,6 +39,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Spring Security filter for processing user login authentication with enhanced security features.

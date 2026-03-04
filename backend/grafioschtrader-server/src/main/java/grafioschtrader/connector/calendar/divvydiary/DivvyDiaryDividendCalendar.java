@@ -7,11 +7,10 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-
 import grafioschtrader.connector.calendar.IDividendCalendarFeedConnector;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Component
 public class DivvyDiaryDividendCalendar implements IDividendCalendarFeedConnector {
@@ -21,11 +20,10 @@ public class DivvyDiaryDividendCalendar implements IDividendCalendarFeedConnecto
   @Override
   public List<CalendarDividends> getExDateDividend(LocalDate exDate) throws Exception {
     List<CalendarDividends> calDividends = new ArrayList<>();
-    ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    objectMapper.registerModule(new JavaTimeModule());
+    ObjectMapper objectMapper = JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
     String urlStr = BASE_URL + "?prefDate=exDate&month=" + exDate.getMonthValue() + "&year=" + exDate.getYear()
         + "&day=" + exDate.getDayOfMonth();
-    DivvyDiaryDividendsHeader ddDividends = objectMapper.readValue(new URI(urlStr).toURL(),
+    DivvyDiaryDividendsHeader ddDividends = objectMapper.readValue(new URI(urlStr).toURL().openStream(),
         DivvyDiaryDividendsHeader.class);
     for (DivvyDiaryDividends ddDividend : ddDividends.dividends) {
       var cd = new CalendarDividends(ddDividend.name, ddDividend.exDate, ddDividend.payDate, ddDividend.amount);

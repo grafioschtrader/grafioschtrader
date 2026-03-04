@@ -1,6 +1,6 @@
 package grafioschtrader.priceupdate.historyquote;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 import grafioschtrader.entities.Securitycurrency;
@@ -47,6 +47,6 @@ public interface IHistoryqouteEntityBaseAccess<S extends Securitycurrency<S>> {
    * @param toDate           end date for historical data retrieval
    * @return the security or currency pair with updated historical quotes
    */
-  S catchUpSecurityCurrencypairHisotry(S securitycurrency, Date fromDate, Date toDate);
+  S catchUpSecurityCurrencypairHisotry(S securitycurrency, LocalDate fromDate, LocalDate toDate);
 
 }

@@ -262,7 +262,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
       this.currencypair = currencypair;
       if (this.hasChangedOnExistingTransaction()) {
         BusinessHelper.getAndSetQuotationCurrencypair(this.currencypairService, this.currencypair,
-          +this.configObject.transactionTime.formControl.value, this.configObject.currencyExRate.formControl);
+          this.configObject.transactionTime.formControl.value, this.configObject.currencyExRate.formControl);
       }
     });
   }

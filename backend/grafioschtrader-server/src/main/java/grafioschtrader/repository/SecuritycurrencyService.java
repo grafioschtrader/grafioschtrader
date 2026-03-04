@@ -6,9 +6,9 @@
 package grafioschtrader.repository;
 
 import java.lang.annotation.Annotation;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import grafiosch.common.DataHelper;
-import grafiosch.common.DateHelper;
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
 import grafiosch.dto.ValueKeyHtmlSelectOptions;
@@ -136,14 +135,14 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
   // Gain and loose calculation
   ////////////////////////////////////////////////////////////////
   public void calcGainLossBasedOnDateOrNewestPrice(final U securitycurrencyPositionSummary,
-      final IPositionCloseOnLatestPrice<S, U> positionCloseOnLatestPrice, final Date untilDate) {
+      final IPositionCloseOnLatestPrice<S, U> positionCloseOnLatestPrice, final LocalDate untilDate) {
     final List<U> securitycurrencyPositionSummaryList = new ArrayList<>();
     securitycurrencyPositionSummaryList.add(securitycurrencyPositionSummary);
     calcGainLossBasedOnDateOrNewestPrice(securitycurrencyPositionSummaryList, positionCloseOnLatestPrice, untilDate);
   }
 
   public void calcGainLossBasedOnDateOrNewestPrice(final List<U> securitycurrencyPositionSummaryList,
-      final IPositionCloseOnLatestPrice<S, U> positionCloseOnLatestPrice, final Date untilDate) {
+      final IPositionCloseOnLatestPrice<S, U> positionCloseOnLatestPrice, final LocalDate untilDate) {
     final List<Integer> idSecurityList = securitycurrencyPositionSummaryList.stream()
         .map(openSecurityPosition -> openSecurityPosition.securitycurrency.getIdSecuritycurrency())
         .collect(Collectors.toList());
@@ -158,11 +157,11 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
             .get(securityPositionSummary.securitycurrency.getIdSecuritycurrency());
 
         Double price = securityPositionSummary.securitycurrency.getSLast();
-        Date date = securityPositionSummary.securitycurrency.getSTimestamp();
+        LocalDate date = securityPositionSummary.securitycurrency.getSTimestamp() != null
+            ? securityPositionSummary.securitycurrency.getSTimestamp().toLocalDate() : null;
         if (historyquote != null
-            && (price == null || (historyquote.getDate().after(securityPositionSummary.securitycurrency.getSTimestamp())
-                || untilDate.before(
-                    DateHelper.setTimeToZeroAndAddDay(securityPositionSummary.securitycurrency.getSTimestamp(), 0))))) {
+            && (price == null || (date != null && (historyquote.getDate().isAfter(date)
+                || untilDate.isBefore(date))))) {
           price = historyquote.getClose();
           date = historyquote.getDate();
         }

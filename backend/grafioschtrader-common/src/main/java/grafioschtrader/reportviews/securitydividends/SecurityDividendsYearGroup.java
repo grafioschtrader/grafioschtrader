@@ -1,7 +1,6 @@
 package grafioschtrader.reportviews.securitydividends;
 
-import java.util.Date;
-import java.util.GregorianCalendar;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -127,7 +126,7 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
     securityDividendsPosition.security = security;
     if (securitysplitList != null && securityDividendsPosition.splitFactorAfter == null) {
       securityDividendsPosition.splitFactorAfter = Securitysplit.calcSplitFatorForFromDate(securitysplitList,
-          new GregorianCalendar(year, 11, 31).getTime());
+          LocalDate.of(year, 12, 31));
     }
     return securityDividendsPosition;
   }
@@ -185,8 +184,8 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
   public void fillYearWithOpenPositions(Map<Integer, UnitsCounter> unitsCounterBySecurityMap,
       final Map<Integer, List<Securitysplit>> securitysplitMap,
       final Map<Integer, Map<Integer, MarginTracker>> marginOpenTransaction) {
-    Date fromDate = new GregorianCalendar(year, 0, 1).getTime();
-    Date untilDate = new GregorianCalendar(year, 11, 31).getTime();
+    LocalDate fromDate = LocalDate.of(year, 1, 1);
+    LocalDate untilDate = LocalDate.of(year, 12, 31);
     for (Map.Entry<Integer, UnitsCounter> entry : unitsCounterBySecurityMap.entrySet()) {
       SecurityDividendsPosition securityDividendsPosition = groupMap.get(entry.getKey());
       if (securityDividendsPosition == null && entry.getValue().units != 0) {
@@ -223,7 +222,7 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
    * @param entry            the units counter entry to update
    * @param securitysplitMap map of security splits for calculations
    */
-  private void updateUnitsEndOfYear(Date fromDate, Date untilDate, Map.Entry<Integer, UnitsCounter> entry,
+  private void updateUnitsEndOfYear(LocalDate fromDate, LocalDate untilDate, Map.Entry<Integer, UnitsCounter> entry,
       Map<Integer, List<Securitysplit>> securitysplitMap) {
     SplitFactorAfterBefore splitFactorAfterBefore = Securitysplit.calcSplitFatorForFromDateAndToDate(entry.getKey(),
         fromDate, untilDate, securitysplitMap);

@@ -1,6 +1,6 @@
 package grafioschtrader.reportviews.securitycurrency;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -9,11 +9,11 @@ import grafioschtrader.entities.Security;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = """
-  Extends SecuritycurrencyGroup to include User Defined Fields (UDF) data for each instrument. This class is typically used in watchlist 
+  Extends SecuritycurrencyGroup to include User Defined Fields (UDF) data for each instrument. This class is typically used in watchlist
   reports where custom user-specific information needs to be displayed alongside standard instrument data.""")
 public class SecuritycurrencyUDFGroup extends SecuritycurrencyGroup {
 
-  
+
   @Schema(description = """
       A map containing User Defined Fields (UDF) data for the instruments in the group.
       The key is the ID of the security or currencypair (idSecuritycurrency),
@@ -27,8 +27,8 @@ public class SecuritycurrencyUDFGroup extends SecuritycurrencyGroup {
   }
 
   public SecuritycurrencyUDFGroup(List<SecuritycurrencyPosition<Security>> securityPositionList,
-      List<SecuritycurrencyPosition<Currencypair>> currencypairPositionList, Date lastTimestamp, Integer idWatchlist,
-      Map<Integer, String> udfEntityValues) {
+      List<SecuritycurrencyPosition<Currencypair>> currencypairPositionList, LocalDateTime lastTimestamp,
+      Integer idWatchlist, Map<Integer, String> udfEntityValues) {
     super(securityPositionList, currencypairPositionList, lastTimestamp, idWatchlist);
     this.udfEntityValues = udfEntityValues;
   }
@@ -43,5 +43,5 @@ public class SecuritycurrencyUDFGroup extends SecuritycurrencyGroup {
     String getJsonValues();
   }
 
-  
+
 }

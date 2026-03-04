@@ -1,0 +1,100 @@
+ Issue: Spring Boot 4.0 uses Jackson 3 (tools.jackson.*) as the default JSON library, but the Jackson 3 ecosystem is incomplete and incompatible with our requirements.
+
+  Problems Encountered:
+
+  1. Missing Jackson 3 Datatype Modules
+    - tools.jackson.datatype:jackson-datatype-jsr310 does not exist in Maven Central
+    - This module is essential for Java 8 date/time serialization (LocalDateTime, LocalDate, etc.)
+    - Our codebase extensively uses Java 8 date/time types in DTOs and entities
+  2. Incompatibility Between Jackson 2 and Jackson 3
+    - Jackson 2 modules (e.g., JavaTimeModule) are incompatible with Jackson 3 ObjectMapper
+    - Cannot mix Jackson 2 datatype modules with Jackson 3 core libraries
+    - Compilation error: Symbol nicht gefunden: Methode registerModule(com.fasterxml.jackson.datatype.jsr310.JavaTimeModule) when trying to register Jackson 2 module with Jackson 3 ObjectMapper
+  3. Jackson 2 Bridge Limitations
+    - Spring Boot 4.0 provides spring-boot-jackson2 bridge for backwards compatibility
+    - However, Jackson 3 is still pulled in by multiple starters (spring-boot-starter-web, spring-boot-starter-webflux, spring-boot-starter-websocket)
+    - Attempting to exclude Jackson 3 from all starters becomes unmaintainable and error-prone
+    - Runtime error: Failed to bind properties under 'spring.jackson.serialization' to java.util.Map<tools.jackson.databind.SerializationFeature, java.lang.Boolean>
+
+  Our Dependencies Still Requiring Jackson 2:
+
+  - SpringDoc OpenAPI 2.8.13 - uses com.fasterxml.jackson.*
+  - JJWT 0.13.0 - uses com.fasterxml.jackson.*
+  - Our codebase: 28 Jackson imports across 20+ files
+
+  Successfully Resolved Issues ✅
+
+  The following migration steps were completed successfully before hitting the Jackson 3 blocker:
+
+  1. JUnit Dependencies
+
+  - Removed: junit-platform-runner (no longer managed by Spring Boot 4.0 BOM)
+  - Status: ✅ Fixed
+
+  2. Hibernate 7 Compatibility
+
+  - Changed: hypersistence-utils-hibernate-63 → hypersistence-utils-hibernate-70 (version 3.10.3)
+  - Reason: Spring Boot 4.0 uses Hibernate 7.1.8
+  - Files Updated:
+    - backend/pom.xml
+    - backend/grafiosch-base/pom.xml
+    - backend/grafioschtrader-common/pom.xml
+  - Status: ✅ Fixed
+
+  3. Spring Boot 4.0 Package Relocations
+
+  - EntityScan: org.springframework.boot.autoconfigure.domain.EntityScan → org.springframework.boot.persistence.autoconfigure.EntityScan
+  - TomcatServletWebServerFactory: org.springframework.boot.web.embedded.tomcat.* → org.springframework.boot.tomcat.servlet.*
+  - Method Rename: addAdditionalTomcatConnectors() → addAdditionalConnectors()
+  - Files Updated:
+    - GrafioschtraderApplication.java
+    - GTforTest.java
+  - Status: ✅ Fixed
+
+  4. TestRestTemplate Relocation
+
+  - Package Change: org.springframework.boot.test.web.client.TestRestTemplate → org.springframework.boot.resttestclient.TestRestTemplate
+  - New Dependency Required: spring-boot-resttestclient
+  - Files Updated: 4 test files
+  - Status: ✅ Fixed
+  - Note: TestRestTemplate is deprecated for removal; consider migrating to RestTestClient in the future
+
+  5. JUnit 4 to JUnit 5 Migration
+
+  - Import Changes: org.junit.Assert.* → org.junit.jupiter.api.Assertions.*
+  - Parameter Order Changed:
+    - JUnit 4: assertNotNull(message, object), assertTrue(message, condition)
+    - JUnit 5: assertNotNull(object, message), assertTrue(condition, message)
+  - Files Updated: 2 test files
+  - Status: ✅ Fixed
+
+  Recommendation
+
+  Do not upgrade to Spring Boot 4.0 until:
+
+  1. ✅ Jackson 3 datatype modules are published to Maven Central (specifically tools.jackson.datatype:jackson-datatype-jsr310)
+  2. ✅ Third-party dependencies (SpringDoc OpenAPI, JJWT) release Jackson 3-compatible versions
+  3. ✅ Jackson 3 ecosystem reaches maturity and stability
+
+  Estimated Timeline: 6-12 months (Q2-Q3 2026)
+
+  Alternative: Monitor these resources for Jackson 3 availability:
+  - https://github.com/FasterXML/jackson/wiki/Jackson-Releases
+  - https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.0-Migration-Guide
+  - https://central.sonatype.com/search?q=g:tools.jackson.datatype
+
+  Migration Effort Summary
+
+  - Compilation Fixes Required: ~15 files
+  - Import Statement Updates: 28 imports across 20 files
+  - POM Changes: 6 files
+  - Test Fixes: 4 files
+  - Estimated Migration Time (once Jackson 3 is ready): 4-6 hours
+
+  ---
+  References
+
+  - Spring Boot 4.0 Release Notes: https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.0-Release-Notes
+  - Jackson 3.0 Migration: https://github.com/FasterXML/jackson/wiki/Jackson-3.0
+  - Java Version: 21 (required)
+  - Current Spring Boot Version: 3.x

@@ -2,10 +2,8 @@ package grafioschtrader.reportviews.performance;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -204,11 +202,10 @@ public class PerformancePeriod {
         periodWindows.add(periodWindow);
       }
 
-      Date date = Date.from(weekDay.atStartOfDay(ZoneId.systemDefault()).toInstant());
-      if (firstAndMissingTradingDays.isHoliday(date)
+      if (firstAndMissingTradingDays.isHoliday(weekDay)
           && (periodHolding == null || !periodHolding.getDate().isEqual(weekDay))) {
         periodWindow.addPeriodStepHolidayMissing(weekYear, weekDay, HolidayMissing.HM_HOLIDAY);
-      } else if (firstAndMissingTradingDays.isMissingQuote(date)) {
+      } else if (firstAndMissingTradingDays.isMissingQuote(weekDay)) {
         periodWindow.addPeriodStepHolidayMissing(weekYear, weekDay, HolidayMissing.HM_HISTORY_DATA_MISSING);
         missingDayCountFromDayToDay++;
       } else if (periodHolding != null) {

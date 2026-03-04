@@ -2,16 +2,15 @@ package grafioschtrader.connector.instrument.euronext;
 
 import java.io.IOException;
 import java.security.spec.KeySpec;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import javax.crypto.Cipher;
@@ -29,10 +28,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import grafiosch.BaseConstants;
-import grafiosch.common.DateHelper;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataBusinessHelper;
@@ -44,6 +39,8 @@ import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 import jakarta.xml.bind.DatatypeConverter;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * The Euronext connector can obtain data from several different stock exchanges in Europe.
@@ -74,7 +71,7 @@ public class EuronextFeedConnector extends BaseFeedConnector {
       + "en/intraday_chart/getDetailedQuoteAjax/";
   private static final String PERIOD_1M = "1M";
   private static final String PERIOD_MAX = "max";
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper = JsonMapper.builder().build();
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
 
   static {
@@ -103,7 +100,7 @@ public class EuronextFeedConnector extends BaseFeedConnector {
   private void scanLastPriceAndChange(Security security) throws IOException {
     Document doc = getIntraDoc(getSecurityIntradayDownloadLink(security));
     final Element price = doc.select("#header-instrument-price").first();
-    security.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
+    security.setSTimestamp(LocalDateTime.now().minusSeconds(getIntradayDelayedSeconds()));
     security.setSLast(FeedConnectorHelper.parseDoubleUS(price.text()));
     Elements spans = doc.select("div:containsOwn(Since Previous Close)").first().parent().select("span");
     security.setSChangePercentage(
@@ -219,21 +216,19 @@ public class EuronextFeedConnector extends BaseFeedConnector {
   }
 
   @Override
-  public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
+  public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
 
     final List<Historyquote> historyquotes = new ArrayList<>();
-    final DateFormat dateFormat = new SimpleDateFormat(BaseConstants.STANDARD_LOCAL_DATE_TIME);
-    objectMapper.setDateFormat(dateFormat);
-    String maxOr1M = DateHelper.getDateDiff(from, new Date(), TimeUnit.DAYS) > 30 ? PERIOD_MAX : PERIOD_1M;
+    String maxOr1M = ChronoUnit.DAYS.between(from, LocalDate.now()) > 30 ? PERIOD_MAX : PERIOD_1M;
     String url = getSecurityHistoricalDownloadLink(security, maxOr1M);
     String content = FeedConnectorHelper.getByHttpClient(url).body();
     // content = decrypt(content);
 
     final DailyClose[] dailyCloseArr = objectMapper.readValue(content, DailyClose[].class);
     for (DailyClose dailyClose : dailyCloseArr) {
-      Date date = DateHelper.setTimeToZeroAndAddDay(dailyClose.time, 0);
-      if (!date.before(from) && !date.after(to)) {
+      LocalDate date = dailyClose.time;
+      if (!date.isBefore(from) && !date.isAfter(to)) {
         Historyquote historyquote = new Historyquote();
         historyquote.setClose(DataBusinessHelper.round(dailyClose.price));
         historyquote.setVolume(dailyClose.volume);
@@ -245,7 +240,7 @@ public class EuronextFeedConnector extends BaseFeedConnector {
   }
 
   private static class DailyClose {
-    public Date time;
+    public LocalDate time;
     public double price;
     public Long volume;
   }

@@ -1,9 +1,7 @@
 package grafioschtrader.repository;
 
 import java.lang.reflect.InvocationTargetException;
-import java.text.ParseException;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -59,18 +57,16 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    *
    * @param dateString The date string (YYYY-MM-DD) to filter active securities.
    * @return A list of active securities.
-   * @throws ParseException If the dateString cannot be parsed.
    */
-  List<Security> findByActiveToDateGreaterThanEqualOrderByName(String dateString) throws ParseException;
+  List<Security> findByActiveToDateGreaterThanEqualOrderByName(String dateString);
 
   /**
    * Retrieves tradable securities for a given tenant and watchlist ID.
    *
    * @param idWatchlist The ID of the watchlist.
    * @return A list of tradable securities.
-   * @throws ParseException If there's an issue parsing date values during the process.
    */
-  List<Security> getTradableSecuritiesByTenantAndIdWatschlist(Integer idWatchlist) throws ParseException;
+  List<Security> getTradableSecuritiesByTenantAndIdWatschlist(Integer idWatchlist);
 
   /**
    * Attempts to update the intraday data for securities in a specific watchlist, whereby the number of failed
@@ -103,7 +99,7 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    *                                        is used.
    */
   void calcGainLossBasedOnDateOrNewestPrice(SecurityPositionSummary securitycurrencyPositionSummary,
-      IPositionCloseOnLatestPrice<Security, SecurityPositionSummary> positionCloseOnLatestPrice, Date untilDate);
+      IPositionCloseOnLatestPrice<Security, SecurityPositionSummary> positionCloseOnLatestPrice, LocalDate untilDate);
 
   /**
    * Calculates gain/loss for a list of security positions based on a specified date or the newest price.
@@ -113,7 +109,7 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    *                                        is used.
    */
   void calcGainLossBasedOnDateOrNewestPrice(List<SecurityPositionSummary> securitycurrencyPositionSummary,
-      Date untilDate);
+      LocalDate untilDate);
 
   /**
    * Calculates gain/loss for a list of security positions based on a specified date or the newest price, using a
@@ -125,7 +121,7 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    *                                        is used.
    */
   void calcGainLossBasedOnDateOrNewestPrice(List<SecurityPositionSummary> securitycurrencyPositionSummary,
-      IPositionCloseOnLatestPrice<Security, SecurityPositionSummary> positionCloseOnLatestPrice, Date untilDate);
+      IPositionCloseOnLatestPrice<Security, SecurityPositionSummary> positionCloseOnLatestPrice, LocalDate untilDate);
 
   /**
    * Searches for securities based on the provided search criteria.
@@ -157,7 +153,7 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    * @param summarySecurityMap A map containing the calculations for each individual security, which will be updated.
    * @return The list of updated security position summaries.
    */
-  List<SecurityPositionSummary> processOpenPositionsWithActualPrice(Date untilDate,
+  List<SecurityPositionSummary> processOpenPositionsWithActualPrice(LocalDate untilDate,
       Map<Security, SecurityPositionSummary> summarySecurityMap);
 
   /**
@@ -308,6 +304,6 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    *                     connectors
    * @param activeOnDate the date to check if security is active (activeToDate >= this date)
    */
-  void resetRetryCountersByConnector(String connectorId, Date activeOnDate);
+  void resetRetryCountersByConnector(String connectorId, LocalDate activeOnDate);
 
 }

@@ -6,7 +6,6 @@ import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -23,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.ezylang.evalex.Expression;
 import com.ezylang.evalex.data.EvaluationValue;
 
-import grafiosch.common.DateHelper;
 import grafiosch.exceptions.DataViolation;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.repository.UserJpaRepository;
@@ -187,7 +185,7 @@ public class StandingOrderExecutionService {
     tx.setCashaccount(soc.getCashaccount());
     tx.setCashaccountAmount(soc.getCashaccountAmount());
     tx.setTransactionType(soc.getTransactionType());
-    tx.setTransactionTime(DateHelper.getDateFromLocalDate(effectiveDate));
+    tx.setTransactionTime(effectiveDate.atStartOfDay());
     tx.setIdTenant(soc.getIdTenant());
     tx.setNote(soc.getNote());
     tx.setIdStandingOrder(soc.getIdStandingOrder());
@@ -205,11 +203,10 @@ public class StandingOrderExecutionService {
    * @return a new Transaction ready for saving, or null if no price is available or units would be <= 0
    */
   private Transaction buildSecurityTransaction(StandingOrderSecurity sos, LocalDate effectiveDate) {
-    Date dateAsDate = DateHelper.getDateFromLocalDate(effectiveDate);
     Integer idSecurity = sos.getSecurity().getIdSecuritycurrency();
 
     // 1. Price lookup
-    Optional<Historyquote> hqOpt = historyquoteJpaRepository.findByIdSecuritycurrencyAndDate(idSecurity, dateAsDate);
+    Optional<Historyquote> hqOpt = historyquoteJpaRepository.findByIdSecuritycurrencyAndDate(idSecurity, effectiveDate);
     if (hqOpt.isEmpty()) {
       throw new StandingOrderBusinessException(
           "No price found for security " + idSecurity + " on " + effectiveDate + "; standing order "
@@ -266,7 +263,7 @@ public class StandingOrderExecutionService {
     Double currencyExRate = null;
     if (sos.getIdCurrencypair() != null) {
       ISecuritycurrencyIdDateClose exRateResult = historyquoteJpaRepository
-          .getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(sos.getIdCurrencypair(), dateAsDate, false);
+          .getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(sos.getIdCurrencypair(), effectiveDate, false);
       if (exRateResult != null) {
         currencyExRate = exRateResult.getClose();
       }
@@ -290,7 +287,7 @@ public class StandingOrderExecutionService {
     // 5. Build transaction
     Transaction tx = new Transaction(sos.getIdSecurityaccount(), sos.getCashaccount(), sos.getSecurity(),
         cashaccountAmount, units, quotation, txType, taxCost > 0 ? taxCost : null,
-        transactionCost > 0 ? transactionCost : null, null, dateAsDate, currencyExRate, sos.getIdCurrencypair(), null,
+        transactionCost > 0 ? transactionCost : null, null, effectiveDate.atStartOfDay(), currencyExRate, sos.getIdCurrencypair(), null,
         null);
     tx.setIdTenant(sos.getIdTenant());
     tx.setNote(sos.getNote());

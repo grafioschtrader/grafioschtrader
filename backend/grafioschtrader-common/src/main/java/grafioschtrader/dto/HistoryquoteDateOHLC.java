@@ -1,7 +1,6 @@
 package grafioschtrader.dto;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -21,7 +20,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public class HistoryquoteDateOHLC {
 
   @Schema(description = "Trading date for this OHLC data point")
-  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public LocalDate date;
 
   @Schema(description = "Opening price of the day")
@@ -43,36 +42,17 @@ public class HistoryquoteDateOHLC {
   }
 
   /**
-   * Constructs a HistoryquoteDateOHLC from java.sql.Date and price values.
+   * Constructs a HistoryquoteDateOHLC from LocalDate and price values.
    *
-   * @param date   the trading date (as java.sql.Date from database)
+   * @param date   the trading date
    * @param open   the opening price
    * @param high   the highest price
    * @param low    the lowest price
    * @param close  the closing price
    * @param volume the trading volume
    */
-  public HistoryquoteDateOHLC(Date date, Double open, Double high, Double low, Double close, Long volume) {
-    this.date = ((java.sql.Date) date).toLocalDate();
-    this.open = open;
-    this.high = high;
-    this.low = low;
-    this.close = close;
-    this.volume = volume;
-  }
-
-  /**
-   * Constructs a HistoryquoteDateOHLC from LocalDate and price values.
-   *
-   * @param localDate the trading date
-   * @param open      the opening price
-   * @param high      the highest price
-   * @param low       the lowest price
-   * @param close     the closing price
-   * @param volume    the trading volume
-   */
-  public HistoryquoteDateOHLC(LocalDate localDate, Double open, Double high, Double low, Double close, Long volume) {
-    this.date = localDate;
+  public HistoryquoteDateOHLC(LocalDate date, Double open, Double high, Double low, Double close, Long volume) {
+    this.date = date;
     this.open = open;
     this.high = high;
     this.low = low;

@@ -5,9 +5,9 @@ import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -174,7 +174,7 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
     if (itpOpt.isPresent()) {
       List<ImportTransactionTemplate> importTransactionTemplateList = importTransactionTemplateJpaRepository
           .findByIdTransactionImportPlatformOrderByTemplatePurpose(idTransactionImportPlatform);
-      final DateFormat dateFormat = new SimpleDateFormat(GlobalConstants.SHORT_STANDARD_DATE_FORMAT);
+      final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern(GlobalConstants.SHORT_STANDARD_DATE_FORMAT);
       // setting headers
       response.setStatus(HttpServletResponse.SC_OK);
       response.addHeader("Content-Disposition", "attachment; filename=\"" + itpOpt.get().getName() + "\"");
@@ -217,16 +217,16 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
    * @param dateFormat Configured date formatter for consistent date representation
    * @return Standardized filename incorporating all template metadata
    */
-  private String getTemplateFileName(ImportTransactionTemplate itt, DateFormat dateFormat) {
+  private String getTemplateFileName(ImportTransactionTemplate itt, DateTimeFormatter dateFormat) {
     return itt.getTemplateCategory().name().toLowerCase() + "-" + itt.getTemplateFormatType() + "-"
-        + dateFormat.format(itt.getValidSince()) + "-" + itt.getTemplateLanguage() + ".tmpl";
+        + itt.getValidSince().format(dateFormat) + "-" + itt.getTemplateLanguage() + ".tmpl";
   }
 
   @Override
   public SuccessFailedImportTransactionTemplate uploadImportTemplateFiles(Integer idTransactionImportPlatform,
       MultipartFile[] uploadFiles) throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    final DateFormat dateFormat = new SimpleDateFormat(GlobalConstants.SHORT_STANDARD_DATE_FORMAT);
+    final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern(GlobalConstants.SHORT_STANDARD_DATE_FORMAT);
     SuccessFailedImportTransactionTemplate sfitt = new SuccessFailedImportTransactionTemplate();
     for (MultipartFile uploadFile : uploadFiles) {
       String fileName = uploadFile.getOriginalFilename().replaceFirst("\\.tmpl$", "");
@@ -235,8 +235,8 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
           TemplateCategory.valueOf(fileNameParts[0].toUpperCase()),
           TemplateFormatType.valueOf(fileNameParts[1].toUpperCase()), fileNameParts[3].toLowerCase());
       try {
-        itt.setValidSince(dateFormat.parse(fileNameParts[2]));
-      } catch (ParseException e) {
+        itt.setValidSince(LocalDate.parse(fileNameParts[2], dateFormat));
+      } catch (DateTimeParseException e) {
         sfitt.fileNameError++;
         continue;
       }

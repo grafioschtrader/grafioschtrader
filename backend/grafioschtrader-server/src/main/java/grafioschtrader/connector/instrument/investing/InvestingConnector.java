@@ -5,14 +5,16 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -21,10 +23,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Component;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.common.DataHelper;
 import grafiosch.common.DateHelper;
@@ -39,6 +37,9 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Historical data could also be downloaded from Investing.com. Since 2022-10-18 this no longer works, as access is
@@ -53,8 +54,8 @@ public class InvestingConnector extends BaseFeedConnector {
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static final String INVESTING = "investing";
   private static final String INVESTING_DOMAIN_HISTORYICAL = "https://tvc4.investing.com/";
-  private static final ObjectMapper objectMapper = new ObjectMapper()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  private static final ObjectMapper objectMapper = JsonMapper.builder()
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
   private static final String URL_HISTORICAL_REGEX = "^\\d+$";
   private static final String URL_INTRA_REGEX = "^(?!equities)[A-Za-z\\-]+\\/[A-Za-z0-9_\\(\\)\\-\\.]+$";
 
@@ -150,7 +151,7 @@ public class InvestingConnector extends BaseFeedConnector {
     securitycurrency.setSOpen(
         DataBusinessHelper.round(securitycurrency.getSLast() - FeedConnectorHelper.parseDoubleUS(numbers[1 + offset])));
     securitycurrency.setSChangePercentage(FeedConnectorHelper.parseDoubleUS(numbers[2 + offset]));
-    securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
+    securitycurrency.setSTimestamp(LocalDateTime.now().minusSeconds(getIntradayDelayedSeconds()));
   }
 
   @Override
@@ -158,11 +159,11 @@ public class InvestingConnector extends BaseFeedConnector {
     return getSecurityCurrencyHistoricalDownloadLink(security);
   }
 
-  private <T extends Securitycurrency<T>> String getHistoricalLink(final Securitycurrency<T> securitycurreny, Date from,
-      Date to, String guid) {
+  private <T extends Securitycurrency<T>> String getHistoricalLink(final Securitycurrency<T> securitycurreny,
+      LocalDate from, LocalDate to, String guid) {
     return INVESTING_DOMAIN_HISTORYICAL + guid + "/0/0/0/0/history?symbol=" + securitycurreny.getUrlHistoryExtend()
-        + "&resolution=D&from=" + (new Timestamp(from.getTime()).getTime() / 1000) + "&to="
-        + (new Timestamp(to.getTime()).getTime() / 1000);
+        + "&resolution=D&from=" + DateHelper.LocalDateToEpocheSeconds(from) + "&to="
+        + DateHelper.LocalDateToEpocheSeconds(to);
   }
 
   @Override
@@ -171,41 +172,41 @@ public class InvestingConnector extends BaseFeedConnector {
   }
 
   @Override
-  public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
-      throws Exception {
+  public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final LocalDate from,
+      final LocalDate to) throws Exception {
     return getEodHistory(currencyPair, from, to);
   }
 
   private <T extends Securitycurrency<T>> String getSecurityCurrencyHistoricalDownloadLink(
       final Securitycurrency<T> securitycurreny) {
-    Date to = new Date();
-    Date from = DateHelper.setTimeToZeroAndAddDay(to, -10);
+    LocalDate to = LocalDate.now();
+    LocalDate from = to.minusDays(10);
     return getHistoricalLink(securitycurreny, from, to, DataHelper.generateGUID());
   }
 
   @Override
-  public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
+  public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
     return getEodHistory(security, from, to);
   }
 
   private <T extends Securitycurrency<T>> List<Historyquote> getEodHistory(final Securitycurrency<T> securitycurreny,
-      final Date from, final Date to) throws Exception {
+      final LocalDate from, final LocalDate to) throws Exception {
     String guid = DataHelper.generateGUID();
     boolean expectVolume = securitycurreny.expectVolume();
     List<Historyquote> historyquotes = getEodHistoryLimitedRows(securitycurreny, from, to, guid, expectVolume);
 
     if (historyquotes.size() >= MAX_ROWS_DELIVERD - 1
-        && DateHelper.getDateDiff(historyquotes.get(0).getDate(), to, TimeUnit.DAYS) > 2) {
+        && ChronoUnit.DAYS.between(historyquotes.get(0).getDate(), to) > 2) {
       historyquotes.addAll(getEodHistoryLimitedRows(securitycurreny,
-          DateHelper.setTimeToZeroAndAddDay(historyquotes.get(0).getDate(), 1), to, guid, expectVolume));
+          historyquotes.get(0).getDate().plusDays(1), to, guid, expectVolume));
     }
     return historyquotes;
   }
 
   private <T extends Securitycurrency<T>> List<Historyquote> getEodHistoryLimitedRows(
-      final Securitycurrency<T> securitycurreny, final Date from, final Date to, String guid, boolean expectVolume)
-      throws Exception {
+      final Securitycurrency<T> securitycurreny, final LocalDate from, final LocalDate to, String guid,
+      boolean expectVolume) throws Exception {
     HttpClient client = HttpClient.newHttpClient();
     HttpRequest request = HttpRequest.newBuilder().GET().header("accept", "application/json")
         .header("Referer", "https://tvc-invdn-com.investing.com/")
@@ -217,7 +218,7 @@ public class InvestingConnector extends BaseFeedConnector {
     for (int i = 0; i < quotes.t.length; i++) {
       final Historyquote historyquote = new Historyquote();
       historyquotes.add(historyquote);
-      historyquote.setDate(new Date(quotes.t[i].getTime() * 1000));
+      historyquote.setDate(Instant.ofEpochSecond(quotes.t[i]).atZone(ZoneId.systemDefault()).toLocalDate());
       historyquote.setClose(quotes.c[i]);
       historyquote.setOpen(quotes.o[i]);
       historyquote.setHigh(quotes.h[i]);
@@ -232,8 +233,7 @@ public class InvestingConnector extends BaseFeedConnector {
   @SuppressWarnings("unused")
   private static class Quotes {
     public String s;
-    @JsonFormat(shape = JsonFormat.Shape.NUMBER, pattern = "s")
-    public Timestamp[] t;
+    public long[] t;
     public double[] c;
     public double[] o;
     public double[] h;

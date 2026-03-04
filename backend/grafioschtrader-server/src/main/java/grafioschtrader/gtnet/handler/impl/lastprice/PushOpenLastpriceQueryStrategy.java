@@ -1,7 +1,7 @@
 package grafioschtrader.gtnet.handler.impl.lastprice;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -47,7 +47,7 @@ public class PushOpenLastpriceQueryStrategy implements LastpriceQueryStrategy {
   @Override
   @Transactional
   public List<InstrumentPriceDTO> querySecurities(List<InstrumentPriceDTO> requested, Set<Integer> sendableIds,
-      Date minAcceptableTimestamp) {
+      LocalDateTime minAcceptableTimestamp) {
     List<InstrumentPriceDTO> result = new ArrayList<>();
     if (requested == null || requested.isEmpty()) {
       return result;
@@ -122,7 +122,7 @@ public class PushOpenLastpriceQueryStrategy implements LastpriceQueryStrategy {
   @Override
   @Transactional
   public List<InstrumentPriceDTO> queryCurrencypairs(List<InstrumentPriceDTO> requested, Set<Integer> sendableIds,
-      Date minAcceptableTimestamp) {
+      LocalDateTime minAcceptableTimestamp) {
     List<InstrumentPriceDTO> result = new ArrayList<>();
     if (requested == null || requested.isEmpty()) {
       return result;
@@ -194,14 +194,14 @@ public class PushOpenLastpriceQueryStrategy implements LastpriceQueryStrategy {
     return result;
   }
 
-  private boolean isNewer(Date local, Date requested) {
+  private boolean isNewer(LocalDateTime local, LocalDateTime requested) {
     if (local == null) {
       return false;
     }
     if (requested == null) {
       return true;
     }
-    return local.after(requested);
+    return local.isAfter(requested);
   }
 
   /**
@@ -211,11 +211,11 @@ public class PushOpenLastpriceQueryStrategy implements LastpriceQueryStrategy {
    * @param minAcceptableTimestamp the minimum acceptable timestamp (null means no threshold)
    * @return true if the timestamp is fresh enough or no threshold is set
    */
-  private boolean isFreshEnough(Date localTimestamp, Date minAcceptableTimestamp) {
+  private boolean isFreshEnough(LocalDateTime localTimestamp, LocalDateTime minAcceptableTimestamp) {
     if (minAcceptableTimestamp == null || localTimestamp == null) {
       return true;
     }
-    return !localTimestamp.before(minAcceptableTimestamp);
+    return !localTimestamp.isBefore(minAcceptableTimestamp);
   }
 
   private InstrumentPriceDTO fromInstrumentAndLastprice(GTNetInstrumentSecurity instrument, GTNetLastprice price) {

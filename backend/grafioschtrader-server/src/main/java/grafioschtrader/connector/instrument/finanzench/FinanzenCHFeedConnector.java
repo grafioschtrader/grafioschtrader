@@ -8,9 +8,10 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -24,7 +25,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 
-import grafiosch.common.DateHelper;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.finanzen.FinanzenConnetorBase;
 import grafioschtrader.connector.instrument.finanzen.FinanzenHelper;
@@ -95,6 +95,7 @@ public class FinanzenCHFeedConnector extends FinanzenConnetorBase {
   private static final String HIST_DEVISEN_CONTROLLER = "ExchangeRateController";
   private static final String URL_SECURITY_HISTORICAL_REGEX = "^[\\p{L}0-9_-]+(/[A-Za-z]+)?$";
   private static final Locale FC_LOCALE = Locale.of("de", "CH");
+  private static final DateTimeFormatter CH_DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy", FC_LOCALE);
 
   static {
     supportedFeed = new HashMap<>();
@@ -202,24 +203,25 @@ public class FinanzenCHFeedConnector extends FinanzenConnetorBase {
     securitycurrency.setSLast(lastPrice);
     securitycurrency.setSPrevClose(lastPrice - dailyChange);
     securitycurrency.setSChangePercentage(changePercentage);
-    securitycurrency.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
+    securitycurrency.setSTimestamp(LocalDateTime.now().minusSeconds(getIntradayDelayedSeconds()));
   }
 
   @Override
   public String getSecurityHistoricalDownloadLink(final Security security) {
-    Date to = DateHelper.setTimeToZeroAndAddDay(new Date(), -1);
-    Date from = DateHelper.setTimeToZeroAndAddDay(to, -10);
+    LocalDate to = LocalDate.now().minusDays(1);
+    LocalDate from = to.minusDays(10);
     return getSecurityHistoricalDownloadLinkByDate(security, from, to);
   }
 
-  private String getSecurityHistoricalDownloadLinkByDate(final Security security, final Date from, final Date to) {
+  private String getSecurityHistoricalDownloadLinkByDate(final Security security, final LocalDate from,
+      final LocalDate to) {
     return getHistoricalDownloadLinkByDate(
         FinanzenHelper.getAjaxController(security) + stripAktie(security.getUrlHistoryExtend()), from, to);
   }
 
-  private String getHistoricalDownloadLinkByDate(final String ajaxContAndExtend, final Date from, final Date to) {
-    SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy", FC_LOCALE);
-    return domain + "Ajax/" + ajaxContAndExtend + "/" + dateFormat.format(from) + "_" + dateFormat.format(to);
+  private String getHistoricalDownloadLinkByDate(final String ajaxContAndExtend, final LocalDate from,
+      final LocalDate to) {
+    return domain + "Ajax/" + ajaxContAndExtend + "/" + from.format(CH_DATE_FORMAT) + "_" + to.format(CH_DATE_FORMAT);
   }
 
   private String stripAktie(String symbol) {
@@ -227,7 +229,7 @@ public class FinanzenCHFeedConnector extends FinanzenConnetorBase {
   }
 
   @Override
-  public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
+  public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
     String url = getSecurityHistoricalDownloadLinkByDate(security, from, to);
     return readHistoricalQuotes(url);
@@ -250,7 +252,6 @@ public class FinanzenCHFeedConnector extends FinanzenConnetorBase {
   }
 
   private List<Historyquote> parseHistoricalData(HttpResponse<String> response) throws Exception {
-    SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy", FC_LOCALE);
     List<Historyquote> historyquotes = new ArrayList<>();
     Document doc = Jsoup.parse(response.body());
 
@@ -270,7 +271,7 @@ public class FinanzenCHFeedConnector extends FinanzenConnetorBase {
         if (!date.equals("00:00")) {
           final Historyquote historyquote = new Historyquote();
 
-          historyquote.setDate(dateFormat.parse(date));
+          historyquote.setDate(LocalDate.parse(date, CH_DATE_FORMAT));
 
           if (colMapping[1] != -1) {
             final Double open = parseDouble(colMapping[1], cols);
@@ -375,20 +376,20 @@ public class FinanzenCHFeedConnector extends FinanzenConnetorBase {
 
   @Override
   public String getCurrencypairHistoricalDownloadLink(final Currencypair currencypair) {
-    Date to = DateHelper.setTimeToZeroAndAddDay(new Date(), -1);
-    Date from = DateHelper.setTimeToZeroAndAddDay(to, -10);
+    LocalDate to = LocalDate.now().minusDays(1);
+    LocalDate from = to.minusDays(10);
     return getHistoricaCurrencypairlDownloadLinkByDate(currencypair, from, to);
   }
 
-  private String getHistoricaCurrencypairlDownloadLinkByDate(final Currencypair currencypair, final Date from,
-      final Date to) {
+  private String getHistoricaCurrencypairlDownloadLinkByDate(final Currencypair currencypair, final LocalDate from,
+      final LocalDate to) {
     return getHistoricalDownloadLinkByDate(
         HIST_DEVISEN_CONTROLLER + FinanzenHelper.HIST_SUFFIX + currencypair.getUrlHistoryExtend(), from, to);
   }
 
   @Override
-  public List<Historyquote> getEodCurrencyHistory(final Currencypair currencypair, final Date from, final Date to)
-      throws Exception {
+  public List<Historyquote> getEodCurrencyHistory(final Currencypair currencypair, final LocalDate from,
+      final LocalDate to) throws Exception {
     String url = getHistoricaCurrencypairlDownloadLinkByDate(currencypair, from, to);
     return readHistoricalQuotes(url);
   }

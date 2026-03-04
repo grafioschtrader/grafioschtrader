@@ -1,7 +1,6 @@
 package grafioschtrader.evalex;
 
 import java.math.BigDecimal;
-import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +49,7 @@ public class EmaFunction extends AbstractFunction {
     }
     ExponentialMovingAverage ema = new ExponentialMovingAverage(period, historyquotes.size());
     for (Historyquote hq : historyquotes) {
-      ema.addData(hq.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), hq.getClose());
+      ema.addData(hq.getDate(), hq.getClose());
     }
     TaIndicatorData[] data = ema.getTaIndicatorData();
     return data.length > 0 ? data[data.length - 1].value : 0.0;

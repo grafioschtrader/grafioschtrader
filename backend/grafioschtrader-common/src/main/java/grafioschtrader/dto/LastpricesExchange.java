@@ -1,9 +1,12 @@
 package grafioschtrader.dto;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import grafiosch.BaseConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 public class LastpricesExchange {
@@ -14,7 +17,7 @@ public class LastpricesExchange {
   public Collection<LastpriceSecurity> lastpriceSecurities = new ArrayList<>();
   public Collection<LastpriceCurrency> lastpriceCurrencies = new ArrayList<>();
 
-  public void addSecurity(String isin, String currency, Date timestamp, Double open, Double low, Double high,
+  public void addSecurity(String isin, String currency, LocalDateTime timestamp, Double open, Double low, Double high,
       Double last, Long volume) {
   }
 
@@ -23,8 +26,8 @@ public class LastpricesExchange {
     public String isin;
     public String currency;
 
-    public LastpriceSecurity(String isin, String currency, Date timestamp, Double open, Double low, Double high,
-        Double last, Long volume) {
+    public LastpriceSecurity(String isin, String currency, LocalDateTime timestamp, Double open, Double low,
+        Double high, Double last, Long volume) {
       super(timestamp, open, low, high, last, volume);
       this.isin = isin;
       this.currency = currency;
@@ -35,7 +38,7 @@ public class LastpricesExchange {
     public String fromCurrency;
     public String toCurrency;
 
-    public LastpriceCurrency(String fromCurrency, String toCurrency, Date timestamp, Double open, Double low,
+    public LastpriceCurrency(String fromCurrency, String toCurrency, LocalDateTime timestamp, Double open, Double low,
         Double high, Double last, Long volume) {
       super(timestamp, open, low, high, last, volume);
       this.fromCurrency = fromCurrency;
@@ -44,7 +47,7 @@ public class LastpricesExchange {
   }
 
   public static class Lastprice {
-    public Lastprice(Date timestamp, Double open, Double low, Double high, Double last, Long volume) {
+    public Lastprice(LocalDateTime timestamp, Double open, Double low, Double high, Double last, Long volume) {
       this.timestamp = timestamp;
       this.open = open;
       this.low = low;
@@ -54,7 +57,8 @@ public class LastpricesExchange {
     }
 
     @Schema(description = "Time of the last instraday price update")
-    public Date timestamp;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
+    public LocalDateTime timestamp;
 
     @Schema(description = "Opening price for the last or current trading day")
     public Double open;

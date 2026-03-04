@@ -3,9 +3,9 @@ package grafioschtrader.connector.instrument;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -256,7 +256,7 @@ public class QuoteBackgroundUpdateWorker
    * @return the date of the most recent historical quote for the exchange's index security,
    *         or null if no index security is configured or no quotes are available
    */
-  private Date getIndexOfStockexchange(Stockexchange stockexchange) {
+  private LocalDate getIndexOfStockexchange(Stockexchange stockexchange) {
     return stockexchange.getIdIndexUpdCalendar() == null ? null
         : historyquoteJpaRepository.getMaxDateByIdSecurity(stockexchange.getIdIndexUpdCalendar());
   }

@@ -137,14 +137,14 @@ public class SecurityMarginUnitsCheck {
                 || t.getTransactionType() == TransactionType.REDUCE)
             .map(t -> t.getUnits()
                 * Securitysplit.calcSplitFatorForFromDate(t.getSecurity().getIdSecuritycurrency(),
-                    t.getTransactionTime(), securitySplitMap)
+                    t.getTransactionTime().toLocalDate(), securitySplitMap)
                 * (t.getTransactionType() == TransactionType.ACCUMULATE ? 1 : -1))
             .reduce(0.0, (a, b) -> a + b));
 
     if (targetTransaction.isMarginOpenPosition()) {
       double unitsInOpenTransaction = targetTransaction.getUnits()
           * Securitysplit.calcSplitFatorForFromDate(targetTransaction.getSecurity().getIdSecuritycurrency(),
-              targetTransaction.getTransactionTime(), securitySplitMap);
+              targetTransaction.getTransactionTime().toLocalDate(), securitySplitMap);
       if (unitsInOpenTransaction < unitsRequired) {
         dataViolationException.addDataViolation(GlobalConstants.UNITS, "units.open.not.enough",
             targetTransaction.getTransactionTime());
@@ -159,8 +159,8 @@ public class SecurityMarginUnitsCheck {
         Transaction openTransaction = transactions.stream()
             .filter(t -> t.getIdTransaction().equals(targetTransaction.getConnectedIdTransaction())).findFirst().get();
         targetTransaction.setSplitFactorFromBaseTransaction(Securitysplit.calcSplitFatorForFromDateAndToDate(
-            targetTransaction.getSecurity().getIdSecuritycurrency(), openTransaction.getTransactionTime(),
-            targetTransaction.getTransactionTime(), securitySplitMap).fromToDateFactor);
+            targetTransaction.getSecurity().getIdSecuritycurrency(), openTransaction.getTransactionTime().toLocalDate(),
+            targetTransaction.getTransactionTime().toLocalDate(), securitySplitMap).fromToDateFactor);
       }
     }
   }

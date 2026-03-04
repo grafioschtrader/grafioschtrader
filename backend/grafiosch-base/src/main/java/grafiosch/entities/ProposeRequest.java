@@ -2,7 +2,7 @@ package grafiosch.entities;
 
 import static jakarta.persistence.InheritanceType.JOINED;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -126,8 +126,9 @@ public abstract class ProposeRequest extends Auditable {
   }
   
   
-  @JsonFormat(pattern = BaseConstants.STANDARD_LOCAL_DATE_TIME_SECOND)
-  public Date getCreationTime() {
+  @Override
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_LOCAL_DATE_TIME_SECOND)
+  public LocalDateTime getCreationTime() {
     return creationTime;
   }
   

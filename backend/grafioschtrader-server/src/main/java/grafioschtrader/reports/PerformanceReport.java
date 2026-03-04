@@ -2,11 +2,8 @@ package grafioschtrader.reports;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
-import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -130,9 +127,9 @@ public class PerformanceReport {
     if (firstAndMissingTradingDays == null) {
       final CompletableFuture<LocalDate> firstEverTradingDayCF = CompletableFuture
           .supplyAsync(() -> holdSecurityaccountSecurityRepository.findByIdTenantMinFromHoldDate(idTenant));
-      final CompletableFuture<Set<Date>> missingQuoteDaysCF = CompletableFuture
+      final CompletableFuture<Set<LocalDate>> missingQuoteDaysCF = CompletableFuture
           .supplyAsync(() -> holdSecurityaccountSecurityRepository.getMissingsQuoteDaysByTenant(idTenant));
-      final CompletableFuture<Set<Date>> combinedHolidayOfHoldingsCF = CompletableFuture
+      final CompletableFuture<Set<LocalDate>> combinedHolidayOfHoldingsCF = CompletableFuture
           .supplyAsync(() -> holdSecurityaccountSecurityRepository.getCombinedHolidayOfHoldingsByTenant(idTenant));
       return getFirstAndMissingTradingDays(portfolioOrTenantKey, firstEverTradingDayCF, missingQuoteDaysCF,
           combinedHolidayOfHoldingsCF);
@@ -164,9 +161,9 @@ public class PerformanceReport {
       if (firstAndMissingTradingDays == null) {
         final CompletableFuture<LocalDate> firstEverTradingDayCF = CompletableFuture
             .supplyAsync(() -> holdSecurityaccountSecurityRepository.findByIdPortfolioMinFromHoldDate(idPortfolio));
-        final CompletableFuture<Set<Date>> missingQuoteDaysCF = CompletableFuture
+        final CompletableFuture<Set<LocalDate>> missingQuoteDaysCF = CompletableFuture
             .supplyAsync(() -> holdSecurityaccountSecurityRepository.getMissingsQuoteDaysByPortfolio(idPortfolio));
-        final CompletableFuture<Set<Date>> combinedHolidayOfHoldingsCF = CompletableFuture.supplyAsync(
+        final CompletableFuture<Set<LocalDate>> combinedHolidayOfHoldingsCF = CompletableFuture.supplyAsync(
             () -> holdSecurityaccountSecurityRepository.getCombinedHolidayOfHoldingsByPortfolio(idPortfolio));
         return getFirstAndMissingTradingDays(portfolioOrTenantKey, firstEverTradingDayCF, missingQuoteDaysCF,
             combinedHolidayOfHoldingsCF);
@@ -195,12 +192,13 @@ public class PerformanceReport {
    * @throws ExecutionException if data retrieval operations fail
    */
   private FirstAndMissingTradingDays getFirstAndMissingTradingDays(PortfolioOrTenantKey portfolioOrTenantKey,
-      final CompletableFuture<LocalDate> firstEverTradingDayCF, final CompletableFuture<Set<Date>> missingQuoteDaysCF,
-      final CompletableFuture<Set<Date>> combinedHolidayOfHoldingsCF) throws InterruptedException, ExecutionException {
+      final CompletableFuture<LocalDate> firstEverTradingDayCF,
+      final CompletableFuture<Set<LocalDate>> missingQuoteDaysCF,
+      final CompletableFuture<Set<LocalDate>> combinedHolidayOfHoldingsCF) throws InterruptedException, ExecutionException {
     int actYear = LocalDate.now().getYear();
     LocalDate fromDate = LocalDate.of(actYear - 1, 1, 1);
     LocalDate toDate = LocalDate.of(actYear - 1, 12, 31);
-    final CompletableFuture<Set<Date>> globalHolidaysCF = CompletableFuture
+    final CompletableFuture<Set<LocalDate>> globalHolidaysCF = CompletableFuture
         .supplyAsync(() -> tradingDaysPlusJpaRepository.getGlobalHolidays());
     final CompletableFuture<List<TradingDaysPlus>> tradingDaysOfLastYearCF = CompletableFuture.supplyAsync(
         () -> tradingDaysPlusJpaRepository.findByTradingDateBetweenOrderByTradingDateDesc(fromDate, toDate));
@@ -229,16 +227,16 @@ public class PerformanceReport {
    * @return comprehensive trading day metadata
    */
   private FirstAndMissingTradingDays combineFirstAndMissingTradingDays(LocalDate firstEverTradingDay,
-      Set<Date> globalHolidays, Set<Date> missingQuoteDays, Set<Date> combinedHolidayOfHoldings,
+      Set<LocalDate> globalHolidays, Set<LocalDate> missingQuoteDays, Set<LocalDate> combinedHolidayOfHoldings,
       List<TradingDaysPlus> tradingDaysOfLastYearReverse, int lastYear) {
-    Date fromDate = new GregorianCalendar(lastYear - 1, 11, 31).getTime();
-    Date toDate = new GregorianCalendar(lastYear + 1, 0, 1).getTime();
+    LocalDate fromDate = LocalDate.of(lastYear - 1, 12, 31);
+    LocalDate toDate = LocalDate.of(lastYear + 1, 1, 1);
     combinedHolidayOfHoldings.addAll(globalHolidays);
-    Set<Date> combinedMissingQuoteDaysAndHolidays = new HashSet<>(missingQuoteDays);
+    Set<LocalDate> combinedMissingQuoteDaysAndHolidays = new HashSet<>(missingQuoteDays);
     combinedMissingQuoteDaysAndHolidays.addAll(combinedHolidayOfHoldings);
     List<LocalDate> lastYearMissingDays = combinedMissingQuoteDaysAndHolidays.stream()
-        .filter(missingDate -> missingDate.after(fromDate) && missingDate.before(toDate))
-        .map(date -> ((java.sql.Date) date).toLocalDate()).sorted(Comparator.reverseOrder())
+        .filter(missingDate -> missingDate.isAfter(fromDate) && missingDate.isBefore(toDate))
+        .sorted(Comparator.reverseOrder())
         .collect(Collectors.toList());
     Optional<TradingDaysPlus> lastTradingDayOfLastYearOpt = tradingDaysOfLastYearReverse.stream()
         .filter(tradingDaysPlus -> !lastYearMissingDays.contains(tradingDaysPlus.getTradingDate())).findFirst();
@@ -271,16 +269,15 @@ public class PerformanceReport {
    * @param firstEverTradingDay lower boundary to prevent infinite scanning
    * @return latest valid trading day before the specified date, or null if none found
    */
-  private LocalDate getLatestTradingDayBeforeDate(Set<Date> missingQuoteDays, LocalDate beforeDate,
+  private LocalDate getLatestTradingDayBeforeDate(Set<LocalDate> missingQuoteDays, LocalDate beforeDate,
       LocalDate firstEverTradingDay) {
     LocalDate latestTradingDay = null;
     if (firstEverTradingDay != null) {
       LocalDate stepBackLocalDate = beforeDate;
       do {
         stepBackLocalDate = stepBackLocalDate.minusDays(1);
-        Date date = Date.from(stepBackLocalDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
         if (stepBackLocalDate.getDayOfWeek() != DayOfWeek.SATURDAY
-            && stepBackLocalDate.getDayOfWeek() != DayOfWeek.SUNDAY && !missingQuoteDays.contains(date)) {
+            && stepBackLocalDate.getDayOfWeek() != DayOfWeek.SUNDAY && !missingQuoteDays.contains(stepBackLocalDate)) {
           latestTradingDay = stepBackLocalDate;
         }
       } while (stepBackLocalDate.isAfter(firstEverTradingDay) && latestTradingDay == null);
@@ -301,16 +298,15 @@ public class PerformanceReport {
    * @param latestTradingDay upper boundary to prevent scanning beyond available data
    * @return earliest valid trading day after the specified date, or null if none found
    */
-  private LocalDate getFirstTradingDayAfterDate(Set<Date> missingQuoteDays, LocalDate afterDate,
+  private LocalDate getFirstTradingDayAfterDate(Set<LocalDate> missingQuoteDays, LocalDate afterDate,
       LocalDate latestTradingDay) {
     LocalDate afterTradingDay = null;
     if (latestTradingDay != null) {
       LocalDate stepLocalDate = afterDate;
       do {
         stepLocalDate = stepLocalDate.plusDays(1);
-        Date date = Date.from(stepLocalDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
         if (stepLocalDate.getDayOfWeek() != DayOfWeek.SATURDAY && stepLocalDate.getDayOfWeek() != DayOfWeek.SUNDAY
-            && !missingQuoteDays.contains(date)) {
+            && !missingQuoteDays.contains(stepLocalDate)) {
           afterTradingDay = stepLocalDate;
         }
       } while (stepLocalDate.isBefore(latestTradingDay) && afterTradingDay == null);
@@ -475,8 +471,7 @@ public class PerformanceReport {
   private void checkInputDateNotHolidayOrMissingQuotes(String localeStr, LocalDate localDate, String fieldName,
       FirstAndMissingTradingDays firstAndMissingTradingDays) {
     if (localDate.getDayOfWeek() != DayOfWeek.SATURDAY && localDate.getDayOfWeek() != DayOfWeek.SUNDAY) {
-      Date date = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-      if (!firstAndMissingTradingDays.isMissingQuoteDayOrHoliday(date)) {
+      if (!firstAndMissingTradingDays.isMissingQuoteDayOrHoliday(localDate)) {
         return;
       }
     }

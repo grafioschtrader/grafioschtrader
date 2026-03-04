@@ -1,16 +1,14 @@
 package grafioschtrader.repository;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
@@ -22,7 +20,6 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafiosch.common.DateHelper;
 import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.Globalparameters;
 import grafiosch.entities.ProposeChangeEntity;
@@ -126,7 +123,7 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
         securitysplit.setIdSecuritycurrency(sdacm.idSecuritycurrency);
         securitysplit.setIdSecuritysplit(null);
         if (!security.isDerivedInstrument() && security.getFullLoadTimestamp() != null
-            && securitysplit.getSplitDate().getTime() >= security.getFullLoadTimestamp().getTime()) {
+            && !securitysplit.getSplitDate().isBefore(security.getFullLoadTimestamp().toLocalDate())) {
           // Date of last full load of history quote is older then youngest split date - >
           // Quotes must be reloaded
           reloadHistoricalData = true;
@@ -165,7 +162,7 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
   }
 
   @Override
-  public List<String> loadAllSplitDataFromConnectorForSecurity(Security security, Date requestedSplitdate) {
+  public List<String> loadAllSplitDataFromConnectorForSecurity(Security security, LocalDate requestedSplitdate) {
     List<String> errorMessages = new ArrayList<>();
     if (globalparametersService.getMaxSplitRetry() > security.getRetrySplitLoad()) {
       short retrySplitLoad = security.getRetrySplitLoad();
@@ -205,7 +202,7 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
    *                           Null if it does not come from a split calendar.
    * @throws Exception
    */
-  private void updateSplitData(Security security, List<Securitysplit> securitysplitsRead, Date requestedSplitdate)
+  private void updateSplitData(Security security, List<Securitysplit> securitysplitsRead, LocalDate requestedSplitdate)
       throws Exception {
     securitysplitJpaRepository.deleteByIdSecuritycurrencyAndCreateType(security.getIdSecuritycurrency(),
         CreateType.CONNECTOR_CREATED.getValue());
@@ -213,23 +210,22 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
         .findByIdSecuritycurrencyOrderBySplitDateAsc(security.getIdSecuritycurrency());
     List<Securitysplit> createdSplits = DividendSplitsHelper.updateDividendSplitData(security, securitysplitsRead,
         existingSplits, this.securitysplitJpaRepository);
-    Optional<Date> youngestSplitDate = createdSplits.stream().map(Securitysplit::getSplitDate).max(Date::compareTo);
+    Optional<LocalDate> youngestSplitDate = createdSplits.stream().map(Securitysplit::getSplitDate).max(LocalDate::compareTo);
 
     if (requestedSplitdate == null
-        || !youngestSplitDate.isEmpty() && DateHelper.isSameDay(youngestSplitDate.get(), requestedSplitdate)) {
+        || !youngestSplitDate.isEmpty() && youngestSplitDate.get().isEqual(requestedSplitdate)) {
       // The requested split could be read via the connector or there is no requested
       // split.
       historicalDataUpdateWhenAdjusted(security, securitysplitsRead, youngestSplitDate, !createdSplits.isEmpty(),
           requestedSplitdate != null);
     } else {
       // The expected split is not yet mapped via the connector.
-      if (DateHelper.getDateDiff(requestedSplitdate, new Date(),
-          TimeUnit.DAYS) <= GlobalConstants.MAX_DAYS_FOR_SECURITY_IS_REFLECTING_SPLIT) {
+      if (ChronoUnit.DAYS.between(requestedSplitdate, LocalDate.now())
+          <= GlobalConstants.MAX_DAYS_FOR_SECURITY_IS_REFLECTING_SPLIT) {
         var taskDataChange = new TaskDataChange(TaskTypeExtended.SECURITY_SPLIT_UPDATE_FOR_SECURITY,
             TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusDays(1), security.getIdSecuritycurrency(),
             Security.class.getSimpleName());
-        taskDataChange.setOldValueString(
-            new SimpleDateFormat(GlobalConstants.SHORT_STANDARD_DATE_FORMAT).format(requestedSplitdate));
+        taskDataChange.setOldValueString(requestedSplitdate.toString());
         taskDataChangeJpaRepository.save(taskDataChange);
       }
     }
@@ -237,7 +233,7 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
 
   @Override
   public void historicalDataUpdateWhenAdjusted(Security security, List<Securitysplit> securitysplits,
-      Optional<Date> youngestSplitDate, boolean requireHoldingBuild, boolean originSplitCalendar) throws Exception {
+      Optional<LocalDate> youngestSplitDate, boolean requireHoldingBuild, boolean originSplitCalendar) throws Exception {
     SplitAdjustedHistoryquotesResult sahr = securityJpaRepository.isLatestSplitHistoryquotePossibleAdjusted(security,
         securitysplits);
 
@@ -245,7 +241,7 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
         sahr.addDaysForNextAttempt);
     if (sahr.sah == SplitAdjustedHistoryquotes.ADJUSTED_NOT_LOADED
         || (!youngestSplitDate.isEmpty() && !originSplitCalendar && security.getFullLoadTimestamp() != null
-            && youngestSplitDate.get().after(security.getFullLoadTimestamp()))) {
+            && youngestSplitDate.get().isAfter(security.getFullLoadTimestamp().toLocalDate()))) {
       // The historical price data must be reloaded if the most recent split date is
       // more recent than the last complete load of this historical data.
       if(youngestSplitDate.isEmpty()) {

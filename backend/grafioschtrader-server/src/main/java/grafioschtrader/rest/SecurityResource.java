@@ -3,11 +3,9 @@ package grafioschtrader.rest;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.lang.reflect.InvocationTargetException;
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -123,6 +121,18 @@ public class SecurityResource extends UpdateCreateResource<Security> {
     return new ResponseEntity<>(securities, HttpStatus.OK);
   }
 
+  @Operation(summary = "Returns unused securities from a watchlist for a custom category AlgoAssetclass",
+      description = "For custom categories (name-based), any watchlist security can be assigned regardless of asset class",
+      tags = { Security.TABNAME })
+  @GetMapping(value = "/algounusedcustom/{idWatchlist}/{idAlgoAssetclassSecurity}", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<Security>> getUnusedSecurityForAlgoCustom(
+      @PathVariable final Integer idWatchlist, @PathVariable final Integer idAlgoAssetclassSecurity) {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    List<Security> securities = securityJpaRepository.getUnusedSecurityForAlgoCustom(idWatchlist,
+        user.getIdTenant(), idAlgoAssetclassSecurity);
+    return new ResponseEntity<>(securities, HttpStatus.OK);
+  }
+
   @Operation(summary = "Returns the a list of security accounts which holds a certain security. Also the the security is included.", description = "Useful when choosing the security account for transactions on open positions", tags = {
       Security.TABNAME })
   @GetMapping(value = "/{idSecuritycurrency}/date/{dateString}/{before}", produces = APPLICATION_JSON_VALUE)
@@ -131,8 +141,7 @@ public class SecurityResource extends UpdateCreateResource<Security> {
       @Parameter(description = "Date in format yyyyMMddHHmm for which the holdings requreid", required = true) @PathVariable final String dateString,
       @Parameter(description = "True if the holdins required before this existing transaction", required = true) @PathVariable final boolean before,
       @Parameter(description = "ID of transaction when exists otherwise null", required = true) @RequestParam(required = false) final Integer idTransaction,
-      @Parameter(description = "ID of the open margin position", required = true) @RequestParam(required = false) final Integer idOpenMarginTransaction)
-      throws ParseException {
+      @Parameter(description = "ID of the open margin position", required = true) @RequestParam(required = false) final Integer idOpenMarginTransaction) {
 
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     final SecurityOpenPositionPerSecurityaccount sopps = secruityTransactionsReport
@@ -145,7 +154,7 @@ public class SecurityResource extends UpdateCreateResource<Security> {
       Security.TABNAME })
   @GetMapping(value = "/watchlist/{idWatchlist}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Security>> getTradableSecuritiesByTenantAndIdWatschlist(
-      @PathVariable final Integer idWatchlist) throws ParseException {
+      @PathVariable final Integer idWatchlist) {
     final List<Security> securities = securityJpaRepository.getTradableSecuritiesByTenantAndIdWatschlist(idWatchlist);
     return new ResponseEntity<>(securities, HttpStatus.OK);
   }
@@ -198,7 +207,7 @@ public class SecurityResource extends UpdateCreateResource<Security> {
         ? EnumSet.of(SecruityTransactionsReportOptions.QUTATION_SPLIT_CORRECTION)
         : EnumSet.noneOf(SecruityTransactionsReportOptions.class);
     return new ResponseEntity<>(secruityTransactionsReport.getTransactionsByIdTenantAndIdSecurityAndClearSecurity(
-        user.getIdTenant(), idSecuritycurrency, new Date(), secruityTransactionsReportOptions), HttpStatus.OK);
+        user.getIdTenant(), idSecuritycurrency, LocalDate.now(), secruityTransactionsReportOptions), HttpStatus.OK);
   }
 
   @Operation(summary = "Returns the transactions for specified security in specified portfolio", description = "Chart is shown with split adjusted data, for that reason transactions data is also adjusted to match it charts historical data", tags = {
@@ -212,7 +221,7 @@ public class SecurityResource extends UpdateCreateResource<Security> {
         ? EnumSet.of(SecruityTransactionsReportOptions.QUTATION_SPLIT_CORRECTION)
         : EnumSet.noneOf(SecruityTransactionsReportOptions.class);
     return new ResponseEntity<>(secruityTransactionsReport.getTransactionsByIdPortfolioAndIdSecurityAndClearSecurity(
-        idPortfolio, idSecuritycurrency, new Date(), secruityTransactionsReportOptions), HttpStatus.OK);
+        idPortfolio, idSecuritycurrency, LocalDate.now(), secruityTransactionsReportOptions), HttpStatus.OK);
   }
 
   @Operation(summary = "Returns the transactions for specified security in specified security account", description = "Chart is shown with split adjusted data, for that reason transactions data is also adjusted to match it charts historical data", tags = {
@@ -227,7 +236,7 @@ public class SecurityResource extends UpdateCreateResource<Security> {
         : EnumSet.noneOf(SecruityTransactionsReportOptions.class);
     return new ResponseEntity<>(
         secruityTransactionsReport.getTransactionsByIdSecurityaccountsAndIdSecurityAndClearSecurity(idsSecurityaccount,
-            idSecuritycurrency, new Date(), secruityTransactionsReportOptions),
+            idSecuritycurrency, LocalDate.now(), secruityTransactionsReportOptions),
         HttpStatus.OK);
   }
 
@@ -316,7 +325,7 @@ public class SecurityResource extends UpdateCreateResource<Security> {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     List<Security> securities;
     if (activeOnly) {
-      securities = securityJpaRepository.findByActiveToDateAfterAndIsinIsNotNull(new Date());
+      securities = securityJpaRepository.findByActiveToDateAfterAndIsinIsNotNull(LocalDate.now());
     } else {
       securities = securityJpaRepository.findAll().stream().filter(s -> s.getIsin() != null)
           .collect(Collectors.toList());
@@ -337,7 +346,7 @@ public class SecurityResource extends UpdateCreateResource<Security> {
   @PostMapping(value = "/gtnetexchange/batch", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Security>> batchUpdateSecuritiesGTNetExchange(@RequestBody List<Security> securities) {
     List<Security> updatedSecurities = new ArrayList<>();
-    Date now = new Date();
+    LocalDateTime now = LocalDateTime.now();
 
     for (Security security : securities) {
       Security existing = securityJpaRepository.findById(security.getIdSecuritycurrency()).orElse(null);

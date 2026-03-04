@@ -1,13 +1,13 @@
 package grafioschtrader.connector.instrument.onvista;
 
 import java.net.URI;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -16,16 +16,15 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import grafiosch.BaseConstants;
-import grafiosch.common.DateHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /*-
  * Supports history quotes for securities. Unfortunately, quotes are only
@@ -43,8 +42,8 @@ public class OnvistaFeedConnector extends BaseFeedConnector {
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static final int MAX_YEAR_DOWNLOAD = 5;
   private static MonthToString[] monthToStrings;
-  private static final ObjectMapper objectMapper = new ObjectMapper()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  private static final ObjectMapper objectMapper = JsonMapper.builder()
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 
   static {
     supportedFeed = new HashMap<>();
@@ -63,8 +62,8 @@ public class OnvistaFeedConnector extends BaseFeedConnector {
   }
 
   @Override
-  public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final Date from, final Date to)
-      throws Exception {
+  public List<Historyquote> getEodCurrencyHistory(final Currencypair currencyPair, final LocalDate from,
+      final LocalDate to) throws Exception {
     return this.getHistoricalData(currencyPair.getUrlHistoryExtend(), from, to);
   }
 
@@ -79,20 +78,19 @@ public class OnvistaFeedConnector extends BaseFeedConnector {
   }
 
   private <S extends Securitycurrency<S>> String getDownloadLink(S securitycurrency) {
-    final Calendar fromCal = Calendar.getInstance();
-    fromCal.add(Calendar.YEAR, -MAX_YEAR_DOWNLOAD);
-    return this.getSecurityHistoricalDownloadLink(securitycurrency.getUrlHistoryExtend(), fromCal.getTime(),
+    LocalDate fromDate = LocalDate.now().minusYears(MAX_YEAR_DOWNLOAD);
+    return this.getSecurityHistoricalDownloadLink(securitycurrency.getUrlHistoryExtend(), fromDate,
         monthToStrings[monthToStrings.length - 1].traslate);
   }
 
-  private String getSecurityHistoricalDownloadLink(final String productUrlPart, final Date startRange,
+  private String getSecurityHistoricalDownloadLink(final String productUrlPart, final LocalDate startRange,
       String timeSpan) {
     return "https://api.onvista.de/api/v1/instruments/" + productUrlPart + "&startDate="
-        + new SimpleDateFormat(BaseConstants.STANDARD_DATE_FORMAT).format(startRange) + "&range=" + timeSpan;
+        + DateTimeFormatter.ofPattern(BaseConstants.STANDARD_DATE_FORMAT).format(startRange) + "&range=" + timeSpan;
   }
 
   @Override
-  public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
+  public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
     return this.getHistoricalData(security.getUrlHistoryExtend(), from, to);
   }
@@ -100,10 +98,11 @@ public class OnvistaFeedConnector extends BaseFeedConnector {
   /**
    * Synchronized is introduced to avoid the response 429 (Too many requests)
    */
-  private List<Historyquote> getHistoricalData(String productUrlPart, final Date from, final Date to) throws Exception {
+  private List<Historyquote> getHistoricalData(String productUrlPart, final LocalDate from, final LocalDate to)
+      throws Exception {
     final List<Historyquote> historyquotes = new ArrayList<>();
-    LocalDate lFrom = DateHelper.getLocalDate(from);
-    LocalDate lTo = DateHelper.getLocalDate(to);
+    LocalDate lFrom = from;
+    LocalDate lTo = to;
     LocalDate calcLFrom;
     do {
       long durationMonths = ChronoUnit.MONTHS.between(lFrom, lTo);
@@ -111,10 +110,10 @@ public class OnvistaFeedConnector extends BaseFeedConnector {
           .filter(months -> durationMonths < months.month).findFirst();
       MonthToString mts = optionalMts.isPresent() ? optionalMts.get() : monthToStrings[monthToStrings.length - 1];
 
-      readHistoricalData(productUrlPart, lFrom, mts.traslate, from, to, historyquotes);
+      readHistoricalData(productUrlPart, lFrom, mts.traslate, to, historyquotes);
       calcLFrom = lFrom.plusMonths(mts.month);
       if (!historyquotes.isEmpty()) {
-        lFrom = DateHelper.getLocalDate(historyquotes.get(historyquotes.size() - 1).getDate()).plusDays(1);
+        lFrom = historyquotes.get(historyquotes.size() - 1).getDate().plusDays(1);
       } else {
         lFrom = calcLFrom;
       }
@@ -124,14 +123,13 @@ public class OnvistaFeedConnector extends BaseFeedConnector {
   }
 
   private void readHistoricalData(final String productUrlPart, final LocalDate startRange, final String timeSpan,
-      final Date from, final Date to, List<Historyquote> historyquotes) throws Exception {
+      final LocalDate to, List<Historyquote> historyquotes) throws Exception {
 
-    String url = getSecurityHistoricalDownloadLink(productUrlPart, DateHelper.getDateFromLocalDate(startRange),
-        timeSpan);
-    final Quotes quotes = objectMapper.readValue(new URI(url).toURL(), Quotes.class);
+    String url = getSecurityHistoricalDownloadLink(productUrlPart, startRange, timeSpan);
+    final Quotes quotes = objectMapper.readValue(new URI(url).toURL().openStream(), Quotes.class);
     for (int i = 0; i < quotes.datetimeLast.length; i++) {
-      Date date = DateHelper.setTimeToZeroAndAddDay(new Date(quotes.datetimeLast[i] * 1000), 0);
-      if (!to.before(date)) {
+      LocalDate date = Instant.ofEpochSecond(quotes.datetimeLast[i]).atZone(ZoneId.systemDefault()).toLocalDate();
+      if (!to.isBefore(date)) {
         final Historyquote historyquote = new Historyquote();
         historyquotes.add(historyquote);
         historyquote.setDate(date);

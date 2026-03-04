@@ -210,7 +210,7 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
       {filterType: FilterType.likeDataType, export: true});
     this.addColumn(DataType.NumericInteger, 'createType', 'T', true, true,
       {fieldValueFN: this.getCreateTypeIcon.bind(this), templateName: 'icon', width: 20});
-    this.addColumnFeqH(DataType.DateTimeNumeric, 'createModifyTime', true, true);
+    this.addColumnFeqH(DataType.DateTimeString, 'createModifyTime', true, true);
     this.addColumnFeqH(DataType.Numeric, 'volume', true, false, {export: true});
     this.addColumnFeqH(DataType.Numeric, 'open', true, false, {
       minFractionDigits: 5,

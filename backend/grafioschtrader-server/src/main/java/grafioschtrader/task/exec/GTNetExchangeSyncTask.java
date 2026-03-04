@@ -2,7 +2,6 @@ package grafioschtrader.task.exec;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -109,7 +108,7 @@ public class GTNetExchangeSyncTask implements ITask {
     // Check if full recreation mode is requested
     boolean fullRecreation = FULL_RECREATION_MODE.equals(taskDataChange.getIdEntity());
 
-    Date lastSyncTimestamp = globalparametersService.getGTNetExchangeSyncTimestamp();
+    LocalDateTime lastSyncTimestamp = globalparametersService.getGTNetExchangeSyncTimestamp();
     log.info("Starting GTNet exchange sync (fullRecreation={}, last sync: {})", fullRecreation, lastSyncTimestamp);
 
     // Get all accessible AC_OPEN suppliers, excluding own entry to prevent self-communication

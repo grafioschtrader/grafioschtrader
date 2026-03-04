@@ -1,6 +1,6 @@
 package grafioschtrader.platformimport;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -10,7 +10,7 @@ public class FailedParsedTemplateState extends ParsedTemplateState {
   @Schema(description = "The last transaction field that was successfully matched before parsing failed, used for troubleshooting template issues")
   private String lastMatchingProperty;
 
-  public FailedParsedTemplateState(String templatePurpose, Date validSince, String lastMatchingProperty) {
+  public FailedParsedTemplateState(String templatePurpose, LocalDate validSince, String lastMatchingProperty) {
     super(templatePurpose, validSince);
     this.lastMatchingProperty = lastMatchingProperty;
   }

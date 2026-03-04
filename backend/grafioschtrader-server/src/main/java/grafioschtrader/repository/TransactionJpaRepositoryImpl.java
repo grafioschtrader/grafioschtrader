@@ -15,7 +15,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
-import grafiosch.common.DateHelper;
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.repository.BaseRepositoryImpl;
@@ -235,7 +234,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     }
 
     if (effectiveClosedUntil != null) {
-      LocalDate transactionDate = DateHelper.getLocalDate(transaction.getTransactionTime());
+      LocalDate transactionDate = transaction.getTransactionTime().toLocalDate();
       if (!transactionDate.isAfter(effectiveClosedUntil)) {
         throw new DataViolationException("transaction.time", "gt.transaction.date.in.closed.period",
             new Object[] { effectiveClosedUntil });
@@ -264,7 +263,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     Assetclass assetclass = transaction.getSecurity().getAssetClass();
     byte txCategoryType = assetclass.getCategoryType().getValue();
     byte txSpecInvest = assetclass.getSpecialInvestmentInstrument().getValue();
-    LocalDate txDate = DateHelper.getLocalDate(transaction.getTransactionTime());
+    LocalDate txDate = transaction.getTransactionTime().toLocalDate();
 
     boolean allowed = tradingPeriods.stream().anyMatch(period -> {
       if (period.getCategoryType() != null && period.getCategoryType().getValue() != txCategoryType) {
@@ -312,7 +311,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     }
 
     Integer idCashaccount = cashaccount.getIdSecuritycashAccount();
-    LocalDate txDate = DateHelper.getLocalDate(transaction.getTransactionTime());
+    LocalDate txDate = transaction.getTransactionTime().toLocalDate();
 
     Double balanceBefore = holdCashaccountBalanceJpaRepository.getBalanceBeforeDate(idCashaccount, txDate);
     double balanceBeforeDate = balanceBefore != null ? balanceBefore : 0.0;
@@ -346,7 +345,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     }
 
     Integer idCashaccount = cashaccount.getIdSecuritycashAccount();
-    LocalDate txDate = DateHelper.getLocalDate(transaction.getTransactionTime());
+    LocalDate txDate = transaction.getTransactionTime().toLocalDate();
 
     Double balanceBefore = holdCashaccountBalanceJpaRepository.getBalanceBeforeDate(idCashaccount, txDate);
     double balanceBeforeDate = balanceBefore != null ? balanceBefore : 0.0;
@@ -398,7 +397,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
         throw new DataViolationException("currencypair", "gt.trans.wrong.currencypair", new Object[] {});
       }
       Double expectedExchangeRate = currencypairJpaRepository.getClosePriceForDate(currencypairFound,
-          transaction.getTransactionTime());
+          transaction.getTransactionTime().toLocalDate());
       if (expectedExchangeRate != null) {
         double diff = 100.0 / (expectedExchangeRate / Math.abs(expectedExchangeRate - transaction.getCurrencyExRate()));
         if (diff >= GlobalConstants.ACCEPTESD_PERCENTAGE_EXCHANGE_RATE_DIFF) {
@@ -517,7 +516,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
             transaction.getSecurity().getIdSecuritycurrency()));
 
     Optional<TradingDaysPlus> tradingDayPlusOpt = tradingDaysPlusJpaRepository
-        .findById(DateHelper.getLocalDate(transaction.getTransactionTime()));
+        .findById(transaction.getTransactionTime().toLocalDate());
     if (tradingDayPlusOpt.isEmpty()) {
       throw new DataViolationException("transaction.time", "transaction.time.notrading", null);
     }

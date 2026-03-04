@@ -1,6 +1,6 @@
 package grafioschtrader.repository;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -29,21 +29,21 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
 
   void deleteByIdSecuritycurrency(Integer idSecuritycurrency);
 
-  void deleteByIdSecuritycurrencyAndDate(Integer idSecuritycurrency, Date date);
+  void deleteByIdSecuritycurrencyAndDate(Integer idSecuritycurrency, LocalDate date);
 
   int deleteByIdSecuritycurrencyAndCreateType(Integer idSecuritycurrency, byte createType);
 
   @Transactional
-  int deleteByIdSecuritycurrencyAndDateGreaterThanEqual(Integer idSecuritycurrency, Date date);
+  int deleteByIdSecuritycurrencyAndDateGreaterThanEqual(Integer idSecuritycurrency, LocalDate date);
 
-  Optional<Historyquote> findByIdSecuritycurrencyAndDate(Integer idSecuritycurrency, Date date);
+  Optional<Historyquote> findByIdSecuritycurrencyAndDate(Integer idSecuritycurrency, LocalDate date);
 
   List<Historyquote> findByIdSecuritycurrencyOrderByDateAsc(Integer idSecuritycurrency);
 
   List<SecurityCurrencyIdAndDate> findByIdSecuritycurrency(Integer idSecuritycurrency);
 
-  List<Historyquote> findByIdSecuritycurrencyAndDateBetweenOrderByDate(Integer idSecuritycurrency, Date fromDate,
-      Date toDate);
+  List<Historyquote> findByIdSecuritycurrencyAndDateBetweenOrderByDate(Integer idSecuritycurrency, LocalDate fromDate,
+      LocalDate toDate);
 
   /**
    * Batch query for historical quotes across multiple securities/currency pairs.
@@ -56,7 +56,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    */
   @Query("SELECT h FROM Historyquote h WHERE h.idSecuritycurrency IN :ids AND h.date >= :fromDate ORDER BY h.idSecuritycurrency, h.date")
   List<Historyquote> findByIdSecuritycurrencyInAndDateGreaterThanEqual(
-      @Param("ids") List<Integer> idSecuritycurrencies, @Param("fromDate") Date fromDate);
+      @Param("ids") List<Integer> idSecuritycurrencies, @Param("fromDate") LocalDate fromDate);
 
   /**
    * Retrieves a set of dates for which historical quotes already exist for a given security or currency pair within a
@@ -74,10 +74,10 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    *         quotes exist in the range.
    */
   @Query("SELECT h.date FROM Historyquote h WHERE h.idSecuritycurrency = ?1 AND h.date > ?2 AND h.date < ?3")
-  Set<Date> findDatesByIdSecuritycurrencyAndDateBetweenExclusive(Integer idSecuritycurrency, Date fromDate,
-      Date toDate);
+  Set<LocalDate> findDatesByIdSecuritycurrencyAndDateBetweenExclusive(Integer idSecuritycurrency, LocalDate fromDate,
+      LocalDate toDate);
 
-  List<Historyquote> findByIdSecuritycurrencyAndDateGreaterThanOrderByDateAsc(Integer idSecuritycurrency, Date date,
+  List<Historyquote> findByIdSecuritycurrencyAndDateGreaterThanOrderByDateAsc(Integer idSecuritycurrency, LocalDate date,
       Pageable pageable);
 
   void removeByIdSecuritycurrencyAndCreateType(Integer idSecuritycurrency, byte createType);
@@ -99,13 +99,13 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   List<Historyquote> findByIdSecuritycurrencyAndCreateTypeFalseOrderByDateDesc(Integer idSecuritycurrency);
 
   @Query(value = "SELECT h FROM Historyquote h WHERE h.idSecuritycurrency = ?1 AND h.date = ?2 AND h.createType = 1", nativeQuery = false)
-  Historyquote findByIdSecuritycurrencyAndDateAndCreateTypeFilled(Integer idSecuritycurrency, Date date);
+  Historyquote findByIdSecuritycurrencyAndDateAndCreateTypeFilled(Integer idSecuritycurrency, LocalDate date);
 
   @UpdateQuery(value = "DELETE FROM historyquote WHERE id_securitycurrency = ?1", nativeQuery = true)
   void removeAllSecurityHistoryquote(Integer idSecuritycurrency);
 
   @Query(value = "SELECT MAX(date) FROM Historyquote h WHERE h.idSecuritycurrency = ?1")
-  Date getMaxDateByIdSecurity(Integer idSecuritycurrency);
+  LocalDate getMaxDateByIdSecurity(Integer idSecuritycurrency);
 
   /**
    * Finds historical quotes for a specific security or currency pair, returning them as a list of date and close price
@@ -263,7 +263,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    */
   //@formatter:on
   @Query(nativeQuery = true)
-  List<Historyquote> getHistoryquoteFromDerivedLinksByIdSecurityAndDate(Integer idSecurity, Date fromDate, Date toDate,
+  List<Historyquote> getHistoryquoteFromDerivedLinksByIdSecurityAndDate(Integer idSecurity, LocalDate fromDate, LocalDate toDate,
       int requiredDayCount);
 
   /**
@@ -313,7 +313,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    */
   @Query(nativeQuery = true)
   List<ISecuritycurrencyIdDateClose> getCertainOrOlderDayInHistorquoteForSecuritycurrencyByWatchlist(
-      Integer idWatchlist, Date date);
+      Integer idWatchlist, LocalDate date);
 
   //@formatter:off
   /**
@@ -337,7 +337,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   //@formatter:on
   @Query(nativeQuery = true)
   List<ISecuritycurrencyIdDateClose> getIdDateCloseByIdsAndDate(@Param("ids") List<Integer> idSecuritycurrencies,
-      @Param("date") Date date);
+      @Param("date") LocalDate date);
 
   /**
    * Retrieves all historical year-end closing prices for securities and currency pairs that are relevant to a specified
@@ -377,7 +377,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    *         is found for the tenant and date.
    */
   @Query(nativeQuery = true)
-  List<Object[]> getUsedCurrencyHistoryquotesByIdTenantAndDate(Integer idTenant, Date date);
+  List<Object[]> getUsedCurrencyHistoryquotesByIdTenantAndDate(Integer idTenant, LocalDate date);
 
   /**
    * Return exchange rate for dividend transactions depending on tenant and main currency. This include all exchange
@@ -580,7 +580,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    *         an empty list if no such discrepancies are found.
    */
   @Query(nativeQuery = true)
-  List<Date> getMissingEODForSecurityByUpdCalendarIndex(Integer idSecuritycurrencyIndex, Integer idSecuritycurrency);
+  List<LocalDate> getMissingEODForSecurityByUpdCalendarIndex(Integer idSecuritycurrencyIndex, Integer idSecuritycurrency);
 
   /**
    * Retrieves missing end-of-day (EOD) historical quotes for a derived security up to a specified date.
@@ -606,7 +606,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    *         the derived security is missing data, ordered by date (descending) and dependency ID
    */
   @Query(nativeQuery = true)
-  List<Historyquote> getMissingDerivedSecurityEOD(Integer idSecuritycurrency, Date maxDate);
+  List<Historyquote> getMissingDerivedSecurityEOD(Integer idSecuritycurrency, LocalDate maxDate);
 
   /**
    * Inserts a history quote using INSERT IGNORE to silently skip duplicates without throwing exceptions. This is used
@@ -627,7 +627,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   @Modifying
   @Query(value = "INSERT IGNORE INTO historyquote (id_securitycurrency, date, close, open, high, low, volume, "
       + "create_type, create_modify_time) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, NOW())", nativeQuery = true)
-  int insertIgnore(Integer idSecuritycurrency, Date date, double close, Double open, Double high, Double low,
+  int insertIgnore(Integer idSecuritycurrency, LocalDate date, double close, Double open, Double high, Double low,
       Long volume, byte createType);
 
   /**
@@ -643,7 +643,7 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   public interface SecurityCurrencyIdAndDate {
     Integer getIdSecuritycurrency();
 
-    Date getDate();
+    LocalDate getDate();
   }
 
 }

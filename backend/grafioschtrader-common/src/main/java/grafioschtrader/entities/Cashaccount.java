@@ -1,7 +1,7 @@
 package grafioschtrader.entities;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -98,10 +98,10 @@ public class Cashaccount extends Securitycashaccount implements Serializable {
     this.connectIdSecurityaccount = connectIdSecurityaccount;
   }
 
-  public double calculateBalanceOnTransactions(final Date untilDatePlus) {
+  public double calculateBalanceOnTransactions(final LocalDateTime untilDatePlus) {
     double balance = 0.0;
     return balance
-        + transactionList.stream().filter(transaction -> transaction.getTransactionTime().before(untilDatePlus))
+        + transactionList.stream().filter(transaction -> transaction.getTransactionTime().isBefore(untilDatePlus))
             .mapToDouble(transaction -> transaction.getCashaccountAmount()).sum();
   }
 

@@ -1,6 +1,5 @@
 package grafioschtrader.priceupdate.intraday;
 
-import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -66,9 +65,8 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
     final IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
         securitycurrency.getIdConnectorIntra(), IFeedConnector.FeedSupport.FS_INTRA);
 
-    Date now = new Date();
     if (feedConnector != null && (securitycurrency.getRetryIntraLoad() < maxIntraRetry || maxIntraRetry == -1)
-        && securitycurrency.isActiveForIntradayUpdate(now)
+        && securitycurrency.isActiveForIntradayUpdate(java.time.LocalDate.now())
         && allowDelayedIntradayUpdate(securitycurrency, feedConnector, scIntradayUpdateTimeout)) {
       try {
         intraEntityAccess.updateIntraSecurityCurrency(securitycurrency, feedConnector);
@@ -153,8 +151,9 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
    */
   private boolean allowDelayedIntradayUpdate(final S securitycurrency, final IFeedConnector feedConnector,
       final int scIntradayUpdateTimeout) {
-    final long lessThenPossible = System.currentTimeMillis() - 1000 * scIntradayUpdateTimeout;
-    return securitycurrency.getSLast() == null || securitycurrency.getSTimestamp().getTime()
-        + feedConnector.getIntradayDelayedSeconds() * 1000 < lessThenPossible;
+    final long lessThenPossible = System.currentTimeMillis() - 1000L * scIntradayUpdateTimeout;
+    return securitycurrency.getSLast() == null
+        || securitycurrency.getSTimestamp().atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+            + feedConnector.getIntradayDelayedSeconds() * 1000L < lessThenPossible;
   }
 }

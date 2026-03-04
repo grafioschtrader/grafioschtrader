@@ -8,7 +8,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,14 +17,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.entities.Security;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * A regex check of the URL extension is active. The connector for checking the instrument apparently always returns an
@@ -78,8 +76,8 @@ public class ConsorsbankFeedConnector extends BaseFeedConnector {
   }
 
   private void parseJsonData(final Security security, final String jsonData)
-      throws JsonMappingException, JsonProcessingException {
-    ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+      throws Exception {
+    ObjectMapper mapper = JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
     RootData[] rootData = mapper.readValue(jsonData, RootData[].class);
     PriceV2 priceV2 = rootData[0].PriceV2;
     security.setSLast(priceV2.PRICE);
@@ -87,7 +85,7 @@ public class ConsorsbankFeedConnector extends BaseFeedConnector {
     security.setSPrevClose(priceV2.PREVIOUS_LAST);
     security.setSLow(priceV2.LOW);
     security.setSHigh(priceV2.HIGH);
-    security.setSTimestamp(new Date(System.currentTimeMillis() - getIntradayDelayedSeconds() * 1000));
+    security.setSTimestamp(LocalDateTime.now().minusSeconds(getIntradayDelayedSeconds()));
   }
 
   static class RootData {

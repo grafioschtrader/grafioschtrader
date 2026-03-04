@@ -48,7 +48,7 @@ export class GTNetSupplierDetailTableComponent extends TreeTableConfigBase imple
     this.addColumn(DataType.DateString, 'historyMaxDate', 'MAX_DATE');
     this.addColumn(DataType.Numeric, 'ohlPercentage', 'OHL_PERCENTAGE', true, false, {headerSuffix: '%'});
     this.addColumn(DataType.NumericInteger, 'retryIntraLoad', 'RETRY_INTRA_LOAD');
-    this.addColumn(DataType.DateTimeNumeric, 'sTimestamp', 'TIMEDATE');
+    this.addColumn(DataType.DateTimeString, 'sTimestamp', 'TIMEDATE');
     this.addColumn(DataType.DateTimeString, 'supplierLastUpdate', 'SUPPLIER_LAST_UPDATE');
 
     this.prepareTreeTableAndTranslate();

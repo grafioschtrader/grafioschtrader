@@ -1,18 +1,22 @@
 package grafioschtrader.platformimport;
 
-import java.util.Date;
+import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import grafiosch.BaseConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Metadata about a transaction import template, containing its purpose and validity information")
 public class ParsedTemplateState {
   @Schema(description = "Human-readable description of what this template is used for (e.g., 'Swissquote Buy/Sell Orders')")
   private String templatePurpose;
-  
-  @Schema(description = "Date when this template version became valid for processing documents")
-  private Date validSince;
 
-  public ParsedTemplateState(String templatePurpose, Date validSince) {
+  @Schema(description = "Date when this template version became valid for processing documents")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  private LocalDate validSince;
+
+  public ParsedTemplateState(String templatePurpose, LocalDate validSince) {
     this.templatePurpose = templatePurpose;
     this.validSince = validSince;
   }
@@ -25,11 +29,11 @@ public class ParsedTemplateState {
     this.templatePurpose = templatePurpose;
   }
 
-  public Date getValidSince() {
+  public LocalDate getValidSince() {
     return validSince;
   }
 
-  public void setValidSince(Date validSince) {
+  public void setValidSince(LocalDate validSince) {
     this.validSince = validSince;
   }
 

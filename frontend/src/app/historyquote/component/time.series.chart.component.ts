@@ -646,7 +646,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
   private addBuySellDivMarkForCurrency(traces: Traces, historicalLine: any, transactions: Transaction[],
     cptv: CurrencyPairTraceValues, reverse: boolean): void {
-    transactions.filter(transaction => transaction.transactionTime >= this.fromDate.getTime())
+    transactions.filter(transaction => moment(transaction.transactionTime).isSameOrAfter(this.fromDate))
       .forEach(transaction => {
         const transactionType: TransactionType = TransactionType[transaction.transactionType];
         const transactionTypeStr = this.getTransactionTypeStr(transaction, transactionType, reverse);
@@ -702,7 +702,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       stp.transaction.transactionType === TransactionType[TransactionType.ACCUMULATE]
       || stp.transaction.transactionType === TransactionType[TransactionType.REDUCE])
       .forEach(securityTransactionPosition => {
-        if (securityTransactionPosition.transaction.transactionTime >= this.fromDate.getTime()) {
+        if (moment(securityTransactionPosition.transaction.transactionTime).isSameOrAfter(this.fromDate)) {
           const transaction = securityTransactionPosition.transaction;
           this.getDateTimeAsStringPutAsX(transaction, trace.x);
           trace.y.push(before);
@@ -759,7 +759,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private getBuySellDivMarkForSecurity(traces: Traces, loadedData: LoadedData, securityTransactionSummary: SecurityTransactionSummary): Traces {
-    securityTransactionSummary.transactionPositionList.filter(stp => stp.transaction.transactionTime >= this.fromDate.getTime())
+    securityTransactionSummary.transactionPositionList.filter(stp => moment(stp.transaction.transactionTime).isSameOrAfter(this.fromDate))
       .forEach(securityTransactionPosition => {
         const transaction = securityTransactionPosition.transaction;
         const transactionTypeStr = transaction.transactionType;
@@ -1158,7 +1158,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     }
   }
 
-  private createTodayAsHistoryquote(sTimestamp: number, sLast: number, historyquotes: HistoryquoteDateClose[]) {
+  private createTodayAsHistoryquote(sTimestamp: string, sLast: number, historyquotes: HistoryquoteDateClose[]) {
     if (sLast) {
       const dateLastStr = moment(sTimestamp).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
       if (historyquotes.length === 0 || dateLastStr > historyquotes[historyquotes.length - 1].date) {

@@ -1,12 +1,11 @@
 package grafioschtrader.priceupdate.historyquote;
 
 import java.text.ParseException;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.context.MessageSource;
 
-import grafiosch.common.DateHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
@@ -43,14 +42,14 @@ public class HistoryquoteThruCalculation<S extends Securitycurrency<Security>> e
 
   @Override
   public Security createHistoryQuotesAndSave(ISecuritycurrencyService<Security> securitycurrencyService,
-      Security security, Date fromDate, Date toDate) {
+      Security security, LocalDate fromDate, LocalDate toDate) {
     short retryHistoryLoad = security.getRetryHistoryLoad();
     try {
-      final Date correctedFromDate = getCorrectedFromDate(security, fromDate);
-      final Date toDateCalc = (toDate == null) ? new Date() : toDate;
+      final LocalDate correctedFromDate = getCorrectedFromDate(security, fromDate);
+      final LocalDate toDateCalc = (toDate == null) ? LocalDate.now() : toDate;
       List<Historyquote> newHistoryquotes = ThruCalculationHelper.loadDataAndCreateHistoryquotes(
           securityDerivedLinkJpaRepository, historyquoteJpaRepository, security, correctedFromDate, toDateCalc);
-      Date maxDate = DateHelper.setTimeToZeroAndAddDay(correctedFromDate, -1);
+      LocalDate maxDate = correctedFromDate.minusDays(1);
       newHistoryquotes.addAll(ThruCalculationHelper.fillGaps(securityDerivedLinkJpaRepository, historyquoteJpaRepository, security, maxDate));
       addHistoryquotesToSecurity(security, newHistoryquotes, correctedFromDate, toDateCalc);
     } catch (final ParseException pe) {

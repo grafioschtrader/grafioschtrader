@@ -1,7 +1,7 @@
 package grafioschtrader.entities;
 
+import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,8 +25,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 
 // @JsonFilter("NON_TEMPLATE")
 @Schema(description = """
@@ -69,11 +67,10 @@ public class ImportTransactionTemplate extends Auditable {
   @Schema(description = """
       The template is valid from this date, but this is only used if a transaction import matches several templates.
       In this case, the template with the most recent date compared to the date in the transaction import is used.""")
-  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
-  @Temporal(TemporalType.DATE)
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "valid_since")
   @PropertyAlwaysUpdatable
-  private Date validSince;
+  private LocalDate validSince;
 
   @Schema(description = """
       The same import template is differentiated by language. Has an informative character for the user
@@ -146,11 +143,11 @@ public class ImportTransactionTemplate extends Auditable {
     this.templateAsTxt = templateAsTxt;
   }
 
-  public Date getValidSince() {
+  public LocalDate getValidSince() {
     return validSince;
   }
 
-  public void setValidSince(Date validSince) {
+  public void setValidSince(LocalDate validSince) {
     this.validSince = validSince;
   }
 

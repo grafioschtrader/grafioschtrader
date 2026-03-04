@@ -2,7 +2,7 @@ package grafiosch.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.util.Calendar;
+import java.time.LocalDateTime;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,9 +104,7 @@ public class UserResource {
     String redirect = TOKEN_INVALID;
     if (verificationToken != null) {
       final User user = verificationToken.getUser();
-      final Calendar cal = Calendar.getInstance();
-
-      if ((verificationToken.getExpiryDate().getTime() - cal.getTime().getTime()) <= 0) {
+      if (verificationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
         redirect = TOKEN_EXPIRED;
       } else {
         user.setEnabled(true);

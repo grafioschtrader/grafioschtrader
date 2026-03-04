@@ -20,9 +20,6 @@ import {BusinessSelectOptionsHelper} from '../../shared/securitycurrency/busines
 import {DialogModule} from 'primeng/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
-/**
- * Project: Grafioschtrader
- */
 @Component({
     selector: 'algo-security-edit',
     template: `
@@ -66,8 +63,15 @@ export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<Al
   }
 
   protected initialize(): void {
-    const securitiesObservable: Observable<Security[]> = this.securityService.getUnusedSecurityForAlgo(
-      (<AlgoAssetclass>this.algoCallParam.parentObject).idAlgoAssetclassSecurity);
+    const parentAssetclass = <AlgoAssetclass>this.algoCallParam.parentObject;
+    let securitiesObservable: Observable<Security[]>;
+    if (parentAssetclass.name != null && this.algoCallParam.idWatchlist != null) {
+      securitiesObservable = this.securityService.getUnusedSecurityForAlgoCustom(
+        this.algoCallParam.idWatchlist, parentAssetclass.idAlgoAssetclassSecurity);
+    } else {
+      securitiesObservable = this.securityService.getUnusedSecurityForAlgo(
+        parentAssetclass.idAlgoAssetclassSecurity);
+    }
     const allSecurityaccountsObservable: Observable<Portfolio[]> = this.portfolioService.getPortfoliosForTenantOrderByName();
     this.valueChangedOnSecurityaccount1();
     combineLatest([securitiesObservable, allSecurityaccountsObservable]).subscribe(

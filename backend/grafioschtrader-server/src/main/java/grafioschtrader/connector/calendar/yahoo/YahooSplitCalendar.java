@@ -10,7 +10,6 @@ import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
-import grafiosch.common.DateHelper;
 import grafioschtrader.connector.calendar.ISplitCalendarFeedConnector;
 import grafioschtrader.connector.yahoo.AbstractYahooFinanceConnector;
 import grafioschtrader.connector.yahoo.YahooFinanceDTO;
@@ -100,7 +99,7 @@ public class YahooSplitCalendar extends AbstractYahooFinanceConnector implements
 
                 // Create Securitysplit object
                 Securitysplit securitySplit = new Securitysplit(null, // idSecuritycurrency will be set later
-                    DateHelper.getDateFromLocalDate(splitDate), oldShareWorth, // fromFactor
+                    splitDate, oldShareWorth, // fromFactor
                     shareWorth, // toFactor
                     CreateType.CONNECTOR_CREATED);
 

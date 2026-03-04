@@ -1,9 +1,9 @@
 package grafioschtrader.task.exec;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,15 +51,15 @@ public class UpdateSplitForSecurityTask implements ITask {
     if (security.getIdConnectorSplit() != null) {
       try {
         // If the split connector has been changed, the split date is zero.
-        Date requestSplitDate = taskDataChange.getOldValueString() == null ? null
-            : new SimpleDateFormat(GlobalConstants.SHORT_STANDARD_DATE_FORMAT)
-                .parse(taskDataChange.getOldValueString());
+        LocalDate requestSplitDate = taskDataChange.getOldValueString() == null ? null
+            : LocalDate.parse(taskDataChange.getOldValueString(),
+                DateTimeFormatter.ofPattern(GlobalConstants.SHORT_STANDARD_DATE_FORMAT));
         List<String> errorMessages = securitysplitJpaRepository.loadAllSplitDataFromConnectorForSecurity(security,
             requestSplitDate);
         if (!errorMessages.isEmpty()) {
           throw new TaskBackgroundException("gt.split.connector.failure", errorMessages, false);
         }
-      } catch (ParseException e) {
+      } catch (DateTimeParseException e) {
         throw new TaskBackgroundException("gt.split.date.missing.parse", false);
       }
     } else {

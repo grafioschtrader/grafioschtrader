@@ -1,6 +1,6 @@
 package grafiosch.gtnet.handler.impl;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Component;
 
@@ -36,7 +36,7 @@ public class PingMessageHandler extends AbstractGTNetMessageHandler {
   @Override
   public HandlerResult<GTNetMessage, MessageEnvelope> handle(GTNetMessageContext context) {
     // Ping is special: no persistence, immediate response
-    GTNetMessage responseMsg = new GTNetMessage(null, new Date(), SendReceivedType.ANSWER.getValue(), null,
+    GTNetMessage responseMsg = new GTNetMessage(null, LocalDateTime.now(), SendReceivedType.ANSWER.getValue(), null,
         GNetCoreMessageCode.GT_NET_PING.getValue(), null, null);
 
     MessageEnvelope response = new MessageEnvelope(context.getMyGTNet(), responseMsg);

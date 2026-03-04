@@ -1,9 +1,7 @@
 package grafioschtrader.repository.dataverification;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafiosch.common.DateHelper;
 import grafioschtrader.entities.TradingDaysPlus;
 import grafioschtrader.reports.AccountPositionGroupSummaryReport;
 import grafioschtrader.reportviews.account.AccountPositionGrandSummary;
@@ -76,7 +73,7 @@ class CompareHoldingWithOtherSummaryTest {
     List<TradingDaysPlus> tradingDays = tradingDaysPlusJpaRepository.findByTradingDateGreaterThanEqual(fromDate);
 
     for (TradingDaysPlus tdp : tradingDays) {
-      Date date = Date.from(tdp.getTradingDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+      LocalDate date = tdp.getTradingDate();
       Optional<IPeriodHolding> totalsOverPeriodOpt = totalsOverPeriodList.stream()
           .filter(totalsOverPeriod -> totalsOverPeriod.getDate().equals(tdp.getTradingDate())).findFirst();
       if (totalsOverPeriodOpt.isPresent()) {
@@ -90,9 +87,9 @@ class CompareHoldingWithOtherSummaryTest {
     }
   }
 
-  private void compareTenantValues(Integer idTenant, Date date, IPeriodHolding top) {
+  private void compareTenantValues(Integer idTenant, LocalDate date, IPeriodHolding top) {
     AccountPositionGrandSummary accountPositionGrandSummary = accountPositionGroupSummaryReport
-        .getAccountGrandSummaryIdTenant(idTenant, new GroupPortfolio(), DateHelper.setTimeToZeroAndAddDay(date, 0));
+        .getAccountGrandSummaryIdTenant(idTenant, new GroupPortfolio(), date);
 
     int error = 0;
     double holdingSecurityMC = top.getSecuritiesMC() + top.getMarginCloseGainMC();
@@ -114,9 +111,9 @@ class CompareHoldingWithOtherSummaryTest {
     }
   }
 
-  private void comparePortfolioValues(Integer idTenant, Integer idPortfolio, Date date, IPeriodHolding top) {
+  private void comparePortfolioValues(Integer idTenant, Integer idPortfolio, LocalDate date, IPeriodHolding top) {
     AccountPositionGroupSummary accountPositionGroupSummary = accountPositionGroupSummaryReport
-        .getAccountGrandSummaryPortfolio(idTenant, idPortfolio, DateHelper.setTimeToZeroAndAddDay(date, 0));
+        .getAccountGrandSummaryPortfolio(idTenant, idPortfolio, date);
 
     int error = 0;
     double holdingSecurityMC = top.getSecuritiesMC() + top.getMarginCloseGainMC();

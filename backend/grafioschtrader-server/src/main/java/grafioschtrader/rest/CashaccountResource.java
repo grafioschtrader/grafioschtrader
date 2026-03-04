@@ -2,7 +2,7 @@ package grafioschtrader.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -46,7 +46,7 @@ public class CashaccountResource extends UpdateCreateDeleteWithTenantResource<Ca
       Cashaccount.TABNAME })
   @GetMapping(value = "/{idPortfolio}/portfoliocashaccountsummary", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<AccountPositionGroupSummary> getAccountPositionSummaryPortfolio(
-      @PathVariable final Integer idPortfolio, @RequestParam() @DateTimeFormat(iso = ISO.DATE) final Date untilDate) {
+      @PathVariable final Integer idPortfolio, @RequestParam() @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(
         accountPositionGroupSummaryReport.getAccountGrandSummaryPortfolio(user.getIdTenant(), idPortfolio, untilDate),

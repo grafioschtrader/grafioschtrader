@@ -1,9 +1,8 @@
 package grafioschtrader.dto;
 
-import java.text.ParseException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -62,13 +61,14 @@ public class SecurityCurrencypairDerivedLinks {
     return sLast;
   }
 
-  public Date getNewestIntradayTimestamp() throws ParseException {
-    Date oldestDate = DateBusinessHelper.getOldestTradingDay();
+  public LocalDateTime getNewestIntradayTimestamp() {
+    LocalDateTime oldestDate = DateBusinessHelper.getOldestTradingDayAsLocalDateTime();
 
-    Date maxDateSecurity = securities.stream().map(Security::getSTimestamp).max(Date::compareTo).orElse(oldestDate);
-    Date maxDateCurrencypair = currencypairs.stream().map(Currencypair::getSTimestamp).max(Date::compareTo)
-        .orElse(oldestDate);
-    return maxDateSecurity.after(maxDateCurrencypair) ? maxDateSecurity : maxDateCurrencypair;
+    LocalDateTime maxDateSecurity = securities.stream().map(Security::getSTimestamp)
+        .max(LocalDateTime::compareTo).orElse(oldestDate);
+    LocalDateTime maxDateCurrencypair = currencypairs.stream().map(Currencypair::getSTimestamp)
+        .max(LocalDateTime::compareTo).orElse(oldestDate);
+    return maxDateSecurity.isAfter(maxDateCurrencypair) ? maxDateSecurity : maxDateCurrencypair;
   }
 
   public static class VarNameLastPrice {

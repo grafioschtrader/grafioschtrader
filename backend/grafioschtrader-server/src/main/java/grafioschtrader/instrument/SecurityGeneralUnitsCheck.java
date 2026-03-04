@@ -1,7 +1,6 @@
 package grafioschtrader.instrument;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -97,7 +96,7 @@ public class SecurityGeneralUnitsCheck {
         continue;
       }
       if (!added && (operationyType == OperationType.ADD || operationyType == OperationType.UPDATE)) {
-        if (targetTransaction.getTransactionTime().before(transaction.getTransactionTime())) {
+        if (targetTransaction.getTransactionTime().isBefore(transaction.getTransactionTime())) {
           added = true;
           transactionsAfter.add(targetTransaction);
         }
@@ -125,7 +124,7 @@ public class SecurityGeneralUnitsCheck {
       final Security security, final Transaction transaction, final List<TransactionTimeUnits> transactionTimeUnits,
       final DataViolationException dataViolationException) {
     final double splitfactor = Securitysplit.calcSplitFatorForFromDate(security.getIdSecuritycurrency(),
-        transaction.getTransactionTime(), securitySplitMap);
+        transaction.getTransactionTime().toLocalDate(), securitySplitMap);
     final double unitsSplited = transaction.getUnits() * splitfactor;
     final double units = transactionTimeUnits.isEmpty() ? 0 : transactionTimeUnits.get(0).units;
     switch (transaction.getTransactionType()) {
@@ -159,12 +158,13 @@ public class SecurityGeneralUnitsCheck {
   private static boolean checkDividendUnits(final double requiredUnits, final Transaction transaction,
       final List<TransactionTimeUnits> transactionTimeUnits) {
 
-    final Date transactionExDate = (transaction.getExDate() != null) ? transaction.getExDate()
-        : transaction.getTransactionTime();
+    final java.time.LocalDate transactionExDate = (transaction.getExDate() != null) ? transaction.getExDate()
+        : transaction.getTransactionTime().toLocalDate();
 
     for (final TransactionTimeUnits ttU : transactionTimeUnits) {
       if (ttU.units >= requiredUnits || ttU.transaction.getTransactionType() == TransactionType.REDUCE
-          && ttU.units >= requiredUnits && ttU.transaction.getTransactionTime().after(transactionExDate)) {
+          && ttU.units >= requiredUnits
+          && ttU.transaction.getTransactionTime().toLocalDate().isAfter(transactionExDate)) {
         return true;
       }
     }

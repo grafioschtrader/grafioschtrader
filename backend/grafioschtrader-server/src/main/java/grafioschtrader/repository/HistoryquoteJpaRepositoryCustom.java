@@ -1,7 +1,7 @@
 package grafioschtrader.repository;
 
 import java.text.ParseException;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -55,7 +55,7 @@ public interface HistoryquoteJpaRepositoryCustom extends BaseRepositoryCustom<Hi
    *         null if no historical quote is found
    */
   ISecuritycurrencyIdDateClose getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(final Integer idSecuritycurrency,
-      final Date date, final boolean asTraded);
+      final LocalDate date, final boolean asTraded);
 
   /**
    * Fills missing historical quotes for non-trading days (weekends and holidays) between two existing quotes.

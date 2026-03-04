@@ -8,9 +8,6 @@ import java.util.Optional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import grafiosch.BaseConstants;
 import grafiosch.entities.UDFData;
@@ -18,6 +15,8 @@ import grafiosch.entities.UDFData.UDFDataKey;
 import grafiosch.entities.UDFMetadata;
 import grafiosch.repository.UDFDataJpaRepository;
 import grafiosch.types.UDFDataType;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectReader;
 
 /**
  * Helper class providing static utility methods for handling user-defined fields (UDF) operations, specifically related
@@ -35,9 +34,6 @@ public abstract class UDFFieldsHelper {
   private static ObjectMapper objectMapper = new ObjectMapper();
   private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
-  static {
-    objectMapper.registerModule(new JavaTimeModule());
-  }
 
   /**
    * Inserts or updates a value in a JSON-formatted string based on the provided UDF metadata and returns the updated

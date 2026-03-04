@@ -11,7 +11,6 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.common.DataHelper;
-import grafiosch.common.DateHelper;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.HoldCashaccountBalance;
 import grafioschtrader.entities.Tenant;
@@ -129,7 +128,7 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
   public void adjustCashaccountBalanceByIdCashaccountAndFromDate(Transaction transaction) {
     List<HoldCashaccountBalance> holdCashaccountBalanceList = new ArrayList<>();
     Integer idCashaccount = transaction.getCashaccount().getIdSecuritycashAccount();
-    LocalDate transactionDate = DateHelper.getLocalDate(transaction.getTransactionTime());
+    LocalDate transactionDate = transaction.getTransactionTime().toLocalDate();
 
     Tenant tenant = tenantJpaRepository.getReferenceById(transaction.getIdTenant());
     holdCashaccountBalanceJpaRepository.removeByIdTenantAndIdEmIdSecuritycashAccountAndIdEmFromHoldDateGreaterThanEqual(

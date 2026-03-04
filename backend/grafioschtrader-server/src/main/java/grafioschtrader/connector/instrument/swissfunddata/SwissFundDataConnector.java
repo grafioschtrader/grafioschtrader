@@ -6,10 +6,8 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.text.ParseException;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -60,17 +58,15 @@ public class SwissFundDataConnector extends BaseFeedConnector {
   }
 
   @Override
-  public List<Historyquote> getEodSecurityHistory(final Security security, final Date from, final Date to)
+  public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
     final List<Historyquote> historyquotes = new ArrayList<>();
-    LocalDate fromDate = LocalDate.ofInstant(from.toInstant(), ZoneId.systemDefault());
-    LocalDate toDate = LocalDate.ofInstant(to.toInstant(), ZoneId.systemDefault());
 
     final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(BaseConstants.STANDARD_DATE_FORMAT);
     String urlAsString = getSecurityHistoricalDownloadLink(security);
     log.info("In {} for security {} is URL for download csv file {}", getID(), security.getName(), urlAsString);
     try (BufferedReader br = new BufferedReader(new InputStreamReader(new URI(urlAsString).toURL().openStream()))) {
-      parseLines(historyquotes, br, dateFormatter, fromDate, toDate);
+      parseLines(historyquotes, br, dateFormatter, from, to);
     }
     return historyquotes;
   }
@@ -90,7 +86,7 @@ public class SwissFundDataConnector extends BaseFeedConnector {
           continue;
         }
         final Historyquote historyquote = new Historyquote();
-        historyquote.setDateLD(localDate);
+        historyquote.setDate(localDate);
         historyquote.setClose(Double.parseDouble(item[4].trim()));
         historyquotes.add(historyquote);
       }

@@ -1,13 +1,10 @@
 package grafioschtrader.connector.instrument.test;
 
 import java.time.DayOfWeek;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +12,6 @@ import java.util.stream.Collectors;
 
 import org.assertj.core.api.Assertions;
 
-import grafiosch.common.DateHelper;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.IFeedConnector;
@@ -82,7 +78,7 @@ public abstract class BaseFeedConnectorCheck {
         security.setUrlHistoryExtend(null);
       }
       if (security.getActiveToDate() == null) {
-        security.setActiveToDate(DateHelper.setTimeToZeroAndAddDay(new Date(), 365));
+        security.setActiveToDate(LocalDate.now().plusDays(365));
       }
       checkRegularPattern(security, FeedSupport.FS_INTRA);
       try {
@@ -110,8 +106,6 @@ public abstract class BaseFeedConnectorCheck {
       applyTimeZonesToSecurities(hisoricalDate);
     }
 
-    final ZoneId zoneId = ZoneId.systemDefault(); // Time zone for date comparison
-
     hisoricalDate.parallelStream().forEach(hd -> {
       checkRegularPattern(hd.security, FeedSupport.FS_HISTORY);
 
@@ -131,31 +125,25 @@ public abstract class BaseFeedConnectorCheck {
         Collections.sort(historyquotes, Comparator.comparing(Historyquote::getDate));
       }
 
-      // Convert dates for comparison (date part only)
-      LocalDate firstQuoteDate = Instant.ofEpochMilli(historyquotes.getFirst().getDate().getTime()).atZone(zoneId)
-          .toLocalDate();
-      LocalDate hdFromDate = Instant.ofEpochMilli(hd.from.getTime()).atZone(zoneId).toLocalDate();
-      LocalDate lastQuoteDate = Instant.ofEpochMilli(historyquotes.getLast().getDate().getTime()).atZone(zoneId)
-          .toLocalDate();
-      LocalDate hdToDate = Instant.ofEpochMilli(hd.to.getTime()).atZone(zoneId).toLocalDate();
+      LocalDate firstQuoteDate = historyquotes.getFirst().getDate();
+      LocalDate lastQuoteDate = historyquotes.getLast().getDate();
 
       if (printValuesInsteadOfAssert) {
         System.out.println(String.format("Security: %s, Actual Rows: %d, First Quote Date: %s, Last Quote Date: %s",
             hd.security.getName(), historyquotes.size(), firstQuoteDate, lastQuoteDate));
       } else {
-        // Assert size and date range (only date part)
         Assertions.assertThat(historyquotes.size()).as("Number of history quotes for Security " + hd.security.getName())
             .isEqualTo(hd.expectedRows);
         Assertions.assertThat(firstQuoteDate).as("Start date of the first quote for Security " + hd.security.getName())
-            .isEqualTo(hdFromDate);
+            .isEqualTo(hd.from);
         Assertions.assertThat(lastQuoteDate).as("End date of the last quote for Security " + hd.security.getName())
-            .isEqualTo(hdToDate);
+            .isEqualTo(hd.to);
       }
 
       // Check for weekends — print context (previous day, weekend day, next day) for each hit
       long weekendCount = 0;
       for (int i = 0; i < historyquotes.size(); i++) {
-        LocalDate quoteDate = historyquotes.get(i).getDate().toInstant().atZone(zoneId).toLocalDate();
+        LocalDate quoteDate = historyquotes.get(i).getDate();
         DayOfWeek dow = quoteDate.getDayOfWeek();
         if (dow == DayOfWeek.SATURDAY || dow == DayOfWeek.SUNDAY) {
           weekendCount++;
@@ -164,10 +152,10 @@ public abstract class BaseFeedConnectorCheck {
           Historyquote next = i < historyquotes.size() - 1 ? historyquotes.get(i + 1) : null;
           System.out.printf("Weekend quote [%s] ISIN=%s: prev=%s close=%.4f | %s %s close=%.4f | next=%s close=%.4f%n",
               hd.security.getName(), hd.security.getIsin(),
-              prev != null ? prev.getDate().toInstant().atZone(zoneId).toLocalDate() : "N/A",
+              prev != null ? prev.getDate() : "N/A",
               prev != null ? prev.getClose() : 0.0,
               dow, quoteDate, curr.getClose(),
-              next != null ? next.getDate().toInstant().atZone(zoneId).toLocalDate() : "N/A",
+              next != null ? next.getDate() : "N/A",
               next != null ? next.getClose() : 0.0);
         }
       }
@@ -197,8 +185,6 @@ public abstract class BaseFeedConnectorCheck {
     boolean printValuesInsteadOfAssert = false;
     final List<CurrencyPairHistoricalDate> currencies = this.getHistoricalCurrencies();
 
-    final ZoneId zoneId = ZoneId.systemDefault(); // Time zone for date comparison
-
     currencies.parallelStream().forEach(cphd -> {
       List<Historyquote> historyquotes = new ArrayList<>();
       try {
@@ -217,27 +203,21 @@ public abstract class BaseFeedConnectorCheck {
         Collections.sort(historyquotes, Comparator.comparing(Historyquote::getDate));
       }
 
-      // Convert dates for comparison (date part only)
-      LocalDate firstQuoteDate = Instant.ofEpochMilli(historyquotes.get(0).getDate().getTime()).atZone(zoneId)
-          .toLocalDate();
-      LocalDate cphdFromDate = Instant.ofEpochMilli(cphd.from.getTime()).atZone(zoneId).toLocalDate();
-      LocalDate lastQuoteDate = Instant.ofEpochMilli(historyquotes.get(historyquotes.size() - 1).getDate().getTime())
-          .atZone(zoneId).toLocalDate();
-      LocalDate cphdToDate = Instant.ofEpochMilli(cphd.to.getTime()).atZone(zoneId).toLocalDate();
+      LocalDate firstQuoteDate = historyquotes.get(0).getDate();
+      LocalDate lastQuoteDate = historyquotes.get(historyquotes.size() - 1).getDate();
 
       if (printValuesInsteadOfAssert) {
         System.out.println(String.format("Currency: %s, Actual Rows: %d, First Quote Date: %s, Last Quote Date: %s",
             cphd.currencypair.getName(), historyquotes.size(), firstQuoteDate, lastQuoteDate));
       } else {
-        // Assert size and date range (only date part)
         Assertions.assertThat(historyquotes.size())
             .as("Number of history quotes for CurrencyPair " + cphd.currencypair.getName())
             .isEqualTo(cphd.expectedRows);
         Assertions.assertThat(firstQuoteDate)
             .as("Start date of the first quote for CurrencyPair " + cphd.currencypair.getName())
-            .isEqualTo(cphdFromDate);
+            .isEqualTo(cphd.from);
         Assertions.assertThat(lastQuoteDate)
-            .as("End date of the last quote for CurrencyPair " + cphd.currencypair.getName()).isEqualTo(cphdToDate);
+            .as("End date of the last quote for CurrencyPair " + cphd.currencypair.getName()).isEqualTo(cphd.to);
       }
       ConnectorTestHelper.checkHistoryquoteUniqueDate(cphd.currencypair.getName(), historyquotes);
     });

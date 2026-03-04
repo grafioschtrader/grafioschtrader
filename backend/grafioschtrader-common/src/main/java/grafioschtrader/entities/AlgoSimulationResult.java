@@ -1,10 +1,12 @@
 package grafioschtrader.entities;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import grafiosch.entities.TenantBaseID;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
@@ -71,8 +73,9 @@ public class AlgoSimulationResult extends TenantBaseID implements Serializable {
   private Integer losingTrades;
 
   @Schema(description = "Auto-maintained timestamp when the simulation result was computed")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "calculated_at", insertable = false, updatable = false)
-  private Timestamp calculatedAt;
+  private LocalDateTime calculatedAt;
 
   @JsonIgnore
   @Override
@@ -162,7 +165,7 @@ public class AlgoSimulationResult extends TenantBaseID implements Serializable {
     this.losingTrades = losingTrades;
   }
 
-  public Timestamp getCalculatedAt() {
+  public LocalDateTime getCalculatedAt() {
     return calculatedAt;
   }
 }

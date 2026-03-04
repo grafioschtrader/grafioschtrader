@@ -1,7 +1,10 @@
 package grafioschtrader.entities;
 
-import java.util.Date;
+import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import grafiosch.BaseConstants;
 import grafiosch.entities.BaseID;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
@@ -13,8 +16,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 
 /**
  * Historical (EOD) price data for FOREIGN instruments in the GT-Network pool.
@@ -62,9 +63,9 @@ public class GTNetHistoryquote extends BaseID<Integer> {
   private GTNetInstrument gtNetInstrument;
 
   @Schema(description = "Trading date for this historical quote")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "date", nullable = false)
-  @Temporal(TemporalType.DATE)
-  private Date date;
+  private LocalDate date;
 
   @Schema(description = "Opening price for this trading day")
   @Column(name = "open")
@@ -102,11 +103,11 @@ public class GTNetHistoryquote extends BaseID<Integer> {
     this.gtNetInstrument = gtNetInstrument;
   }
 
-  public Date getDate() {
+  public LocalDate getDate() {
     return date;
   }
 
-  public void setDate(Date date) {
+  public void setDate(LocalDate date) {
     this.date = date;
   }
 
