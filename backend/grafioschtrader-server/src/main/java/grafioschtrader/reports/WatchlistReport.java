@@ -269,15 +269,14 @@ public class WatchlistReport {
     final LocalDate dateTimeFrame = LocalDate.now().minusDays(daysTimeFrame);
     Tenant tenant = tenantJpaRepository.getReferenceById(watchlist.getIdTenant());
 
-    // Check if price update is needed and save watchlist in main transaction to avoid
-    // stale entity issues with async operations (MariaDB 11.x row version detection)
-    final LocalDateTime timeframe = LocalDateTime.now()
-        .minusSeconds(globalparametersService.getWatchlistIntradayUpdateTimeout());
-    final boolean needsPriceUpdate = watchlist.getLastTimestamp() == null
-        || timeframe.isAfter(watchlist.getLastTimestamp());
+    // Atomically claim the price update by updating last_timestamp only if it is stale.
+    // This avoids the "Record has changed since last read" error when concurrent requests
+    // both try to update the same watchlist row via saveAndFlush.
+    final LocalDateTime now = LocalDateTime.now();
+    final LocalDateTime threshold = now.minusSeconds(globalparametersService.getWatchlistIntradayUpdateTimeout());
+    final boolean needsPriceUpdate = watchlistJpaRepository.updateLastTimestampIfStale(
+        now, idWatchlist, threshold) > 0;
     if (needsPriceUpdate) {
-      watchlist.setLastTimestamp(LocalDateTime.now());
-      watchlist = watchlistJpaRepository.saveAndFlush(watchlist);
       log.info("Intraday update for {}", watchlist.getName());
     }
 

@@ -867,8 +867,9 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
 
   /** Handles price update with timeout check to prevent excessive API calls. */
   private handleUpdateAllPrice() {
-    if (Date.now() < +this.securitycurrencyGroup.lastTimestamp + this.intraUpdateTimoutSeconds * 1000) {
-      const minutes = this.millisToMinutesAndSeconds(+this.securitycurrencyGroup.lastTimestamp
+    const lastTs = new Date(this.securitycurrencyGroup.lastTimestamp).getTime();
+    if (Date.now() < lastTs + this.intraUpdateTimoutSeconds * 1000) {
+      const minutes = this.millisToMinutesAndSeconds(lastTs
         + this.intraUpdateTimoutSeconds * 1000 - Date.now());
       this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'UPDATE_TIMEOUT', {time: minutes});
     } else {

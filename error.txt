@@ -1,27 +1,64 @@
-java.lang.AssertionError
-	at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62)
-	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:502)
-	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:486)
-	at java.base/java.util.concurrent.ForkJoinTask.getThrowableException(ForkJoinTask.java:542)
-	at java.base/java.util.concurrent.ForkJoinTask.reportException(ForkJoinTask.java:567)
-	at java.base/java.util.concurrent.ForkJoinTask.invoke(ForkJoinTask.java:670)
-	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateParallel(ForEachOps.java:160)
-	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateParallel(ForEachOps.java:174)
-	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:233)
-	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
-	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:765)
-	at grafioschtrader.connector.instrument.test.BaseFeedConnectorCheck.getEodSecurityHistory(BaseFeedConnectorCheck.java:109)
-	at grafioschtrader.connector.instrument.test.YahooFeedConnectorCOMTest.getEodSecurityHistoryTest(YahooFeedConnectorCOMTest.java:24)
-Caused by: java.lang.AssertionError: [History quotes should not be null or empty for Security Lyxor CAC 40] 
-Expecting actual not to be empty
-	at grafioschtrader.connector.instrument.test.BaseFeedConnectorCheck.lambda$getEodSecurityHistory$2(BaseFeedConnectorCheck.java:122)
-	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
-	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
-	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
-	at java.base/java.util.stream.ForEachOps$ForEachTask.compute(ForEachOps.java:291)
-	at java.base/java.util.concurrent.CountedCompleter.exec(CountedCompleter.java:754)
-	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:387)
-	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312)
-	at java.base/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843)
-	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808)
-	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
+Caused by: org.hibernate.exception.LockAcquisitionException: could not execute statement [(conn=118299) Record has changed since last read in table 'watchlist'] [update watchlist set id_tenant=?,last_timestam                                                                                                    p=?,name=? where id_watchlist=?]
+        at org.hibernate.dialect.MariaDBDialect.lambda$buildSQLExceptionConversionDelegate$0(MariaDBDialect.java:299) ~[hibernate-core-6.6.42.Final.jar!/:5.6.15.Final]
+        at org.hibernate.exception.internal.StandardSQLExceptionConverter.convert(StandardSQLExceptionConverter.java:58) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
+        at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:108) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
+        at org.hibernate.engine.jdbc.internal.ResultSetReturnImpl.executeUpdate(ResultSetReturnImpl.java:197) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
+        at org.hibernate.engine.jdbc.mutation.internal.AbstractMutationExecutor.performNonBatchedMutation(AbstractMutationExecutor.java:134) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
+        at org.hibernate.engine.jdbc.mutation.internal.MutationExecutorSingleNonBatched.performNonBatchedOperations(MutationExecutorSingleNonBatched.java:55) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
+        at org.hibernate.engine.jdbc.mutation.internal.AbstractMutationExecutor.execute(AbstractMutationExecutor.java:55) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
+        at org.hibernate.persister.entity.mutation.UpdateCoordinatorStandard.doStaticUpdate(UpdateCoordinatorStandard.java:781) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
+        at org.hibernate.persister.entity.mutation.UpdateCoordinatorStandard.performUpdate(UpdateCoordinatorStandard.java:328) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
+        at org.hibernate.persister.entity.mutation.UpdateCoordinatorStandard.update(UpdateCoordinatorStandard.java:245) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
+        at org.hibernate.action.internal.EntityUpdateAction.execute(EntityUpdateAction.java:169) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
+        at org.hibernate.engine.spi.ActionQueue.executeActions(ActionQueue.java:644) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
+        at org.hibernate.engine.spi.ActionQueue.executeActions(ActionQueue.java:511) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
+        at org.hibernate.event.internal.AbstractFlushingEventListener.performExecutions(AbstractFlushingEventListener.java:414) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
+        at org.hibernate.event.internal.DefaultFlushEventListener.onFlush(DefaultFlushEventListener.java:41) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
+        at org.hibernate.event.service.internal.EventListenerGroupImpl.fireEventOnEachListener(EventListenerGroupImpl.java:127) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
+        at org.hibernate.internal.SessionImpl.doFlush(SessionImpl.java:1429) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
+        at org.hibernate.internal.SessionImpl.flush(SessionImpl.java:1415) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
+        at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+        at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+        at org.springframework.orm.jpa.ExtendedEntityManagerCreator$ExtendedEntityManagerInvocationHandler.invoke(ExtendedEntityManagerCreator.java:364) ~[spring-orm-6.2.16.jar!/:6.2.16]
+        at jdk.proxy2/jdk.proxy2.$Proxy251.flush(Unknown Source) ~[na:na]
+        at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+        at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+        at org.springframework.orm.jpa.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler.invoke(SharedEntityManagerCreator.java:320) ~[spring-orm-6.2.16.jar!/:6.2.16]
+        at jdk.proxy2/jdk.proxy2.$Proxy251.flush(Unknown Source) ~[na:na]
+        at org.springframework.data.jpa.repository.support.SimpleJpaRepository.flush(SimpleJpaRepository.java:699) ~[spring-data-jpa-3.5.9.jar!/:3.5.9]
+        at org.springframework.data.jpa.repository.support.SimpleJpaRepository.saveAndFlush(SimpleJpaRepository.java:666) ~[spring-data-jpa-3.5.9.jar!/:3.5.9]
+        at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+        at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+        at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360) ~[spring-aop-6.2.16.jar!/:6.2.16]
+        at org.springframework.data.repository.core.support.RepositoryMethodInvoker$RepositoryFragmentMethodInvoker.lambda$new$0(RepositoryMethodInvoker.java:277) ~[spring-data-commons-3.5.9.jar!/:3.5.9]
+        at org.springframework.data.repository.core.support.RepositoryMethodInvoker.doInvoke(RepositoryMethodInvoker.java:170) ~[spring-data-commons-3.5.9.jar!/:3.5.9]
+        at org.springframework.data.repository.core.support.RepositoryMethodInvoker.invoke(RepositoryMethodInvoker.java:158) ~[spring-data-commons-3.5.9.jar!/:3.5.9]
+        at org.springframework.data.repository.core.support.RepositoryComposition$RepositoryFragments.invoke(RepositoryComposition.java:515) ~[spring-data-commons-3.5.9.jar!/:3.5.9]
+        at org.springframework.data.repository.core.support.RepositoryComposition.invoke(RepositoryComposition.java:284) ~[spring-data-commons-3.5.9.jar!/:3.5.9]
+        at org.springframework.data.repository.core.support.RepositoryFactorySupport$ImplementationMethodExecutionInterceptor.invoke(RepositoryFactorySupport.java:720) ~[spring-data-commons-3.5.9.jar!/:3.5.9]
+        at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.2.16.jar!/:6.2.16]
+        at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.doInvoke(QueryExecutorMethodInterceptor.java:174) ~[spring-data-commons-3.5.9.jar!/:3.5.9]
+        at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.invoke(QueryExecutorMethodInterceptor.java:149) ~[spring-data-commons-3.5.9.jar!/:3.5.9]
+        at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.2.16.jar!/:6.2.16]
+        at org.springframework.data.projection.DefaultMethodInvokingMethodInterceptor.invoke(DefaultMethodInvokingMethodInterceptor.java:69) ~[spring-data-commons-3.5.9.jar!/:3.5.9]
+        at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.2.16.jar!/:6.2.16]
+        at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:380) ~[spring-tx-6.2.16.jar!/:6.2.16]
+        at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119) ~[spring-tx-6.2.16.jar!/:6.2.16]
+        at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.2.16.jar!/:6.2.16]
+        at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:138) ~[spring-tx-6.2.16.jar!/:6.2.16]
+        ... 147 common frames omitted
+Caused by: java.sql.SQLException: (conn=118299) Record has changed since last read in table 'watchlist'
+        at org.mariadb.jdbc.export.ExceptionFactory.createException(ExceptionFactory.java:330) ~[mariadb-java-client-3.5.7.jar!/:na]
+        at org.mariadb.jdbc.export.ExceptionFactory.create(ExceptionFactory.java:403) ~[mariadb-java-client-3.5.7.jar!/:na]
+        at org.mariadb.jdbc.message.ClientMessage.readPacket(ClientMessage.java:196) ~[mariadb-java-client-3.5.7.jar!/:na]
+        at org.mariadb.jdbc.client.impl.StandardClient.readPacket(StandardClient.java:1411) ~[mariadb-java-client-3.5.7.jar!/:na]
+        at org.mariadb.jdbc.client.impl.StandardClient.readResults(StandardClient.java:1350) ~[mariadb-java-client-3.5.7.jar!/:na]
+        at org.mariadb.jdbc.client.impl.StandardClient.readResponse(StandardClient.java:1269) ~[mariadb-java-client-3.5.7.jar!/:na]
+        at org.mariadb.jdbc.client.impl.StandardClient.execute(StandardClient.java:1193) ~[mariadb-java-client-3.5.7.jar!/:na]
+        at org.mariadb.jdbc.ClientPreparedStatement.executeInternal(ClientPreparedStatement.java:91) ~[mariadb-java-client-3.5.7.jar!/:na]
+        at org.mariadb.jdbc.ClientPreparedStatement.executeLargeUpdate(ClientPreparedStatement.java:345) ~[mariadb-java-client-3.5.7.jar!/:na]
+        at org.mariadb.jdbc.ClientPreparedStatement.executeUpdate(ClientPreparedStatement.java:322) ~[mariadb-java-client-3.5.7.jar!/:na]
+        at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61) ~[HikariCP-6.3.3.jar!/:na]
+        at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java) ~[HikariCP-6.3.3.jar!/:na]
+        at org.hibernate.engine.jdbc.internal.ResultSetReturnImpl.executeUpdate(ResultSetReturnImpl.java:194) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
+        ... 190 common frames omitted

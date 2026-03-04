@@ -1,5 +1,6 @@
 package grafioschtrader.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -37,6 +38,22 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
 
   @UpdateQuery(value = "UPDATE watchlist_sec_cur wsc SET wsc.id_watchlist = ?2 WHERE wsc.id_watchlist = ?1 AND wsc.id_securitycurrency = ?3", nativeQuery = true)
   void moveUpdateSecuritycurrency(Integer idWatchlistSource, Integer idWatchlistTarget, Integer idSecuritycurrency);
+
+  /**
+   * Atomically updates the last_timestamp for a watchlist only if it is null or older than the given threshold.
+   * Returns the number of affected rows (0 or 1). Used to avoid race conditions when multiple concurrent requests
+   * check whether an intraday price update is needed — only the first request succeeds and triggers the update.
+   *
+   * @param now           the new timestamp to set
+   * @param idWatchlist   the watchlist ID to update
+   * @param threshold     the threshold time; only updates if the current last_timestamp is before this value
+   * @return 1 if the row was updated (caller should trigger price update), 0 if already up-to-date
+   */
+  @Transactional
+  @Modifying
+  @Query(value = "UPDATE watchlist SET last_timestamp = ?1 WHERE id_watchlist = ?2"
+      + " AND (last_timestamp IS NULL OR last_timestamp < ?3)", nativeQuery = true)
+  int updateLastTimestampIfStale(LocalDateTime now, Integer idWatchlist, LocalDateTime threshold);
 
   @Transactional
   @Modifying
