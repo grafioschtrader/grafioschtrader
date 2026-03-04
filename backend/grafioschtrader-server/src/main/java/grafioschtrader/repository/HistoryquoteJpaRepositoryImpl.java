@@ -102,7 +102,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
   @Override
   public ISecuritycurrencyIdDateClose getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(
       final Integer idSecuritycurrency, final String dateString, final boolean asTraded) throws ParseException {
-    final LocalDate date = LocalDate.parse(dateString);
+    final LocalDate date = LocalDate.parse(dateString, java.time.format.DateTimeFormatter.BASIC_ISO_DATE);
     return getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(idSecuritycurrency, date, asTraded);
   }
 

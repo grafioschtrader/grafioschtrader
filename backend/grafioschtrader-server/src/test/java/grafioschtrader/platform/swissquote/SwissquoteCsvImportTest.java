@@ -13,7 +13,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-@SpringBootTest(webEnvironment = WebEnvironment.NONE)
+import grafioschtrader.test.start.GTforTest;
+
+@SpringBootTest(classes = GTforTest.class)
 public class SwissquoteCsvImportTest {
 
   @Autowired

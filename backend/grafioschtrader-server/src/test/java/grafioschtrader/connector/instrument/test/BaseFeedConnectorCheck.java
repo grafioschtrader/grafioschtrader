@@ -87,7 +87,7 @@ public abstract class BaseFeedConnectorCheck {
         e.printStackTrace();
       }
       System.out
-          .println(String.format("%s URL: %s last:%f change percentage: %f open: %f high: %f low: %f timestamp: %tc",
+          .println(String.format("%s URL: %s last:%f change percentage: %f open: %f high: %f low: %f timestamp: %s",
               security.getName(), security.getUrlIntraExtend(), security.getSLast(), security.getSChangePercentage(),
               security.getSOpen(), security.getSHigh(), security.getSLow(), security.getSTimestamp()));
       Assertions.assertThat(security.getSLast()).as("Last price for " + security.getName()).isNotNull()

@@ -5,6 +5,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -143,6 +144,20 @@ public class ValueFormatConverter {
         convertValue = LocalDate.parse(value, localDateFormatter);
       } catch (Exception e) {
         convertValue = LocalDate.parse(value, localDateFormatterFallback);
+      }
+    } else if (LocalDateTime.class == dataType) {
+      try {
+        convertValue = LocalDateTime.parse(value, localDateFormatter);
+      } catch (Exception e1) {
+        try {
+          convertValue = LocalDate.parse(value, localDateFormatter).atStartOfDay();
+        } catch (Exception e2) {
+          try {
+            convertValue = LocalDate.parse(value, localDateFormatterFallback).atStartOfDay();
+          } catch (Exception e3) {
+            convertValue = LocalDateTime.parse(value, localDateFormatterFallback);
+          }
+        }
       }
     } else if (LocalTime.class == dataType) {
       convertValue = LocalTime.parse(value, localTimeFormater);

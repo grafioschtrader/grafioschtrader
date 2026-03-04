@@ -17,11 +17,11 @@ import jakarta.validation.Payload;
 
 /**
  * Validation annotation that ensures a date field value is on or after a specified minimum date.
- * Supports both {@link java.util.Date} and {@link java.time.LocalDate} field types.
+ * Supports {@link java.time.LocalDate} and {@link java.time.LocalDateTime} field types.
  * Null values are considered valid (use @NotNull for mandatory fields).
  */
 @Documented
-@Constraint(validatedBy = {AfterEqualLocalDateValidator.class})
+@Constraint(validatedBy = {AfterEqualLocalDateValidator.class, AfterEqualLocalDateTimeValidator.class})
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
 public @interface AfterEqual {
