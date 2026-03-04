@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Dividend;
@@ -121,9 +122,11 @@ public interface IFeedConnector {
   }
 
   @Schema(description = "Id of the connector as it is used in the database")
+  @JsonProperty("id")
   String getID();
 
   @Schema(description = "Id of the connector without prefix")
+  @JsonProperty("shortID")
   String getShortID();
 
   /**

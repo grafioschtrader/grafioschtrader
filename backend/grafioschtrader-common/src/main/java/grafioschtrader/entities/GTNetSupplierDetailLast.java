@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import grafiosch.BaseConstants;
 import grafiosch.entities.GTNetSupplierDetail;
@@ -70,6 +71,7 @@ public class GTNetSupplierDetailLast {
     this.retryIntraLoad = retryIntraLoad;
   }
 
+  @JsonProperty("sTimestamp")
   public LocalDateTime getSTimestamp() {
     return sTimestamp;
   }

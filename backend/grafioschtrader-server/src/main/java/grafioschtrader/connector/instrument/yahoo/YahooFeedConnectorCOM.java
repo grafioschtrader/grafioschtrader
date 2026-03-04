@@ -34,6 +34,7 @@ import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.CreateType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -52,8 +53,12 @@ import tools.jackson.databind.json.JsonMapper;
 public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
+  // Jackson 3 changed DEFAULT_VIEW_INCLUSION default from true to false.
+  // Enable it so leaf DTO fields without @JsonView are included when
+  // readerWithView() is used for selective subtree deserialization.
   private static final ObjectMapper objectMapper = JsonMapper.builder()
-      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .enable(MapperFeature.DEFAULT_VIEW_INCLUSION).build();
   private static final String DIVDEND_EVENT = "div";
   private static final String SPLIT_EVENT = "splits";
   private static final String URL_NORMAL_REGEX = "^\\^?[A-Za-z\\-0-9]+(\\.[A-Za-z]+)?$";

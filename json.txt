@@ -1,0 +1,30 @@
+"accountPositionSummaryList": [
+                {
+                    "accountFeesMC": 0.0,
+                    "accountInterestMC": 729.65,
+                    "balanceCurrencyTransaction": 114369.29000124222,
+                    "balanceCurrencyTransactionMC": 109808.30694523694,
+                    "cashAccountTransactionFeeMC": 0.0,
+                    "cashBalance": 14971.87,
+                    "cashBalanceMC": 0.0,
+                    "cashTransferMC": 109078.66,
+                    "cashaccount": {
+                        "activeToDate": null,
+                        "borrowingRate": null,
+                        "connectIdSecurityaccount": null,
+                        "currency": "USD",
+                        "idSecuritycashAccount": 41,
+                        "name": "CT USD",
+                        "note": null
+                    },
+                    "closeDate": "2026-03-04",
+                    "closePrice": 0.0,
+                    "externalCashTransferMC": 89855.56,
+                    "gainLossCurrencyMC": -109808.31,
+                    "gainLossSecurities": -10359.9,
+                    "gainLossSecuritiesMC": 0.0,
+                    "hasTransaction": true,
+                    "valueMC": 0.0,
+                    "valueSecurities": 88945.0,
+                    "valueSecuritiesMC": 0.0
+                },
