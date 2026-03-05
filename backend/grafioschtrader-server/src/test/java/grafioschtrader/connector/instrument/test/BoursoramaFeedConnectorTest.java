@@ -47,7 +47,7 @@ public class BoursoramaFeedConnectorTest extends BaseFeedConnectorCheck {
       hisoricalDate.add(new SecurityHistoricalDate("ZKB Gold ETF (CHF)", SpecialInvestmentInstruments.ETF, "2aZGLD",
           GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 4979, "2006-03-15", dateTo));
       hisoricalDate.add(new SecurityHistoricalDate("NASDAQ 100", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
-          "$COMPX", GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 5027, "2006-02-13", dateTo));
+          "$COMPX", GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 5013, "2006-03-06", dateTo));
 
     } catch (ParseException pe) {
       pe.printStackTrace();

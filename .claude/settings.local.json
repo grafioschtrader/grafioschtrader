@@ -155,7 +155,9 @@
       "Bash(\"/c/Program Files/Python312/python\":*)",
       "WebFetch(domain:central.sonatype.com)",
       "Bash(jar xf:*)",
-      "Bash(javap:*)"
+      "Bash(javap:*)",
+      "WebFetch(domain:pranavkhodanpur.medium.com)",
+      "WebFetch(domain:documentation.red-gate.com)"
     ],
     "deny": [],
     "ask": []

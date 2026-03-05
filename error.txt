@@ -1,64 +1,180 @@
-Caused by: org.hibernate.exception.LockAcquisitionException: could not execute statement [(conn=118299) Record has changed since last read in table 'watchlist'] [update watchlist set id_tenant=?,last_timestam                                                                                                    p=?,name=? where id_watchlist=?]
-        at org.hibernate.dialect.MariaDBDialect.lambda$buildSQLExceptionConversionDelegate$0(MariaDBDialect.java:299) ~[hibernate-core-6.6.42.Final.jar!/:5.6.15.Final]
-        at org.hibernate.exception.internal.StandardSQLExceptionConverter.convert(StandardSQLExceptionConverter.java:58) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
-        at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:108) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
-        at org.hibernate.engine.jdbc.internal.ResultSetReturnImpl.executeUpdate(ResultSetReturnImpl.java:197) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
-        at org.hibernate.engine.jdbc.mutation.internal.AbstractMutationExecutor.performNonBatchedMutation(AbstractMutationExecutor.java:134) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
-        at org.hibernate.engine.jdbc.mutation.internal.MutationExecutorSingleNonBatched.performNonBatchedOperations(MutationExecutorSingleNonBatched.java:55) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
-        at org.hibernate.engine.jdbc.mutation.internal.AbstractMutationExecutor.execute(AbstractMutationExecutor.java:55) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
-        at org.hibernate.persister.entity.mutation.UpdateCoordinatorStandard.doStaticUpdate(UpdateCoordinatorStandard.java:781) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
-        at org.hibernate.persister.entity.mutation.UpdateCoordinatorStandard.performUpdate(UpdateCoordinatorStandard.java:328) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
-        at org.hibernate.persister.entity.mutation.UpdateCoordinatorStandard.update(UpdateCoordinatorStandard.java:245) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
-        at org.hibernate.action.internal.EntityUpdateAction.execute(EntityUpdateAction.java:169) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
-        at org.hibernate.engine.spi.ActionQueue.executeActions(ActionQueue.java:644) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
-        at org.hibernate.engine.spi.ActionQueue.executeActions(ActionQueue.java:511) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
-        at org.hibernate.event.internal.AbstractFlushingEventListener.performExecutions(AbstractFlushingEventListener.java:414) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
-        at org.hibernate.event.internal.DefaultFlushEventListener.onFlush(DefaultFlushEventListener.java:41) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
-        at org.hibernate.event.service.internal.EventListenerGroupImpl.fireEventOnEachListener(EventListenerGroupImpl.java:127) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
-        at org.hibernate.internal.SessionImpl.doFlush(SessionImpl.java:1429) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
-        at org.hibernate.internal.SessionImpl.flush(SessionImpl.java:1415) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.3)
+
+2026-03-05 14:21:05.501  INFO 15583 --- [           main] g.GrafioschtraderApplication             : Starting GrafioschtraderApplication v0.34.0 using Java 21.0.2 with PID 15583 (/home/grafioschtrader/grafioschtrader-server-0.34.0.jar started by grafioschtrader in /ho
+me/grafioschtrader)
+2026-03-05 14:21:05.511  INFO 15583 --- [           main] g.GrafioschtraderApplication             : The following 1 profile is active: "production"
+2026-03-05 14:21:08.450  INFO 15583 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-03-05 14:21:09.539  INFO 15583 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 1062 ms. Found 85 JPA repository interfaces.
+2026-03-05 14:21:11.838  INFO 15583 --- [           main] ptablePropertiesBeanFactoryPostProcessor : Post-processing PropertySource instances
+2026-03-05 14:21:11.840  INFO 15583 --- [           main] c.u.j.EncryptablePropertySourceConverter : Skipping PropertySource configurationProperties [class org.springframework.boot.context.properties.source.ConfigurationPropertySourcesPropertySource
+2026-03-05 14:21:11.841  INFO 15583 --- [           main] c.u.j.EncryptablePropertySourceConverter : Skipping PropertySource servletConfigInitParams [class org.springframework.core.env.PropertySource$StubPropertySource
+2026-03-05 14:21:11.841  INFO 15583 --- [           main] c.u.j.EncryptablePropertySourceConverter : Skipping PropertySource servletContextInitParams [class org.springframework.core.env.PropertySource$StubPropertySource
+2026-03-05 14:21:11.843  INFO 15583 --- [           main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemProperties [org.springframework.core.env.PropertiesPropertySource] to EncryptableMapPropertySourceWrapper
+2026-03-05 14:21:11.844  INFO 15583 --- [           main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemEnvironment [org.springframework.boot.support.SystemEnvironmentPropertySourceEnvironmentPostProcessor$OriginAwareSystemEnvironmentPrope
+rtySource] to EncryptableSystemEnvironmentPropertySourceWrapper
+2026-03-05 14:21:11.844  INFO 15583 --- [           main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource random [org.springframework.boot.env.RandomValuePropertySource] to EncryptablePropertySourceWrapper
+2026-03-05 14:21:11.844  INFO 15583 --- [           main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource Config resource 'class path resource [grafiosch-application.properties]' via location 'optional:classpath:grafiosch-application.properties' [
+org.springframework.boot.env.OriginTrackedMapPropertySource] to EncryptableMapPropertySourceWrapper
+2026-03-05 14:21:11.844  INFO 15583 --- [           main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource Config resource 'class path resource [application.properties]' via location 'optional:classpath:/' [org.springframework.boot.env.OriginTracke
+dMapPropertySource] to EncryptableMapPropertySourceWrapper
+2026-03-05 14:21:11.844  INFO 15583 --- [           main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource Config resource 'class path resource [application.yaml]' via location 'optional:classpath:/' [org.springframework.boot.env.OriginTrackedMapPr
+opertySource] to EncryptableMapPropertySourceWrapper
+2026-03-05 14:21:11.844  INFO 15583 --- [           main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource applicationInfo [org.springframework.boot.ApplicationInfoPropertySource] to EncryptableMapPropertySourceWrapper
+2026-03-05 14:21:12.357  INFO 15583 --- [           main] c.u.j.filter.DefaultLazyPropertyFilter   : Property Filter custom Bean not found with name 'encryptablePropertyFilter'. Initializing Default Property Filter
+2026-03-05 14:21:12.377  INFO 15583 --- [           main] c.u.j.r.DefaultLazyPropertyResolver      : Property Resolver custom Bean not found with name 'encryptablePropertyResolver'. Initializing Default Property Resolver
+2026-03-05 14:21:12.381  INFO 15583 --- [           main] c.u.j.d.DefaultLazyPropertyDetector      : Property Detector custom Bean not found with name 'encryptablePropertyDetector'. Initializing Default Property Detector
+2026-03-05 14:21:12.876  INFO 15583 --- [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with ports 8080 (http), 9090 (http)
+2026-03-05 14:21:12.897  INFO 15583 --- [           main] org.apache.coyote.ajp.AjpNioProtocol     : Initializing ProtocolHandler ["ajp-nio-127.0.0.1-9090"]
+2026-03-05 14:21:12.900  INFO 15583 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-03-05 14:21:12.900  INFO 15583 --- [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.18]
+2026-03-05 14:21:12.952  INFO 15583 --- [           main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 7298 ms
+2026-03-05 14:21:13.378  INFO 15583 --- [           main] c.u.j.encryptor.DefaultLazyEncryptor     : String Encryptor custom Bean not found with name 'jasyptStringEncryptor'. Initializing Default String Encryptor
+2026-03-05 14:21:13.396  INFO 15583 --- [           main] c.u.j.c.StringEncryptorBuilder           : Encryptor config not found for property jasypt.encryptor.algorithm, using default value: PBEWITHHMACSHA512ANDAES_256
+2026-03-05 14:21:13.397  INFO 15583 --- [           main] c.u.j.c.StringEncryptorBuilder           : Encryptor config not found for property jasypt.encryptor.key-obtention-iterations, using default value: 1000
+2026-03-05 14:21:13.398  INFO 15583 --- [           main] c.u.j.c.StringEncryptorBuilder           : Encryptor config not found for property jasypt.encryptor.pool-size, using default value: 1
+2026-03-05 14:21:13.398  INFO 15583 --- [           main] c.u.j.c.StringEncryptorBuilder           : Encryptor config not found for property jasypt.encryptor.provider-name, using default value: null
+2026-03-05 14:21:13.399  INFO 15583 --- [           main] c.u.j.c.StringEncryptorBuilder           : Encryptor config not found for property jasypt.encryptor.provider-class-name, using default value: null
+2026-03-05 14:21:13.399  INFO 15583 --- [           main] c.u.j.c.StringEncryptorBuilder           : Encryptor config not found for property jasypt.encryptor.salt-generator-classname, using default value: org.jasypt.salt.RandomSaltGenerator
+2026-03-05 14:21:13.401  INFO 15583 --- [           main] c.u.j.c.StringEncryptorBuilder           : Encryptor config not found for property jasypt.encryptor.iv-generator-classname, using default value: org.jasypt.iv.RandomIvGenerator
+2026-03-05 14:21:13.402  INFO 15583 --- [           main] c.u.j.c.StringEncryptorBuilder           : Encryptor config not found for property jasypt.encryptor.string-output-type, using default value: base64
+2026-03-05 14:21:13.855  INFO 15583 --- [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-03-05 14:21:14.014  INFO 15583 --- [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.2.4.Final
+2026-03-05 14:21:14.074  INFO 15583 --- [           main] org.hibernate.orm.cache                  : HHH90001028: Second-level cache region factory [org.hibernate.cache.jcache.internal.JCacheRegionFactory]
+2026-03-05 14:21:14.657  INFO 15583 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-03-05 14:21:14.879  INFO 15583 --- [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.mariadb.jdbc.Connection@da2303c
+2026-03-05 14:21:14.883  INFO 15583 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-03-05 14:21:15.054  INFO 15583 --- [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+        Database JDBC URL [jdbc:mariadb://localhost/grafioschtrader?user=grafioschtrader&password=***]
+        Database driver: MariaDB Connector/J
+        Database dialect: MariaDBDialect
+        Database version: 10.11.14
+        Default catalog/schema: grafioschtrader/undefined
+        Autocommit mode: undefined/unknown
+        Isolation level: REPEATABLE_READ [default REPEATABLE_READ]
+        JDBC fetch size: none
+        Pool: DataSourceConnectionProvider
+        Minimum pool size: undefined/unknown
+        Maximum pool size: undefined/unknown
+2026-03-05 14:21:15.741  INFO 15583 --- [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-03-05 14:21:17.755  INFO 15583 --- [           main] org.ehcache.jsr107.Eh107CacheManager     : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=urn.X-ehcache.jsr107-default-config,Cache=default-update-timestamps-region
+2026-03-05 14:21:17.757  INFO 15583 --- [           main] org.ehcache.core.EhcacheManager          : Cache 'default-update-timestamps-region' created in EhcacheManager.
+2026-03-05 14:21:17.765  INFO 15583 --- [           main] org.ehcache.jsr107.Eh107CacheManager     : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=urn.X-ehcache.jsr107-default-config,Cache=default-query-results-region
+2026-03-05 14:21:17.766  INFO 15583 --- [           main] org.ehcache.core.EhcacheManager          : Cache 'default-query-results-region' created in EhcacheManager.
+2026-03-05 14:21:18.395  INFO 15583 --- [           main] org.ehcache.jsr107.Eh107CacheManager     : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=urn.X-ehcache.jsr107-default-config,Cache=grafiosch.entities.User.roles
+2026-03-05 14:21:18.395  INFO 15583 --- [           main] org.ehcache.core.EhcacheManager          : Cache 'grafiosch.entities.User.roles' created in EhcacheManager.
+2026-03-05 14:21:18.403  INFO 15583 --- [           main] org.ehcache.jsr107.Eh107CacheManager     : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=urn.X-ehcache.jsr107-default-config,Cache=grafioschtrader.entities.ImportTransactionPlatform
+2026-03-05 14:21:18.404  INFO 15583 --- [           main] org.ehcache.core.EhcacheManager          : Cache 'grafioschtrader.entities.ImportTransactionPlatform' created in EhcacheManager.
+2026-03-05 14:21:18.409  INFO 15583 --- [           main] org.ehcache.jsr107.Eh107CacheManager     : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=urn.X-ehcache.jsr107-default-config,Cache=grafiosch.entities.Globalparameters
+2026-03-05 14:21:18.410  INFO 15583 --- [           main] org.ehcache.core.EhcacheManager          : Cache 'grafiosch.entities.Globalparameters' created in EhcacheManager.
+2026-03-05 14:21:18.414  INFO 15583 --- [           main] org.ehcache.jsr107.Eh107CacheManager     : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=urn.X-ehcache.jsr107-default-config,Cache=grafiosch.entities.User
+2026-03-05 14:21:18.415  INFO 15583 --- [           main] org.ehcache.core.EhcacheManager          : Cache 'grafiosch.entities.User' created in EhcacheManager.
+2026-03-05 14:21:18.419  INFO 15583 --- [           main] org.ehcache.jsr107.Eh107CacheManager     : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=urn.X-ehcache.jsr107-default-config,Cache=grafioschtrader.entities.Assetclass
+2026-03-05 14:21:18.420  INFO 15583 --- [           main] org.ehcache.core.EhcacheManager          : Cache 'grafioschtrader.entities.Assetclass' created in EhcacheManager.
+2026-03-05 14:21:18.429  INFO 15583 --- [           main] org.ehcache.jsr107.Eh107CacheManager     : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=urn.X-ehcache.jsr107-default-config,Cache=grafiosch.entities.MultilanguageString.map
+2026-03-05 14:21:18.429  INFO 15583 --- [           main] org.ehcache.core.EhcacheManager          : Cache 'grafiosch.entities.MultilanguageString.map' created in EhcacheManager.
+2026-03-05 14:21:18.434  INFO 15583 --- [           main] org.ehcache.jsr107.Eh107CacheManager     : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=urn.X-ehcache.jsr107-default-config,Cache=grafioschtrader.entities.Stockexchange
+2026-03-05 14:21:18.435  INFO 15583 --- [           main] org.ehcache.core.EhcacheManager          : Cache 'grafioschtrader.entities.Stockexchange' created in EhcacheManager.
+2026-03-05 14:21:18.440  INFO 15583 --- [           main] org.ehcache.jsr107.Eh107CacheManager     : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=urn.X-ehcache.jsr107-default-config,Cache=grafiosch.entities.MultilanguageString
+2026-03-05 14:21:18.440  INFO 15583 --- [           main] org.ehcache.core.EhcacheManager          : Cache 'grafiosch.entities.MultilanguageString' created in EhcacheManager.
+2026-03-05 14:21:18.445  INFO 15583 --- [           main] org.ehcache.jsr107.Eh107CacheManager     : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=urn.X-ehcache.jsr107-default-config,Cache=grafiosch.entities.Role
+2026-03-05 14:21:18.446  INFO 15583 --- [           main] org.ehcache.core.EhcacheManager          : Cache 'grafiosch.entities.Role' created in EhcacheManager.
+2026-03-05 14:21:20.497  INFO 15583 --- [           main] org.hibernate.orm.core                   : HHH000182: No default (no-argument) constructor for class [grafiosch.entities.MailEntity] (class must be instantiated by Interceptor)
+2026-03-05 14:21:20.973  INFO 15583 --- [           main] org.hibernate.orm.core                   : HHH000182: No default (no-argument) constructor for class [grafioschtrader.entities.MicProviderMap$IdProviderMic] (class must be instantiated by Interceptor)
+2026-03-05 14:21:21.780  WARN 15583 --- [           main] org.hibernate.orm.core                   : HHH005002: Unable to locate static metamodel field: grafioschtrader.entities.Securitycurrency_#gtNetHistoricalRecv; this may or may not indicate a problem with the sta
+tic metamodel
+2026-03-05 14:21:21.781  WARN 15583 --- [           main] org.hibernate.orm.core                   : HHH005002: Unable to locate static metamodel field: grafioschtrader.entities.Securitycurrency_#gtNetHistoricalSend; this may or may not indicate a problem with the sta
+tic metamodel
+2026-03-05 14:21:21.781  WARN 15583 --- [           main] org.hibernate.orm.core                   : HHH005002: Unable to locate static metamodel field: grafioschtrader.entities.Securitycurrency_#gtNetLastModifiedTime; this may or may not indicate a problem with the s
+tatic metamodel
+2026-03-05 14:21:21.781  WARN 15583 --- [           main] org.hibernate.orm.core                   : HHH005002: Unable to locate static metamodel field: grafioschtrader.entities.Securitycurrency_#gtNetLastpriceRecv; this may or may not indicate a problem with the stat
+ic metamodel
+2026-03-05 14:21:21.781  WARN 15583 --- [           main] org.hibernate.orm.core                   : HHH005002: Unable to locate static metamodel field: grafioschtrader.entities.Securitycurrency_#gtNetLastpriceSend; this may or may not indicate a problem with the stat
+ic metamodel
+2026-03-05 14:21:21.915  INFO 15583 --- [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-03-05 14:21:21.949  INFO 15583 --- [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-03-05 14:21:22.371  INFO 15583 --- [           main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-03-05 14:21:24.776  INFO 15583 --- [           main] g.gtnet.GTNetMessageCodeRegistry         : GTNet message code registry initialized with 20 core codes
+2026-03-05 14:21:27.427  INFO 15583 --- [           main] g.c.i.f.FinanzenCHFeedConnector          : Response received - Status code: 200
+2026-03-05 14:21:27.428  INFO 15583 --- [           main] g.c.i.f.FinanzenCHFeedConnector          : Response headers: {:status=[200], cache-control=[public, max-age=58, s-maxage=180], content-type=[text/html; charset=utf-8], date=[Thu, 05 Mar 2026 13:21:27 GMT], feat
+ure-policy=[geolocation 'none'; midi 'none'; camera 'none'; usb 'none'; magnetometer 'none'; accelerometer 'none'; gyroscope 'none'; microphone 'none'; payment 'none'], referrer-policy=[same-origin], set-cookie=[Bot-Information=eaa7cadc3dcdf894183baa33f2d1bdc5; path=/
+; domain=.www.finanzen.ch; Secure], strict-transport-security=[max-age=31536000; includeSubDomains], vary=[Accept-Encoding], x-content-type-options=[nosniff], x-frame-options=[SAMEORIGIN]}
+2026-03-05 14:21:27.429  INFO 15583 --- [           main] g.c.i.f.FinanzenCHFeedConnector          : Response body length: 452266 characters
+2026-03-05 14:21:27.738  INFO 15583 --- [           main] g.c.i.f.FinanzenNETFeedConnector         : Response received - Status code: 200
+2026-03-05 14:21:27.739  INFO 15583 --- [           main] g.c.i.f.FinanzenNETFeedConnector         : Response headers: {:status=[200], cache-control=[public, max-age=17, s-maxage=180], content-type=[text/html; charset=utf-8], date=[Thu, 05 Mar 2026 13:21:27 GMT], feat
+ure-policy=[geolocation 'none'; midi 'none'; camera 'none'; usb 'none'; magnetometer 'none'; accelerometer 'none'; gyroscope 'none'; microphone 'none'; payment 'none'], referrer-policy=[strict-origin-when-cross-origin], server=[Microsoft-IIS/10.0], set-cookie=[Bot-Inf
+ormation=d47aba5438db1ddbf37f706be587990a; path=/; domain=.www.finanzen.net; Secure], strict-transport-security=[max-age=31536000; includeSubDomains], vary=[Accept-Encoding], x-content-type-options=[nosniff], x-frame-options=[SAMEORIGIN]}
+2026-03-05 14:21:27.740  INFO 15583 --- [           main] g.c.i.f.FinanzenNETFeedConnector         : Response body length: 716626 characters
+2026-03-05 14:21:30.623  INFO 15583 --- [           main] grafiosch.gtnet.GTNetModelRegistry       : GTNet model registry initialized
+2026-03-05 14:21:30.741  INFO 15583 --- [           main] g.g.handler.GTNetMessageHandlerRegistry  : GTNet message handler registry initialized with 22 handlers for 23 message codes
+2026-03-05 14:21:31.786  INFO 15583 --- [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name userServiceImpl
+2026-03-05 14:21:34.442  INFO 15583 --- [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/api/actuator'
+2026-03-05 14:21:34.643  INFO 15583 --- [           main] org.apache.coyote.ajp.AjpNioProtocol     : Starting ProtocolHandler ["ajp-nio-127.0.0.1-9090"]
+2026-03-05 14:21:34.655  INFO 15583 --- [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on ports 8080 (http), 9090 (http) with context path '/'
+2026-03-05 14:21:34.712  INFO 15583 --- [           main] g.GrafioschtraderApplication             : Started GrafioschtraderApplication in 30.472 seconds (process running for 32.094)
+2026-03-05 14:21:34.728  WARN 15583 --- [           main] o.s.core.events.SpringDocAppInitializer  : SpringDoc /api-docs endpoint is enabled by default. To disable it in production, set the property 'springdoc.api-docs.enabled=false'
+2026-03-05 14:21:34.729  WARN 15583 --- [           main] o.s.core.events.SpringDocAppInitializer  : SpringDoc /swagger-ui.html endpoint is enabled by default. To disable it in production, set the property 'springdoc.swagger-ui.enabled=false'
+2026-03-05 14:21:34.880  INFO 15583 --- [           main] g.c.i.QuoteBackgroundUpdateWorker        : Historical price quote updater was started
+2026-03-05 14:21:35.074  WARN 15583 --- [           main] o.m.jdbc.message.server.ErrorPacket      : Error: 1054-42S22: Unknown column 'e1_0.ever_used_successfully' in 'SELECT'
+2026-03-05 14:21:35.079  WARN 15583 --- [           main] org.hibernate.orm.jdbc.error             : HHH000247: ErrorCode: 1054, SQLState: 42S22
+2026-03-05 14:21:35.079  WARN 15583 --- [           main] org.hibernate.orm.jdbc.error             : (conn=363) Unknown column 'e1_0.ever_used_successfully' in 'SELECT'
+2026-03-05 14:21:35.153 ERROR 15583 --- [           main] o.s.boot.SpringApplication               : Application run failed
+
+org.springframework.dao.InvalidDataAccessResourceUsageException: JDBC exception executing SQL [(conn=363) Unknown column 'e1_0.ever_used_successfully' in 'SELECT'] [select e1_0.id_generic_connector,e1_0.id_endpoint,e1_0.csv_delimiter,e1_0.csv_skip_header_lines,e1_0.cu
+rrency_pair_separator,e1_0.currency_pair_suffix,e1_0.date_format_pattern,e1_0.date_format_type,e1_0.endpoint_options,e1_0.ever_used_successfully,e1_0.feed_support,e1_0.html_css_selector,e1_0.html_extract_mode,e1_0.html_extract_regex,e1_0.html_split_delimiter,e1_0.html
+_text_cleanup,e1_0.http_method,e1_0.instrument_type,e1_0.json_column_names_path,e1_0.json_data_path,e1_0.json_data_structure,e1_0.json_status_ok_value,e1_0.json_status_path,e1_0.max_data_points,e1_0.number_format,e1_0.pagination_enabled,e1_0.response_format,e1_0.ticke
+r_build_strategy,e1_0.ticker_uppercase,e1_0.url_template from generic_connector_endpoint e1_0 where e1_0.id_generic_connector=? order by e1_0.feed_support,e1_0.instrument_type]; SQL [select e1_0.id_generic_connector,e1_0.id_endpoint,e1_0.csv_delimiter,e1_0.csv_skip_he
+ader_lines,e1_0.currency_pair_separator,e1_0.currency_pair_suffix,e1_0.date_format_pattern,e1_0.date_format_type,e1_0.endpoint_options,e1_0.ever_used_successfully,e1_0.feed_support,e1_0.html_css_selector,e1_0.html_extract_mode,e1_0.html_extract_regex,e1_0.html_split_d
+elimiter,e1_0.html_text_cleanup,e1_0.http_method,e1_0.instrument_type,e1_0.json_column_names_path,e1_0.json_data_path,e1_0.json_data_structure,e1_0.json_status_ok_value,e1_0.json_status_path,e1_0.max_data_points,e1_0.number_format,e1_0.pagination_enabled,e1_0.response
+_format,e1_0.ticker_build_strategy,e1_0.ticker_uppercase,e1_0.url_template from generic_connector_endpoint e1_0 where e1_0.id_generic_connector=? order by e1_0.feed_support,e1_0.instrument_type]
+        at org.springframework.orm.jpa.hibernate.HibernateExceptionTranslator.convertHibernateAccessException(HibernateExceptionTranslator.java:156) ~[spring-orm-7.0.5.jar!/:7.0.5]
+        at org.springframework.orm.jpa.hibernate.HibernateExceptionTranslator.convertHibernateAccessException(HibernateExceptionTranslator.java:131) ~[spring-orm-7.0.5.jar!/:7.0.5]
+        at org.springframework.orm.jpa.hibernate.HibernateExceptionTranslator.translateExceptionIfPossible(HibernateExceptionTranslator.java:105) ~[spring-orm-7.0.5.jar!/:7.0.5]
+        at org.springframework.orm.jpa.vendor.HibernateJpaDialect.translateExceptionIfPossible(HibernateJpaDialect.java:223) ~[spring-orm-7.0.5.jar!/:7.0.5]
+        at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.translateExceptionIfPossible(AbstractEntityManagerFactoryBean.java:576) ~[spring-orm-7.0.5.jar!/:7.0.5]
+        at org.springframework.dao.support.ChainedPersistenceExceptionTranslator.translateExceptionIfPossible(ChainedPersistenceExceptionTranslator.java:61) ~[spring-tx-7.0.5.jar!/:7.0.5]
+        at org.springframework.dao.support.DataAccessUtils.translateIfNecessary(DataAccessUtils.java:346) ~[spring-tx-7.0.5.jar!/:7.0.5]
+        at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:157) ~[spring-tx-7.0.5.jar!/:7.0.5]
+        at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179) ~[spring-aop-7.0.5.jar!/:7.0.5]
+        at org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor$CrudMethodMetadataPopulatingMethodInterceptor.invoke(CrudMethodMetadataPostProcessor.java:137) ~[spring-data-jpa-4.0.3.jar!/:4.0.3]
+        at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179) ~[spring-aop-7.0.5.jar!/:7.0.5]
+        at org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:222) ~[spring-aop-7.0.5.jar!/:7.0.5]
+        at jdk.proxy2/jdk.proxy2.$Proxy283.findByActivatedTrue(Unknown Source) ~[na:na]
+        at grafioschtrader.connector.instrument.generic.GenericFeedConnectorFactory.registerAll(GenericFeedConnectorFactory.java:56) ~[!/:0.34.0]
+        at grafioschtrader.connector.instrument.generic.GenericFeedConnectorFactory.onApplicationReady(GenericFeedConnectorFactory.java:43) ~[!/:0.34.0]
         at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
         at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
-        at org.springframework.orm.jpa.ExtendedEntityManagerCreator$ExtendedEntityManagerInvocationHandler.invoke(ExtendedEntityManagerCreator.java:364) ~[spring-orm-6.2.16.jar!/:6.2.16]
-        at jdk.proxy2/jdk.proxy2.$Proxy251.flush(Unknown Source) ~[na:na]
+        at org.springframework.context.event.ApplicationListenerMethodAdapter.doInvoke(ApplicationListenerMethodAdapter.java:375) ~[spring-context-7.0.5.jar!/:7.0.5]
+        at org.springframework.context.event.ApplicationListenerMethodAdapter.processEvent(ApplicationListenerMethodAdapter.java:252) ~[spring-context-7.0.5.jar!/:7.0.5]
+        at org.springframework.context.event.ApplicationListenerMethodAdapter.onApplicationEvent(ApplicationListenerMethodAdapter.java:171) ~[spring-context-7.0.5.jar!/:7.0.5]
+        at org.springframework.context.event.SimpleApplicationEventMulticaster.doInvokeListener(SimpleApplicationEventMulticaster.java:180) ~[spring-context-7.0.5.jar!/:7.0.5]
+        at org.springframework.context.event.SimpleApplicationEventMulticaster.invokeListener(SimpleApplicationEventMulticaster.java:173) ~[spring-context-7.0.5.jar!/:7.0.5]
+        at org.springframework.context.event.SimpleApplicationEventMulticaster.multicastEvent(SimpleApplicationEventMulticaster.java:151) ~[spring-context-7.0.5.jar!/:7.0.5]
+        at org.springframework.context.support.AbstractApplicationContext.publishEvent(AbstractApplicationContext.java:448) ~[spring-context-7.0.5.jar!/:7.0.5]
+        at org.springframework.context.support.AbstractApplicationContext.publishEvent(AbstractApplicationContext.java:381) ~[spring-context-7.0.5.jar!/:7.0.5]
+        at org.springframework.boot.context.event.EventPublishingRunListener.ready(EventPublishingRunListener.java:110) ~[spring-boot-4.0.3.jar!/:4.0.3]
+        at org.springframework.boot.SpringApplicationRunListeners.lambda$ready$0(SpringApplicationRunListeners.java:82) ~[spring-boot-4.0.3.jar!/:4.0.3]
+        at java.base/java.lang.Iterable.forEach(Iterable.java:75) ~[na:na]
+        at org.springframework.boot.SpringApplicationRunListeners.doWithListeners(SpringApplicationRunListeners.java:123) ~[spring-boot-4.0.3.jar!/:4.0.3]
+        at org.springframework.boot.SpringApplicationRunListeners.doWithListeners(SpringApplicationRunListeners.java:117) ~[spring-boot-4.0.3.jar!/:4.0.3]
+        at org.springframework.boot.SpringApplicationRunListeners.ready(SpringApplicationRunListeners.java:82) ~[spring-boot-4.0.3.jar!/:4.0.3]
+        at org.springframework.boot.SpringApplication.run(SpringApplication.java:335) ~[spring-boot-4.0.3.jar!/:4.0.3]
+        at org.springframework.boot.SpringApplication.run(SpringApplication.java:1365) ~[spring-boot-4.0.3.jar!/:4.0.3]
+        at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354) ~[spring-boot-4.0.3.jar!/:4.0.3]
+        at grafioschtrader.GrafioschtraderApplication.main(GrafioschtraderApplication.java:55) ~[!/:0.34.0]
         at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
         at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
-        at org.springframework.orm.jpa.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler.invoke(SharedEntityManagerCreator.java:320) ~[spring-orm-6.2.16.jar!/:6.2.16]
-        at jdk.proxy2/jdk.proxy2.$Proxy251.flush(Unknown Source) ~[na:na]
-        at org.springframework.data.jpa.repository.support.SimpleJpaRepository.flush(SimpleJpaRepository.java:699) ~[spring-data-jpa-3.5.9.jar!/:3.5.9]
-        at org.springframework.data.jpa.repository.support.SimpleJpaRepository.saveAndFlush(SimpleJpaRepository.java:666) ~[spring-data-jpa-3.5.9.jar!/:3.5.9]
-        at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
-        at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
-        at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360) ~[spring-aop-6.2.16.jar!/:6.2.16]
-        at org.springframework.data.repository.core.support.RepositoryMethodInvoker$RepositoryFragmentMethodInvoker.lambda$new$0(RepositoryMethodInvoker.java:277) ~[spring-data-commons-3.5.9.jar!/:3.5.9]
-        at org.springframework.data.repository.core.support.RepositoryMethodInvoker.doInvoke(RepositoryMethodInvoker.java:170) ~[spring-data-commons-3.5.9.jar!/:3.5.9]
-        at org.springframework.data.repository.core.support.RepositoryMethodInvoker.invoke(RepositoryMethodInvoker.java:158) ~[spring-data-commons-3.5.9.jar!/:3.5.9]
-        at org.springframework.data.repository.core.support.RepositoryComposition$RepositoryFragments.invoke(RepositoryComposition.java:515) ~[spring-data-commons-3.5.9.jar!/:3.5.9]
-        at org.springframework.data.repository.core.support.RepositoryComposition.invoke(RepositoryComposition.java:284) ~[spring-data-commons-3.5.9.jar!/:3.5.9]
-        at org.springframework.data.repository.core.support.RepositoryFactorySupport$ImplementationMethodExecutionInterceptor.invoke(RepositoryFactorySupport.java:720) ~[spring-data-commons-3.5.9.jar!/:3.5.9]
-        at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.2.16.jar!/:6.2.16]
-        at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.doInvoke(QueryExecutorMethodInterceptor.java:174) ~[spring-data-commons-3.5.9.jar!/:3.5.9]
-        at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.invoke(QueryExecutorMethodInterceptor.java:149) ~[spring-data-commons-3.5.9.jar!/:3.5.9]
-        at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.2.16.jar!/:6.2.16]
-        at org.springframework.data.projection.DefaultMethodInvokingMethodInterceptor.invoke(DefaultMethodInvokingMethodInterceptor.java:69) ~[spring-data-commons-3.5.9.jar!/:3.5.9]
-        at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.2.16.jar!/:6.2.16]
-        at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:380) ~[spring-tx-6.2.16.jar!/:6.2.16]
-        at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119) ~[spring-tx-6.2.16.jar!/:6.2.16]
-        at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.2.16.jar!/:6.2.16]
-        at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:138) ~[spring-tx-6.2.16.jar!/:6.2.16]
-        ... 147 common frames omitted
-Caused by: java.sql.SQLException: (conn=118299) Record has changed since last read in table 'watchlist'
-        at org.mariadb.jdbc.export.ExceptionFactory.createException(ExceptionFactory.java:330) ~[mariadb-java-client-3.5.7.jar!/:na]
-        at org.mariadb.jdbc.export.ExceptionFactory.create(ExceptionFactory.java:403) ~[mariadb-java-client-3.5.7.jar!/:na]
-        at org.mariadb.jdbc.message.ClientMessage.readPacket(ClientMessage.java:196) ~[mariadb-java-client-3.5.7.jar!/:na]
-        at org.mariadb.jdbc.client.impl.StandardClient.readPacket(StandardClient.java:1411) ~[mariadb-java-client-3.5.7.jar!/:na]
-        at org.mariadb.jdbc.client.impl.StandardClient.readResults(StandardClient.java:1350) ~[mariadb-java-client-3.5.7.jar!/:na]
-        at org.mariadb.jdbc.client.impl.StandardClient.readResponse(StandardClient.java:1269) ~[mariadb-java-client-3.5.7.jar!/:na]
-        at org.mariadb.jdbc.client.impl.StandardClient.execute(StandardClient.java:1193) ~[mariadb-java-client-3.5.7.jar!/:na]
-        at org.mariadb.jdbc.ClientPreparedStatement.executeInternal(ClientPreparedStatement.java:91) ~[mariadb-java-client-3.5.7.jar!/:na]
-        at org.mariadb.jdbc.ClientPreparedStatement.executeLargeUpdate(ClientPreparedStatement.java:345) ~[mariadb-java-client-3.5.7.jar!/:na]
-        at org.mariadb.jdbc.ClientPreparedStatement.executeUpdate(ClientPreparedStatement.java:322) ~[mariadb-java-client-3.5.7.jar!/:na]
-        at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61) ~[HikariCP-6.3.3.jar!/:na]
-        at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java) ~[HikariCP-6.3.3.jar!/:na]
-        at org.hibernate.engine.jdbc.internal.ResultSetReturnImpl.executeUpdate(ResultSetReturnImpl.java:194) ~[hibernate-core-6.6.42.Final.jar!/:6.6.42.Final]
-        ... 190 common frames omitted
+        at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:106) ~[grafioschtrader-server-0.34.0.jar:0.34.0]
+        at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:64) ~[grafioschtrader-server-0.34.0.jar:0.34.0]
+        at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:40) ~[grafioschtrader-server-0.34.0.jar:0.34.0]
+Caused by: org.hibernate.exception.SQLGrammarException: JDBC exception executing SQL [(conn=363) Unknown column 'e1_0.ever_used_successfully' in 'SELECT'] [select e1_0.id_generic_connector,e1_0.id_endpoint,e1_0.csv_delimiter,e1_0.csv_skip_header_lines,e1_0.currency_pa
+ir_separator,e1_0.currency_pair_suffix,e1_0.date_format_pattern,e1_0.date_format_type,e1_0.endpoint_options,e1_0.ever_used_successfully,e1_0.feed_support,e1_0.html_css_selector,e1_0.html_extract_mode,e1_0.html_extract_regex,e1_0.html_split_delimiter,e1_0.html_text_cle
+anup,e1_0.http_method,e1_0.instrument_type,e1_0.json_column_names_path,e1_0.json_data_path,e1_0.json_data_structure,e1_0.json_status_ok_value,e1_0.json_status_path,e1_0.max_data_points,e1_0.number_format,e1_0.pagination_enabled,e1_0.response_format,e1_0.ticker_build_s
+trategy,e1_0.ticker_uppercase,e1_0.url_template from generic_connector_endpoint e1_0 where e1_0.id_generic_connector=? order by e1_0.feed_support,e1_0.instrument_type]
+        at org.hibernate.exception.internal.SQLExceptionTypeDelegate.convert(SQLExceptionTypeDelegate.java:64) ~[hibernate-core-7.2.4.Final.jar!/:7.2.4.Final]
+        at org.hibernate.exception.internal.StandardSQLExceptionConverter.convert(StandardSQLExceptionConverter.java:34) ~[hibernate-core-7.2.4.Final.jar!/:7.2.4.Final]
