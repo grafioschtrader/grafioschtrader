@@ -5,14 +5,15 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
 import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
 import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.deser.std.StdDeserializer;
 
 /**
- * Deserializes epoch millisecond timestamps into {@link LocalDateTime} assuming UTC.
- * Required because Jackson 3.x rejects raw numeric timestamps for LocalDateTime
- * since it lacks timezone information. This deserializer bridges that gap for
- * M2M communication where timestamps are always UTC epoch millis.
+ * Deserializes timestamps into {@link LocalDateTime} from both numeric (epoch millis)
+ * and string (ISO-8601) formats. Required because Jackson 3.x rejects raw numeric
+ * timestamps for LocalDateTime, and M2M peers may send either format depending on
+ * their Jackson configuration. Numeric values are interpreted as UTC epoch millis.
  */
 public class EpochMillisToLocalDateTimeDeserializer extends StdDeserializer<LocalDateTime> {
 
@@ -22,7 +23,10 @@ public class EpochMillisToLocalDateTimeDeserializer extends StdDeserializer<Loca
 
   @Override
   public LocalDateTime deserialize(JsonParser p, DeserializationContext ctxt) {
-    long epochMillis = p.getLongValue();
-    return LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), ZoneOffset.UTC);
+    if (p.currentToken() == JsonToken.VALUE_NUMBER_INT) {
+      long epochMillis = p.getLongValue();
+      return LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), ZoneOffset.UTC);
+    }
+    return LocalDateTime.parse(p.getText());
   }
 }
