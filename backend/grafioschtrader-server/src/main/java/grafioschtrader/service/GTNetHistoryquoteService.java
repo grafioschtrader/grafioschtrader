@@ -125,7 +125,8 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
   @Autowired
   private GTNetExchangeLogJpaRepository gtNetExchangeLogJpaRepository;
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  @Autowired
+  private ObjectMapper objectMapper;
 
   /**
    * Requests historical quotes for a security from GTNet suppliers.

@@ -78,7 +78,8 @@ public class GTNetHistoricalImportService extends BaseGTNetExchangeService {
   @Autowired
   private List<IFeedConnector> feedConnectorbeans;
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  @Autowired
+  private ObjectMapper objectMapper;
 
   /**
    * Queries all eligible GTNet peers for coverage metadata for the given securities.

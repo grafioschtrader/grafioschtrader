@@ -89,7 +89,8 @@ public class GTNetExchangeSyncService {
   @Autowired
   private BaseDataClient baseDataClient;
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  @Autowired
+  private ObjectMapper objectMapper;
 
   /**
    * Synchronizes exchange configuration with a single peer using incremental mode.

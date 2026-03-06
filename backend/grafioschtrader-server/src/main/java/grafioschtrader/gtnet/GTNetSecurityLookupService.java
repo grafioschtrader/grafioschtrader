@@ -73,7 +73,8 @@ public class GTNetSecurityLookupService {
   @Autowired
   private AssetclassJpaRepository assetclassJpaRepository;
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  @Autowired
+  private ObjectMapper objectMapper;
 
   /**
    * Looks up security metadata by querying GTNet peers that support SECURITY_METADATA exchange.

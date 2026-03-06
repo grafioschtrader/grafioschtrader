@@ -53,7 +53,8 @@ public class GTNetLastpricePushService {
   @Autowired
   private GTNetExchangeLogService gtNetExchangeLogService;
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  @Autowired
+  private ObjectMapper objectMapper;
 
   /**
    * Asynchronously pushes updated prices to all previously contacted PUSH_OPEN servers.

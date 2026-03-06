@@ -102,7 +102,8 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
   @Autowired
   private GTNetLastpricePushService gtNetLastpricePushService;
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  @Autowired
+  private ObjectMapper objectMapper;
 
   /**
    * Main entry point for intraday price update with GTNet integration.

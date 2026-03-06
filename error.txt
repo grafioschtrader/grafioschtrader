@@ -1,180 +1,131 @@
-java.lang.IllegalArgumentException: Failed to convert payload to LastpriceExchangeMsg
-	at grafiosch.gtnet.handler.GTNetMessageContext.getPayloadAs(GTNetMessageContext.java:184) ~[classes/:na]
-	at grafioschtrader.gtnet.handler.impl.LastpriceExchangeHandler.handle(LastpriceExchangeHandler.java:96) ~[classes/:na]
-	at grafiosch.repository.GTNetJpaRepositoryImpl.getMsgResponse(GTNetJpaRepositoryImpl.java:1185) ~[classes/:na]
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
-	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:359) ~[spring-aop-7.0.5.jar:7.0.5]
-	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:715) ~[spring-aop-7.0.5.jar:7.0.5]
-	at grafiosch.repository.GTNetJpaRepositoryImpl$$SpringCGLIB$$0.getMsgResponse(<generated>) ~[classes/:na]
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
-	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:359) ~[spring-aop-7.0.5.jar:7.0.5]
-	at org.springframework.data.repository.core.support.RepositoryMethodInvoker$RepositoryFragmentMethodInvoker.lambda$new$0(RepositoryMethodInvoker.java:278) ~[spring-data-commons-4.0.3.jar:4.0.3]
-	at org.springframework.data.repository.core.support.RepositoryMethodInvoker.doInvoke(RepositoryMethodInvoker.java:169) ~[spring-data-commons-4.0.3.jar:4.0.3]
-	at org.springframework.data.repository.core.support.RepositoryMethodInvoker.invoke(RepositoryMethodInvoker.java:158) ~[spring-data-commons-4.0.3.jar:4.0.3]
-	at org.springframework.data.repository.core.support.RepositoryComposition$RepositoryFragments.invoke(RepositoryComposition.java:545) ~[spring-data-commons-4.0.3.jar:4.0.3]
-	at org.springframework.data.repository.core.support.RepositoryComposition.invoke(RepositoryComposition.java:290) ~[spring-data-commons-4.0.3.jar:4.0.3]
-	at org.springframework.data.repository.core.support.RepositoryFactorySupport$ImplementationMethodExecutionInterceptor.invoke(RepositoryFactorySupport.java:690) ~[spring-data-commons-4.0.3.jar:4.0.3]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179) ~[spring-aop-7.0.5.jar:7.0.5]
-	at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.doInvoke(QueryExecutorMethodInterceptor.java:171) ~[spring-data-commons-4.0.3.jar:4.0.3]
-	at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.invoke(QueryExecutorMethodInterceptor.java:146) ~[spring-data-commons-4.0.3.jar:4.0.3]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179) ~[spring-aop-7.0.5.jar:7.0.5]
-	at org.springframework.data.projection.DefaultMethodInvokingMethodInterceptor.invoke(DefaultMethodInvokingMethodInterceptor.java:69) ~[spring-data-commons-4.0.3.jar:4.0.3]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179) ~[spring-aop-7.0.5.jar:7.0.5]
-	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:133) ~[spring-tx-7.0.5.jar:7.0.5]
-	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:371) ~[spring-tx-7.0.5.jar:7.0.5]
-	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:130) ~[spring-tx-7.0.5.jar:7.0.5]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179) ~[spring-aop-7.0.5.jar:7.0.5]
-	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:135) ~[spring-tx-7.0.5.jar:7.0.5]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179) ~[spring-aop-7.0.5.jar:7.0.5]
-	at org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor$CrudMethodMetadataPopulatingMethodInterceptor.invoke(CrudMethodMetadataPostProcessor.java:166) ~[spring-data-jpa-4.0.3.jar:4.0.3]
-	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179) ~[spring-aop-7.0.5.jar:7.0.5]
-	at org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:222) ~[spring-aop-7.0.5.jar:7.0.5]
-	at jdk.proxy2/jdk.proxy2.$Proxy265.getMsgResponse(Unknown Source) ~[na:na]
-	at grafioschtrader.m2m.rest.GTNetM2MResource.receiveMessage(GTNetM2MResource.java:59) ~[classes/:na]
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
-	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:252) ~[spring-web-7.0.5.jar:7.0.5]
-	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:184) ~[spring-web-7.0.5.jar:7.0.5]
-	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:117) ~[spring-webmvc-7.0.5.jar:7.0.5]
-	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:934) ~[spring-webmvc-7.0.5.jar:7.0.5]
-	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:853) ~[spring-webmvc-7.0.5.jar:7.0.5]
-	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:86) ~[spring-webmvc-7.0.5.jar:7.0.5]
-	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:963) ~[spring-webmvc-7.0.5.jar:7.0.5]
-	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:866) ~[spring-webmvc-7.0.5.jar:7.0.5]
-	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1000) ~[spring-webmvc-7.0.5.jar:7.0.5]
-	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:903) ~[spring-webmvc-7.0.5.jar:7.0.5]
-	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:649) ~[tomcat-embed-core-11.0.18.jar:6.1]
-	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:874) ~[spring-webmvc-7.0.5.jar:7.0.5]
-	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:710) ~[tomcat-embed-core-11.0.18.jar:6.1]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:128) ~[tomcat-embed-core-11.0.18.jar:11.0.18]
-	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:53) ~[tomcat-embed-websocket-11.0.18.jar:11.0.18]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107) ~[tomcat-embed-core-11.0.18.jar:11.0.18]
-	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108) ~[spring-web-7.0.5.jar:7.0.5]
-	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:235) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$FilterObservation$SimpleFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:493) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:354) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator.lambda$wrapSecured$0(ObservationFilterChainDecorator.java:86) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:132) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:181) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at grafiosch.security.filter.StatelessAuthenticationFilter.doFilter(StatelessAuthenticationFilter.java:178) ~[classes/:na]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter.doFilter(AbstractAuthenticationProcessingFilter.java:245) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter.doFilter(AbstractAuthenticationProcessingFilter.java:239) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:110) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:96) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.5.jar:7.0.5]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.5.jar:7.0.5]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.5.jar:7.0.5]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:337) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:237) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:195) ~[spring-security-web-7.0.3.jar:7.0.3]
-	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-7.0.5.jar:7.0.5]
-	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52) ~[spring-web-7.0.5.jar:7.0.5]
-	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-7.0.5.jar:7.0.5]
-	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74) ~[spring-web-7.0.5.jar:7.0.5]
-	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:317) ~[spring-security-config-7.0.3.jar:7.0.3]
-	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:355) ~[spring-web-7.0.5.jar:7.0.5]
-	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:272) ~[spring-web-7.0.5.jar:7.0.5]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107) ~[tomcat-embed-core-11.0.18.jar:11.0.18]
-	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-7.0.5.jar:7.0.5]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.5.jar:7.0.5]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107) ~[tomcat-embed-core-11.0.18.jar:11.0.18]
-	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93) ~[spring-web-7.0.5.jar:7.0.5]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.5.jar:7.0.5]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107) ~[tomcat-embed-core-11.0.18.jar:11.0.18]
-	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:110) ~[spring-web-7.0.5.jar:7.0.5]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.5.jar:7.0.5]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107) ~[tomcat-embed-core-11.0.18.jar:11.0.18]
-	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:199) ~[spring-web-7.0.5.jar:7.0.5]
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-7.0.5.jar:7.0.5]
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:107) ~[tomcat-embed-core-11.0.18.jar:11.0.18]
-	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:165) ~[tomcat-embed-core-11.0.18.jar:11.0.18]
-	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:77) ~[tomcat-embed-core-11.0.18.jar:11.0.18]
-	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:492) ~[tomcat-embed-core-11.0.18.jar:11.0.18]
-	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:113) ~[tomcat-embed-core-11.0.18.jar:11.0.18]
-	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:83) ~[tomcat-embed-core-11.0.18.jar:11.0.18]
-	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:72) ~[tomcat-embed-core-11.0.18.jar:11.0.18]
-	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:341) ~[tomcat-embed-core-11.0.18.jar:11.0.18]
-	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:397) ~[tomcat-embed-core-11.0.18.jar:11.0.18]
-	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63) ~[tomcat-embed-core-11.0.18.jar:11.0.18]
-	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:903) ~[tomcat-embed-core-11.0.18.jar:11.0.18]
-	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1779) ~[tomcat-embed-core-11.0.18.jar:11.0.18]
-	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52) ~[tomcat-embed-core-11.0.18.jar:11.0.18]
-	at java.base/java.lang.VirtualThread.run(VirtualThread.java:329) ~[na:na]
-Caused by: tools.jackson.databind.DatabindException: Text '2026-03-06T06:45:13Z' could not be parsed, unparsed text found at index 19
- at [No location information] (through reference chain: grafioschtrader.gtnet.model.msg.LastpriceExchangeMsg["currencypairs"]->java.util.ArrayList[0]->grafioschtrader.gtnet.m2m.model.InstrumentPriceDTO["timestamp"])
-	at tools.jackson.databind.DatabindException.wrapWithPath(DatabindException.java:111) ~[jackson-databind-3.0.4.jar:3.0.4]
-	at tools.jackson.databind.deser.bean.BeanDeserializerBase.wrapAndThrow(BeanDeserializerBase.java:1850) ~[jackson-databind-3.0.4.jar:3.0.4]
-	at tools.jackson.databind.deser.bean.BeanDeserializer.deserializeFromObject(BeanDeserializer.java:534) ~[jackson-databind-3.0.4.jar:3.0.4]
-	at tools.jackson.databind.deser.bean.BeanDeserializer.deserialize(BeanDeserializer.java:200) ~[jackson-databind-3.0.4.jar:3.0.4]
-	at tools.jackson.databind.deser.jdk.CollectionDeserializer._deserializeNoNullChecks(CollectionDeserializer.java:493) ~[jackson-databind-3.0.4.jar:3.0.4]
-	at tools.jackson.databind.deser.jdk.CollectionDeserializer._deserializeFromArray(CollectionDeserializer.java:348) ~[jackson-databind-3.0.4.jar:3.0.4]
-	at tools.jackson.databind.deser.jdk.CollectionDeserializer.deserialize(CollectionDeserializer.java:238) ~[jackson-databind-3.0.4.jar:3.0.4]
-	at tools.jackson.databind.deser.jdk.CollectionDeserializer.deserialize(CollectionDeserializer.java:29) ~[jackson-databind-3.0.4.jar:3.0.4]
-	at tools.jackson.databind.deser.impl.MethodProperty.deserializeAndSet(MethodProperty.java:120) ~[jackson-databind-3.0.4.jar:3.0.4]
-	at tools.jackson.databind.deser.bean.BeanDeserializer.deserializeFromObject(BeanDeserializer.java:532) ~[jackson-databind-3.0.4.jar:3.0.4]
-	at tools.jackson.databind.deser.bean.BeanDeserializer.deserialize(BeanDeserializer.java:200) ~[jackson-databind-3.0.4.jar:3.0.4]
-	at tools.jackson.databind.deser.DeserializationContextExt.readRootValue(DeserializationContextExt.java:265) ~[jackson-databind-3.0.4.jar:3.0.4]
-	at tools.jackson.databind.ObjectMapper._readValue(ObjectMapper.java:2584) ~[jackson-databind-3.0.4.jar:3.0.4]
-	at tools.jackson.databind.ObjectMapper.readValue(ObjectMapper.java:979) ~[jackson-databind-3.0.4.jar:3.0.4]
-	at tools.jackson.databind.ObjectMapper.treeToValue(ObjectMapper.java:1290) ~[jackson-databind-3.0.4.jar:3.0.4]
-	at grafiosch.gtnet.handler.GTNetMessageContext.getPayloadAs(GTNetMessageContext.java:182) ~[classes/:na]
-	... 149 common frames omitted
-Caused by: java.time.format.DateTimeParseException: Text '2026-03-06T06:45:13Z' could not be parsed, unparsed text found at index 19
-	at java.base/java.time.format.DateTimeFormatter.parseResolved0(DateTimeFormatter.java:2111) ~[na:na]
-	at java.base/java.time.format.DateTimeFormatter.parse(DateTimeFormatter.java:2010) ~[na:na]
-	at java.base/java.time.LocalDateTime.parse(LocalDateTime.java:494) ~[na:na]
-	at java.base/java.time.LocalDateTime.parse(LocalDateTime.java:479) ~[na:na]
-	at grafiosch.config.JacksonConfig$FlexibleLocalDateTimeDeserializer.deserialize(JacksonConfig.java:44) ~[classes/:na]
-	at grafiosch.config.JacksonConfig$FlexibleLocalDateTimeDeserializer.deserialize(JacksonConfig.java:1) ~[classes/:na]
-	at tools.jackson.databind.deser.impl.MethodProperty.deserializeAndSet(MethodProperty.java:120) ~[jackson-databind-3.0.4.jar:3.0.4]
-	at tools.jackson.databind.deser.bean.BeanDeserializer.deserializeFromObject(BeanDeserializer.java:532) ~[jackson-databind-3.0.4.jar:3.0.4]
-	... 162 common frames omitted
+2026-03-06 08:14:41.819 DEBUG 79180 --- [onPool-worker-1] g.service.GTNetLastpriceService          : Sending lastprice request to https://grafioschtrader.com with 104 securities, 0 pairs
+org.springframework.core.codec.DecodingException: JSON decoding error: raw timestamp (1772781281971) not allowed for `java.time.LocalDateTime`: need additional information such as an offset or time-zone (see class Javadocs)
+        at org.springframework.http.codec.AbstractJacksonDecoder.processException(AbstractJacksonDecoder.java:261)
+        Suppressed: The stacktrace has been enhanced by Reactor, refer to additional information below:
+Error has been observed at the following site(s):
+        *__checkpoint ? Body from POST https://grafioschtrader.com/m2m/gtnet [DefaultClientResponse]
+Original Stack Trace:
+                at org.springframework.http.codec.AbstractJacksonDecoder.processException(AbstractJacksonDecoder.java:261)
+                at org.springframework.http.codec.AbstractJacksonDecoder.decode(AbstractJacksonDecoder.java:198)
+                at org.springframework.http.codec.AbstractJacksonDecoder.lambda$decodeToMono$1(AbstractJacksonDecoder.java:178)
+                at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:132)
+                at reactor.core.publisher.FluxContextWrite$ContextWriteSubscriber.onNext(FluxContextWrite.java:109)
+                at reactor.core.publisher.FluxMapFuseable$MapFuseableConditionalSubscriber.onNext(FluxMapFuseable.java:300)
+                at reactor.core.publisher.FluxFilterFuseable$FilterFuseableConditionalSubscriber.onNext(FluxFilterFuseable.java:338)
+                at reactor.core.publisher.Operators$BaseFluxToMonoOperator.completePossiblyEmpty(Operators.java:2093)
+                at reactor.core.publisher.MonoCollect$CollectSubscriber.onComplete(MonoCollect.java:144)
+                at reactor.core.publisher.FluxMap$MapSubscriber.onComplete(FluxMap.java:144)
+                at reactor.core.publisher.FluxPeek$PeekSubscriber.onComplete(FluxPeek.java:263)
+                at reactor.core.publisher.FluxMap$MapSubscriber.onComplete(FluxMap.java:144)
+                at reactor.netty.channel.FluxReceive.onInboundComplete(FluxReceive.java:419)
+                at reactor.netty.channel.ChannelOperations.onInboundComplete(ChannelOperations.java:465)
+                at reactor.netty.channel.ChannelOperations.terminate(ChannelOperations.java:519)
+                at reactor.netty.http.client.HttpClientOperations.onInboundNext(HttpClientOperations.java:956)
+                at reactor.netty.channel.ChannelOperationsHandler.channelRead(ChannelOperationsHandler.java:115)
+                at io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:357)
+                at io.netty.channel.CombinedChannelDuplexHandler$DelegatingChannelHandlerContext.fireChannelRead(CombinedChannelDuplexHandler.java:434)
+                at io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ByteToMessageDecoder.java:361)
+                at io.netty.handler.codec.ByteToMessageDecoder.channelRead(ByteToMessageDecoder.java:325)
+                at io.netty.channel.CombinedChannelDuplexHandler.channelRead(CombinedChannelDuplexHandler.java:249)
+                at io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:355)
+                at io.netty.handler.timeout.IdleStateHandler.channelRead(IdleStateHandler.java:288)
+                at io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:355)
+                at io.netty.handler.ssl.SslHandler.unwrap(SslHandler.java:1535)
+                at io.netty.handler.ssl.SslHandler.decodeJdkCompatible(SslHandler.java:1393)
+                at io.netty.handler.ssl.SslHandler.decode(SslHandler.java:1444)
+                at io.netty.handler.codec.ByteToMessageDecoder.decodeRemovalReentryProtection(ByteToMessageDecoder.java:545)
+                at io.netty.handler.codec.ByteToMessageDecoder.callDecode(ByteToMessageDecoder.java:484)
+                at io.netty.handler.codec.ByteToMessageDecoder.channelRead(ByteToMessageDecoder.java:296)
+                at io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:357)
+                at io.netty.channel.DefaultChannelPipeline$HeadContext.channelRead(DefaultChannelPipeline.java:1429)
+                at io.netty.channel.DefaultChannelPipeline.fireChannelRead(DefaultChannelPipeline.java:918)
+                at io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:176)
+                at io.netty.channel.nio.AbstractNioChannel$AbstractNioUnsafe.handle(AbstractNioChannel.java:445)
+                at io.netty.channel.nio.NioIoHandler$DefaultNioRegistration.handle(NioIoHandler.java:388)
+                at io.netty.channel.nio.NioIoHandler.processSelectedKey(NioIoHandler.java:596)
+                at io.netty.channel.nio.NioIoHandler.processSelectedKeysOptimized(NioIoHandler.java:571)
+                at io.netty.channel.nio.NioIoHandler.processSelectedKeys(NioIoHandler.java:512)
+                at io.netty.channel.nio.NioIoHandler.run(NioIoHandler.java:484)
+                at io.netty.channel.SingleThreadIoEventLoop.runIo(SingleThreadIoEventLoop.java:225)
+                at io.netty.channel.SingleThreadIoEventLoop.run(SingleThreadIoEventLoop.java:196)
+                at io.netty.util.concurrent.SingleThreadEventExecutor$5.run(SingleThreadEventExecutor.java:1195)
+                at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+                at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+                at java.base/java.lang.Thread.run(Thread.java:1583)
+        Suppressed: java.lang.Exception: #block terminated with an error
+                at reactor.core.publisher.BlockingSingleSubscriber.blockingGet(BlockingSingleSubscriber.java:104)
+                at reactor.core.publisher.Mono.block(Mono.java:1773)
+                at grafiosch.m2m.client.BaseDataClient.sendToMsgWithStatus(BaseDataClient.java:189)
+                at grafioschtrader.service.GTNetLastpriceService.queryRemoteServerWithTracking(GTNetLastpriceService.java:396)
+                at grafioschtrader.service.GTNetLastpriceService.queryRemoteServersWithTracking(GTNetLastpriceService.java:301)
+                at grafioschtrader.service.GTNetLastpriceService.executeGTNetExchange(GTNetLastpriceService.java:210)
+                at grafioschtrader.service.GTNetLastpriceService.updateLastpriceIncludeSupplier(GTNetLastpriceService.java:129)
+                at grafioschtrader.reports.WatchlistReport.executeLastPriceUpdate(WatchlistReport.java:376)
+                at grafioschtrader.reports.WatchlistReport.lambda$getWatchlistwithPeriodPerformance$16(WatchlistReport.java:286)
+                at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1768)
+                at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.exec(CompletableFuture.java:1760)
+                at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:387)
+                at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312)
+                at java.base/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843)
+                at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808)
+                at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
+Caused by: tools.jackson.databind.exc.MismatchedInputException: raw timestamp (1772781281971) not allowed for `java.time.LocalDateTime`: need additional information such as an offset or time-zone (see class Javadocs)
+ at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); byte offset: #86] (through reference chain: grafiosch.gtnet.m2m.model.MessageEnvelope["timestamp"])
+        at tools.jackson.databind.exc.MismatchedInputException.from(MismatchedInputException.java:67)
+        at tools.jackson.databind.DeserializationContext.reportInputMismatch(DeserializationContext.java:1806)
+        at tools.jackson.databind.ext.javatime.deser.JSR310DateTimeDeserializerBase._throwNoNumericTimestampNeedTimeZone(JSR310DateTimeDeserializerBase.java:171)
+        at tools.jackson.databind.ext.javatime.deser.LocalDateTimeDeserializer.deserialize(LocalDateTimeDeserializer.java:160)
+        at tools.jackson.databind.ext.javatime.deser.LocalDateTimeDeserializer.deserialize(LocalDateTimeDeserializer.java:36)
+        at tools.jackson.databind.deser.impl.MethodProperty.deserializeAndSet(MethodProperty.java:120)
+        at tools.jackson.databind.deser.bean.BeanDeserializer.deserializeFromObject(BeanDeserializer.java:532)
+        at tools.jackson.databind.deser.bean.BeanDeserializer.deserialize(BeanDeserializer.java:200)
+        at tools.jackson.databind.deser.DeserializationContextExt.readRootValue(DeserializationContextExt.java:265)
+        at tools.jackson.databind.ObjectReader._bindAndClose(ObjectReader.java:1646)
+        at tools.jackson.databind.ObjectReader.readValue(ObjectReader.java:1171)
+        at org.springframework.http.codec.AbstractJacksonDecoder.decode(AbstractJacksonDecoder.java:193)
+        at org.springframework.http.codec.AbstractJacksonDecoder.lambda$decodeToMono$1(AbstractJacksonDecoder.java:178)
+        at reactor.core.publisher.MonoFlatMap$FlatMapMain.onNext(MonoFlatMap.java:132)
+        at reactor.core.publisher.FluxContextWrite$ContextWriteSubscriber.onNext(FluxContextWrite.java:109)
+        at reactor.core.publisher.FluxMapFuseable$MapFuseableConditionalSubscriber.onNext(FluxMapFuseable.java:300)
+        at reactor.core.publisher.FluxFilterFuseable$FilterFuseableConditionalSubscriber.onNext(FluxFilterFuseable.java:338)
+        at reactor.core.publisher.Operators$BaseFluxToMonoOperator.completePossiblyEmpty(Operators.java:2093)
+        at reactor.core.publisher.MonoCollect$CollectSubscriber.onComplete(MonoCollect.java:144)
+        at reactor.core.publisher.FluxMap$MapSubscriber.onComplete(FluxMap.java:144)
+        at reactor.core.publisher.FluxPeek$PeekSubscriber.onComplete(FluxPeek.java:263)
+        at reactor.core.publisher.FluxMap$MapSubscriber.onComplete(FluxMap.java:144)
+        at reactor.netty.channel.FluxReceive.onInboundComplete(FluxReceive.java:419)
+        at reactor.netty.channel.ChannelOperations.onInboundComplete(ChannelOperations.java:465)
+        at reactor.netty.channel.ChannelOperations.terminate(ChannelOperations.java:519)
+        at reactor.netty.http.client.HttpClientOperations.onInboundNext(HttpClientOperations.java:956)
+        at reactor.netty.channel.ChannelOperationsHandler.channelRead(ChannelOperationsHandler.java:115)
+        at io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:357)
+        at io.netty.channel.CombinedChannelDuplexHandler$DelegatingChannelHandlerContext.fireChannelRead(CombinedChannelDuplexHandler.java:434)
+        at io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ByteToMessageDecoder.java:361)
+        at io.netty.handler.codec.ByteToMessageDecoder.channelRead(ByteToMessageDecoder.java:325)
+        at io.netty.channel.CombinedChannelDuplexHandler.channelRead(CombinedChannelDuplexHandler.java:249)
+        at io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:355)
+        at io.netty.handler.timeout.IdleStateHandler.channelRead(IdleStateHandler.java:288)
+        at io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:355)
+        at io.netty.handler.ssl.SslHandler.unwrap(SslHandler.java:1535)
+        at io.netty.handler.ssl.SslHandler.decodeJdkCompatible(SslHandler.java:1393)
+        at io.netty.handler.ssl.SslHandler.decode(SslHandler.java:1444)
+        at io.netty.handler.codec.ByteToMessageDecoder.decodeRemovalReentryProtection(ByteToMessageDecoder.java:545)
+        at io.netty.handler.codec.ByteToMessageDecoder.callDecode(ByteToMessageDecoder.java:484)
+        at io.netty.handler.codec.ByteToMessageDecoder.channelRead(ByteToMessageDecoder.java:296)
+        at io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:357)
+        at io.netty.channel.DefaultChannelPipeline$HeadContext.channelRead(DefaultChannelPipeline.java:1429)
+        at io.netty.channel.DefaultChannelPipeline.fireChannelRead(DefaultChannelPipeline.java:918)
+        at io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:176)
+        at io.netty.channel.nio.AbstractNioChannel$AbstractNioUnsafe.handle(AbstractNioChannel.java:445)
+        at io.netty.channel.nio.NioIoHandler$DefaultNioRegistration.handle(NioIoHandler.java:388)
+        at io.netty.channel.nio.NioIoHandler.processSelectedKey(NioIoHandler.java:596)
+        at io.netty.channel.nio.NioIoHandler.processSelectedKeysOptimized(NioIoHandler.java:571)
+        at io.netty.channel.nio.NioIoHandler.processSelectedKeys(NioIoHandler.java:512)
+        at io.netty.channel.nio.NioIoHandler.run(NioIoHandler.java:484)
+        at io.netty.channel.SingleThreadIoEventLoop.runIo(SingleThreadIoEventLoop.java:225)
+        at io.netty.channel.SingleThreadIoEventLoop.run(SingleThreadIoEventLoop.java:196)
+        at io.netty.util.concurrent.SingleThreadEventExecutor$5.run(SingleThreadEventExecutor.java:1195)
+        at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+        at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+        at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-03-06 08:14:42.014  WARN 79180 --- [onPool-worker-1] g.service.GTNetLastpriceService          : Failed to query GTNet server https://grafioschtrader.com: JSON decoding error: raw timestamp (1772781281971) not allowed for `java.time.LocalDateTime`: need additional information such as an offset or time-zone (see class Javadocs)

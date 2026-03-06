@@ -5,6 +5,9 @@ import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.http.codec.json.JacksonJsonDecoder;
+import org.springframework.http.codec.json.JacksonJsonEncoder;
+import tools.jackson.databind.json.JsonMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
@@ -17,6 +20,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.resolver.ResolvedAddressTypes;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * HTTP client for machine-to-machine (M2M) communication with remote GTNet instances.
@@ -47,6 +51,12 @@ public class BaseDataClient {
 
   /** Standard HTTP Authorization header name. */
   public static final String AUTHORIZATION_HEADER = "Authorization";
+
+  private final ObjectMapper objectMapper;
+
+  public BaseDataClient(ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper;
+  }
 
   /**
    * Result wrapper for M2M message sending operations.
@@ -225,7 +235,13 @@ public class BaseDataClient {
           .responseTimeout(Duration.ofSeconds(connectionTimeoutSeconds));
     }
 
-    return WebClient.builder().clientConnector(new ReactorClientHttpConnector(httpClient)).baseUrl(domainName).build();
+    return WebClient.builder()
+        .clientConnector(new ReactorClientHttpConnector(httpClient))
+        .codecs(configurer -> {
+          configurer.defaultCodecs().jacksonJsonDecoder(new JacksonJsonDecoder((JsonMapper) objectMapper));
+          configurer.defaultCodecs().jacksonJsonEncoder(new JacksonJsonEncoder((JsonMapper) objectMapper));
+        })
+        .baseUrl(domainName).build();
   }
 
 }
