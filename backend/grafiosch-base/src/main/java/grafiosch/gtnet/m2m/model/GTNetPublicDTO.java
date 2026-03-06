@@ -8,7 +8,6 @@ import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetEntity;
 import grafiosch.gtnet.GTNetServerOnlineStatusTypes;
 import io.swagger.v3.oas.annotations.media.Schema;
-import tools.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * Public DTO for GTNet used in M2M communication via MessageEnvelope.
@@ -49,7 +48,6 @@ public class GTNetPublicDTO {
   private List<GTNetEntityPublicDTO> gtNetEntities = new ArrayList<>();
 
   @Schema(description = "Timestamp when this entry was last modified, used to determine freshness during server list exchange")
-  @JsonDeserialize(using = EpochMillisToLocalDateTimeDeserializer.class)
   private LocalDateTime lastModifiedTime;
 
   public GTNetPublicDTO() {

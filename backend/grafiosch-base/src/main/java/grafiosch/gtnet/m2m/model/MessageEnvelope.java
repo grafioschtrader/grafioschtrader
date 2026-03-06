@@ -8,7 +8,6 @@ import grafiosch.entities.GTNetMessage;
 import grafiosch.entities.GTNetMessage.GTNetMessageParam;
 import io.swagger.v3.oas.annotations.media.Schema;
 import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * Wrapper for all machine-to-machine (M2M) communication between GTNet instances.
@@ -40,7 +39,6 @@ public class MessageEnvelope {
   public Integer idSourceGtNetMessage;
 
   @Schema(description = "UTC timestamp when the message was created. Used for ordering and staleness detection.")
-  @JsonDeserialize(using = EpochMillisToLocalDateTimeDeserializer.class)
   public LocalDateTime timestamp;
 
   @Schema(description = "Message type code from GTNetMessageCodeType. Determines how the receiver processes this message.")
