@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetMessage;
 import grafiosch.gtnet.GNetCoreMessageCode;
+import grafiosch.gtnet.GTNetTimeoutHelper;
 import grafiosch.gtnet.SendReceivedType;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.m2m.client.BaseDataClient;
@@ -45,13 +46,15 @@ public abstract class GTNetMessageHelper {
    * @param targetGTNet the remote GTNet entry to ping
    * @return SendResult containing reachability status and response
    */
-  public static SendResult sendPingWithStatus(BaseDataClient baseDataClient, GTNet sourceGTNet, GTNet targetGTNet) {
+  public static SendResult sendPingWithStatus(BaseDataClient baseDataClient, GTNet sourceGTNet, GTNet targetGTNet,
+      GlobalparametersJpaRepository globalparametersJpaRepository) {
     GTNetMessage gtNetMessagePing = new GTNetMessage(null, LocalDateTime.now(), SendReceivedType.SEND.getValue(), null,
         GNetCoreMessageCode.GT_NET_PING.getValue(), null, null);
 
     MessageEnvelope meRequest = new MessageEnvelope(sourceGTNet, gtNetMessagePing);
 
     String tokenRemote = targetGTNet.getGtNetConfig() != null ? targetGTNet.getGtNetConfig().getTokenRemote() : null;
-    return baseDataClient.sendToMsgWithStatus(tokenRemote, targetGTNet.getDomainRemoteName(), meRequest);
+    return baseDataClient.sendToMsgWithStatus(tokenRemote, targetGTNet.getDomainRemoteName(), meRequest,
+        GTNetTimeoutHelper.resolveTimeout(targetGTNet, globalparametersJpaRepository));
   }
 }

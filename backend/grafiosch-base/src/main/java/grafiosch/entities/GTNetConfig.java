@@ -6,11 +6,14 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.PropertyAlwaysUpdatable;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
 
 @Schema(description = """
@@ -77,6 +80,16 @@ public class GTNetConfig extends BaseID<Integer>  {
       instruments in a single lastprice request). Used to identify misbehaving clients. Max value is 99.""")
   @Column(name = "request_violation_count")
   private Byte requestViolationCount = 0;
+
+  @Schema(description = """
+      TCP connection timeout in seconds for this peer (5-40). When null, the global default from
+      GlobalParameters (g.gnet.connection.timeout, default 30s) is used. Allows per-peer tuning
+      for peers with different network latencies.""")
+  @PropertyAlwaysUpdatable
+  @Min(value = 5)
+  @Max(value = 40)
+  @Column(name = "connection_timeout")
+  private Byte connectionTimeout;
 
   @Schema(description = """
       UTC timestamp when the first successful handshake was completed with this remote domain.
@@ -167,6 +180,14 @@ public class GTNetConfig extends BaseID<Integer>  {
     } else if (this.requestViolationCount < 99) {
       this.requestViolationCount = (byte) (this.requestViolationCount + 1);
     }
+  }
+
+  public Byte getConnectionTimeout() {
+    return connectionTimeout;
+  }
+
+  public void setConnectionTimeout(Byte connectionTimeout) {
+    this.connectionTimeout = connectionTimeout;
   }
 
   public LocalDateTime getHandshakeTimestamp() {

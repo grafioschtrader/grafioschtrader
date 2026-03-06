@@ -24,7 +24,9 @@ import {BaseSettings} from '../../base.settings';
 import {ContextMenuModule} from 'primeng/contextmenu';
 import {TooltipModule} from 'primeng/tooltip';
 import {GTNetEditComponent} from './gtnet-edit.component';
+import {GTNetConfigEditComponent} from './gtnet-config-edit.component';
 import {GTNetMessageEditComponent} from './gtnet-message-edit.component';
+import {GTNetConfigService} from '../service/gtnet.config.service';
 import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.component';
 import {ProcessedAction} from '../../types/processed.action';
 import {ProcessedActionData} from '../../types/processed.action.data';
@@ -40,6 +42,7 @@ import {GlobalSessionNames} from '../../global.session.names';
     ContextMenuModule,
     TooltipModule,
     GTNetEditComponent,
+    GTNetConfigEditComponent,
     GTNetMessageEditComponent,
     GTNetMessageTreeTableComponent,
     GTNetConfigEntityTableComponent
@@ -103,6 +106,12 @@ import {GlobalSessionNames} from '../../global.session.names';
                   (closeDialog)="handleCloseDialog($event)">
       </gtnet-edit>
     }
+    @if (visibleDialogConfig) {
+      <gtnet-config-edit [visibleDialog]="visibleDialogConfig"
+                         [gtNetConfig]="selectedEntity?.gtNetConfig"
+                         (closeDialog)="handleCloseDialogConfig($event)">
+      </gtnet-config-edit>
+    }
     @if (visibleDialogMsg) {
       <gtnet-message-edit [visibleDialog]="visibleDialogMsg"
                           [msgCallParam]="msgCallParam"
@@ -110,7 +119,7 @@ import {GlobalSessionNames} from '../../global.session.names';
       </gtnet-message-edit>
     }
   `,
-  providers: [DialogService]
+  providers: [DialogService, GTNetConfigService]
 })
 export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   @ViewChildren(GTNetMessageTreeTableComponent) messageTreeTables: QueryList<GTNetMessageTreeTableComponent>;
@@ -136,6 +145,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   private dynamicKindFields: ColumnConfig[] = [];
   formDefinitions: { [type: string]: ClassDescriptorInputAndShow };
   visibleDialogMsg = false;
+  visibleDialogConfig = false;
   msgCallParam: MsgCallParam;
 
   constructor(private gtNetService: GTNetService,
@@ -168,6 +178,8 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       {templateName: 'check'});
     this.addColumnFeqH(DataType.Boolean, 'authorized', true, false,
       {templateName: 'check', fieldValueFN: this.isAuthorizedRemote.bind(this)});
+    this.addColumnFeqH(DataType.NumericInteger, 'connectionTimeout', true, false,
+      {fieldValueFN: this.getConnectionTimeout.bind(this)});
     this.addColumnFeqH(DataType.NumericInteger, 'toBeAnswered', true, false,
       {fieldValueFN: this.getToBeAnsweredCount.bind(this)});
     this.addColumnFeqH(DataType.Numeric, 'answerExpected', true, false,
@@ -261,6 +273,12 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     const menuItems: MenuItem[] = super.getEditMenuItems(this.selectedEntity);
     menuItems.push({separator: true});
     menuItems.push({
+      label: 'GT_NET_CONFIG_EDIT' + BaseSettings.DIALOG_MENU_SUFFIX,
+      command: (e) => this.editConfig(),
+      disabled: !this.selectedEntity?.gtNetConfig
+    });
+    menuItems.push({separator: true});
+    menuItems.push({
       label: 'GT_NET_MESSAGE_SEND', command: (e) => this.sendMsg(),
       disabled: !this.canSendMessage()
     });
@@ -304,6 +322,17 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
 
   public override getHelpContextId(): string {
     return HelpIds.HELP_GT_NET;
+  }
+
+  private editConfig(): void {
+    this.visibleDialogConfig = true;
+  }
+
+  handleCloseDialogConfig(processedActionData: ProcessedActionData): void {
+    this.visibleDialogConfig = false;
+    if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
+      this.readData();
+    }
   }
 
   handleCloseDialogMsg(processedActionData: ProcessedActionData): void {
@@ -366,6 +395,11 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
 
   protected override hasRightsForUpdateEntity(row: GTNet): boolean {
     return this.isMyEntry(row, null);
+  }
+
+  /** Returns connection timeout from nested gtNetConfig, or null if not set */
+  getConnectionTimeout(dataobject: GTNet, field: ColumnConfig, valueField: any): number {
+    return dataobject.gtNetConfig?.connectionTimeout ?? null;
   }
 
   /** Returns count of incoming pending replies (requests I need to answer) */

@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfig;
 import grafiosch.entities.GTNetSupplierDetail;
+import grafiosch.gtnet.GTNetTimeoutHelper;
 import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.m2m.GTNetMessageHelper;
@@ -142,7 +143,8 @@ public class GTNetExchangeSyncService {
         peer.getDomainRemoteName(), itemsToSend.size(), fullRecreation);
 
     SendResult result = baseDataClient.sendToMsgWithStatus(
-        config.getTokenRemote(), peer.getDomainRemoteName(), requestEnvelope);
+        config.getTokenRemote(), peer.getDomainRemoteName(), requestEnvelope,
+        GTNetTimeoutHelper.resolveTimeout(peer, globalparametersJpaRepository));
 
     if (result.isFailed()) {
       if (result.httpError()) {

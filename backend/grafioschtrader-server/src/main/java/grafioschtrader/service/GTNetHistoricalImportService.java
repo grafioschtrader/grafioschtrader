@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfig;
+import grafiosch.gtnet.GTNetTimeoutHelper;
 import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.m2m.GTNetMessageHelper;
@@ -218,7 +219,7 @@ public class GTNetHistoricalImportService extends BaseGTNetExchangeService {
 
     // Send request
     SendResult result = baseDataClient.sendToMsgWithStatus(config.getTokenRemote(), peer.getDomainRemoteName(),
-        envelope);
+        envelope, GTNetTimeoutHelper.resolveTimeout(peer, globalparametersJpaRepository));
 
     if (result.isFailed()) {
       log.warn("Failed to fetch historyquotes from {}: HTTP {}",
@@ -334,7 +335,7 @@ public class GTNetHistoricalImportService extends BaseGTNetExchangeService {
     envelope.payload = objectMapper.valueToTree(query);
 
     SendResult result = baseDataClient.sendToMsgWithStatus(config.getTokenRemote(), peer.getDomainRemoteName(),
-        envelope);
+        envelope, GTNetTimeoutHelper.resolveTimeout(peer, globalparametersJpaRepository));
 
     if (result.isFailed()) {
       log.debug("Coverage query to {} failed: HTTP {}", peer.getDomainRemoteName(), result.httpStatusCode());

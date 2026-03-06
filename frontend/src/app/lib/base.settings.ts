@@ -74,6 +74,7 @@ export class BaseSettings {
   public static readonly GT_NET_MESSAGE_ANSWER_KEY = 'gtnetmessageanswer';
   public static readonly GT_NET_SETUP_KEY = 'gtnetsetup';
   public static readonly GT_NET_ADMIN_MESSAGES_KEY = 'gtnetadminmessages';
+  public static readonly GT_NET_CONFIG_KEY = 'gtnetconfig';
   public static readonly GT_NET_CONFIG_ENTITY_KEY = 'gtnetconfigentity';
   public static readonly GT_NET_MESSAGE_KEY = 'gtnetmessage';
 

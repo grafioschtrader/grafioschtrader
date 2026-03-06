@@ -57,6 +57,8 @@ public class RequestMappings {
   public static final String GTNET_MESSAGE_ANSWER = "gtnetmessageanswer";
   public static final String GTNET_MESSAGE_ANSWER_MAP = API + GTNET_MESSAGE_ANSWER;
 
+  public static final String GTNETCONFIG = "gtnetconfig";
+  public static final String GTNETCONFIG_MAP = API + GTNETCONFIG;
   public static final String GTNETCONFIGENTITY = "gtnetconfigentity";
   public static final String GTNETCONFIGENTITY_MAP = API + GTNETCONFIGENTITY;
   public static final String USER_CHART_SHAPE = "userchartshape";

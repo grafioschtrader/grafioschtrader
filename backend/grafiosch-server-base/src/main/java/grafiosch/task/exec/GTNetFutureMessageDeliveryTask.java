@@ -27,6 +27,7 @@ import grafiosch.gtnet.DeliveryStatus;
 import grafiosch.gtnet.GNetCoreMessageCode;
 import grafiosch.gtnet.GTNetMessageCode;
 import grafiosch.gtnet.GTNetModelHelper;
+import grafiosch.gtnet.GTNetTimeoutHelper;
 import grafiosch.gtnet.SendReceivedType;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.m2m.client.BaseDataClient;
@@ -356,7 +357,8 @@ public class GTNetFutureMessageDeliveryTask implements ITask {
       }
 
       String tokenRemote = targetGTNet.getGtNetConfig().getTokenRemote();
-      SendResult result = baseDataClient.sendToMsgWithStatus(tokenRemote, targetGTNet.getDomainRemoteName(), envelope);
+      SendResult result = baseDataClient.sendToMsgWithStatus(tokenRemote, targetGTNet.getDomainRemoteName(), envelope,
+          GTNetTimeoutHelper.resolveTimeout(targetGTNet, globalparametersJpaRepository));
 
       if (result.isFailed()) {
         log.warn("Failed to deliver message {} to {}: httpError={}, statusCode={}, reachable={}, errorMsg={}",

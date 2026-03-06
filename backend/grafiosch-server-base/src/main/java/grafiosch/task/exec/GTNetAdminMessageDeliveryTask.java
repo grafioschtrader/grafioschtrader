@@ -17,6 +17,7 @@ import grafiosch.entities.TaskDataChange;
 import grafiosch.exceptions.TaskBackgroundException;
 import grafiosch.gtnet.DeliveryStatus;
 import grafiosch.gtnet.GNetCoreMessageCode;
+import grafiosch.gtnet.GTNetTimeoutHelper;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.m2m.client.BaseDataClient;
 import grafiosch.m2m.client.BaseDataClient.SendResult;
@@ -206,7 +207,8 @@ public class GTNetAdminMessageDeliveryTask implements ITask {
       MessageEnvelope envelope = new MessageEnvelope(myGTNet, message);
 
       String tokenRemote = targetGTNet.getGtNetConfig().getTokenRemote();
-      SendResult result = baseDataClient.sendToMsgWithStatus(tokenRemote, targetGTNet.getDomainRemoteName(), envelope);
+      SendResult result = baseDataClient.sendToMsgWithStatus(tokenRemote, targetGTNet.getDomainRemoteName(), envelope,
+          GTNetTimeoutHelper.resolveTimeout(targetGTNet, globalparametersJpaRepository));
 
       if (result.isFailed()) {
         log.warn("Failed to deliver admin message {} to {}: httpError={}, statusCode={}, reachable={}, errorMsg={}",

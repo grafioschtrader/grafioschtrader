@@ -129,7 +129,15 @@ public interface GlobalparametersJpaRepositoryCustom {
    *
    * @return true if GTNet is enabled, false otherwise
    */
-   boolean isGTNetEnabled(); 
+   boolean isGTNetEnabled();
+
+  /**
+   * Gets the global GTNet connection timeout in seconds.
+   * Uses GLOB_KEY_GTNET_CONNECTION_TIMEOUT with default fallback to 30 seconds.
+   *
+   * @return the connection timeout in seconds
+   */
+  int getGTNetConnectionTimeout();
   
   
   Globalparameters saveOnlyAttributes(Globalparameters globalparameters) throws Exception;

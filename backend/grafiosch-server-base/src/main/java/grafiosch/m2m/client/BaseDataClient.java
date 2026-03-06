@@ -1,5 +1,7 @@
 package grafiosch.m2m.client;
 
+import java.time.Duration;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -11,6 +13,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.gtnet.model.msg.ApplicationInfo;
 import grafiosch.rest.RequestMappings;
+import io.netty.channel.ChannelOption;
 import io.netty.resolver.ResolvedAddressTypes;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
@@ -102,9 +105,7 @@ public class BaseDataClient {
 
   /**
    * Retrieves application metadata from a remote instance's actuator endpoint.
-   *
-   * Used during GTNet entry creation/update to verify the remote is reachable and running
-   * Grafioschtrader. Also used to detect if the domain URL refers to the local machine.
+   * Uses Reactor Netty default connection timeout.
    *
    * @param domainName the base URL of the remote instance (e.g., "https://example.com:8080")
    * @return application info including name, version, and user capacity
@@ -112,17 +113,26 @@ public class BaseDataClient {
    * @throws WebClientRequestException if the remote is unreachable
    */
   public ApplicationInfo getActuatorInfo(String domainName) {
-    return getWebClientForDomain(domainName).get()
+    return getActuatorInfo(domainName, 0);
+  }
+
+  /**
+   * Retrieves application metadata from a remote instance's actuator endpoint.
+   *
+   * @param domainName the base URL of the remote instance (e.g., "https://example.com:8080")
+   * @param connectionTimeoutSeconds TCP connection timeout in seconds (0 = use Netty default)
+   * @return application info including name, version, and user capacity
+   * @throws WebClientResponseException if the remote returns an error status
+   * @throws WebClientRequestException if the remote is unreachable
+   */
+  public ApplicationInfo getActuatorInfo(String domainName, int connectionTimeoutSeconds) {
+    return getWebClientForDomain(domainName, connectionTimeoutSeconds).get()
         .uri(uriBuilder -> uriBuilder.path(RequestMappings.ACTUATOR_MAP + "/info").build()).retrieve()
         .bodyToMono(ApplicationInfo.class).block();
   }
 
   /**
    * Sends a GTNet message to a remote instance.
-   *
-   * POSTs the message envelope to the remote's M2M endpoint with the authentication token
-   * in the Authorization header. The remote validates the token against its stored tokenThis
-   * for the sender's domain.
    *
    * @param tokenRemote the authentication token received from the remote during handshake
    * @param targetDomain the base URL of the remote instance
@@ -137,6 +147,19 @@ public class BaseDataClient {
 
   /**
    * Sends a GTNet message to a remote instance and returns detailed status information.
+   * Uses Reactor Netty default connection timeout.
+   *
+   * @param tokenRemote the authentication token received from the remote during handshake
+   * @param targetDomain the base URL of the remote instance
+   * @param messageEnvelope the message to send
+   * @return SendResult containing reachability status, response, and remote server's busy flag
+   */
+  public SendResult sendToMsgWithStatus(String tokenRemote, String targetDomain, MessageEnvelope messageEnvelope) {
+    return sendToMsgWithStatus(tokenRemote, targetDomain, messageEnvelope, 0);
+  }
+
+  /**
+   * Sends a GTNet message to a remote instance and returns detailed status information.
    *
    * This method wraps the HTTP call with error handling to distinguish between:
    * - Server reachable and responded (serverReachable=true, response contains data)
@@ -145,11 +168,13 @@ public class BaseDataClient {
    * @param tokenRemote the authentication token received from the remote during handshake
    * @param targetDomain the base URL of the remote instance
    * @param messageEnvelope the message to send
+   * @param connectionTimeoutSeconds TCP connection timeout in seconds (0 = use Netty default)
    * @return SendResult containing reachability status, response, and remote server's busy flag
    */
-  public SendResult sendToMsgWithStatus(String tokenRemote, String targetDomain, MessageEnvelope messageEnvelope) {
+  public SendResult sendToMsgWithStatus(String tokenRemote, String targetDomain, MessageEnvelope messageEnvelope,
+      int connectionTimeoutSeconds) {
     try {
-      WebClient.RequestBodySpec requestSpec = getWebClientForDomain(targetDomain).post()
+      WebClient.RequestBodySpec requestSpec = getWebClientForDomain(targetDomain, connectionTimeoutSeconds).post()
           .uri(uriBuilder -> uriBuilder.path(RequestMappings.GTNET_M2M_MAP).build())
           .contentType(org.springframework.http.MediaType.APPLICATION_JSON);
 
@@ -183,25 +208,22 @@ public class BaseDataClient {
   }
 
   /**
-   * Creates a WebClient configured for the specified domain.
-   *
-   * Configuration includes:
-   * <ul>
-   *   <li>IPv6 preferred address resolution (may need adjustment for IPv4-only environments)</li>
-   *   <li>Base URL set to the target domain</li>
-   * </ul>
-   *
-   * Note: Each call creates a new WebClient instance. For high-volume scenarios, consider
-   * caching clients per domain.
+   * Creates a WebClient configured for the specified domain with optional connection timeout.
    *
    * @param domainName the base URL for the WebClient
+   * @param connectionTimeoutSeconds TCP connection timeout in seconds (0 = use Netty default)
    * @return configured WebClient instance
    */
-  private WebClient getWebClientForDomain(String domainName) {
+  private WebClient getWebClientForDomain(String domainName, int connectionTimeoutSeconds) {
     HttpClient httpClient = HttpClient.create().resolver(spec -> {
       spec.resolvedAddressTypes(ResolvedAddressTypes.IPV6_PREFERRED);
       spec.disableRecursionDesired(false);
     });
+
+    if (connectionTimeoutSeconds > 0) {
+      httpClient = httpClient.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectionTimeoutSeconds * 1000)
+          .responseTimeout(Duration.ofSeconds(connectionTimeoutSeconds));
+    }
 
     return WebClient.builder().clientConnector(new ReactorClientHttpConnector(httpClient)).baseUrl(domainName).build();
   }

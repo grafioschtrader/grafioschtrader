@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfig;
+import grafiosch.gtnet.GTNetTimeoutHelper;
 import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.m2m.GTNetMessageHelper;
@@ -139,7 +140,8 @@ public class GTNetLastpricePushService {
     SendResult result = baseDataClient.sendToMsgWithStatus(
         config.getTokenRemote(),
         server.getDomainRemoteName(),
-        pushEnvelope);
+        pushEnvelope,
+        GTNetTimeoutHelper.resolveTimeout(server, globalparametersJpaRepository));
 
     if (result.isFailed()) {
       if (result.httpError()) {

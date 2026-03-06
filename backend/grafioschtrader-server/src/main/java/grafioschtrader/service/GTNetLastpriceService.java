@@ -20,6 +20,7 @@ import grafiosch.entities.GTNetConfig;
 import grafiosch.entities.GTNetEntity;
 import grafiosch.entities.GTNetSupplierDetail;
 import grafiosch.gtnet.AcceptRequestTypes;
+import grafiosch.gtnet.GTNetTimeoutHelper;
 import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.m2m.GTNetMessageHelper;
@@ -395,7 +396,8 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
     SendResult result = baseDataClient.sendToMsgWithStatus(
         config.getTokenRemote(),
         supplier.getDomainRemoteName(),
-        requestEnvelope);
+        requestEnvelope,
+        GTNetTimeoutHelper.resolveTimeout(supplier, globalparametersJpaRepository));
 
     if (result.isFailed()) {
       if (result.httpError()) {

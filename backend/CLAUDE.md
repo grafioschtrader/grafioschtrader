@@ -252,6 +252,49 @@ Without this annotation, the frontend will show "Invalid date".
 
 **How the lookup works**: `DailyLimitUpdCreateLogger.checkDailyLimitOnCRUDOperations()` builds the key as `getPrefixEntityLimit() + entity.getClass().getSimpleName()` and looks it up via `Globalparameters.defaultLimitMap`. If the key is missing from the map, `maxDefaultDBValue` will be `null`.
 
+## Globalparameters: Adding New Entries
+
+When inserting a new row into the `globalparameters` table via a Flyway migration, always consider whether the value needs **validation rules**. The `input_rule` column stores a DSL string that the UI enforces when an admin edits the parameter.
+
+### Supported Rules
+
+| Rule | Syntax | Example |
+|------|--------|---------|
+| Minimum value | `min:N` | `min:5` |
+| Maximum value | `max:N` | `max:40` |
+| Allowed values | `enum:N1,N2,N3` | `enum:1,7,12,365` |
+| Regex pattern | `pattern:REGEX` | `pattern:^[A-Z]{3}=[0-8](,[A-Z]{3}=[0-8])*$` |
+
+Rules can be combined with commas: `min:5,max:40`.
+
+### Flyway INSERT Pattern
+
+```sql
+DELETE FROM globalparameters WHERE property_name = 'g.my.param';
+INSERT INTO globalparameters (property_name, property_int, changed_by_system, input_rule)
+  VALUES ('g.my.param', 30, 0, 'min:5,max:40');
+```
+
+### Backend Constant + Accessor Pattern
+
+Each globalparameter also needs:
+
+1. **Constants** in `GlobalParamKeyBaseDefault` (or `GlobalParamKeyDefault`):
+   ```java
+   public static final String GLOB_KEY_MY_PARAM = PREFIX + "my.param";
+   public static final int DEFAULT_MY_PARAM = 30;
+   ```
+
+2. **Accessor method** in `GlobalparametersJpaRepositoryCustom` + `Impl`:
+   ```java
+   int getMyParam();
+   // Impl:
+   return globalparametersJpaRepository.findById(GlobalParamKeyBaseDefault.GLOB_KEY_MY_PARAM)
+       .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyBaseDefault.DEFAULT_MY_PARAM);
+   ```
+
+3. **NLS keys** in `grafiosch-base/src/main/resources/i18n/messages.properties` and `messages_de.properties` matching the property name (e.g., `g.gnet.connection.timeout=GTNet connection timeout (seconds)`).
+
 ## Common Annotations for Native Queries
 
 ```java

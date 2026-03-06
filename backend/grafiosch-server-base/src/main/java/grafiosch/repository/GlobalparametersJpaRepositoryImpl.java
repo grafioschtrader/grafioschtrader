@@ -116,6 +116,12 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
         .flatMap(g -> Optional.ofNullable(g.getPropertyInt()))
         .orElse(GlobalParamKeyBaseDefault.DEFAULT_GTNET_USE) != 0;
    }
+
+  @Override
+  public int getGTNetConnectionTimeout() {
+    return globalparametersJpaRepository.findById(GlobalParamKeyBaseDefault.GLOB_KEY_GTNET_CONNECTION_TIMEOUT)
+        .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyBaseDefault.DEFAULT_GTNET_CONNECTION_TIMEOUT);
+  }
   
   @Override
   public int getMaxSecurityBreachCount() {

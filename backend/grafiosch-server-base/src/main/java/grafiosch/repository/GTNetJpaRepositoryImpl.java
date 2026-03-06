@@ -46,6 +46,7 @@ import grafiosch.gtnet.ExchangeKindTypeRegistry;
 import grafiosch.gtnet.GNetCoreMessageCode;
 import grafiosch.gtnet.GTNetMessageCode;
 import grafiosch.gtnet.GTNetMessageCodeRegistry;
+import grafiosch.gtnet.GTNetTimeoutHelper;
 import grafiosch.gtnet.GTNetModelHelper;
 import grafiosch.gtnet.GTNetModelHelper.GTNetMsgRequest;
 import grafiosch.gtnet.GTNetServerOnlineStatusTypes;
@@ -203,7 +204,8 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     // Validate remote URL is reachable
 
     if (gtNetJpaRepository.count() == 0) {
-      baseDataClient.getActuatorInfo(gtNet.getDomainRemoteName());
+      baseDataClient.getActuatorInfo(gtNet.getDomainRemoteName(),
+          GTNetTimeoutHelper.resolveTimeout(gtNet, globalparametersJpaRepository));
     }
 
     // Track settings changes (only for myGTNet)
@@ -898,7 +900,8 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       }
 
       String tokenRemote = targetGTNet.getGtNetConfig() != null ? targetGTNet.getGtNetConfig().getTokenRemote() : null;
-      SendResult result = baseDataClient.sendToMsgWithStatus(tokenRemote, targetGTNet.getDomainRemoteName(), meRequest);
+      SendResult result = baseDataClient.sendToMsgWithStatus(tokenRemote, targetGTNet.getDomainRemoteName(), meRequest,
+          GTNetTimeoutHelper.resolveTimeout(targetGTNet, globalparametersJpaRepository));
 
       // Update deliveryStatus on the message
       updateDeliveryStatus(gtNetMessage, result);
@@ -1112,7 +1115,8 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     }
 
     String tokenRemote = targetGTNet.getGtNetConfig() != null ? targetGTNet.getGtNetConfig().getTokenRemote() : null;
-    SendResult result = baseDataClient.sendToMsgWithStatus(tokenRemote, targetGTNet.getDomainRemoteName(), meRequest);
+    SendResult result = baseDataClient.sendToMsgWithStatus(tokenRemote, targetGTNet.getDomainRemoteName(), meRequest,
+        GTNetTimeoutHelper.resolveTimeout(targetGTNet, globalparametersJpaRepository));
 
     // Update target server's status based on response
     if (result.isDelivered()) {

@@ -87,6 +87,8 @@ export interface GTNetConfig {
   requestViolationCount?: number;
   /** Timestamp of the last successful supplier detail update from the exchange sync job. */
   supplierLastUpdate?: string;
+  /** TCP connection timeout in seconds for this peer (5-40). Null = use global default. */
+  connectionTimeout?: number;
 }
 
 export class GTNet implements BaseID {

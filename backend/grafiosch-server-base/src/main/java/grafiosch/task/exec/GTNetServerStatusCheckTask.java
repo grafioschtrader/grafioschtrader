@@ -121,7 +121,7 @@ public class GTNetServerStatusCheckTask implements ITask {
     boolean stateChanged = false;
 
     try {
-      SendResult result = GTNetMessageHelper.sendPingWithStatus(baseDataClient, myGTNet, peer);
+      SendResult result = GTNetMessageHelper.sendPingWithStatus(baseDataClient, myGTNet, peer, globalparametersJpaRepository);
 
       // Server is considered online if it's reachable at network level (even if it returns HTTP errors)
       GTNetServerOnlineStatusTypes newStatus = GTNetServerOnlineStatusTypes.fromReachable(result.serverReachable());

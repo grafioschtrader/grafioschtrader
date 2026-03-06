@@ -80,8 +80,13 @@ public class GlobalParamKeyBaseDefault {
   public static final String GLOB_KEY_GTNET_USE_LOG = GNET + "use.log";
   /** Default value for GTNet logging enabled flag (disabled by default). */
   public static final int DEFAULT_GTNET_USE_LOG = 0;
-  
-  
+
+  /** TCP connection timeout in seconds for GTNet peer communication. Used as fallback when per-peer timeout is null. */
+  public static final String GLOB_KEY_GTNET_CONNECTION_TIMEOUT = GNET + "connection.timeout";
+  /** Default GTNet connection timeout: 30 seconds. */
+  public static final int DEFAULT_GTNET_CONNECTION_TIMEOUT = 30;
+
+
   public GlobalParamKeyBaseDefault() {
     Map<String, MaxDefaultDBValue> defaultLimitMap = Globalparameters.defaultLimitMap;
 
