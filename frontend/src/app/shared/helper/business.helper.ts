@@ -167,13 +167,14 @@ export class BusinessHelper {
     idSecuritycurrency: number,
     idSecuritycashAccounts: number[],
     idPortfolio: number,
-    forChart: boolean): Observable<SecurityTransactionSummary> {
+    forChart: boolean,
+    untilDate?: string): Observable<SecurityTransactionSummary> {
     if (idSecuritycashAccounts && idSecuritycashAccounts.length > 0 && idSecuritycashAccounts[0] !== null) {
-      return securityService.getTransactionsByIdSecurityaccountsAndIdSecurity(idSecuritycashAccounts, idSecuritycurrency, forChart);
+      return securityService.getTransactionsByIdSecurityaccountsAndIdSecurity(idSecuritycashAccounts, idSecuritycurrency, forChart, untilDate);
     } else if (idPortfolio) {
-      return securityService.getTransactionsByIdPortfolioAndIdSecurity(idPortfolio, idSecuritycurrency, forChart);
+      return securityService.getTransactionsByIdPortfolioAndIdSecurity(idPortfolio, idSecuritycurrency, forChart, untilDate);
     } else {
-      return securityService.getTransactionsByIdTenantAndIdSecurity(idSecuritycurrency, forChart);
+      return securityService.getTransactionsByIdTenantAndIdSecurity(idSecuritycurrency, forChart, untilDate);
     }
   }
 

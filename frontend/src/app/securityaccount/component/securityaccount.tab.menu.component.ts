@@ -7,6 +7,7 @@ import {Subscription} from 'rxjs';
 import {BaseTabMenuComponent} from '../../lib/tabmenu/component/base.tab.menu.component';
 import {TabItem} from '../../lib/types/tab.item';
 import {BaseSettings} from '../../lib/base.settings';
+import {TreeNavigationStateService} from '../../lib/maintree/service/tree.navigation.state.service';
 import {Tabs, TabList, Tab} from 'primeng/tabs';
 
 /**
@@ -44,7 +45,8 @@ export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implem
   constructor(
     router: Router,
     activatedRoute: ActivatedRoute,
-    translateService: TranslateService
+    translateService: TranslateService,
+    private treeNavState: TreeNavigationStateService
   ) {
     super(router, activatedRoute, translateService);
   }
@@ -53,17 +55,23 @@ export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implem
     // Initialize tabs first
     super.ngOnInit();
 
-    // Subscribe to route parameters for securityaccount data
+    // Subscribe to route parameters - entity data comes from TreeNavigationStateService
     this.routeParamSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
-      if (params['object']) {
-        this.securityaccount = JSON.parse(params['object']);
+      const id = +params['id'];
+      if (id) {
+        const route = this.activatedRoute.snapshot.routeConfig?.path?.split('/')[0]
+          ?? AppSettings.SECURITYACCOUNT_TAB_MENU_KEY;
+        this.securityaccount = this.treeNavState.getEntity<Securityaccount>(
+          BaseSettings.MAINVIEW_KEY + '/' + route, id);
 
-        // Handle special import transaction parameter
-        if (params[AppSettings.SUCCESS_FAILED_IMP_TRANS]) {
-          this.successFailedImportTransParam = params[AppSettings.SUCCESS_FAILED_IMP_TRANS];
-          this.navigateTo(AppSettings.SECURITYACCOUNT_IMPORT_TAB_MENU_KEY);
-        } else {
-          this.handleNormalNavigation();
+        if (this.securityaccount) {
+          // Handle special import transaction parameter
+          if (params[AppSettings.SUCCESS_FAILED_IMP_TRANS]) {
+            this.successFailedImportTransParam = params[AppSettings.SUCCESS_FAILED_IMP_TRANS];
+            this.navigateTo(AppSettings.SECURITYACCOUNT_IMPORT_TAB_MENU_KEY);
+          } else {
+            this.handleNormalNavigation();
+          }
         }
       }
     });
@@ -143,16 +151,15 @@ export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implem
     // Update active route and remember last route
     this.activeRoute = route;
     this.lastRouteKey = route;
-    // Prepare navigation data
-    const data: any = {
-      securityaccount: JSON.stringify(this.securityaccount)
-    };
-    // Add special import transaction parameter if available
+    // Store entity in shared service so child components can access it without URL bloat
+    this.treeNavState.setEntity(route, this.securityaccount.idSecuritycashAccount, this.securityaccount);
+    // Prepare navigation data - only non-entity params
+    const data: any = {};
     if (this.successFailedImportTransParam) {
       data[AppSettings.SUCCESS_FAILED_IMP_TRANS] = this.successFailedImportTransParam;
-      this.successFailedImportTransParam = null; // Reset after use
+      this.successFailedImportTransParam = null;
     }
-    // Navigate with complex route structure
+    // Navigate with just the ID - no serialized entity
     this.router.navigate([
       `${BaseSettings.MAINVIEW_KEY}/${AppSettings.SECURITYACCOUNT_TAB_MENU_KEY}/${this.securityaccount.idSecuritycashAccount}/${route}`,
       this.securityaccount.idSecuritycashAccount,

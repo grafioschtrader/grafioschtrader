@@ -1,11 +1,15 @@
 package grafioschtrader.repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.common.UpdateQuery;
 import grafiosch.rest.UpdateCreateJpaRepository;
@@ -62,6 +66,72 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
       JOIN currencypair cp ON t.id_currency_pair = cp.id_securitycurrency
       WHERE cp.from_currency = s.currency""", nativeQuery = true)
   List<Transaction> findWrongCurrencypairTransaction();
+
+  /**
+   * Finds the latest transaction date for a specific security in a given security account, excluding system-created
+   * transfer transactions. Used to validate that a new transfer date is after all existing transactions.
+   *
+   * @param idSecurityaccount  the security account ID
+   * @param idSecuritycurrency the security ID
+   * @return the latest transaction time, or empty if no non-transfer transactions exist
+   */
+  @Query("SELECT MAX(t.transactionTime) FROM Transaction t JOIN t.security s " +
+      "WHERE t.idSecurityaccount = ?1 AND s.idSecuritycurrency = ?2 AND t.idSecurityTransfer IS NULL")
+  Optional<LocalDateTime> findMaxTransactionTimeBySecurityaccountAndSecurity(
+      Integer idSecurityaccount, Integer idSecuritycurrency);
+
+  /**
+   * Counts non-transfer transactions after a given date for a specific security in a security account.
+   * Used to determine if a transfer can be reversed (no subsequent transactions should exist in the target account).
+   *
+   * @param idSecurityaccount  the security account ID
+   * @param idSecuritycurrency the security ID
+   * @param afterDate          the date after which to count transactions
+   * @return number of non-transfer transactions after the given date
+   */
+  @Query("SELECT COUNT(t) FROM Transaction t JOIN t.security s " +
+      "WHERE t.idSecurityaccount = ?1 AND s.idSecuritycurrency = ?2 " +
+      "AND t.transactionTime > ?3 AND t.idSecurityTransfer IS NULL")
+  long countTransactionsAfterDate(Integer idSecurityaccount, Integer idSecuritycurrency, LocalDateTime afterDate);
+
+  List<Transaction> findByIdSecurityTransfer(Integer idSecurityTransfer);
+
+  List<Transaction> findByIdSecurityActionApp(Integer idSecurityActionApp);
+
+  /**
+   * Reassigns all transactions for a given old security to a new security from a specified date onward.
+   * Used during ISIN change (SecurityAction) to move post-action-date transactions to the new security.
+   *
+   * @param idTenant       the tenant owning the transactions
+   * @param oldSecurityId  the old security ID to match
+   * @param newSecurityId  the new security ID to assign
+   * @param appId          the SecurityActionApplication ID to tag reassigned transactions
+   * @param fromDate       the action date (inclusive) from which transactions are reassigned
+   * @return number of rows updated
+   */
+  @Transactional
+  @Modifying
+  @Query(value = "UPDATE transaction SET id_securitycurrency = :newSecurityId, id_security_action_app = :appId "
+      + "WHERE id_tenant = :idTenant AND id_securitycurrency = :oldSecurityId "
+      + "AND tt_date >= :fromDate", nativeQuery = true)
+  int reassignTransactionsToNewSecurity(@Param("idTenant") Integer idTenant,
+      @Param("oldSecurityId") Integer oldSecurityId, @Param("newSecurityId") Integer newSecurityId,
+      @Param("appId") Integer appId, @Param("fromDate") LocalDate fromDate);
+
+  /**
+   * Reverts reassigned transactions back to the old security during ISIN change reversal.
+   * Only reverts non-system-created transactions (those that were bulk-reassigned, not the SELL/BUY pair).
+   *
+   * @param oldSecurityId the original security ID to restore
+   * @param appId         the SecurityActionApplication ID identifying reassigned transactions
+   * @return number of rows updated
+   */
+  @Transactional
+  @Modifying
+  @Query(value = "UPDATE transaction SET id_securitycurrency = :oldSecurityId, id_security_action_app = NULL "
+      + "WHERE id_security_action_app = :appId AND note != 'System-Created'", nativeQuery = true)
+  int revertReassignedTransactions(@Param("oldSecurityId") Integer oldSecurityId,
+      @Param("appId") Integer appId);
 
   List<Transaction> findBySecurity_idSecuritycurrency(Integer idSecuritycurrency);
 

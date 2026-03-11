@@ -21,6 +21,7 @@ export const TreeNodeType = {
   ImpTransTemplate: 'ImpTransTemplate',
   UDFMetadataSecurity: 'UDFMetadataSecurity',
   GTNetSecurityImport: 'GTNetSecurityImport',
+  SecurityAction: 'SecurityAction',
   SimulationEnvironment: 'SimulationEnvironment',
   NO_MENU: 'NO_MENU'
 } as const;

@@ -13,7 +13,7 @@ import {AppHelper} from '../../lib/helper/app.helper';
 import {SecurityDerived, SecurityEditSupport} from '../../shared/securitycurrency/security.edit.support';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {AfterSetSecurity, CallBackSetSecurityWithAfter, SecuritycurrencySearchAndSetComponent} from './securitycurrency-search-and-set.component';
+import {SecuritycurrencySearchAndSetComponent} from './securitycurrency-search-and-set.component';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {combineLatest, Observable, Subscription} from 'rxjs';
@@ -40,6 +40,7 @@ import {AppSettings} from '../../shared/app.settings';
 import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 import {DialogModule} from 'primeng/dialog';
+import {DialogService} from 'primeng/dynamicdialog';
 
 /**
  * To create a derived instrument a base instrument is required. Additionally, a formula can be added. Prices depend on other instrument,
@@ -56,26 +57,17 @@ import {DialogModule} from 'primeng/dialog';
                     #form="dynamicForm"
                     (submitBt)="submit($event)">
       </dynamic-form>
-
-      @if (visibleSetSecurityDialog) {
-        <securitycurrency-search-and-set
-          [visibleDialog]="visibleSetSecurityDialog"
-          [supplementCriteria]="supplementCriteria"
-          [callBackSetSecurityWithAfter]="this"
-          (closeDialog)="handleOnCloseSetDialog($event)">
-        </securitycurrency-search-and-set>
-      }
     </p-dialog>
   `,
     standalone: true,
     imports: [
       TranslateModule,
       DialogModule,
-      DynamicFormComponent,
-      SecuritycurrencySearchAndSetComponent
-    ]
+      DynamicFormComponent
+    ],
+    providers: [DialogService]
 })
-export class SecurityDerivedEditComponent extends SimpleEditBase implements OnInit, CallBackSetSecurityWithAfter {
+export class SecurityDerivedEditComponent extends SimpleEditBase implements OnInit {
 // Input from parent component
   @Input() securityCallParam: Security;
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
@@ -87,7 +79,6 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
   supplementCriteria: SupplementCriteria;
   formulaSubscribe: Subscription;
 
-  visibleSetSecurityDialog = false;
   private dialogSecurityTargetFieldname: string;
   private baseInstrument: Security | CurrencypairWatchlist;
   private additionalInstruments: { [fieldName: string]: Security | CurrencypairWatchlist } = {};
@@ -107,6 +98,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
               private assetclassService: AssetclassService,
               private securityService: SecurityService,
               private currencypairService: CurrencypairService,
+              private dialogService: DialogService,
               gps: GlobalparameterService) {
     super(HelpIds.HELP_WATCHLIST_DERIVED_INSTRUMENT, gps);
     this.supplementCriteria = new SupplementCriteria(false, true);
@@ -157,22 +149,23 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
   }
 
   handleSecurityClick(fieldConfig: FieldConfig): void {
-    this.visibleSetSecurityDialog = true;
     this.dialogSecurityTargetFieldname = fieldConfig.field;
-  }
-
-  setSecurity(security: Security | CurrencypairWatchlist, afterSetSecurity: AfterSetSecurity): void {
-    afterSetSecurity.afterSetSecurity();
-    if (this.dialogSecurityTargetFieldname === this.BASE_PRODUCT_NAME) {
-      this.setSecurityBaseInstrument(security);
-    } else {
-      this.additionalInstruments[this.dialogSecurityTargetFieldname] = security;
-    }
-    this.configObject[this.dialogSecurityTargetFieldname].formControl.setValue(security.name);
-  }
-
-  handleOnCloseSetDialog(processedActionData: ProcessedActionData): void {
-    this.visibleSetSecurityDialog = false;
+    this.translateService.get('SET_SECURITY').subscribe(title => {
+      const ref = this.dialogService.open(SecuritycurrencySearchAndSetComponent, {
+        header: title, width: '720px', resizable: false, closable: true, closeOnEscape: true,
+        data: {supplementCriteria: this.supplementCriteria}
+      });
+      ref.onClose.subscribe((security: Security | CurrencypairWatchlist) => {
+        if (security) {
+          if (this.dialogSecurityTargetFieldname === this.BASE_PRODUCT_NAME) {
+            this.setSecurityBaseInstrument(security);
+          } else {
+            this.additionalInstruments[this.dialogSecurityTargetFieldname] = security;
+          }
+          this.configObject[this.dialogSecurityTargetFieldname].formControl.setValue(security.name);
+        }
+      });
+    });
   }
 
   submit(value: { [name: string]: any }): void {

@@ -4,6 +4,8 @@ import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import grafiosch.BaseConstants;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -15,7 +17,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public class FeeModelComparisonDetail {
 
   @Schema(description = "Date of the transaction")
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   private LocalDate transactionDate;
 
   @Schema(description = "BUY or SELL")

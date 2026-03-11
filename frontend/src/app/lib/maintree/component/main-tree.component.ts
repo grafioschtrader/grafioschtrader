@@ -4,6 +4,7 @@ import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {MenuItem, TreeNode} from 'primeng/api';
 import {Subscription} from 'rxjs';
 import {MainTreeService} from '../service/main-tree.service';
+import {TreeNavigationStateService} from '../service/tree.navigation.state.service';
 import {TypeNodeData} from '../types/type.node.data';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach';
@@ -54,7 +55,8 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     private router: Router,
     public translateService: TranslateService,
     @Inject(DIALOG_HANDLER) private dialogHandler: DialogHandler,
-    private mainTreeService: MainTreeService
+    private mainTreeService: MainTreeService,
+    private treeNavState: TreeNavigationStateService
   ) {
     // Setup component callbacks for the service
     this.mainTreeService.setComponentCallbacks({
@@ -197,11 +199,13 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
         if (!this.lastRoute || this.lastRoute !== data.route || this.lastId !== data.id) {
           this.lastRoute = data.route;
           this.lastId = data.id;
-          if (data.useQueryParams) {
-            this.router.navigate([data.route, data.id], {queryParams: {object: data.entityObject}});
-          } else {
-            this.router.navigate([data.route, data.id, {object: data.entityObject}]);
+          if (data.entityObject) {
+            this.treeNavState.setEntity(data.route, data.id, JSON.parse(data.entityObject));
           }
+          if (data.parentObject) {
+            this.treeNavState.setEntity(data.route + '_parent', data.id, JSON.parse(data.parentObject));
+          }
+          this.router.navigate([data.route, data.id]);
         }
       } else {
         this.router.navigate([data.route]);

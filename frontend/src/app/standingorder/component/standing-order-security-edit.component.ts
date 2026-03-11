@@ -13,22 +13,18 @@ import {StandingOrderService} from '../service/standing.order.service';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {DialogModule} from 'primeng/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 import {AppSettings} from '../../shared/app.settings';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {TransactionType} from '../../shared/types/transaction.type';
 import {SupplementCriteria} from '../../securitycurrency/model/supplement.criteria';
-import {
-  AfterSetSecurity,
-  CallBackSetSecurityWithAfter,
-  SecuritycurrencySearchAndSetComponent
-} from '../../securitycurrency/component/securitycurrency-search-and-set.component';
+import {SecuritycurrencySearchAndSetComponent} from '../../securitycurrency/component/securitycurrency-search-and-set.component';
 import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 import {Portfolio} from '../../entities/portfolio';
 import {StandingOrderEditBase} from './standing-order-edit-base';
 import {AppHelpIds} from '../../shared/help/help.ids';
+import {DialogService} from 'primeng/dynamicdialog';
 
 /** Invest mode: 0 = fixed units, 1 = fixed amount. Not persisted — derived from which field is non-null. */
 enum InvestMode {
@@ -51,24 +47,15 @@ enum InvestMode {
       <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
                     #form="dynamicForm" (submitBt)="submit($event)">
       </dynamic-form>
-
-      @if (visibleSetSecurityDialog) {
-        <securitycurrency-search-and-set
-          [visibleDialog]="visibleSetSecurityDialog"
-          [supplementCriteria]="supplementCriteria"
-          [callBackSetSecurityWithAfter]="this"
-          (closeDialog)="handleOnCloseSetDialog($event)">
-        </securitycurrency-search-and-set>
-      }
     </p-dialog>
   `,
   standalone: true,
-  imports: [DialogModule, DynamicFormModule, TranslateModule, SecuritycurrencySearchAndSetComponent]
+  imports: [DialogModule, DynamicFormModule, TranslateModule],
+  providers: [DialogService]
 })
-export class StandingOrderSecurityEditComponent extends StandingOrderEditBase implements OnInit, CallBackSetSecurityWithAfter {
+export class StandingOrderSecurityEditComponent extends StandingOrderEditBase implements OnInit {
 
-  visibleSetSecurityDialog = false;
-  supplementCriteria = new SupplementCriteria(true, false);
+  private supplementCriteria = new SupplementCriteria(true, false);
 
   /** Security selected via the search dialog. */
   private selectedSecurity: Security | null = null;
@@ -78,7 +65,8 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
     translateService: TranslateService,
     gps: GlobalparameterService,
     messageToastService: MessageToastService,
-    standingOrderService: StandingOrderService
+    standingOrderService: StandingOrderService,
+    private dialogService: DialogService
   ) {
     super(portfolioService, AppHelpIds.HELP_STANDING_ORDER_SECURITY, translateService, gps, messageToastService, standingOrderService);
   }
@@ -194,19 +182,18 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
 
   /** Opens the security search dialog when the security name button is clicked. */
   handleSecuritySearchClick(fieldConfig: FieldConfig): void {
-    this.visibleSetSecurityDialog = true;
-  }
-
-  /** Called by SecuritycurrencySearchAndSetComponent when a security is selected. */
-  setSecurity(security: Security | CurrencypairWatchlist, afterSetSecurity: AfterSetSecurity): void {
-    afterSetSecurity.afterSetSecurity();
-    this.selectedSecurity = security as Security;
-    this.configObject.securityName.formControl.setValue(security.name);
-  }
-
-  /** Called when the security search dialog is closed without selection. */
-  handleOnCloseSetDialog(processedActionData: ProcessedActionData): void {
-    this.visibleSetSecurityDialog = false;
+    this.translateService.get('SET_SECURITY').subscribe(title => {
+      const ref = this.dialogService.open(SecuritycurrencySearchAndSetComponent, {
+        header: title, width: '720px', resizable: false, closable: true, closeOnEscape: true,
+        data: {supplementCriteria: this.supplementCriteria}
+      });
+      ref.onClose.subscribe((security: Security | CurrencypairWatchlist) => {
+        if (security) {
+          this.selectedSecurity = security as Security;
+          this.configObject.securityName.formControl.setValue(security.name);
+        }
+      });
+    });
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): StandingOrderSecurity {

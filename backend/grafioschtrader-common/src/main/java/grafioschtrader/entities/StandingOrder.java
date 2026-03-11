@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import grafiosch.BaseConstants;
 import grafiosch.common.LockedWhenUsed;
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.entities.TenantBaseID;
@@ -131,26 +132,26 @@ public abstract class StandingOrder extends TenantBaseID implements Serializable
   @Schema(description = "Start date of the standing order's active period (inclusive)")
   @Column(name = "valid_from")
   @NotNull
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @LockedWhenUsed
   private LocalDate validFrom;
 
   @Schema(description = "End date of the standing order's active period (inclusive)")
   @Column(name = "valid_to")
   @NotNull
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @PropertyAlwaysUpdatable
   private LocalDate validTo;
 
   @Schema(description = "Date of the most recent transaction creation, null if never executed")
   @Column(name = "last_execution_date")
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @PropertyAlwaysUpdatable
   private LocalDate lastExecutionDate;
 
   @Schema(description = "Next scheduled execution date, null when deactivated or past validTo")
   @Column(name = "next_execution_date")
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @PropertyAlwaysUpdatable
   private LocalDate nextExecutionDate;
 

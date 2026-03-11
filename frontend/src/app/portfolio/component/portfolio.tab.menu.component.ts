@@ -1,11 +1,13 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {AppSettings} from '../../shared/app.settings';
+import {BaseSettings} from '../../lib/base.settings';
 import {GlobalSessionNames} from '../../lib/global.session.names';
 import {ActivatedRoute, Params, Router, RouterModule} from '@angular/router';
 import {Portfolio} from '../../entities/portfolio';
 import {Subscription} from 'rxjs';
 import {TabItem} from '../../lib/types/tab.item';
 import {SessionStorageTabHelper} from '../../lib/tabmenu/component/session.storage.tab.helper';
+import {TreeNavigationStateService} from '../../lib/maintree/service/tree.navigation.state.service';
 import {GlobalGTSessionNames} from '../../shared/global.gt.session.names';
 import {SharedTabMenuComponent} from '../../lib/tabmenu/component/shared.tab.menu.component';
 
@@ -58,7 +60,8 @@ export class PortfolioTabMenuComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private activatedRoute: ActivatedRoute,
-    private sessionStorageHelper: SessionStorageTabHelper // NEW: Inject helper
+    private treeNavState: TreeNavigationStateService,
+    private sessionStorageHelper: SessionStorageTabHelper
   ) {
   }
 
@@ -67,18 +70,22 @@ export class PortfolioTabMenuComponent implements OnInit, OnDestroy {
       console.warn('No portfolio available for navigation');
       return;
     }
-    this.router.navigate([route, this.portfolio.idPortfolio, {
-      portfolio: JSON.stringify(this.portfolio)
-    }], {
+    // Store entity in shared service so child components can access it
+    this.treeNavState.setEntity(route, this.portfolio.idPortfolio, this.portfolio);
+    this.router.navigate([route, this.portfolio.idPortfolio], {
       relativeTo: this.activatedRoute
     });
   };
 
   ngOnInit(): void {
     this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
-      if (params['object']) {
-        this.portfolio = JSON.parse(params['object']);
-        this.navigateToInitialRoute();
+      const id = +params['id'];
+      if (id) {
+        this.portfolio = this.treeNavState.getEntity<Portfolio>(
+          BaseSettings.MAINVIEW_KEY + '/' + AppSettings.PORTFOLIO_TAB_MENU_KEY, id);
+        if (this.portfolio) {
+          this.navigateToInitialRoute();
+        }
       }
     });
   }

@@ -24,6 +24,9 @@ public abstract class SecurityPositionGroupSummary {
   @Schema(description = "Total risk exposure for all securities in the group in main currency")
   public double groupSecurityRiskMC;
 
+  @Schema(description = "Total excluded dividend tax for all securities in the group in main currency")
+  public double groupExcludedDivTaxMC;
+
   @Schema(description = "List of individual security position summaries within this group")
   public List<SecurityPositionSummary> securityPositionSummaryList = new ArrayList<>();
 
@@ -71,6 +74,7 @@ public abstract class SecurityPositionGroupSummary {
         * securityPositionSummary.securitycurrency.getLeverageFactor();
 
     groupSecurityRiskMC += securityPositionSummary.securityRiskMC;
+    groupExcludedDivTaxMC += securityPositionSummary.excludedDivTaxMC;
 
   }
 
@@ -92,6 +96,10 @@ public abstract class SecurityPositionGroupSummary {
 
   public double getGroupCurrencyGainLossMC() {
     return DataHelper.round(groupCurrencyGainLossMC, precisionMC);
+  }
+
+  public double getGroupExcludedDivTaxMC() {
+    return DataHelper.round(groupExcludedDivTaxMC, precisionMC);
   }
 
 }

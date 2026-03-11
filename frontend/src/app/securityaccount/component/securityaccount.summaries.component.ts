@@ -8,6 +8,9 @@ import {SecurityaccountService} from '../service/securityaccount.service';
 import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {AppSettings} from '../../shared/app.settings';
+import {BaseSettings} from '../../lib/base.settings';
+import {TreeNavigationStateService} from '../../lib/maintree/service/tree.navigation.state.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {Subscription} from 'rxjs';
 import {ChartDataService} from '../../shared/chart/service/chart.data.service';
@@ -43,7 +46,8 @@ export class SecurityaccountSummariesComponent extends SecurityaccountTable impl
 
   private routeSubscribe: Subscription;
 
-  constructor(timeSeriesQuotesService: TimeSeriesQuotesService,
+  constructor(private treeNavState: TreeNavigationStateService,
+              timeSeriesQuotesService: TimeSeriesQuotesService,
               alarmSetupService: AlarmSetupService,
               activePanelService: ActivePanelService,
               messageToastService: MessageToastService,
@@ -65,7 +69,8 @@ export class SecurityaccountSummariesComponent extends SecurityaccountTable impl
   ngOnInit() {
     this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
       this.idPortfolio = +params['id'];
-      this.portfolio = JSON.parse(params['object']);
+      this.portfolio = this.treeNavState.getEntity<any>(
+        BaseSettings.MAINVIEW_KEY + '/' + AppSettings.SECURITYACCOUNT_SUMMARIES_ROUTE_KEY, this.idPortfolio);
       this.readData();
     });
   }

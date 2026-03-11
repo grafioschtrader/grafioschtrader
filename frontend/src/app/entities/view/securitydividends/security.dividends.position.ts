@@ -5,6 +5,11 @@ export interface SecurityDividendsPosition extends AccountDividendPosition {
   countPaidTransactions: number;
   security: Security;
   unitsAtEndOfYear: number;
+  financeCostMC: number;
+  ictaxTaxValuePerUnitChf?: number;
+  ictaxTotalTaxValueChf?: number;
+  ictaxTotalPaymentValueChf?: number;
+  excludedFromTax?: boolean;
 }
 
 export interface AccountDividendPosition {
@@ -20,7 +25,9 @@ export interface AccountDividendPosition {
 
 }
 
-export interface CashAccountPosition {
+export interface CashAccountPosition extends AccountDividendPosition {
   cashaccount: Cashaccount;
-
+  marginEarningsMC: number;
+  hypotheticalFinanceCostMC: number;
+  cashBalancePlusMarginMC: number;
 }

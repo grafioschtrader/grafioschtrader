@@ -6,6 +6,7 @@ export class Tenant extends TenantBase {
   currency: string = null;
   excludeDivTax: boolean = null;
   closedUntil: string = null;
+  country: string = null;
   portfolioList: Portfolio[];
   tenantKindType: TenantKindType | string;
   idWatchlistPerformance: number = null;

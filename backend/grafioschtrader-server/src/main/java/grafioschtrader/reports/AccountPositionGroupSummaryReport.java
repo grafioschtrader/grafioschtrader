@@ -138,6 +138,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
         tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate), false);
     getAccountSummaryPositionSummary(tenant.getPortfolioList(), grouping, tenant.getCurrency(), idTenant,
         tenant.isExcludeDivTax(), dateCurrencyMap);
+    grouping.getGroupSummaryList().forEach(g -> g.excludeDivTax = tenant.isExcludeDivTax());
 
     return grouping.getGrandGroupSummary(dateCurrencyMap,
         globalparametersService.getPrecisionForCurrency(tenant.getCurrency()));
@@ -180,6 +181,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
         getAccountSummaryPositionSummary(Arrays.asList(portfolio), groupPortfolio, portfolio.getCurrency(),
             portfolio.getIdTenant(), tenant.isExcludeDivTax(), dateCurrencyMap);
         final AccountPositionGroupSummary accountPositionGroupSummary = groupPortfolio.getGroupSummaryList().get(0);
+        accountPositionGroupSummary.excludeDivTax = tenant.isExcludeDivTax();
         accountPositionGroupSummary.calcTotals(dateCurrencyMap);
 
         return accountPositionGroupSummary;

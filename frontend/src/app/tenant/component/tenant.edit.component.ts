@@ -1,4 +1,5 @@
 import {Directive, EventEmitter, Output, ViewChild} from '@angular/core';
+import {forkJoin} from 'rxjs';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
@@ -17,6 +18,7 @@ import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 import {GlobalGTSessionNames} from '../../shared/global.gt.session.names';
+import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 
 /**
  * Form for editing the tenant. It also supports changing the currency of the tenant and its portfolios.
@@ -78,9 +80,13 @@ export abstract class TenantEditComponent {
   }
 
   protected loadData() {
-    this.gpsGT.getCurrencies().subscribe(data => {
+    forkJoin([this.gpsGT.getCurrencies(), this.gps.getCountriesForSelectBox()]).subscribe(
+      ([currencies, countries]) => {
         this.form.setDefaultValuesAndEnableSubmit();
-        this.configObject.currency.valueKeyHtmlOptions = data;
+        this.configObject.currency.valueKeyHtmlOptions = currencies;
+        if (this.configObject.country) {
+          this.configObject.country.valueKeyHtmlOptions = [new ValueKeyHtmlSelectOptions(null, ''), ...countries];
+        }
         if (this.existingTenant) {
           this.form.transferBusinessObjectToForm(this.existingTenant);
         }
@@ -99,8 +105,9 @@ export abstract class TenantEditComponent {
       DynamicFieldHelper.createFieldCheckboxHeqF('excludeDivTax'),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'closedUntil', false,
         {calendarConfig: {minDate: new Date(2000, 0, 1)}}),
+      DynamicFieldHelper.createFieldSelectStringHeqF('country', false),
       DynamicFieldHelper.createSubmitButton()];
-    return (onlyCurrency) ? [fieldConfig[1], fieldConfig[4]] : fieldConfig;
+    return (onlyCurrency) ? [fieldConfig[1], fieldConfig[5]] : fieldConfig;
   }
 }
 

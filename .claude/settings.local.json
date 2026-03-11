@@ -157,7 +157,10 @@
       "Bash(jar xf:*)",
       "Bash(javap:*)",
       "WebFetch(domain:pranavkhodanpur.medium.com)",
-      "WebFetch(domain:documentation.red-gate.com)"
+      "WebFetch(domain:documentation.red-gate.com)",
+      "Bash(pdftotext:*)",
+      "Bash(gh label:*)",
+      "Bash(file /c/SoftwareProjekte/Hugos/grafioschtrader/Kursliste/*.xsd)"
     ],
     "deny": [],
     "ask": []

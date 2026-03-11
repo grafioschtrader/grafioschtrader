@@ -19,6 +19,7 @@ import grafioschtrader.reportviews.performance.IPeriodHolding;
 import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 import grafioschtrader.repository.helper.GroupPortfolio;
+import grafioschtrader.test.start.GTforTest;
 
 /**
  * In GT there are two different ways to calculate the long term performance. One calculates it from first day until a
@@ -27,9 +28,7 @@ import grafioschtrader.repository.helper.GroupPortfolio;
  */
 
 @Transactional
-@SpringBootTest
-// @SpringBootTest(classes = GTforTest.class)
-// @ActiveProfiles("test")
+@SpringBootTest(classes = GTforTest.class)
 class CompareHoldingWithOtherSummaryTest {
 
   @Autowired
@@ -45,9 +44,9 @@ class CompareHoldingWithOtherSummaryTest {
   @Disabled
   void tenantCompareSummaryTest() {
     DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    LocalDate fromDate = LocalDate.parse("2024-07-01", format);
-    LocalDate toDate = LocalDate.parse("2024-07-19", format);
-    Integer idTenant = 22;
+    LocalDate fromDate = LocalDate.parse("2025-08-10", format);
+    LocalDate toDate = LocalDate.parse("2026-02-27", format);
+    Integer idTenant = 7;
 
     List<IPeriodHolding> totalsOverPeriodList = holdSecurityaccountSecurityRepository
         .getPeriodHoldingsByTenant(idTenant, fromDate, toDate);
@@ -59,7 +58,7 @@ class CompareHoldingWithOtherSummaryTest {
   void portfolioCompareSummaryTest() {
     DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     LocalDate fromDate = LocalDate.parse("2020-12-30", format);
-    LocalDate toDate = LocalDate.parse("2021-02-17", format);
+    LocalDate toDate = LocalDate.parse("2026-02-27", format);
     Integer idTenant = 7;
     Integer idPortfolio = 6;
 

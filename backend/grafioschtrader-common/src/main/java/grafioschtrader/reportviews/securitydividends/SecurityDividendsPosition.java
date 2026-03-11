@@ -1,15 +1,20 @@
 package grafioschtrader.reportviews.securitydividends;
 
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.common.DataHelper;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.entities.Historyquote;
+import grafioschtrader.entities.IctaxPayment;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.reportviews.SecurityCostPosition;
+import grafioschtrader.reportviews.securitydividends.SecurityDividendsYearGroup.MarginTracker;
+import grafioschtrader.types.TransactionType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -65,8 +70,31 @@ public class SecurityDividendsPosition extends AccountDividendPosition {
   @JsonIgnore
   public Double splitFactorAfter;
 
+  @Schema(description = "Official ICTax tax value per unit in CHF from Swiss Federal Tax Administration")
+  public Double ictaxTaxValuePerUnitChf;
 
-  
+  @Schema(description = "Total ICTax tax value in CHF (taxValuePerUnit * unitsAtEndOfYear)")
+  public Double ictaxTotalTaxValueChf;
+
+  @Schema(description = "ICTax dividend/payment entries for this security in this year")
+  public List<IctaxPayment> ictaxPayments;
+
+  @Schema(description = "Sum of all ICTax payment values in CHF for this security in this year")
+  public Double ictaxTotalPaymentValueChf;
+
+
+  @Schema(description = "Whether this security is excluded from the eCH-0196 tax statement export for this year")
+  public boolean excludedFromTax;
+
+  @Schema(description = "Total finance costs for margin positions in main currency")
+  public double financeCostMC = 0.0;
+
+  @JsonIgnore
+  public Map<Integer, MarginTracker> marginOpenPositions;
+
+  @JsonIgnore
+  public UnitsCounter unitsCounter;
+
   /**
    * Creates a new security dividend position for the specified precision settings.
    * 
@@ -77,7 +105,15 @@ public class SecurityDividendsPosition extends AccountDividendPosition {
     super(precisionMC, currencyPrecisionMap);
   }
 
- 
+
+  public Double getIctaxTotalTaxValueChf() {
+    return ictaxTotalTaxValueChf == null? null: DataHelper.round(ictaxTotalTaxValueChf, precisionMC);
+  }
+
+
+  public Double getIctaxTotalPaymentValueChf() {
+    return ictaxTotalPaymentValueChf == null? null: DataHelper.round(ictaxTotalPaymentValueChf, precisionMC);
+  }
   
   
   /**
@@ -152,7 +188,27 @@ public class SecurityDividendsPosition extends AccountDividendPosition {
    */
   public void attachHistoryquoteAndCalcPositionTotal(Map<Integer, Historyquote> historyquoteIdMap,
       DateTransactionCurrencypairMap dateCurrencyMap) {
-    if (unitsAtEndOfYear > 0) {
+    if (security.isMarginInstrument()) {
+      if (marginOpenPositions != null && !marginOpenPositions.isEmpty()) {
+        getAndSetExchangeRateEndOfYear(historyquoteIdMap, dateCurrencyMap, security.getCurrency());
+        var historyquote = historyquoteIdMap.get(security.getIdSecuritycurrency());
+        if (historyquote != null) {
+          double yearEndPrice = historyquote.getClose();
+          closeEndOfYear = yearEndPrice;
+          double totalUnrealizedPL = 0;
+          for (MarginTracker mt : marginOpenPositions.values()) {
+            double shortFactor = mt.transaction.getTransactionType() == TransactionType.ACCUMULATE ? 1 : -1;
+            double adjustedOpenPrice = mt.transaction.getQuotation() / mt.splitFactorSinceOpen;
+            totalUnrealizedPL += (yearEndPrice - adjustedOpenPrice)
+                * Math.abs(mt.openUnits) * shortFactor * mt.transaction.getValuePerPoint();
+          }
+          valueAtEndOfYearMC = totalUnrealizedPL;
+          if (exchangeRateEndOfYear != null) {
+            valueAtEndOfYearMC *= exchangeRateEndOfYear;
+          }
+        }
+      }
+    } else if (unitsAtEndOfYear > 0) {
       getAndSetExchangeRateEndOfYear(historyquoteIdMap, dateCurrencyMap, security.getCurrency());
       var historyquote = historyquoteIdMap.get(security.getIdSecuritycurrency());
       if (historyquote != null) {
@@ -163,6 +219,33 @@ public class SecurityDividendsPosition extends AccountDividendPosition {
         }
       }
     }
+  }
+
+  /**
+   * Updates finance cost tracking for margin positions.
+   *
+   * @param transaction                the FINANCE_COST transaction
+   * @param securityDividendsYearGroup the year group to update with the cost
+   * @param dateCurrencyMap            currency conversion data
+   */
+  public void updateFinanceCost(Transaction transaction, SecurityDividendsYearGroup securityDividendsYearGroup,
+      DateTransactionCurrencypairMap dateCurrencyMap) {
+    String cashCurrency = transaction.getCashaccount().getCurrency();
+    double exchangeRate;
+    if (cashCurrency.equals(dateCurrencyMap.getMainCurrency())) {
+      exchangeRate = 1.0;
+    } else {
+      Double rate = dateCurrencyMap.getPriceByDateAndFromCurrency(
+          transaction.getTransactionDateAsLocalDate(), cashCurrency, false);
+      exchangeRate = rate != null ? rate : 1.0;
+    }
+    double costMC = transaction.getCashaccountAmount() * exchangeRate;
+    this.financeCostMC += costMC;
+    securityDividendsYearGroup.yearFinanceCostMC += costMC;
+  }
+
+  public double getFinanceCostMC() {
+    return DataHelper.round(financeCostMC, precisionMC);
   }
 
   @Override

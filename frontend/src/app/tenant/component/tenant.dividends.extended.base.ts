@@ -26,4 +26,9 @@ export class TenantDividendsExtendedBase extends TableConfigBase {
       {headerSuffix: currency});
   }
 
+  protected addIctaxColumns(): void {
+    this.addColumn(DataType.Numeric, 'ictaxTotalPaymentValueChf', 'ICTAX_TOTAL_PAYMENT_CHF', false, true, {width: 80});
+    this.addColumn(DataType.Numeric, 'ictaxTotalTaxValueChf', 'ICTAX_TOTAL_TAX_VALUE', false, true, {width: 80});
+  }
+
 }

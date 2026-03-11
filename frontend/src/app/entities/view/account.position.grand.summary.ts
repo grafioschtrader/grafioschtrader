@@ -11,6 +11,7 @@ export class AccountPositionGrandSummary {
   grandGainLossCurrencyMC: number;
   grandAccountFeesMC: number;
   grandAccountInterestMC: number;
+  grandExcludedDivTaxMC: number;
 
   accountPositionGroupSummaryList: AccountPositionGroupSummary[];
 }

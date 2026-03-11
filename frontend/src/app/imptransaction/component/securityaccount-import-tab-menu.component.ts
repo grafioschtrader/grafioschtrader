@@ -10,6 +10,7 @@ import {Securityaccount} from '../../entities/securityaccount';
 import {TabItem} from '../../lib/types/tab.item';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {TreeNavigationStateService} from '../../lib/maintree/service/tree.navigation.state.service';
 
 /**
  * Tab menu component for security account import sub-tabs.
@@ -49,7 +50,8 @@ export class SecurityaccountImportTabMenuComponent implements OnInit, OnDestroy 
     private router: Router,
     private activatedRoute: ActivatedRoute,
     private translateService: TranslateService,
-    private gps: GlobalparameterService
+    private gps: GlobalparameterService,
+    private treeNavState: TreeNavigationStateService
   ) {
   }
 
@@ -73,17 +75,21 @@ export class SecurityaccountImportTabMenuComponent implements OnInit, OnDestroy 
     TranslateHelper.translateMenuItems(this.tabs, this.translateService);
 
     this.routeParamSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
-      if (params[AppSettings.SECURITYACCOUNT.toLowerCase()]) {
-        this.securityaccount = JSON.parse(params[AppSettings.SECURITYACCOUNT.toLowerCase()]);
+      const id = +params['id'];
+      if (id) {
+        this.securityaccount = this.treeNavState.getEntity<Securityaccount>(
+          AppSettings.SECURITYACCOUNT_IMPORT_TAB_MENU_KEY, id);
 
-        if (params[AppSettings.SUCCESS_FAILED_IMP_TRANS]) {
-          this.successFailedImportTransParam = params[AppSettings.SUCCESS_FAILED_IMP_TRANS];
-        }
+        if (this.securityaccount) {
+          if (params[AppSettings.SUCCESS_FAILED_IMP_TRANS]) {
+            this.successFailedImportTransParam = params[AppSettings.SUCCESS_FAILED_IMP_TRANS];
+          }
 
-        // Only navigate to default on first initialization
-        if (!this.initialized) {
-          this.initialized = true;
-          this.navigateToTab(0);
+          // Only navigate to default on first initialization
+          if (!this.initialized) {
+            this.initialized = true;
+            this.navigateToTab(0);
+          }
         }
       }
     });
@@ -108,15 +114,13 @@ export class SecurityaccountImportTabMenuComponent implements OnInit, OnDestroy 
 
     this.activeIndex = index;
     const tab = this.tabs[index];
-
-    const data: any = {
-      securityaccount: JSON.stringify(this.securityaccount)
-    };
-
-    // Only pass successFailedImportTransParam to the import transaction tab
+    // Store entity in shared service so child components can access it
+    this.treeNavState.setEntity(tab.route, this.securityaccount.idSecuritycashAccount, this.securityaccount);
+    // Only non-entity params in the URL
+    const data: any = {};
     if (index === 0 && this.successFailedImportTransParam) {
       data[AppSettings.SUCCESS_FAILED_IMP_TRANS] = this.successFailedImportTransParam;
-      this.successFailedImportTransParam = null;  // Clear after use
+      this.successFailedImportTransParam = null;
     }
 
     this.router.navigate(

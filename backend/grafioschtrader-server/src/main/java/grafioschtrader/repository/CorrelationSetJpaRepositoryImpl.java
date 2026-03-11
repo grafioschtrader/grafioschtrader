@@ -97,16 +97,20 @@ public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<Correlat
     securitycurrencySearch.setMaxFromDate(correlationSet.getDateFrom());
     securitycurrencySearch.setMinToDate(correlationSet.getDateTo());
     if (!securities.isEmpty()) {
-      LocalDate latestActiveFrom = securities.stream().map(Security::getActiveFromDate)
-          .max(LocalDate::compareTo).get();
-      if (latestActiveFrom.isAfter(securitycurrencySearch.getMaxFromDate())) {
-        securitycurrencySearch.setMaxFromDate(latestActiveFrom);
-      }
-      LocalDate earliestActiveTo = securities.stream().map(Security::getActiveToDate)
-          .min(LocalDate::compareTo).get();
-      if (earliestActiveTo.isBefore(securitycurrencySearch.getMinToDate())) {
-        securitycurrencySearch.setMinToDate(earliestActiveTo);
-      }
+      securities.stream().map(Security::getActiveFromDate).filter(d -> d != null)
+          .max(LocalDate::compareTo).ifPresent(latestActiveFrom -> {
+            if (securitycurrencySearch.getMaxFromDate() == null
+                || latestActiveFrom.isAfter(securitycurrencySearch.getMaxFromDate())) {
+              securitycurrencySearch.setMaxFromDate(latestActiveFrom);
+            }
+          });
+      securities.stream().map(Security::getActiveToDate).filter(d -> d != null)
+          .min(LocalDate::compareTo).ifPresent(earliestActiveTo -> {
+            if (securitycurrencySearch.getMinToDate() == null
+                || earliestActiveTo.isBefore(securitycurrencySearch.getMinToDate())) {
+              securitycurrencySearch.setMinToDate(earliestActiveTo);
+            }
+          });
     }
   }
 

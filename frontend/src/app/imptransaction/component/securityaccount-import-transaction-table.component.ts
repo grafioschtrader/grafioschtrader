@@ -25,12 +25,9 @@ import {Transaction} from '../../entities/transaction';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {Security} from '../../entities/security';
-import {
-  AfterSetSecurity,
-  CallBackSetSecurityWithAfter,
-  SecuritycurrencySearchAndSetComponent
-} from '../../securitycurrency/component/securitycurrency-search-and-set.component';
+import {SecuritycurrencySearchAndSetComponent} from '../../securitycurrency/component/securitycurrency-search-and-set.component';
 import {SupplementCriteria} from '../../securitycurrency/model/supplement.criteria';
+import {DialogService} from 'primeng/dynamicdialog';
 import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {ImportTransactionPos} from '../../entities/import.transaction.pos';
 import {BaseSettings} from '../../lib/base.settings';
@@ -86,14 +83,6 @@ import {SecurityaccountImportSetCashaccountComponent} from './securityaccount-im
       }
     </ng-template>
 
-    @if (visibleSetSecurityDialog) {
-      <securitycurrency-search-and-set [visibleDialog]="visibleSetSecurityDialog"
-                                       [callBackSetSecurityWithAfter]="this"
-                                       [supplementCriteria]="supplementCriteria"
-                                       (closeDialog)="handleOnCloseSetDialog($event)">
-      </securitycurrency-search-and-set>
-    }
-
     @if (visibleSetCashaccountDialog) {
       <securityaccount-import-set-cashaccount [visibleDialog]="visibleSetCashaccountDialog"
                                               [combineTemplateAndImpTransPos]="selectedEntities"
@@ -110,12 +99,11 @@ import {SecurityaccountImportSetCashaccountComponent} from './securityaccount-im
     TemplateFormCheckDialogResultFailedComponent,
     SecurityaccountImportExtendedInfoFilenameComponent,
     SecurityaccountImportExtendedInfoComponent,
-    SecuritycurrencySearchAndSetComponent,
     SecurityaccountImportSetCashaccountComponent
   ]
 })
 export class SecurityaccountImportTransactionTableComponent extends TableConfigBase
-  implements OnDestroy, CallBackSetSecurityWithAfter {
+  implements OnDestroy {
 
   public static CHECK_OK = 'A';
   public static TRANSACTION_ERROR = 'E';
@@ -135,7 +123,6 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
   selectedEntities: CombineTemplateAndImpTransPos[] = [];
   selectImportTransactionHead: ImportTransactionHead;
   importTransactionTemplates: ImportTransactionTemplate[];
-  visibleSetSecurityDialog = false;
   visibleSetCashaccountDialog = false;
   parentChildRowSelection: ParentChildRowSelection<CombineTemplateAndImpTransPos>;
   private readonly ITP = 'IMPORT_TRANSACTION_POS';
@@ -144,6 +131,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     private confirmationService: ConfirmationService,
     private messageToastService: MessageToastService,
     private iconReg: SvgIconRegistryService,
+    private dialogService: DialogService,
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
@@ -298,7 +286,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
       disabled: !this.selectedEntities || this.selectedEntities.length === 0
         || !this.selectedEntities.every(ctaitp => Transaction.isSecurityTransaction(ctaitp.importTransactionPos.transactionType))
         || this.selectedEntities.some(ctaitp => this.hasTransactionOrMaybe(ctaitp.importTransactionPos)),
-      command: (event) => this.visibleSetSecurityDialog = true
+      command: (event) => this.openSetSecurityDialog()
     });
 
     menuItems.push({
@@ -346,15 +334,21 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
   }
 
   /**
-   * Save for one or more the selected security to the importtransactionpos.
-   *
-   * @param security Chosen security
+   * Opens the security search dialog via DialogService and saves the selected security to the import transaction positions.
    */
-  setSecurity(security: Security, afterSetSecurity: AfterSetSecurity): void {
-    this.importTransactionPosService.setSecurity(security.idSecuritycurrency,
-      this.selectedEntities.map(combineTemplateAndImpTransPos =>
-        combineTemplateAndImpTransPos.importTransactionPos.idTransactionPos)).subscribe(rcImportTransactionPosList => {
-      afterSetSecurity.afterSetSecurity();
+  private openSetSecurityDialog(): void {
+    this.translateService.get('SET_SECURITY').subscribe(title => {
+      const ref = this.dialogService.open(SecuritycurrencySearchAndSetComponent, {
+        header: title, width: '720px', resizable: false, closable: true, closeOnEscape: true,
+        data: {supplementCriteria: this.supplementCriteria}
+      });
+      ref.onClose.subscribe((security: Security) => {
+        if (security) {
+          this.importTransactionPosService.setSecurity(security.idSecuritycurrency,
+            this.selectedEntities.map(ctaitp => ctaitp.importTransactionPos.idTransactionPos))
+            .subscribe(() => this.readData());
+        }
+      });
     });
   }
 
@@ -388,7 +382,6 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
   }
 
   handleOnCloseSetDialog(processedActionData: ProcessedActionData): void {
-    this.visibleSetSecurityDialog = false;
     this.visibleSetCashaccountDialog = false;
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.readData();

@@ -219,17 +219,32 @@ Each enum used in this pattern must provide:
 
 This affects **both DTOs and JPA entities** when they are returned from custom `@RestController` endpoints (e.g., `StandingOrderResource`, any class extending `UpdateCreateDeleteWithTenantResource`). Only Spring Data REST auto-exposed repositories (`@RepositoryRestResource`) apply string formatting automatically — custom controllers use standard Jackson serialization.
 
-**Rule**: Every `LocalDate` field in any class serialized to JSON — whether a DTO or a JPA entity — **must** have `@JsonFormat`. For `LocalDateTime`, use the datetime pattern:
+**Note**: `JacksonConfig.java` handles `LocalDateTime` deserialization globally (flexible parsing of epoch millis, ISO-8601, zoned formats), but `LocalDate` still needs per-field annotation.
+
+**Rule**: Every `LocalDate` field in any class serialized to JSON — whether a DTO or a JPA entity — **must** have `@JsonFormat`. Without this annotation, the frontend will show "Invalid date".
+
+**Preferred style**: Use the short form (no `shape` parameter) with `BaseConstants` constants — never hardcode date format strings:
 
 ```java
-@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+import grafiosch.BaseConstants;
+
+// LocalDate — use STANDARD_DATE_FORMAT ("yyyy-MM-dd")
+@JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
 private LocalDate transactionDate;
 
-@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+// LocalDateTime — use STANDARD_LOCAL_DATE_TIME ("yyyy-MM-dd HH:mm") or STANDARD_LOCAL_DATE_TIME_SECOND ("yyyy-MM-dd HH:mm:ss")
+@JsonFormat(pattern = BaseConstants.STANDARD_LOCAL_DATE_TIME)
 private LocalDateTime createdAt;
 ```
 
-Without this annotation, the frontend will show "Invalid date".
+**Available constants in `BaseConstants`** (grafiosch-base module):
+
+| Constant | Value | Used for |
+|----------|-------|----------|
+| `STANDARD_DATE_FORMAT` | `"yyyy-MM-dd"` | `LocalDate` |
+| `STANDARD_DATE_TIME_FORMAT` | `"yyyy-MM-dd'T'HH:mm:ss'Z'"` | timestamps with Z |
+| `STANDARD_LOCAL_DATE_TIME` | `"yyyy-MM-dd HH:mm"` | `LocalDateTime` (no seconds) |
+| `STANDARD_LOCAL_DATE_TIME_SECOND` | `"yyyy-MM-dd HH:mm:ss"` | `LocalDateTime` (with seconds) |
 
 ## Daily Limit Registration for Entity CRUD Operations
 
@@ -294,6 +309,60 @@ Each globalparameter also needs:
    ```
 
 3. **NLS keys** in `grafiosch-base/src/main/resources/i18n/messages.properties` and `messages_de.properties` matching the property name (e.g., `g.gnet.connection.timeout=GTNet connection timeout (seconds)`).
+
+## Select/Dropdown Options — Backend Is the Authority
+
+**IMPORTANT**: All option lists used in frontend dropdown/select controls **must be defined and served by the backend**. The frontend must **never** hardcode option lists that need validation. This ensures:
+
+1. **Backend validation**: The backend can reject invalid values that bypass the UI (e.g. direct API calls)
+2. **Single source of truth**: Option lists are maintained in one place
+3. **Consistency**: Frontend and backend always agree on valid values
+
+### Pattern
+
+1. **Define the options in the backend** — either as a static list, an enum, or from a database query. Use `ValueKeyHtmlSelectOptions` (from `grafiosch-base`) as the DTO.
+
+2. **Expose via a REST endpoint** returning `List<ValueKeyHtmlSelectOptions>`:
+   ```java
+   @GetMapping(value = "/options", produces = APPLICATION_JSON_VALUE)
+   public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getOptions() {
+     return new ResponseEntity<>(OPTIONS_LIST, HttpStatus.OK);
+   }
+   ```
+
+3. **Validate on save/submit** — check incoming values against the valid set:
+   ```java
+   if (!VALID_CODES.contains(request.getCode())) {
+     throw new DataViolationException("field.name", "gt.error.invalid.code", null);
+   }
+   ```
+
+4. **Frontend fetches options** from the endpoint and populates `configObject.fieldName.valueKeyHtmlOptions`.
+
+### Existing examples
+
+- **Currencies**: `GlobalparametersGTResource.getCurrencies()` → frontend `GlobalparameterGTService.getCurrencies()`
+- **Asset subcategories**: `AssetclassResource.getSubcategoryForLanguage()` → frontend `AssetclassService.getSubcategoryForLanguage()`
+- **Swiss cantons**: `TaxDataResource.getCantons()` → frontend `TaxDataService.getCantons()`
+
+## Transaction Processing — Always Route Through TransactionJpaRepositoryImpl
+
+**IMPORTANT**: When creating or saving `Transaction` entities programmatically, **never** call `transactionJpaRepository.save()` directly. Instead, use the methods on `TransactionJpaRepositoryCustom` / `TransactionJpaRepositoryImpl`:
+
+- **Security transactions** (ACCUMULATE, REDUCE, DIVIDEND, FINANCE_COST): Use `saveOnlyAttributes(transaction, existingEntity, updatePropertyLevelClasses)`.
+- **Cash account transfers** (WITHDRAWAL + DEPOSIT pair): Use `updateCreateCashaccountTransfer(cashAccountTransfer, cashAccountTransferExisting)`.
+- **Bulk imports**: Use `saveOnlyAttributesFormImport(transaction, existingEntity)`.
+
+These methods enforce critical business rules that `JpaRepository.save()` bypasses:
+- **closedUntil check** — rejects transactions dated within a closed period
+- **Trading period validation** — ensures the instrument type is allowed in the security account at the transaction date
+- **Overdraft check** — prevents negative cash account balances when borrowing is not enabled
+- **Units integrity** — validates that selling does not exceed held units
+- **Holdings adjustment** — updates `hold_securityaccount_security` and `hold_cashaccount_balance` / `hold_cashaccount_deposit` tables
+- **Currency pair validation** — verifies exchange rates against historical data
+- **Cash account amount validation** — recalculates and verifies the cash account impact
+
+The only exception is `applySecurityAction()` (ISIN changes), which intentionally bypasses closedUntil via direct `save()` because ISIN changes are system-level operations that must succeed regardless of user-defined closed periods.
 
 ## Common Annotations for Native Queries
 

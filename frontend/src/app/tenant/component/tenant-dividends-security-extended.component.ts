@@ -1,4 +1,5 @@
 import {Component, EventEmitter, Injector, Input, OnInit, Output} from '@angular/core';
+import {FormsModule} from '@angular/forms';
 import {SecurityDividendsPosition} from '../../entities/view/securitydividends/security.dividends.position';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
@@ -11,9 +12,11 @@ import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {TransactionSecurityOptionalParam} from '../../transaction/model/transaction.security.optional.param';
 import {FilterService, SharedModule} from 'primeng/api';
 import {TenantDividendsExtendedBase} from './tenant.dividends.extended.base';
+import {TaxDataService} from '../../taxdata/service/tax-data.service';
 import {CommonModule} from '@angular/common';
 import {TableModule} from 'primeng/table';
 import {TooltipModule} from 'primeng/tooltip';
+import {CheckboxModule} from 'primeng/checkbox';
 import {TransactionSecurityTableComponent} from '../../transaction/component/transaction-security-table.component';
 import {TransactionSecurityMarginTreetableComponent} from '../../transaction/component/transaction-security-margin-treetable.component';
 
@@ -33,10 +36,14 @@ import {TransactionSecurityMarginTreetableComponent} from '../../transaction/com
         <ng-template #header let-fields>
           <tr>
             <th style="width:24px"></th>
+            <th style="width:40px" [pTooltip]="'EXCLUDED_FROM_TAX_TOOLTIP' | translate">
+              {{ 'EXCLUDED_FROM_TAX' | translate }}
+            </th>
             @for (field of fields; track field) {
               <th [pSortableColumn]="field.field" [style.max-width.px]="field.width"
                   [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                  [pTooltip]="field.headerTooltipTranslated">
+                  [pTooltip]="field.headerTooltipTranslated"
+                  class="word-break-header" [attr.lang]="baseLocale.language">
                 {{ field.headerTranslated }}
                 <p-sortIcon [field]="field.field"></p-sortIcon>
               </th>
@@ -50,6 +57,9 @@ import {TransactionSecurityMarginTreetableComponent} from '../../transaction/com
                 <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
               </a>
             </td>
+            <td style="text-align:center">
+              <p-checkbox [binary]="true" [(ngModel)]="el.excludedFromTax" (onChange)="onExclusionToggle(el)"></p-checkbox>
+            </td>
             @for (field of fields; track field) {
               <td [style.max-width.px]="field.width"
                   [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
@@ -62,12 +72,13 @@ import {TransactionSecurityMarginTreetableComponent} from '../../transaction/com
         </ng-template>
         <ng-template #expandedrow let-sdp let-columns="fields">
           <tr>
-            <td [attr.colspan]="numberOfVisibleColumns + 1">
+            <td [attr.colspan]="numberOfVisibleColumns + 2">
               @if (!!sdp.security.stockexchange && !isMarginProduct(sdp.security)) {
                 <transaction-security-table [idTenant]="idTenant"
                                             [idSecuritycurrency]="sdp.security.idSecuritycurrency"
                                             [idsSecurityaccount]="idsSecurityaccount"
                                             [transactionSecurityOptionalParam]="tsop"
+                                            [untilDate]="untilDateForTransactions"
                                             (dateChanged)="transactionDataChanged($event)">
                 </transaction-security-table>
               }
@@ -78,6 +89,7 @@ import {TransactionSecurityMarginTreetableComponent} from '../../transaction/com
                   [idSecuritycurrency]="sdp.security.idSecuritycurrency"
                   [idsSecurityaccount]="idsSecurityaccount"
                   [transactionSecurityOptionalParam]="tsop"
+                  [untilDate]="untilDateForTransactions"
                   (dateChanged)="transactionDataChanged($event)">
                 </transaction-security-margin-treetable>
               }
@@ -90,10 +102,12 @@ import {TransactionSecurityMarginTreetableComponent} from '../../transaction/com
     standalone: true,
     imports: [
         CommonModule,
+        FormsModule,
         TableModule,
         TooltipModule,
         TranslateModule,
         SharedModule,
+        CheckboxModule,
         TransactionSecurityTableComponent,
         TransactionSecurityMarginTreetableComponent
     ]
@@ -102,8 +116,14 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
   @Input() idsSecurityaccount: number[];
   @Input() securityDividendsGrandTotal: SecurityDividendsGrandTotal;
   @Input() securityDividendsPositions: SecurityDividendsPosition[];
+  @Input() year: number;
+  @Input() filterTransactionsToYearEnd: boolean;
   idTenant: number;
   tsop = [TransactionSecurityOptionalParam.SHOW_TAXABLE_COLUMN];
+
+  get untilDateForTransactions(): string | undefined {
+    return this.filterTransactionsToYearEnd && this.year ? `${this.year}-12-31` : undefined;
+  }
 
   // Output
   @Output() dateChanged = new EventEmitter<ProcessedActionData>();
@@ -112,7 +132,8 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
     usersettingsService: UserSettingsService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    injector: Injector) {
+    injector: Injector,
+    private taxDataService: TaxDataService) {
     super(filterService, usersettingsService, translateService, gps, injector);
     this.idTenant = this.gps.getIdTenant();
   }
@@ -125,15 +146,34 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
     this.addColumnFeqH(DataType.Numeric, 'unitsAtEndOfYear', true, false);
     this.addColumnFeqH(DataType.Numeric, 'closeEndOfYear', true, false);
     this.addColumnFeqH(DataType.Numeric, 'taxFreeIncome', true, false);
+    this.addColumnFeqH(DataType.Numeric, 'financeCostMC', false, true,
+      {width: 80, headerSuffix: this.securityDividendsGrandTotal.mainCurrency});
     this.addGeneralColumns(this.securityDividendsGrandTotal.mainCurrency);
-   this.addColumnFeqH(DataType.Numeric, 'valueAtEndOfYearMC', true, false,
+    this.addIctaxColumns();
+    this.addColumnFeqH(DataType.Numeric, 'valueAtEndOfYearMC', true, false,
       {width: 70, headerSuffix: this.securityDividendsGrandTotal.mainCurrency});
     this.multiSortMeta.push({field: 'security.name', order: 1});
     this.prepareTableAndTranslate();
+    if (this.securityDividendsGrandTotal.hasMarginData) {
+      const marginCol = this.fields.find(f => f.field === 'financeCostMC');
+      if (marginCol) { marginCol.visible = true; }
+    }
+    if (this.securityDividendsGrandTotal.tenantCountry === 'CH') {
+      this.fields.filter(f => f.field === 'ictaxTotalPaymentValueChf' || f.field === 'ictaxTotalTaxValueChf')
+        .forEach(f => f.visible = true);
+    }
   }
 
   isMarginProduct(security: Security): boolean {
     return BusinessHelper.isMarginProduct(security);
+  }
+
+  onExclusionToggle(sdp: SecurityDividendsPosition): void {
+    this.taxDataService.toggleSecurityExclusion(this.year, sdp.security.idSecuritycurrency).subscribe({
+      error: () => {
+        sdp.excludedFromTax = !sdp.excludedFromTax;
+      }
+    });
   }
 
   transactionDataChanged(event: ProcessedActionData) {

@@ -224,6 +224,9 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
    * @throws DataViolationException if transaction date is on or before closedUntil
    */
   private void checkTransactionDateAgainstClosedUntil(Transaction transaction, Cashaccount cashaccount) {
+    if (transaction.isSkipClosedUntilCheck()) {
+      return;
+    }
     Portfolio portfolio = cashaccount.getPortfolio();
     LocalDate effectiveClosedUntil = portfolio != null ? portfolio.getClosedUntil() : null;
 

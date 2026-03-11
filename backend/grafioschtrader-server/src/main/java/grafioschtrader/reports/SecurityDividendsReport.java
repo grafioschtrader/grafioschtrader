@@ -7,6 +7,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Comparator;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -31,9 +33,15 @@ import grafioschtrader.reportviews.securitydividends.SecurityDividendsPosition;
 import grafioschtrader.reportviews.securitydividends.SecurityDividendsYearGroup;
 import grafioschtrader.reportviews.securitydividends.SecurityDividendsYearGroup.MarginTracker;
 import grafioschtrader.reportviews.securitydividends.UnitsCounter;
+import grafiosch.entities.TaxYear;
+import grafioschtrader.entities.IctaxSecurityTaxData;
+import grafioschtrader.entities.TaxSecurityYearConfig;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
+import grafioschtrader.repository.IctaxSecurityTaxDataJpaRepository;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
+import grafioschtrader.repository.TaxSecurityYearConfigJpaRepository;
+import grafioschtrader.repository.TaxYearJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.types.TransactionType;
@@ -84,6 +92,15 @@ public class SecurityDividendsReport {
 
   @Autowired
   private CurrencypairJpaRepository currencypairJpaRepository;
+
+  @Autowired
+  private IctaxSecurityTaxDataJpaRepository ictaxSecurityTaxDataJpaRepository;
+
+  @Autowired
+  private TaxSecurityYearConfigJpaRepository taxSecurityYearConfigJpaRepository;
+
+  @Autowired
+  private TaxYearJpaRepository taxYearJpaRepository;
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -144,6 +161,13 @@ public class SecurityDividendsReport {
             cfHistoryquotes.join(), dateCurrencyMap))
         .join();
     securityDividendsGrandTotal.portfolioList = tenant.getPortfolioList();
+    securityDividendsGrandTotal.tenantCountry = tenant.getCountry();
+    securityDividendsGrandTotal.taxExportSettings = tenant.getTaxExportSettings();
+    securityDividendsGrandTotal.availableTaxYears = taxYearJpaRepository.findAll().stream()
+        .map(TaxYear::getTaxYear)
+        .distinct()
+        .sorted(Comparator.reverseOrder())
+        .toList();
     return securityDividendsGrandTotal;
   }
 
@@ -288,11 +312,16 @@ public class SecurityDividendsReport {
         // For some securities, there may have been no transactions in a given year.
         // Nevertheless, these open positions must be listed for that year.
         if (yearChangeWatcher != 0) {
+          int startYear = yearChangeWatcher;
           for (; yearChangeWatcher < year; yearChangeWatcher++) {
+            if (yearChangeWatcher > startYear) {
+              adjustUnitsCounterForNewYear(yearChangeWatcher, unitsCounterBySecurityMap, securitysplitMap, marginOpenTransaction);
+            }
             createFillYearWithOpenPositions(securityDividendsGrandTotal, yearChangeWatcher, unitsCounterBySecurityMap,
                 securitysplitMap, marginOpenTransaction);
           }
           transferCashaccountAmountToNewYear(securityDividendsYearGroup, cashAccountsAmountMap, cashAccountsMap);
+          adjustUnitsCounterForNewYear(year, unitsCounterBySecurityMap, securitysplitMap, marginOpenTransaction);
         }
         yearChangeWatcher = year;
         securityDividendsYearGroup = securityDividendsGrandTotal.getOrCreateGroup(year);
@@ -392,6 +421,8 @@ public class SecurityDividendsReport {
     if (!transaction.getSecurity().equals(security)) {
       security = transaction.getSecurity();
     }
+    
+    
     final SecurityDividendsPosition securityDividendsPosition = securityDividendsYearGroup
         .getOrCreateSecurityDividendsPosition(transaction.getSecurity(),
             securitysplitMap.get(security.getIdSecuritycurrency()));
@@ -405,12 +436,14 @@ public class SecurityDividendsReport {
 
     switch (transaction.getTransactionType()) {
     case ACCUMULATE:
-      createOrGetUnitsCounter(transaction.getSecurity(), unitsSplited, unitsCounterBySecurityMap);
+      createOrGetUnitsCounter(transaction.getSecurity(), unitsSplited, unitsCounterBySecurityMap,
+          transaction.getTransactionTime().toLocalDate());
       trackMarginSecurityUnits(marginOpenTransaction, transaction, securityDividendsPosition, unitsSplited);
       securityDividendsPosition.updateAccumulateReduce(transaction, securityDividendsYearGroup, dateCurrencyMap);
       break;
     case REDUCE:
-      createOrGetUnitsCounter(transaction.getSecurity(), unitsSplited * -1, unitsCounterBySecurityMap);
+      createOrGetUnitsCounter(transaction.getSecurity(), unitsSplited * -1, unitsCounterBySecurityMap,
+          transaction.getTransactionTime().toLocalDate());
       trackMarginSecurityUnits(marginOpenTransaction, transaction, securityDividendsPosition, unitsSplited * -1);
       securityDividendsPosition.updateAccumulateReduce(transaction, securityDividendsYearGroup, dateCurrencyMap);
       break;
@@ -421,6 +454,19 @@ public class SecurityDividendsReport {
             securityDividendsYearGroup.year, transaction.getSecurity().getName(), transaction.getSecurity().getIsin());
       }
       securityDividendsPosition.updateDividendPosition(transaction, dateCurrencyMap);
+      break;
+    case FINANCE_COST:
+      securityDividendsPosition.updateFinanceCost(transaction, securityDividendsYearGroup, dateCurrencyMap);
+      if (transaction.getConnectedIdTransaction() != null) {
+        Map<Integer, MarginTracker> securityMarginMap = marginOpenTransaction
+            .get(transaction.getSecurity().getId());
+        if (securityMarginMap != null) {
+          MarginTracker mt = securityMarginMap.get(transaction.getConnectedIdTransaction());
+          if (mt != null) {
+            mt.lastFinanceCostDate = transaction.getTransactionDateAsLocalDate();
+          }
+        }
+      }
       break;
     default:
       break;
@@ -470,6 +516,156 @@ public class SecurityDividendsReport {
       final DateTransactionCurrencypairMap dateCurrencyMap) {
     securityDividendsGrandTotal.attachHistoryquoteAndCalcPositionTotal(historyquoteYearIdMap, dateCurrencyMap);
     securityDividendsGrandTotal.calcDivInterest();
+    securityDividendsGrandTotal.hasMarginData = securityDividendsGrandTotal.getSecurityDividendsYearGroup().stream()
+        .flatMap(yg -> yg.getSecurityDividendsPositions().stream())
+        .anyMatch(p -> p.security.isMarginInstrument());
+    enrichWithIctaxData(securityDividendsGrandTotal);
+    markExcludedSecurities(idTenant, securityDividendsGrandTotal);
+  }
+
+  /**
+   * Enriches the dividend report with ICTax Swiss tax data. For each year group, looks up matching tax data by ISIN and
+   * attaches tax values and payment details to each security position.
+   */
+  private void enrichWithIctaxData(SecurityDividendsGrandTotal grandTotal) {
+    for (SecurityDividendsYearGroup yearGroup : grandTotal.getSecurityDividendsYearGroup()) {
+      enrichWithIctaxData(yearGroup, yearGroup.year.shortValue());
+      if (yearGroup.getSecurityDividendsPositions().stream()
+          .anyMatch(p -> p.ictaxPayments != null || p.ictaxTotalTaxValueChf != null)) {
+        grandTotal.hasIctaxData = true;
+      }
+    }
+  }
+
+  /**
+   * Enriches a specific year group with ICTax data for the given tax year. Looks up matching tax data by ISIN and
+   * attaches tax values and per-payment details to each security position using the unit timeline for correct
+   * per-payment unit counts.
+   *
+   * @param yearGroup the year group to enrich
+   * @param taxYear   the tax year to look up ICTax data for
+   */
+  public void enrichWithIctaxData(SecurityDividendsYearGroup yearGroup, short taxYear) {
+    Set<String> isins = yearGroup.getSecurityDividendsPositions().stream()
+        .filter(p -> p.security.getIsin() != null && !p.security.getIsin().isEmpty())
+        .map(p -> p.security.getIsin()).collect(Collectors.toSet());
+    if (isins.isEmpty()) {
+      return;
+    }
+    List<IctaxSecurityTaxData> taxDataList = ictaxSecurityTaxDataJpaRepository.findByIsinInAndTaxYear(isins, taxYear);
+    if (taxDataList.isEmpty()) {
+      yearGroup.getSecurityDividendsPositions().forEach(p -> {
+        p.ictaxTaxValuePerUnitChf = null;
+        p.ictaxTotalTaxValueChf = null;
+        p.ictaxPayments = null;
+        p.ictaxTotalPaymentValueChf = null;
+      });
+      return;
+    }
+    Map<String, IctaxSecurityTaxData> taxDataByIsin = taxDataList.stream()
+        .collect(Collectors.toMap(IctaxSecurityTaxData::getIsin, Function.identity(), (a, b) -> a));
+
+    yearGroup.yearIctaxTotalTaxValueChf = 0.0;
+    yearGroup.yearIctaxTotalPaymentValueChf = 0.0;
+
+    for (SecurityDividendsPosition position : yearGroup.getSecurityDividendsPositions()) {
+      if (position.security.getIsin() == null) {
+        continue;
+      }
+      IctaxSecurityTaxData taxData = taxDataByIsin.get(position.security.getIsin());
+      if (taxData != null) {
+        double ictaxMultiplier = calcIctaxMultiplier(position);
+        position.ictaxTaxValuePerUnitChf = taxData.getTaxValueChf();
+        if (taxData.getTaxValueChf() != null && position.unitsAtEndOfYear > 0) {
+          position.ictaxTotalTaxValueChf = taxData.getTaxValueChf() * ictaxMultiplier;
+          yearGroup.yearIctaxTotalTaxValueChf += position.ictaxTotalTaxValueChf;
+        }
+        position.ictaxPayments = taxData.getPayments();
+        if (taxData.getPayments() != null) {
+          double totalPayment = 0.0;
+          for (var payment : taxData.getPayments()) {
+            if (payment.getPaymentValueChf() != null && position.unitsCounter != null) {
+              LocalDate paymentDate = payment.getExDate() != null ? payment.getExDate() : payment.getPaymentDate();
+              if (paymentDate != null) {
+                double unitsAtPayment = position.unitsCounter.getUnitsAtDate(paymentDate);
+                double multiplier = calcIctaxMultiplierForUnits(position, unitsAtPayment);
+                double paymentTotal = payment.getPaymentValueChf() * multiplier;
+                payment.setComputedUnitsAtDate(unitsAtPayment);
+                payment.setComputedTotalPaymentChf(paymentTotal);
+                totalPayment += paymentTotal;
+              }
+            }
+          }
+          position.ictaxTotalPaymentValueChf = totalPayment;
+          yearGroup.yearIctaxTotalPaymentValueChf += totalPayment;
+        }
+      } else {
+        position.ictaxTaxValuePerUnitChf = null;
+        position.ictaxTotalTaxValueChf = null;
+        position.ictaxPayments = null;
+        position.ictaxTotalPaymentValueChf = null;
+      }
+    }
+  }
+
+  /**
+   * Calculates the multiplier for converting ICTax per-unit values to position totals using year-end units. For bonds
+   * (DIRECT_INVESTMENT + FIXED_INCOME/CONVERTIBLE_BOND), ICTax reports values per denomination, while GT tracks units
+   * as nominal/100. For all other securities, ICTax values are per share and the multiplier equals units.
+   *
+   * @param position the security position containing security details and unit count
+   * @return the multiplier to apply to ICTax per-unit values
+   */
+  private double calcIctaxMultiplier(SecurityDividendsPosition position) {
+    return calcIctaxMultiplierForUnits(position, position.unitsAtEndOfYear);
+  }
+
+  /**
+   * Calculates the multiplier for converting ICTax per-unit values to totals for a given unit count. For bonds, adjusts
+   * using denomination; for other securities, the multiplier equals the unit count.
+   *
+   * @param position the security position containing security type and denomination info
+   * @param units    the number of units to use for the calculation
+   * @return the multiplier to apply to ICTax per-unit values
+   */
+  private double calcIctaxMultiplierForUnits(SecurityDividendsPosition position, double units) {
+    if (position.security.isBondDirectInvestment() && position.security.getDenomination() != null
+        && position.security.getDenomination() > 0) {
+      return units * 100.0 / position.security.getDenomination();
+    }
+    return units;
+  }
+
+  /**
+   * Adjusts all carried-over UnitsCounter values for splits occurring in the given year. Must be called at year
+   * boundaries BEFORE processing any transactions for that year, converting counter units from the previous year-end
+   * basis to the new year-end basis.
+   *
+   * @param year                       the year whose splits should be applied
+   * @param unitsCounterBySecurityMap  map tracking unit holdings by security
+   * @param securitysplitMap           map of security splits for position adjustments
+   */
+  private void adjustUnitsCounterForNewYear(int year, Map<Integer, UnitsCounter> unitsCounterBySecurityMap,
+      Map<Integer, List<Securitysplit>> securitysplitMap,
+      Map<Integer, Map<Integer, MarginTracker>> marginOpenTransaction) {
+    LocalDate fromDate = LocalDate.of(year, 1, 1);
+    LocalDate toDate = LocalDate.of(year, 12, 31);
+    for (var entry : unitsCounterBySecurityMap.entrySet()) {
+      SplitFactorAfterBefore sfab = Securitysplit.calcSplitFatorForFromDateAndToDate(
+          entry.getKey(), fromDate, toDate, securitysplitMap);
+      if (sfab.fromToDateFactor != 1.0) {
+        entry.getValue().units *= sfab.fromToDateFactor;
+      }
+    }
+    for (var secEntry : marginOpenTransaction.entrySet()) {
+      SplitFactorAfterBefore sfab = Securitysplit.calcSplitFatorForFromDateAndToDate(
+          secEntry.getKey(), fromDate, toDate, securitysplitMap);
+      if (sfab.fromToDateFactor != 1.0) {
+        for (MarginTracker mt : secEntry.getValue().values()) {
+          mt.applySplitFactor(sfab.fromToDateFactor);
+        }
+      }
+    }
   }
 
   /**
@@ -508,13 +704,16 @@ public class SecurityDividendsReport {
    * @param unitsCounterBySecurityMap map storing units counters by security ID
    */
   private void createOrGetUnitsCounter(final Security security, final Double addRecudeUntis,
-      final Map<Integer, UnitsCounter> unitsCounterBySecurityMap) {
-    final UnitsCounter unitsCounter = unitsCounterBySecurityMap.get(security.getIdSecuritycurrency());
+      final Map<Integer, UnitsCounter> unitsCounterBySecurityMap, final LocalDate transactionDate) {
+    UnitsCounter unitsCounter = unitsCounterBySecurityMap.get(security.getIdSecuritycurrency());
     if (unitsCounter == null) {
-      unitsCounterBySecurityMap.put(security.getIdSecuritycurrency(), new UnitsCounter(security, addRecudeUntis));
+      unitsCounter = new UnitsCounter(security, addRecudeUntis);
+      unitsCounterBySecurityMap.put(security.getIdSecuritycurrency(), unitsCounter);
     } else {
       unitsCounter.addUnits(addRecudeUntis);
     }
+    unitsCounter.recordUnitsAtDate(transactionDate);
+    unitsCounter.recordMutation(transactionDate, addRecudeUntis);
   }
 
   private void trackMarginSecurityUnits(Map<Integer, Map<Integer, MarginTracker>> marginOpenTransaction,
@@ -551,5 +750,23 @@ public class SecurityDividendsReport {
             Collectors.toMap(Historyquote::getIdSecuritycurrency, Function.identity())));
   }
 
-  
+  /**
+   * Marks security positions as excluded from the tax export based on persisted exclusion configuration.
+   */
+  private void markExcludedSecurities(Integer idTenant, SecurityDividendsGrandTotal grandTotal) {
+    for (SecurityDividendsYearGroup yearGroup : grandTotal.getSecurityDividendsYearGroup()) {
+      List<TaxSecurityYearConfig> exclusions = taxSecurityYearConfigJpaRepository.findByIdIdTenantAndIdTaxYear(idTenant,
+          yearGroup.year.shortValue());
+      if (!exclusions.isEmpty()) {
+        Set<Integer> excludedIds = exclusions.stream().map(TaxSecurityYearConfig::getIdSecuritycurrency)
+            .collect(Collectors.toSet());
+        for (SecurityDividendsPosition position : yearGroup.getSecurityDividendsPositions()) {
+          if (excludedIds.contains(position.security.getIdSecuritycurrency())) {
+            position.excludedFromTax = true;
+          }
+        }
+      }
+    }
+  }
+
 }

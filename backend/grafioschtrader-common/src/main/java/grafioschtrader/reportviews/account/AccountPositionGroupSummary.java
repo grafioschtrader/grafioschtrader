@@ -43,6 +43,12 @@ public class AccountPositionGroupSummary {
   @Schema(description = "Total foreign exchange gains/losses from currency fluctuations within this group")
   public double groupGainLossCurrencyMC = 0.0;
 
+  @Schema(description = "Total excluded dividend tax within this group in main currency")
+  public double groupExcludedDivTaxMC = 0.0;
+
+  @Schema(description = "Whether dividend tax exclusion is enabled for the tenant")
+  public boolean excludeDivTax;
+
   @Schema(description = "Descriptive name identifying this group (e.g., portfolio name, currency code, asset class)")
   public String groupName;
 
@@ -109,6 +115,7 @@ public class AccountPositionGroupSummary {
       groupValueMC += accountPositionSummary.valueMC;
       groupValueSecuritiesMC += accountPositionSummary.valueSecuritiesMC;
       groupGainLossSecuritiesMC += accountPositionSummary.gainLossSecuritiesMC;
+      groupExcludedDivTaxMC += accountPositionSummary.excludedDivTaxMC;
     }
   }
 
@@ -150,6 +157,10 @@ public class AccountPositionGroupSummary {
 
   public double getGroupGainLossCurrencyMC() {
     return DataHelper.round(groupGainLossCurrencyMC, precisionMC);
+  }
+
+  public double getGroupExcludedDivTaxMC() {
+    return DataHelper.round(groupExcludedDivTaxMC, precisionMC);
   }
 
   @Override

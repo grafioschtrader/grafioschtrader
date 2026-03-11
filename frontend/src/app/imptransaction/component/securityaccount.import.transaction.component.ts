@@ -8,6 +8,7 @@ import {Subscription} from 'rxjs';
 import {plainToInstance} from 'class-transformer';
 
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
+import {TreeNavigationStateService} from '../../lib/maintree/service/tree.navigation.state.service';
 import {HelpIds} from '../../lib/help/help.ids';
 import {ImportTransactionHead} from '../../entities/import.transaction.head';
 import {
@@ -122,6 +123,7 @@ export class SecurityaccountImportTransactionComponent
   constructor(private activatedRoute: ActivatedRoute,
     private importTransactionHeadService: ImportTransactionHeadService,
     private importTransactionTemplateService: ImportTransactionTemplateService,
+    private treeNavState: TreeNavigationStateService,
     gps: GlobalparameterService,
     confirmationService: ConfirmationService,
     messageToastService: MessageToastService,
@@ -146,7 +148,9 @@ export class SecurityaccountImportTransactionComponent
 
   ngOnInit(): void {
     this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
-      this.securityAccount = JSON.parse(params[AppSettings.SECURITYACCOUNT.toLowerCase()]);
+      const id = +params['id'];
+      this.securityAccount = this.treeNavState.getEntity<Securityaccount>(
+        AppSettings.SECURITYACCOUNT_IMPORT_KEY, id);
       this.callParam = new CallParam(this.securityAccount, null);
       this.importTransactionTemplateService.getImportTransactionPlatformByTradingPlatformPlan(
         this.securityAccount.tradingPlatformPlan.idTradingPlatformPlan, true).subscribe(

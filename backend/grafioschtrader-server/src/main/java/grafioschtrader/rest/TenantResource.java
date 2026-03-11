@@ -27,6 +27,7 @@ import grafiosch.security.JwtTokenHandler;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.algo.SimulationTenantCreateDTO;
 import grafioschtrader.algo.SimulationTenantInfo;
+import grafioschtrader.dto.TaxStatementExportRequest;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.repository.SimulationTenantService;
 import grafioschtrader.repository.TenantJpaRepository;
@@ -71,7 +72,7 @@ public class TenantResource extends TenantBaseResource<Tenant> {
 
   @Operation(summary = "Change tenants currency and also in its each protfolio", description = "", tags = {
       TenantBase.TABNAME })
-  @PatchMapping("{currency}")
+  @PatchMapping("/currency/{currency}")
   public ResponseEntity<Tenant> changeCurrencyTenantAndPortfolios(
       @Parameter(description = "New currency", required = true) @PathVariable String currency) {
     return new ResponseEntity<>(tenantJpaRepository.changeCurrencyTenantAndPortfolios(currency), HttpStatus.OK);
@@ -117,6 +118,17 @@ public class TenantResource extends TenantBaseResource<Tenant> {
 
     String token = jwtTokenHandler.createTokenForUser(user, 120, idTargetTenant);
     return new ResponseEntity<>(Map.of("token", token), HttpStatus.OK);
+  }
+
+  @Operation(summary = "Persist the tax export dialog settings for the current tenant", tags = {
+      TenantBase.TABNAME })
+  @PatchMapping(value = "/taxexportsettings", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<Void> saveTaxExportSettings(@RequestBody TaxStatementExportRequest taxExportSettings) {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    Tenant tenant = tenantJpaRepository.getReferenceById(user.getIdTenant());
+    tenant.setTaxExportSettings(taxExportSettings);
+    tenantJpaRepository.save(tenant);
+    return new ResponseEntity<>(HttpStatus.OK);
   }
 
   @Override

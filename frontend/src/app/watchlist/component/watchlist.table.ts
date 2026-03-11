@@ -46,6 +46,7 @@ import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 import {DynamicDialogs} from '../../lib/dynamicdialog/component/dynamic.dialogs';
 import {BaseSettings} from '../../lib/base.settings';
+import {TreeNavigationStateService} from '../../lib/maintree/service/tree.navigation.state.service';
 
 /**
  * Abstract base class for watchlist table components that provides comprehensive functionality for displaying
@@ -596,7 +597,9 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
         showMenu: this.getShowMenu(this.selectedSecuritycurrencyPosition),
         editMenu: this.getEditMenu(this.selectedSecuritycurrencyPosition)
       });
-      this.watchlist = JSON.parse(params[AppSettings.WATCHLIST.toLowerCase()]);
+      const treeNavState = this.injector.get(TreeNavigationStateService);
+      const route = this.activatedRoute.snapshot.routeConfig?.path?.split('/')[0] ?? '';
+      this.watchlist = treeNavState.getEntity<Watchlist>(route, this.idWatchlist);
     });
   }
 
@@ -656,6 +659,10 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       menuItems.push({
         label: '_MAIL_TO_CREATOR' + BaseSettings.DIALOG_MENU_SUFFIX,
         command: (e) => this.mailToCreator(securitycurrencyPosition.securitycurrency)
+      });
+      menuItems.push({
+        label: '_MAIL_TO_ADMIN' + BaseSettings.DIALOG_MENU_SUFFIX,
+        command: (e) => this.mailToAdmin(securitycurrencyPosition.securitycurrency)
       });
     }
     translate && TranslateHelper.translateMenuItems(menuItems, this.translateService);
@@ -863,6 +870,18 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       : (<Security>securitycurrency).name;
     DynamicDialogs.getOpenedMailSendComponent(this.translateService, this.dialogService,
       new MailSendParam(securitycurrency.createdBy, null, subject));
+  }
+
+  /**
+   * Opens mail dialog to send message to admin about a security/currency.
+   *
+   * @param {Securitycurrency} securitycurrency - Security or currency entity referenced in the message
+   */
+  private mailToAdmin(securitycurrency: Securitycurrency): void {
+    const subject = securitycurrency instanceof CurrencypairWatchlist ? (<CurrencypairWatchlist>securitycurrency).name
+      : (<Security>securitycurrency).name;
+    DynamicDialogs.getOpenedMailSendComponent(this.translateService, this.dialogService,
+      new MailSendParam(0, null, subject, BaseSettings.ROLE_ADMIN));
   }
 
   /** Handles price update with timeout check to prevent excessive API calls. */

@@ -200,14 +200,15 @@ public class SecurityResource extends UpdateCreateResource<Security> {
   @GetMapping(value = "/tenantsecurity/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityTransactionSummary> getTransactionsByIdTenantAndIdSecurity(
       @PathVariable final Integer idSecuritycurrency,
-      @Parameter(description = "True if it is a chart, means adjust data", required = true) @RequestParam() final boolean forchart) {
+      @Parameter(description = "True if it is a chart, means adjust data", required = true) @RequestParam() final boolean forchart,
+      @Parameter(description = "Optional cutoff date for transactions") @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) {
 
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     final Set<SecruityTransactionsReportOptions> secruityTransactionsReportOptions = forchart
         ? EnumSet.of(SecruityTransactionsReportOptions.QUTATION_SPLIT_CORRECTION)
         : EnumSet.noneOf(SecruityTransactionsReportOptions.class);
     return new ResponseEntity<>(secruityTransactionsReport.getTransactionsByIdTenantAndIdSecurityAndClearSecurity(
-        user.getIdTenant(), idSecuritycurrency, LocalDate.now(), secruityTransactionsReportOptions), HttpStatus.OK);
+        user.getIdTenant(), idSecuritycurrency, untilDate != null ? untilDate : LocalDate.now(), secruityTransactionsReportOptions), HttpStatus.OK);
   }
 
   @Operation(summary = "Returns the transactions for specified security in specified portfolio", description = "Chart is shown with split adjusted data, for that reason transactions data is also adjusted to match it charts historical data", tags = {
@@ -215,13 +216,14 @@ public class SecurityResource extends UpdateCreateResource<Security> {
   @GetMapping(value = "/{idPortfolio}/portfoliosecurity/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityTransactionSummary> getTransactionsByIdPortfolioAndIdSecurity(
       @PathVariable final Integer idPortfolio, @PathVariable final Integer idSecuritycurrency,
-      @Parameter(description = "True if it is a chart, means adjust data", required = true) @RequestParam() final boolean forchart) {
+      @Parameter(description = "True if it is a chart, means adjust data", required = true) @RequestParam() final boolean forchart,
+      @Parameter(description = "Optional cutoff date for transactions") @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) {
 
     final Set<SecruityTransactionsReportOptions> secruityTransactionsReportOptions = forchart
         ? EnumSet.of(SecruityTransactionsReportOptions.QUTATION_SPLIT_CORRECTION)
         : EnumSet.noneOf(SecruityTransactionsReportOptions.class);
     return new ResponseEntity<>(secruityTransactionsReport.getTransactionsByIdPortfolioAndIdSecurityAndClearSecurity(
-        idPortfolio, idSecuritycurrency, LocalDate.now(), secruityTransactionsReportOptions), HttpStatus.OK);
+        idPortfolio, idSecuritycurrency, untilDate != null ? untilDate : LocalDate.now(), secruityTransactionsReportOptions), HttpStatus.OK);
   }
 
   @Operation(summary = "Returns the transactions for specified security in specified security account", description = "Chart is shown with split adjusted data, for that reason transactions data is also adjusted to match it charts historical data", tags = {
@@ -229,14 +231,15 @@ public class SecurityResource extends UpdateCreateResource<Security> {
   @GetMapping(value = "securityaccountsecurity/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityTransactionSummary> getTransactionsByIdSecurityaccountsAndIdSecurity(
       @PathVariable final Integer idSecuritycurrency, @RequestParam() final List<Integer> idsSecurityaccount,
-      @Parameter(description = "True if it is a chart, means adjust data", required = true) @RequestParam() final boolean forchart) {
+      @Parameter(description = "True if it is a chart, means adjust data", required = true) @RequestParam() final boolean forchart,
+      @Parameter(description = "Optional cutoff date for transactions") @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) {
 
     final Set<SecruityTransactionsReportOptions> secruityTransactionsReportOptions = forchart
         ? EnumSet.of(SecruityTransactionsReportOptions.QUTATION_SPLIT_CORRECTION)
         : EnumSet.noneOf(SecruityTransactionsReportOptions.class);
     return new ResponseEntity<>(
         secruityTransactionsReport.getTransactionsByIdSecurityaccountsAndIdSecurityAndClearSecurity(idsSecurityaccount,
-            idSecuritycurrency, LocalDate.now(), secruityTransactionsReportOptions),
+            idSecuritycurrency, untilDate != null ? untilDate : LocalDate.now(), secruityTransactionsReportOptions),
         HttpStatus.OK);
   }
 

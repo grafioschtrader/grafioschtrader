@@ -45,7 +45,10 @@ public class AccountPositionGrandSummary {
   @Schema(description = "Total interest earned on cash account balances")
   public double grandAccountInterestMC = 0.0;
 
- 
+  @Schema(description = "Total excluded dividend tax across all portfolios in main currency")
+  public double grandExcludedDivTaxMC = 0.0;
+
+
 
   @Schema(description = "Number of decimal places for monetary precision in the main currency")
   private int precisionMC;
@@ -70,7 +73,8 @@ public class AccountPositionGrandSummary {
       grandGainLossCurrencyMC += accountPositionGroupSummary.groupGainLossCurrencyMC;
       grandAccountFeesMC += accountPositionGroupSummary.groupAccountFeesMC;
       grandAccountInterestMC += accountPositionGroupSummary.groupAccountInterestMC;
-     
+      grandExcludedDivTaxMC += accountPositionGroupSummary.groupExcludedDivTaxMC;
+
     }
   }
 
@@ -113,7 +117,10 @@ public class AccountPositionGrandSummary {
   public double getGrandAccountInterestMC() {
     return DataHelper.round(grandAccountInterestMC, precisionMC);
   }
-  
+
+  public double getGrandExcludedDivTaxMC() {
+    return DataHelper.round(grandExcludedDivTaxMC, precisionMC);
+  }
 
   public int getPrecisionMC() {
     return precisionMC;

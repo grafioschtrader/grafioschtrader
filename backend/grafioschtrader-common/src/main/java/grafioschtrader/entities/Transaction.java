@@ -179,6 +179,17 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   @Column(name = "id_standing_order")
   private Integer idStandingOrder;
 
+  @Schema(description = "Reference to the security action application that created this transaction, null if not from ISIN change")
+  @Column(name = "id_security_action_app")
+  private Integer idSecurityActionApp;
+
+  @Schema(description = "Reference to the security transfer that created this transaction, null if not from a transfer")
+  @Column(name = "id_security_transfer")
+  private Integer idSecurityTransfer;
+
+  @Transient
+  private boolean skipClosedUntilCheck = false;
+
   @Transient
   private Double securityRisk;
 
@@ -439,6 +450,31 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
 
   public void setIdStandingOrder(Integer idStandingOrder) {
     this.idStandingOrder = idStandingOrder;
+  }
+
+  public Integer getIdSecurityActionApp() {
+    return idSecurityActionApp;
+  }
+
+  public void setIdSecurityActionApp(Integer idSecurityActionApp) {
+    this.idSecurityActionApp = idSecurityActionApp;
+  }
+
+  public Integer getIdSecurityTransfer() {
+    return idSecurityTransfer;
+  }
+
+  public void setIdSecurityTransfer(Integer idSecurityTransfer) {
+    this.idSecurityTransfer = idSecurityTransfer;
+  }
+
+  @JsonIgnore
+  public boolean isSkipClosedUntilCheck() {
+    return skipClosedUntilCheck;
+  }
+
+  public void setSkipClosedUntilCheck(boolean skipClosedUntilCheck) {
+    this.skipClosedUntilCheck = skipClosedUntilCheck;
   }
 
   public Double getSecurityRisk() {

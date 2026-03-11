@@ -20,11 +20,11 @@ class InvestingSplitCalendarTest {
     String[] countryCodes = { "CH", "US", "CA" };
     Map<String, TickerSecuritysplit> securitySplitMap = null;
     try {
-      securitySplitMap = investingCalendar.getCalendarSplitForSingleDay(LocalDate.parse("2025-05-07"), countryCodes);
+      securitySplitMap = investingCalendar.getCalendarSplitForSingleDay(LocalDate.parse("2026-03-02"), countryCodes);
     } catch (Exception e) {
       e.printStackTrace();
     }
     securitySplitMap.entrySet().forEach(System.out::println);
-    assertThat(securitySplitMap).hasSize(3);
+    assertThat(securitySplitMap).hasSize(4);
   }
 }

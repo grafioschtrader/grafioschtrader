@@ -6,6 +6,8 @@ import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import grafiosch.BaseConstants;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -42,7 +44,7 @@ public class StandingOrderFailure implements Serializable {
 
   @Schema(description = "The date the standing order was scheduled to execute on")
   @Column(name = "execution_date", nullable = false)
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   private LocalDate executionDate;
 
   @Schema(description = "Expected business error (no price available, zero units, negative balance)")

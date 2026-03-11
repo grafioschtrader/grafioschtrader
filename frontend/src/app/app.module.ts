@@ -2,6 +2,7 @@ import {BrowserModule} from '@angular/platform-browser';
 import {inject, NgModule, provideAppInitializer} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {HistoryquoteService} from './historyquote/service/historyquote.service';
+import {TaxDataService} from './taxdata/service/tax-data.service';
 import {UserChartShapeService} from './historyquote/service/user.chart.shape.service';
 import {MenuModule} from 'primeng/menu';
 import {MenubarModule} from 'primeng/menubar';
@@ -35,6 +36,7 @@ import {TenantService} from './tenant/service/tenant.service';
 import {SecurityaccountEmptyComponent} from './securityaccount/component/securityaccount.empty.component';
 import {StockexchangeService} from './stockexchange/service/stockexchange.service';
 import {DataChangedService} from './lib/maintree/service/data.changed.service';
+import {TreeNavigationStateService} from './lib/maintree/service/tree.navigation.state.service';
 import {AssetclassService} from './assetclass/service/assetclass.service';
 import {ConfigurableTableComponent} from './lib/datashowbase/configurable-table.component';
 import {SecuritysplitService} from './securitycurrency/service/securitysplit.service';
@@ -291,6 +293,8 @@ import {InstrumentAnnualisedReturnComponent} from './securitycurrency/component/
 import {
   InstrumentYearPerformanceTableComponent
 } from './securitycurrency/component/instrument-year-performance-table.component';
+import {SecurityActionService} from './securityaction/service/security-action.service';
+import {SecurityActionTreetableComponent} from './securityaction/component/security-action-treetable.component';
 
 
 const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader(http, [
@@ -446,6 +450,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     TradingPlatformPlanEditComponent,
     TradingPlatformPlanTableComponent,
     GenericConnectorComponent,
+    SecurityActionTreetableComponent,
     TabsModule,
     TieredMenuModule,
     TimeSeriesChartComponent,
@@ -474,7 +479,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     provideHttpClient(withInterceptorsFromDi()),
     ActivePanelService, ActuatorService, AlarmSetupService, AlgoAssetclassService, AlgoSecurityService, AlgoStrategyService,
     AlgoTopService, AssetclassService, CashaccountService, ChartDataService, ConfirmationService, ConnectorApiKeyService,
-    CorrelationSetService, CurrencypairService, DataChangedService, DialogService, DividendService, GlobalparameterService,
+    CorrelationSetService, CurrencypairService, DataChangedService, DialogService, DividendService, GlobalparameterService, TreeNavigationStateService,
     GlobalparameterGTService, GTNetMessageService, TabMenuService, ReleaseNoteService,
     GTNetMessageAnswerService, GTNetService, GtnetSecurityLookupService, GTNetSecurityImpHeadService, GTNetSecurityImpPosService,
     HistoryquotePeriodService, HistoryquoteService, HoldingService, ImportTransactionHeadService,
@@ -482,7 +487,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     MailSendRecvService, MailSendRecvService, MailSettingForwardService, MainDialogService, MessageToastService,
     MultipleRequestToOneService, ParentChildRegisterService, PortfolioService, ProductIconService, ProposeChangeEntityService,
     ProposeUserTaskService, SecurityaccountService, SecurityService, SecuritysplitService, StockexchangeService,
-    StandingOrderService, TaskDataChangeService, TenantService, TimeSeriesQuotesService, TradingDaysMinusService, TradingDaysPlusService,
+    SecurityActionService, StandingOrderService, TaskDataChangeService, TaxDataService, TenantService, TimeSeriesQuotesService, TradingDaysMinusService, TradingDaysPlusService,
     TradingPlatformPlanService, GenericConnectorDefService, TransactionService, UDFDataService, UDFMetadataGeneralService, UDFMetadataSecurityService,
     UDFSpecialTypeDisableUserService, UserAdminService, UserChartShapeService, UserDataService, UserEntityChangeLimitService, UserSettingsService,
     ViewSizeChangedService, WatchlistService, {provide: TASK_EXTENDED_SERVICE, useClass: SecurityService},

@@ -7,6 +7,7 @@ import java.util.TreeMap;
 
 import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
+import grafioschtrader.dto.TaxStatementExportRequest;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
@@ -48,8 +49,26 @@ public class SecurityDividendsGrandTotal extends SecurityCostGrand<Integer, Secu
   @Schema(description = "Grand total of all taxable dividend and interest amounts across all years in the main currency.")
   public double grandTaxableAmountMC;
 
+  @Schema(description = "Grand total of all margin finance costs across all years in main currency")
+  public double grandFinanceCostMC;
+
   @Schema(description = "List of all portfolios included in this dividends report.")
   public List<Portfolio> portfolioList;
+
+  @Schema(description = "Whether ICTax Swiss tax data is available for any security in this report")
+  public boolean hasIctaxData;
+
+  @Schema(description = "Whether any security in this report is a margin instrument (CFD or FOREX)")
+  public boolean hasMarginData;
+
+  @Schema(description = "ISO 3166-1 alpha-2 country code of the tenant, e.g. CH for Switzerland")
+  public String tenantCountry;
+
+  @Schema(description = "Persisted tax export dialog settings from the tenant, used to pre-fill the export dialog")
+  public TaxStatementExportRequest taxExportSettings;
+
+  @Schema(description = "Distinct tax years with imported data, sorted descending. Empty if no tax data exists.")
+  public List<Short> availableTaxYears;
 
   /**
    * Constructs a new SecurityDividendsGrandTotal with the specified currency settings. Initializes the underlying
@@ -89,6 +108,7 @@ public class SecurityDividendsGrandTotal extends SecurityCostGrand<Integer, Secu
       this.grandInterestMC += securityDividendsYearGroup.yearInterestMC;
       this.grandRealReceivedDivInterestMC += securityDividendsYearGroup.yearRealReceivedDivInterestMC;
       this.grandTaxableAmountMC += securityDividendsYearGroup.yearTaxableAmountMC;
+      this.grandFinanceCostMC += securityDividendsYearGroup.yearFinanceCostMC;
     });
 
   }
@@ -157,6 +177,10 @@ public class SecurityDividendsGrandTotal extends SecurityCostGrand<Integer, Secu
 
   public double getGrandTaxableAmountMC() {
     return DataHelper.round(grandTaxableAmountMC, precisionMC);
+  }
+
+  public double getGrandFinanceCostMC() {
+    return DataHelper.round(grandFinanceCostMC, precisionMC);
   }
 
 }

@@ -35,6 +35,15 @@ public class CashAccountPosition extends AccountDividendPosition {
   @Schema(description = "Total fees for security transactions that are charged to this cash account in the main currency.")
   public double feeSecurityAccountMC = 0.0;
 
+  @Schema(description = "Unrealized P&L for all open margin positions linked to this cash account, in main currency.")
+  public double marginEarningsMC = 0.0;
+
+  @Schema(description = "Projected financing costs from last FINANCE_COST to year-end/today, in main currency.")
+  public double hypotheticalFinanceCostMC = 0.0;
+
+  @Schema(description = "Cash balance + margin earnings + hypothetical financing costs, in main currency.")
+  public double cashBalancePlusMarginMC = 0.0;
+
   public CashAccountPosition(Cashaccount cashaccount, int precisionMC, Map<String, Integer> currencyPrecisionMap) {
     super(precisionMC, currencyPrecisionMap);
     this.cashaccount = cashaccount;
@@ -59,6 +68,18 @@ public class CashAccountPosition extends AccountDividendPosition {
 
   public double getFeeSecurityAccountMC() {
     return DataHelper.round(feeSecurityAccountMC, precisionMC);
+  }
+
+  public double getMarginEarningsMC() {
+    return DataHelper.round(marginEarningsMC, precisionMC);
+  }
+
+  public double getHypotheticalFinanceCostMC() {
+    return DataHelper.round(hypotheticalFinanceCostMC, precisionMC);
+  }
+
+  public double getCashBalancePlusMarginMC() {
+    return DataHelper.round(cashBalancePlusMarginMC, precisionMC);
   }
 
   /**

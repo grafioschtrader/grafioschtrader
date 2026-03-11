@@ -20,7 +20,8 @@
           @for (field of fields; track field) {
             <th [pSortableColumn]="field.field" [style.max-width.px]="field.width"
                 [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                [pTooltip]="field.headerTooltipTranslated">
+                [pTooltip]="field.headerTooltipTranslated"
+                class="word-break-header" [attr.lang]="baseLocale.language">
               {{ field.headerTranslated }}
               <p-sortIcon [field]="field.field"></p-sortIcon>
             </th>
@@ -70,7 +71,9 @@
               (dateChanged)="transactionDataChanged($event)"
               [idsSecurityaccount]="idsAccounts.idsSecurityaccount"
               [securityDividendsGrandTotal]="securityDividendsGrandTotal"
-              [securityDividendsPositions]="sDYG.securityDividendsPositions">
+              [securityDividendsPositions]="sDYG.securityDividendsPositions"
+              [year]="sDYG.year"
+              [filterTransactionsToYearEnd]="filterTransactionsToYearEnd">
             </tenant-dividends-security-extended>
           </td>
         </tr>
@@ -95,4 +98,13 @@
                                                      [portfolios]="securityDividendsGrandTotal.portfolioList"
                                                      [visibleDialog]="visibleSecurityaccountDialog">
   </tenant-dividend-security-account-selection-dialog>
+}
+
+@if (visibleExportDialog) {
+  <tax-statement-export-dialog (closeDialog)="handleExportDialogClose($event)"
+                               [idsSecurityaccount]="idsAccounts.idsSecurityaccount"
+                               [availableTaxYears]="securityDividendsGrandTotal?.availableTaxYears"
+                               [taxExportSettings]="securityDividendsGrandTotal?.taxExportSettings"
+                               [visibleDialog]="visibleExportDialog">
+  </tax-statement-export-dialog>
 }

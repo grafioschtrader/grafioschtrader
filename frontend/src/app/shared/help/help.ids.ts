@@ -66,10 +66,14 @@ export const AppHelpIds: Record<string, string> = {
   HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_TEMPLATE: 'basedata/imptranstemplate/createimptranstemplate',
   HELP_BASEDATA_UDF_METADATA_SECURITY: 'basedata/udfmetadata/instruments',
   HELP_BASEDATA_GT_NET_IMPORT_SECURITY: 'basedata/gtnetsecurityimport',
+  HELP_BASEDATA_SECURITY_ACTION: 'basedata/securityaction',
+  HELP_BASEDATA_SECURITY_ACTION_SECURITY_TRANSFER: 'basedata/securityaction/securitytransfer',
+  HELP_BASEDATA_SECURITY_ACTION_ISIN_RENAME: 'basedata/securityaction/securityisinrename',
 
   // Admin data (application-specific extensions)
   HELP_TRADING_CALENDAR: 'admindata/tradingcalendar',
   HELP_HISTORYQUOTE_QUALITY: 'admindata/historyquotequality/',
+  HELP_TAX_DATA: 'admindata/taxdata/',
 
   HELP_GT_NET: HelpIds.HELP_MESSAGE_SYSTEM + '/gtnet',
   HELP_GT_NET_ADMIN_MGS: HelpIds.HELP_MESSAGE_SYSTEM +  '/gtnet/setup/msgadmin',

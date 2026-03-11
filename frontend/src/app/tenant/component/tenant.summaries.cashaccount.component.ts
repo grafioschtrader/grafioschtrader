@@ -55,6 +55,7 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
   private idTenant: number;
   private routeSubscribe: Subscription;
   private columnConfigs: ColumnConfig[] = [];
+  private excludedDivTaxColumn: ColumnConfig;
   private subscriptionRequestFromChart: Subscription;
   private CHART_TITLE = 'CASH_BALANCE_SECURITIES';
 
@@ -126,6 +127,14 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
         columnGroupConfigs: [new ColumnGroupConfig('groupGainLossSecuritiesMC'),
           new ColumnGroupConfig('grandGainLossSecuritiesMC')]
       }));
+    this.excludedDivTaxColumn = this.addColumnFeqH(DataType.Numeric, 'excludedDivTaxMC', false, false,
+      {
+        templateName: 'greenRed',
+        columnGroupConfigs: [new ColumnGroupConfig('groupExcludedDivTaxMC'),
+          new ColumnGroupConfig('grandExcludedDivTaxMC')]
+      });
+    this.columnConfigs.push(this.excludedDivTaxColumn);
+
     this.columnConfigs.push(this.addColumn(DataType.Numeric, this.VALUE_SECURITIES_MAIN_CURRENCY,
       AppSettings.SECURITY.toUpperCase(), true, false,
       {
@@ -215,6 +224,8 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
     this.portfolioService.getGroupedAccountsSecuritiesTenantSummary(this.untilDate, TenantPortfolioSummary[this.selectedGroup]).subscribe(
       result => {
         this.transformToFlatArray(result);
+        this.excludedDivTaxColumn.visible = result.accountPositionGroupSummaryList
+          .some(g => g.excludeDivTax);
         this.columnConfigs.forEach(columnConfig => columnConfig.headerSuffix = this.accountPositionGrandSummary.mainCurrency);
         this.prepareTableAndTranslate();
         this.changeToOpenChart();

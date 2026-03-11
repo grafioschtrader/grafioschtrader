@@ -33,6 +33,7 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {AppSettings} from '../../shared/app.settings';
+import {TreeNavigationStateService} from '../../lib/maintree/service/tree.navigation.state.service';
 import {BaseSettings} from '../../lib/base.settings';
 import {TableModule} from 'primeng/table';
 import {DatePickerModule} from 'primeng/datepicker';
@@ -90,6 +91,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
   contextMenuItems: MenuItem[] = [];
   private routeSubscribe: Subscription;
   private columnConfigs: ColumnConfig[] = [];
+  private excludedDivTaxColumn: ColumnConfig;
   private tenantLimit: TenantLimit;
 
   constructor(private parentChildRegisterService: ParentChildRegisterService,
@@ -99,6 +101,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
               private messageToastService: MessageToastService,
               private activatedRoute: ActivatedRoute,
               private dataChangedService: DataChangedService,
+              private treeNavState: TreeNavigationStateService,
               private tenantService: TenantService,
               filterService: FilterService,
               translateService: TranslateService,
@@ -135,6 +138,10 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
     this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'gainLossSecuritiesMC', true, false,
       {templateName: 'greenRed', columnGroupConfigs: [new ColumnGroupConfig('groupGainLossSecuritiesMC')]}));
 
+    this.excludedDivTaxColumn = this.addColumnFeqH(DataType.Numeric, 'excludedDivTaxMC', false, false,
+      {templateName: 'greenRed', columnGroupConfigs: [new ColumnGroupConfig('groupExcludedDivTaxMC')]});
+    this.columnConfigs.push(this.excludedDivTaxColumn);
+
     this.columnConfigs.push(this.addColumn(DataType.Numeric, 'valueSecuritiesMC', AppSettings.SECURITY.toUpperCase(), true, false,
       {templateName: 'greenRed', columnGroupConfigs: [new ColumnGroupConfig('groupValueSecuritiesMC')]}));
 
@@ -150,7 +157,8 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
 
   ngOnInit(): void {
     this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
-      this.portfolio = JSON.parse(params[AppSettings.PORTFOLIO.toLowerCase()]);
+      const id = +params['id'];
+      this.portfolio = this.treeNavState.getEntity<any>(AppSettings.PORTFOLIO_SUMMARY_KEY, id);
       this.parentChildRegisterService.initRegistry();
       this.readData();
     });
@@ -166,6 +174,7 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
     this.cashaccountService.getCashaccountPositionGroupSummary(this.portfolio.idPortfolio, this.untilDate)
       .subscribe((data: AccountPositionGroupSummary) => {
         this.accountPositionGroupSummary = data;
+        this.excludedDivTaxColumn.visible = this.accountPositionGroupSummary.excludeDivTax;
         this.expandedAccountPositionSummary = this.accountPositionGroupSummary.accountPositionSummaryList.filter(accountPositionSummary =>
           this.expandedIdCashaccount.indexOf(accountPositionSummary.cashaccount.idSecuritycashAccount) >= 0);
         this.columnConfigs.forEach(columnConfig => columnConfig.headerSuffix = this.accountPositionGroupSummary.currency);

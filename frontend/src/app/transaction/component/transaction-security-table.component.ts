@@ -58,6 +58,9 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
   /** Optional parameters for customizing transaction security display features */
   @Input() transactionSecurityOptionalParam: TransactionSecurityOptionalParam[];
 
+  /** Optional cutoff date (yyyy-MM-dd) to limit transactions */
+  @Input() untilDate: string;
+
   /** Column configuration for main currency display formatting */
   currencyColumnConfigMC: ColumnConfig[] = [];
 
@@ -139,7 +142,7 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
   /** Initializes the component data by loading security transaction summary and configuring display columns. */
   protected initialize(): void {
     BusinessHelper.getSecurityTransactionSummary(this.securityService, this.idSecuritycurrency, this.idsSecurityaccount,
-      this.idPortfolio, false).subscribe(result => {
+      this.idPortfolio, false, this.untilDate).subscribe(result => {
       this.securityTransactionSummary = result;
       this.createTranslatedValueStoreAndFilterField(this.securityTransactionSummary.transactionPositionList);
       this.transactionPositionList = this.securityTransactionSummary.transactionPositionList;

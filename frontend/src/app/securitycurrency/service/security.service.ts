@@ -80,22 +80,34 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
     return this.updateEntity(security, security.idSecuritycurrency, AppSettings.SECURITY_KEY);
   }
 
-  getTransactionsByIdTenantAndIdSecurity(idSecuritycurrency: number, forChart: boolean): Observable<SecurityTransactionSummary> {
+  getTransactionsByIdTenantAndIdSecurity(idSecuritycurrency: number, forChart: boolean,
+    untilDate?: string): Observable<SecurityTransactionSummary> {
+    const options = this.getOptionsWithIncludeForChart(forChart);
+    if (untilDate) {
+      options.params = options.params.append('untilDate', untilDate);
+    }
     return <Observable<SecurityTransactionSummary>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}`
       + `${AppSettings.SECURITY_KEY}/tenantsecurity/${idSecuritycurrency}`,
-      this.getOptionsWithIncludeForChart(forChart)).pipe(catchError(this.handleError.bind(this)));
+      options).pipe(catchError(this.handleError.bind(this)));
   }
 
   getTransactionsByIdPortfolioAndIdSecurity(idPortfolio: number, idSecuritycurrency: number,
-    forChart: boolean): Observable<SecurityTransactionSummary> {
+    forChart: boolean, untilDate?: string): Observable<SecurityTransactionSummary> {
+    const options = this.getOptionsWithIncludeForChart(forChart);
+    if (untilDate) {
+      options.params = options.params.append('untilDate', untilDate);
+    }
     return <Observable<SecurityTransactionSummary>>this.httpClient.get(
       `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idPortfolio}/portfoliosecurity/${idSecuritycurrency}`,
-      this.getOptionsWithIncludeForChart(forChart)).pipe(catchError(this.handleError.bind(this)));
+      options).pipe(catchError(this.handleError.bind(this)));
   }
 
   getTransactionsByIdSecurityaccountsAndIdSecurity(idsSecurityaccount: number[], idSecuritycurrency: number,
-    forChart: boolean): Observable<SecurityTransactionSummary> {
+    forChart: boolean, untilDate?: string): Observable<SecurityTransactionSummary> {
     const options = this.getOptionsWithIncludeForChart(forChart);
+    if (untilDate) {
+      options.params = options.params.append('untilDate', untilDate);
+    }
     options.params = options.params.append('idsSecurityaccount', idsSecurityaccount.join(','));
     return <Observable<SecurityTransactionSummary>>this.httpClient.get(
       `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/securityaccountsecurity/${idSecuritycurrency}`,

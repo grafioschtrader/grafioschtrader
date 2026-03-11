@@ -72,6 +72,9 @@ public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<
   @Schema(description = "Current market value of securities converted to main currency")
   public double valueSecuritiesMC;
 
+  @Schema(description = "Excluded dividend tax in main currency (when excludeDivTaxcost is enabled)")
+  public double excludedDivTaxMC;
+
   @Schema(description = "Total value combining cash balance and securities value in main currency")
   public double valueMC;
 
@@ -135,6 +138,10 @@ public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<
     return DataHelper.round(valueSecuritiesMC, precisionMC);
   }
 
+  public double getExcludedDivTaxMC() {
+    return DataHelper.round(excludedDivTaxMC, precisionMC);
+  }
+
   public double getValueMC() {
     return DataHelper.round(valueMC, precisionMC);
   }
@@ -168,6 +175,7 @@ public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<
       this.gainLossSecurities = securityPositionCurrenyGroupSummary.groupGainLossSecurity;
       this.gainLossSecuritiesMC = securityPositionCurrenyGroupSummary.groupGainLossSecurityMC;
       this.valueSecuritiesMC = securityPositionCurrenyGroupSummary.groupAccountValueSecurityMC;
+      this.excludedDivTaxMC = securityPositionCurrenyGroupSummary.groupExcludedDivTaxMC;
     }
   }
 

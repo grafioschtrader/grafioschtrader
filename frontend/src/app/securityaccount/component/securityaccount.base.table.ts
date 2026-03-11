@@ -244,6 +244,9 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     return BusinessHelper.isMarginProduct(security);
   }
 
+  protected extendEditMenu(menuItems: MenuItem[], securityPositionSummary: SecurityPositionSummary): void {
+  }
+
   protected abstract readData(): void;
 
   protected abstract extendTransactionParamData(transactionCallParam: TransactionCallParam): void;
@@ -401,6 +404,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
           command: (e) => this.handleTransaction(TransactionType.DIVIDEND, securityPositionSummary.security)
         });
       }
+      this.extendEditMenu(menuItems, securityPositionSummary);
       TranslateHelper.translateMenuItems(menuItems, this.translateService);
     }
     return menuItems;

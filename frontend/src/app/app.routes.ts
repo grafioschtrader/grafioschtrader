@@ -77,8 +77,10 @@ import {StandingOrderCashaccountTableComponent} from './standingorder/component/
 import {StandingOrderSecurityTableComponent} from './standingorder/component/standing-order-security-table.component';
 import {StandingOrderTabMenuComponent} from './standingorder/component/standing-order-tab-menu.component';
 import {BaseSettings} from './lib/base.settings';
+import {TaxDataTreetableComponent} from './taxdata/component/tax-data-treetable.component';
 import {MailForwardSettingTableEditComponent} from './lib/mail/component/mail.forward.setting.table.edit.component';
 import {GTNetSecurityImportComponent} from './shared/gtnet/component/gtnet-security-import.component';
+import {SecurityActionTreetableComponent} from './securityaction/component/security-action-treetable.component';
 
 
 const APP_ROUTES: Routes = [
@@ -287,6 +289,11 @@ const APP_ROUTES: Routes = [
         component: GTNetSecurityImportComponent,
         canActivate: [authGuard]
       },
+      {
+        path: AppSettings.SECURITY_ACTION_KEY,
+        component: SecurityActionTreetableComponent,
+        canActivate: [authGuard]
+      },
       // Admin data
       {
         path: AppSettings.USER_MESSAGE_KEY, component: SendRecvForwardTabMenuComponent, canActivate: [authGuard]
@@ -379,6 +386,7 @@ const APP_ROUTES: Routes = [
         canActivate: [authGuard]
       },
 
+      {path: AppSettings.TAX_DATA_KEY, component: TaxDataTreetableComponent, canActivate: [authGuard]},
       {path: BaseSettings.CONNECTOR_API_KEY_KEY, component: ConnectorApiKeyTableComponent, canActivate: [adminGuard]},
       {path: BaseSettings.USER_ENTITY_LIMIT_KEY, component: UserTableComponent, canActivate: [adminGuard]}
     ]

@@ -9,13 +9,17 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.hibernate.annotations.Type;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.entities.TenantBase;
 import grafiosch.validation.AfterEqual;
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.dto.TaxStatementExportRequest;
 import grafioschtrader.types.TenantKindType;
 import grafioschtrader.validation.ValidCurrencyCode;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
@@ -27,6 +31,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 @Schema(description = """
     Tenant is the main access point", description = "GT defines a tenant from the aggregation of all portfolios and watchlists.
@@ -87,6 +92,16 @@ public class Tenant extends TenantBase implements Serializable {
   @Schema(description = "Reference to the shared AlgoTop strategy for simulation tenants")
   @Column(name = "id_algo_top")
   private Integer idAlgoTop;
+
+  @Schema(description = "ISO 3166-1 alpha-2 country code for the tenant, used to enable country-specific features such as ICTax columns.")
+  @Column(name = "country")
+  @Size(max = 2)
+  private String country;
+
+  @Schema(description = "Persisted tax export dialog settings (canton, institution name, client details).")
+  @Type(JsonType.class)
+  @Column(name = "tax_export_settings", columnDefinition = "json")
+  private TaxStatementExportRequest taxExportSettings;
 
   public Tenant() {
   }
@@ -174,11 +189,28 @@ public class Tenant extends TenantBase implements Serializable {
     this.idAlgoTop = idAlgoTop;
   }
 
+  public String getCountry() {
+    return country;
+  }
+
+  public void setCountry(String country) {
+    this.country = country;
+  }
+
+  public TaxStatementExportRequest getTaxExportSettings() {
+    return taxExportSettings;
+  }
+
+  public void setTaxExportSettings(TaxStatementExportRequest taxExportSettings) {
+    this.taxExportSettings = taxExportSettings;
+  }
+
   public void updateThis(Tenant sourceTenant) {
     this.setTenantName(sourceTenant.getTenantName());
     this.setCurrency(sourceTenant.getCurrency());
     this.setExcludeDivTax(sourceTenant.isExcludeDivTax());
     this.setClosedUntil(sourceTenant.getClosedUntil());
+    this.setCountry(sourceTenant.getCountry());
   }
 
   @Override

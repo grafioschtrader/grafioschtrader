@@ -28,11 +28,10 @@ class AccountPositionGroupSummaryReportTest {
   private AccountPositionGroupSummaryReport accountPositionGroupSummaryReport;
 
   @Test
-  @Disabled
   void getAccountGrandSummaryPortfolioTest() {
     final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-    LocalDate startDate = LocalDate.parse("01.03.2020", dateFormat);
-    final LocalDate finishDate = LocalDate.parse("19.02.2021", dateFormat);
+    LocalDate startDate = LocalDate.parse("01.03.2016", dateFormat);
+    final LocalDate finishDate = LocalDate.parse("19.02.2026", dateFormat);
 
     do {
       startDate = startDate.plusDays(1);

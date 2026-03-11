@@ -4,6 +4,8 @@ import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import grafiosch.BaseConstants;
+
 /**
  * Request DTO for testing a generic connector endpoint. Contains the connector ID, endpoint type selector,
  * ticker/currency inputs, and optional date range for historical tests. Operates on saved (persisted) connector
@@ -18,10 +20,10 @@ public class GenericConnectorTestRequest {
   private String fromCurrency;
   private String toCurrency;
 
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   private LocalDate fromDate;
 
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   private LocalDate toDate;
 
   public Integer getIdGenericConnector() {

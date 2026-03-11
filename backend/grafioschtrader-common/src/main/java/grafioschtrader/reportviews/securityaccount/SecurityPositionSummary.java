@@ -85,6 +85,14 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   @JsonIgnore
   public double adjustedCostBaseMC;
 
+  /** Excluded dividend tax in security currency (when excludeDivTaxcost is enabled) */
+  @JsonIgnore
+  public double excludedDivTax;
+
+  /** Excluded dividend tax converted to main currency */
+  @JsonIgnore
+  public double excludedDivTaxMC;
+
   /** Security currency balance for internal tracking */
   @JsonIgnore
   public double balanceSecurityCurrency;
@@ -264,6 +272,7 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
     }
     transactionCostMC = transactionCost * currencyExchangeRate;
     taxCostMC = taxCost * currencyExchangeRate;
+    excludedDivTaxMC = excludedDivTax * currencyExchangeRate;
 
     if (securitycurrency.getId() < 0) {
       // It is may be a cash account and not a real security

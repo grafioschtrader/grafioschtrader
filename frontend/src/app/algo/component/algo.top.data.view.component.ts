@@ -7,10 +7,13 @@ import {ConfirmationService, MenuItem, TreeNode} from 'primeng/api';
 import {concat, Subscription} from 'rxjs';
 import {toArray} from 'rxjs/operators';
 import {ActivatedRoute, Params} from '@angular/router';
+import {TreeNavigationStateService} from '../../lib/maintree/service/tree.navigation.state.service';
+import {BaseSettings} from '../../lib/base.settings';
 import {AlgoTop} from '../model/algo.top';
 import {AlgoAssetclassService} from '../service/algo.assetclass.service';
 import {AlgoAssetclass} from '../model/algo.assetclass';
 import {AppHelper} from '../../lib/helper/app.helper';
+import {AppSettings} from '../../shared/app.settings';
 import {plainToClass} from 'class-transformer';
 import {ColumnConfig, EditInputType, TranslateValue} from '../../lib/datashowbase/column.config';
 import {AlgoTopAssetSecurity} from '../model/algo.top.asset.security';
@@ -132,6 +135,7 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
   private routeSubscribe: Subscription;
 
   constructor(private activatedRoute: ActivatedRoute,
+    private treeNavState: TreeNavigationStateService,
     private activePanelService: ActivePanelService,
     private algoTopService: AlgoTopService,
     private algoAssetclassService: AlgoAssetclassService,
@@ -155,7 +159,9 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
 
   ngOnInit(): void {
     this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
-      this.algoTop = JSON.parse(params['object']) as AlgoTop;
+      const id = +params['id'];
+      this.algoTop = this.treeNavState.getEntity<AlgoTop>(
+        BaseSettings.MAINVIEW_KEY + '/' + AppSettings.ALGO_TOP_KEY, id);
       this.translateHeadersAndColumns();
       this.readDataWithoutTopLevel();
     });

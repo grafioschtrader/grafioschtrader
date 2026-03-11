@@ -42,6 +42,7 @@ export class AppSettings {
   public static readonly TRADING_PLATFORM_PLAN = 'TradingPlatformPlan';
 
 
+  public static readonly SECURITY_ACTION = 'SecurityAction';
   public static readonly UDF_METADATA_SECURITY = 'UDFMetadataSecurity';
 
 
@@ -82,6 +83,8 @@ export class AppSettings {
   public static readonly SECURITYACCOUNT_KEY = AppSettings.SECURITYACCOUNT.toLowerCase();
   public static readonly TRADING_CALENDAR_GLOBAL_KEY = 'tradingcalendarglobal';
   public static readonly SECURITY_HISTORY_QUALITY_KEY = 'historyquotequality';
+  public static readonly SECURITY_ACTION_KEY = 'securityaction';
+  public static readonly TAX_DATA_KEY = 'taxdata';
 
   public static readonly GT_NET_EXCHANGE_LOG_KEY = 'gtnetexchangelog';
   public static readonly GT_NET_EXCHANGE_LOG_LASTPRICE_KEY = 'lastprice';

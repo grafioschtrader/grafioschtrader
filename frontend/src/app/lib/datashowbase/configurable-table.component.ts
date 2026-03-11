@@ -141,7 +141,8 @@ interface HeaderGroupItem {
                   <th [rowSpan]="2" [pSortableColumn]="item.field.field"
                       [pTooltip]="item.field.headerTooltipTranslated"
                       [style.max-width.px]="item.field.width"
-                      [ngStyle]="item.field.width ? {'flex-basis': '0 0 ' + item.field.width + 'px'} : {}">
+                      [ngStyle]="item.field.width ? {'flex-basis': '0 0 ' + item.field.width + 'px'} : {}"
+                      class="word-break-header" [attr.lang]="baseLocale.language">
                     {{ item.field.headerTranslated }}
                     <p-sortIcon [field]="item.field.field"></p-sortIcon>
                   </th>
@@ -158,7 +159,8 @@ interface HeaderGroupItem {
                 <th [pSortableColumn]="field.field"
                     [pTooltip]="field.headerTooltipTranslated"
                     [style.max-width.px]="field.width"
-                    [ngStyle]="field.width ? {'flex-basis': '0 0 ' + field.width + 'px'} : {}">
+                    [ngStyle]="field.width ? {'flex-basis': '0 0 ' + field.width + 'px'} : {}"
+                    class="word-break-header" [attr.lang]="baseLocale.language">
                   {{ field.headerTranslated }}
                   <p-sortIcon [field]="field.field"></p-sortIcon>
                 </th>
@@ -180,7 +182,8 @@ interface HeaderGroupItem {
                   <th [pSortableColumn]="field.field"
                       [pTooltip]="field.headerTooltipTranslated"
                       [style.max-width.px]="field.width"
-                      [ngStyle]="field.width ? {'flex-basis': '0 0 ' + field.width + 'px'} : {}">
+                      [ngStyle]="field.width ? {'flex-basis': '0 0 ' + field.width + 'px'} : {}"
+                      class="word-break-header" [attr.lang]="baseLocale.language">
                     {{ field.headerTranslated }}
                     <p-sortIcon [field]="field.field"></p-sortIcon>
                   </th>

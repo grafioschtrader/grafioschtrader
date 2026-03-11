@@ -11,6 +11,7 @@ import {LoginService} from '../../lib/login/service/log-in.service';
 import {BaseSettings} from '../../lib/base.settings';
 import {TenantLimit, TenantLimitTypes} from '../../shared/types/tenant.limit';
 import {SimulationTenantCreateDTO, SimulationTenantInfo} from '../../algo/model/simulation.tenant';
+import {TaxStatementExportRequest} from '../../taxdata/service/tax-data.service';
 
 
 @Injectable()
@@ -36,7 +37,7 @@ export class TenantService extends AuthServiceWithLogout<Tenant> {
   }
 
   public changeCurrencyTenantAndPortfolios(currency: string): Observable<Tenant> {
-    return this.httpClient.patch(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/${currency}`, null,
+    return this.httpClient.patch(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/currency/${currency}`, null,
       {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -64,6 +65,12 @@ export class TenantService extends AuthServiceWithLogout<Tenant> {
     return <Observable<void>>this.httpClient.delete(
       `${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/simulation/${idTenant}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  public saveTaxExportSettings(settings: TaxStatementExportRequest): Observable<void> {
+    return <Observable<void>>this.httpClient.patch(
+      `${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/taxexportsettings`, settings,
+      {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }
 
   public switchTenant(idTargetTenant: number): Observable<{token: string}> {

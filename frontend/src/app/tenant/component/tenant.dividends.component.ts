@@ -14,10 +14,11 @@ import {ColumnConfig, ColumnGroupConfig} from '../../lib/datashowbase/column.con
 import {HelpIds} from '../../lib/help/help.ids';
 import {FilterService, MenuItem} from 'primeng/api';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {AppSettings} from '../../shared/app.settings';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {IdsAccounts} from '../model/ids.accounts';
+import {AppSettings} from '../../shared/app.settings';
+import {BaseSettings} from '../../lib/base.settings';
 import {CommonModule} from '@angular/common';
 import {TableModule} from 'primeng/table';
 import {TooltipModule} from 'primeng/tooltip';
@@ -30,6 +31,9 @@ import {
 import {
   TenantDividendsSecurityExtendedComponent
 } from './tenant-dividends-security-extended.component';
+import {
+  TaxStatementExportDialogComponent
+} from '../../taxdata/component/tax-statement-export-dialog.component';
 
 /**
  * Shows the dividends and some other information like transaction cost grouped by year.
@@ -38,7 +42,7 @@ import {
   templateUrl: '../view/tenant.dividends.html',
   standalone: true,
   imports: [CommonModule, TranslateModule, TableModule, TooltipModule, TenantDividendSecurityAccountSelectionDialogComponent,
-    TenantDividendsCashaccountExtendedComponent, TenantDividendsSecurityExtendedComponent]
+    TenantDividendsCashaccountExtendedComponent, TenantDividendsSecurityExtendedComponent, TaxStatementExportDialogComponent]
 })
 export class TenantDividendsComponent extends TableConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
 
@@ -47,7 +51,9 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
 
   securityDividendsGrandTotalSelected: SecurityDividendsYearGroup;
   visibleSecurityaccountDialog: boolean;
+  visibleExportDialog: boolean;
   idsAccounts: IdsAccounts;
+  filterTransactionsToYearEnd = false;
 
   private columnConfigs: ColumnConfig[] = [];
 
@@ -99,6 +105,8 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
       {columnGroupConfigs: [new ColumnGroupConfig('grandTotalTransactionCostMC')]}));
     this.columnConfigs.push(this.addColumn(DataType.Numeric, 'yearFeeMC', 'FEE', true, false,
       {columnGroupConfigs: [new ColumnGroupConfig('grandFeeMC')]}));
+    this.columnConfigs.push(this.addColumn(DataType.Numeric, 'yearFinanceCostMC', 'MARGIN_FINANCE_COST', false, true,
+      {width: 80, columnGroupConfigs: [new ColumnGroupConfig('grandFinanceCostMC')]}));
     this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'yearAutoPaidTaxMC', true, false));
     this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'yearTaxableAmountMC', true, false,
       {columnGroupConfigs: [new ColumnGroupConfig('grandTaxableAmountMC')]}));
@@ -106,6 +114,8 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
       {columnGroupConfigs: [new ColumnGroupConfig('grandRealReceivedDivInterestMC')]}));
 
     this.columnConfigs.push(this.addColumn(DataType.Numeric, 'valueAtEndOfYearMC', 'VALUE_AT_END_OF_YEAR', true, false));
+    this.addColumn(DataType.Numeric, 'yearIctaxTotalPaymentValueChf', 'ICTAX_TOTAL_PAYMENT_CHF', false, true);
+    this.addColumn(DataType.Numeric, 'yearIctaxTotalTaxValueChf', 'ICTAX_TOTAL_TAX_VALUE', false, true);
 
     const idsCashaccount = this.getAccountSettings(AppSettings.DIV_CASHACCOUNTS);
     this.idsAccounts = new IdsAccounts(this.getAccountSettings(AppSettings.DIV_SECURITYACCOUNTS),
@@ -150,11 +160,44 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
   }
 
   override getMenuShowOptions(): MenuItem[] {
-    const menuItems = [{
-      label: 'DIV_INCLUDE_SECURITYACCOUNT', command: (event) => this.showPortfolioSelectionDialog()
-    }];
+    const menuItems: MenuItem[] = [
+      {label: 'DIV_INCLUDE_SECURITYACCOUNT', command: (event) => this.showPortfolioSelectionDialog()},
+    ];
+    if (this.securityDividendsGrandTotal?.availableTaxYears?.length > 0) {
+      menuItems.push({label: 'EXPORT_TAX_STATEMENT', command: (event) => this.showExportDialog()});
+    }
+    menuItems.push(
+      {separator: true},
+      {
+        label: 'FILTER_TRANSACTIONS_TO_YEAR_END',
+        command: (event) => this.handleFilterTransactionsToggle(event),
+        icon: this.filterTransactionsToYearEnd ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY
+      }
+    );
     TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
+  }
+
+  handleFilterTransactionsToggle(event: any): void {
+    if (event.item.icon === BaseSettings.ICONNAME_SQUARE_EMTPY) {
+      event.item.icon = BaseSettings.ICONNAME_SQUARE_CHECK;
+      this.filterTransactionsToYearEnd = true;
+    } else {
+      event.item.icon = BaseSettings.ICONNAME_SQUARE_EMTPY;
+      this.filterTransactionsToYearEnd = false;
+    }
+    this.onComponentClick(null);
+  }
+
+  showExportDialog(): void {
+    this.visibleExportDialog = true;
+  }
+
+  handleExportDialogClose(processedActionData: ProcessedActionData): void {
+    this.visibleExportDialog = false;
+    if (processedActionData.action === ProcessedAction.UPDATED && this.securityDividendsGrandTotal) {
+      this.securityDividendsGrandTotal.taxExportSettings = processedActionData.data;
+    }
   }
 
   showPortfolioSelectionDialog(): void {
@@ -183,6 +226,13 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
       this.securityDividendsGrandTotal = data;
       this.securityDividendsYearGroup = this.securityDividendsGrandTotal.securityDividendsYearGroup;
       this.columnConfigs.forEach(columnConfig => columnConfig.headerSuffix = this.securityDividendsGrandTotal.mainCurrency);
+      const marginCol = this.fields.find(f => f.field === 'yearFinanceCostMC');
+      if (marginCol) { marginCol.visible = !!data.hasMarginData; }
+      const ictaxFields = ['yearIctaxTotalTaxValueChf', 'yearIctaxTotalPaymentValueChf'];
+      ictaxFields.forEach(fieldName => {
+        const col = this.fields.find(f => f.field === fieldName);
+        if (col) { col.visible = data.tenantCountry === 'CH'; }
+      });
       this.prepareTableAndTranslate();
     });
   }

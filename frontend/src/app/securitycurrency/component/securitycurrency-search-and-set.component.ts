@@ -1,75 +1,61 @@
-import {Component, EventEmitter, Input, Output, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ViewChild} from '@angular/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
 import {SecuritycurrencySearchBase} from './securitycurrency.search.base';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
 import {SecuritycurrencySearchAndSetTableComponent} from './securitycurrency-search-and-set-table.component';
 import {Security} from '../../entities/security';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
 import {MultipleRequestToOneService} from '../../shared/service/multiple.request.to.one.service';
-import {DialogModule} from 'primeng/dialog';
 import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
+import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
 
 /**
- * Dialog for selecting a security or currency by search criterias.
+ * Dialog for selecting a security or currency by search criteria.
+ * Opened via DialogService.open() as a top-level DynamicDialog to avoid nested dialog z-index issues.
+ *
+ * Required DynamicDialogConfig.data:
+ * - supplementCriteria: SupplementCriteria
+ * - callBackSetSecurityWithAfter: CallBackSetSecurityWithAfter
  */
 @Component({
     selector: 'securitycurrency-search-and-set',
     template: `
-      <p-dialog header="{{'SET_SECURITY' | translate}}" [visible]="visibleDialog"
-                [style]="{width: '720px'}" [resizable]="false"
-                (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-          <p class="big-size">{{'SEARCH_DIALOG_HELP' | translate}}</p>
-          <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
-                        (submitBt)="submit($event)">
-          </dynamic-form>
-          <br/>
-          <securitycurrency-search-and-set-table [callBackSetSecurity]="this" [supplementCriteria]="supplementCriteria">
-          </securitycurrency-search-and-set-table>
-      </p-dialog>
+        <p class="big-size">{{'SEARCH_DIALOG_HELP' | translate}}</p>
+        <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
+                      (submitBt)="submit($event)">
+        </dynamic-form>
+        <br/>
+        <securitycurrency-search-and-set-table [callBackSetSecurity]="this" [supplementCriteria]="supplementCriteria">
+        </securitycurrency-search-and-set-table>
   `,
     imports: [
         TranslateModule,
-        DialogModule,
         DynamicFormComponent,
         SecuritycurrencySearchAndSetTableComponent
     ],
     standalone: true
 })
-export class SecuritycurrencySearchAndSetComponent extends SecuritycurrencySearchBase implements CallBackSetSecurity, AfterSetSecurity {
-
-  // From parent view
-  @Input() visibleDialog: boolean;
-  @Input() callBackSetSecurityWithAfter: CallBackSetSecurityWithAfter;
+export class SecuritycurrencySearchAndSetComponent extends SecuritycurrencySearchBase implements CallBackSetSecurity, AfterViewInit {
 
   // Access child components
   @ViewChild(SecuritycurrencySearchAndSetTableComponent) sissdc: SecuritycurrencySearchAndSetTableComponent;
 
-  // Output for parent view
-  @Output() closeDialog = new EventEmitter<ProcessedActionData>();
-
   constructor(gps: GlobalparameterService,
               multipleRequestToOneService: MultipleRequestToOneService,
-              translateService: TranslateService) {
+              translateService: TranslateService,
+              private dynamicDialogConfig: DynamicDialogConfig,
+              private dynamicDialogRef: DynamicDialogRef) {
     super(false, gps, multipleRequestToOneService, translateService);
+    this.supplementCriteria = this.dynamicDialogConfig.data.supplementCriteria;
   }
 
-  onHide(event) {
-    // Only emit when visibleDialog is still true (user initiated close).
-    // Prevents double emission when parent sets visibleDialog to false.
-    if (this.visibleDialog) {
-      this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
-    }
+  ngAfterViewInit(): void {
+    setTimeout(() => this.initialize());
   }
 
   setSecurity(security: Security | CurrencypairWatchlist): void {
-    this.callBackSetSecurityWithAfter.setSecurity(security, this);
-  }
-
-  afterSetSecurity(): void {
-    this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED));
+    this.dynamicDialogRef.close(security);
   }
 
   childClearList(): void {

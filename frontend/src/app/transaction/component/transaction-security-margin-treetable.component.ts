@@ -115,6 +115,9 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
   /** Optional parameters for configuring transaction security display options */
   @Input() transactionSecurityOptionalParam: TransactionSecurityOptionalParam[];
 
+  /** Optional cutoff date (yyyy-MM-dd) to limit transactions */
+  @Input() untilDate: string;
+
   /** Property key used to store hypothetical transaction data in tree node data */
   readonly HYPOTHETICAL_TRANSACTION_PROPERTY = 'hypotheticalTransactionProperty';
 
@@ -224,7 +227,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    */
   protected initialize(): void {
     BusinessHelper.getSecurityTransactionSummary(this.securityService, this.idSecuritycurrency, this.idsSecurityaccount,
-      this.idPortfolio, false).subscribe(result => {
+      this.idPortfolio, false, this.untilDate).subscribe(result => {
       this.securityTransactionSummary = result;
       this.createTranslatedValueStoreAndFilterField(this.securityTransactionSummary.transactionPositionList);
       this.transactionPositionList = this.securityTransactionSummary.transactionPositionList;

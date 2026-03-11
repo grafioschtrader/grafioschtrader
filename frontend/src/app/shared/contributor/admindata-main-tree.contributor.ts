@@ -105,6 +105,18 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
     // Task Data Monitor node defined in lib contributor
     this.rootNode.children.push(LibDataMainTreeContributor.createTaskDataMonitorNode());
 
+    // Tax Data management
+    this.rootNode.children.push({
+      label: 'TAX_DATA',
+      data: new TypeNodeData(
+        TreeNodeType.NO_MENU,
+        this.addMainRoute(AppSettings.TAX_DATA_KEY),
+        null,
+        null,
+        null
+      )
+    });
+
     // Admin-only nodes defined in lib contributor
     if (AuditHelper.hasAdminRole(this.globalParamService)) {
       this.rootNode.children.push(LibDataMainTreeContributor.createConnectorApiKeyNode());

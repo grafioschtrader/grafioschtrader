@@ -420,6 +420,13 @@ public class Security extends Securitycurrency<Security>
   }
 
   @JsonIgnore
+  public boolean isBondDirectInvestment() {
+    return (getAssetClass().getCategoryType() == AssetclassType.FIXED_INCOME
+        || getAssetClass().getCategoryType() == AssetclassType.CONVERTIBLE_BOND)
+        && getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT;
+  }
+
+  @JsonIgnore
   public boolean isMarginInstrument() {
     return getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.CFD
         || getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.FOREX;

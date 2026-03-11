@@ -10,6 +10,7 @@ export class AccountPositionSummary {
   accountFeesMainCurrency: number;
   accountInterestMainCurrency: number;
   gainLossCurrencyMC: number;
+  excludedDivTaxMC: number;
   cashaccount: Cashaccount;
   hasTransaction: boolean;
 }

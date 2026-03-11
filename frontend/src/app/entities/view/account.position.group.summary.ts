@@ -12,6 +12,8 @@ export class AccountPositionGroupSummary {
   groupValueSecuritiesMC: number;
   groupGainLossSecuritiesMC: number;
   groupGainLossCurrencyMC: number;
+  groupExcludedDivTaxMC: number;
+  excludeDivTax: boolean;
   groupName: string;
   currency: string;
   accountPositionSummaryList: AccountPositionSummary[];

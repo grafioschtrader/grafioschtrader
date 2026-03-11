@@ -2,6 +2,7 @@ package grafiosch.gtnet.handler.impl;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -210,7 +211,7 @@ public class FirstHandshakeRequestHandler extends AbstractGTNetMessageHandler {
       GTNetMessageParam closeStartDateParam = message.getGtNetMessageParamMap().get("closeStartDate");
       if (closeStartDateParam != null && closeStartDateParam.getParamValue() != null) {
         try {
-          LocalDate closeStartDate = LocalDate.parse(closeStartDateParam.getParamValue());
+          LocalDate closeStartDate = LocalDate.from(DateTimeFormatter.ISO_DATE_TIME.parse(closeStartDateParam.getParamValue()));
           return closeStartDate.isBefore(LocalDate.now());
         } catch (Exception e) {
           log.warn("Failed to parse closeStartDate for message {}: {}", message.getIdGtNetMessage(), e.getMessage());

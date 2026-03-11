@@ -1,6 +1,7 @@
 package grafioschtrader.reportviews.securitydividends;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,11 +12,11 @@ import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
-import grafioschtrader.entities.Securitysplit.SplitFactorAfterBefore;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.reportviews.MapGroup;
 import grafioschtrader.reportviews.SecurityCostGroup;
+import grafioschtrader.types.TransactionType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -57,6 +58,15 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
 
   @Schema(description = "Security cost information and transaction fee analysis for the year")
   public SecurityCostGroup securityCostGroup;
+
+  @Schema(description = "Total ICTax tax value in CHF across all security positions for this year")
+  public double yearIctaxTotalTaxValueChf;
+
+  @Schema(description = "Total finance costs for all margin positions during the year in main currency")
+  public double yearFinanceCostMC;
+
+  @Schema(description = "Total ICTax payment income in CHF across all security positions for this year")
+  public double yearIctaxTotalPaymentValueChf;
 
   /** Map of cash account positions by account ID */
   private Map<Integer, CashAccountPosition> cashaccountGroupMap = new HashMap<>();
@@ -164,8 +174,12 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
       yearAutoPaidTaxMC += securityDividendsPosition.autoPaidTaxMC;
       yearTaxableAmountMC += securityDividendsPosition.taxableAmountMC;
     });
+    distributeMarginDataToCashAccounts(historyquoteYearIdMap.get(year), dateCurrencyMap);
     cashaccountGroupMap.values().forEach(cashAccountPosition -> {
       cashAccountPosition.attachHistoryquoteAndCalcPositionTotal(historyquoteYearIdMap.get(year), dateCurrencyMap);
+    });
+    cashaccountGroupMap.values().forEach(cap -> {
+      cap.cashBalancePlusMarginMC = cap.cashBalanceMC + cap.marginEarningsMC + cap.hypotheticalFinanceCostMC;
     });
     securityCostGroup.calcAverages(yearCountPaidTransactions);
   }
@@ -184,49 +198,22 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
   public void fillYearWithOpenPositions(Map<Integer, UnitsCounter> unitsCounterBySecurityMap,
       final Map<Integer, List<Securitysplit>> securitysplitMap,
       final Map<Integer, Map<Integer, MarginTracker>> marginOpenTransaction) {
-    LocalDate fromDate = LocalDate.of(year, 1, 1);
-    LocalDate untilDate = LocalDate.of(year, 12, 31);
     for (Map.Entry<Integer, UnitsCounter> entry : unitsCounterBySecurityMap.entrySet()) {
       SecurityDividendsPosition securityDividendsPosition = groupMap.get(entry.getKey());
       if (securityDividendsPosition == null && entry.getValue().units != 0) {
-        updateUnitsEndOfYear(fromDate, untilDate, entry, securitysplitMap);
         securityDividendsPosition = this.getOrCreateSecurityDividendsPosition(entry.getValue().security,
             securitysplitMap.get(entry.getValue().security.getIdSecuritycurrency()));
       }
       if (securityDividendsPosition != null) {
-        if (!securityDividendsPosition.hasAccumulateReduce) {
-          updateUnitsEndOfYear(fromDate, untilDate, entry, securitysplitMap);
-        }
-
         securityDividendsPosition.unitsAtEndOfYear = entry.getValue().units;
+        securityDividendsPosition.unitsCounter = entry.getValue();
         if (securityDividendsPosition.security.isMarginInstrument()) {
-          Map<Integer, MarginTracker> securityMarginOpenTransaction = marginOpenTransaction
+          Map<Integer, MarginTracker> securityMarginOpen = marginOpenTransaction
               .get(securityDividendsPosition.security.getId());
-          if (securityMarginOpenTransaction != null) {
-      //      System.out.println(year + " " + securityDividendsPosition.security.getName());
-      //      for (Map.Entry<Integer, MarginTracker> entryValue : securityMarginOpenTransaction.entrySet()) {
-      //        System.out.println(entryValue.getValue());
-     //       }
-          }
+          securityDividendsPosition.marginOpenPositions = securityMarginOpen;
         }
-
       }
     }
-  }
-
-  /**
-   * Updates unit counts at year-end by applying security split adjustments.
-   * 
-   * @param fromDate         start date for split calculation (January 1st of the year)
-   * @param untilDate        end date for split calculation (December 31st of the year)
-   * @param entry            the units counter entry to update
-   * @param securitysplitMap map of security splits for calculations
-   */
-  private void updateUnitsEndOfYear(LocalDate fromDate, LocalDate untilDate, Map.Entry<Integer, UnitsCounter> entry,
-      Map<Integer, List<Securitysplit>> securitysplitMap) {
-    SplitFactorAfterBefore splitFactorAfterBefore = Securitysplit.calcSplitFatorForFromDateAndToDate(entry.getKey(),
-        fromDate, untilDate, securitysplitMap);
-    entry.getValue().units = entry.getValue().units * splitFactorAfterBefore.fromToDateFactor;
   }
 
   /**
@@ -257,6 +244,14 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
 
   }
 
+  public double getYearIctaxTotalTaxValueChf() {
+    return DataHelper.round(yearIctaxTotalTaxValueChf, precisionMC) ;
+  }
+
+  public double getYearIctaxTotalPaymentValueChf() {
+    return DataHelper.round(yearIctaxTotalPaymentValueChf, precisionMC) ;
+  }
+
   public double getYearTaxableAmountMC() {
     return DataHelper.round(yearTaxableAmountMC, precisionMC);
   }
@@ -265,19 +260,79 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
     return DataHelper.round(yearRealReceivedDivInterestMC, precisionMC);
   }
 
-  public static class MarginTracker {
-    @Override
-    public String toString() {
-      return "MarginTracker [openUnits=" + openUnits + "]";
-    }
+  public double getYearFinanceCostMC() {
+    return DataHelper.round(yearFinanceCostMC, precisionMC);
+  }
 
+  /**
+   * Distributes margin earnings and hypothetical finance costs from open margin positions to their corresponding cash
+   * account positions. This allows users to see margin-related income aggregated at the cash account level for tax
+   * reporting.
+   *
+   * @param historyquoteIdMap map of security currency IDs to their year-end historical quotes
+   * @param dateCurrencyMap   currency pair mapping for exchange rate lookups
+   */
+  private void distributeMarginDataToCashAccounts(Map<Integer, Historyquote> historyquoteIdMap,
+      DateTransactionCurrencypairMap dateCurrencyMap) {
+    LocalDate endDate = LocalDate.now().getYear() == year ? LocalDate.now() : LocalDate.of(year, 12, 31);
+
+    for (SecurityDividendsPosition sdp : groupMap.values()) {
+      if (sdp.marginOpenPositions == null || sdp.marginOpenPositions.isEmpty()) {
+        continue;
+      }
+      Double exchangeRate = sdp.exchangeRateEndOfYear;
+      double exRate = exchangeRate != null ? exchangeRate : 1.0;
+      Historyquote hq = historyquoteIdMap != null ? historyquoteIdMap.get(sdp.security.getIdSecuritycurrency()) : null;
+
+      for (MarginTracker mt : sdp.marginOpenPositions.values()) {
+        int cashAccountId = mt.transaction.getCashaccount().getIdSecuritycashAccount();
+        CashAccountPosition cap = cashaccountGroupMap.get(cashAccountId);
+        if (cap == null) {
+          continue;
+        }
+
+        // Margin earnings: per-position unrealized P&L
+        if (hq != null) {
+          double shortFactor = mt.transaction.getTransactionType() == TransactionType.ACCUMULATE ? 1 : -1;
+          double adjustedOpenPrice = mt.transaction.getQuotation() / mt.splitFactorSinceOpen;
+          double unrealizedPL = (hq.getClose() - adjustedOpenPrice) * Math.abs(mt.openUnits) * shortFactor
+              * mt.transaction.getValuePerPoint();
+          cap.marginEarningsMC += unrealizedPL * exRate;
+        }
+
+        // Hypothetical finance cost
+        if (mt.transaction.getAssetInvestmentValue1() != null && mt.transaction.getAssetInvestmentValue1() != 0.0) {
+          long daysRemaining = ChronoUnit.DAYS.between(mt.lastFinanceCostDate, endDate);
+          if (daysRemaining > 0) {
+            double dailyCost = mt.transaction.getAssetInvestmentValue1();
+            double units = Math.abs(mt.openUnits);
+            cap.hypotheticalFinanceCostMC -= dailyCost * units * daysRemaining * exRate;
+          }
+        }
+      }
+    }
+  }
+
+  public static class MarginTracker {
     public Transaction transaction;
     public double openUnits;
+    public double splitFactorSinceOpen = 1.0;
+    public LocalDate lastFinanceCostDate;
 
     public MarginTracker(Transaction transaction, double openUnits) {
       this.transaction = transaction;
       this.openUnits = openUnits;
+      this.lastFinanceCostDate = transaction.getTransactionTime().toLocalDate();
     }
 
+    public void applySplitFactor(double factor) {
+      openUnits *= factor;
+      splitFactorSinceOpen *= factor;
+    }
+
+    @Override
+    public String toString() {
+      return "MarginTracker [openUnits=" + openUnits + ", splitFactorSinceOpen=" + splitFactorSinceOpen + "]";
+    }
   }
 }

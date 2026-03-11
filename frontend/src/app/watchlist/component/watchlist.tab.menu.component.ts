@@ -10,6 +10,8 @@ import {GlobalSessionNames} from '../../lib/global.session.names';
 import {UDFMetadataGeneralService} from '../../lib/udfmeta/service/udf.metadata.general.service';
 import {BaseTabMenuComponent} from '../../lib/tabmenu/component/base.tab.menu.component';
 import {AppSettings} from '../../shared/app.settings';
+import {BaseSettings} from '../../lib/base.settings';
+import {TreeNavigationStateService} from '../../lib/maintree/service/tree.navigation.state.service';
 import {TabItem} from '../../lib/types/tab.item';
 
 /**
@@ -63,6 +65,7 @@ export class WatchlistTabMenuComponent extends BaseTabMenuComponent implements O
     router: Router,
     activatedRoute: ActivatedRoute,
     translateService: TranslateService,
+    private treeNavState: TreeNavigationStateService,
     private uDFMetadataSecurityService: UDFMetadataSecurityService,
     private uDFMetadataGeneralService: UDFMetadataGeneralService
   ) {
@@ -117,8 +120,10 @@ export class WatchlistTabMenuComponent extends BaseTabMenuComponent implements O
    */
   private subscribeWatchlistChange(): void {
     this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
-      if (params['object']) {
-        this.watchlist = JSON.parse(params['object']);
+      const id = +params['id'];
+      if (id) {
+        this.watchlist = this.treeNavState.getEntity<Watchlist>(
+          BaseSettings.MAINVIEW_KEY + '/' + AppSettings.WATCHLIST_TAB_MENU_KEY, id);
 
         // Preserve the current active tab when switching watchlists
         if (this.isFirstLoad) {
@@ -196,10 +201,10 @@ export class WatchlistTabMenuComponent extends BaseTabMenuComponent implements O
     // Update active route and remember the last active route
     this.activeRoute = route;
     this.lastActiveRoute = route;
-    // Navigate with watchlist ID and object
-    this.router.navigate([route, this.watchlist.idWatchlist, {
-      watchlist: JSON.stringify(this.watchlist)
-    }], {
+    // Store entity in shared service so child components can access it
+    this.treeNavState.setEntity(route, this.watchlist.idWatchlist, this.watchlist);
+    // Navigate with just the ID - no serialized entity
+    this.router.navigate([route, this.watchlist.idWatchlist], {
       relativeTo: this.activatedRoute,
     });
   }

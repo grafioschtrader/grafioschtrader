@@ -23,10 +23,15 @@ import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {AppSettings} from '../../shared/app.settings';
 import {NgxFileDropEntry, NgxFileDropModule} from 'ngx-file-drop';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
-import {FilterService} from 'primeng/api';
+import {FilterService, MenuItem} from 'primeng/api';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 import {BaseSettings} from '../../lib/base.settings';
+import {TreeNavigationStateService} from '../../lib/maintree/service/tree.navigation.state.service';
+import {Securityaccount} from '../../entities/securityaccount';
+import {SecurityPositionSummary} from '../../entities/view/security.position.summary';
+import {SecurityTransferCreateComponent} from '../../securityaction/component/security-transfer-create.component';
+import {DialogService} from 'primeng/dynamicdialog';
 import {CommonModule} from '@angular/common';
 import {TableModule} from 'primeng/table';
 import {DatePicker} from 'primeng/datepicker';
@@ -75,9 +80,11 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
   }
 
   ngOnInit() {
+    const treeNavState = this.injector.get(TreeNavigationStateService);
     this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
       this.idSecurityaccount = +params['id'];
-      this.securityAccount = JSON.parse(params[AppSettings.SECURITYACCOUNT.toLowerCase()]);
+      this.securityAccount = treeNavState.getEntity<Securityaccount>(
+        AppSettings.SECURITYACCOUNT_SUMMERY_ROUTE_KEY, this.idSecurityaccount);
       this.readData();
     });
   }
@@ -107,6 +114,36 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
     AppHelper.processDroppedFiles(files, this.messageToastService, 'pdf', this.uploadTransactionFiles.bind(this));
   }
 
+  protected override extendEditMenu(menuItems: MenuItem[], securityPositionSummary: SecurityPositionSummary): void {
+    menuItems.push({
+      label: 'TRANSFER_SECURITY' + BaseSettings.DIALOG_MENU_SUFFIX,
+      command: (e) => this.handleTransferSecurity(securityPositionSummary),
+      disabled: !securityPositionSummary || securityPositionSummary.units === 0
+        || this.isMarginProduct(securityPositionSummary.security)
+    });
+  }
+
+  private handleTransferSecurity(securityPositionSummary: SecurityPositionSummary): void {
+    const dialogService = this.injector.get(DialogService);
+    this.translateService.get('CREATE_SECURITY_TRANSFER').subscribe(title => {
+      const ref = dialogService.open(SecurityTransferCreateComponent, {
+        header: title, width: '500px', modal: true, closable: true,
+        data: {
+          idSecurity: securityPositionSummary.security.idSecuritycurrency,
+          securityName: securityPositionSummary.security.name,
+          idSecurityaccountSource: this.securityAccount?.idSecuritycashAccount,
+          sourceAccountName: this.securityAccount?.name,
+          units: securityPositionSummary.units
+        }
+      });
+      ref.onClose.subscribe(result => {
+        if (result) {
+          this.readData();
+        }
+      });
+    });
+  }
+
   protected extendTransactionParamData(transactionCallParam: TransactionCallParam): void {
     transactionCallParam.securityaccount = this.securityAccount;
   }
@@ -118,7 +155,7 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
   private uploadTransactionFiles(formData: FormData): void {
     this.importTransactionHeadService.uploadPdfFileSecurityAccountTransactions(this.idSecurityaccount, formData).subscribe(
       (sfdit: SuccessFailedDirectImportTransaction) => {
-        const data = {object: JSON.stringify(this.securityAccount)};
+        const data: any = {};
         data[AppSettings.SUCCESS_FAILED_IMP_TRANS] = JSON.stringify(sfdit);
         if (sfdit.failed) {
           this.ngZone.run(() => this.router.navigate([`${BaseSettings.MAINVIEW_KEY}/${AppSettings.SECURITYACCOUNT_TAB_MENU_KEY}`,
