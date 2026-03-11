@@ -99,6 +99,8 @@ export abstract class Helper {
         this.formatDateString(config, targetObject, BaseSettings.FORMAT_DATE_SHORT_US);
       } else if (config.inputType === InputType.TriStateCheckbox && config.formControl.value === null) {
         targetObject[config.field] = config.formControl.value;
+      } else if (config.inputType === InputType.Checkbox && config.formControl.value === null) {
+        targetObject[config.field] = false;
       } else {
         targetObject[config.field] = config.formControl.value;
       }
