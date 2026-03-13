@@ -1,5 +1,8 @@
 package grafioschtrader.exportdelete;
 
+import grafiosch.entities.TaxCountry;
+import grafiosch.entities.TaxUpload;
+import grafiosch.entities.TaxYear;
 import grafiosch.entities.UDFMetadata;
 import grafiosch.exportdelete.ExportDefinition;
 import grafiosch.exportdelete.ExportDefinition.TENANT_USER;
@@ -19,13 +22,18 @@ import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.HistoryquotePeriod;
 import grafioschtrader.entities.ImportTransactionHead;
 import grafioschtrader.entities.ImportTransactionPlatform;
+import grafioschtrader.entities.IctaxPayment;
+import grafioschtrader.entities.IctaxSecurityTaxData;
 import grafioschtrader.entities.ImportTransactionPos;
 import grafioschtrader.entities.ImportTransactionPosFailed;
 import grafioschtrader.entities.ImportTransactionTemplate;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.SecaccountTradingPeriod;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.SecurityAction;
+import grafioschtrader.entities.SecurityActionApplication;
 import grafioschtrader.entities.SecurityDerivedLink;
+import grafioschtrader.entities.SecurityTransfer;
 import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.Securitycashaccount;
 import grafioschtrader.entities.Securitycurrency;
@@ -209,6 +217,10 @@ public class MyDataExportDeleteDefinition {
   private static String STANDING_ORDER_FAILURE_SELDEL = String.format(
       "sof.* FROM %s sof JOIN %s so ON sof.id_standing_order = so.id_standing_order WHERE so.id_tenant = ?",
       StandingOrderFailure.TABNAME, StandingOrder.TABNAME);
+  private static String TRANSACTION_NULL_SECURITY_ACTION_APP =
+      "UPDATE transaction SET id_security_action_app = NULL WHERE id_tenant = ? AND id_security_action_app IS NOT NULL";
+  private static String TRANSACTION_NULL_SECURITY_TRANSFER =
+      "UPDATE transaction SET id_security_transfer = NULL WHERE id_tenant = ? AND id_security_transfer IS NOT NULL";
 
   /*
    * The order should only be changed carefully. Otherwise, the foreign key relationships can lead to errors.
@@ -228,6 +240,13 @@ public class MyDataExportDeleteDefinition {
       // Asset classes is fully exported but data owner must be changed too user
       new ExportDefinition(Assetclass.TABNAME, TENANT_USER.NONE, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.CHANGE_USER_ID_FOR_CREATED_BY),
+      new ExportDefinition(SecurityAction.TABNAME, TENANT_USER.NONE, null,
+          ExportDefinition.EXPORT_USE | ExportDefinition.CHANGE_USER_ID_FOR_CREATED_BY),
+      new ExportDefinition(TaxCountry.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
+      new ExportDefinition(TaxYear.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
+      new ExportDefinition(TaxUpload.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
+      new ExportDefinition(IctaxSecurityTaxData.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
+      new ExportDefinition(IctaxPayment.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
 
       new ExportDefinition(Portfolio.TABNAME, TENANT_USER.ID_TENANT, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
@@ -276,6 +295,18 @@ public class MyDataExportDeleteDefinition {
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       new ExportDefinition(Transaction.TABNAME, TENANT_USER.ID_TENANT, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      // SecurityTransfer and SecurityActionApplication — tenant-scoped with circular FK to transaction
+      new ExportDefinition(SecurityTransfer.TABNAME, TENANT_USER.ID_TENANT, null,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      new ExportDefinition(SecurityActionApplication.TABNAME, TENANT_USER.ID_TENANT, null,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      new ExportDefinition("tax_security_year_config", TENANT_USER.ID_TENANT, null,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      // Break circular FK: NULL out transaction references before deleting
+      new ExportDefinition(Transaction.TABNAME, TENANT_USER.ID_TENANT, TRANSACTION_NULL_SECURITY_TRANSFER,
+          ExportDefinition.DELETE_USE),
+      new ExportDefinition(Transaction.TABNAME, TENANT_USER.ID_TENANT, TRANSACTION_NULL_SECURITY_ACTION_APP,
+          ExportDefinition.DELETE_USE),
       new ExportDefinition(ImportTransactionHead.TABNAME, TENANT_USER.ID_TENANT, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       new ExportDefinition(ImportTransactionPos.TABNAME, TENANT_USER.ID_TENANT, null,

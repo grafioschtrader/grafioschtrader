@@ -4,24 +4,30 @@
     xmlns:fo="http://www.w3.org/1999/XSL/Format"
     xmlns:eCH="http://www.ech.ch/xmlns/eCH-0196/2">
 
-  <xsl:param name="barcodeImageUri"/>
+  <xsl:param name="code128CImageUri"/>
 
   <xsl:template match="/eCH:taxStatement">
     <fo:root>
       <fo:layout-master-set>
         <fo:simple-page-master master-name="A4" page-width="210mm" page-height="297mm"
             margin-top="15mm" margin-bottom="15mm" margin-left="20mm" margin-right="20mm">
-          <fo:region-body margin-top="25mm" margin-bottom="15mm"/>
-          <fo:region-before extent="25mm"/>
+          <fo:region-body margin-top="40mm" margin-bottom="15mm"/>
+          <fo:region-before extent="40mm"/>
           <fo:region-after extent="12mm"/>
         </fo:simple-page-master>
       </fo:layout-master-set>
 
       <fo:page-sequence master-reference="A4" font-family="Helvetica" font-size="9pt">
         <fo:static-content flow-name="xsl-region-before">
-          <fo:block font-size="14pt" font-weight="bold" border-bottom="1pt solid black" padding-bottom="3mm">
+          <fo:block font-size="14pt" font-weight="bold" padding-bottom="3mm">
             Steuerauszug / Relevé fiscal <xsl:value-of select="@taxPeriod"/>
           </fo:block>
+          <xsl:if test="$code128CImageUri and $code128CImageUri != ''">
+            <fo:block text-align="right" margin-bottom="5mm">
+              <fo:external-graphic src="{$code128CImageUri}" content-height="12mm" scaling="uniform"/>
+            </fo:block>
+          </xsl:if>
+          <fo:block border-bottom="1pt solid black"/>
         </fo:static-content>
 
         <fo:static-content flow-name="xsl-region-after">
@@ -33,13 +39,6 @@
         </fo:static-content>
 
         <fo:flow flow-name="xsl-region-body">
-          <!-- Barcode -->
-          <xsl:if test="$barcodeImageUri and $barcodeImageUri != ''">
-            <fo:block text-align="right" margin-bottom="5mm">
-              <fo:external-graphic src="{$barcodeImageUri}" content-width="25mm" content-height="25mm"/>
-            </fo:block>
-          </xsl:if>
-
           <!-- Institution + Client -->
           <fo:block margin-bottom="5mm">
             <fo:block font-weight="bold" font-size="10pt">

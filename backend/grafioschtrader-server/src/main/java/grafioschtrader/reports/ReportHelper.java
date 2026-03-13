@@ -249,7 +249,7 @@ public abstract class ReportHelper {
           for (int i = 0; i < columns; i++) {
             closeColumns[i] = rs.getDouble(2 + i);
           }
-          resultCloseMap.put(rs.getDate(1).toLocalDate(), closeColumns);
+          resultCloseMap.put(rs.getObject(1, LocalDate.class), closeColumns);
         }
         return resultCloseMap;
       }

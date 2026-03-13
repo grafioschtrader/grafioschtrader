@@ -76,7 +76,11 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
         log.error("Last price update failed securitycurrency={}", securitycurrency.toString(), e);
         securitycurrency.setRetryIntraLoad((short) (securitycurrency.getRetryIntraLoad() + 1));
       }
-      securitycurrency = jpaRepository.save(securitycurrency);
+      try {
+        securitycurrency = jpaRepository.save(securitycurrency);
+      } catch (final Exception ex) {
+        log.error("Save failed for securitycurrency={}", securitycurrency, ex);
+      }
     }
     return securitycurrency;
   }

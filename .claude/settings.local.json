@@ -160,7 +160,19 @@
       "WebFetch(domain:documentation.red-gate.com)",
       "Bash(pdftotext:*)",
       "Bash(gh label:*)",
-      "Bash(file /c/SoftwareProjekte/Hugos/grafioschtrader/Kursliste/*.xsd)"
+      "Bash(file /c/SoftwareProjekte/Hugos/grafioschtrader/Kursliste/*.xsd)",
+      "WebFetch(domain:www.ech.ch)",
+      "Bash(cd C:/SoftwareProjekte/Hugos/grafioschtrader && python -c \"\nimport subprocess, sys\ntry:\n    import fitz\n    doc = fitz.open\\('Kursliste/BEIL1_d_DEF_2022-06-07_eCH-0196_V2.2.0_Technische Wegleitung.pdf'\\)\n    for i in range\\(min\\(7, len\\(doc\\)\\)\\):\n        print\\(f'=== Page {i+1} ==='\\)\n        print\\(doc[i].get_text\\(\\)\\)\nexcept ImportError:\n    print\\('NO_PYMUPDF'\\)\n\" 2>&1)",
+      "Bash(pip install:*)",
+      "Bash(cd C:/SoftwareProjekte/Hugos/grafioschtrader && python -c \"\nimport fitz\ndoc = fitz.open\\('Kursliste/BEIL1_d_DEF_2022-06-07_eCH-0196_V2.2.0_Technische Wegleitung.pdf'\\)\nfor i in range\\(min\\(7, len\\(doc\\)\\)\\):\n    print\\(f'=== Page {i+1} ==='\\)\n    print\\(doc[i].get_text\\(\\)\\)\n\" 2>&1)",
+      "Bash(cd C:/SoftwareProjekte/Hugos/grafioschtrader && python -c \"\nimport fitz, sys\nsys.stdout.reconfigure\\(encoding='utf-8'\\)\ndoc = fitz.open\\('Kursliste/BEIL1_d_DEF_2022-06-07_eCH-0196_V2.2.0_Technische Wegleitung.pdf'\\)\nfor i in range\\(min\\(7, len\\(doc\\)\\)\\):\n    print\\(f'=== Page {i+1} ==='\\)\n    print\\(doc[i].get_text\\(\\)\\)\n\" 2>&1)",
+      "Bash(cd C:/SoftwareProjekte/Hugos/grafioschtrader && python -c \"\nimport fitz, sys\nsys.stdout.reconfigure\\(encoding='utf-8'\\)\ndoc = fitz.open\\('Kursliste/BEIL1_d_DEF_2022-06-07_eCH-0196_V2.2.0_Technische Wegleitung.pdf'\\)\nfor i in range\\(7, 14\\):\n    print\\(f'=== Page {i+1} ==='\\)\n    print\\(doc[i].get_text\\(\\)\\)\n\" 2>&1)",
+      "Bash(cd C:/SoftwareProjekte/Hugos/grafioschtrader && python -c \"\nimport fitz, sys\nsys.stdout.reconfigure\\(encoding='utf-8'\\)\ndoc = fitz.open\\('Kursliste/BEIL1_d_DEF_2022-06-07_eCH-0196_V2.2.0_Technische Wegleitung.pdf'\\)\nprint\\(f'Total pages: {len\\(doc\\)}'\\)\n\" 2>&1)",
+      "Bash(cd C:/SoftwareProjekte/Hugos/grafioschtrader && python -c \"\nimport fitz, sys\nsys.stdout.reconfigure\\(encoding='utf-8'\\)\ndoc = fitz.open\\('Kursliste/BEIL1_d_DEF_2022-06-07_eCH-0196_V2.2.0_Technische Wegleitung.pdf'\\)\nfor i in range\\(34, 42\\):\n    print\\(f'=== Page {i+1} ==='\\)\n    print\\(doc[i].get_text\\(\\)\\)\n\" 2>&1)",
+      "Bash(cd C:/SoftwareProjekte/Hugos/grafioschtrader && python -c \"\nimport fitz, sys\nsys.stdout.reconfigure\\(encoding='utf-8'\\)\ndoc = fitz.open\\('Kursliste/BEIL1_d_DEF_2022-06-07_eCH-0196_V2.2.0_Technische Wegleitung.pdf'\\)\nfor i in range\\(47, 51\\):\n    print\\(f'=== Page {i+1} ==='\\)\n    print\\(doc[i].get_text\\(\\)\\)\n\" 2>&1)",
+      "Bash(cd C:/SoftwareProjekte/Hugos/grafioschtrader && python -c \"\nimport fitz, sys\nsys.stdout.reconfigure\\(encoding='utf-8'\\)\ndoc = fitz.open\\('Kursliste/BEIL2_d_DEF_2022-06-07_eCH-0196_V2.0.0_Barcode Generierung - Technische Wegleitung.pdf'\\)\nprint\\(f'Total pages: {len\\(doc\\)}'\\)\nfor i in range\\(min\\(len\\(doc\\), 20\\)\\):\n    print\\(f'=== Page {i+1} ==='\\)\n    print\\(doc[i].get_text\\(\\)\\)\n\" 2>&1)",
+      "Bash(cd C:/SoftwareProjekte/Hugos/grafioschtrader && python -c \"\nimport fitz, sys\nsys.stdout.reconfigure\\(encoding='utf-8'\\)\ndoc = fitz.open\\('Kursliste/BEIL2_d_DEF_2022-06-07_eCH-0196_V2.0.0_Barcode Generierung - Technische Wegleitung.pdf'\\)\nprint\\(doc[15].get_text\\(\\)\\)\n\" 2>&1)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ],
     "deny": [],
     "ask": []

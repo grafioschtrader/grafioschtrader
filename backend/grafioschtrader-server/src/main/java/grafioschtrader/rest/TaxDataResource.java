@@ -214,8 +214,10 @@ public class TaxDataResource {
     Ech0196TaxStatement taxStatement = ech0196MappingService.buildTaxStatement(request, grandTotal);
     byte[] xmlBytes = ech0196XmlGenerator.generateXml(taxStatement);
 
-    byte[] barcodeBytes = ech0196BarcodeGenerator.generateBarcode(taxStatement.getId());
-    byte[] pdfBytes = ech0196PdfGenerator.generatePdf(xmlBytes, barcodeBytes);
+    String docNumericId = deriveNumericId(taxStatement.getId(), taxYear);
+    byte[] code128CBytes = ech0196BarcodeGenerator.generateCode128CBarcode(docNumericId);
+    List<byte[]> pdf417Images = ech0196BarcodeGenerator.generatePdf417Barcodes(xmlBytes, taxStatement.getId());
+    byte[] pdfBytes = ech0196PdfGenerator.generatePdf(xmlBytes, code128CBytes, pdf417Images);
 
     response.setContentType("application/zip");
     response.setHeader("Content-Disposition",
@@ -260,6 +262,15 @@ public class TaxDataResource {
     if (user.getMostPrivilegedRole() != Role.ROLE_ADMIN) {
       throw new SecurityException("Admin access required");
     }
+  }
+
+  /**
+   * Derives a 16-digit numeric document ID for CODE128C encoding per eCH-0196 v2.2.0 spec. Format: 196 (standard
+   * prefix, 3 digits) + version (2 digits, "20") + clearing-nr (5 digits, "00000" for personal use) + page (3 digits,
+   * "000") + barcode-flag (1 digit, "0") + orientation (1 digit, "0") + reading-direction (1 digit, "0").
+   */
+  private static String deriveNumericId(String statementId, int taxYear) {
+    return "1962000000000000";
   }
 
   // ==================== Report query endpoint ====================

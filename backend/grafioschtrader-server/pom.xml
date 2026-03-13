@@ -337,11 +337,24 @@
 			</exclusions>
 		</dependency>
 
-		<!-- ZXing for barcode/QR code generation -->
+		<!-- ZXing for CODE128C barcode generation -->
 		<dependency>
 			<groupId>com.google.zxing</groupId>
 			<artifactId>javase</artifactId>
 			<version>3.5.3</version>
+		</dependency>
+
+		<!-- OkapiBarcode for PDF417 Structured Append (eCH-0196 v2.2.0 compliance) -->
+		<dependency>
+			<groupId>uk.org.okapibarcode</groupId>
+			<artifactId>okapibarcode</artifactId>
+			<version>0.4.6</version>
+		</dependency>
+
+		<!-- PDFBox for appending barcode pages to FOP-generated PDFs -->
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
 		</dependency>
 
       

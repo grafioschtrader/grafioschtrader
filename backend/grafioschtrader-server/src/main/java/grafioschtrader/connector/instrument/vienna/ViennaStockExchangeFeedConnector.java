@@ -95,7 +95,7 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
   public void updateSecurityLastPrice(final Security security) throws Exception {
     String url = getSecurityIntradayDownloadLink(security);
     final FullChartData fcd = getChartResponse(url);
-    security.setSTimestamp(Instant.ofEpochSecond(fcd.currentPrice.DATETIME_PRICE)
+    security.setSTimestamp(Instant.ofEpochMilli(fcd.currentPrice.DATETIME_PRICE)
         .atZone(ZoneId.systemDefault()).toLocalDateTime());
     security.setSOpen(fcd.currentPrice.FIRST);
     security.setSHigh(fcd.currentPrice.HIGH);
@@ -262,7 +262,7 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
     for (Quote quote : fcd.data) {
       // There is minimal data for two years, if the security can also be traded for
       // two years.
-      LocalDate date = Instant.ofEpochSecond(quote.DATETIME_LAST).atZone(ZoneId.systemDefault()).toLocalDate();
+      LocalDate date = Instant.ofEpochMilli(quote.DATETIME_LAST).atZone(ZoneId.systemDefault()).toLocalDate();
       if (!date.isBefore(from) && !date.isAfter(to)) {
         final Historyquote historyquote = new Historyquote();
         historyquotes.add(historyquote);
