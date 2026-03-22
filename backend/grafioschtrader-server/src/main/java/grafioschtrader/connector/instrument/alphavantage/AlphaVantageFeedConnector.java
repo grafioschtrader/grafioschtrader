@@ -62,6 +62,7 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
   public AlphaVantageFeedConnector() {
     super(supportedFeed, "alphavantage", "Alpha Vantage", URL_NORMAL_REGEX,
         EnumSet.of(UrlCheck.HISTORY, UrlCheck.INTRADAY));
+    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.EQUITIES, AssetclassCategory.ETF);
   }
 
   @Override

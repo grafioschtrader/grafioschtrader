@@ -185,3 +185,10 @@ ALTER TABLE tenant ADD COLUMN IF NOT EXISTS country VARCHAR(2) DEFAULT NULL;
 UPDATE tenant SET country = 'CH' WHERE currency = 'CHF' AND country IS NULL;
 ALTER TABLE tenant ADD COLUMN IF NOT EXISTS tax_export_settings JSON DEFAULT NULL;
 
+
+-- ---------------------------------------------------------------------------
+-- GenericConnectorDef: supported asset class categories and geo restrictions
+-- ---------------------------------------------------------------------------
+ALTER TABLE generic_connector_def ADD COLUMN IF NOT EXISTS supported_categories VARCHAR(255) DEFAULT NULL;
+ALTER TABLE generic_connector_def ADD COLUMN IF NOT EXISTS geo_restrictions VARCHAR(512) DEFAULT NULL;
+

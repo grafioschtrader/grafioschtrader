@@ -86,6 +86,10 @@ export class GenericConnectorDefDetailComponent extends SingleRecordConfigBase i
       {templateName: 'check', fieldsetName: 'ADVANCED_SETTINGS'});
     this.addFieldPropertyFeqH(DataType.Boolean, 'gbxDividerEnabled',
       {templateName: 'check', fieldsetName: 'ADVANCED_SETTINGS'});
+    this.addFieldPropertyFeqH(DataType.String, 'supportedCategories',
+      {fieldsetName: 'ADVANCED_SETTINGS'});
+    this.addFieldPropertyFeqH(DataType.String, 'geoRestrictions',
+      {fieldsetName: 'ADVANCED_SETTINGS'});
     this.addFieldPropertyFeqH(DataType.String, 'tokenConfigYaml',
       {templateName: 'yaml', fieldsetName: 'ADVANCED_SETTINGS'});
 

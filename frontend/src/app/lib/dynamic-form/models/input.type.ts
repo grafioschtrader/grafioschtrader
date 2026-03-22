@@ -13,5 +13,6 @@ export enum InputType {
   Pinputtextarea,
   FileUpload,
   InputNumber,
-  InputCurrencyNumber
+  InputCurrencyNumber,
+  TreeSelect
 }

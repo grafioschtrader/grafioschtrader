@@ -50,6 +50,8 @@ public class SwissFundDataConnector extends BaseFeedConnector {
 
   public SwissFundDataConnector() {
     super(supportedFeed, "swissfunddata", "Swiss Fund Data", URL_EXTENDED_REGEX, EnumSet.noneOf(UrlCheck.class));
+    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.ETF, AssetclassCategory.MUTUAL_FUND,
+        AssetclassCategory.REAL_ESTATE_FUND, AssetclassCategory.ISSUER_RISK_PRODUCT);
   }
 
   @Override

@@ -97,14 +97,14 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
       }));
 
     this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'cashAccountTransactionFeeMC', true, false,
-      {
+      { width: 70,
         templateName: 'greenRed',
         columnGroupConfigs: [new ColumnGroupConfig('groupCashAccountTransactionFeeMC'),
           new ColumnGroupConfig('grandCashAccountTransactionFeeMC')]
       }));
 
     this.columnConfigs.push(this.addColumn(DataType.Numeric, 'accountFeesMC', 'FEE', true, false,
-      {
+      { width: 80,
         templateName: 'greenRed',
         columnGroupConfigs: [new ColumnGroupConfig('groupAccountFeesMC'),
           new ColumnGroupConfig('grandAccountFeesMC')]

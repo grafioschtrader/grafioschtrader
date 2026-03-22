@@ -69,6 +69,10 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
 
   public ViennaStockExchangeFeedConnector() {
     super(supportedFeed, "vienna", "Wiener Boerse", "[0-9]*", EnumSet.of(UrlCheck.INTRADAY, UrlCheck.HISTORY));
+    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.NON_INVESTABLE_INDICES, AssetclassCategory.EQUITIES,
+        AssetclassCategory.FIXED_INCOME, AssetclassCategory.ETF, AssetclassCategory.MUTUAL_FUND,
+        AssetclassCategory.ISSUER_RISK_PRODUCT);
+    parseGeoRestrictions("XWBO");
   }
 
   @Override

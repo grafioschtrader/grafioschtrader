@@ -55,6 +55,7 @@ public class CryptoCompareFeedConnector extends BaseFeedApiKeyConnector {
 
   public CryptoCompareFeedConnector() {
     super(supportedFeed, "cryptocompare", "CryptoCompare", null, EnumSet.of(UrlCheck.INTRADAY, UrlCheck.HISTORY));
+    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CRYPTOCURRENCY);
   }
 
   @Override

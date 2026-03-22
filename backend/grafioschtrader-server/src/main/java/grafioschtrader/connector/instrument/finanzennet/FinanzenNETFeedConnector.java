@@ -62,6 +62,9 @@ public class FinanzenNETFeedConnector extends FinanzenConnetorBase {
 
   public FinanzenNETFeedConnector() {
     super(supportedFeed, "finanzennet", "Finanzen NET", null, EnumSet.of(UrlCheck.INTRADAY));
+    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR, AssetclassCategory.NON_INVESTABLE_INDICES,
+        AssetclassCategory.EQUITIES, AssetclassCategory.FIXED_INCOME, AssetclassCategory.ETF,
+        AssetclassCategory.MUTUAL_FUND, AssetclassCategory.ISSUER_RISK_PRODUCT);
     initalizeHttpClient(domain);
 
   }

@@ -1,0 +1,11 @@
+export enum AssetclassCategory {
+  CURRENCY_PAIR = 0,
+  CRYPTOCURRENCY = 1,
+  NON_INVESTABLE_INDICES = 2,
+  EQUITIES = 3,
+  FIXED_INCOME = 4,
+  ETF = 5,
+  MUTUAL_FUND = 6,
+  REAL_ESTATE_FUND = 7,
+  ISSUER_RISK_PRODUCT = 8
+}

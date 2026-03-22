@@ -60,6 +60,8 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
 
   public FinnhubConnector() {
     super(supportedFeed, "finnhub", "Finnhub", null, EnumSet.noneOf(UrlCheck.class));
+    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.EQUITIES, AssetclassCategory.ETF);
+    parseGeoRestrictions("US");
   }
 
   @Override

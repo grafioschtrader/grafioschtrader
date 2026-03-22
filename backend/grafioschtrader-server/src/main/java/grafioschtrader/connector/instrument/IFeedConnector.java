@@ -14,6 +14,8 @@ import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Securitysplit;
+import grafioschtrader.types.AssetclassType;
+import grafioschtrader.types.SpecialInvestmentInstruments;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -104,6 +106,37 @@ public interface IFeedConnector {
     INTRADAY,
     /** Validation for historical data URLs */
     HISTORY
+  }
+
+  /**
+   * Broad categories that classify what kind of financial instruments a feed connector can handle. Each category maps
+   * to a combination of {@link AssetclassType} and {@link SpecialInvestmentInstruments}.
+   */
+  public enum AssetclassCategory {
+    CURRENCY_PAIR, CRYPTOCURRENCY, NON_INVESTABLE_INDICES, EQUITIES, FIXED_INCOME, ETF, MUTUAL_FUND,
+    REAL_ESTATE_FUND, ISSUER_RISK_PRODUCT;
+
+    /**
+     * Determines whether the given asset class type and special investment instrument combination matches this
+     * category.
+     *
+     * @param act     the asset class type
+     * @param specIns the special investment instrument
+     * @return true if the combination matches this category
+     */
+    public boolean matches(AssetclassType act, SpecialInvestmentInstruments specIns) {
+      return switch (this) {
+        case CURRENCY_PAIR -> act == AssetclassType.CURRENCY_PAIR && specIns == SpecialInvestmentInstruments.FOREX;
+        case CRYPTOCURRENCY -> act == AssetclassType.CURRENCY_PAIR && specIns == SpecialInvestmentInstruments.CFD;
+        case NON_INVESTABLE_INDICES -> specIns == SpecialInvestmentInstruments.NON_INVESTABLE_INDICES;
+        case EQUITIES -> act == AssetclassType.EQUITIES && specIns == SpecialInvestmentInstruments.DIRECT_INVESTMENT;
+        case FIXED_INCOME -> act == AssetclassType.FIXED_INCOME && specIns == SpecialInvestmentInstruments.DIRECT_INVESTMENT;
+        case ETF -> specIns == SpecialInvestmentInstruments.ETF;
+        case MUTUAL_FUND -> specIns == SpecialInvestmentInstruments.MUTUAL_FUND;
+        case REAL_ESTATE_FUND -> act == AssetclassType.REAL_ESTATE && specIns == SpecialInvestmentInstruments.MUTUAL_FUND;
+        case ISSUER_RISK_PRODUCT -> specIns == SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT;
+      };
+    }
   }
 
   /**
@@ -375,6 +408,20 @@ public interface IFeedConnector {
    * @throws Exception if split data retrieval fails
    */
   List<Securitysplit> getSplitHistory(Security security, LocalDate fromDate, LocalDate toDate) throws Exception;
+
+  /**
+   * Checks whether this connector supports a specific instrument identified by stock exchange MIC, country code, asset
+   * class type, and special investment instrument. Connectors may restrict support by geography and/or asset class
+   * category. If the connector has no category metadata, this method returns true (backward-compatible).
+   *
+   * @param mic                         the Market Identifier Code (4-char) of the stock exchange, may be null
+   * @param countryCode                 the 2-char ISO country code, may be null
+   * @param assetclassType              the asset class type of the instrument
+   * @param specialInvestmentInstruments the special investment instrument type
+   * @return true if the connector supports this instrument
+   */
+  boolean supports(String mic, String countryCode, AssetclassType assetclassType,
+      SpecialInvestmentInstruments specialInvestmentInstruments);
 
   @Schema(description = """
       Container class for connector help text and documentation that can be displayed

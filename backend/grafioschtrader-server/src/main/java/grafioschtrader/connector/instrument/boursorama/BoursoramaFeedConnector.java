@@ -65,6 +65,8 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
 
   public BoursoramaFeedConnector() {
     super(supportedFeed, BOURSORAMA_ID, "Boursorama", null, EnumSet.of(UrlCheck.HISTORY, UrlCheck.INTRADAY));
+    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR, AssetclassCategory.NON_INVESTABLE_INDICES,
+        AssetclassCategory.EQUITIES, AssetclassCategory.FIXED_INCOME, AssetclassCategory.ETF, AssetclassCategory.MUTUAL_FUND);
   }
 
   private String getSecurityCurrecnypairHistoricalDownloadLink(final Securitycurrency<?> securitycurrency,

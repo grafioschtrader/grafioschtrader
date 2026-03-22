@@ -15,9 +15,13 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -107,6 +111,18 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   protected String readableName;
   protected String regexStrPattern;
   protected EnumSet<UrlCheck> urlCheckSet;
+
+  /** Broad asset class categories this connector supports. Empty means no category metadata (supports all). */
+  protected EnumSet<AssetclassCategory> supportedAssetclassCategories = EnumSet.noneOf(AssetclassCategory.class);
+
+  /** Geographic restrictions: 2-char country codes or 4-char MIC codes. Empty means global (no restriction). */
+  protected Set<String> supportedGeoRestrictions = Collections.emptySet();
+
+  /**
+   * Per-geo exclusions: a geo code maps to categories that are NOT supported for that geography, even though
+   * the geo is generally included. Parsed from notation like {@code "XBBC:-FIXED_INCOME"}.
+   */
+  protected Map<String, EnumSet<AssetclassCategory>> geoExclusions = Collections.emptyMap();
 
   /**
    * Constructs a new BaseFeedConnector with the specified configuration.
@@ -261,6 +277,71 @@ public abstract class BaseFeedConnector implements IFeedConnector {
       }
     }
     return false;
+  }
+
+  @Override
+  public boolean supports(String mic, String countryCode, AssetclassType assetclassType,
+      SpecialInvestmentInstruments specialInvestmentInstruments) {
+    if (supportedAssetclassCategories.isEmpty()) {
+      return true;
+    }
+    // Geo check: if restrictions are defined, at least one of mic/countryCode must match
+    if (!supportedGeoRestrictions.isEmpty()) {
+      boolean geoMatch = (mic != null && supportedGeoRestrictions.contains(mic))
+          || (countryCode != null && supportedGeoRestrictions.contains(countryCode));
+      if (!geoMatch) {
+        return false;
+      }
+    }
+    // Category check: find the matching category
+    for (AssetclassCategory cat : supportedAssetclassCategories) {
+      if (cat.matches(assetclassType, specialInvestmentInstruments)) {
+        // Check geo exclusions
+        if (!geoExclusions.isEmpty()) {
+          if (mic != null && geoExclusions.containsKey(mic) && geoExclusions.get(mic).contains(cat)) {
+            return false;
+          }
+          if (countryCode != null && geoExclusions.containsKey(countryCode)
+              && geoExclusions.get(countryCode).contains(cat)) {
+            return false;
+          }
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Parses a geo restrictions string into the {@link #supportedGeoRestrictions} and {@link #geoExclusions} fields.
+   * The notation is a space-separated list of tokens where plain codes are geo inclusions and codes with
+   * {@code :-CATEGORY} suffix are exclusions.
+   * <p>
+   * Example: {@code "XSWX XBBC:-FIXED_INCOME"} means XSWX is fully supported and XBBC is supported except for
+   * FIXED_INCOME.
+   *
+   * @param notation the geo restrictions notation string, may be null or blank
+   */
+  protected void parseGeoRestrictions(String notation) {
+    if (notation == null || notation.isBlank()) {
+      return;
+    }
+    Set<String> geos = new HashSet<>();
+    Map<String, EnumSet<AssetclassCategory>> exclusions = new HashMap<>();
+    for (String token : notation.trim().split("\\s+")) {
+      int colonIdx = token.indexOf(":-");
+      if (colonIdx > 0) {
+        String geo = token.substring(0, colonIdx);
+        String catName = token.substring(colonIdx + 2);
+        geos.add(geo);
+        exclusions.computeIfAbsent(geo, k -> EnumSet.noneOf(AssetclassCategory.class))
+            .add(AssetclassCategory.valueOf(catName));
+      } else {
+        geos.add(token);
+      }
+    }
+    this.supportedGeoRestrictions = geos;
+    this.geoExclusions = exclusions.isEmpty() ? Collections.emptyMap() : exclusions;
   }
 
   /**

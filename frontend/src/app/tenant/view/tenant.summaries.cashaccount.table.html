@@ -29,7 +29,10 @@
       <ng-template #header let-fields>
         <tr>
           @for (field of fields; track field) {
-            <th [pTooltip]="field.headerTooltipTranslated" [style.width.px]="field.width">
+            <th [pTooltip]="field.headerTooltipTranslated"
+                [style.max-width.px]="field.width"
+                [ngStyle]="field.width ? {'flex-basis': '0 0 ' + field.width + 'px'} : {}"
+                class="word-break-header" [attr.lang]="baseLocale.language">
               {{ field.headerTranslated }}
             </th>
           }
@@ -87,7 +90,9 @@
           @for (field of fields; track field) {
             @if (field.visible) {
               <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-end': ''" [style.width.px]="field.width"
+                || field.dataType===DataType.NumericInteger)? 'text-end': ''"
+                  [style.max-width.px]="field.width"
+                  [ngStyle]="field.width ? {'flex-basis': '0 0 ' + field.width + 'px'} : {}"
                   class="row-total">
                 @switch (field.templateName) {
                   @case ('greenRed') {

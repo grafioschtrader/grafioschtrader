@@ -40,6 +40,7 @@ public class DivvyDiaryConnector extends BaseFeedConnector {
 
   public DivvyDiaryConnector() {
     super(supportedFeed, "divvydiary", "DivvyDiary", null, EnumSet.noneOf(UrlCheck.class));
+    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.EQUITIES, AssetclassCategory.ETF);
   }
 
   @Override

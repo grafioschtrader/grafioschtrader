@@ -59,6 +59,8 @@ public class OnvistaFeedConnector extends BaseFeedConnector {
 
   public OnvistaFeedConnector() {
     super(supportedFeed, "onvista", "onvista", null, EnumSet.of(UrlCheck.HISTORY));
+    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR, AssetclassCategory.EQUITIES,
+        AssetclassCategory.FIXED_INCOME, AssetclassCategory.ETF, AssetclassCategory.ISSUER_RISK_PRODUCT);
   }
 
   @Override

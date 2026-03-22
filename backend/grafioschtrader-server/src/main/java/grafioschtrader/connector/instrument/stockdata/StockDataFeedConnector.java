@@ -53,6 +53,8 @@ public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
 
   public StockDataFeedConnector() {
     super(supportedFeed, "stockdata", "StockData", null, EnumSet.noneOf(UrlCheck.class));
+    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR, AssetclassCategory.CRYPTOCURRENCY,
+        AssetclassCategory.EQUITIES, AssetclassCategory.ETF, AssetclassCategory.ISSUER_RISK_PRODUCT);
   }
 
   private String getApiKeyString(boolean firstArgument) {

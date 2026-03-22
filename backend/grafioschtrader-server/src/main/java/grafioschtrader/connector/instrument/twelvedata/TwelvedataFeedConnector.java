@@ -70,6 +70,8 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
 
   public TwelvedataFeedConnector() {
     super(supportedFeed, "twelvedata", "Twelve Data", null, EnumSet.of(UrlCheck.INTRADAY, UrlCheck.HISTORY));
+    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR, AssetclassCategory.CRYPTOCURRENCY,
+        AssetclassCategory.NON_INVESTABLE_INDICES, AssetclassCategory.EQUITIES, AssetclassCategory.ETF);
     Bandwidth limit = Bandwidth.classic(4, Refill.intervally(4, Duration.ofMinutes(1)));
     this.bucket = Bucket.builder().addLimit(limit).build();
   }

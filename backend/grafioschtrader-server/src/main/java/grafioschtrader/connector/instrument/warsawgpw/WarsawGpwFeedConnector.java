@@ -61,6 +61,9 @@ public class WarsawGpwFeedConnector extends BaseFeedConnector {
 
   public WarsawGpwFeedConnector() {
     super(supportedFeed, "warsawgpw", "Warsaw GPW", null, EnumSet.noneOf(UrlCheck.class));
+    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.NON_INVESTABLE_INDICES, AssetclassCategory.EQUITIES,
+        AssetclassCategory.ETF);
+    parseGeoRestrictions("XWAR");
   }
 
   @Override

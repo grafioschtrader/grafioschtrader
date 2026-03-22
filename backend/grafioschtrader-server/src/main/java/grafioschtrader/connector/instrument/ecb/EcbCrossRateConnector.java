@@ -45,6 +45,7 @@ public class EcbCrossRateConnector extends BaseFeedConnector {
 
   public EcbCrossRateConnector() {
     super(supportedFeed, "ecb", "ECB Cross Rate CET 16:00", null, EnumSet.noneOf(UrlCheck.class));
+    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR);
   }
 
   @Override

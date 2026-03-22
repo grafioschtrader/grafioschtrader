@@ -20,6 +20,8 @@ export class GenericConnectorDef extends Auditable implements BaseID {
   supportsCurrency = false;
   needHistoryGapFiller = false;
   gbxDividerEnabled = false;
+  supportedCategories: string = null;
+  geoRestrictions: string = null;
   tokenConfigYaml: string = null;
   descriptionNLS: MultilanguageString = new MultilanguageString();
   activated = false;

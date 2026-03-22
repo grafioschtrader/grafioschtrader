@@ -59,6 +59,10 @@ public class XetraFeedConnector extends BaseFeedConnector {
 
   public XetraFeedConnector() {
     super(supportedFeed, "xetra", "Xetra", null, EnumSet.of(UrlCheck.INTRADAY, UrlCheck.HISTORY));
+    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.EQUITIES, AssetclassCategory.FIXED_INCOME,
+        AssetclassCategory.ETF, AssetclassCategory.MUTUAL_FUND, AssetclassCategory.REAL_ESTATE_FUND,
+        AssetclassCategory.ISSUER_RISK_PRODUCT);
+    parseGeoRestrictions("XETR XFRA");
   }
 
   @Override

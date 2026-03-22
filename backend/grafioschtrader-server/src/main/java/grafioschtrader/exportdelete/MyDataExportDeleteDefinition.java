@@ -8,11 +8,20 @@ import grafiosch.exportdelete.ExportDefinition;
 import grafiosch.exportdelete.ExportDefinition.TENANT_USER;
 import grafioschtrader.entities.AlgoAssetclass;
 import grafioschtrader.entities.AlgoAssetclassSecurity;
+import grafioschtrader.entities.AlgoEventLog;
+import grafioschtrader.entities.AlgoExecutionState;
+import grafioschtrader.entities.AlgoMessageAlert;
+import grafioschtrader.entities.AlgoRecommendation;
 import grafioschtrader.entities.AlgoRuleStrategy;
 import grafioschtrader.entities.AlgoSecurity;
+import grafioschtrader.entities.AlgoSimulationResult;
 import grafioschtrader.entities.AlgoStrategy;
 import grafioschtrader.entities.AlgoTop;
 import grafioschtrader.entities.AlgoTopAssetSecurity;
+import grafioschtrader.entities.GenericConnectorDef;
+import grafioschtrader.entities.GenericConnectorEndpoint;
+import grafioschtrader.entities.GenericConnectorFieldMapping;
+import grafioschtrader.entities.GenericConnectorHttpHeader;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.CorrelationSet;
@@ -247,6 +256,12 @@ public class MyDataExportDeleteDefinition {
       new ExportDefinition(TaxUpload.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
       new ExportDefinition(IctaxSecurityTaxData.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
       new ExportDefinition(IctaxPayment.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
+      // Generic connector definitions — fully exported, data owner changed to user
+      new ExportDefinition(GenericConnectorDef.TABNAME, TENANT_USER.NONE, null,
+          ExportDefinition.EXPORT_USE | ExportDefinition.CHANGE_USER_ID_FOR_CREATED_BY),
+      new ExportDefinition(GenericConnectorEndpoint.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
+      new ExportDefinition(GenericConnectorFieldMapping.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
+      new ExportDefinition(GenericConnectorHttpHeader.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
 
       new ExportDefinition(Portfolio.TABNAME, TENANT_USER.ID_TENANT, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
@@ -326,6 +341,12 @@ public class MyDataExportDeleteDefinition {
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
 
       // TODO Missing Algo export ...
+      // Algo child tables — must be deleted before algo_top (array runs backward on delete)
+      new ExportDefinition(AlgoMessageAlert.TABNAME, TENANT_USER.ID_TENANT, null, ExportDefinition.DELETE_USE),
+      new ExportDefinition(AlgoRecommendation.TABNAME, TENANT_USER.ID_TENANT, null, ExportDefinition.DELETE_USE),
+      new ExportDefinition(AlgoExecutionState.TABNAME, TENANT_USER.ID_TENANT, null, ExportDefinition.DELETE_USE),
+      new ExportDefinition(AlgoEventLog.TABNAME, TENANT_USER.ID_TENANT, null, ExportDefinition.DELETE_USE),
+      new ExportDefinition(AlgoSimulationResult.TABNAME, TENANT_USER.ID_TENANT, null, ExportDefinition.DELETE_USE),
       new ExportDefinition(AlgoTopAssetSecurity.TABNAME, TENANT_USER.ID_TENANT, null, ExportDefinition.DELETE_USE),
       new ExportDefinition(AlgoTop.TABNAME, TENANT_USER.ID_TENANT, ALGO_TOP_DEL, ExportDefinition.DELETE_USE),
       new ExportDefinition(AlgoAssetclassSecurity.TABNAME, TENANT_USER.ID_TENANT, ALGO_ASSETCLASS_SECURITY_DEL,

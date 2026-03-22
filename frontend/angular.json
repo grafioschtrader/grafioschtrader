@@ -113,33 +113,6 @@
           "options": {
             "buildTarget": "frontend:build"
           }
-        },
-        "test": {
-          "builder": "@angular/build:karma",
-          "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
-            "tsConfig": "./tsconfig.spec.json",
-            "scripts": [
-              "node_modules/moment/min/moment.min.js",
-              "node_modules/split.js/split.js"
-            ],
-            "styles": [
-              "node_modules/bootstrap/dist/css/bootstrap.min.css",
-              "node_modules/primeng/resources/themes/omega/theme.css",
-              "node_modules/font-awesome/css/font-awesome.min.css",
-              "src/styles.css",
-              "src/app/lib/styles.css"
-            ],
-            "assets": [
-              "src/assets",
-              "src/assets/i18n",
-              "src/app/lib/assets/i18n",
-              "src/favicon.ico"
-            ]
-          }
         }
       }
     }

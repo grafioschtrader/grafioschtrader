@@ -3,7 +3,7 @@ import {InputType} from './input.type';
 import {BaseInputComponent} from '../components/base.input.component';
 import {BaseFieldFieldgroupConfig} from './base.field.fieldgroup.config';
 import {BaseFieldDefinition, PropertyEditShare} from './base.field.definition';
-import {MenuItem} from 'primeng/api';
+import {MenuItem, TreeNode} from 'primeng/api';
 
 /**
  * Definition of input elements and buttons.
@@ -117,6 +117,12 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinit
   /** Only for the input suggestion */
   suggestions?: string[];
   suggestionsFN?: (any) => void;
+
+  /** TreeNode array for PrimeNG TreeSelect component */
+  treeNodes?: TreeNode[];
+
+  /** Whether TreeSelect propagates selection to children/parents (default true) */
+  propagateTreeSelection?: boolean;
 
   /** Accepted file upload type */
   acceptFileUploadType?: string;

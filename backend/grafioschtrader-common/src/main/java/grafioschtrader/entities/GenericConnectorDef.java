@@ -136,6 +136,20 @@ public class GenericConnectorDef extends Auditable implements Serializable {
   @PropertyAlwaysUpdatable
   private boolean gbxDividerEnabled;
 
+  @Size(max = 255)
+  @Column(name = "supported_categories")
+  @Schema(description = "Comma-separated AssetclassCategory enum names this connector supports, e.g. EQUITIES,ETF")
+  @PropertyAlwaysUpdatable
+  private String supportedCategories;
+
+  @Size(max = 512)
+  @Column(name = "geo_restrictions")
+  @Schema(description = """
+      Space-separated geo codes (2-char country or 4-char MIC). Plain code = inclusion, \
+      GEO:-CATEGORY = exclusion. Example: "XSWX XBBC:-FIXED_INCOME".""")
+  @PropertyAlwaysUpdatable
+  private String geoRestrictions;
+
   @Schema(description = """
       YAML configuration for automatic token acquisition (SAML SSO, etc.).
       When set, the connector auto-acquires and refreshes JWT tokens instead of
@@ -291,6 +305,22 @@ public class GenericConnectorDef extends Auditable implements Serializable {
 
   public void setGbxDividerEnabled(boolean gbxDividerEnabled) {
     this.gbxDividerEnabled = gbxDividerEnabled;
+  }
+
+  public String getSupportedCategories() {
+    return supportedCategories;
+  }
+
+  public void setSupportedCategories(String supportedCategories) {
+    this.supportedCategories = supportedCategories;
+  }
+
+  public String getGeoRestrictions() {
+    return geoRestrictions;
+  }
+
+  public void setGeoRestrictions(String geoRestrictions) {
+    this.geoRestrictions = geoRestrictions;
   }
 
   public String getTokenConfigYaml() {

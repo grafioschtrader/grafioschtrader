@@ -97,6 +97,17 @@ public class GenericFeedConnector extends BaseFeedConnector {
     this.rateLimitBucket = buildBucket(connectorDef);
     this.rateLimitSemaphore = buildSemaphore(connectorDef);
     this.tokenConfig = parseTokenConfig(connectorDef.getTokenConfigYaml());
+    parseSupportedCategories(connectorDef.getSupportedCategories());
+    parseGeoRestrictions(connectorDef.getGeoRestrictions());
+  }
+
+  private void parseSupportedCategories(String categories) {
+    if (categories == null || categories.isBlank()) {
+      return;
+    }
+    for (String name : categories.split(",")) {
+      supportedAssetclassCategories.add(AssetclassCategory.valueOf(name.trim()));
+    }
   }
 
   private static TokenConfig parseTokenConfig(String yaml) {

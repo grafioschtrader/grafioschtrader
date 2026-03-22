@@ -101,7 +101,7 @@ interface HeaderGroupItem {
         [multiSortMeta]="multiSortMeta"
         [customSort]="enableCustomSort"
         (sortFunction)="onSort($event)"
-        [paginator]="paginator"
+        [paginator]="effectivePaginator"
         [rows]="rows"
         [first]="firstRowIndex"
         (onPage)="onPage($event)"
@@ -530,6 +530,14 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
    * Options for rows per page dropdown.
    */
   @Input() rowsPerPageOptions: number[] = [10, 20, 50, 100];
+
+  /**
+   * Returns true only when the paginator input is enabled AND data exceeds the smallest page size option.
+   * Auto-hides the paginator when all rows fit on a single page.
+   */
+  get effectivePaginator(): boolean {
+    return this.paginator && this.data.length > Math.min(...this.rowsPerPageOptions);
+  }
 
   /**
    * Index of the first row on the current page (0-based).

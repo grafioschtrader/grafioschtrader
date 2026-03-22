@@ -51,6 +51,9 @@ public class ComdirectFeedConnector extends BaseFeedConnector {
 
   public ComdirectFeedConnector() {
     super(supportedFeed, "comdirect", "comdirect", null, EnumSet.of(UrlCheck.INTRADAY));
+    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR, AssetclassCategory.EQUITIES,
+        AssetclassCategory.FIXED_INCOME, AssetclassCategory.ETF, AssetclassCategory.MUTUAL_FUND,
+        AssetclassCategory.REAL_ESTATE_FUND, AssetclassCategory.ISSUER_RISK_PRODUCT);
   }
 
   @Override

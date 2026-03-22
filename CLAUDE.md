@@ -57,8 +57,11 @@ npm start
 # Production build with base href
 npm run buildprod
 
-# Run unit tests (Karma + Jasmine)
+# Run tests (pure function tests via Vitest)
 npm test
+
+# Run tests in watch mode
+npm run test:watch
 
 # Lint TypeScript code
 npm run lint
@@ -236,9 +239,18 @@ npm start
 
 ### Frontend Tests
 
-**Framework**: Karma + Jasmine
+**Framework**: Vitest (pure function tests only, no DOM/component testing)
 
-Tests located alongside components as `*.spec.ts` files.
+**Test location**: `frontend/src/app/**/*.spec.ts`
+
+**Run tests**:
+```bash
+cd frontend
+npm test          # single run
+npm run test:watch  # watch mode
+```
+
+**Scope**: Utility helpers, validators, and business logic functions that don't require Angular TestBed or DOM access.
 
 ## Key Architectural Patterns
 
@@ -291,7 +303,6 @@ ng generate component modules/yourmodule/your-component
 # Or create manually in src/app/yourmodule/
 
 npm run build
-npm test
 ```
 
 ### Creating Database Migration
@@ -401,7 +412,7 @@ CREATE TABLE child_table (...);
 
 - Use imperative summaries with issue hooks (e.g., `Resolve #158`, `Continue with #143`)
 - Keep one logical change per commit
-- Run backend + frontend tests before committing
+- Run backend tests before committing
 - Pull requests must describe motivation, reference GitHub issues, call out DB migration or configuration impacts, and attach UI screenshots when layouts change
 
 ## Code Documentation Standards

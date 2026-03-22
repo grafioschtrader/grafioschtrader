@@ -297,6 +297,11 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
 
   @Override
   public Currencypair createNonExistingCurrencypair(String fromCurrency, String toCurrency, boolean loadAsync) {
+
+    if (fromCurrency.equals(toCurrency)) {
+      throw new IllegalArgumentException("Cannot create currency pair with identical currencies: " + fromCurrency);
+    }
+    
     Currencypair currencypairNew = new Currencypair(fromCurrency, toCurrency);
 
     if (currencypairNew.getIsCryptocurrency()) {

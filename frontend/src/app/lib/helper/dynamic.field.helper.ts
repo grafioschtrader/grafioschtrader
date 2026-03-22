@@ -626,6 +626,23 @@ export class DynamicFieldHelper {
   }
 
   /**
+   * Creates a tree-select field with auto-generated label.
+   * Checkbox-based hierarchical selection with empty object default value.
+   *
+   * @param fieldName Unique field identifier (also used for label key generation)
+   * @param required Whether at least one selection is mandatory
+   * @param fieldOptions Additional configuration options including treeNodes
+   * @returns FieldConfig for tree-select component
+   */
+  public static createFieldTreeSelectHeqF(fieldName: string, required: boolean,
+    fieldOptions?: FieldOptions): FieldConfig {
+    const fieldConfig = DynamicFieldHelper.createFieldSelectNumberString(InputType.TreeSelect, DataType.String, fieldName,
+      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName), required, fieldOptions);
+    fieldConfig.defaultValue = fieldConfig.defaultValue ?? null;
+    return fieldConfig;
+  }
+
+  /**
    * Creates a single-select dropdown with auto-generated label.
    * Single selection dropdown with automatic label generation and empty string default.
    *
@@ -1092,6 +1109,10 @@ export interface FieldOptions {
   contextMenuItems?: MenuItem[];
   /** Enables a search/filter input inside the PrimeNG dropdown overlay */
   filter?: boolean;
+  /** TreeNode array for TreeSelect component */
+  treeNodes?: any[];
+  /** Whether TreeSelect propagates selection to children/parents (default true) */
+  propagateTreeSelection?: boolean;
 }
 
 /**
