@@ -5,6 +5,7 @@
     xmlns:eCH="http://www.ech.ch/xmlns/eCH-0196/2">
 
   <xsl:param name="code128CImageUri"/>
+  <xsl:variable name="apos"><xsl:text>'</xsl:text></xsl:variable>
 
   <xsl:template match="/eCH:taxStatement">
     <fo:root>
@@ -126,14 +127,14 @@
                           <fo:table-cell padding="1mm" border="0.5pt solid #CCC" text-align="right">
                             <fo:block>
                               <xsl:if test="eCH:taxValue">
-                                <xsl:value-of select="format-number(eCH:taxValue/@quantity, '#,##0.##')"/>
+                                <xsl:value-of select="translate(format-number(eCH:taxValue/@quantity, '#,##0.##'), ',', $apos)"/>
                               </xsl:if>
                             </fo:block>
                           </fo:table-cell>
                           <fo:table-cell padding="1mm" border="0.5pt solid #CCC" text-align="right">
                             <fo:block>
                               <xsl:if test="eCH:taxValue/@value">
-                                <xsl:value-of select="format-number(eCH:taxValue/@value, '#,##0.00')"/>
+                                <xsl:value-of select="translate(format-number(eCH:taxValue/@value, '#,##0.00'), ',', $apos)"/>
                               </xsl:if>
                             </fo:block>
                           </fo:table-cell>
@@ -141,7 +142,7 @@
                             <fo:block>
                               <xsl:variable name="paymentTotal" select="sum(eCH:payment/@amount)"/>
                               <xsl:if test="$paymentTotal != 0">
-                                <xsl:value-of select="format-number($paymentTotal, '#,##0.00')"/>
+                                <xsl:value-of select="translate(format-number($paymentTotal, '#,##0.00'), ',', $apos)"/>
                               </xsl:if>
                             </fo:block>
                           </fo:table-cell>
@@ -167,25 +168,25 @@
                   <fo:table-row>
                     <fo:table-cell><fo:block>Total Steuerwert CHF:</fo:block></fo:table-cell>
                     <fo:table-cell text-align="right">
-                      <fo:block><xsl:value-of select="format-number(eCH:listOfSecurities/@totalTaxValue, '#,##0.00')"/></fo:block>
+                      <fo:block><xsl:value-of select="translate(format-number(eCH:listOfSecurities/@totalTaxValue, '#,##0.00'), ',', $apos)"/></fo:block>
                     </fo:table-cell>
                   </fo:table-row>
                   <fo:table-row>
                     <fo:table-cell><fo:block>Total Bruttoertrag A (mit VSt-Anspruch) CHF:</fo:block></fo:table-cell>
                     <fo:table-cell text-align="right">
-                      <fo:block><xsl:value-of select="format-number(eCH:listOfSecurities/@totalGrossRevenueA, '#,##0.00')"/></fo:block>
+                      <fo:block><xsl:value-of select="translate(format-number(eCH:listOfSecurities/@totalGrossRevenueA, '#,##0.00'), ',', $apos)"/></fo:block>
                     </fo:table-cell>
                   </fo:table-row>
                   <fo:table-row>
                     <fo:table-cell><fo:block>Total Bruttoertrag B (ohne VSt-Anspruch) CHF:</fo:block></fo:table-cell>
                     <fo:table-cell text-align="right">
-                      <fo:block><xsl:value-of select="format-number(eCH:listOfSecurities/@totalGrossRevenueB, '#,##0.00')"/></fo:block>
+                      <fo:block><xsl:value-of select="translate(format-number(eCH:listOfSecurities/@totalGrossRevenueB, '#,##0.00'), ',', $apos)"/></fo:block>
                     </fo:table-cell>
                   </fo:table-row>
                   <fo:table-row>
                     <fo:table-cell><fo:block>Total Verrechnungssteueranspruch CHF:</fo:block></fo:table-cell>
                     <fo:table-cell text-align="right">
-                      <fo:block><xsl:value-of select="format-number(eCH:listOfSecurities/@totalWithHoldingTaxClaim, '#,##0.00')"/></fo:block>
+                      <fo:block><xsl:value-of select="translate(format-number(eCH:listOfSecurities/@totalWithHoldingTaxClaim, '#,##0.00'), ',', $apos)"/></fo:block>
                     </fo:table-cell>
                   </fo:table-row>
                 </fo:table-body>

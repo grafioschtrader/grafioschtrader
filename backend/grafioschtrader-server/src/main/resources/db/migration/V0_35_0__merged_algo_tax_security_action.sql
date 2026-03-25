@@ -192,3 +192,12 @@ ALTER TABLE tenant ADD COLUMN IF NOT EXISTS tax_export_settings JSON DEFAULT NUL
 ALTER TABLE generic_connector_def ADD COLUMN IF NOT EXISTS supported_categories VARCHAR(255) DEFAULT NULL;
 ALTER TABLE generic_connector_def ADD COLUMN IF NOT EXISTS geo_restrictions VARCHAR(512) DEFAULT NULL;
 
+-- ---------------------------------------------------------------------------
+-- Release notes for v0.35.0
+-- ---------------------------------------------------------------------------
+DELETE FROM release_note WHERE version = '0.35.0';
+INSERT INTO release_note (version, language, note) VALUES ('0.35.0', 'EN',
+  'ISIN change with automatic transaction generation, security transfer between securities accounts, ICTax Switzerland integration for tax data import, improved dividend/interest report with per-security tax exclusion.');
+INSERT INTO release_note (version, language, note) VALUES ('0.35.0', 'DE',
+  'ISIN-Wechsel mit automatischer Transaktionsgenerierung, Wertpapiertransfer zwischen Depots, ICTax-Schweiz-Integration für Steuerdatenimport, verbesserter Dividenden-/Zinsbericht mit wertpapierspezifischem Steuerausschluss.');
+

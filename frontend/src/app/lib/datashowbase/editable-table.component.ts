@@ -667,7 +667,7 @@ export class EditableTableComponent<T = any> implements OnChanges {
   /** Gets unique row key using dataKey property */
   private getRowKey(row: T): string {
     const key = row[this.dataKey];
-    return key != null ? String(key) : `new_${this.newRowCounter}`;
+    return key != null ? String(key) : String(-(this.newRowCounter));
   }
 
   // ============================================================================
@@ -757,7 +757,7 @@ export class EditableTableComponent<T = any> implements OnChanges {
     }
 
     const newEntity = this.createNewEntityFn();
-    const tempKey = `new_${++this.newRowCounter}`;
+    const tempKey = -(++this.newRowCounter);
 
     // Assign temporary key if dataKey is null/undefined
     if (newEntity[this.dataKey] == null) {
@@ -1163,30 +1163,21 @@ export class EditableTableComponent<T = any> implements OnChanges {
     const rowIndex = this.data.findIndex(r => this.getRowKey(r) === rowKey);
 
     if (rowIndex >= 0) {
-      // Initialize edit state
+      // Initialize edit state (clone for cancel, init options, clear errors)
       this.onRowEditInit(row, rowIndex);
 
-      // PrimeNG Table uses internal state for row editing.
-      // We trigger editing by simulating the pInitEditableRow behavior.
       if (this.table) {
-        // Use setTimeout to ensure DOM is updated
+        // Directly set PrimeNG's editing state — no DOM manipulation needed
+        this.table.editingRowKeys[rowKey] = true;
+
+        // Focus first editable cell after Angular change detection renders the edit inputs
         setTimeout(() => {
-          // Find and click the edit button programmatically
           const tableEl = this.table.el.nativeElement;
           const rows = tableEl.querySelectorAll('tbody tr');
-          const targetRow = rows[rowIndex];
-          if (targetRow) {
-            const editButton = targetRow.querySelector('[pInitEditableRow]');
-            if (editButton) {
-              (editButton as HTMLElement).click();
-
-              // Focus the first editable input after edit mode is activated
-              setTimeout(() => {
-                this.focusFirstEditableCell(targetRow);
-              }, 50);
-            }
+          if (rows[rowIndex]) {
+            this.focusFirstEditableCell(rows[rowIndex]);
           }
-        }, 0);
+        }, 100);
       }
     }
   }

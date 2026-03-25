@@ -972,6 +972,7 @@
   "TRADING_FROM_TO": "Gehandelt von/bis",
   "TRADING_PERIOD_DATE_CONFLICT": "Enddatum kann nicht vor der letzten bestehenden Transaktion liegen",
   "TRADING_PERIOD_DELETE_CONFLICT": "Handelsperiode kann nicht gelöscht werden, es existieren Transaktionen für diesen Instrumententyp",
+  "TRADING_PERIOD_DUPLICATE": "Eine Handelsperiode mit demselben Instrumententyp und derselben Anlageklasse existiert bereits",
   "TRADING_PERIOD_OVERLAP": "Diese Handelsperiode überschneidet sich mit einer bestehenden Periode für denselben Instrumententyp",
   "TRADING_PERIODS": "Handelsperioden",
   "TRADING_PLATFORM_PLAN": "Handelsplattform Plan",

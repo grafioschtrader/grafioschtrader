@@ -449,6 +449,9 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
           Currencypair::getToCurrency, Collectors.toMap(Currencypair::getFromCurrency, Function.identity())));
 
       for (String sc : crossRateRequest.securityCurrencyList) {
+        if (sc.equals(mainCurrencyTenant)) {
+          continue;
+        }
         List<Currencypair> foundList = crossRateRequest.getExistingCurrencies().stream()
             .filter(cp -> cp.getFromCurrency().equals(sc) || cp.getToCurrency().equals(sc))
             .collect(Collectors.toList());

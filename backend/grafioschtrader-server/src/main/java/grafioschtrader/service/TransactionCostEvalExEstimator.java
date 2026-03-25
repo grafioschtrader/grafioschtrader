@@ -17,10 +17,11 @@ import com.ezylang.evalex.data.EvaluationValue;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
+import com.networknt.schema.Schema;
+import com.networknt.schema.SchemaRegistry;
+import com.networknt.schema.SpecificationVersion;
+import com.networknt.schema.serialization.JsonMapperFactory;
 
 import grafioschtrader.dto.FeeModelConfig;
 import grafioschtrader.dto.FeeModelPeriod;
@@ -49,7 +50,7 @@ public class TransactionCostEvalExEstimator {
 
   private final YAMLMapper yamlMapper = new YAMLMapper();
   private final ObjectMapper jsonMapper = new ObjectMapper();
-  private volatile JsonSchema cachedSchema;
+  private volatile Schema cachedSchema;
 
   /**
    * Estimates transaction costs using inline YAML if provided, otherwise falls back to the DB-based plan lookup.
@@ -222,11 +223,12 @@ public class TransactionCostEvalExEstimator {
 
     // 2. Validate against JSON Schema
     try {
-      JsonSchema schema = getSchema();
-      JsonNode jsonNode = jsonMapper.readTree(jsonMapper.writeValueAsString(yamlNode));
-      var validationMessages = schema.validate(jsonNode);
-      for (ValidationMessage msg : validationMessages) {
-        errors.add("Schema: " + msg.getMessage());
+      Schema schema = getSchema();
+      String jsonString = jsonMapper.writeValueAsString(yamlNode);
+      tools.jackson.databind.JsonNode jsonNode3 = JsonMapperFactory.getInstance().readTree(jsonString);
+      var validationErrors = schema.validate(jsonNode3);
+      for (Error error : validationErrors) {
+        errors.add("Schema: " + error.getMessage());
       }
     } catch (Exception e) {
       errors.add("Schema validation error: " + e.getMessage());
@@ -292,7 +294,7 @@ public class TransactionCostEvalExEstimator {
     }
   }
 
-  private JsonSchema getSchema() {
+  private Schema getSchema() {
     if (cachedSchema == null) {
       synchronized (this) {
         if (cachedSchema == null) {
@@ -300,8 +302,8 @@ public class TransactionCostEvalExEstimator {
             if (is == null) {
               throw new IllegalStateException("Schema resource not found: " + SCHEMA_RESOURCE);
             }
-            JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
-            cachedSchema = factory.getSchema(is);
+            SchemaRegistry registry = SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_7);
+            cachedSchema = registry.getSchema(is);
           } catch (Exception e) {
             throw new IllegalStateException("Failed to load fee model schema", e);
           }

@@ -974,6 +974,7 @@
   "TRADING_FROM_TO": "Traded from/to",
   "TRADING_PERIOD_DATE_CONFLICT": "Cannot set end date before the latest existing transaction",
   "TRADING_PERIOD_DELETE_CONFLICT": "Cannot delete trading period, transactions exist for this instrument type",
+  "TRADING_PERIOD_DUPLICATE": "A trading period with the same instrument type and asset class already exists",
   "TRADING_PERIOD_OVERLAP": "This trading period overlaps with an existing period for the same instrument type",
   "TRADING_PERIODS": "Trading periods",
   "TRADING_PLATFORM_PLAN": "Trading platform plan",

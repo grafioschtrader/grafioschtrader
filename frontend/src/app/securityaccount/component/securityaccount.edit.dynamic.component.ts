@@ -37,7 +37,8 @@ import {GlobalSessionNames} from '../../lib/global.session.names';
                   (submitBt)="submit($event)">
     </dynamic-form>
     <trading-period-table #tradingPeriodTable [tradingPeriods]="tradingPeriods"
-                          [transactionSummaries]="transactionSummaries" />
+                          [transactionSummaries]="transactionSummaries"
+                          [isNewSecurityAccount]="callParam.thisObject == null" />
   `,
   standalone: true,
   imports: [DynamicFormComponent, TradingPeriodTableComponent]

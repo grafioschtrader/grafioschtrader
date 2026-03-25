@@ -67,9 +67,13 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
   /** Preloaded transaction summaries for conflict checks. */
   @Input() transactionSummaries: TradingPeriodTransactionSummary[] = [];
 
+  /** Whether the parent security account is new (not yet persisted). */
+  @Input() isNewSecurityAccount = false;
+
   @Output() tradingPeriodsChange = new EventEmitter<SecaccountTradingPeriod[]>();
 
   private fieldsInitialized = false;
+  private inputTempIdCounter = -1000;
   private static get MIN_DATE(): Date {
     return new Date(sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK);
   }
@@ -86,6 +90,7 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['tradingPeriods'] && this.tradingPeriods) {
       this.tradingPeriods = this.convertDatesToDateObjects(this.tradingPeriods);
+      this.assignTempIds(this.tradingPeriods);
       if (this.fieldsInitialized) {
         this.createTranslatedValueStoreAndFilterField(this.tradingPeriods);
       }
@@ -97,7 +102,13 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
    */
   getData(): SecaccountTradingPeriod[] {
     const data = this.entityTable?.getData() || this.tradingPeriods;
-    return this.convertDatesToStrings(data);
+    return this.convertDatesToStrings(data).map(p => {
+      const copy = {...p};
+      if (copy.idSecaccountTradingPeriod != null && copy.idSecaccountTradingPeriod < 0) {
+        copy.idSecaccountTradingPeriod = null;
+      }
+      return copy;
+    });
   }
 
   createNewEntity = (): SecaccountTradingPeriod => {
@@ -107,27 +118,29 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
   };
 
   /**
-   * Overlap validation callback. Returns false if the row overlaps with another
-   * row having the same (specInvestInstrument, categoryType).
+   * Uniqueness validation callback. Returns false if another row with the same
+   * (specInvestInstrument, categoryType) combination already exists.
    */
   validateRow = (row: SecaccountTradingPeriod): boolean => {
-    const others = this.tradingPeriods.filter(p => p !== row
+    const duplicates = this.tradingPeriods.filter(p => p !== row
       && p.specInvestInstrument === row.specInvestInstrument
       && this.sameCategoryType(p.categoryType, row.categoryType));
-    for (const other of others) {
-      if (this.datesOverlap(row.dateFrom, row.dateTo, other.dateFrom, other.dateTo)) {
-        this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'TRADING_PERIOD_OVERLAP');
-        return false;
-      }
+    if (duplicates.length > 0) {
+      this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'TRADING_PERIOD_DUPLICATE');
+      return false;
     }
     return true;
   };
 
   /**
-   * Determines if a row can be deleted. Always show delete button.
+   * Determines if a row can be deleted. New rows and rows on new security accounts are always
+   * deletable. Existing rows with transactions cannot be deleted.
    */
-  canDeleteRow = (_row: SecaccountTradingPeriod): boolean => {
-    return true;
+  canDeleteRow = (row: SecaccountTradingPeriod): boolean => {
+    if (this.isNewRow(row) || this.isNewSecurityAccount) {
+      return true;
+    }
+    return !this.hasConflictingTransactions(row);
   };
 
   onRowEditSave(event: RowEditSaveEvent<SecaccountTradingPeriod>): void {
@@ -176,7 +189,7 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
     specInvestCol.cec.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
       this.translateService, SpecialInvestmentInstruments,
       [SpecialInvestmentInstruments.NON_INVESTABLE_INDICES], true);
-    specInvestCol.cec.canEditFn = (row) => !row.idSecaccountTradingPeriod;
+    specInvestCol.cec.canEditFn = (row) => this.isNewRow(row);
 
     // categoryType column — only editable on new rows
     const categoryTypeCol = this.addEditColumnFeqH(DataType.String, 'categoryType', false,
@@ -185,13 +198,13 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
     categoryTypeCol.cec.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnumAddEmpty(
       this.translateService, AssetclassType,
       [AssetclassType.CURRENCY_CASH, AssetclassType.CURRENCY_FOREIGN], true);
-    categoryTypeCol.cec.canEditFn = (row) => !row.idSecaccountTradingPeriod;
+    categoryTypeCol.cec.canEditFn = (row) => this.isNewRow(row);
 
     // dateFrom column — only editable on new rows
     const dateFromCol = this.addEditColumnFeqH(DataType.DateString, 'dateFrom', false, {width: 130});
     dateFromCol.cec.inputType = EditInputType.DatePicker;
     dateFromCol.cec.minDate = new Date(TradingPeriodTableComponent.MIN_DATE);
-    dateFromCol.cec.canEditFn = (row) => !row.idSecaccountTradingPeriod;
+    dateFromCol.cec.canEditFn = (row) => this.isNewRow(row);
 
     // dateTo column — always editable
     const dateToCol = this.addEditColumnFeqH(DataType.DateString, 'dateTo', false, {width: 130});
@@ -202,20 +215,25 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
     this.fieldsInitialized = true;
   }
 
+  private isNewRow(row: SecaccountTradingPeriod): boolean {
+    return row.idSecaccountTradingPeriod == null || row.idSecaccountTradingPeriod < 0;
+  }
+
   private sameCategoryType(a: string | null, b: string | null): boolean {
     return (a == null && b == null) || a === b;
   }
 
-  private datesOverlap(fromA: any, toA: any, fromB: any, toB: any): boolean {
-    const startA = fromA instanceof Date ? fromA : (fromA ? new Date(fromA + 'T00:00:00') : null);
-    const endA = toA instanceof Date ? toA : (toA ? new Date(toA + 'T00:00:00') : null);
-    const startB = fromB instanceof Date ? fromB : (fromB ? new Date(fromB + 'T00:00:00') : null);
-    const endB = toB instanceof Date ? toB : (toB ? new Date(toB + 'T00:00:00') : null);
-
-    // A starts before B ends (or B has no end) AND B starts before A ends (or A has no end)
-    const aBeforeBEnd = endB == null || (startA != null && startA <= endB);
-    const bBeforeAEnd = endA == null || (startB != null && startB <= endA);
-    return aBeforeBEnd && bBeforeAEnd;
+  /**
+   * Assigns negative temporary IDs to rows that arrive via @Input() without an ID
+   * (e.g., default rows for new security accounts). Uses a counter starting at -1000
+   * to avoid collision with EditableTableComponent's addNewRow() counter (starts at -1).
+   */
+  private assignTempIds(periods: SecaccountTradingPeriod[]): void {
+    for (const p of periods) {
+      if (p.idSecaccountTradingPeriod == null) {
+        p.idSecaccountTradingPeriod = this.inputTempIdCounter--;
+      }
+    }
   }
 
   private hasConflictingTransactions(row: SecaccountTradingPeriod): boolean {

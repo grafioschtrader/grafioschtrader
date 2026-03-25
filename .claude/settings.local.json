@@ -191,7 +191,10 @@
       "WebFetch(domain:www.gpw.pl)",
       "WebFetch(domain:www.swissfunddata.ch)",
       "WebFetch(domain:www.investing.com)",
-      "WebFetch(domain:deepwiki.com)"
+      "WebFetch(domain:deepwiki.com)",
+      "Bash(gh search:*)",
+      "Bash(unzip -p /c/Users/hugo/.m2/repository/com/networknt/json-schema-validator/3.0.1/json-schema-validator-3.0.1.jar META-INF/maven/com.networknt/json-schema-validator/pom.xml)",
+      "Bash(git stash:*)"
     ],
     "deny": [],
     "ask": []
