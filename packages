@@ -129,6 +129,9 @@ grafioschtrader.gtnet.handler.impl.lastprice
 grafioschtrader.gtnet.handler.impl.historyquote
 grafioschtrader.instrument
 grafioschtrader.websocket
+grafioschtrader.tax.swiss.ech0196
+grafioschtrader.tax.swiss.ech0196.model
+grafioschtrader.tax.swiss.ictax
 grafioschtrader.rest
 grafiosch.integration.repository
 grafiosch.integration.entities

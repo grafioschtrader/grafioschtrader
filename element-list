@@ -129,6 +129,9 @@ grafioschtrader.task
 grafioschtrader.task.exec
 grafioschtrader.task.exec.unofficial
 grafioschtrader.task.exec.update
+grafioschtrader.tax.swiss.ech0196
+grafioschtrader.tax.swiss.ech0196.model
+grafioschtrader.tax.swiss.ictax
 grafioschtrader.test.start
 grafioschtrader.types
 grafioschtrader.validation
