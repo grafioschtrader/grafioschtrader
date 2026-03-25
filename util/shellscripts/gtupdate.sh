@@ -13,13 +13,18 @@ sudo systemctl stop grafioschtrader.service
 # Navigate to the build directory
 cd $builddir
 
-# Manage configuration files
+# Manage configuration files - ONLY backup if not already done (guard against re-exec)
 GT_PROF=application.properties
 GT_PROF_PROD=application-production.properties
 GT_PROF_PATH=grafioschtrader/backend/grafioschtrader-server/src/main/resources
-cp $GT_PROF_PATH/$GT_PROF .
-if [ -e $GT_PROF_PATH/$GT_PROF_PROD ]; then
-   cp $GT_PROF_PATH/$GT_PROF_PROD .
+BACKUP_FLAG="$builddir/.properties_backed_up"
+
+if [ ! -f "$BACKUP_FLAG" ]; then
+    cp $GT_PROF_PATH/$GT_PROF .
+    if [ -e $GT_PROF_PATH/$GT_PROF_PROD ]; then
+       cp $GT_PROF_PATH/$GT_PROF_PROD .
+    fi
+    touch "$BACKUP_FLAG"
 fi
 
 # Update repository
@@ -45,6 +50,7 @@ cp $builddir/grafioschtrader/util/shellscripts/merger.sh ~/.
 cp $builddir/grafioschtrader/util/shellscripts/gtup{front,back}*.sh ~/.
 ~/checkversion.sh
 if [ $? -ne 0 ]; then
+  rm -f "$BACKUP_FLAG"
   exit 1
 fi
 
@@ -57,6 +63,9 @@ fi
 if [ -f $GT_PROF_PROD ]; then
    cp $GT_PROF_PROD $GT_PROF_PATH/.
 fi
+
+# Clean up backup flag
+rm -f "$BACKUP_FLAG"
 
 # Execute final steps
 cd ~

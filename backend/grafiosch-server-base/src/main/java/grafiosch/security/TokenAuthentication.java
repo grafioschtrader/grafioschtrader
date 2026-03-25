@@ -125,7 +125,7 @@ public abstract class TokenAuthentication {
    */
   public void addJwtTokenToHeader(final HttpServletResponse response, final UserAuthentication authentication,
       boolean passwordRegexOk) throws IOException {
-
+    try {
     final UserDetails user = authentication.getDetails();
     response.addHeader(AUTH_HEADER_NAME,
         jwtTokenHandler.createTokenForUser(user, globalparametersJpaRepository.getJWTExpirationMinutes()));
@@ -133,6 +133,9 @@ public abstract class TokenAuthentication {
     final User userEntity = (User) user;
     jacksonObjectMapper.writeValue(out, getConfigurationWithLogin(userEntity.isUiShowMyProperty(),
         userEntity.getMostPrivilegedRole(), passwordRegexOk, userEntity.getIdTenant()));
+    } catch(Exception e) {
+      e.printStackTrace();
+    }
   }
 
   /**

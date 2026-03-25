@@ -40,7 +40,7 @@ export class TenantEditFullPageComponent extends TenantEditComponent implements 
   }
 
   ngOnInit(): void {
-    super.init(false);
+    super.init(false, true);
   }
 
   ngAfterViewInit(): void {

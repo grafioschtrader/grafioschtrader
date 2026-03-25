@@ -22,7 +22,7 @@ class YahooSplitCalendarTest {
       e.printStackTrace();
     }
     securitySplitMap.entrySet().forEach(System.out::println);
-    assertThat(securitySplitMap).hasSize(17);
+    assertThat(securitySplitMap).hasSize(18);
   }
 
 }

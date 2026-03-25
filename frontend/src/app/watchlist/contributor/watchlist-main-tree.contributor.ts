@@ -234,7 +234,7 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
   private handleWatchlistForPerformance(idWatchlist: number): void {
     this.tenantService.setWatchlistForPerformance(idWatchlist).subscribe(tenant => {
       this.tenant = tenant;
-      this.refreshNodes(this.rootNode).subscribe();
+      this.callbacks?.refreshTree();
     });
   }
 

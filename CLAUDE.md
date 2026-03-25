@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Grafioschtrader (GT) is a **multi-tenant portfolio management web application** for tracking investments across multiple portfolios, securities accounts, and cash accounts. It supports multiple currencies, various financial instruments (stocks, bonds, ETFs, CFDs, Forex), and provides asset class evaluations and correlation matrices.
 
 **Tech Stack:**
-- **Backend**: Java 21 + Spring Boot 3.5.9 (multi-module Maven project)
+- **Backend**: Java 21 + Spring Boot 4.0.4 (multi-module Maven project)
 - **Frontend**: Angular 21 + TypeScript 5.9.3 + PrimeNG 21
 - **Database**: MariaDB with Flyway migrations
 - **Security**: JWT authentication, Jasypt property encryption

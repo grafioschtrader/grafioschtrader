@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.hibernate.annotations.Type;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.entities.TenantBase;
@@ -103,6 +104,7 @@ public class Tenant extends TenantBase implements Serializable {
   @Column(name = "tax_export_settings", columnDefinition = "json")
   private TaxStatementExportRequest taxExportSettings;
 
+  @JsonCreator
   public Tenant() {
   }
 

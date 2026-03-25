@@ -18,6 +18,8 @@ import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 import {GlobalGTSessionNames} from '../../shared/global.gt.session.names';
+import {GlobalSessionNames} from '../../lib/global.session.names';
+import {BaseSettings} from '../../lib/base.settings';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 
 /**
@@ -44,10 +46,10 @@ export abstract class TenantEditComponent {
     private nonModal: boolean, private labelColumns: number) {
   }
 
-  init(onlyCurrency: boolean): void {
+  init(onlyCurrency: boolean, isRegistration: boolean = false): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       this.labelColumns, this.helpLink.bind(this), this.nonModal);
-    this.config = this.getFields(onlyCurrency);
+    this.config = this.getFields(onlyCurrency, isRegistration);
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
@@ -99,15 +101,21 @@ export abstract class TenantEditComponent {
     );
   }
 
-  private getFields(onlyCurrency: boolean): FieldConfig[] {
+  private getFields(onlyCurrency: boolean, isRegistration: boolean): FieldConfig[] {
     const fieldConfig = [DynamicFieldHelper.createFieldInputStringHeqF('tenantName', 25, true),
       DynamicFieldHelper.createFieldSelectStringHeqF('currency', true),
       DynamicFieldHelper.createFieldCheckboxHeqF('excludeDivTax'),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'closedUntil', false,
-        {calendarConfig: {minDate: new Date(2000, 0, 1)}}),
+        {calendarConfig: {minDate: new Date(sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK)}}),
       DynamicFieldHelper.createFieldSelectStringHeqF('country', false),
       DynamicFieldHelper.createSubmitButton()];
-    return (onlyCurrency) ? [fieldConfig[1], fieldConfig[5]] : fieldConfig;
+    if (onlyCurrency) {
+      return [fieldConfig[1], fieldConfig[5]];
+    }
+    if (isRegistration) {
+      return [fieldConfig[0], fieldConfig[1], fieldConfig[2], fieldConfig[4], fieldConfig[5]];
+    }
+    return fieldConfig;
   }
 }
 

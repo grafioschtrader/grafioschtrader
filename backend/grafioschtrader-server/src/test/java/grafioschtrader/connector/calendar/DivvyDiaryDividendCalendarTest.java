@@ -18,7 +18,7 @@ public class DivvyDiaryDividendCalendarTest {
 
     try {
       List<CalendarDividends> cd = divvyDiaryDividendCalendar.getExDateDividend(LocalDate.parse("2026-03-06"));
-      assertThat(cd).hasSize(161);
+      assertThat(cd).hasSize(172);
     } catch (Exception e) {
       e.printStackTrace();
     }

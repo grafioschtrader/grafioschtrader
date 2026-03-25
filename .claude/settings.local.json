@@ -197,7 +197,9 @@
       "Bash(git stash:*)",
       "mcp__primeng__migrate_v20_to_v21",
       "mcp__primeng__get_component_styles",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(gh release:*)",
+      "Bash(git:*)"
     ],
     "deny": [],
     "ask": []

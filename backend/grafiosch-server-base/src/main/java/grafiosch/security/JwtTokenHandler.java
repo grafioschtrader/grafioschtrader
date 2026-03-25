@@ -141,17 +141,19 @@ public final class JwtTokenHandler {
     List<String> roles = user.getAuthorities().stream().map(GrantedAuthority::getAuthority)
         .collect(Collectors.toList());
 
-    int tenantId = overrideIdTenant != null ? overrideIdTenant : ((User) user).getIdTenant();
+    Integer userTenantId = overrideIdTenant != null ? overrideIdTenant : ((User) user).getIdTenant();
 
     JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
-    JwtClaimsSet claims = JwtClaimsSet.builder()
+    JwtClaimsSet.Builder claimsBuilder = JwtClaimsSet.builder()
         .subject(user.getUsername())
         .claim(ID_USER, ((User) user).getIdUser())
-        .claim("idTenant", tenantId)
         .claim("localeStr", ((User) user).getLocaleStr())
         .claim("roles", roles)
-        .expiresAt(expiry)
-        .build();
+        .expiresAt(expiry);
+    if (userTenantId != null) {
+      claimsBuilder.claim("idTenant", userTenantId);
+    }
+    JwtClaimsSet claims = claimsBuilder.build();
 
     return jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
   }

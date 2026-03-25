@@ -88,7 +88,7 @@ public class TokenAuthenticationService extends TokenAuthentication {
   @Transactional
   public ConfigurationWithLogin getConfigurationWithLogin(boolean uiShowMyProperty, String mostPrivilegedRole,
       boolean passwordRegexOk, Integer idTenant) {
-    Tenant tenant = tenantJpaRepository.findById(idTenant).orElse(null);
+    Tenant tenant = (idTenant != null) ? tenantJpaRepository.findById(idTenant).orElse(null) : null;
     LocalDate tenantClosedUntil = (tenant != null) ? tenant.getClosedUntil() : null;
     ConfigurationWithLoginGT configurationWithLogin = new ConfigurationWithLoginGT(getAllEntitiyNamesWithTheirKeys(),
         getGlobalConstantsFieldsByFieldPrefix(GlobalConstants.class, "FIELD_SIZE"), uiShowMyProperty,
