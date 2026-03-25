@@ -18,13 +18,15 @@
         <tr>
           <th style="width:24px"></th>
           @for (field of fields; track field) {
-            <th [pSortableColumn]="field.field" [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                [pTooltip]="field.headerTooltipTranslated"
-                class="word-break-header" [attr.lang]="baseLocale.language">
-              {{ field.headerTranslated }}
-              <p-sortIcon [field]="field.field"></p-sortIcon>
-            </th>
+            @if (field.visible) {
+              <th [pSortableColumn]="field.field" [style.max-width.px]="field.width"
+                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
+                  [pTooltip]="field.headerTooltipTranslated"
+                  class="word-break-header" [attr.lang]="baseLocale.language">
+                {{ field.headerTranslated }}
+                <p-sortIcon [field]="field.field"></p-sortIcon>
+              </th>
+            }
           }
         </tr>
       </ng-template>

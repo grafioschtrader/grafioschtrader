@@ -29,12 +29,14 @@
       <ng-template #header let-fields>
         <tr>
           @for (field of fields; track field) {
-            <th [pTooltip]="field.headerTooltipTranslated"
-                [style.max-width.px]="field.width"
-                [ngStyle]="field.width ? {'flex-basis': '0 0 ' + field.width + 'px'} : {}"
-                class="word-break-header" [attr.lang]="baseLocale.language">
-              {{ field.headerTranslated }}
-            </th>
+            @if (field.visible) {
+              <th [pTooltip]="field.headerTooltipTranslated"
+                  [style.max-width.px]="field.width"
+                  [ngStyle]="field.width ? {'flex-basis': '0 0 ' + field.width + 'px'} : {}"
+                  class="word-break-header" [attr.lang]="baseLocale.language">
+                {{ field.headerTranslated }}
+              </th>
+            }
           }
         </tr>
       </ng-template>
@@ -63,20 +65,22 @@
         @if (groupChangeIndexMap.get(rowIndex)) {
           <tr class="rowgroup-total">
             @for (columnConfig of fields; track columnConfig) {
-              <td [class]="(columnConfig.dataType===DataType.Numeric || columnConfig.dataType===DataType.NumericInteger
-                || columnConfig.dataType===DataType.DateTimeNumeric)? 'text-end': ''">
-                @switch (columnConfig.templateName) {
-                  @case ('greenRed') {
-                    <span
-                      [style.color]='isColumnTotalByRowIndexMinus(columnConfig, 0, groupChangeIndexMap, rowIndex)? "red": "inherit"'>
+              @if (columnConfig.visible) {
+                <td [class]="(columnConfig.dataType===DataType.Numeric || columnConfig.dataType===DataType.NumericInteger
+                  || columnConfig.dataType===DataType.DateTimeNumeric)? 'text-end': ''">
+                  @switch (columnConfig.templateName) {
+                    @case ('greenRed') {
+                      <span
+                        [style.color]='isColumnTotalByRowIndexMinus(columnConfig, 0, groupChangeIndexMap, rowIndex)? "red": "inherit"'>
+                        {{ getValueColumnTotalByRowIndex(columnConfig, 0, groupChangeIndexMap, rowIndex) }}
+                      </span>
+                    }
+                    @default {
                       {{ getValueColumnTotalByRowIndex(columnConfig, 0, groupChangeIndexMap, rowIndex) }}
-                    </span>
+                    }
                   }
-                  @default {
-                    {{ getValueColumnTotalByRowIndex(columnConfig, 0, groupChangeIndexMap, rowIndex) }}
-                  }
-                }
-              </td>
+                </td>
+              }
             }
           </tr>
           <tr class="blank_row">

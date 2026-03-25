@@ -103,7 +103,7 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
   }
 
   getHelpContextId(): string {
-    return HelpIds.HELP_ADMIN;
+    return HelpIds.HELP_TAX_DATA;
   }
 
   onComponentClick(event): void {

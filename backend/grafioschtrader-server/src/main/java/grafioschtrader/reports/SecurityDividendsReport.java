@@ -262,7 +262,8 @@ public class SecurityDividendsReport {
 
     cashAccounts.forEach(cashaccount -> {
       cashaccount.getTransactionList().stream()
-          .filter(transaction -> transaction.getIdSecurityaccount() == null || idsSecurityaccount.size() == 0
+          .filter(transaction -> transaction.getIdSecurityaccount() == null || idsSecurityaccount.isEmpty()
+              || (idsSecurityaccount.size() == 1 && idsSecurityaccount.get(0) == -1)
               || idsSecurityaccount.contains(transaction.getIdSecurityaccount()))
           .filter(transaction -> transaction.getTransactionType().getValue() <= TransactionType.FINANCE_COST.getValue())
           .forEach(transactions::add);

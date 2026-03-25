@@ -194,7 +194,9 @@
       "WebFetch(domain:deepwiki.com)",
       "Bash(gh search:*)",
       "Bash(unzip -p /c/Users/hugo/.m2/repository/com/networknt/json-schema-validator/3.0.1/json-schema-validator-3.0.1.jar META-INF/maven/com.networknt/json-schema-validator/pom.xml)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "mcp__primeng__migrate_v20_to_v21",
+      "mcp__primeng__get_component_styles"
     ],
     "deny": [],
     "ask": []

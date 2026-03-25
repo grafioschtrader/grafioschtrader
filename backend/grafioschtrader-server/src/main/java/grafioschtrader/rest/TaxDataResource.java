@@ -5,6 +5,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -207,7 +208,7 @@ public class TaxDataResource {
     int taxYear = request.getTaxYear();
 
     List<Integer> idsSecurityaccount = (request.getIdsSecurityaccount() == null || request.getIdsSecurityaccount().isEmpty())
-        ? Arrays.asList(-1) : request.getIdsSecurityaccount();
+        ? Collections.emptyList() : request.getIdsSecurityaccount();
     SecurityDividendsGrandTotal grandTotal = securityDividendsReport
         .getSecurityDividendsGrandTotalByTenant(user.getIdTenant(), idsSecurityaccount, Arrays.asList(-1));
 
