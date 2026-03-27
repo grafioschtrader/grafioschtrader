@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -66,6 +67,14 @@ public class GTNetResource extends UpdateCreateResource<GTNet> {
   public ResponseEntity<Void> deleteMessageBatch(@RequestBody List<Integer> idGtNetMessageList) {
     gtNetJpaRepository.deleteMessageBatch(idGtNetMessageList);
     return ResponseEntity.ok().build();
+  }
+
+  @Operation(summary = "Deletes a GTNet server entry and all dependent data", description = "Validates that the entry is not the local server and has no pending RR messages before cascade-deleting", tags = {
+      RequestMappings.GTNET })
+  @DeleteMapping(value = "/{idGtNet}", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<Void> deleteGTNet(@PathVariable final Integer idGtNet) {
+    gtNetJpaRepository.deleteGTNet(idGtNet);
+    return ResponseEntity.noContent().build();
   }
 
   @Override

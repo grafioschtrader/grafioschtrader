@@ -36,7 +36,6 @@ import grafioschtrader.gtnet.model.msg.HistoryquoteCoverageResponseMsg;
 import grafioschtrader.gtnet.model.msg.HistoryquoteCoverageResponseMsg.InstrumentCoverageDTO;
 import grafioschtrader.gtnet.model.msg.HistoryquoteExchangeMsg;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
-import grafioschtrader.repository.SecurityJpaRepository;
 import tools.jackson.databind.ObjectMapper;
 
 /**
@@ -63,9 +62,7 @@ public class GTNetHistoricalImportService extends BaseGTNetExchangeService {
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
 
-  @Autowired
-  private SecurityJpaRepository securityJpaRepository;
-
+ 
   @Autowired
   private HistoryquoteJpaRepository historyquoteJpaRepository;
 

@@ -28,7 +28,6 @@ import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.task.ITask;
 import grafiosch.types.ITaskType;
 import grafiosch.types.TaskTypeBase;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * Background task that delivers pending GTNet admin messages to multiple targets.
@@ -73,9 +72,7 @@ public class GTNetAdminMessageDeliveryTask implements ITask {
   @Autowired
   private BaseDataClient baseDataClient;
 
-  @Autowired
-  private ObjectMapper objectMapper;
-
+ 
   @Override
   public ITaskType getTaskType() {
     return TaskTypeBase.GTNET_ADMIN_MESSAGE_DELIVERY;

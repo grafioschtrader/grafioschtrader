@@ -12,6 +12,7 @@ import grafiosch.entities.ProposeChangeEntity;
 import grafiosch.entities.ProposeChangeField;
 import grafiosch.entities.ProposeRequest;
 import grafiosch.entities.ProposeUserTask;
+import grafiosch.entities.ReleaseNote;
 import grafiosch.entities.Role;
 import grafiosch.entities.TenantBase;
 import grafiosch.entities.UDFData;
@@ -57,6 +58,7 @@ public abstract class ExportDeleteHelper {
       new ExportDefinition(User.TABNAME, TENANT_USER.ID_TENANT, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       new ExportDefinition(Role.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
+      new ExportDefinition(ReleaseNote.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
       new ExportDefinition(User.TABNAME_USER_ROLE, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),
       new ExportDefinition(ProposeRequest.TABNAME, TENANT_USER.CREATED_BY, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),

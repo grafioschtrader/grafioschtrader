@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {GTNetMessageCodeType, MessageVisibility, MsgCallParam, shouldShowWaitDaysApply} from '../model/gtnet.message';
+import {getAvailableMessageCodes, getRequestableKindNames, GTNetMessageCodeType, MessageVisibility, MsgCallParam, shouldShowWaitDaysApply} from '../model/gtnet.message';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {MessageToastService} from '../../message/message.toast.service';
@@ -102,22 +102,11 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
         GTNetMessageCodeType, [GTNetMessageCodeType[this.msgCallParam.gtNetMessage.messageCode]], false);
       this.configObject[this.MESSAGE_CODE].formControl.setValue(this.msgCallParam.gtNetMessage[this.MESSAGE_CODE]);
     } else {
-      // Filter message codes: ALL messages for broadcast mode, SEL messages for single target mode
-      const filterSuffixes = this.msgCallParam.isAllMessage ? ['_ALL_C']: ['_SEL_RR_C', 'SEL_C', '_ALL_C'];
-      // Exclude discontinued option if one is already open
-      const excludeCodes: string[] = this.msgCallParam.idOpenDiscontinuedMessage != null
-        ? ['GT_NET_OPERATION_DISCONTINUED_ALL_C'] : [];
-      // Exclude admin messages when called from GTNetSetupTableComponent
-      if (this.msgCallParam.excludeAdminMessages) {
-        excludeCodes.push('GT_NET_ADMIN_MESSAGE_SEL_C', 'GT_NET_ADMIN_MESSAGE_ALL_C');
-      }
+      // State-aware filtering: only show codes valid for the current relationship state
+      const availableCodes = getAvailableMessageCodes(this.msgCallParam);
       this.configObject[this.MESSAGE_CODE].valueKeyHtmlOptions =
         SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, GTNetMessageCodeType,
-          Object.keys(GTNetMessageCodeType).filter(
-              key => !isNaN(Number(GTNetMessageCodeType[key])) &&
-                filterSuffixes.some(suffix => key.endsWith(suffix)) &&
-                !excludeCodes.includes(key)
-            ).map(k => GTNetMessageCodeType[k]),false);
+          availableCodes.map(code => GTNetMessageCodeType[code]), false);
 
       // Pre-select message code if provided (e.g., from admin messages component)
       if (this.msgCallParam.preselectedMessageCode != null) {
@@ -196,7 +185,20 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
   }
 
   private createViewFromSelectedEnum(gtNetMessageCodeType: string | GTNetMessageCodeType): void {
-    this.classDescriptorInputAndShows = this.msgCallParam.formDefinitions[gtNetMessageCodeType];
+    let formDef = this.msgCallParam.formDefinitions[gtNetMessageCodeType];
+    // For data request: filter entityKinds MultiSelect to only show requestable kinds
+    const codeName = typeof gtNetMessageCodeType === 'string' ? gtNetMessageCodeType : GTNetMessageCodeType[gtNetMessageCodeType];
+    if (codeName === 'GT_NET_DATA_REQUEST_SEL_RR_C' && this.msgCallParam.targetGtNet && formDef) {
+      const requestableNames = getRequestableKindNames(this.msgCallParam.targetGtNet, this.msgCallParam.exchangeKindTypes);
+      // Clone the form definition to avoid mutating the cached original
+      formDef = {
+        ...formDef,
+        fieldDescriptorInputAndShows: formDef.fieldDescriptorInputAndShows.map(fd =>
+          fd.fieldName === 'entityKinds' ? {...fd, enumValues: requestableNames} : fd
+        )
+      };
+    }
+    this.classDescriptorInputAndShows = formDef;
     this.createDynamicInputFields();
   }
 

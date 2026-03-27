@@ -1324,7 +1324,8 @@ public class GenericFeedConnector extends BaseFeedConnector {
     if (def.getRateLimitType() == RateLimitType.TOKEN_BUCKET
         && def.getRateLimitRequests() != null && def.getRateLimitPeriodSec() != null) {
       return Bucket.builder()
-          .addLimit(Bandwidth.simple(def.getRateLimitRequests(), Duration.ofSeconds(def.getRateLimitPeriodSec())))
+          .addLimit(Bandwidth.builder().capacity(def.getRateLimitRequests())
+              .refillGreedy(def.getRateLimitRequests(), Duration.ofSeconds(def.getRateLimitPeriodSec())).build())
           .build();
     }
     return null;

@@ -17,7 +17,7 @@ public class TaxStatementExportRequest implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  @Schema(description = "Tax year for which to generate the statement", required = true)
+  @Schema(description = "Tax year for which to generate the statement", requiredMode = Schema.RequiredMode.REQUIRED)
   private short taxYear;
 
   @Schema(description = """
@@ -25,16 +25,16 @@ public class TaxStatementExportRequest implements Serializable {
       Uses the same account selection as the dividends view.""")
   private List<Integer> idsSecurityaccount;
 
-  @Schema(description = "Swiss canton abbreviation (2 letters, e.g. ZH, BE, LU)", required = true)
+  @Schema(description = "Swiss canton abbreviation (2 letters, e.g. ZH, BE, LU)", requiredMode = Schema.RequiredMode.REQUIRED)
   private String canton;
 
-  @Schema(description = "Name of the financial institution", required = true)
+  @Schema(description = "Name of the financial institution", requiredMode = Schema.RequiredMode.REQUIRED)
   private String institutionName;
 
   @Schema(description = "LEI (Legal Entity Identifier) of the institution, exactly 20 characters")
   private String institutionLei;
 
-  @Schema(description = "Client/customer number at the institution", required = true)
+  @Schema(description = "Client/customer number at the institution", requiredMode = Schema.RequiredMode.REQUIRED)
   private String clientNumber;
 
   @Schema(description = "Client's first name")

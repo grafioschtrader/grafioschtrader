@@ -57,19 +57,27 @@ public class GTNetWithMessages {
   public Integer idOpenDiscontinuedMessage;
 
   @Schema(description = """
+      ID of an open GT_NET_MAINTENANCE_ALL_C message if one exists. An 'open' message is one that has been sent
+      with a toDateTime in the future and has not been cancelled. Null if no open maintenance message exists.
+      Used by the UI to control availability of the maintenance announcement option.""")
+  public Integer idOpenMaintenanceMessage;
+
+  @Schema(description = """
       Metadata about all registered exchange kind types. Allows the frontend to dynamically build
       entity kind lists and determine per-kind capabilities without hardcoding enum values.""")
   public List<ExchangeKindTypeInfo> exchangeKindTypes;
 
   public GTNetWithMessages(List<GTNet> gtNetList, Map<Integer, Integer> gtNetMessageCountMap,
       Map<Integer, List<Integer>> outgoingPendingReplies, Map<Integer, List<Integer>> incomingPendingReplies,
-      Integer gtNetMyEntryId, Integer idOpenDiscontinuedMessage, List<ExchangeKindTypeInfo> exchangeKindTypes) {
+      Integer gtNetMyEntryId, Integer idOpenDiscontinuedMessage, Integer idOpenMaintenanceMessage,
+      List<ExchangeKindTypeInfo> exchangeKindTypes) {
     this.gtNetList = gtNetList;
     this.gtNetMessageCountMap = gtNetMessageCountMap;
     this.outgoingPendingReplies = outgoingPendingReplies;
     this.incomingPendingReplies = incomingPendingReplies;
     this.gtNetMyEntryId = gtNetMyEntryId;
     this.idOpenDiscontinuedMessage = idOpenDiscontinuedMessage;
+    this.idOpenMaintenanceMessage = idOpenMaintenanceMessage;
     this.exchangeKindTypes = exchangeKindTypes;
   }
 }

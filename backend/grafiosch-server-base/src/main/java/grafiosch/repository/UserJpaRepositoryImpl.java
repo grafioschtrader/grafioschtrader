@@ -90,6 +90,9 @@ public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User>
   public Integer moveCreatedByUserToOtherUser(Integer fromIdUser, Integer toIdUser) throws SQLException {
     String url = jdbcTemplate.getDataSource().getConnection().getMetaData().getURL();
     String databaseName = StringUtils.substringAfterLast(url, "/");
+    if (databaseName.contains("?")) {
+       databaseName = StringUtils.substringBefore(databaseName, "?");
+     }
     return userJpaRepository.moveCreatedByUserToOtherUser(fromIdUser, toIdUser, databaseName);
   }
 

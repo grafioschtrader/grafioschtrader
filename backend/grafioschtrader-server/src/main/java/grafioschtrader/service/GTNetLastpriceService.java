@@ -277,13 +277,6 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
   }
 
   /**
-   * Queries remote servers for price data (for AC_PUSH_OPEN suppliers - no filtering).
-   */
-  private void queryRemoteServers(List<GTNet> suppliers, InstrumentExchangeSet instruments) {
-    queryRemoteServersWithTracking(suppliers, instruments, null);
-  }
-
-  /**
    * Queries remote PUSH_OPEN servers for price data, optionally tracking their responses
    * for later push-back operations.
    *

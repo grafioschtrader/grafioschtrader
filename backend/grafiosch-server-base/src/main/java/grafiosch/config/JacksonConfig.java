@@ -50,7 +50,7 @@ public class JacksonConfig {
       if (p.currentToken() == JsonToken.VALUE_NUMBER_INT) {
         return LocalDateTime.ofInstant(Instant.ofEpochMilli(p.getLongValue()), ZoneOffset.UTC).toLocalDate();
       }
-      String text = p.getText().trim();
+      String text = p.getString().trim();
       try {
         return LocalDate.parse(text);
       } catch (DateTimeParseException e) {
@@ -74,7 +74,7 @@ public class JacksonConfig {
       if (p.currentToken() == JsonToken.VALUE_NUMBER_INT) {
         return LocalDateTime.ofInstant(Instant.ofEpochMilli(p.getLongValue()), ZoneOffset.UTC);
       }
-      String text = p.getText();
+      String text = p.getString();
       try {
         return LocalDateTime.parse(text);
       } catch (DateTimeParseException e) {

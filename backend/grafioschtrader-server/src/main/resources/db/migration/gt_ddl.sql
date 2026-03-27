@@ -322,7 +322,7 @@ CREATE TABLE `cashaccount` (
   `borrowing_rate` double DEFAULT NULL,
   PRIMARY KEY (`id_securitycash_account`),
   CONSTRAINT `FK_CashAccount_SecurityCashAccount` FOREIGN KEY (`id_securitycash_account`) REFERENCES `securitycashaccount` (`id_securitycash_account`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=75458 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=75606 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -376,7 +376,7 @@ CREATE TABLE `correlation_set` (
   `adjust_currency` tinyint(4) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id_correlation_set`),
   UNIQUE KEY `Unique_idTenant_name` (`id_tenant`,`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=7427 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7447 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -416,7 +416,7 @@ CREATE TABLE `dividend` (
   PRIMARY KEY (`id_dividend`),
   KEY `FK_Dividend_Security` (`id_securitycurrency`),
   CONSTRAINT `FK_Dividend_Security` FOREIGN KEY (`id_securitycurrency`) REFERENCES `security` (`id_securitycurrency`)
-) ENGINE=InnoDB AUTO_INCREMENT=1068899 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1069713 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -619,7 +619,7 @@ CREATE TABLE `gt_net` (
   `last_modified_time` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id_gt_net`),
   UNIQUE KEY `domainRemoteName` (`domain_remote_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -659,7 +659,7 @@ CREATE TABLE `gt_net_config_entity` (
   `supplier_log` tinyint(4) NOT NULL DEFAULT 1,
   `consumer_log` tinyint(4) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id_gt_net_entity`),
-  CONSTRAINT `FK_GtNetConfigEntity_GtNetEntity` FOREIGN KEY (`id_gt_net_entity`) REFERENCES `gt_net_entity` (`id_gt_net_entity`) ON UPDATE CASCADE
+  CONSTRAINT `FK_GtNetConfigEntity_GtNetEntity` FOREIGN KEY (`id_gt_net_entity`) REFERENCES `gt_net_entity` (`id_gt_net_entity`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -680,7 +680,7 @@ CREATE TABLE `gt_net_entity` (
   PRIMARY KEY (`id_gt_net_entity`),
   KEY `FK_GtNetEntity_GtNet` (`id_gt_net`),
   CONSTRAINT `FK_GtNetEntity_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -704,8 +704,8 @@ CREATE TABLE `gt_net_exchange_log` (
   `request_count` int(11) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id_gt_net_exchange_log`),
   KEY `FK_GtNetExchangeLog_GtNet` (`id_gt_net`),
-  CONSTRAINT `FK_GtNetExchangeLog_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`)
-) ENGINE=InnoDB AUTO_INCREMENT=4600 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  CONSTRAINT `FK_GtNetExchangeLog_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=4769 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -825,9 +825,9 @@ CREATE TABLE `gt_net_message` (
   PRIMARY KEY (`id_gt_net_message`),
   KEY `FK_GtNetMessage_GtNet` (`id_gt_net`),
   KEY `FK_GtNetMessage_GtNetMessage` (`reply_to`),
-  CONSTRAINT `FK_GtNetMessage_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`),
-  CONSTRAINT `FK_GtNetMessage_GtNetMessage` FOREIGN KEY (`reply_to`) REFERENCES `gt_net_message` (`id_gt_net_message`)
-) ENGINE=InnoDB AUTO_INCREMENT=3683 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  CONSTRAINT `FK_GtNetMessage_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE,
+  CONSTRAINT `FK_GtNetMessage_GtNetMessage` FOREIGN KEY (`reply_to`) REFERENCES `gt_net_message` (`id_gt_net_message`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=3833 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -885,7 +885,7 @@ CREATE TABLE `gt_net_message_param` (
   `param_name` varchar(32) NOT NULL,
   `param_value` varchar(255) NOT NULL,
   PRIMARY KEY (`id_gt_net_message`,`param_name`),
-  CONSTRAINT `FK_GTNetMessageParam_GTNetMessage` FOREIGN KEY (`id_gt_net_message`) REFERENCES `gt_net_message` (`id_gt_net_message`)
+  CONSTRAINT `FK_GTNetMessageParam_GTNetMessage` FOREIGN KEY (`id_gt_net_message`) REFERENCES `gt_net_message` (`id_gt_net_message`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -905,7 +905,7 @@ CREATE TABLE `gt_net_security_imp_gap` (
   PRIMARY KEY (`id_gt_net_security_imp_gap`),
   KEY `FK_GTNetSecurityImpGap_GTNetSecurityImpPos` (`id_gt_net_security_imp_pos`),
   KEY `FK_GTNetSecurityImpGap_GTNet` (`id_gt_net`),
-  CONSTRAINT `FK_GTNetSecurityImpGap_GTNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`),
+  CONSTRAINT `FK_GTNetSecurityImpGap_GTNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE,
   CONSTRAINT `FK_GTNetSecurityImpGap_GTNetSecurityImpPos` FOREIGN KEY (`id_gt_net_security_imp_pos`) REFERENCES `gt_net_security_imp_pos` (`id_gt_net_security_imp_pos`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -967,7 +967,7 @@ CREATE TABLE `gt_net_supplier_detail` (
   KEY `FK_GtNetSupplierDetail` (`id_gt_net`),
   CONSTRAINT `FK_GtNetSupplierDetail_GTNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE,
   CONSTRAINT `FK_GtNetSupplierDetail_SecurityCurrency` FOREIGN KEY (`id_entity`) REFERENCES `securitycurrency` (`id_securitycurrency`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=44545 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=45665 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1026,7 +1026,7 @@ CREATE TABLE `historyquote` (
   UNIQUE KEY `IHistoryQuote_id_Date` (`id_securitycurrency`,`date`),
   KEY `FK_HistoryQuote_SecurityCurrency` (`id_securitycurrency`) USING BTREE,
   CONSTRAINT `FK_HistoryQuote_SecurityCurrency` FOREIGN KEY (`id_securitycurrency`) REFERENCES `securitycurrency` (`id_securitycurrency`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=9274880 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9276567 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1384,7 +1384,7 @@ CREATE TABLE `mail_entity` (
   `mark_date` date NOT NULL,
   `creation_date` date NOT NULL,
   PRIMARY KEY (`id_mail_entity`)
-) ENGINE=InnoDB AUTO_INCREMENT=569 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=577 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1410,7 +1410,7 @@ CREATE TABLE `mail_send_recv` (
   KEY `FK_MailInOut_Role` (`id_role_to`),
   KEY `id_reply_to_local` (`id_reply_to_local`),
   CONSTRAINT `FK_MailSendRecv_Role` FOREIGN KEY (`id_role_to`) REFERENCES `role` (`id_role`)
-) ENGINE=InnoDB AUTO_INCREMENT=913 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=929 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1515,7 +1515,7 @@ CREATE TABLE `portfolio` (
   UNIQUE KEY `idtenant_name` (`id_tenant`,`name`) USING BTREE,
   KEY `FK_Portfolio_Tentant` (`id_tenant`),
   CONSTRAINT `FK_Portfolio_Tentant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`)
-) ENGINE=InnoDB AUTO_INCREMENT=18904 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=18942 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1854,7 +1854,7 @@ CREATE TABLE `securityaccount_trading_period` (
   PRIMARY KEY (`id_secaccount_trading_period`),
   KEY `idx_stp_secaccount` (`id_securitycash_account`),
   CONSTRAINT `fk_stp_securitycash_account` FOREIGN KEY (`id_securitycash_account`) REFERENCES `securitycashaccount` (`id_securitycash_account`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1083 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1201 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1876,7 +1876,7 @@ CREATE TABLE `securitycashaccount` (
   UNIQUE KEY `idPortfolio_dType_name` (`id_portfolio`,`dtype`,`name`) USING BTREE,
   KEY `FK_SecurityAccount_Portfolio` (`id_portfolio`),
   CONSTRAINT `FK_SecurityAccount_Portfolio` FOREIGN KEY (`id_portfolio`) REFERENCES `portfolio` (`id_portfolio`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=75458 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=75606 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2111,7 +2111,7 @@ CREATE TABLE `task_data_change` (
   `failed_message_code` varchar(40) DEFAULT NULL,
   `failed_stack_trace` varchar(4096) DEFAULT NULL,
   PRIMARY KEY (`id_task_data_change`)
-) ENGINE=InnoDB AUTO_INCREMENT=18956 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=19034 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2205,7 +2205,7 @@ CREATE TABLE `tenant` (
   `country` varchar(2) DEFAULT NULL,
   `tax_export_settings` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`tax_export_settings`)),
   PRIMARY KEY (`id_tenant`)
-) ENGINE=InnoDB AUTO_INCREMENT=53 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2317,7 +2317,7 @@ CREATE TABLE `transaction` (
   CONSTRAINT `c_currency_ex_rate` CHECK (`currency_ex_rate` is not null and `currency_ex_rate` > 0 and `id_currency_pair` is not null or `currency_ex_rate` is null and `id_currency_pair` is null),
   CONSTRAINT `s_units` CHECK (`units` is not null and `units` <> 0 and `id_securitycurrency` is not null or `id_securitycurrency` is null and `units` is null),
   CONSTRAINT `s_quotation` CHECK (`quotation` is not null and (`quotation` > 0 or `quotation` <> 0 and `transaction_type` between 6 and 7) and `id_securitycurrency` is not null or `quotation` is null and `id_securitycurrency` is null)
-) ENGINE=InnoDB AUTO_INCREMENT=1161592 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1163726 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2357,7 +2357,7 @@ CREATE TABLE `udf_metadata` (
   PRIMARY KEY (`id_udf_metadata`),
   KEY `I_UDF_Metadata_IdUser` (`id_user`),
   CONSTRAINT `FK_udfMetadata_user` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`)
-) ENGINE=InnoDB AUTO_INCREMENT=4475 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4499 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2436,7 +2436,7 @@ CREATE TABLE `user` (
   UNIQUE KEY `email` (`email`) USING BTREE,
   KEY `FK_User_Tenant` (`id_tenant`),
   CONSTRAINT `FK_User_Tenant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`)
-) ENGINE=InnoDB AUTO_INCREMENT=66 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=67 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2530,7 +2530,7 @@ CREATE TABLE `verificationtoken` (
   PRIMARY KEY (`id_verificationtoken`),
   KEY `FK_Verify_User` (`id_user`),
   CONSTRAINT `FK_VerificationToken_User` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=40 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2549,7 +2549,7 @@ CREATE TABLE `watchlist` (
   UNIQUE KEY `idtenant_name` (`id_tenant`,`name`) USING BTREE,
   KEY `FK_Watchlist_Tentant` (`id_tenant`),
   CONSTRAINT `FK_Watchlist_Tentant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`)
-) ENGINE=InnoDB AUTO_INCREMENT=54096 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=54206 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2573,7 +2573,7 @@ CREATE TABLE `watchlist_sec_cur` (
 -- Dumping routines for database 'grafioschtrader'
 --
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `copyTradingMinusToOtherStockexchange` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -2584,9 +2584,12 @@ CREATE TABLE `watchlist_sec_cur` (
 DELIMITER ;;
 CREATE DEFINER=`grafioschtrader`@`localhost` PROCEDURE `copyTradingMinusToOtherStockexchange`(IN `sourceIdStockexchange` INT, IN `targetIdStockexchange` INT, IN `dateFrom` DATE, IN `dateTo` DATE)
     MODIFIES SQL DATA
-BEGIN
-DELETE FROM trading_days_minus WHERE id_stockexchange = targetIdStockexchange AND trading_date_minus >= dateFrom AND trading_date_minus <= dateTo;
-INSERT INTO trading_days_minus (id_stockexchange, trading_date_minus, create_type) SELECT targetIdStockexchange, trading_date_minus, create_type FROM trading_days_minus WHERE id_stockexchange = sourceIdStockexchange AND trading_date_minus >= dateFrom AND trading_date_minus <= dateTo;
+BEGIN
+
+DELETE FROM trading_days_minus WHERE id_stockexchange = targetIdStockexchange AND trading_date_minus >= dateFrom AND trading_date_minus <= dateTo;
+
+INSERT INTO trading_days_minus (id_stockexchange, trading_date_minus, create_type) SELECT targetIdStockexchange, trading_date_minus, create_type FROM trading_days_minus WHERE id_stockexchange = sourceIdStockexchange AND trading_date_minus >= dateFrom AND trading_date_minus <= dateTo;
+
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -2594,7 +2597,7 @@ DELIMITER ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `deleteUpdateHistoryQuality` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -2605,59 +2608,112 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`grafioschtrader`@`localhost` PROCEDURE `deleteUpdateHistoryQuality`()
     MODIFIES SQL DATA
-BEGIN
-SET @globalparam_update = "gt.historyquote.quality.update.date";
-DROP TEMPORARY TABLE IF EXISTS minmax;
-CREATE TEMPORARY TABLE minmax AS
-(SELECT s.id_securitycurrency, MIN(hq.date) AS minDate, MAX(hq.date) AS maxDate,
-SUM(IF(hq.create_type = 0, 1, 0)) AS connectorCreated,
-SUM(IF(hq.create_type = 1, 1, 0)) AS filledNoTradeDay,
-SUM(IF(hq.create_type = 2, 1, 0)) AS manualImported,
-SUM(IF(hq.create_type = 3, 1, 0)) AS filledLinear
-FROM security s JOIN historyquote hq ON s.id_securitycurrency = hq.id_securitycurrency
-GROUP BY s.id_securitycurrency);
-DELETE FROM historyquote_quality;
-INSERT INTO historyquote_quality (idSecurity, minDate, connectorCreated, filledNoTradeDay, manualImported, filledLinear,
-missingStart, maxDate, missingEnd, totalMissing, expectedTotal, qualityPercentage, toManyAsCalendar, quoteSaturday, quoteSunday)
-SELECT s.id_securitycurrency AS idSecurity,
-MIN(hq.date) AS minDate, mm.connectorCreated, mm.filledNoTradeDay, mm.manualImported, mm.filledLinear,
-SUM(IF(tdp.trading_date < mm.minDate AND hq.date IS NULL, 1, 0) ) AS missingStart,
-MAX(hq.date) maxDate,
-SUM(IF(tdp.trading_date > mm.maxDate AND hq.date IS NULL, 1, 0)) AS missingEnd,
-SUM(IF(hq.date IS NULL, 1, 0)) AS totalMissing,
-count(*) AS expectedTotal,
-ROUND((1 - SUM(IF(hq.date IS NULL, 1, 0)) / count(*)) * 100, 2) AS qualityPercentage,
-0 AS toManyAsCalendar,
-0 AS quoteSaturday,
-0 AS quoteSunday
-FROM minmax mm JOIN security s ON s.id_securitycurrency = mm.id_securitycurrency
-JOIN trading_days_plus tdp LEFT JOIN trading_days_minus tdm ON tdp.trading_date = tdm.trading_date_minus AND tdm.id_stockexchange = s.id_stockexchange
-LEFT JOIN historyquote hq ON s.id_securitycurrency = hq.id_securitycurrency AND tdp.trading_date = hq.date
-WHERE tdm.trading_date_minus IS NULL
-AND s.active_from_date <= tdp.trading_date AND s.id_tenant_private IS NULL AND tdp.trading_date <= LEAST(s.active_to_date, NOW() - INTERVAL 1 DAY)
-GROUP BY s.id_securitycurrency;
-UPDATE historyquote_quality hq JOIN
-(SELECT s.id_securitycurrency, count(*) AS toManyAsCalendar, SUM(IF(DAYOFWEEK(hq.date) = 7, 1, 0)) AS quoteSaturday, SUM(IF(DAYOFWEEK(hq.date) = 1, 1, 0))
-AS quoteSunday FROM security s JOIN historyquote hq ON s.id_securitycurrency = hq.id_securitycurrency LEFT JOIN trading_days_plus tdp
-ON tdp.trading_date = hq.date LEFT JOIN trading_days_minus tdm ON tdp.trading_date = tdm.trading_date_minus AND tdm.id_stockexchange = s.id_stockexchange
-WHERE (tdp.trading_date IS NULL OR tdm.trading_date_minus IS NOT NULL) AND s.active_from_date <= hq.date
-AND hq.date <= LEAST(s.active_to_date, NOW() - INTERVAL 1 DAY)  GROUP BY s.id_securitycurrency) AS x ON x.id_securitycurrency = hq.idSecurity
-SET hq.toManyAsCalendar = x.toManyAsCalendar, hq.quoteSaturday = x.quoteSaturday, hq.quoteSunday = x.quoteSunday;
-UPDATE historyquote_quality hqq JOIN
-(SELECT hq.id_securitycurrency,
-  ROUND(SUM(IF(
-    (hq.open IS NOT NULL AND hq.open <> 0)
-    AND (hq.high IS NOT NULL AND hq.high <> 0)
-    AND (hq.low IS NOT NULL AND hq.low <> 0), 1, 0)) / COUNT(*) * 100, 2) AS ohlPercentage
-  FROM historyquote hq
-  GROUP BY hq.id_securitycurrency) AS ohl ON ohl.id_securitycurrency = hqq.idSecurity
-SET hqq.ohlPercentage = ohl.ohlPercentage;
-IF (SELECT count(*) FROM globalparameters WHERE property_name = @globalparam_update) = 1
-THEN
-   UPDATE globalparameters SET property_date = CURDATE() WHERE property_name = @globalparam_update;
-ELSE
-    INSERT INTO globalparameters (property_name, property_date) VALUES(@globalparam_update,  CURDATE());
-END IF;
+BEGIN
+
+SET @globalparam_update = "gt.historyquote.quality.update.date";
+
+DROP TEMPORARY TABLE IF EXISTS minmax;
+
+CREATE TEMPORARY TABLE minmax AS
+
+(SELECT s.id_securitycurrency, MIN(hq.date) AS minDate, MAX(hq.date) AS maxDate,
+
+SUM(IF(hq.create_type = 0, 1, 0)) AS connectorCreated,
+
+SUM(IF(hq.create_type = 1, 1, 0)) AS filledNoTradeDay,
+
+SUM(IF(hq.create_type = 2, 1, 0)) AS manualImported,
+
+SUM(IF(hq.create_type = 3, 1, 0)) AS filledLinear
+
+FROM security s JOIN historyquote hq ON s.id_securitycurrency = hq.id_securitycurrency
+
+GROUP BY s.id_securitycurrency);
+
+DELETE FROM historyquote_quality;
+
+INSERT INTO historyquote_quality (idSecurity, minDate, connectorCreated, filledNoTradeDay, manualImported, filledLinear,
+
+missingStart, maxDate, missingEnd, totalMissing, expectedTotal, qualityPercentage, toManyAsCalendar, quoteSaturday, quoteSunday)
+
+SELECT s.id_securitycurrency AS idSecurity,
+
+MIN(hq.date) AS minDate, mm.connectorCreated, mm.filledNoTradeDay, mm.manualImported, mm.filledLinear,
+
+SUM(IF(tdp.trading_date < mm.minDate AND hq.date IS NULL, 1, 0) ) AS missingStart,
+
+MAX(hq.date) maxDate,
+
+SUM(IF(tdp.trading_date > mm.maxDate AND hq.date IS NULL, 1, 0)) AS missingEnd,
+
+SUM(IF(hq.date IS NULL, 1, 0)) AS totalMissing,
+
+count(*) AS expectedTotal,
+
+ROUND((1 - SUM(IF(hq.date IS NULL, 1, 0)) / count(*)) * 100, 2) AS qualityPercentage,
+
+0 AS toManyAsCalendar,
+
+0 AS quoteSaturday,
+
+0 AS quoteSunday
+
+FROM minmax mm JOIN security s ON s.id_securitycurrency = mm.id_securitycurrency
+
+JOIN trading_days_plus tdp LEFT JOIN trading_days_minus tdm ON tdp.trading_date = tdm.trading_date_minus AND tdm.id_stockexchange = s.id_stockexchange
+
+LEFT JOIN historyquote hq ON s.id_securitycurrency = hq.id_securitycurrency AND tdp.trading_date = hq.date
+
+WHERE tdm.trading_date_minus IS NULL
+
+AND s.active_from_date <= tdp.trading_date AND s.id_tenant_private IS NULL AND tdp.trading_date <= LEAST(s.active_to_date, NOW() - INTERVAL 1 DAY)
+
+GROUP BY s.id_securitycurrency;
+
+UPDATE historyquote_quality hq JOIN
+
+(SELECT s.id_securitycurrency, count(*) AS toManyAsCalendar, SUM(IF(DAYOFWEEK(hq.date) = 7, 1, 0)) AS quoteSaturday, SUM(IF(DAYOFWEEK(hq.date) = 1, 1, 0))
+
+AS quoteSunday FROM security s JOIN historyquote hq ON s.id_securitycurrency = hq.id_securitycurrency LEFT JOIN trading_days_plus tdp
+
+ON tdp.trading_date = hq.date LEFT JOIN trading_days_minus tdm ON tdp.trading_date = tdm.trading_date_minus AND tdm.id_stockexchange = s.id_stockexchange
+
+WHERE (tdp.trading_date IS NULL OR tdm.trading_date_minus IS NOT NULL) AND s.active_from_date <= hq.date
+
+AND hq.date <= LEAST(s.active_to_date, NOW() - INTERVAL 1 DAY)  GROUP BY s.id_securitycurrency) AS x ON x.id_securitycurrency = hq.idSecurity
+
+SET hq.toManyAsCalendar = x.toManyAsCalendar, hq.quoteSaturday = x.quoteSaturday, hq.quoteSunday = x.quoteSunday;
+
+UPDATE historyquote_quality hqq JOIN
+
+(SELECT hq.id_securitycurrency,
+
+  ROUND(SUM(IF(
+
+    (hq.open IS NOT NULL AND hq.open <> 0)
+
+    AND (hq.high IS NOT NULL AND hq.high <> 0)
+
+    AND (hq.low IS NOT NULL AND hq.low <> 0), 1, 0)) / COUNT(*) * 100, 2) AS ohlPercentage
+
+  FROM historyquote hq
+
+  GROUP BY hq.id_securitycurrency) AS ohl ON ohl.id_securitycurrency = hqq.idSecurity
+
+SET hqq.ohlPercentage = ohl.ohlPercentage;
+
+IF (SELECT count(*) FROM globalparameters WHERE property_name = @globalparam_update) = 1
+
+THEN
+
+   UPDATE globalparameters SET property_date = CURDATE() WHERE property_name = @globalparam_update;
+
+ELSE
+
+    INSERT INTO globalparameters (property_name, property_date) VALUES(@globalparam_update,  CURDATE());
+
+END IF;
+
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -2665,7 +2721,7 @@ DELIMITER ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `holdSecuritySplitMarginTransaction` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -2676,28 +2732,50 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`grafioschtrader`@`localhost` PROCEDURE `holdSecuritySplitMarginTransaction`(IN `idSecurity` INT)
     NO SQL
-BEGIN
-DROP TEMPORARY TABLE IF EXISTS holdSecurityMarginSplit;
-CREATE TEMPORARY TABLE holdSecurityMarginSplit (tsDate TIMESTAMP NOT NULL)
-SELECT t.id_tenant as idTenant, p.id_portfolio AS idPortfolio, t.id_security_account AS idSecurityaccount, t.transaction_time AS tsDate, IF(t.transaction_type = 4, 1, -1) * t.units *
-t.asset_investment_value_2 as factorUnits, te.currency AS tenantCurrency, p.currency AS porfolioCurrency,
-t.id_transaction AS idTransactionMargin
-FROM transaction t JOIN security s ON s.id_securitycurrency = t.id_securitycurrency JOIN tenant te ON te.id_tenant = t.id_tenant
-JOIN securitycashaccount sca ON sca.id_securitycash_account = t.id_security_account  JOIN portfolio p ON p.id_portfolio = sca.id_portfolio
-WHERE t.transaction_type >= 4 AND t.transaction_type <= 5 
-AND  t.id_securitycurrency = idSecurity
-UNION 
-SELECT t.id_tenant as idTenant, null AS idPortfolio, t.id_security_account AS idSecurityaccount, ss.split_date AS tsDate, ss.to_factor / ss.from_factor as factorUnits, null AS tenantCurrency, null AS porfolioCurrency, null AS idTransactionMargin
-FROM security s JOIN securitysplit ss ON s.id_securitycurrency = ss.id_securitycurrency JOIN transaction t ON t.id_securitycurrency = s.id_securitycurrency 
-WHERE t.transaction_type >= 4 AND t.transaction_type <= 5 
-AND t.id_securitycurrency = idSecurity
-GROUP BY t.id_tenant, t.id_security_account, ss.split_date;
-
-SELECT t1.* FROM holdSecurityMarginSplit t1 JOIN (
-SELECT t2.idTenant, t2.idSecurityaccount, MAX(IF(t2.idPortfolio IS NULL, t2.tsDate, NULL)) AS maxSplitDate, MIN(IF(t2.idPortfolio IS NULL, NULL, t2.tsDate)) AS minTransDate FROM holdSecurityMarginSplit t2 
-GROUP BY t2.idTenant, t2.idSecurityaccount) AS t3 ON t1.idTenant = t3.idTenant
-AND t1.idSecurityaccount = t3.idSecurityaccount AND t3.maxSplitDate >= t3.minTransDate AND (t1.tsDate >= t3.minTransDate AND t1.idPortfolio IS NULL || t1.idPortfolio IS NOT NULL)
-ORDER BY t1.idTenant, t1.idSecurityaccount, t1.tsDate;
+BEGIN
+
+DROP TEMPORARY TABLE IF EXISTS holdSecurityMarginSplit;
+
+CREATE TEMPORARY TABLE holdSecurityMarginSplit (tsDate TIMESTAMP NOT NULL)
+
+SELECT t.id_tenant as idTenant, p.id_portfolio AS idPortfolio, t.id_security_account AS idSecurityaccount, t.transaction_time AS tsDate, IF(t.transaction_type = 4, 1, -1) * t.units *
+
+t.asset_investment_value_2 as factorUnits, te.currency AS tenantCurrency, p.currency AS porfolioCurrency,
+
+t.id_transaction AS idTransactionMargin
+
+FROM transaction t JOIN security s ON s.id_securitycurrency = t.id_securitycurrency JOIN tenant te ON te.id_tenant = t.id_tenant
+
+JOIN securitycashaccount sca ON sca.id_securitycash_account = t.id_security_account  JOIN portfolio p ON p.id_portfolio = sca.id_portfolio
+
+WHERE t.transaction_type >= 4 AND t.transaction_type <= 5 
+
+AND  t.id_securitycurrency = idSecurity
+
+UNION 
+
+SELECT t.id_tenant as idTenant, null AS idPortfolio, t.id_security_account AS idSecurityaccount, ss.split_date AS tsDate, ss.to_factor / ss.from_factor as factorUnits, null AS tenantCurrency, null AS porfolioCurrency, null AS idTransactionMargin
+
+FROM security s JOIN securitysplit ss ON s.id_securitycurrency = ss.id_securitycurrency JOIN transaction t ON t.id_securitycurrency = s.id_securitycurrency 
+
+WHERE t.transaction_type >= 4 AND t.transaction_type <= 5 
+
+AND t.id_securitycurrency = idSecurity
+
+GROUP BY t.id_tenant, t.id_security_account, ss.split_date;
+
+
+
+SELECT t1.* FROM holdSecurityMarginSplit t1 JOIN (
+
+SELECT t2.idTenant, t2.idSecurityaccount, MAX(IF(t2.idPortfolio IS NULL, t2.tsDate, NULL)) AS maxSplitDate, MIN(IF(t2.idPortfolio IS NULL, NULL, t2.tsDate)) AS minTransDate FROM holdSecurityMarginSplit t2 
+
+GROUP BY t2.idTenant, t2.idSecurityaccount) AS t3 ON t1.idTenant = t3.idTenant
+
+AND t1.idSecurityaccount = t3.idSecurityaccount AND t3.maxSplitDate >= t3.minTransDate AND (t1.tsDate >= t3.minTransDate AND t1.idPortfolio IS NULL || t1.idPortfolio IS NOT NULL)
+
+ORDER BY t1.idTenant, t1.idSecurityaccount, t1.tsDate;
+
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -2705,7 +2783,7 @@ DELIMITER ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `holdSecuritySplitTransaction` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -2716,27 +2794,48 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`grafioschtrader`@`localhost` PROCEDURE `holdSecuritySplitTransaction`(IN `idSecurity` INT)
     READS SQL DATA
-BEGIN
-DROP TEMPORARY TABLE IF EXISTS holdSecuritySplit;
-CREATE TEMPORARY TABLE holdSecuritySplit (tsDate TIMESTAMP NOT NULL)
-SELECT t.id_tenant as idTenant, p.id_portfolio AS idPortfolio, t.id_security_account AS idSecurityaccount, t.transaction_time AS tsDate, SUM(IF(t.transaction_type = 4, 1, -1) * t.units) as factorUnits, te.currency AS tenantCurrency, p.currency AS porfolioCurrency, CAST(NULL AS int) AS idTransactionMargin
-FROM transaction t JOIN security s ON s.id_securitycurrency = t.id_securitycurrency JOIN tenant te ON te.id_tenant = t.id_tenant
-JOIN securitycashaccount sca ON sca.id_securitycash_account = t.id_security_account  JOIN portfolio p ON p.id_portfolio = sca.id_portfolio
-WHERE t.transaction_type >= 4 AND t.transaction_type <= 5 
-AND  t.id_securitycurrency = idSecurity
-GROUP BY idTenant, idSecurityaccount, tsDate
-UNION 
-SELECT t.id_tenant as idTenant, null AS idPortfolio, t.id_security_account AS idSecurityaccount, ss.split_date AS tsDate, ss.to_factor / ss.from_factor as factorUnits, null AS tenantCurrency, null AS porfolioCurrency, CAST(NULL AS int) AS idTransactionMargin
-FROM security s JOIN securitysplit ss ON s.id_securitycurrency = ss.id_securitycurrency JOIN transaction t ON t.id_securitycurrency = s.id_securitycurrency 
-WHERE t.transaction_type >= 4 AND t.transaction_type <= 5 
-AND t.id_securitycurrency = idSecurity
-GROUP BY t.id_tenant, t.id_security_account, ss.split_date;
-
-SELECT t1.* FROM holdSecuritySplit t1 JOIN (
-SELECT t2.idTenant, t2.idSecurityaccount, MAX(IF(t2.idPortfolio IS NULL, t2.tsDate, NULL)) AS maxSplitDate, MIN(IF(t2.idPortfolio IS NULL, NULL, t2.tsDate)) AS minTransDate FROM holdSecuritySplit t2 
-GROUP BY t2.idTenant, t2.idSecurityaccount) AS t3 ON t1.idTenant = t3.idTenant
-AND t1.idSecurityaccount = t3.idSecurityaccount AND t3.maxSplitDate >= t3.minTransDate AND (t1.tsDate >= t3.minTransDate AND t1.idPortfolio IS NULL || t1.idPortfolio IS NOT NULL)
-ORDER BY t1.idTenant, t1.idSecurityaccount, t1.tsDate;
+BEGIN
+
+DROP TEMPORARY TABLE IF EXISTS holdSecuritySplit;
+
+CREATE TEMPORARY TABLE holdSecuritySplit (tsDate TIMESTAMP NOT NULL)
+
+SELECT t.id_tenant as idTenant, p.id_portfolio AS idPortfolio, t.id_security_account AS idSecurityaccount, t.transaction_time AS tsDate, SUM(IF(t.transaction_type = 4, 1, -1) * t.units) as factorUnits, te.currency AS tenantCurrency, p.currency AS porfolioCurrency, CAST(NULL AS int) AS idTransactionMargin
+
+FROM transaction t JOIN security s ON s.id_securitycurrency = t.id_securitycurrency JOIN tenant te ON te.id_tenant = t.id_tenant
+
+JOIN securitycashaccount sca ON sca.id_securitycash_account = t.id_security_account  JOIN portfolio p ON p.id_portfolio = sca.id_portfolio
+
+WHERE t.transaction_type >= 4 AND t.transaction_type <= 5 
+
+AND  t.id_securitycurrency = idSecurity
+
+GROUP BY idTenant, idSecurityaccount, tsDate
+
+UNION 
+
+SELECT t.id_tenant as idTenant, null AS idPortfolio, t.id_security_account AS idSecurityaccount, ss.split_date AS tsDate, ss.to_factor / ss.from_factor as factorUnits, null AS tenantCurrency, null AS porfolioCurrency, CAST(NULL AS int) AS idTransactionMargin
+
+FROM security s JOIN securitysplit ss ON s.id_securitycurrency = ss.id_securitycurrency JOIN transaction t ON t.id_securitycurrency = s.id_securitycurrency 
+
+WHERE t.transaction_type >= 4 AND t.transaction_type <= 5 
+
+AND t.id_securitycurrency = idSecurity
+
+GROUP BY t.id_tenant, t.id_security_account, ss.split_date;
+
+
+
+SELECT t1.* FROM holdSecuritySplit t1 JOIN (
+
+SELECT t2.idTenant, t2.idSecurityaccount, MAX(IF(t2.idPortfolio IS NULL, t2.tsDate, NULL)) AS maxSplitDate, MIN(IF(t2.idPortfolio IS NULL, NULL, t2.tsDate)) AS minTransDate FROM holdSecuritySplit t2 
+
+GROUP BY t2.idTenant, t2.idSecurityaccount) AS t3 ON t1.idTenant = t3.idTenant
+
+AND t1.idSecurityaccount = t3.idSecurityaccount AND t3.maxSplitDate >= t3.minTransDate AND (t1.tsDate >= t3.minTransDate AND t1.idPortfolio IS NULL || t1.idPortfolio IS NOT NULL)
+
+ORDER BY t1.idTenant, t1.idSecurityaccount, t1.tsDate;
+
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -2744,7 +2843,7 @@ DELIMITER ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `moveCreatedByUserToOtherUser` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -2755,33 +2854,60 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`grafioschtrader`@`localhost` PROCEDURE `moveCreatedByUserToOtherUser`(IN `fromIdUser` INT, IN `toIdUser` INT, IN `schemaName` VARCHAR(32))
     MODIFIES SQL DATA
-BEGIN
-  DECLARE done BOOLEAN DEFAULT FALSE;
-  DECLARE rowChanged INTEGER DEFAULT 0;
-  DECLARE rowsChanged INTEGER DEFAULT 0;
-  DECLARE sqls VARCHAR(2000);
-
-  DECLARE csr CURSOR FOR
-  SELECT CONCAT('UPDATE ',c.table_schema,'.',c.table_name,' SET created_by = ', toIdUser, ' WHERE created_by = ', fromIdUser) 
-    FROM information_schema.columns c
-    WHERE c.column_name = 'created_by' AND c.table_name NOT LIKE 'user%' AND c.table_schema = schemaName;
-  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done := TRUE;
-
-
-  OPEN csr;
-  do_foo: LOOP
-     FETCH csr INTO sqls;
-     IF done THEN
-        LEAVE do_foo;
-     END IF;
-     PREPARE stmt FROM sqls;
-     EXECUTE stmt;
-	 SELECT ROW_COUNT()INTO rowChanged;
-	 SET rowsChanged = rowsChanged + rowChanged;
-     DEALLOCATE PREPARE stmt;
-  END LOOP do_foo;
-  CLOSE csr;
-  SELECT rowsChanged;
+BEGIN
+
+  DECLARE done BOOLEAN DEFAULT FALSE;
+
+  DECLARE rowChanged INTEGER DEFAULT 0;
+
+  DECLARE rowsChanged INTEGER DEFAULT 0;
+
+  DECLARE sqls VARCHAR(2000);
+
+
+
+  DECLARE csr CURSOR FOR
+
+  SELECT CONCAT('UPDATE ',c.table_schema,'.',c.table_name,' SET created_by = ', toIdUser, ' WHERE created_by = ', fromIdUser) 
+
+    FROM information_schema.columns c
+
+    WHERE c.column_name = 'created_by' AND c.table_name NOT LIKE 'user%' AND c.table_schema = schemaName;
+
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done := TRUE;
+
+
+
+
+
+  OPEN csr;
+
+  do_foo: LOOP
+
+     FETCH csr INTO sqls;
+
+     IF done THEN
+
+        LEAVE do_foo;
+
+     END IF;
+
+     PREPARE stmt FROM sqls;
+
+     EXECUTE stmt;
+
+	 SELECT ROW_COUNT()INTO rowChanged;
+
+	 SET rowsChanged = rowsChanged + rowChanged;
+
+     DEALLOCATE PREPARE stmt;
+
+  END LOOP do_foo;
+
+  CLOSE csr;
+
+  SELECT rowsChanged;
+
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -2789,7 +2915,7 @@ DELIMITER ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `updCalendarStockexchangeByIndex` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -2800,29 +2926,52 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`grafioschtrader`@`localhost` PROCEDURE `updCalendarStockexchangeByIndex`()
     NO SQL
-BEGIN
-  DECLARE done BOOLEAN DEFAULT FALSE;
-  DECLARE _idStockexchange INT UNSIGNED;
-  DECLARE _idSecurity INT UNSIGNED;
-  DECLARE cur CURSOR FOR SELECT id_stockexchange, id_index_upd_calendar FROM stockexchange  
-     WHERE (SELECT COUNT(*) FROM historyquote WHERE id_securitycurrency = id_index_upd_calendar) > 4000;
-  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done := TRUE;
-  OPEN cur;
-  testLoop: LOOP
-    FETCH cur INTO _idStockexchange, _idSecurity;
-    IF done THEN
-      LEAVE testLoop;
-    END IF;
-    DELETE FROM trading_days_minus WHERE id_stockexchange = _idStockexchange AND trading_date_minus > 
-      (SELECT IFNULL(MAX(trading_date_minus), "1999-12-31") AS fromDate FROM trading_days_minus WHERE id_stockexchange = _idStockexchange AND create_type = 5);
-    INSERT INTO trading_days_minus (id_stockexchange, trading_date_minus)
-     SELECT _idStockexchange, tsp.trading_date AS trandingDate FROM trading_days_plus tsp LEFT JOIN (SELECT DISTINCT hq.date AS date FROM historyquote hq  WHERE hq.id_securitycurrency = _idSecurity) AS a ON tsp.trading_date = a.date WHERE a.date IS NULL AND  
-     tsp.trading_date > (SELECT IFNULL(MAX(trading_date_minus), "1999-12-31") AS fromDate FROM trading_days_minus WHERE id_stockexchange = _idStockexchange AND create_type = 5)
-     AND tsp.trading_date < CURDATE();
-     UPDATE stockexchange SET max_calendar_upd_date = (SELECT MAX(date) FROM historyquote WHERE id_securitycurrency = _idSecurity);
-  END LOOP testLoop;
-  CLOSE cur;
-
+BEGIN
+
+  DECLARE done BOOLEAN DEFAULT FALSE;
+
+  DECLARE _idStockexchange INT UNSIGNED;
+
+  DECLARE _idSecurity INT UNSIGNED;
+
+  DECLARE cur CURSOR FOR SELECT id_stockexchange, id_index_upd_calendar FROM stockexchange  
+
+     WHERE (SELECT COUNT(*) FROM historyquote WHERE id_securitycurrency = id_index_upd_calendar) > 4000;
+
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done := TRUE;
+
+  OPEN cur;
+
+  testLoop: LOOP
+
+    FETCH cur INTO _idStockexchange, _idSecurity;
+
+    IF done THEN
+
+      LEAVE testLoop;
+
+    END IF;
+
+    DELETE FROM trading_days_minus WHERE id_stockexchange = _idStockexchange AND trading_date_minus > 
+
+      (SELECT IFNULL(MAX(trading_date_minus), "1999-12-31") AS fromDate FROM trading_days_minus WHERE id_stockexchange = _idStockexchange AND create_type = 5);
+
+    INSERT INTO trading_days_minus (id_stockexchange, trading_date_minus)
+
+     SELECT _idStockexchange, tsp.trading_date AS trandingDate FROM trading_days_plus tsp LEFT JOIN (SELECT DISTINCT hq.date AS date FROM historyquote hq  WHERE hq.id_securitycurrency = _idSecurity) AS a ON tsp.trading_date = a.date WHERE a.date IS NULL AND  
+
+     tsp.trading_date > (SELECT IFNULL(MAX(trading_date_minus), "1999-12-31") AS fromDate FROM trading_days_minus WHERE id_stockexchange = _idStockexchange AND create_type = 5)
+
+     AND tsp.trading_date < CURDATE();
+
+     UPDATE stockexchange SET max_calendar_upd_date = (SELECT MAX(date) FROM historyquote WHERE id_securitycurrency = _idSecurity);
+
+  END LOOP testLoop;
+
+  CLOSE cur;
+
+
+
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -2839,4 +2988,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-24 11:41:07
+-- Dump completed on 2026-03-27 10:20:57

@@ -23,7 +23,6 @@ import grafiosch.service.UserService;
 import grafiosch.types.UserRightLimitCounter;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
-import io.github.bucket4j.Refill;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -151,10 +150,10 @@ public class StatelessAuthenticationFilter extends GenericFilterBean {
    * @return a new Bucket configured with minute and hour rate limits
    */
   private Bucket createNewBucket() {
-    Bandwidth limitMinute = Bandwidth.classic(BandwidthConfig.MINUTE_BUCKET_SIZE,
-        Refill.greedy(BandwidthConfig.MINUTE_REFILL, BandwidthConfig.MINUTE_DURATION));
-    Bandwidth limitHour = Bandwidth.classic(BandwidthConfig.HOUR_BUCKET_SIZE,
-        Refill.greedy(BandwidthConfig.HOUR_REFILL, BandwidthConfig.HOUR_DURATION));
+    Bandwidth limitMinute = Bandwidth.builder().capacity(BandwidthConfig.MINUTE_BUCKET_SIZE)
+        .refillGreedy(BandwidthConfig.MINUTE_REFILL, BandwidthConfig.MINUTE_DURATION).build();
+    Bandwidth limitHour = Bandwidth.builder().capacity(BandwidthConfig.HOUR_BUCKET_SIZE)
+        .refillGreedy(BandwidthConfig.HOUR_REFILL, BandwidthConfig.HOUR_DURATION).build();
     return Bucket.builder().addLimit(limitMinute).addLimit(limitHour).build();
 }
 

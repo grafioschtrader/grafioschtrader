@@ -64,7 +64,7 @@ public class FxUbcFeedConnector extends BaseFeedConnector {
   public FxUbcFeedConnector() {
     super(supportedFeed, "fxubc", "Pacific Exchange Rate Service", null, EnumSet.of(UrlCheck.HISTORY));
     supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR);
-    // Bandwidth limit = Bandwidth.classic(1, Refill.intervally(1, Duration.ofSeconds(4)));
+    // Bandwidth limit = Bandwidth.builder().capacity(1).refillIntervally(1, Duration.ofSeconds(4)).build();
     // this.bucket = Bucket.builder().addLimit(limit).build();
   }
 

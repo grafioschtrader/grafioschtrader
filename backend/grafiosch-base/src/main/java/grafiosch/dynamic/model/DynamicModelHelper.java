@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -157,6 +158,10 @@ public abstract class DynamicModelHelper {
    * For Set&lt;Enum&gt; fields, creates a descriptor with DataType.EnumSet and populates
    * the available enum values for multi-select input generation.
    *
+   * <p>Supports both direct enum type parameters ({@code Set<MyEnum>}) and wildcard bounds
+   * ({@code Set<? extends MyInterface>}). For wildcard bounds where the upper bound is an
+   * interface, scans the interface's known implementing classes for an enum implementation.</p>
+   *
    * @param field the Java field to analyze
    * @return a field descriptor with appropriate data type and enum values if applicable
    */
@@ -167,16 +172,59 @@ public abstract class DynamicModelHelper {
       if (genericType instanceof ParameterizedType) {
         ParameterizedType pt = (ParameterizedType) genericType;
         Type[] typeArgs = pt.getActualTypeArguments();
-        if (typeArgs.length == 1 && typeArgs[0] instanceof Class) {
-          Class<?> elementType = (Class<?>) typeArgs[0];
-          if (elementType.isEnum()) {
-            return createEnumSetDescriptor(field.getName(), elementType);
+        if (typeArgs.length == 1) {
+          Class<?> elementType = resolveTypeArgToClass(typeArgs[0]);
+          if (elementType != null) {
+            if (elementType.isEnum()) {
+              return createEnumSetDescriptor(field.getName(), elementType);
+            } else if (elementType.isInterface()) {
+              // Interface bound (e.g., Set<? extends IExchangeKindType>): create EnumSet descriptor
+              // with the interface name as enumType. enumValues must be populated at runtime by the
+              // endpoint that serves this form definition.
+              return createInterfaceSetDescriptor(field.getName(), elementType);
+            }
           }
         }
       }
     }
     // Default: use standard field analysis
     return new FieldDescriptorInputAndShow(field.getName(), field.getType());
+  }
+
+  /**
+   * Resolves a generic type argument to a concrete Class. Handles direct Class references
+   * and WildcardType bounds (e.g., {@code ? extends SomeInterface}).
+   *
+   * @param typeArg the type argument to resolve
+   * @return the resolved Class, or null if it cannot be determined
+   */
+  private static Class<?> resolveTypeArgToClass(Type typeArg) {
+    if (typeArg instanceof Class) {
+      return (Class<?>) typeArg;
+    }
+    if (typeArg instanceof WildcardType) {
+      Type[] upperBounds = ((WildcardType) typeArg).getUpperBounds();
+      if (upperBounds.length == 1 && upperBounds[0] instanceof Class) {
+        return (Class<?>) upperBounds[0];
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Creates a field descriptor for Set fields with an interface element type.
+   * The descriptor uses DataType.EnumSet with the interface name as enumType,
+   * but enumValues is left empty — it must be populated at runtime by the serving endpoint.
+   *
+   * @param fieldName the name of the field
+   * @param interfaceClass the interface type contained in the Set
+   * @return a field descriptor configured for EnumSet with no values yet
+   */
+  private static FieldDescriptorInputAndShow createInterfaceSetDescriptor(String fieldName, Class<?> interfaceClass) {
+    FieldDescriptorInputAndShow fd = new FieldDescriptorInputAndShow(fieldName, DataType.EnumSet, null, null);
+    fd.enumType = interfaceClass.getSimpleName();
+    fd.enumValues = new String[0];
+    return fd;
   }
 
   /**

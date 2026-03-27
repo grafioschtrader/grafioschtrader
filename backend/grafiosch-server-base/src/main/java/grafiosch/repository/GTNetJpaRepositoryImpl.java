@@ -3,6 +3,8 @@ package grafiosch.repository;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -20,7 +22,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -46,11 +47,11 @@ import grafiosch.gtnet.ExchangeKindTypeRegistry;
 import grafiosch.gtnet.GNetCoreMessageCode;
 import grafiosch.gtnet.GTNetMessageCode;
 import grafiosch.gtnet.GTNetMessageCodeRegistry;
-import grafiosch.gtnet.GTNetTimeoutHelper;
 import grafiosch.gtnet.GTNetModelHelper;
 import grafiosch.gtnet.GTNetModelHelper.GTNetMsgRequest;
 import grafiosch.gtnet.GTNetServerOnlineStatusTypes;
 import grafiosch.gtnet.GTNetServerStateTypes;
+import grafiosch.gtnet.GTNetTimeoutHelper;
 import grafiosch.gtnet.IExchangeKindType;
 import grafiosch.gtnet.MessageVisibility;
 import grafiosch.gtnet.SendReceivedType;
@@ -159,12 +160,17 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
         SendReceivedType.SEND.getValue(), GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_ALL_C.getValue(),
         GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C.getValue());
 
+    // Check for open maintenance message
+    Integer idOpenMaintenanceMessage = gtNetMessageJpaRepository.findOpenMaintenanceMessage(
+        SendReceivedType.SEND.getValue(), GNetCoreMessageCode.GT_NET_MAINTENANCE_ALL_C.getValue(),
+        GNetCoreMessageCode.GT_NET_MAINTENANCE_CANCEL_ALL_C.getValue());
+
     List<ExchangeKindTypeInfo> exchangeKindTypes = exchangeKindTypeRegistry.getAllKinds().stream()
         .map(ExchangeKindTypeInfo::new).collect(Collectors.toList());
 
     return new GTNetWithMessages(gtNetJpaRepository.findAll(), gtNetMessageCountMap, outgoingPendingReplies,
         incomingPendingReplies, globalparametersJpaRepository.getGTNetMyEntryID(), idOpenDiscontinuedMessage,
-        exchangeKindTypes);
+        idOpenMaintenanceMessage, exchangeKindTypes);
   }
 
   @Override
@@ -198,9 +204,6 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
 
     Integer myInstanceEntry = globalparametersJpaRepository.getGTNetMyEntryID();
-
-    Optional<GTNet> myGTNetEntryOpt = myInstanceEntry != null ? gtNetJpaRepository.findById(myInstanceEntry)
-        : Optional.empty();
     // Validate remote URL is reachable
 
     if (gtNetJpaRepository.count() == 0) {
@@ -1017,18 +1020,33 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
         Object convertedValue;
 
         if (Set.class.isAssignableFrom(field.getType())) {
-          // Handle Set<Enum> - convert comma-separated string to EnumSet
+          // Handle Set<Enum> or Set<? extends Interface> - convert comma-separated string
           ParameterizedType paramType = (ParameterizedType) field.getGenericType();
-          Class<?> enumClass = (Class<?>) paramType.getActualTypeArguments()[0];
-          if (enumClass.isEnum()) {
-            Set enumSet = EnumSet.noneOf((Class<Enum>) enumClass);
+          Type typeArg = paramType.getActualTypeArguments()[0];
+          Class<?> elementClass = resolveTypeArg(typeArg);
+          if (elementClass != null && elementClass.isEnum()) {
+            Set enumSet = EnumSet.noneOf((Class<Enum>) elementClass);
             for (String enumName : value.split(",")) {
               String trimmed = enumName.trim();
               if (!trimmed.isEmpty()) {
-                enumSet.add(Enum.valueOf((Class<Enum>) enumClass, trimmed));
+                enumSet.add(Enum.valueOf((Class<Enum>) elementClass, trimmed));
               }
             }
             convertedValue = enumSet;
+          } else if (elementClass != null && elementClass.isInterface()
+              && IExchangeKindType.class.isAssignableFrom(elementClass)) {
+            // Interface bound (e.g., Set<? extends IExchangeKindType>) - resolve via registry
+            Set<IExchangeKindType> kindSet = new java.util.LinkedHashSet<>();
+            for (String enumName : value.split(",")) {
+              String trimmed = enumName.trim();
+              if (!trimmed.isEmpty()) {
+                IExchangeKindType kind = exchangeKindTypeRegistry.getByName(trimmed);
+                if (kind != null) {
+                  kindSet.add(kind);
+                }
+              }
+            }
+            convertedValue = kindSet;
           } else {
             continue;
           }
@@ -1057,6 +1075,22 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       throw new IllegalArgumentException("Failed to convert map to " + clazz.getSimpleName() + ": " + e.getMessage(),
           e);
     }
+  }
+
+  /**
+   * Resolves a generic type argument to a concrete Class, handling WildcardType bounds.
+   */
+  private Class<?> resolveTypeArg(Type typeArg) {
+    if (typeArg instanceof Class) {
+      return (Class<?>) typeArg;
+    }
+    if (typeArg instanceof WildcardType) {
+      Type[] upperBounds = ((WildcardType) typeArg).getUpperBounds();
+      if (upperBounds.length == 1 && upperBounds[0] instanceof Class) {
+        return (Class<?>) upperBounds[0];
+      }
+    }
+    return null;
   }
 
   /**
@@ -1466,6 +1500,25 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     }
 
     return this.getAllGTNetsWithMessages();
+  }
+
+  @Override
+  @Transactional
+  public void deleteGTNet(Integer idGtNet) {
+    Integer myEntryId = globalparametersJpaRepository.getGTNetMyEntryID();
+    if (idGtNet.equals(myEntryId)) {
+      throw new DataViolationException("gt.net", "gt.gtnet.cannot.delete.own.entry", null);
+    }
+    boolean hasPending = gtNetMessageJpaRepository
+        .findUnansweredRequests(SendReceivedType.SEND.getValue(), RR_MESSAGE_CODES).stream()
+        .anyMatch(row -> ((Number) row[0]).intValue() == idGtNet)
+        || gtNetMessageJpaRepository
+            .findUnansweredRequests(SendReceivedType.RECEIVED.getValue(), RR_MESSAGE_CODES).stream()
+            .anyMatch(row -> ((Number) row[0]).intValue() == idGtNet);
+    if (hasPending) {
+      throw new DataViolationException("gt.net", "gt.gtnet.pending.messages.exist", null);
+    }
+    gtNetJpaRepository.deleteById(idGtNet);
   }
 
 }

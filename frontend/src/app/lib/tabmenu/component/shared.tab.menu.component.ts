@@ -36,6 +36,21 @@ import {TabsModule} from 'primeng/tabs';
       <ng-content></ng-content>
     </div>
   `,
+  styles: [`
+    :host {
+      display: block;
+      height: 100%;
+    }
+    .card {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .card ::ng-deep > router-outlet + * {
+      flex: 1;
+      min-height: 0;
+    }
+  `],
   standalone: true,
   imports: [TabsModule, TranslateModule],
   providers: [TabMenuService]

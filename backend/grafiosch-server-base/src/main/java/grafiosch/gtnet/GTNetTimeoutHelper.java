@@ -1,6 +1,5 @@
 package grafiosch.gtnet;
 
-import grafiosch.GlobalParamKeyBaseDefault;
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfig;
 import grafiosch.repository.GlobalparametersJpaRepository;

@@ -85,6 +85,8 @@ export interface GTNetConfig {
    * Incremented when the remote sends a request that exceeds the configured max_limit.
    */
   requestViolationCount?: number;
+  /** Whether the remote is allowed to receive our server list. Set via GT_NET_UPDATE_SERVERLIST_ACCEPT_S. */
+  serverlistAccessGranted?: boolean;
   /** Timestamp of the last successful supplier detail update from the exchange sync job. */
   supplierLastUpdate?: string;
   /** TCP connection timeout in seconds for this peer (5-40). Null = use global default. */
@@ -144,6 +146,11 @@ export interface GTNetWithMessages {
    * Only one such message can be open at a time per instance.
    */
   idOpenDiscontinuedMessage: number;
+  /**
+   * ID of an open GT_NET_MAINTENANCE_ALL_C message if one exists.
+   * An open maintenance message has toDateTime in the future and has not been cancelled.
+   */
+  idOpenMaintenanceMessage: number;
   /** Metadata about all registered exchange kind types from the backend. */
   exchangeKindTypes: ExchangeKindTypeInfo[];
 }

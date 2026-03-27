@@ -325,7 +325,6 @@ public class SecurityResource extends UpdateCreateResource<Security> {
   @GetMapping(value = "/gtnetexchange", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<GTSecuritiyCurrencyExchange<Security>> getSecuritiesWithGTNetExchange(
       @RequestParam(defaultValue = "true") boolean activeOnly) {
-    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     List<Security> securities;
     if (activeOnly) {
       securities = securityJpaRepository.findByActiveToDateAfterAndIsinIsNotNull(LocalDate.now());

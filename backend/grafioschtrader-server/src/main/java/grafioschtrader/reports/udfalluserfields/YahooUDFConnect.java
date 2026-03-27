@@ -37,7 +37,6 @@ import grafioschtrader.repository.MicProviderMapRepository;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
-import io.github.bucket4j.Refill;
 
 /**
  * Utility class for connecting to Yahoo Finance to retrieve financial data for user-defined fields. This class provides
@@ -83,7 +82,7 @@ public class YahooUDFConnect extends AbstractYahooFinanceConnector {
     super(10); // 10 seconds connection timeout
 
     // Initialize rate limiting
-    Bandwidth limit = Bandwidth.classic(2, Refill.intervally(1, Duration.ofSeconds(2)));
+    Bandwidth limit = Bandwidth.builder().capacity(2).refillIntervally(1, Duration.ofSeconds(2)).build();
     this.bucket = Bucket.builder().addLimit(limit).build();
   }
 

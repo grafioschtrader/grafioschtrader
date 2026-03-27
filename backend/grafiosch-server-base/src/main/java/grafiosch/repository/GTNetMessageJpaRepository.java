@@ -70,6 +70,24 @@ public interface GTNetMessageJpaRepository extends GTNetMessageJpaRepositoryBase
   Integer findOpenDiscontinuedMessage(byte sendMessageCode, byte discontinuedCode, byte cancelCode);
 
   /**
+   * Finds an open GT_NET_MAINTENANCE_ALL_C message if one exists.
+   * An 'open' message is one that:
+   * - Was sent by this instance (send_recv = 0)
+   * - Has message_code = 24 (GT_NET_MAINTENANCE_ALL_C)
+   * - Has toDateTime in the future
+   * - Has not been cancelled (no message with message_code = 26 and id_original_message pointing to it)
+   *
+   * Named query: GTNetMessage.findOpenMaintenanceMessage
+   *
+   * @param sendMessageCode the SEND direction value (0)
+   * @param maintenanceCode the GT_NET_MAINTENANCE_ALL_C value (24)
+   * @param cancelCode      the GT_NET_MAINTENANCE_CANCEL_ALL_C value (26)
+   * @return the ID of the open maintenance message, or null if none exists
+   */
+  @Query(name = "GTNetMessage.findOpenMaintenanceMessage", nativeQuery = true)
+  Integer findOpenMaintenanceMessage(byte sendMessageCode, byte maintenanceCode, byte cancelCode);
+
+  /**
    * Counts messages grouped by idGtNet for lazy loading support.
    * Returns list of Object[] where [0] = idGtNet (Integer), [1] = count (Long).
    *

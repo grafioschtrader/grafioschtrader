@@ -1,5 +1,6 @@
 import {ClassDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
 import {BaseParam} from '../../entities/base.param';
+import {AcceptRequestTypes, ExchangeKindTypeInfo, GTNet} from './gtnet';
 
 export class GTNetMessage {
   idGtNetMessage: number;
@@ -53,6 +54,15 @@ export class MsgCallParam {
    * When set, the edit dialog will use submitMsgToMultiple() instead of submitMsg().
    */
   public targetIds: number[] = null;
+
+  /** The target GTNet object when a specific remote peer is selected. Null for broadcast mode. */
+  public targetGtNet: GTNet = null;
+
+  /** ID of an open maintenance message, if one exists. */
+  public idOpenMaintenanceMessage: number = null;
+
+  /** Metadata about all registered exchange kind types from the backend. */
+  public exchangeKindTypes: ExchangeKindTypeInfo[] = [];
 
   constructor(public formDefinitions: { [type: string]: ClassDescriptorInputAndShow }, public idGTNet: number,
               public replyTo: number, public gtNetMessage: GTNetMessage, public isAllMessage: boolean = false,
@@ -185,4 +195,96 @@ export function shouldShowWaitDaysApply(messageCode: GTNetMessageCodeType | stri
     ? GTNetMessageCodeType[messageCode as keyof typeof GTNetMessageCodeType]
     : messageCode;
   return !HIDE_WAIT_DAYS_APPLY_CODES.has(codeValue);
+}
+
+/**
+ * Returns the list of message codes available for the user to select, based on current state.
+ * Replaces the old suffix-based filtering with state-aware rules.
+ */
+export function getAvailableMessageCodes(params: MsgCallParam): GTNetMessageCodeType[] {
+  if (params.isAllMessage) {
+    return getBroadcastCodes(params);
+  }
+  return getRemotePeerCodes(params);
+}
+
+/** Returns broadcast codes (own server status announcements). */
+function getBroadcastCodes(params: MsgCallParam): GTNetMessageCodeType[] {
+  const codes: GTNetMessageCodeType[] = [];
+  codes.push(GTNetMessageCodeType.GT_NET_OFFLINE_ALL_C);
+  if (params.idOpenMaintenanceMessage == null) {
+    codes.push(GTNetMessageCodeType.GT_NET_MAINTENANCE_ALL_C);
+  }
+  if (params.idOpenDiscontinuedMessage == null) {
+    codes.push(GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_ALL_C);
+  }
+  return codes;
+}
+
+/** Returns single-target codes for a remote peer based on relationship state. */
+function getRemotePeerCodes(params: MsgCallParam): GTNetMessageCodeType[] {
+  const codes: GTNetMessageCodeType[] = [];
+  const target = params.targetGtNet;
+  if (!target) {
+    return codes;
+  }
+
+  // Always available for remote peers
+  codes.push(GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_SEL_RR_C);
+
+  // Revoke serverlist: only if previously granted
+  if (target.gtNetConfig?.serverlistAccessGranted) {
+    codes.push(GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_REVOKE_SEL_C);
+  }
+
+  // Admin message: only if not excluded
+  if (!params.excludeAdminMessages) {
+    codes.push(GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_SEL_C);
+  }
+
+  // Data request: only if target has requestable kinds
+  if (hasRequestableKinds(target)) {
+    codes.push(GTNetMessageCodeType.GT_NET_DATA_REQUEST_SEL_RR_C);
+  }
+
+  // Data revoke: only if at least one kind has active exchange
+  if (hasActiveExchange(target)) {
+    codes.push(GTNetMessageCodeType.GT_NET_DATA_REVOKE_SEL_C);
+  }
+
+  return codes;
+}
+
+/**
+ * Returns requestable kind names for filtering the entityKinds MultiSelect.
+ * A kind is requestable when the target accepts requests for it AND exchange is not yet active.
+ * Maps entity kind values to their ExchangeKindTypeInfo names.
+ */
+export function getRequestableKindNames(target: GTNet, exchangeKindTypes: ExchangeKindTypeInfo[]): string[] {
+  return target.gtNetEntities
+    ?.filter(entity => isAccepting(entity) && !isExchangeActive(entity))
+    .map(entity => {
+      const kindValue = typeof entity.entityKind === 'number' ? entity.entityKind : Number(entity.entityKind);
+      return exchangeKindTypes.find(k => k.value === kindValue)?.name;
+    })
+    .filter((name): name is string => name != null) ?? [];
+}
+
+function hasRequestableKinds(target: GTNet): boolean {
+  return target.gtNetEntities?.some(entity => isAccepting(entity) && !isExchangeActive(entity)) ?? false;
+}
+
+function isAccepting(entity: {acceptRequest: AcceptRequestTypes | string}): boolean {
+  const ar = typeof entity.acceptRequest === 'string'
+    ? AcceptRequestTypes[entity.acceptRequest as keyof typeof AcceptRequestTypes]
+    : entity.acceptRequest;
+  return ar === AcceptRequestTypes.AC_OPEN || ar === AcceptRequestTypes.AC_PUSH_OPEN;
+}
+
+function isExchangeActive(entity: {gtNetConfigEntity?: {exchange: boolean}}): boolean {
+  return entity.gtNetConfigEntity?.exchange === true;
+}
+
+function hasActiveExchange(target: GTNet): boolean {
+  return target.gtNetEntities?.some(entity => isExchangeActive(entity)) ?? false;
 }

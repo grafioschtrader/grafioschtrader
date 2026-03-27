@@ -7,9 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import grafioschtrader.entities.Securitycurrency;
@@ -30,24 +28,20 @@ public class SecurityServiceAsyncExectuion<S extends Securitycurrency<S>, U exte
       final S securitycurrency, final boolean withDeletion, final short maxIntraRetry,
       final int scIntradayUpdateTimeout) {
     final TransactionTemplate transactionTemplate = new TransactionTemplate(platformTransactionManager);
-    transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+    transactionTemplate.executeWithoutResult(transactionStatus -> {
+      try {
+        S sc = securitycurrency;
 
-      @Override
-      protected void doInTransactionWithoutResult(final TransactionStatus transactionStatus) {
-        try {
-          S sc = securitycurrency;
-
-          if (sc.getIdSecuritycurrency() != null && withDeletion) {
-            securitycurrencyService.historyquoteJpaRepository.removeAllSecurityHistoryquote(sc.getIdSecuritycurrency());
-            sc = securitycurrencyService.getJpaRepository().getReferenceById(sc.getIdSecuritycurrency());
-          }
-          sc = securitycurrencyService.updateLastPriceSecurityCurrency(sc, maxIntraRetry, scIntradayUpdateTimeout);
-          sc = securitycurrencyService.createWithHistoryQuote(sc);
-          sc = securitycurrencyService.afterFullLoad(sc);
-        } catch (final Exception ex) {
-          log.error(ex.getMessage(), ex);
-          transactionStatus.setRollbackOnly();
+        if (sc.getIdSecuritycurrency() != null && withDeletion) {
+          securitycurrencyService.historyquoteJpaRepository.removeAllSecurityHistoryquote(sc.getIdSecuritycurrency());
+          sc = securitycurrencyService.getJpaRepository().getReferenceById(sc.getIdSecuritycurrency());
         }
+        sc = securitycurrencyService.updateLastPriceSecurityCurrency(sc, maxIntraRetry, scIntradayUpdateTimeout);
+        sc = securitycurrencyService.createWithHistoryQuote(sc);
+        sc = securitycurrencyService.afterFullLoad(sc);
+      } catch (final Exception ex) {
+        log.error(ex.getMessage(), ex);
+        transactionStatus.setRollbackOnly();
       }
     });
   }

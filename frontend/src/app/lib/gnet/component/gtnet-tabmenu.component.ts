@@ -16,6 +16,7 @@ import {BaseSettings} from '../../base.settings';
     SharedTabMenuComponent,
     RouterModule
   ],
+  styles: [':host { display: block; height: 100%; }'],
   template: `
     <app-shared-tab-menu
       [tabs]="tabs"

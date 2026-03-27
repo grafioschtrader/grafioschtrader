@@ -18,10 +18,13 @@ import org.springframework.web.bind.annotation.RestController;
 import grafiosch.BaseConstants;
 import grafiosch.common.UserAccessHelper;
 import grafiosch.dynamic.model.ClassDescriptorInputAndShow;
+import grafiosch.dynamic.model.FieldDescriptorInputAndShow;
 import grafiosch.entities.GTNetMessage;
 import grafiosch.entities.User;
+import grafiosch.gtnet.ExchangeKindTypeRegistry;
 import grafiosch.gtnet.GTNetMessageCode;
 import grafiosch.gtnet.GTNetModelHelper;
+import grafiosch.gtnet.IExchangeKindType;
 import grafiosch.gtnet.MessageVisibility;
 import grafiosch.repository.GTNetMessageJpaRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,11 +39,34 @@ public class GTNetMessageResource extends UpdateCreateDeleteAudit<GTNetMessage> 
   @Autowired
   private GTNetMessageJpaRepository gtNetMessageJpaRepository;
 
+  @Autowired
+  private ExchangeKindTypeRegistry exchangeKindTypeRegistry;
+
   @Operation(summary = "Returns all form defintion of messages", description = "", tags = {
       RequestMappings.GTNET_MESSAGE })
   @GetMapping(value = "/msgformdefinition", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Map<GTNetMessageCode, ClassDescriptorInputAndShow>> getAllFormDefinitions() {
-    return new ResponseEntity<>(GTNetModelHelper.getAllFormDefinitionsWithClass(), HttpStatus.OK);
+    Map<GTNetMessageCode, ClassDescriptorInputAndShow> formDefs = GTNetModelHelper.getAllFormDefinitionsWithClass();
+    populateExchangeKindEnumValues(formDefs);
+    return new ResponseEntity<>(formDefs, HttpStatus.OK);
+  }
+
+  /**
+   * Populates enumValues for fields with interface-based EnumSet types (e.g., entityKinds).
+   * DynamicModelHelper creates EnumSet descriptors with empty enumValues for interface bounds;
+   * this method fills them with the actual registered exchange kind names.
+   */
+  private void populateExchangeKindEnumValues(Map<GTNetMessageCode, ClassDescriptorInputAndShow> formDefs) {
+    String interfaceName = IExchangeKindType.class.getSimpleName();
+    for (ClassDescriptorInputAndShow cdias : formDefs.values()) {
+      for (FieldDescriptorInputAndShow fdias : cdias.fieldDescriptorInputAndShows) {
+        if (interfaceName.equals(fdias.enumType) && (fdias.enumValues == null || fdias.enumValues.length == 0)) {
+          fdias.enumValues = exchangeKindTypeRegistry.getAllKinds().stream()
+              .map(IExchangeKindType::name)
+              .toArray(String[]::new);
+        }
+      }
+    }
   }
 
   @Operation(summary = "Marks a message as read", description = "Sets the hasBeenRead flag to true for the specified message", tags = {

@@ -199,7 +199,8 @@
       "mcp__primeng__get_component_styles",
       "Bash(git push:*)",
       "Bash(gh release:*)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(C:/xampp/mysql/bin/mysqldump.exe --version)"
     ],
     "deny": [],
     "ask": []

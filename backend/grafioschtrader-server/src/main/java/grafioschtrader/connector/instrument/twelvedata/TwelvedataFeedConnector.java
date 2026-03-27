@@ -35,7 +35,6 @@ import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.types.SubscriptionType;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
-import io.github.bucket4j.Refill;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
@@ -72,7 +71,7 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
     super(supportedFeed, "twelvedata", "Twelve Data", null, EnumSet.of(UrlCheck.INTRADAY, UrlCheck.HISTORY));
     supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR, AssetclassCategory.CRYPTOCURRENCY,
         AssetclassCategory.NON_INVESTABLE_INDICES, AssetclassCategory.EQUITIES, AssetclassCategory.ETF);
-    Bandwidth limit = Bandwidth.classic(4, Refill.intervally(4, Duration.ofMinutes(1)));
+    Bandwidth limit = Bandwidth.builder().capacity(4).refillIntervally(4, Duration.ofMinutes(1)).build();
     this.bucket = Bucket.builder().addLimit(limit).build();
   }
 

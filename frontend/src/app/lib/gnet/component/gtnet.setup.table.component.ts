@@ -141,6 +141,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   outgoingPendingReplies: { [key: number]: number[] };
   incomingPendingReplies: { [key: number]: number[] };
   idOpenDiscontinuedMessage: number;
+  idOpenMaintenanceMessage: number;
   exchangeKindTypes: ExchangeKindTypeInfo[] = [];
   private dynamicKindFields: ColumnConfig[] = [];
   formDefinitions: { [type: string]: ClassDescriptorInputAndShow };
@@ -162,7 +163,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
 
     super(BaseSettings.GT_NET, gtNetService, confirmationService, messageToastService, activePanelService,
       dialogService, filterService, translateService, gps, usersettingsService, injector,
-      gps.hasRole(BaseSettings.ROLE_ADMIN) ? [CrudMenuOptions.Allow_Create, CrudMenuOptions.Allow_Edit] : []);
+      gps.hasRole(BaseSettings.ROLE_ADMIN) ? [CrudMenuOptions.Allow_Create, CrudMenuOptions.Allow_Edit, CrudMenuOptions.Allow_Delete] : []);
 
     this.addColumnFeqH(DataType.String, this.domainRemoteName, true, false,
       {width: 200, templateName: 'owner'});
@@ -209,6 +210,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       this.mapGTNetEntityToGTNet();
       this.gtNetMyEntryId = response.gtNetMyEntryId;
       this.idOpenDiscontinuedMessage = response.idOpenDiscontinuedMessage;
+      this.idOpenMaintenanceMessage = response.idOpenMaintenanceMessage;
       this.createTranslatedValueStoreAndFilterField(this.gtNetList);
       this.gtNetMessageCountMap = response.gtNetMessageCountMap || {};
       // Clear message cache on data refresh
@@ -287,14 +289,15 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
 
   /**
    * Checks if sending a message is possible:
-   * - With selection: target must not be my own entry
-   * - Without selection: at least one authorized remote entry must exist (for ALL messages)
+   * - Own entry selected or no selection: broadcast mode (own status announcements)
+   * - Remote peer selected: single-target mode
    */
   private canSendMessage(): boolean {
-    if (this.selectedEntity) {
-      return this.selectedEntity.idGtNet !== this.gtNetMyEntryId;
+    if (!this.selectedEntity) {
+      return true;
     }
-    return this.hasAuthorizedRemoteEntry();
+    // Both own entry (broadcast) and remote peers (single-target) can receive messages
+    return true;
   }
 
   /**
@@ -311,12 +314,17 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   }
 
   private sendMsg(): void {
-    const isAllMessage = !this.selectedEntity;
+    // Broadcast mode: no selection OR own peer selected (broadcast codes describe own server status)
+    const isAllMessage = !this.selectedEntity || this.selectedEntity.idGtNet === this.gtNetMyEntryId;
     const idGTNet = this.selectedEntity?.idGtNet ?? null;
     this.msgCallParam = new MsgCallParam(this.formDefinitions, idGTNet, null, null, isAllMessage, null,
       this.idOpenDiscontinuedMessage);
     // Exclude admin messages - they should only be sent from GTNetAdminMessagesComponent
     this.msgCallParam.excludeAdminMessages = true;
+    // Pass target peer and context for state-aware filtering
+    this.msgCallParam.targetGtNet = isAllMessage ? null : this.selectedEntity;
+    this.msgCallParam.idOpenMaintenanceMessage = this.idOpenMaintenanceMessage;
+    this.msgCallParam.exchangeKindTypes = this.exchangeKindTypes;
     this.visibleDialogMsg = true;
   }
 
@@ -395,6 +403,10 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
 
   protected override hasRightsForUpdateEntity(row: GTNet): boolean {
     return this.isMyEntry(row, null);
+  }
+
+  protected override hasRightsForDeleteEntity(row: GTNet): boolean {
+    return row && row.idGtNet !== this.gtNetMyEntryId;
   }
 
   /** Returns connection timeout from nested gtNetConfig, or null if not set */

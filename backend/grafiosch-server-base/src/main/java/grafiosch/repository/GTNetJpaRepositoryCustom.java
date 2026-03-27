@@ -144,4 +144,14 @@ public interface GTNetJpaRepositoryCustom extends BaseRepositoryCustom<GTNet> {
    * @return updated GTNetWithMessages for UI refresh
    */
   GTNetWithMessages submitMsgToMultiple(MultiTargetMsgRequest multiTargetMsgRequest);
+
+  /**
+   * Deletes a GTNet server entry and all its dependent data via cascade.
+   *
+   * Validates that the entry is not the local server's own entry and that there are no pending
+   * request-response messages with this server before performing the deletion.
+   *
+   * @param idGtNet the ID of the GTNet entry to delete
+   */
+  void deleteGTNet(Integer idGtNet);
 }
