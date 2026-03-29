@@ -1602,17 +1602,29 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   }
 
   @Override
-  public String exportGTNetConfig(String exportHeader, String[] tablesDeleteOrder) {
+  public String exportGTNetConfig(String exportHeader, String[] deleteOnlyTables, String[] exportAndDeleteTables) {
     StringBuilder sql = new StringBuilder();
     sql.append(exportHeader).append("\n");
-    sql.append("SET FOREIGN_KEY_CHECKS=0;\n");
-    for (String table : tablesDeleteOrder) {
+    // Break self-referencing FK (reply_to -> id_gt_net_message) before deleting
+    sql.append("UPDATE `").append(GTNetMessage.TABNAME)
+        .append("` SET `reply_to` = NULL WHERE `reply_to` IS NOT NULL;\n");
+    // Delete from delete-only tables first (children of exported tables)
+    for (String table : deleteOnlyTables) {
       sql.append(MySqlInsertStatementGenerator.generateDeleteStatement(table));
     }
-    for (int i = tablesDeleteOrder.length - 1; i >= 0; i--) {
-      sql.append(MySqlInsertStatementGenerator.generateInsertStatements(jdbcTemplate, tablesDeleteOrder[i]));
+    // Delete from exported tables (children first)
+    for (String table : exportAndDeleteTables) {
+      sql.append(MySqlInsertStatementGenerator.generateDeleteStatement(table));
     }
-    sql.append("SET FOREIGN_KEY_CHECKS=1;\n");
+    // Insert in parent-first order; gt_net_message uses ordered insert (NULL reply_to first, then referencing rows)
+    for (int i = exportAndDeleteTables.length - 1; i >= 0; i--) {
+      String table = exportAndDeleteTables[i];
+      if (GTNetMessage.TABNAME.equals(table)) {
+        sql.append(MySqlInsertStatementGenerator.generateInsertStatementsWithSelfRef(jdbcTemplate, table, "reply_to"));
+      } else {
+        sql.append(MySqlInsertStatementGenerator.generateInsertStatements(jdbcTemplate, table));
+      }
+    }
     return sql.toString();
   }
 
@@ -1636,16 +1648,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
   private void validateImportStatement(String statement) {
     String upper = statement.toUpperCase().strip();
-    if (upper.startsWith("SET FOREIGN_KEY_CHECKS")) {
-      return;
-    }
-    if (upper.startsWith("DELETE FROM")) {
-      if (!statement.contains("gt_net")) {
-        throw new DataViolationException("gt.net", "gt.gtnet.import.invalid.statement", null);
-      }
-      return;
-    }
-    if (upper.startsWith("INSERT INTO")) {
+    if (upper.startsWith("DELETE FROM") || upper.startsWith("INSERT INTO") || upper.startsWith("UPDATE")) {
       if (!statement.contains("gt_net")) {
         throw new DataViolationException("gt.net", "gt.gtnet.import.invalid.statement", null);
       }

@@ -527,7 +527,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
         return this.gtNetService.importGTNetData(formData);
       }
     };
-    this.fileUploadParam = new FileUploadParam(HelpIds.HELP_GT_NET, null, '.sql', 'GT_NET_IMPORT', false, uploadService, 0);
+    this.fileUploadParam = new FileUploadParam(HelpIds.HELP_GT_NET, null, 'sql', 'GT_NET_IMPORT', false, uploadService, 0);
     this.visibleUploadDialog = true;
   }
 

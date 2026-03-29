@@ -117,6 +117,45 @@ public class MySqlInsertStatementGenerator {
   }
 
   /**
+   * Generates SQL INSERT statements for a table with a self-referencing foreign key. Rows where the self-referencing
+   * column is NULL are inserted first, followed by rows that reference other rows in the same table. This avoids FK
+   * violations without disabling constraint checks.
+   *
+   * @param jdbcTemplate     the JDBC template for querying the database
+   * @param tableName        the name of the table to export
+   * @param selfRefColumn    the self-referencing FK column name (e.g., "reply_to")
+   * @return a StringBuilder containing the ordered INSERT statements
+   */
+  public static StringBuilder generateInsertStatementsWithSelfRef(JdbcTemplate jdbcTemplate, String tableName,
+      String selfRefColumn) {
+    StringBuilder sqlStatement = new StringBuilder();
+    String baseQuery = "SELECT * FROM " + tableName;
+    String queryNoRef = baseQuery + " WHERE `" + selfRefColumn + "` IS NULL";
+    String queryWithRef = baseQuery + " WHERE `" + selfRefColumn + "` IS NOT NULL";
+
+    ResultSetMetaData metaData = null;
+    List<Map<String, Object>> rowsNoRef = jdbcTemplate.queryForList(queryNoRef);
+    List<Map<String, Object>> rowsWithRef = jdbcTemplate.queryForList(queryWithRef);
+
+    if (rowsNoRef.isEmpty() && rowsWithRef.isEmpty()) {
+      return sqlStatement;
+    }
+    metaData = jdbcTemplate.query(baseQuery + " LIMIT 1", (resultSet, rowNum) -> resultSet.getMetaData()).get(0);
+
+    try {
+      if (!rowsNoRef.isEmpty()) {
+        sqlStatement.append(createInsertStatements(tableName, metaData, rowsNoRef));
+      }
+      if (!rowsWithRef.isEmpty()) {
+        sqlStatement.append(createInsertStatements(tableName, metaData, rowsWithRef));
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Failed to generate INSERT statements for table " + tableName, e);
+    }
+    return sqlStatement;
+  }
+
+  /**
    * Creates the "INSERT INTO `table_name` (`col1`, `col2`, ...) VALUES " prefix of an SQL INSERT statement.
    */
   private static StringBuilder appendInsertToString(String tableName, ResultSetMetaData metaData) throws SQLException {

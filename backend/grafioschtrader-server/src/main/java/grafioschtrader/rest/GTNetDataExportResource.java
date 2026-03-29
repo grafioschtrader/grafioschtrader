@@ -48,15 +48,15 @@ public class GTNetDataExportResource {
 
   private static final String EXPORT_HEADER = "-- GTNET_EXPORT_V1";
 
-  /** App-specific GTNet tables in delete order (children first). */
-  private static final String[] GTNET_APP_TABLES_DELETE_ORDER = { GTNetSecurityImpGap.TABNAME,
-      GTNetSecurityImpPos.TABNAME, GTNetSecurityImpHead.TABNAME, GTNetHistoryquote.TABNAME, GTNetLastprice.TABNAME,
+  /** Tables that are deleted during import but not exported (data is rebuilt by background jobs). */
+  private static final String[] DELETE_ONLY_TABLES = { GTNetSecurityImpGap.TABNAME, GTNetSecurityImpPos.TABNAME,
+      GTNetSecurityImpHead.TABNAME, GTNetHistoryquote.TABNAME, GTNetLastprice.TABNAME,
       GTNetInstrumentSecurity.TABNAME, GTNetInstrumentCurrencypair.TABNAME, GTNetInstrument.TABNAME,
-      GTNetSupplierDetailHist.TABNAME, GTNetSupplierDetailLast.TABNAME, GTNetExchangeLog.TABNAME };
+      GTNetSupplierDetailHist.TABNAME, GTNetSupplierDetailLast.TABNAME };
 
-  /** Combined table list: app tables first (children), then base tables (parents). */
-  private static final String[] ALL_TABLES_DELETE_ORDER = Stream
-      .concat(Stream.of(GTNET_APP_TABLES_DELETE_ORDER), Stream.of(GTNetJpaRepositoryImpl.GTNET_BASE_TABLES_DELETE_ORDER))
+  /** App tables that are exported and deleted. Combined with base tables for the full export+delete list. */
+  private static final String[] EXPORT_AND_DELETE_TABLES = Stream
+      .concat(Stream.of(GTNetExchangeLog.TABNAME), Stream.of(GTNetJpaRepositoryImpl.GTNET_BASE_TABLES_DELETE_ORDER))
       .toArray(String[]::new);
 
   private static final int POST_IMPORT_DELAY_MINUTES = 5;
@@ -72,7 +72,7 @@ public class GTNetDataExportResource {
   @PreAuthorize("hasRole('ADMIN')")
   @GetMapping(value = "/export", produces = MediaType.TEXT_PLAIN_VALUE)
   public ResponseEntity<String> exportGTNetData() {
-    String sql = gtNetJpaRepository.exportGTNetConfig(EXPORT_HEADER, ALL_TABLES_DELETE_ORDER);
+    String sql = gtNetJpaRepository.exportGTNetConfig(EXPORT_HEADER, DELETE_ONLY_TABLES, EXPORT_AND_DELETE_TABLES);
     HttpHeaders headers = new HttpHeaders();
     headers.setContentDisposition(
         org.springframework.http.ContentDisposition.attachment().filename("gtnet_export.sql").build());

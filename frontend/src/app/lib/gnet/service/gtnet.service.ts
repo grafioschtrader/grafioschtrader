@@ -88,8 +88,10 @@ export class GTNetService extends AuthServiceWithLogout<GTNet> implements Servic
   }
 
   importGTNetData(formData: FormData): Observable<any> {
+    const options: any = this.getMultipartHeaders();
+    options.responseType = 'text';
     return this.httpClient.post(
       `${BaseSettings.API_ENDPOINT}gtnetdataexport/import`,
-      formData, this.getMultipartHeaders()).pipe(catchError(this.handleError.bind(this)));
+      formData, options).pipe(catchError(this.handleError.bind(this)));
   }
 }
