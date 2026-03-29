@@ -154,4 +154,23 @@ public interface GTNetJpaRepositoryCustom extends BaseRepositoryCustom<GTNet> {
    * @param idGtNet the ID of the GTNet entry to delete
    */
   void deleteGTNet(Integer idGtNet);
+
+  /**
+   * Exports GTNet configuration tables as SQL statements (DELETE + INSERT). The tables to export and their order are
+   * specified by the caller, making this method reusable for both base and app table sets.
+   *
+   * @param exportHeader      header comment line for identifying the export type (e.g., "-- GTNET_EXPORT_V1_BASE")
+   * @param tablesDeleteOrder table names in delete order (children first); insert order is reversed
+   * @return SQL string containing DELETE and INSERT statements wrapped in FOREIGN_KEY_CHECKS
+   */
+  String exportGTNetConfig(String exportHeader, String[] tablesDeleteOrder);
+
+  /**
+   * Imports GTNet configuration from a SQL export string. Validates the header marker and each statement before
+   * execution. Runs within a single transaction — rolls back on any failure.
+   *
+   * @param sqlStatements  the SQL export content to import
+   * @param expectedHeader the expected header comment (e.g., "-- GTNET_EXPORT_V1_BASE")
+   */
+  void importGTNetConfig(String sqlStatements, String expectedHeader);
 }

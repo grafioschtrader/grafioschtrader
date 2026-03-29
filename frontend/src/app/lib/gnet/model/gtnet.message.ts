@@ -86,6 +86,10 @@ export enum GTNetMessageCodeType {
   GT_NET_FIRST_HANDSHAKE_REJECT_S = 3,
   GT_NET_FIRST_HANDSHAKE_REJECT_NOT_IN_LIST_S = 4,
 
+  GT_NET_TOKEN_REFRESH_SEL_RR_C = 5,
+  GT_NET_TOKEN_REFRESH_ACCEPT_S = 6,
+  GT_NET_TOKEN_REFRESH_REJECTED_S = 7,
+
   GT_NET_UPDATE_SERVERLIST_SEL_RR_C = 10,
   GT_NET_UPDATE_SERVERLIST_ACCEPT_S = 11,
   GT_NET_UPDATE_SERVERLIST_REJECTED_S = 12,
@@ -138,6 +142,10 @@ export const RESPONSE_CODE_MAP: { [key: number]: GTNetMessageCodeType[] } = {
   [GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_SEL_RR_S]: [
     GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_ACCEPT_S,
     GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_REJECT_S
+  ],
+  [GTNetMessageCodeType.GT_NET_TOKEN_REFRESH_SEL_RR_C]: [
+    GTNetMessageCodeType.GT_NET_TOKEN_REFRESH_ACCEPT_S,
+    GTNetMessageCodeType.GT_NET_TOKEN_REFRESH_REJECTED_S
   ],
   [GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_SEL_RR_C]: [
     GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_ACCEPT_S,
@@ -227,6 +235,16 @@ function getRemotePeerCodes(params: MsgCallParam): GTNetMessageCodeType[] {
   const target = params.targetGtNet;
   if (!target) {
     return codes;
+  }
+
+  // Handshake: available when no connection established yet
+  if (!target.gtNetConfig) {
+    codes.push(GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_SEL_RR_S);
+  }
+
+  // Token refresh: available when connection already exists
+  if (target.gtNetConfig) {
+    codes.push(GTNetMessageCodeType.GT_NET_TOKEN_REFRESH_SEL_RR_C);
   }
 
   // Always available for remote peers

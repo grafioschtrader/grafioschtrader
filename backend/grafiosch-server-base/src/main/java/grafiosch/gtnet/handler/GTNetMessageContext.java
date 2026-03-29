@@ -1,5 +1,6 @@
 package grafiosch.gtnet.handler;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -27,6 +28,9 @@ public class GTNetMessageContext {
   private final MessageEnvelope request;
   private final List<GTNetMessageAnswer> autoResponseRules;
   private final ObjectMapper objectMapper;
+
+  /** Arbitrary handler data for passing state between template method steps */
+  private final Map<String, Object> handlerData = new HashMap<>();
 
   /**
    * Creates a new message context.
@@ -215,5 +219,31 @@ public class GTNetMessageContext {
    */
   public byte getVisibility() {
     return request.visibility;
+  }
+
+  /**
+   * Stores handler-specific data for passing state between template method steps. This allows handlers to share data
+   * between processRequestSideEffects, applyResponseSideEffects, and buildResponse without instance fields (handlers
+   * are singletons).
+   *
+   * @param key   the data key
+   * @param value the data value
+   */
+  public void setHandlerData(String key, Object value) {
+    handlerData.put(key, value);
+  }
+
+  /**
+   * Retrieves handler-specific data stored during processing.
+   *
+   * @param key   the data key
+   * @param clazz the expected type
+   * @param <T>   the target type
+   * @return the stored value cast to the expected type, or null if not found
+   */
+  @SuppressWarnings("unchecked")
+  public <T> T getHandlerData(String key, Class<T> clazz) {
+    Object value = handlerData.get(key);
+    return value != null ? (T) value : null;
   }
 }

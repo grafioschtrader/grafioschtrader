@@ -49,6 +49,12 @@ public abstract class AbstractRequestHandler extends AbstractGTNetMessageHandler
       return new HandlerResult.ProcessingError<>(validation.errorCode(), validation.message());
     }
 
+    // 1b. Pre-process hook for early responses (e.g., not-in-list rejection for handshake)
+    Optional<HandlerResult<GTNetMessage, MessageEnvelope>> earlyResult = preProcess(context);
+    if (earlyResult.isPresent()) {
+      return earlyResult.get();
+    }
+
     // 2. Store the incoming message
     GTNetMessage storedRequest = storeIncomingMessage(context);
 
@@ -78,9 +84,31 @@ public abstract class AbstractRequestHandler extends AbstractGTNetMessageHandler
       MessageEnvelope response = buildResponse(context, resolved.responseCode(), resolved.message(), storedRequest);
       return new HandlerResult.ImmediateResponse<>(response);
     } else {
-      // 6b. No auto-response rule matched, wait for admin
+      // 6b. Check for handler default response (e.g., handshake defaults to ACCEPT)
+      Optional<? extends GTNetMessageCode> defaultResponse = getDefaultResponseCode(context);
+      if (defaultResponse.isPresent()) {
+        GTNetMessageCode responseCode = defaultResponse.get();
+        applyResponseSideEffects(context, responseCode, storedRequest);
+        MessageEnvelope response = buildResponse(context, responseCode, null, storedRequest);
+        return new HandlerResult.ImmediateResponse<>(response);
+      }
+      // 6c. No auto-response, no default, wait for admin
       return new HandlerResult.AwaitingManualResponse<>(storedRequest);
     }
+  }
+
+  /**
+   * Pre-process hook called after validation but before message storage. Can return an immediate response to
+   * short-circuit the template method flow (e.g., for early rejection when the remote server is not in our list).
+   *
+   * Default returns empty (normal flow continues).
+   *
+   * @param context the message context
+   * @return Optional containing an early result to return, or empty to continue normal flow
+   */
+  protected Optional<HandlerResult<GTNetMessage, MessageEnvelope>> preProcess(GTNetMessageContext context)
+      throws Exception {
+    return Optional.empty();
   }
 
   /**
@@ -93,6 +121,18 @@ public abstract class AbstractRequestHandler extends AbstractGTNetMessageHandler
    * @return Optional containing the response code if prior approval exists, empty otherwise
    */
   protected Optional<? extends GTNetMessageCode> checkPriorApproval(GTNetMessageContext context) {
+    return Optional.empty();
+  }
+
+  /**
+   * Returns the default response code when no GTNetMessageAnswer rule matches and no prior approval exists. Default
+   * returns empty (await manual review). Override for handlers that should auto-respond even without rules (e.g.,
+   * handshake defaults to ACCEPT).
+   *
+   * @param context the message context
+   * @return Optional containing the default response code, or empty to await manual review
+   */
+  protected Optional<? extends GTNetMessageCode> getDefaultResponseCode(GTNetMessageContext context) {
     return Optional.empty();
   }
 

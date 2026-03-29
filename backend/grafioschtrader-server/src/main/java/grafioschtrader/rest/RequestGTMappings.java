@@ -62,6 +62,9 @@ public interface RequestGTMappings {
   public static final String GTNETCONFIGENTITY = "gtnetconfigentity";
   public static final String GTNETCONFIGENTITY_MAP = RequestMappings.API + GTNETCONFIGENTITY;
 
+  public static final String GTNETDATAEXPORT = "gtnetdataexport";
+  public static final String GTNETDATAEXPORT_MAP = RequestMappings.API + GTNETDATAEXPORT;
+
   public static final String GTNETEXCHANGELOG = "gtnetexchangelog";
   public static final String GTNETEXCHANGELOG_MAP = RequestMappings.API + GTNETEXCHANGELOG;
 

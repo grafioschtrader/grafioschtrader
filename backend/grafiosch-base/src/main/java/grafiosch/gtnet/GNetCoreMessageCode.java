@@ -10,7 +10,7 @@ package grafiosch.gtnet;
  * enums that implement {@link GTNetMessageCode}.
  *
  * <h3>Message Code Ranges</h3>
- * <ul>
+ * <ul>T
  *   <li><b>0</b>: Ping/health check</li>
  *   <li><b>1-4</b>: Handshake protocol</li>
  *   <li><b>10-13</b>: Server list exchange</li>
@@ -44,6 +44,17 @@ public enum GNetCoreMessageCode implements GTNetMessageCode {
 
   /** Rejection because requesting server is not in GTNet list and allowServerCreation is false */
   GT_NET_FIRST_HANDSHAKE_REJECT_NOT_IN_LIST_S((byte) 4),
+
+  // Token refresh messages (5-7)
+
+  /** Request to refresh authentication tokens between established peers */
+  GT_NET_TOKEN_REFRESH_SEL_RR_C((byte) 5),
+
+  /** Token refresh accepted - new tokens have been generated */
+  GT_NET_TOKEN_REFRESH_ACCEPT_S((byte) 6),
+
+  /** Token refresh rejected */
+  GT_NET_TOKEN_REFRESH_REJECTED_S((byte) 7),
 
   // Server list messages (10-13)
 

@@ -1,12 +1,14 @@
 import {Component, Injector, QueryList, ViewChildren} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
+import {Observable} from 'rxjs';
 import {CrudMenuOptions, TableCrudSupportMenu} from '../../datashowbase/table.crud.support.menu';
 import {AcceptRequestTypes, ExchangeKindTypeInfo, GTNet, GTNetCallParam, GTNetWithMessages} from '../model/gtnet';
 import {GTNetMessage, MsgCallParam} from '../model/gtnet.message';
 import {GTNetService} from '../service/gtnet.service';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {MessageToastService} from '../../message/message.toast.service';
+import {InfoLevelType} from '../../message/info.leve.type';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {DialogService} from 'primeng/dynamicdialog';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
@@ -31,6 +33,10 @@ import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.
 import {ProcessedAction} from '../../types/processed.action';
 import {ProcessedActionData} from '../../types/processed.action.data';
 import {GlobalSessionNames} from '../../global.session.names';
+import {TranslateHelper} from '../../helper/translate.helper';
+import {UploadFileDialogComponent} from '../../generaldialog/component/upload-file-dialog.component';
+import {FileUploadParam, UploadServiceFunction} from '../../generaldialog/model/file.upload.param';
+import saveAs from '../../filesaver/filesaver';
 
 @Component({
   standalone: true,
@@ -45,7 +51,8 @@ import {GlobalSessionNames} from '../../global.session.names';
     GTNetConfigEditComponent,
     GTNetMessageEditComponent,
     GTNetMessageTreeTableComponent,
-    GTNetConfigEntityTableComponent
+    GTNetConfigEntityTableComponent,
+    UploadFileDialogComponent
   ],
   template: `
     <configurable-table
@@ -118,6 +125,12 @@ import {GlobalSessionNames} from '../../global.session.names';
                           (closeDialog)="handleCloseDialogMsg($event)">
       </gtnet-message-edit>
     }
+    @if (visibleUploadDialog) {
+      <upload-file-dialog [visibleDialog]="visibleUploadDialog"
+                          [fileUploadParam]="fileUploadParam"
+                          (closeDialog)="handleCloseUploadDialog($event)">
+      </upload-file-dialog>
+    }
   `,
   providers: [DialogService, GTNetConfigService]
 })
@@ -147,6 +160,8 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   formDefinitions: { [type: string]: ClassDescriptorInputAndShow };
   visibleDialogMsg = false;
   visibleDialogConfig = false;
+  visibleUploadDialog = false;
+  fileUploadParam: FileUploadParam;
   msgCallParam: MsgCallParam;
 
   constructor(private gtNetService: GTNetService,
@@ -480,6 +495,47 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   /** Check if any GTNetEntity has a GTNetConfigEntity */
   hasConfigEntity(row: GTNet): boolean {
     return row.gtNetEntities?.some(entity => entity.gtNetConfigEntity != null) ?? false;
+  }
+
+  protected override prepareShowMenu(): MenuItem[] {
+    if (!this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
+      return null;
+    }
+    const menuItems: MenuItem[] = [
+      {label: 'GT_NET_EXPORT', command: () => this.exportGTNet()},
+      {label: 'GT_NET_IMPORT', command: () => this.openImportDialog()}
+    ];
+    TranslateHelper.translateMenuItems(menuItems, this.translateService);
+    return menuItems;
+  }
+
+  private async exportGTNet(): Promise<void> {
+    try {
+      const blob = await this.gtNetService.exportGTNetData();
+      if (blob) {
+        saveAs(blob, 'gtnet_export.sql');
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'GT_NET_EXPORT_SUCCESS');
+      }
+    } catch {
+      this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'GT_NET_EXPORT_FAILED');
+    }
+  }
+
+  private openImportDialog(): void {
+    const uploadService: UploadServiceFunction = {
+      uploadFiles: (_id: number, formData: FormData): Observable<any> => {
+        return this.gtNetService.importGTNetData(formData);
+      }
+    };
+    this.fileUploadParam = new FileUploadParam(HelpIds.HELP_GT_NET, null, '.sql', 'GT_NET_IMPORT', false, uploadService, 0);
+    this.visibleUploadDialog = true;
+  }
+
+  handleCloseUploadDialog(processedActionData: ProcessedActionData): void {
+    this.visibleUploadDialog = false;
+    if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
+      this.readData();
+    }
   }
 
 }

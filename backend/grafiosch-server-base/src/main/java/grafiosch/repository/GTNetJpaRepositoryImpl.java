@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import grafiosch.common.DataHelper;
 import grafiosch.entities.GTNet;
@@ -39,7 +40,9 @@ import grafiosch.entities.GTNetMessage;
 import grafiosch.entities.GTNetMessage.GTNetMessageParam;
 import grafiosch.entities.GTNetMessageAnswer;
 import grafiosch.entities.GTNetMessageAttempt;
+import grafiosch.entities.GTNetSupplierDetail;
 import grafiosch.entities.TaskDataChange;
+import grafiosch.exportdelete.MySqlInsertStatementGenerator;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.gtnet.AcceptRequestTypes;
 import grafiosch.gtnet.DeliveryStatus;
@@ -95,6 +98,14 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       GNetCoreMessageCode.GT_NET_MAINTENANCE_ALL_C, GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_ALL_C,
       GNetCoreMessageCode.GT_NET_MAINTENANCE_CANCEL_ALL_C,
       GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C);
+
+  /** Base GTNet tables in delete order (children first). Insert order is reversed. */
+  public static final String[] GTNET_BASE_TABLES_DELETE_ORDER = { GTNetMessageAttempt.TABNAME,
+      GTNetMessage.GT_NET_MESSAGE_PARAM, GTNetMessage.TABNAME, GTNetConfigEntity.TABNAME, GTNetSupplierDetail.TABNAME,
+      GTNetEntity.TABNAME, GTNetConfig.TABNAME, GTNetMessageAnswer.TABNAME, GTNet.TABNAME };
+
+  @Autowired
+  private JdbcTemplate jdbcTemplate;
 
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
@@ -501,6 +512,16 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       validateModel(payloadModel);
     }
 
+    // For handshake and token refresh: generate token server-side and set appropriate payload
+    if (messageCode == GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_SEL_RR_S
+        || messageCode == GNetCoreMessageCode.GT_NET_TOKEN_REFRESH_SEL_RR_C) {
+      String tokenForRemote = DataHelper.generateGUID();
+      msgRequest.gtNetMessageParamMap = convertPojoToMap(new FirstHandshakeMsg(tokenForRemote));
+      if (messageCode == GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_SEL_RR_S) {
+        payloadModel = sourceGTNet;
+      }
+    }
+
     for (GTNet targetGTNet : gtNetList) {
       GTNetMessage gtNetMessage = new GTNetMessage(targetGTNet.getIdGtNet(), LocalDateTime.now(), SendReceivedType.SEND.getValue(),
           msgRequest.replyTo, messageCode.getValue(), msgRequest.message, msgRequest.gtNetMessageParamMap);
@@ -576,7 +597,66 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       gtNetJpaRepository.save(targetGTNet);
       log.info("Created GTNetConfigEntity with RECEIVE capability for {} entity kinds from {}", acceptedKinds.size(),
           targetGTNet.getDomainRemoteName());
+    } else if (responseCode == GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_ACCEPT_S) {
+      // User-initiated handshake accepted: store tokens in GTNetConfig
+      processHandshakeAcceptResponse(meResponse, targetGTNet, gtNetMessage);
+    } else if (responseCode == GNetCoreMessageCode.GT_NET_TOKEN_REFRESH_ACCEPT_S) {
+      // Token refresh accepted: update tokens in GTNetConfig
+      processTokenRefreshAcceptResponse(meResponse, targetGTNet, gtNetMessage);
     }
+  }
+
+  /**
+   * Processes a handshake accept response from a user-initiated handshake. Creates GTNetConfig with both tokens.
+   */
+  private void processHandshakeAcceptResponse(MessageEnvelope meResponse, GTNet targetGTNet, GTNetMessage ourRequest) {
+    FirstHandshakeMsg responseMsgData = convertMapToPojo(FirstHandshakeMsg.class, meResponse.gtNetMessageParamMap);
+    // Extract our token from the original request
+    FirstHandshakeMsg ourRequestData = convertMapToPojo(FirstHandshakeMsg.class, ourRequest.getGtNetMessageParamMap());
+
+    GTNetConfig gtNetConfig = targetGTNet.getGtNetConfig();
+    if (gtNetConfig == null) {
+      gtNetConfig = new GTNetConfig();
+      gtNetConfig.setIdGtNet(targetGTNet.getIdGtNet());
+    }
+    gtNetConfig.setTokenRemote(responseMsgData.tokenThis);
+    gtNetConfig.setTokenThis(ourRequestData.tokenThis);
+    gtNetConfig.setHandshakeTimestamp(LocalDateTime.now());
+    gtNetConfigJpaRepository.save(gtNetConfig);
+    targetGTNet.setGtNetConfig(gtNetConfig);
+
+    // Process remote GTNet entity from payload (contains their entity kinds and settings)
+    if (meResponse.payload != null && !meResponse.payload.isNull()) {
+      try {
+        GTNet remoteGTNetInfo = objectMapper.treeToValue(meResponse.payload, GTNet.class);
+        if (remoteGTNetInfo.getGtNetEntities() != null) {
+          for (var remoteEntity : remoteGTNetInfo.getGtNetEntities()) {
+            var localEntity = targetGTNet.getOrCreateEntityByKind(remoteEntity.getEntityKindValue());
+            localEntity.setAcceptRequest(remoteEntity.getAcceptRequest());
+            localEntity.setServerState(remoteEntity.getServerState());
+          }
+          gtNetJpaRepository.save(targetGTNet);
+        }
+      } catch (Exception e) {
+        log.warn("Failed to process remote GTNet payload from handshake accept: {}", e.getMessage());
+      }
+    }
+    log.info("Handshake accepted by {}, tokens stored", targetGTNet.getDomainRemoteName());
+  }
+
+  /**
+   * Processes a token refresh accept response. Updates both tokens in GTNetConfig.
+   */
+  private void processTokenRefreshAcceptResponse(MessageEnvelope meResponse, GTNet targetGTNet, GTNetMessage ourRequest) {
+    FirstHandshakeMsg responseMsgData = convertMapToPojo(FirstHandshakeMsg.class, meResponse.gtNetMessageParamMap);
+    FirstHandshakeMsg ourRequestData = convertMapToPojo(FirstHandshakeMsg.class, ourRequest.getGtNetMessageParamMap());
+
+    GTNetConfig gtNetConfig = gtNetConfigJpaRepository.findById(targetGTNet.getIdGtNet()).orElseThrow();
+    gtNetConfig.setTokenRemote(responseMsgData.tokenThis);
+    gtNetConfig.setTokenThis(ourRequestData.tokenThis);
+    gtNetConfigJpaRepository.save(gtNetConfig);
+    targetGTNet.setGtNetConfig(gtNetConfig);
+    log.info("Token refresh accepted by {}, tokens updated", targetGTNet.getDomainRemoteName());
   }
 
   /**
@@ -1519,6 +1599,59 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       throw new DataViolationException("gt.net", "gt.gtnet.pending.messages.exist", null);
     }
     gtNetJpaRepository.deleteById(idGtNet);
+  }
+
+  @Override
+  public String exportGTNetConfig(String exportHeader, String[] tablesDeleteOrder) {
+    StringBuilder sql = new StringBuilder();
+    sql.append(exportHeader).append("\n");
+    sql.append("SET FOREIGN_KEY_CHECKS=0;\n");
+    for (String table : tablesDeleteOrder) {
+      sql.append(MySqlInsertStatementGenerator.generateDeleteStatement(table));
+    }
+    for (int i = tablesDeleteOrder.length - 1; i >= 0; i--) {
+      sql.append(MySqlInsertStatementGenerator.generateInsertStatements(jdbcTemplate, tablesDeleteOrder[i]));
+    }
+    sql.append("SET FOREIGN_KEY_CHECKS=1;\n");
+    return sql.toString();
+  }
+
+  @Override
+  @Transactional
+  public void importGTNetConfig(String sqlStatements, String expectedHeader) {
+    String trimmed = sqlStatements.strip();
+    if (!trimmed.startsWith(expectedHeader)) {
+      throw new DataViolationException("gt.net", "gt.gtnet.import.invalid.header", null);
+    }
+    String[] statements = trimmed.split(";\\s*\n");
+    for (String stmt : statements) {
+      String cleaned = stmt.strip();
+      if (cleaned.isEmpty() || cleaned.startsWith("--")) {
+        continue;
+      }
+      validateImportStatement(cleaned);
+      jdbcTemplate.execute(cleaned);
+    }
+  }
+
+  private void validateImportStatement(String statement) {
+    String upper = statement.toUpperCase().strip();
+    if (upper.startsWith("SET FOREIGN_KEY_CHECKS")) {
+      return;
+    }
+    if (upper.startsWith("DELETE FROM")) {
+      if (!statement.contains("gt_net")) {
+        throw new DataViolationException("gt.net", "gt.gtnet.import.invalid.statement", null);
+      }
+      return;
+    }
+    if (upper.startsWith("INSERT INTO")) {
+      if (!statement.contains("gt_net")) {
+        throw new DataViolationException("gt.net", "gt.gtnet.import.invalid.statement", null);
+      }
+      return;
+    }
+    throw new DataViolationException("gt.net", "gt.gtnet.import.invalid.statement", null);
   }
 
 }

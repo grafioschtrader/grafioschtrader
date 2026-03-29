@@ -71,6 +71,10 @@ public abstract class GTNetModelHelper {
     msgFormMap.put(GNetCoreMessageCode.GT_NET_DATA_REVOKE_SEL_C,
         new GTNetMsgRequest(RevokeMsg.class, false, (byte) 1));
 
+    // Token refresh - reuses FirstHandshakeMsg (same token exchange pattern)
+    msgFormMap.put(GNetCoreMessageCode.GT_NET_TOKEN_REFRESH_SEL_RR_C,
+        new GTNetMsgRequest(FirstHandshakeMsg.class, true, (byte) 1));
+
     // Server status announcements - no model, no response expected
     msgFormMap.put(GNetCoreMessageCode.GT_NET_OFFLINE_ALL_C,
         new GTNetMsgRequest(null, false, (byte) 1));

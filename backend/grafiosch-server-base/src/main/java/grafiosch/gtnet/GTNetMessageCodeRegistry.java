@@ -47,6 +47,10 @@ public class GTNetMessageCodeRegistry {
         GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_ACCEPT_S,
         GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_REJECT_S);
 
+    registerResponseMapping(GNetCoreMessageCode.GT_NET_TOKEN_REFRESH_SEL_RR_C,
+        GNetCoreMessageCode.GT_NET_TOKEN_REFRESH_ACCEPT_S,
+        GNetCoreMessageCode.GT_NET_TOKEN_REFRESH_REJECTED_S);
+
     registerResponseMapping(GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_SEL_RR_C,
         GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_ACCEPT_S,
         GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_REJECTED_S);

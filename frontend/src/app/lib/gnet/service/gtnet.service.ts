@@ -5,6 +5,7 @@ import {GTNetMessage} from '../model/gtnet.message';
 import {MultiTargetMsgRequest} from '../model/multi-target-msg-request';
 import {ServiceEntityUpdate} from '../../edit/service.entity.update';
 import {Observable} from 'rxjs/internal/Observable';
+import {lastValueFrom} from 'rxjs';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../login/service/log-in.service';
 import {HttpClient} from '@angular/common/http';
@@ -77,5 +78,18 @@ export class GTNetService extends AuthServiceWithLogout<GTNet> implements Servic
   deleteMessageBatch(idGtNetMessageList: number[]): Observable<void> {
     return this.httpClient.post<void>(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}/deletemessagebatch`,
       idGtNetMessageList, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  async exportGTNetData(): Promise<Blob> {
+    const blob$ = this.httpClient.get<Blob>(
+      `${BaseSettings.API_ENDPOINT}gtnetdataexport/export`,
+      {headers: this.prepareHeaders('text/plain'), responseType: 'blob' as 'json'});
+    return await lastValueFrom(blob$);
+  }
+
+  importGTNetData(formData: FormData): Observable<any> {
+    return this.httpClient.post(
+      `${BaseSettings.API_ENDPOINT}gtnetdataexport/import`,
+      formData, this.getMultipartHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 }

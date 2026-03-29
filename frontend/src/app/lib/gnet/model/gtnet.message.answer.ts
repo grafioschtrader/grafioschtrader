@@ -31,6 +31,7 @@ export class GTNetMessageAnswerCallParam {
 /** Request codes that support auto-response configuration */
 export const REQUEST_CODES_FOR_AUTO_RESPONSE: GTNetMessageCodeType[] = [
   GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_SEL_RR_S,
+  GTNetMessageCodeType.GT_NET_TOKEN_REFRESH_SEL_RR_C,
   GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_SEL_RR_C,
   GTNetMessageCodeType.GT_NET_DATA_REQUEST_SEL_RR_C
 ];
@@ -41,6 +42,10 @@ export const REQUEST_TO_RESPONSE_CODES: { [key: number]: GTNetMessageCodeType[] 
     GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_ACCEPT_S,
     GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_REJECT_S,
     GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_REJECT_NOT_IN_LIST_S
+  ],
+  [GTNetMessageCodeType.GT_NET_TOKEN_REFRESH_SEL_RR_C]: [
+    GTNetMessageCodeType.GT_NET_TOKEN_REFRESH_ACCEPT_S,
+    GTNetMessageCodeType.GT_NET_TOKEN_REFRESH_REJECTED_S
   ],
   [GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_SEL_RR_C]: [
     GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_ACCEPT_S,

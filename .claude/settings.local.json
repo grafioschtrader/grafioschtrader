@@ -200,7 +200,9 @@
       "Bash(git push:*)",
       "Bash(gh release:*)",
       "Bash(git:*)",
-      "Bash(C:/xampp/mysql/bin/mysqldump.exe --version)"
+      "Bash(C:/xampp/mysql/bin/mysqldump.exe --version)",
+      "Bash(xargs grep:*)",
+      "Bash(grep -E \"\\\\.\\(java\\)$\")"
     ],
     "deny": [],
     "ask": []
