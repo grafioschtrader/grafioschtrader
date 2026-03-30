@@ -102,23 +102,39 @@ public class FirstHandshakeRequestHandler extends AbstractRequestHandler {
     return Optional.empty();
   }
 
+  /**
+   * Overrides default storage to first create/find the remote GTNet entry so that idGtNet is never null.
+   * For first handshake, context.getRemoteGTNet() is null because the sender is unknown, but the DB column
+   * id_gt_net has a NOT NULL constraint.
+   */
   @Override
-  protected void processRequestSideEffects(GTNetMessageContext context, GTNetMessage storedRequest) {
+  protected GTNetMessage storeIncomingMessage(GTNetMessageContext context) {
     // Extract the token they sent us and their GTNet entity from payload
     FirstHandshakeMsg handshakeMsg = context.getParamsAs(FirstHandshakeMsg.class);
     String theirTokenForUs = handshakeMsg.tokenThis;
     GTNet remoteGTNet = context.getPayloadAs(GTNet.class);
 
-    // Find or create the remote GTNet entry
+    // Find or create the remote GTNet entry BEFORE storing the message
     GTNet existing = gtNetJpaRepository.findByDomainRemoteName(remoteGTNet.getDomainRemoteName());
     GTNet processedRemoteGTNet = addOrUpdateRemoteGTNet(existing, remoteGTNet, theirTokenForUs);
 
-    // Update the stored request message to link to the remote GTNet
-    storedRequest.setIdGtNet(processedRemoteGTNet.getIdGtNet());
-    gtNetMessageJpaRepository.saveMsg(storedRequest);
-
-    // Store the processed remote GTNet in context params for use by applyResponseSideEffects
+    // Store the processed remote GTNet in context for use by applyResponseSideEffects and buildResponse
     context.setHandlerData("processedRemoteGTNet", processedRemoteGTNet);
+
+    // Now store the message with the correct idGtNet
+    GTNetMessage message = new GTNetMessage(processedRemoteGTNet.getIdGtNet(), context.getTimestamp(),
+        grafiosch.gtnet.SendReceivedType.RECEIVED.getValue(), null, context.getMessageCodeValue(),
+        context.getMessage(), context.getParams());
+    message.setIdSourceGtNetMessage(context.getIdSourceGtNetMessage());
+    message.setVisibilityValue(context.getVisibility());
+
+    return gtNetMessageJpaRepository.saveMsg(message);
+  }
+
+  @Override
+  protected void processRequestSideEffects(GTNetMessageContext context, GTNetMessage storedRequest) {
+    // Remote GTNet creation is now handled in storeIncomingMessage() above.
+    // The processedRemoteGTNet is already stored in context handler data.
   }
 
   @Override
@@ -146,6 +162,23 @@ public class FirstHandshakeRequestHandler extends AbstractRequestHandler {
       // Queue pending future-oriented messages for the new partner
       queuePendingMessagesForNewPartner(context.getMyGTNet(), processedRemoteGTNet);
     }
+  }
+
+  /**
+   * Overrides response message storage to use the processedRemoteGTNet from handler data, since
+   * context.getRemoteGTNet() is null for first handshake.
+   */
+  @Override
+  protected GTNetMessage storeResponseMessage(GTNetMessageContext context, GTNetMessageCode responseCode,
+      String message, Map<String, GTNetMessageParam> params, GTNetMessage replyToMessage) {
+    GTNet processedRemoteGTNet = context.getHandlerData("processedRemoteGTNet", GTNet.class);
+    Integer idGtNet = processedRemoteGTNet != null ? processedRemoteGTNet.getIdGtNet() : null;
+
+    GTNetMessage responseMsg = new GTNetMessage(idGtNet, LocalDateTime.now(),
+        grafiosch.gtnet.SendReceivedType.SEND.getValue(),
+        replyToMessage != null ? replyToMessage.getIdGtNetMessage() : null, responseCode.getValue(), message, params);
+
+    return gtNetMessageJpaRepository.saveMsg(responseMsg);
   }
 
   @Override
