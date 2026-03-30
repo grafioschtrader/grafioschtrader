@@ -2,6 +2,7 @@ package grafioschtrader.rest;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +18,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import grafiosch.entities.GTNetSupplierDetail;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.repository.GTNetJpaRepository;
 import grafiosch.repository.GTNetJpaRepositoryImpl;
 import grafiosch.repository.TaskDataChangeJpaRepository;
+import grafiosch.types.ProgressStateType;
 import grafiosch.types.TaskDataExecPriority;
 import grafiosch.types.TaskTypeBase;
 import grafioschtrader.entities.GTNetExchangeLog;
@@ -52,11 +55,13 @@ public class GTNetDataExportResource {
   private static final String[] DELETE_ONLY_TABLES = { GTNetSecurityImpGap.TABNAME, GTNetSecurityImpPos.TABNAME,
       GTNetSecurityImpHead.TABNAME, GTNetHistoryquote.TABNAME, GTNetLastprice.TABNAME,
       GTNetInstrumentSecurity.TABNAME, GTNetInstrumentCurrencypair.TABNAME, GTNetInstrument.TABNAME,
-      GTNetSupplierDetailHist.TABNAME, GTNetSupplierDetailLast.TABNAME };
+      GTNetSupplierDetailHist.TABNAME, GTNetSupplierDetailLast.TABNAME, GTNetSupplierDetail.TABNAME };
 
   /** App tables that are exported and deleted. Combined with base tables for the full export+delete list. */
   private static final String[] EXPORT_AND_DELETE_TABLES = Stream
-      .concat(Stream.of(GTNetExchangeLog.TABNAME), Stream.of(GTNetJpaRepositoryImpl.GTNET_BASE_TABLES_DELETE_ORDER))
+      .concat(Stream.of(GTNetExchangeLog.TABNAME),
+          Arrays.stream(GTNetJpaRepositoryImpl.GTNET_BASE_TABLES_DELETE_ORDER)
+              .filter(t -> !GTNetSupplierDetail.TABNAME.equals(t)))
       .toArray(String[]::new);
 
   private static final int POST_IMPORT_DELAY_MINUTES = 5;
@@ -95,8 +100,11 @@ public class GTNetDataExportResource {
    */
   private void schedulePostImportTasks() {
     LocalDateTime startTime = LocalDateTime.now().plusMinutes(POST_IMPORT_DELAY_MINUTES);
-    taskDataChangeJpaRepository
-        .save(new TaskDataChange(TaskTypeBase.GTNET_EXCHANGE_SYNC, TaskDataExecPriority.PRIO_NORMAL, startTime));
+    if (!taskDataChangeJpaRepository.existsByIdTaskAndProgressStateType(
+        TaskTypeBase.GTNET_EXCHANGE_SYNC.getValue(), ProgressStateType.PROG_WAITING.getValue())) {
+      taskDataChangeJpaRepository
+          .save(new TaskDataChange(TaskTypeBase.GTNET_EXCHANGE_SYNC, TaskDataExecPriority.PRIO_NORMAL, startTime));
+    }
     taskDataChangeJpaRepository
         .save(new TaskDataChange(TaskTypeBase.GTNET_SERVER_STATUS_CHECK, TaskDataExecPriority.PRIO_NORMAL, startTime));
   }

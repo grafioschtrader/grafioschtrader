@@ -72,8 +72,9 @@ public abstract class GTNetModelHelper {
         new GTNetMsgRequest(RevokeMsg.class, false, (byte) 1));
 
     // Token refresh - reuses FirstHandshakeMsg (same token exchange pattern)
+    // userInputRequired=false: backend auto-generates token in sendAndSaveMsg(), user input is discarded
     msgFormMap.put(GNetCoreMessageCode.GT_NET_TOKEN_REFRESH_SEL_RR_C,
-        new GTNetMsgRequest(FirstHandshakeMsg.class, true, (byte) 1));
+        new GTNetMsgRequest(FirstHandshakeMsg.class, true, (byte) 1, false));
 
     // Server status announcements - no model, no response expected
     msgFormMap.put(GNetCoreMessageCode.GT_NET_OFFLINE_ALL_C,
@@ -115,7 +116,7 @@ public abstract class GTNetModelHelper {
    */
   public static Map<GTNetMessageCode, ClassDescriptorInputAndShow> getAllFormDefinitionsWithClass() {
     return msgFormMap.entrySet().stream()
-        .filter(e -> e.getKey().name().endsWith(IS_USER_REQUEST_STR) && e.getValue().model != null)
+        .filter(e -> e.getKey().name().endsWith(IS_USER_REQUEST_STR) && e.getValue().model != null && e.getValue().userInputRequired)
         .collect(Collectors.toMap(Map.Entry::getKey,
             e -> DynamicModelHelper.getFormDefinitionOfModelClass(e.getValue().model)));
   }
@@ -152,10 +153,18 @@ public abstract class GTNetModelHelper {
     /** Certain messages should be sent repeatedly until received or until the limit for transmission attempts has been reached. */
     public byte repeatSendAsMany;
 
+    /** Whether the user needs to fill in the model's fields in the UI. False when the backend auto-generates the payload. */
+    public boolean userInputRequired;
+
     public GTNetMsgRequest(Class<?> model, boolean responseExpected, byte repeatSendAsMany) {
+      this(model, responseExpected, repeatSendAsMany, true);
+    }
+
+    public GTNetMsgRequest(Class<?> model, boolean responseExpected, byte repeatSendAsMany, boolean userInputRequired) {
       this.model = model;
       this.responseExpected = responseExpected;
       this.repeatSendAsMany = repeatSendAsMany;
+      this.userInputRequired = userInputRequired;
     }
   }
 
