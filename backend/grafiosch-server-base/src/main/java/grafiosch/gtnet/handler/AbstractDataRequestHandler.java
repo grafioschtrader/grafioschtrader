@@ -1,5 +1,6 @@
 package grafiosch.gtnet.handler;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -12,7 +13,7 @@ import grafiosch.gtnet.AcceptRequestTypes;
 import grafiosch.gtnet.ExchangeKindTypeRegistry;
 import grafiosch.gtnet.GTNetServerStateTypes;
 import grafiosch.gtnet.IExchangeKindType;
-import grafiosch.gtnet.model.msg.DataRequestMsg;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Abstract base class for handling data exchange request messages.
@@ -31,7 +32,8 @@ public abstract class AbstractDataRequestHandler extends AbstractRequestHandler 
   /**
    * Extracts the entity kinds from the DataRequestMsg payload.
    *
-   * Uses the registry to convert serialized byte values back to registered IExchangeKindType instances.
+   * Parses the payload JSON directly and resolves kind names via the registry, because the entityKinds field uses
+   * the IExchangeKindType interface which Jackson cannot deserialize without type info.
    *
    * @param context the message context
    * @return set of requested entity kinds, or empty set if payload is missing or has no entity kinds
@@ -41,14 +43,38 @@ public abstract class AbstractDataRequestHandler extends AbstractRequestHandler 
       return Set.of();
     }
     try {
-      DataRequestMsg dataRequest = context.getPayloadAs(DataRequestMsg.class);
-      if (dataRequest.entityKinds == null || dataRequest.entityKinds.isEmpty()) {
+      JsonNode payload = context.getPayload();
+      JsonNode entityKindsNode = payload.get("entityKinds");
+      if (entityKindsNode == null || !entityKindsNode.isArray() || entityKindsNode.isEmpty()) {
         return Set.of();
       }
-      return dataRequest.entityKinds.stream()
-          .map(kind -> exchangeKindRegistry.getByValue(kind.getValue()))
-          .filter(kind -> kind != null)
-          .collect(Collectors.toSet());
+      Set<IExchangeKindType> kinds = new LinkedHashSet<>();
+      for (JsonNode kindNode : entityKindsNode) {
+        IExchangeKindType kind = null;
+        if (kindNode.isObject()) {
+          // Serialized as object with "name" and/or "value" fields
+          JsonNode nameNode = kindNode.get("name");
+          if (nameNode != null && nameNode.isTextual()) {
+            kind = exchangeKindRegistry.getByName(nameNode.asText());
+          }
+          if (kind == null) {
+            JsonNode valueNode = kindNode.get("value");
+            if (valueNode != null && valueNode.isNumber()) {
+              kind = exchangeKindRegistry.getByValue((byte) valueNode.intValue());
+            }
+          }
+        } else if (kindNode.isTextual()) {
+          // Serialized as enum name string
+          kind = exchangeKindRegistry.getByName(kindNode.asText());
+        } else if (kindNode.isNumber()) {
+          // Serialized as byte value
+          kind = exchangeKindRegistry.getByValue((byte) kindNode.intValue());
+        }
+        if (kind != null) {
+          kinds.add(kind);
+        }
+      }
+      return kinds;
     } catch (Exception e) {
       return Set.of();
     }
