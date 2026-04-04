@@ -3,6 +3,7 @@ package grafiosch.entities;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.data.annotation.LastModifiedDate;
@@ -211,11 +212,34 @@ public class GTNet extends BaseID<Integer> {
     return gtNetEntities;
   }
 
-  public void setGtNetEntities(List<GTNetEntity> gtNetEntities) {
-    // Clear and re-add to preserve Hibernate's tracked collection (orphanRemoval = true)
-    this.gtNetEntities.clear();
-    if (gtNetEntities != null) {
-      this.gtNetEntities.addAll(gtNetEntities);
+  public void setGtNetEntities(List<GTNetEntity> incomingEntities) {
+    if (incomingEntities == null) {
+      this.gtNetEntities.clear();
+      return;
+    }
+    // Remove entities not present in the incoming list
+    this.gtNetEntities.removeIf(existing -> existing.getIdGtNetEntity() != null
+        && incomingEntities.stream()
+            .noneMatch(incoming -> Objects.equals(existing.getIdGtNetEntity(), incoming.getIdGtNetEntity())));
+    // Update existing entities or add new ones
+    for (GTNetEntity incoming : incomingEntities) {
+      Optional<GTNetEntity> existingOpt = this.gtNetEntities.stream()
+          .filter(e -> incoming.getIdGtNetEntity() != null
+              && Objects.equals(e.getIdGtNetEntity(), incoming.getIdGtNetEntity()))
+          .findFirst();
+      if (existingOpt.isPresent()) {
+        GTNetEntity existing = existingOpt.get();
+        existing.setAcceptRequest(incoming.getAcceptRequest());
+        existing.setServerState(incoming.getServerState());
+        existing.setMaxLimit(incoming.getMaxLimit());
+        // Preserve gtNetConfigEntity — do not overwrite with null from frontend
+        if (incoming.getGtNetConfigEntity() != null) {
+          existing.setGtNetConfigEntity(incoming.getGtNetConfigEntity());
+        }
+      } else {
+        incoming.setIdGtNet(this.idGtNet);
+        this.gtNetEntities.add(incoming);
+      }
     }
   }
 

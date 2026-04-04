@@ -420,7 +420,8 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
       acceptRequest: typeof entity.acceptRequest === 'string'
         ? AcceptRequestTypes[entity.acceptRequest as keyof typeof AcceptRequestTypes]
         : entity.acceptRequest,
-      maxLimit: entity.maxLimit
+      maxLimit: entity.maxLimit,
+      gtNetConfigEntity: entity.gtNetConfigEntity
     };
   }
 

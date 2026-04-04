@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -221,6 +222,9 @@ public class FirstHandshakeRequestHandler extends AbstractRequestHandler {
       existing = remoteGTNet;
       existing.setIdGtNet(null);
       existing.setGtNetConfig(null);
+      // Deduplicate entities by entity_kind (keep first occurrence per kind)
+      Set<Byte> seenKinds = new java.util.HashSet<>();
+      existing.getGtNetEntities().removeIf(e -> !seenKinds.add(e.getEntityKindValue()));
       existing.getGtNetEntities().forEach(e -> {
         e.setGtNetConfigEntity(null);
         e.setIdGtNet(null);

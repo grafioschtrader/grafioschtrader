@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import grafiosch.entities.GTNetConfigEntity;
+import grafiosch.entities.User;
 import grafiosch.repository.GTNetConfigEntityJpaRepository;
+import grafiosch.repository.GTNetEntityJpaRepositoryBase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -32,9 +34,28 @@ public class GTNetConfigEntityResource extends UpdateCreate<GTNetConfigEntity> {
   @Autowired
   private GTNetConfigEntityJpaRepository gtNetConfigEntityJpaRepository;
 
+  @Autowired
+  private GTNetEntityJpaRepositoryBase gtNetEntityJpaRepository;
+
   @Override
   protected UpdateCreateJpaRepository<GTNetConfigEntity> getUpdateCreateJpaRepository() {
     return gtNetConfigEntityJpaRepository;
+  }
+
+  /**
+   * Allows upsert: if the GTNetConfigEntity does not exist yet but the parent GTNetEntity does,
+   * create the config entity instead of returning 404.
+   */
+  @Override
+  protected ResponseEntity<GTNetConfigEntity> updateSpecialEntity(User user, GTNetConfigEntity entity) throws Exception {
+    GTNetConfigEntity existingEntity = gtNetConfigEntityJpaRepository.findById(entity.getId()).orElse(null);
+    if (existingEntity == null && gtNetEntityJpaRepository.existsById(entity.getIdGtNetEntity())) {
+      // Parent entity exists but config entity does not — allow creation
+      existingEntity = null;
+    } else if (existingEntity == null) {
+      return ResponseEntity.notFound().build();
+    }
+    return updateSaveEntity(entity, existingEntity);
   }
 
   /**

@@ -214,6 +214,9 @@ public class MyDataExportDeleteDefinition {
   private static String UDF_METADATA_SECUIRTY_SELDEL = String.format(
       " ums.* FROM %s ums JOIN %s m ON ums.id_udf_metadata = m.id_udf_metadata WHERE m.id_user = ?",
       UDFMetadataSecurity.TABNAME, UDFMetadata.TABNAME);
+  private static String UDF_METADATA_SECURITY_EXPORT = String.format(
+      " ums.* FROM %s ums JOIN %s m ON ums.id_udf_metadata = m.id_udf_metadata WHERE m.id_user = ? OR m.id_user = 0",
+      UDFMetadataSecurity.TABNAME, UDFMetadata.TABNAME);
   private static String SECACCOUNT_TRADING_PERIOD_SELDEL = String.format(
       "stp.* FROM %s stp JOIN %s sc ON stp.id_securitycash_account = sc.id_securitycash_account WHERE sc.id_tenant = ?",
       SecaccountTradingPeriod.TABNAME, Securitycashaccount.TABNAME);
@@ -336,9 +339,11 @@ public class MyDataExportDeleteDefinition {
       // Delete all Change Limits for export user, nothing is exported
       new ExportDefinition(TradingDaysPlus.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
       new ExportDefinition(TradingDaysMinus.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
-      // User defined fields for security
+      // User defined fields for security — split for export (includes id_user=0) vs delete (user only)
+      new ExportDefinition(UDFMetadataSecurity.TABNAME, TENANT_USER.ID_USER, UDF_METADATA_SECURITY_EXPORT,
+          ExportDefinition.EXPORT_USE),
       new ExportDefinition(UDFMetadataSecurity.TABNAME, TENANT_USER.ID_USER, UDF_METADATA_SECUIRTY_SELDEL,
-          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+          ExportDefinition.DELETE_USE),
 
       // TODO Missing Algo export ...
       // Algo child tables — must be deleted before algo_top (array runs backward on delete)

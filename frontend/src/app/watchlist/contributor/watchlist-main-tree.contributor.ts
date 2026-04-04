@@ -22,6 +22,8 @@ import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {WatchlistEditDynamicComponent} from '../component/watchlist.edit.dynamic.component';
+import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
+import {ProcessedAction} from '../../lib/types/processed.action';
 
 /**
  * Contributor for Watchlist-related nodes in the main navigation tree.
@@ -40,7 +42,8 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
     private globalParamService: GlobalparameterService,
     private messageToastService: MessageToastService,
     private confirmationService: ConfirmationService,
-    private translateService: TranslateService
+    private translateService: TranslateService,
+    private dataChangedService: DataChangedService
   ) {
     super();
   }
@@ -199,6 +202,7 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
               {from: sourceLabel, to: targetNode.label}
             );
             this.callbacks?.refreshTree();
+            this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.DELETED, new Watchlist()));
           });
         }
       });

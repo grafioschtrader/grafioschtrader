@@ -39,6 +39,9 @@ package-lock.json
 # e2e
 /e2e/*.js
 /e2e/*.map
+/e2e/.auth/
+/test-results/
+/playwright-report/
 
 # System Files
 .DS_Store

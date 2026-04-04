@@ -10,7 +10,11 @@
     "buildprod": "ng build --configuration production --base-href /grafioschtrader/",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "e2e": "playwright test",
+    "e2e:headed": "playwright test --headed",
+    "e2e:setup": "playwright test --project=setup --headed",
+    "e2e:tests": "playwright test --project=e2e-tests --no-deps --headed"
   },
   "private": true,
   "dependencies": {
@@ -55,6 +59,7 @@
     "@angular/cli": "^21.0.2",
     "@angular/compiler-cli": "^21.0.3",
     "@angular/language-service": "^21.0.3",
+    "@playwright/test": "^1.59.1",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.19.0",
     "@types/plotly.js": "^2.12.11",

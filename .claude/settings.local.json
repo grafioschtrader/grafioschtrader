@@ -202,7 +202,16 @@
       "Bash(git:*)",
       "Bash(C:/xampp/mysql/bin/mysqldump.exe --version)",
       "Bash(xargs grep:*)",
-      "Bash(grep -E \"\\\\.\\(java\\)$\")"
+      "Bash(grep -E \"\\\\.\\(java\\)$\")",
+      "Bash(ssh:*)",
+      "Bash(npx playwright:*)",
+      "Bash(npm run:*)",
+      "Bash(netstat -ano)",
+      "Bash(taskkill:*)",
+      "Bash(npm start:*)",
+      "Read(//c/Users/hugo/.claude/plans//**)",
+      "Bash(mkdir -p /c/Users/hugo/.claude/plans/)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []

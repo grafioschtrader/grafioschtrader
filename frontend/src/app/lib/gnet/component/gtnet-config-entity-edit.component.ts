@@ -56,10 +56,8 @@ export class GTNetConfigEntityEditComponent extends SimpleEntityEditBase<GTNetCo
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
     this.config = [
-      DynamicFieldHelper.createFieldSelectStringHeqF('supplierLog', true,
-        {inputWidth: 200}),
-      DynamicFieldHelper.createFieldSelectStringHeqF('consumerLog', true,
-        {inputWidth: 200}),
+      DynamicFieldHelper.createFieldSelectStringHeqF('supplierLog', true),
+      DynamicFieldHelper.createFieldSelectStringHeqF('consumerLog', true),
       DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'consumerUsage', false, 0, 255,
         {defaultValue: 0}),
       DynamicFieldHelper.createSubmitButton()
