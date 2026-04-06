@@ -291,8 +291,8 @@ export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent
   /**
    * Wrapper for selection change to call resetMenu
    */
-  onSelectionChange(entity: Security): void {
-    this.resetMenu(entity);
+  onSelectionChange(entity: Security | Security[]): void {
+    this.resetMenu(entity as Security);
   }
 
   canExpand(row: Security): boolean {

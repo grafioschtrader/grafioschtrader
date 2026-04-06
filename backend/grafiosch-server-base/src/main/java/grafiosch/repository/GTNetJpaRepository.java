@@ -62,7 +62,7 @@ public interface GTNetJpaRepository extends JpaRepository<GTNet, Integer>,
    *
    * @return list of GTNet entries with configured data exchange
    */
-  @Query("SELECT DISTINCT g FROM GTNet g JOIN g.gtNetEntities e JOIN e.gtNetConfigEntity c WHERE c.exchange = true")
+  @Query("SELECT DISTINCT g FROM GTNet g JOIN g.gtNetEntities e JOIN e.gtNetConfigEntity c WHERE c.exchange = true OR c.consumerUsage > 0")
   List<GTNet> findWithConfiguredExchange();
 
   /**

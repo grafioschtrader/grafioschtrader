@@ -68,6 +68,8 @@ import saveAs from '../../filesaver/filesaver';
       [canExpandFn]="canExpand.bind(this)"
       [ownerHighlightFn]="isMyEntry.bind(this)"
       [valueGetterFn]="getValueByPath.bind(this)"
+      [multiSortMeta]="multiSortMeta"
+      [customSortFn]="customSort.bind(this)"
       [contextMenuAppendTo]="'body'"
       (componentClick)="onComponentClick($event)"
       (rowExpand)="onRowExpand($event)">

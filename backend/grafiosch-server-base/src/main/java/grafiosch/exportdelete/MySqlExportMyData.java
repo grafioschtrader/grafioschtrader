@@ -38,12 +38,15 @@ public class MySqlExportMyData {
    */
   public StringBuilder exportDataMyData() throws Exception {
     StringBuilder sqlStatement = new StringBuilder();
+    sqlStatement.append("SET @old_sql_mode = @@SESSION.sql_mode;\n");
+    sqlStatement.append("SET SESSION sql_mode = CONCAT_WS(',', @@SESSION.sql_mode, 'NO_AUTO_VALUE_ON_ZERO');\n");
     for (ExportDefinition exportDefinition : ExportDeleteHelper.exportDefinitions) {
       if (exportDefinition.isExport()) {
         sqlStatement.append(getDataAndCreateInsertStatement(exportDefinition));
       }
     }
     sqlStatement.append(createInsertUserRole(user.getIdUser()));
+    sqlStatement.append("SET SESSION sql_mode = @old_sql_mode;\n");
     return sqlStatement;
   }
 

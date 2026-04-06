@@ -19,6 +19,7 @@ import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfig;
 import grafiosch.entities.GTNetEntity;
 import grafiosch.entities.GTNetSupplierDetail;
+import grafiosch.entities.TaskDataChange;
 import grafiosch.gtnet.AcceptRequestTypes;
 import grafiosch.gtnet.GTNetTimeoutHelper;
 import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
@@ -29,6 +30,9 @@ import grafiosch.m2m.client.BaseDataClient.SendResult;
 import grafiosch.repository.GTNetJpaRepository;
 import grafiosch.repository.GTNetSupplierDetailJpaRepository;
 import grafiosch.repository.GlobalparametersJpaRepository;
+import grafiosch.repository.TaskDataChangeJpaRepository;
+import grafiosch.types.TaskDataExecPriority;
+import grafiosch.types.TaskTypeBase;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
@@ -65,6 +69,9 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
 
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
+
+  @Autowired
+  private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
 
   @Autowired
   private GTNetSupplierDetailJpaRepository gtNetSupplierDetailJpaRepository;
@@ -397,7 +404,10 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
       if (result.httpError()) {
         log.warn("GTNet server {} returned HTTP error {}", supplier.getDomainRemoteName(), result.httpStatusCode());
       } else {
-        log.warn("GTNet server {} is unreachable", supplier.getDomainRemoteName());
+        log.warn("GTNet server {} is unreachable, scheduling status check", supplier.getDomainRemoteName());
+        TaskDataChange tdc = new TaskDataChange(TaskTypeBase.GTNET_SERVER_STATUS_CHECK,
+            TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now());
+        taskDataChangeJpaRepository.save(tdc);
       }
       return;
     }

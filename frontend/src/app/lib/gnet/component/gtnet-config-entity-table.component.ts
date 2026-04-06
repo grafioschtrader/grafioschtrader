@@ -141,8 +141,8 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
     };
   }
 
-  onSelectionChange(entity: GTNetConfigEntityDisplay): void {
-    this.selectedEntity = entity;
+  onSelectionChange(entity: GTNetConfigEntityDisplay | GTNetConfigEntityDisplay[]): void {
+    this.selectedEntity = Array.isArray(entity) ? entity[0] : entity;
     this.updateContextMenu();
   }
 

@@ -43,6 +43,8 @@ public abstract class ExportDeleteHelper {
   private static String PROPOSE_CHANGE_FIELD_SELDEL = String.format(
       "f.* FROM %s f INNER JOIN %s r ON f.id_propose_request = r.id_propose_request WHERE r.created_by = ?",
       ProposeChangeField.TABNAME, ProposeRequest.TABNAME);
+  private static String USER_EXPORT = String.format(
+      " * FROM %s WHERE id_tenant = ? OR id_user = 0", User.TABNAME);
   private static String UDF_METADATA_GENERAL_SELDEL = String.format(
       " umg.* FROM %s umg JOIN %s m ON umg.id_udf_metadata = m.id_udf_metadata WHERE m.id_user = ?",
       UDFMetadataGeneral.TABNAME, UDFMetadata.TABNAME);
@@ -63,8 +65,10 @@ public abstract class ExportDeleteHelper {
       new ExportDefinition(MultilanguageString.MULTILINGUESTRINGS, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
       new ExportDefinition(TenantBase.TABNAME, TENANT_USER.ID_TENANT, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      new ExportDefinition(User.TABNAME, TENANT_USER.ID_TENANT, USER_EXPORT,
+          ExportDefinition.EXPORT_USE),
       new ExportDefinition(User.TABNAME, TENANT_USER.ID_TENANT, null,
-          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+          ExportDefinition.DELETE_USE),
       new ExportDefinition(Role.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
       new ExportDefinition(ReleaseNote.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
       new ExportDefinition(User.TABNAME_USER_ROLE, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),

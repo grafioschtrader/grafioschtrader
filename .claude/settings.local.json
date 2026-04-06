@@ -211,7 +211,14 @@
       "Bash(npm start:*)",
       "Read(//c/Users/hugo/.claude/plans//**)",
       "Bash(mkdir -p /c/Users/hugo/.claude/plans/)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(sed 's/.*\\\\.//')",
+      "Bash(mariadb --version)",
+      "Read(//c/Users/hugo/Downloads/**)",
+      "Read(//c/Users/hugo/Desktop/**)",
+      "Read(//c/Users/hugo/**)",
+      "Bash(awk NR>=623 && NR<=627:*)",
+      "Bash(python tools/intersect_securities.py export_a.csv export_b.csv -o import_b.csv)"
     ],
     "deny": [],
     "ask": []
