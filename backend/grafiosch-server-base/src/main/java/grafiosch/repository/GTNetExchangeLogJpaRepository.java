@@ -1,4 +1,4 @@
-package grafioschtrader.repository;
+package grafiosch.repository;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafioschtrader.entities.GTNetExchangeLog;
+import grafiosch.entities.GTNetExchangeLog;
 
 /**
  * Repository for managing GTNet exchange log entries.
@@ -82,7 +82,7 @@ public interface GTNetExchangeLogJpaRepository
    *
    * Named query: GTNetExchangeLog.getSupplierSuccessRates
    * Parameters:
-   * - entityKind - entity kind byte value (0=LAST_PRICE, 1=HISTORICAL_PRICES)
+   * - entityKind - entity kind byte value
    * - fromDate - start of period (inclusive)
    *
    * @param entityKind the entity kind to filter by

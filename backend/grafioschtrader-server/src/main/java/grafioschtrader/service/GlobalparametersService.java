@@ -22,7 +22,6 @@ import grafiosch.entities.User;
 import grafiosch.repository.GlobalparametersJpaRepository;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.GlobalParamKeyDefault;
-import grafioschtrader.common.PropertyStringParser;
 
 /**
  * Service for managing and retrieving global configuration parameters used throughout the GrafioschTrader application.
@@ -194,20 +193,12 @@ public class GlobalparametersService {
   
   
   /**
-   * Checks whether GTNet exchange logging is enabled.
-   *
-   * GTNet logging is enabled when the global parameter 'gt.gtnet.use.log' has a non-zero property_int value.
-   * If the parameter is not configured in the database, returns the default value (disabled).
-   * This controls whether GTNetExchangeLog records are created for data exchanges.
+   * Checks whether GTNet exchange logging is enabled. Delegates to the repository.
    *
    * @return true if GTNet logging is enabled, false otherwise
-   * @see GlobalParamKeyDefault#GLOB_KEY_GTNET_USE_LOG
-   * @see GlobalParamKeyDefault#DEFAULT_GTNET_USE_LOG
    */
   public boolean isGTNetLogEnabled() {
-    return globalparametersJpaRepository.findById(GlobalParamKeyBaseDefault.GLOB_KEY_GTNET_USE_LOG)
-        .flatMap(g -> Optional.ofNullable(g.getPropertyInt()))
-        .orElse(GlobalParamKeyBaseDefault.DEFAULT_GTNET_USE_LOG) != 0;
+    return globalparametersJpaRepository.isGTNetLogEnabled();
   }
 
   
@@ -244,46 +235,6 @@ public class GlobalparametersService {
     return globalparametersJpaRepository.save(gp);
   }
 
-  /**
-   * Gets the GTNet message deletion configuration as a PropertyStringParser.
-   *
-   * <p>The configuration format is "LP=days,HP=days" where:
-   * <ul>
-   *   <li>LP: Days after which LastPrice messages (codes 60, 61) are deleted</li>
-   *   <li>HP: Days after which HistoryPrice messages (codes 80, 81) are deleted</li>
-   * </ul>
-   * Valid range for both values is 1-10 days.</p>
-   *
-   * @return PropertyStringParser with LP and HP values
-   * @see GlobalParamKeyDefault#GLOB_KEY_GTNET_DEL_MESSAGE_RECV
-   */
-  public PropertyStringParser getGTNetMessageDeletionConfig() {
-    return PropertyStringParser.parse(
-        globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_GTNET_DEL_MESSAGE_RECV)
-            .map(Globalparameters::getPropertyString)
-            .orElse(GlobalParamKeyDefault.DEFAULT_GTNET_DEL_MESSAGE_RECV));
-  }
-
-  /**
-   * Gets the GTNet log aggregation configuration as a PropertyStringParser.
-   *
-   * <p>The configuration format is "D=days,W=days,M=days,Y=days" where:
-   * <ul>
-   *   <li>D: Days before aggregating INDIVIDUAL to DAILY</li>
-   *   <li>W: Days before aggregating DAILY to WEEKLY</li>
-   *   <li>M: Days before aggregating WEEKLY to MONTHLY</li>
-   *   <li>Y: Days before aggregating MONTHLY to YEARLY</li>
-   * </ul></p>
-   *
-   * @return PropertyStringParser with D, W, M, Y values
-   * @see GlobalParamKeyDefault#GLOB_KEY_GTNET_LOG_AGGREGATE_DAYS
-   */
-  public PropertyStringParser getGTNetLogAggregationConfig() {
-    return PropertyStringParser.parse(
-        globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_GTNET_LOG_AGGREGATE_DAYS)
-            .map(Globalparameters::getPropertyString)
-            .orElse(GlobalParamKeyDefault.DEFAULT_GTNET_LOG_AGGREGATE_DAYS));
-  }
 
   /**
    * Retrieves a global parameter entity by its property name.
@@ -471,6 +422,15 @@ public class GlobalparametersService {
    * @see GlobalConstants#CRYPTO_CURRENCY_SUPPORTED
    * @see ValueKeyHtmlSelectOptions
    */
+  /**
+   * Gets the GTNet entry ID of this server instance.
+   *
+   * @return the own GTNet ID, or null if not configured
+   */
+  public Integer getGTNetMyEntryID() {
+    return globalparametersJpaRepository.getGTNetMyEntryID();
+  }
+
   public List<ValueKeyHtmlSelectOptions> getCurrencies() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     final List<ValueKeyHtmlSelectOptions> currencies = Currency.getAvailableCurrencies().stream()

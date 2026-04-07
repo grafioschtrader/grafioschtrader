@@ -218,7 +218,9 @@
       "Read(//c/Users/hugo/Desktop/**)",
       "Read(//c/Users/hugo/**)",
       "Bash(awk NR>=623 && NR<=627:*)",
-      "Bash(python tools/intersect_securities.py export_a.csv export_b.csv -o import_b.csv)"
+      "Bash(python tools/intersect_securities.py export_a.csv export_b.csv -o import_b.csv)",
+      "WebFetch(domain:live.euronext.com)",
+      "Read(//tmp/**)"
     ],
     "deny": [],
     "ask": []

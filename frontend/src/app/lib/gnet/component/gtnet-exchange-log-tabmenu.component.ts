@@ -1,13 +1,13 @@
 import {Component, OnInit} from '@angular/core';
 import {RouterModule} from '@angular/router';
 
-import {SharedTabMenuComponent} from '../../lib/tabmenu/component/shared.tab.menu.component';
-import {TabItem} from '../../lib/types/tab.item';
-import {AppSettings} from '../../shared/app.settings';
+import {SharedTabMenuComponent} from '../../tabmenu/component/shared.tab.menu.component';
+import {TabItem} from '../../types/tab.item';
+import {BaseSettings} from '../../base.settings';
 
 /**
  * Tab menu component for GTNet Exchange Log.
- * Provides navigation between LAST_PRICE and HISTORICAL_PRICES logs.
+ * Provides navigation between LAST_PRICE, HISTORICAL_PRICES, and SECURITY_METADATA logs.
  */
 @Component({
   selector: 'gtnet-exchange-log-tabmenu',
@@ -27,7 +27,7 @@ import {AppSettings} from '../../shared/app.settings';
 export class GTNetExchangeLogTabMenuComponent implements OnInit {
 
   tabs: TabItem[] = [];
-  defaultRoute: string = AppSettings.GT_NET_EXCHANGE_LOG_LASTPRICE_KEY;
+  defaultRoute: string = BaseSettings.GT_NET_EXCHANGE_LOG_LASTPRICE_KEY;
 
   ngOnInit(): void {
     this.initializeTabs();
@@ -35,8 +35,9 @@ export class GTNetExchangeLogTabMenuComponent implements OnInit {
 
   private initializeTabs(): void {
     const tabsConfig: [string, string][] = [
-      ['LAST_PRICE', AppSettings.GT_NET_EXCHANGE_LOG_LASTPRICE_KEY],
-      ['HISTORICAL_PRICES', AppSettings.GT_NET_EXCHANGE_LOG_HISTORICAL_KEY]
+      ['LAST_PRICE', BaseSettings.GT_NET_EXCHANGE_LOG_LASTPRICE_KEY],
+      ['HISTORICAL_PRICES', BaseSettings.GT_NET_EXCHANGE_LOG_HISTORICAL_KEY],
+      ['SECURITY_METADATA', BaseSettings.GT_NET_EXCHANGE_LOG_METADATA_KEY]
     ];
 
     this.tabs = tabsConfig.map(([label, route]) => ({

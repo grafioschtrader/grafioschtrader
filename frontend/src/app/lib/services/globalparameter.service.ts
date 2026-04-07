@@ -236,6 +236,10 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
     return this.prepareUseFeatures(FeatureType.GTNET);
   }
 
+  public isGtNetLogEnabled(): boolean {
+    return sessionStorage.getItem(GlobalSessionNames.GT_NET_LOG_ENABLED) === 'true';
+  }
+
   private prepareUseFeatures(featureType: FeatureType): boolean {
     // Check if the feature state is already cached
     if (!this.featureCache.has(featureType)) {

@@ -243,9 +243,15 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
                 historyquotes.add(historyquote);
 
                 historyquote.setClose(quotes.close.get(i) / divider);
-                historyquote.setHigh(quotes.high.get(i) / divider);
-                historyquote.setLow(quotes.low.get(i) / divider);
-                historyquote.setOpen(quotes.open.get(i) / divider);
+                if (quotes.high.get(i) != null) {
+                  historyquote.setHigh(quotes.high.get(i) / divider);
+                }
+                if (quotes.low.get(i) != null) {
+                  historyquote.setLow(quotes.low.get(i) / divider);
+                }
+                if (quotes.open.get(i) != null) {
+                  historyquote.setOpen(quotes.open.get(i) / divider);
+                }
                 historyquote.setVolume(quotes.volume.get(i));
                 historyquote.setDate(quoteDate);
 

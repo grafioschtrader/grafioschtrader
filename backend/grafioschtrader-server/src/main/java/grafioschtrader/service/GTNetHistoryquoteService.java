@@ -43,7 +43,7 @@ import grafioschtrader.gtnet.m2m.model.InstrumentHistoryquoteDTO;
 import grafioschtrader.gtnet.model.msg.HistoryquoteExchangeMsg;
 import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteData;
 import grafioschtrader.repository.CurrencypairJpaRepository;
-import grafioschtrader.repository.GTNetExchangeLogJpaRepository;
+import grafiosch.repository.GTNetExchangeLogJpaRepository;
 import grafioschtrader.repository.GTNetHistoryquoteJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentCurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentSecurityJpaRepository;

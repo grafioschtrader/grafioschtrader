@@ -2,12 +2,12 @@ import {Injectable} from '@angular/core';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {catchError} from 'rxjs/operators';
-import {AuthServiceWithLogout} from '../../lib/login/service/base.auth.service.with.logout';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {LoginService} from '../../lib/login/service/log-in.service';
-import {BaseSettings} from '../../lib/base.settings';
+import {AuthServiceWithLogout} from '../../login/service/base.auth.service.with.logout';
+import {MessageToastService} from '../../message/message.toast.service';
+import {LoginService} from '../../login/service/log-in.service';
+import {BaseSettings} from '../../base.settings';
 import {GTNetExchangeLogTree} from '../model/gtnet-exchange-log';
-import {GTNetExchangeKindType} from '../../lib/gnet/model/gtnet';
+import {GTNetExchangeKindType} from '../model/gtnet';
 
 /**
  * Service for GTNet exchange log operations.
@@ -23,7 +23,7 @@ export class GTNetExchangeLogService extends AuthServiceWithLogout<GTNetExchange
    * Gets the exchange log tree for a specific GTNet and entity kind.
    *
    * @param idGtNet the GTNet identifier
-   * @param entityKind the entity kind (LAST_PRICE or HISTORICAL_PRICES)
+   * @param entityKind the entity kind (LAST_PRICE, HISTORICAL_PRICES, or SECURITY_METADATA)
    */
   getExchangeLogTree(idGtNet: number, entityKind: GTNetExchangeKindType): Observable<GTNetExchangeLogTree> {
     const params = new HttpParams().set('entityKind', this.getEntityKindName(entityKind));
@@ -36,7 +36,7 @@ export class GTNetExchangeLogService extends AuthServiceWithLogout<GTNetExchange
   /**
    * Gets all exchange log trees for GTNets that have communication enabled for the specified entity kind.
    *
-   * @param entityKind the entity kind (LAST_PRICE or HISTORICAL_PRICES)
+   * @param entityKind the entity kind (LAST_PRICE, HISTORICAL_PRICES, or SECURITY_METADATA)
    */
   getAllExchangeLogTrees(entityKind: GTNetExchangeKindType): Observable<GTNetExchangeLogTree[]> {
     const params = new HttpParams().set('entityKind', this.getEntityKindName(entityKind));
@@ -50,6 +50,6 @@ export class GTNetExchangeLogService extends AuthServiceWithLogout<GTNetExchange
    * Converts enum value to the backend enum name.
    */
   private getEntityKindName(entityKind: GTNetExchangeKindType): string {
-    return entityKind === GTNetExchangeKindType.LAST_PRICE ? 'LAST_PRICE' : 'HISTORICAL_PRICES';
+    return GTNetExchangeKindType[entityKind];
   }
 }

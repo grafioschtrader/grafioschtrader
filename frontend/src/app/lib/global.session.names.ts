@@ -70,7 +70,10 @@ export enum GlobalSessionNames {
   MAIN_ID_TENANT = 'mainIdTenant',
 
   /** Earliest trading day that GT supports for transactions and historical prices (e.g. "2000-01-03"). */
-  OLDEST_TRADING_DAY = 'oldestTradingDay'
+  OLDEST_TRADING_DAY = 'oldestTradingDay',
+
+  /** Whether GTNet exchange logging is globally enabled. */
+  GT_NET_LOG_ENABLED = 'gtNetLogEnabled'
 }
 
 

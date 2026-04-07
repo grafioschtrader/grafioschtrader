@@ -164,11 +164,14 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
       )
     });
 
+    const logEnabled = this.globalParamService.isGtNetLogEnabled();
     gtNetNode.children.push({
       label: 'GT_NET_EXCHANGE_LOG',
+      styleClass: logEnabled ? '' : 'p-disabled',
+      selectable: logEnabled,
       data: new TypeNodeData(
         TreeNodeType.NO_MENU,
-        this.addMainRoute(AppSettings.GT_NET_EXCHANGE_LOG_KEY),
+        this.addMainRoute(BaseSettings.GT_NET_EXCHANGE_LOG_KEY),
         null,
         null,
         null

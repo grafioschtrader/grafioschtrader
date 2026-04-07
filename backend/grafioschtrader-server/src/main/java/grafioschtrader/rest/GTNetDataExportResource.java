@@ -26,7 +26,7 @@ import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.types.ProgressStateType;
 import grafiosch.types.TaskDataExecPriority;
 import grafiosch.types.TaskTypeBase;
-import grafioschtrader.entities.GTNetExchangeLog;
+import grafiosch.entities.GTNetExchangeLog;
 import grafioschtrader.entities.GTNetHistoryquote;
 import grafioschtrader.entities.GTNetInstrument;
 import grafioschtrader.entities.GTNetInstrumentCurrencypair;

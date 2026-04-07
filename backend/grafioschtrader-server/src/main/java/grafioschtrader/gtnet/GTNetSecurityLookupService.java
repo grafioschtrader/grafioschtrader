@@ -45,6 +45,7 @@ import grafioschtrader.gtnet.model.msg.SecurityLookupMsg;
 import grafioschtrader.gtnet.model.msg.SecurityLookupResponseMsg;
 import grafioschtrader.repository.AssetclassJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
+import grafioschtrader.service.GTNetExchangeLogService;
 import tools.jackson.databind.ObjectMapper;
 
 /**
@@ -75,6 +76,9 @@ public class GTNetSecurityLookupService {
 
   @Autowired
   private ObjectMapper objectMapper;
+
+  @Autowired
+  private GTNetExchangeLogService gtNetExchangeLogService;
 
   /**
    * Looks up security metadata by querying GTNet peers that support SECURITY_METADATA exchange.
@@ -217,6 +221,10 @@ public class GTNetSecurityLookupService {
         }
 
         log.info("Received {} securities from {}", responsePayload.securities.size(), supplier.getDomainRemoteName());
+
+        // Log exchange statistics as consumer
+        gtNetExchangeLogService.logAsConsumer(supplier, GTNetExchangeKindType.SECURITY_METADATA,
+            1, responsePayload.securities.size(), responsePayload.securities.size());
 
       } catch (Exception e) {
         log.error("Failed to query GTNet server {}", supplier.getDomainRemoteName(), e);

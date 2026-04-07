@@ -1,4 +1,4 @@
-import {GTNetExchangeKindType} from '../../lib/gnet/model/gtnet';
+import {GTNetExchangeKindType} from './gtnet';
 
 /**
  * Period types for GTNet exchange log aggregation.
@@ -42,5 +42,6 @@ export interface GTNetExchangeLogTree {
  */
 export const EXCHANGE_LOG_TABS: {entityKind: GTNetExchangeKindType; labelKey: string}[] = [
   {entityKind: GTNetExchangeKindType.LAST_PRICE, labelKey: 'LAST_PRICE'},
-  {entityKind: GTNetExchangeKindType.HISTORICAL_PRICES, labelKey: 'HISTORICAL_PRICES'}
+  {entityKind: GTNetExchangeKindType.HISTORICAL_PRICES, labelKey: 'HISTORICAL_PRICES'},
+  {entityKind: GTNetExchangeKindType.SECURITY_METADATA, labelKey: 'SECURITY_METADATA'}
 ];

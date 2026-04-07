@@ -20,7 +20,7 @@ public class EuronextFeedConnectorTest extends BaseFeedConnectorCheck {
     updateSecurityLastPriceByHistoricalData();
   }
 
-  // @Test
+  @Test
   void getEodSecurityHistoryTest() {
     getEodSecurityHistory(false);
   }

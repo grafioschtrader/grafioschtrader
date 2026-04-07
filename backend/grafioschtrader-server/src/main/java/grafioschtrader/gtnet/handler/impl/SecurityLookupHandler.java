@@ -41,6 +41,7 @@ import grafioschtrader.repository.DividendJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
+import grafioschtrader.service.GTNetExchangeLogService;
 
 /**
  * Handler for GT_NET_SECURITY_LOOKUP_SEL_C requests from remote instances.
@@ -66,6 +67,9 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
 
   @Autowired
   private SecuritysplitJpaRepository securitysplitJpaRepository;
+
+  @Autowired
+  private GTNetExchangeLogService gtNetExchangeLogService;
 
 
   @Override
@@ -111,6 +115,12 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
 
     // Search local database
     List<SecurityGtnetLookupDTO> results = findLocalSecurities(request, context.getRemoteGTNet());
+
+    // Log exchange statistics as supplier
+    if (context.getRemoteGTNet() != null) {
+      gtNetExchangeLogService.logAsSupplier(context.getRemoteGTNet(),
+          GTNetExchangeKindType.SECURITY_METADATA, 1, results.size(), results.size());
+    }
 
     if (results.isEmpty()) {
       return createNotFoundResponse(context, storedRequest);

@@ -1,8 +1,9 @@
-package grafioschtrader.repository;
+package grafiosch.repository;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
@@ -13,19 +14,20 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.transaction.annotation.Transactional;
+
+import grafiosch.rest.helper.RestHelper;
 
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfigEntity;
 import grafiosch.entities.GTNetEntity;
+import grafiosch.entities.GTNetExchangeLog;
 import grafiosch.gtnet.GTNetExchangeLogPeriodType;
+import grafiosch.gtnet.IExchangeKindType;
 import grafiosch.gtnet.SupplierConsumerLogTypes;
 import grafiosch.gtnet.model.GTNetExchangeLogNodeDTO;
 import grafiosch.gtnet.model.GTNetExchangeLogTreeDTO;
-import grafiosch.repository.GTNetJpaRepository;
-import grafioschtrader.entities.GTNetExchangeLog;
-import grafioschtrader.gtnet.GTNetExchangeKindType;
-import grafioschtrader.service.GlobalparametersService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
@@ -44,14 +46,17 @@ public class GTNetExchangeLogJpaRepositoryImpl implements GTNetExchangeLogJpaRep
   private GTNetJpaRepository gtNetJpaRepository;
 
   @Autowired
-  private GlobalparametersService globalparametersService;
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
+
+  @Autowired
+  private MessageSource messageSource;
 
   @Override
   @Transactional
-  public void logExchange(GTNet gtNet, GTNetExchangeKindType entityKind, boolean asSupplier,
+  public void logExchange(GTNet gtNet, IExchangeKindType entityKind, boolean asSupplier,
       int entitiesSent, int entitiesUpdated, int entitiesInResponse) {
     // Check if global logging is enabled
-    if (!globalparametersService.isGTNetLogEnabled()) {
+    if (!globalparametersJpaRepository.isGTNetLogEnabled()) {
       return;
     }
 
@@ -102,7 +107,7 @@ public class GTNetExchangeLogJpaRepositoryImpl implements GTNetExchangeLogJpaRep
       // Create aggregated log entry
       GTNetExchangeLog aggregated = new GTNetExchangeLog();
       aggregated.setIdGtNet(first.getIdGtNet());
-      aggregated.setEntityKind(first.getEntityKind());
+      aggregated.setEntityKindValue(first.getEntityKindValue());
       aggregated.setLogAsSupplier(first.isLogAsSupplier());
       aggregated.setPeriodType(toPeriod);
       aggregated.setPeriodStart(calculatePeriodStart(first.getPeriodStart(), toPeriod));
@@ -126,7 +131,7 @@ public class GTNetExchangeLogJpaRepositoryImpl implements GTNetExchangeLogJpaRep
   }
 
   @Override
-  public GTNetExchangeLogTreeDTO getExchangeLogTree(Integer idGtNet, GTNetExchangeKindType entityKind) {
+  public GTNetExchangeLogTreeDTO getExchangeLogTree(Integer idGtNet, IExchangeKindType entityKind) {
     GTNet gtNet = gtNetJpaRepository.findById(idGtNet).orElse(null);
     if (gtNet == null) {
       return null;
@@ -138,28 +143,35 @@ public class GTNetExchangeLogJpaRepositoryImpl implements GTNetExchangeLogJpaRep
     List<GTNetExchangeLog> allLogs = gtNetExchangeLogJpaRepository
         .findByIdGtNetAndEntityKindOrderByTimestampDesc(idGtNet, entityKind.getValue());
 
+    Locale locale = RestHelper.getUserLocale();
+
     // Build supplier tree
     List<GTNetExchangeLog> supplierLogs = allLogs.stream()
         .filter(GTNetExchangeLog::isLogAsSupplier)
         .collect(Collectors.toList());
-    buildTree(tree.supplierTotal, supplierLogs);
+    buildTree(tree.supplierTotal, supplierLogs, locale);
 
     // Build consumer tree
     List<GTNetExchangeLog> consumerLogs = allLogs.stream()
         .filter(log -> !log.isLogAsSupplier())
         .collect(Collectors.toList());
-    buildTree(tree.consumerTotal, consumerLogs);
+    buildTree(tree.consumerTotal, consumerLogs, locale);
 
     return tree;
   }
 
   @Override
-  public List<GTNetExchangeLogTreeDTO> getAllExchangeLogTrees(GTNetExchangeKindType entityKind) {
+  public List<GTNetExchangeLogTreeDTO> getAllExchangeLogTrees(IExchangeKindType entityKind) {
     List<GTNetExchangeLogTreeDTO> result = new ArrayList<>();
+    Integer myEntryId = globalparametersJpaRepository.getGTNetMyEntryID();
 
     // Get all GTNets that have the specified entity kind enabled for exchange
     List<GTNet> gtNets = gtNetJpaRepository.findAll();
     for (GTNet gtNet : gtNets) {
+      // Skip own peer - no exchange logs with self
+      if (myEntryId != null && myEntryId.equals(gtNet.getIdGtNet())) {
+        continue;
+      }
       // Check if this GTNet has communication enabled for this entity kind
       Optional<GTNetEntity> entityOpt = gtNet.getEntityByKind(entityKind.getValue());
       if (entityOpt.isEmpty()) {
@@ -167,7 +179,15 @@ public class GTNetExchangeLogJpaRepositoryImpl implements GTNetExchangeLogJpaRep
       }
       GTNetEntity entity = entityOpt.get();
       // Check if exchange is enabled (not ES_NO_EXCHANGE) via the config entity
-      if (entity.getGtNetConfigEntity() == null) {
+      GTNetConfigEntity config = entity.getGtNetConfigEntity();
+      if (config == null) {
+        continue;
+      }
+      // Only show peers with logging enabled for at least one role
+      SupplierConsumerLogTypes supplierLog = config.getSupplierLog();
+      SupplierConsumerLogTypes consumerLog = config.getConsumerLog();
+      if ((supplierLog == null || !supplierLog.isLoggingEnabled())
+          && (consumerLog == null || !consumerLog.isLoggingEnabled())) {
         continue;
       }
 
@@ -184,7 +204,7 @@ public class GTNetExchangeLogJpaRepositoryImpl implements GTNetExchangeLogJpaRep
    * Builds a hierarchical tree from log entries.
    * Groups by period type, with shortest periods (most recent) at top.
    */
-  private void buildTree(GTNetExchangeLogNodeDTO root, List<GTNetExchangeLog> logs) {
+  private void buildTree(GTNetExchangeLogNodeDTO root, List<GTNetExchangeLog> logs, Locale locale) {
     if (logs.isEmpty()) {
       return;
     }
@@ -209,7 +229,7 @@ public class GTNetExchangeLogJpaRepositoryImpl implements GTNetExchangeLogJpaRep
         List<GTNetExchangeLog> periodStartLogs = entry.getValue();
 
         GTNetExchangeLogNodeDTO node = new GTNetExchangeLogNodeDTO(
-            formatPeriodLabel(periodStart, periodType),
+            formatPeriodLabel(periodStart, periodType, locale),
             periodType,
             periodStart);
 
@@ -254,15 +274,15 @@ public class GTNetExchangeLogJpaRepositoryImpl implements GTNetExchangeLogJpaRep
   /**
    * Formats a period label for display.
    */
-  private String formatPeriodLabel(LocalDate date, GTNetExchangeLogPeriodType periodType) {
+  private String formatPeriodLabel(LocalDate date, GTNetExchangeLogPeriodType periodType, Locale locale) {
     if (date == null) {
-      return "Total";
+      return messageSource.getMessage("gt.gtnet.log.period.total", null, locale);
     }
     return switch (periodType) {
-      case INDIVIDUAL -> date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-      case DAILY -> date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-      case WEEKLY -> "Week " + date.get(WeekFields.of(Locale.getDefault()).weekOfYear()) + " " + date.getYear();
-      case MONTHLY -> date.format(DateTimeFormatter.ofPattern("MMMM yyyy"));
+      case INDIVIDUAL, DAILY -> date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale));
+      case WEEKLY -> messageSource.getMessage("gt.gtnet.log.period.week",
+          new Object[] { date.get(WeekFields.of(locale).weekOfYear()), String.valueOf(date.getYear()) }, locale);
+      case MONTHLY -> date.format(DateTimeFormatter.ofPattern("MMMM yyyy", locale));
       case YEARLY -> String.valueOf(date.getYear());
     };
   }

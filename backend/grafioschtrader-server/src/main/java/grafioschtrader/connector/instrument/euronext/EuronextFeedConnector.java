@@ -1,7 +1,7 @@
 package grafioschtrader.connector.instrument.euronext;
 
 import java.io.IOException;
-import java.security.spec.KeySpec;
+import java.security.MessageDigest;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -10,14 +10,12 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Base64;
 import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Hex;
@@ -38,7 +36,6 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
-import jakarta.xml.bind.DatatypeConverter;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -154,9 +151,13 @@ public class EuronextFeedConnector extends BaseFeedConnector {
   }
 
   private Document getIntraDoc(String url) throws IOException {
-    return Jsoup.connect(url).userAgent(GlobalConstants.USER_AGENT_HTTPCLIENT).header("Accept-Language", "en")
+    String encryptedResponse = Jsoup.connect(url).userAgent(GlobalConstants.USER_AGENT_HTTPCLIENT)
+        .header("Accept-Language", "en")
         .header("content-type", "application/x-www-form-urlencoded; charset=UTF-8")
-        .requestBody("theme_name=euronext_live").post();
+        .requestBody("theme_name=euronext_live").method(org.jsoup.Connection.Method.POST)
+        .ignoreContentType(true).execute().body();
+    String decryptedHtml = decrypt(encryptedResponse);
+    return Jsoup.parse(decryptedHtml);
   }
 
   @Override
@@ -200,17 +201,34 @@ public class EuronextFeedConnector extends BaseFeedConnector {
       byte[] salt = Hex.decodeHex(jsonSecurity.s.toCharArray());
       byte[] iv = Hex.decodeHex(jsonSecurity.iv);
 
-      SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-      KeySpec spec = new PBEKeySpec("24ayqVo7yJma".toCharArray(), salt, 1000, 256);
-      SecretKey tmp = factory.generateSecret(spec);
-      SecretKey secret = new SecretKeySpec(tmp.getEncoded(), "AES");
-      Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+      // EvpKDF: MD5-based key derivation (OpenSSL compatible)
+      byte[] passBytes = "24ayqVo7yJma".getBytes("UTF-8");
+      MessageDigest md5 = MessageDigest.getInstance("MD5");
+      byte[] key = new byte[32];
+      byte[] block = null;
+      int offset = 0;
+      while (offset < 32) {
+        md5.reset();
+        if (block != null) md5.update(block);
+        md5.update(passBytes);
+        md5.update(salt);
+        block = md5.digest();
+        int len = Math.min(block.length, 32 - offset);
+        System.arraycopy(block, 0, key, offset, len);
+        offset += len;
+      }
 
-      cipher.init(Cipher.DECRYPT_MODE, secret, new IvParameterSpec(iv));
-      byte[] ct = DatatypeConverter.parseBase64Binary(jsonSecurity.ct);
+      Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+      cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, "AES"), new IvParameterSpec(iv));
+      byte[] ct = Base64.getDecoder().decode(jsonSecurity.ct);
       byte[] plaintext = cipher.doFinal(ct);
 
-      return new String(plaintext, "UTF-8");
+      String decrypted = new String(plaintext, "UTF-8");
+      // Decrypted content is a JSON-encoded string — unescape it
+      if (decrypted.startsWith("\"")) {
+        decrypted = objectMapper.readValue(decrypted, String.class);
+      }
+      return decrypted;
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -225,11 +243,11 @@ public class EuronextFeedConnector extends BaseFeedConnector {
     String maxOr1M = ChronoUnit.DAYS.between(from, LocalDate.now()) > 30 ? PERIOD_MAX : PERIOD_1M;
     String url = getSecurityHistoricalDownloadLink(security, maxOr1M);
     String content = FeedConnectorHelper.getByHttpClient(url).body();
-    // content = decrypt(content);
+    content = decrypt(content);
 
     final DailyClose[] dailyCloseArr = objectMapper.readValue(content, DailyClose[].class);
     for (DailyClose dailyClose : dailyCloseArr) {
-      LocalDate date = dailyClose.time;
+      LocalDate date = LocalDate.parse(dailyClose.time.substring(0, 10));
       if (!date.isBefore(from) && !date.isAfter(to)) {
         Historyquote historyquote = new Historyquote();
         historyquote.setClose(DataBusinessHelper.round(dailyClose.price));
@@ -242,7 +260,7 @@ public class EuronextFeedConnector extends BaseFeedConnector {
   }
 
   private static class DailyClose {
-    public LocalDate time;
+    public String time;
     public double price;
     public Long volume;
   }

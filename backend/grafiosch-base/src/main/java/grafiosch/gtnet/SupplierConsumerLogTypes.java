@@ -10,10 +10,7 @@ public enum SupplierConsumerLogTypes {
   SCL_OFF((byte) 0),
 
   /** Overview logging is enabled. Exchange statistics are recorded. */
-  SCL_OVERVIEW((byte) 1),
-
-  /** Detailed logging is enabled. Includes overview logging plus detailed audit trail. */
-  SCL_DETAIL((byte) 2);
+  SCL_OVERVIEW((byte) 1);
 
   private final Byte value;
 
@@ -43,7 +40,7 @@ public enum SupplierConsumerLogTypes {
   /**
    * Checks if this log type enables any form of logging.
    *
-   * @return true if logging is enabled (SCL_OVERVIEW or SCL_DETAIL)
+   * @return true if logging is enabled (SCL_OVERVIEW)
    */
   public boolean isLoggingEnabled() {
     return this != SCL_OFF;

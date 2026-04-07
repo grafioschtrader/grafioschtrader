@@ -41,7 +41,7 @@ import grafioschtrader.gtnet.handler.impl.lastprice.PushOpenLastpriceQueryStrate
 import grafioschtrader.gtnet.m2m.model.InstrumentPriceDTO;
 import grafioschtrader.gtnet.model.msg.LastpriceExchangeMsg;
 import grafioschtrader.repository.CurrencypairJpaRepository;
-import grafioschtrader.repository.GTNetExchangeLogJpaRepository;
+import grafiosch.repository.GTNetExchangeLogJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentCurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentSecurityJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;

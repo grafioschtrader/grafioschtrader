@@ -22,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import grafiosch.BaseConstants;
 import grafiosch.GlobalParamKeyBaseDefault;
+import grafiosch.common.PropertyStringParser;
 import grafiosch.common.UserAccessHelper;
 import grafiosch.config.ExposedResourceBundleMessageSource;
 import grafiosch.dto.IPropertiesSelfCheck;
@@ -121,6 +122,29 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
   public int getGTNetConnectionTimeout() {
     return globalparametersJpaRepository.findById(GlobalParamKeyBaseDefault.GLOB_KEY_GTNET_CONNECTION_TIMEOUT)
         .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyBaseDefault.DEFAULT_GTNET_CONNECTION_TIMEOUT);
+  }
+
+  @Override
+  public boolean isGTNetLogEnabled() {
+    return globalparametersJpaRepository.findById(GlobalParamKeyBaseDefault.GLOB_KEY_GTNET_USE_LOG)
+        .flatMap(g -> Optional.ofNullable(g.getPropertyInt()))
+        .orElse(GlobalParamKeyBaseDefault.DEFAULT_GTNET_USE_LOG) != 0;
+  }
+
+  @Override
+  public PropertyStringParser getGTNetLogAggregationConfig() {
+    return PropertyStringParser.parse(
+        globalparametersJpaRepository.findById(GlobalParamKeyBaseDefault.GLOB_KEY_GTNET_LOG_AGGREGATE_DAYS)
+            .map(Globalparameters::getPropertyString)
+            .orElse(GlobalParamKeyBaseDefault.DEFAULT_GTNET_LOG_AGGREGATE_DAYS));
+  }
+
+  @Override
+  public PropertyStringParser getGTNetMessageDeletionConfig() {
+    return PropertyStringParser.parse(
+        globalparametersJpaRepository.findById(GlobalParamKeyBaseDefault.GLOB_KEY_GTNET_DEL_MESSAGE_RECV)
+            .map(Globalparameters::getPropertyString)
+            .orElse(GlobalParamKeyBaseDefault.DEFAULT_GTNET_DEL_MESSAGE_RECV));
   }
   
   @Override

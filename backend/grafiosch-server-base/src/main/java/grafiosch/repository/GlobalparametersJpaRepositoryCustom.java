@@ -2,6 +2,7 @@ package grafiosch.repository;
 
 import java.util.List;
 
+import grafiosch.common.PropertyStringParser;
 import grafiosch.dto.PasswordRegexProperties;
 import grafiosch.dto.TenantLimit;
 import grafiosch.dto.ValueKeyHtmlSelectOptions;
@@ -140,6 +141,27 @@ public interface GlobalparametersJpaRepositoryCustom {
   int getGTNetConnectionTimeout();
   
   
+  /**
+   * Checks whether GTNet exchange logging is enabled.
+   *
+   * @return true if GTNet logging is enabled, false otherwise
+   */
+  boolean isGTNetLogEnabled();
+
+  /**
+   * Gets the GTNet log aggregation configuration.
+   *
+   * @return PropertyStringParser with D, W, M, Y aggregation threshold values
+   */
+  PropertyStringParser getGTNetLogAggregationConfig();
+
+  /**
+   * Gets the GTNet message deletion retention configuration.
+   *
+   * @return PropertyStringParser with retention day values per message group key
+   */
+  PropertyStringParser getGTNetMessageDeletionConfig();
+
   Globalparameters saveOnlyAttributes(Globalparameters globalparameters) throws Exception;
 
 }

@@ -1,10 +1,10 @@
-package grafioschtrader.entities;
+package grafiosch.entities;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import grafiosch.gtnet.GTNetExchangeLogPeriodType;
-import grafioschtrader.gtnet.GTNetExchangeKindType;
+import grafiosch.gtnet.IExchangeKindType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -32,7 +32,7 @@ public class GTNetExchangeLog {
   @NotNull
   private Integer idGtNet;
 
-  @Schema(description = "Type of data exchanged: LAST_PRICE (0) or HISTORICAL_PRICES (1)")
+  @Schema(description = "Type of data exchanged, interpreted by the application's IExchangeKindType enum")
   @Column(name = "entity_kind")
   @NotNull
   private byte entityKind;
@@ -80,7 +80,7 @@ public class GTNetExchangeLog {
   public GTNetExchangeLog() {
   }
 
-  public GTNetExchangeLog(Integer idGtNet, GTNetExchangeKindType entityKind, boolean logAsSupplier,
+  public GTNetExchangeLog(Integer idGtNet, IExchangeKindType entityKind, boolean logAsSupplier,
       int entitiesSent, int entitiesUpdated, int entitiesInResponse) {
     this.idGtNet = idGtNet;
     this.entityKind = entityKind.getValue();
@@ -110,16 +110,16 @@ public class GTNetExchangeLog {
     this.idGtNet = idGtNet;
   }
 
-  public GTNetExchangeKindType getEntityKind() {
-    return GTNetExchangeKindType.getGTNetExchangeKindType(entityKind);
-  }
-
-  public void setEntityKind(GTNetExchangeKindType entityKind) {
-    this.entityKind = entityKind.getValue();
-  }
-
   public byte getEntityKindValue() {
     return entityKind;
+  }
+
+  public void setEntityKindValue(byte entityKind) {
+    this.entityKind = entityKind;
+  }
+
+  public void setEntityKind(IExchangeKindType entityKind) {
+    this.entityKind = entityKind.getValue();
   }
 
   public boolean isLogAsSupplier() {

@@ -2,7 +2,6 @@ package grafiosch.gtnet.handler;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -54,8 +53,8 @@ public abstract class AbstractDataRequestHandler extends AbstractRequestHandler 
         if (kindNode.isObject()) {
           // Serialized as object with "name" and/or "value" fields
           JsonNode nameNode = kindNode.get("name");
-          if (nameNode != null && nameNode.isTextual()) {
-            kind = exchangeKindRegistry.getByName(nameNode.asText());
+          if (nameNode != null && nameNode.isString()) {
+            kind = exchangeKindRegistry.getByName(nameNode.asString());
           }
           if (kind == null) {
             JsonNode valueNode = kindNode.get("value");
@@ -63,9 +62,9 @@ public abstract class AbstractDataRequestHandler extends AbstractRequestHandler 
               kind = exchangeKindRegistry.getByValue((byte) valueNode.intValue());
             }
           }
-        } else if (kindNode.isTextual()) {
+        } else if (kindNode.isString()) {
           // Serialized as enum name string
-          kind = exchangeKindRegistry.getByName(kindNode.asText());
+          kind = exchangeKindRegistry.getByName(kindNode.asString());
         } else if (kindNode.isNumber()) {
           // Serialized as byte value
           kind = exchangeKindRegistry.getByValue((byte) kindNode.intValue());

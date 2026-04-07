@@ -1,12 +1,12 @@
-package grafioschtrader.repository;
+package grafiosch.repository;
 
 import java.time.LocalDate;
 import java.util.List;
 
 import grafiosch.entities.GTNet;
 import grafiosch.gtnet.GTNetExchangeLogPeriodType;
+import grafiosch.gtnet.IExchangeKindType;
 import grafiosch.gtnet.model.GTNetExchangeLogTreeDTO;
-import grafioschtrader.gtnet.GTNetExchangeKindType;
 
 /**
  * Custom repository methods for GTNet exchange log operations.
@@ -23,7 +23,7 @@ public interface GTNetExchangeLogJpaRepositoryCustom {
    * @param entitiesUpdated number of entities successfully updated
    * @param entitiesInResponse number of entities in the response
    */
-  void logExchange(GTNet gtNet, GTNetExchangeKindType entityKind, boolean asSupplier,
+  void logExchange(GTNet gtNet, IExchangeKindType entityKind, boolean asSupplier,
       int entitiesSent, int entitiesUpdated, int entitiesInResponse);
 
   /**
@@ -45,7 +45,7 @@ public interface GTNetExchangeLogJpaRepositoryCustom {
    * @param entityKind the entity kind to filter by
    * @return tree structure DTO for frontend display
    */
-  GTNetExchangeLogTreeDTO getExchangeLogTree(Integer idGtNet, GTNetExchangeKindType entityKind);
+  GTNetExchangeLogTreeDTO getExchangeLogTree(Integer idGtNet, IExchangeKindType entityKind);
 
   /**
    * Gets all log entries for all GTNets that support communication for the specified entity kind.
@@ -54,5 +54,5 @@ public interface GTNetExchangeLogJpaRepositoryCustom {
    * @param entityKind the entity kind to filter by
    * @return list of tree DTOs, one per GTNet with communication enabled for this entity kind
    */
-  List<GTNetExchangeLogTreeDTO> getAllExchangeLogTrees(GTNetExchangeKindType entityKind);
+  List<GTNetExchangeLogTreeDTO> getAllExchangeLogTrees(IExchangeKindType entityKind);
 }

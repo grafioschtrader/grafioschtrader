@@ -32,12 +32,10 @@ export enum AcceptRequestTypes {
  * Defines logging levels for GTNet exchange operations, separate for supplier and consumer roles.
  * SCL_OFF: Logging is disabled for this role.
  * SCL_OVERVIEW: Exchange statistics are recorded to GTNetExchangeLog.
- * SCL_DETAIL: Includes overview logging plus detailed price change audit trail.
  */
 export enum SupplierConsumerLogTypes {
   SCL_OFF = 0,
-  SCL_OVERVIEW = 1,
-  SCL_DETAIL = 2
+  SCL_OVERVIEW = 1
 }
 
 /**

@@ -77,6 +77,10 @@ export class BaseSettings {
   public static readonly GT_NET_CONFIG_KEY = 'gtnetconfig';
   public static readonly GT_NET_CONFIG_ENTITY_KEY = 'gtnetconfigentity';
   public static readonly GT_NET_MESSAGE_KEY = 'gtnetmessage';
+  public static readonly GT_NET_EXCHANGE_LOG_KEY = 'gtnetexchangelog';
+  public static readonly GT_NET_EXCHANGE_LOG_LASTPRICE_KEY = 'lastprice';
+  public static readonly GT_NET_EXCHANGE_LOG_HISTORICAL_KEY = 'historical';
+  public static readonly GT_NET_EXCHANGE_LOG_METADATA_KEY = 'metadata';
 
   public static readonly PROPOSE_CHANGE_ENTITY = 'ProposeChangeEntity';
   public static readonly PROPOSE_CHANGE_ENTITY_KEY = BaseSettings.PROPOSE_CHANGE_ENTITY.toLowerCase();

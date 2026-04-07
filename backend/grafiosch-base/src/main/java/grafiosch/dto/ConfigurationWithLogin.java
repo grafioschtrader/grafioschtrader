@@ -80,6 +80,12 @@ public class ConfigurationWithLogin {
   public Set<? extends FeatureType> useFeatures;
 
   /**
+   * Whether GTNet exchange logging is globally enabled via the g.gnet.use.log parameter.
+   * Used by the frontend to conditionally enable/disable the exchange log navigation node.
+   */
+  public boolean gtNetLogEnabled;
+
+  /**
    * Standard precision configuration for numeric field formatting.
    *
    * <p>

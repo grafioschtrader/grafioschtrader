@@ -15,6 +15,11 @@ export interface ConfigurationWithLogin {
   useFeatures: FeatureType[];
 
   /**
+   * Whether GTNet exchange logging is globally enabled via the g.gnet.use.log parameter.
+   */
+  gtNetLogEnabled: boolean;
+
+  /**
    * List of entity names and their primary key field names.
    * The frontend may need to know the key field of individual information classes.
    */

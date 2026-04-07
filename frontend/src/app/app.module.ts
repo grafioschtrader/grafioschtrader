@@ -212,8 +212,8 @@ import {ConnectorApiKeyTableComponent} from './lib/connectorapikey/component/con
 import {ConnectorApiKeyEditComponent} from './lib/connectorapikey/component/connector.api.key.edit.component';
 import {ConnectorApiKeyService} from './lib/connectorapikey/service/connector.api.key.service';
 import {GTNetSetupTableComponent} from './lib/gnet/component/gtnet.setup.table.component';
-import {GTNetExchangeLogTabMenuComponent} from './gtnet/component/gtnet-exchange-log-tabmenu.component';
-import {GTNetExchangeLogComponent} from './gtnet/component/gtnet-exchange-log.component';
+import {GTNetExchangeLogTabMenuComponent} from './lib/gnet/component/gtnet-exchange-log-tabmenu.component';
+import {GTNetExchangeLogComponent} from './lib/gnet/component/gtnet-exchange-log.component';
 import {GTNetService} from './lib/gnet/service/gtnet.service';
 import {GTNetMessageTreeTableComponent} from './lib/gnet/component/gtnet-message-treetable.component';
 import {GTNetEditComponent} from './lib/gnet/component/gtnet-edit.component';

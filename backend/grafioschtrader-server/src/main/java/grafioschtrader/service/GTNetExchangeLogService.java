@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 
 import grafiosch.entities.GTNet;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
-import grafioschtrader.repository.GTNetExchangeLogJpaRepository;
+import grafiosch.repository.GTNetExchangeLogJpaRepository;
 
 /**
  * Service for logging GTNet exchange operations.

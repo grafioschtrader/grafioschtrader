@@ -1,8 +1,7 @@
-package grafioschtrader.task.exec;
+package grafiosch.task.exec;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -12,9 +11,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.PropertyStringParser;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.exceptions.TaskBackgroundException;
 import grafiosch.gtnet.GTNetExchangeLogPeriodType;
+import grafiosch.gtnet.IMessageRetentionProvider;
+import grafiosch.repository.GTNetExchangeLogJpaRepository;
 import grafiosch.repository.GTNetMessageJpaRepository;
 import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.repository.TaskDataChangeJpaRepository;
@@ -22,10 +24,6 @@ import grafiosch.task.ITask;
 import grafiosch.types.ITaskType;
 import grafiosch.types.TaskDataExecPriority;
 import grafiosch.types.TaskTypeBase;
-import grafioschtrader.common.PropertyStringParser;
-import grafioschtrader.gtnet.GTNetMessageCodeType;
-import grafioschtrader.repository.GTNetExchangeLogJpaRepository;
-import grafioschtrader.service.GlobalparametersService;
 
 /**
  * Scheduled task that aggregates GTNet exchange log entries from shorter to longer periods and deletes old messages.
@@ -33,29 +31,20 @@ import grafioschtrader.service.GlobalparametersService;
  * <p>Runs daily at configurable time (default 3 AM) and performs:
  * <ul>
  *   <li>Rolling log aggregation: INDIVIDUAL -> DAILY -> WEEKLY -> MONTHLY -> YEARLY</li>
- *   <li>Deletion of old price exchange messages based on configurable retention periods</li>
+ *   <li>Deletion of old exchange messages based on configurable retention periods,
+ *       driven by registered {@link IMessageRetentionProvider} beans</li>
  * </ul>
  *
  * <p>Configuration is read from global parameters:
  * <ul>
  *   <li>{@code gt.gtnet.log.aggregate.days}: Log aggregation thresholds (D=1,W=7,M=30,Y=365)</li>
- *   <li>{@code gt.gtnet.del.message.recv}: Message retention periods (LP=1,HP=5)</li>
+ *   <li>{@code gt.gtnet.del.message.recv}: Message retention periods per provider config key</li>
  * </ul>
  */
 @Component
 public class GTNetExchangeLogAggregationAndDelGTNetMessagesTask implements ITask {
 
   private static final Logger log = LoggerFactory.getLogger(GTNetExchangeLogAggregationAndDelGTNetMessagesTask.class);
-
-  /** Message codes for LastPrice exchange (GT_NET_LASTPRICE_EXCHANGE_SEL_C and GT_NET_LASTPRICE_EXCHANGE_RESPONSE_S). */
-  private static final List<Byte> LASTPRICE_MESSAGE_CODES = Arrays.asList(
-      GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_SEL_C.getValue(),
-      GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_RESPONSE_S.getValue());
-
-  /** Message codes for HistoryPrice exchange (GT_NET_HISTORYQUOTE_EXCHANGE_SEL_C and GT_NET_HISTORYQUOTE_EXCHANGE_RESPONSE_S). */
-  private static final List<Byte> HISTORYQUOTE_MESSAGE_CODES = Arrays.asList(
-      GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_SEL_C.getValue(),
-      GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_RESPONSE_S.getValue());
 
   @Autowired
   private GTNetExchangeLogJpaRepository gtNetExchangeLogJpaRepository;
@@ -64,13 +53,13 @@ public class GTNetExchangeLogAggregationAndDelGTNetMessagesTask implements ITask
   private GTNetMessageJpaRepository gtNetMessageJpaRepository;
 
   @Autowired
-  private GlobalparametersService globalparametersService;
-
-  @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeRepository;
+
+  @Autowired(required = false)
+  private List<IMessageRetentionProvider> messageRetentionProviders;
 
   @Override
   public ITaskType getTaskType() {
@@ -108,7 +97,7 @@ public class GTNetExchangeLogAggregationAndDelGTNetMessagesTask implements ITask
    * Reads configuration from global parameter {@code gt.gtnet.log.aggregate.days}.
    */
   private void aggregateLogs() {
-    PropertyStringParser logConfig = globalparametersService.getGTNetLogAggregationConfig();
+    PropertyStringParser logConfig = globalparametersJpaRepository.getGTNetLogAggregationConfig();
     LocalDate today = LocalDate.now();
     int totalAggregated = 0;
 
@@ -161,40 +150,31 @@ public class GTNetExchangeLogAggregationAndDelGTNetMessagesTask implements ITask
   }
 
   /**
-   * Deletes old GTNet price exchange messages based on retention configuration.
-   * Reads configuration from global parameter {@code gt.gtnet.del.message.recv}.
-   *
-   * <p>Message codes deleted:
-   * <ul>
-   *   <li>LP (LastPrice): codes 60, 61 - older than LP days</li>
-   *   <li>HP (HistoryPrice): codes 80, 81 - older than HP days</li>
-   * </ul>
+   * Deletes old GTNet exchange messages based on retention configuration.
+   * Iterates over all registered {@link IMessageRetentionProvider} beans and deletes
+   * messages older than the configured retention period for each provider's message codes.
    */
   private void deleteOldMessages() {
-    PropertyStringParser msgConfig = globalparametersService.getGTNetMessageDeletionConfig();
-    LocalDate today = LocalDate.now();
-
-    int lpDays = msgConfig.getIntValue("LP", 1);
-    int hpDays = msgConfig.getIntValue("HP", 5);
-
-    // Delete old LastPrice exchange messages (codes 60, 61)
-    LocalDateTime lpThreshold = today.minusDays(lpDays).atStartOfDay();
-    // First delete replies to avoid FK constraint violation on reply_to
-    int lpRepliesDeleted = gtNetMessageJpaRepository.deleteRepliesToOldMessages(LASTPRICE_MESSAGE_CODES, lpThreshold);
-    int lpDeleted = gtNetMessageJpaRepository.deleteOldMessagesByCodesAndDate(LASTPRICE_MESSAGE_CODES, lpThreshold);
-    if (lpRepliesDeleted > 0 || lpDeleted > 0) {
-      log.info("Deleted {} reply rows and {} LastPrice exchange message rows (codes 60, 61) older than {} days",
-          lpRepliesDeleted, lpDeleted, lpDays);
+    if (messageRetentionProviders == null || messageRetentionProviders.isEmpty()) {
+      log.debug("No message retention providers registered, skipping message deletion");
+      return;
     }
 
-    // Delete old HistoryPrice exchange messages (codes 80, 81)
-    LocalDateTime hpThreshold = today.minusDays(hpDays).atStartOfDay();
-    // First delete replies to avoid FK constraint violation on reply_to
-    int hpRepliesDeleted = gtNetMessageJpaRepository.deleteRepliesToOldMessages(HISTORYQUOTE_MESSAGE_CODES, hpThreshold);
-    int hpDeleted = gtNetMessageJpaRepository.deleteOldMessagesByCodesAndDate(HISTORYQUOTE_MESSAGE_CODES, hpThreshold);
-    if (hpRepliesDeleted > 0 || hpDeleted > 0) {
-      log.info("Deleted {} reply rows and {} HistoryPrice exchange message rows (codes 80, 81) older than {} days",
-          hpRepliesDeleted, hpDeleted, hpDays);
+    PropertyStringParser msgConfig = globalparametersJpaRepository.getGTNetMessageDeletionConfig();
+    LocalDate today = LocalDate.now();
+
+    for (IMessageRetentionProvider provider : messageRetentionProviders) {
+      int retentionDays = msgConfig.getIntValue(provider.getConfigKey(), provider.getDefaultRetentionDays());
+      LocalDateTime threshold = today.minusDays(retentionDays).atStartOfDay();
+      List<Byte> codes = provider.getMessageCodes();
+
+      // First delete replies to avoid FK constraint violation on reply_to
+      int repliesDeleted = gtNetMessageJpaRepository.deleteRepliesToOldMessages(codes, threshold);
+      int deleted = gtNetMessageJpaRepository.deleteOldMessagesByCodesAndDate(codes, threshold);
+      if (repliesDeleted > 0 || deleted > 0) {
+        log.info("Deleted {} reply rows and {} message rows for '{}' (codes {}) older than {} days",
+            repliesDeleted, deleted, provider.getConfigKey(), codes, retentionDays);
+      }
     }
   }
 

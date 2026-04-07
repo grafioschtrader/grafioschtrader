@@ -86,10 +86,6 @@ export class AppSettings {
   public static readonly SECURITY_ACTION_KEY = 'securityaction';
   public static readonly TAX_DATA_KEY = 'taxdata';
 
-  public static readonly GT_NET_EXCHANGE_LOG_KEY = 'gtnetexchangelog';
-  public static readonly GT_NET_EXCHANGE_LOG_LASTPRICE_KEY = 'lastprice';
-  public static readonly GT_NET_EXCHANGE_LOG_HISTORICAL_KEY = 'historical';
-
   public static readonly GT_NET_TAB_MENU_KEY = 'gtnettabmenu';
   public static readonly GT_NET_CONFIG_ENTITY = 'GTNetConfigEntity';
   public static readonly GT_NET_EXCHANGE_KEY = 'gtnetexchange';

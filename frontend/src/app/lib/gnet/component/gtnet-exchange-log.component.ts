@@ -1,21 +1,21 @@
 import {Component, Input, OnInit, TemplateRef, ViewChild} from '@angular/core';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {TreeNode} from 'primeng/api';
-import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {TreeTableConfigBase} from '../../datashowbase/tree.table.config.base';
+import {GlobalparameterService} from '../../services/globalparameter.service';
 import {GTNetExchangeLogService} from '../service/gtnet-exchange-log.service';
 import {GTNetExchangeLogTree, GTNetExchangeLogNode} from '../model/gtnet-exchange-log';
-import {GTNetExchangeKindType} from '../../lib/gnet/model/gtnet';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
+import {GTNetExchangeKindType} from '../model/gtnet';
+import {DataType} from '../../dynamic-form/models/data.type';
 import {ActivatedRoute} from '@angular/router';
-import {AppSettings} from '../../shared/app.settings';
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
-import {ConfigurableTreeTableComponent} from '../../lib/datashowbase/configurable-tree-table.component';
-import {ColumnConfig} from '../../lib/datashowbase/column.config';
-import {ShowRecordConfigBase} from '../../lib/datashowbase/show.record.config.base';
-import {HelpIds} from '../../lib/help/help.ids';
-import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
+import {BaseSettings} from '../../base.settings';
+import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.component';
+import {ConfigurableTreeTableComponent} from '../../datashowbase/configurable-tree-table.component';
+import {ColumnConfig} from '../../datashowbase/column.config';
+import {ShowRecordConfigBase} from '../../datashowbase/show.record.config.base';
+import {HelpIds} from '../../help/help.ids';
+import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach';
+import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 
 /**
  * Component for displaying GTNet exchange log statistics.
@@ -119,12 +119,15 @@ export class GTNetExchangeLogComponent extends TreeTableConfigBase implements On
   ngOnInit(): void {
     // Determine entityKind from route
     const path = this.route.snapshot.url[0]?.path;
-    if (path === AppSettings.GT_NET_EXCHANGE_LOG_LASTPRICE_KEY) {
+    if (path === BaseSettings.GT_NET_EXCHANGE_LOG_LASTPRICE_KEY) {
       this.entityKind = GTNetExchangeKindType.LAST_PRICE;
       this.titleKey = 'LAST_PRICE';
-    } else if (path === AppSettings.GT_NET_EXCHANGE_LOG_HISTORICAL_KEY) {
+    } else if (path === BaseSettings.GT_NET_EXCHANGE_LOG_HISTORICAL_KEY) {
       this.entityKind = GTNetExchangeKindType.HISTORICAL_PRICES;
       this.titleKey = 'HISTORICAL_PRICES';
+    } else if (path === BaseSettings.GT_NET_EXCHANGE_LOG_METADATA_KEY) {
+      this.entityKind = GTNetExchangeKindType.SECURITY_METADATA;
+      this.titleKey = 'SECURITY_METADATA';
     }
 
     // Configure main table column (outer table)

@@ -60,8 +60,8 @@ import {ConnectorApiKeyTableComponent} from './lib/connectorapikey/component/con
 import {GTNetSetupTableComponent} from './lib/gnet/component/gtnet.setup.table.component';
 import {GTNetTabMenuComponent} from './lib/gnet/component/gtnet-tabmenu.component';
 import {GTNetAdminMessagesComponent} from './lib/gnet/component/gtnet-admin-messages.component';
-import {GTNetExchangeLogTabMenuComponent} from './gtnet/component/gtnet-exchange-log-tabmenu.component';
-import {GTNetExchangeLogComponent} from './gtnet/component/gtnet-exchange-log.component';
+import {GTNetExchangeLogTabMenuComponent} from './lib/gnet/component/gtnet-exchange-log-tabmenu.component';
+import {GTNetExchangeLogComponent} from './lib/gnet/component/gtnet-exchange-log.component';
 import {GTNetMessageAnswerTableComponent} from './lib/gnet/component/gtnet-message-answer-table.component';
 import {GTNetExchangeTabMenuComponent} from './gtnet/component/gtnet-exchange-tabmenu.component';
 import {GTNetExchangeSecuritiesComponent} from './gtnet/component/gtnet-exchange-securities.component';
@@ -347,17 +347,22 @@ const APP_ROUTES: Routes = [
         canActivate: [authGuard]
       },
       {
-        path: AppSettings.GT_NET_EXCHANGE_LOG_KEY,
+        path: BaseSettings.GT_NET_EXCHANGE_LOG_KEY,
         component: GTNetExchangeLogTabMenuComponent,
         canActivate: [authGuard],
         children: [
           {
-            path: AppSettings.GT_NET_EXCHANGE_LOG_LASTPRICE_KEY,
+            path: BaseSettings.GT_NET_EXCHANGE_LOG_LASTPRICE_KEY,
             component: GTNetExchangeLogComponent,
             canActivate: [authGuard]
           },
           {
-            path: AppSettings.GT_NET_EXCHANGE_LOG_HISTORICAL_KEY,
+            path: BaseSettings.GT_NET_EXCHANGE_LOG_HISTORICAL_KEY,
+            component: GTNetExchangeLogComponent,
+            canActivate: [authGuard]
+          },
+          {
+            path: BaseSettings.GT_NET_EXCHANGE_LOG_METADATA_KEY,
             component: GTNetExchangeLogComponent,
             canActivate: [authGuard]
           }

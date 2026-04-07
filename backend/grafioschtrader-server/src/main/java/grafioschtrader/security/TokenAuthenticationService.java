@@ -95,6 +95,7 @@ public class TokenAuthenticationService extends TokenAuthentication {
         mostPrivilegedRole, passwordRegexOk, globalparametersService.getCurrencyPrecision(),
         getGlobalConstantsFieldsByFieldPrefix(GlobalConstants.class, "FID"), featureConfig.getEnabledFeatures(),
         tenantClosedUntil);
+    configurationWithLogin.gtNetLogEnabled = globalparametersService.isGTNetLogEnabled();
     return configurationWithLogin;
   }
 
