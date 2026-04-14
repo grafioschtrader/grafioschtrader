@@ -1,5 +1,7 @@
 package grafioschtrader.rest;
 
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
@@ -15,12 +17,9 @@ import java.util.Objects;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.springframework.boot.resttestclient.TestRestTemplate;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.test.web.servlet.client.EntityExchangeResult;
+import org.springframework.test.web.servlet.client.RestTestClient;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -52,12 +51,6 @@ public class RestTestHelper {
 
   public static String getRadomUser() {
     return ALL_USERS[random.nextInt(4) + 1];
-  }
-
-  public static <T> HttpEntity<T> getHttpEntity(String nickname, T entity) {
-    HttpHeaders headers = new HttpHeaders();
-    headers.set("x-auth-token", getUserByNickname(nickname).authToken);
-    return new HttpEntity<>(entity, headers);
   }
 
   public static String createURLWithPort(String uri, int port) {
@@ -97,16 +90,19 @@ public class RestTestHelper {
     return Arrays.stream(users).filter(user -> user.nickname.equals(nickname)).findFirst().get();
   }
 
-  public static void inizializeUserTokens(TestRestTemplate restTemplate, int port, JwtTokenHandler jwtTokenHandler) {
+  public static void inizializeUserTokens(RestTestClient restTestClient, JwtTokenHandler jwtTokenHandler) {
     if (users[0].authToken == null) {
       for (UserRegister user : users) {
-        HttpEntity<UserRegister> request = new HttpEntity<>(user);
-        ResponseEntity<String> response = restTemplate.exchange(createURLWithPort("/api/login", port), HttpMethod.POST,
-            request, String.class);
-        assertThat(response.getStatusCode(), is(HttpStatus.OK));
-        HttpHeaders headers = response.getHeaders();
-        List<String> header = headers.get("x-auth-token");
-        user.authToken = header.get(0);
+        EntityExchangeResult<String> result = restTestClient.post()
+            .uri("/api/login")
+            .body(user)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody(String.class)
+            .returnResult();
+        HttpHeaders headers = result.getResponseHeaders();
+        user.authToken = headers.getFirst("x-auth-token");
+        assertThat(user.authToken, is(not(nullValue())));
         user.idUser = jwtTokenHandler.getUserId(user.authToken);
       }
     }

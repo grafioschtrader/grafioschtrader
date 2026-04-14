@@ -5,6 +5,8 @@ import java.util.Locale;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import grafioschtrader.entities.ImportTransactionHead;
 import grafioschtrader.entities.ImportTransactionTemplate;
 import grafioschtrader.repository.ImportTransactionPosFailedJpaRepository;
@@ -58,6 +60,7 @@ public interface IPlatformTransactionImport {
    * 
    * @return Platform ID (e.g., "gt.platform.import.swissquote")
    */
+  @JsonProperty("id")
   String getID();
 
   /**

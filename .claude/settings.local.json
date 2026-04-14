@@ -220,7 +220,17 @@
       "Bash(awk NR>=623 && NR<=627:*)",
       "Bash(python tools/intersect_securities.py export_a.csv export_b.csv -o import_b.csv)",
       "WebFetch(domain:live.euronext.com)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(unzip -p ~/.m2/repository/org/springframework/spring-test/7.0.6/spring-test-7.0.6-sources.jar 'org/springframework/test/web/client/RestTestClient.java')",
+      "Bash(unzip -l ~/.m2/repository/org/springframework/spring-test/7.0.6/spring-test-7.0.6.jar)",
+      "Bash(unzip -p ~/.m2/repository/org/springframework/spring-test/7.0.6/spring-test-7.0.6-sources.jar 'org/springframework/test/web/servlet/client/RestTestClient.java')",
+      "Bash(unzip:*)",
+      "Bash(powershell -NoProfile -Command 'Get-NetTCPConnection -LocalPort 8080 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }')",
+      "Bash(powershell -NoProfile -Command \"Get-NetTCPConnection -LocalPort 8080 -ErrorAction SilentlyContinue | Select-Object -First 1\")",
+      "Bash(powershell -NoProfile -Command 'Get-NetTCPConnection -LocalPort 8080,4200 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }')",
+      "Bash(powershell -NoProfile -Command \"Get-NetTCPConnection -LocalPort 8080,4200 -ErrorAction SilentlyContinue | Select-Object LocalPort,OwningProcess\")",
+      "Bash(powershell:*)",
+      "Bash(C:/xampp/mysql/bin/mysql.exe:*)"
     ],
     "deny": [],
     "ask": []

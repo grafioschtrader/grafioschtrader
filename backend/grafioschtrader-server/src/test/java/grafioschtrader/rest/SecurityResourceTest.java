@@ -26,9 +26,6 @@ import org.junit.jupiter.params.aggregator.ArgumentsAccessor;
 import org.junit.jupiter.params.aggregator.ArgumentsAggregationException;
 import org.junit.jupiter.params.aggregator.ArgumentsAggregator;
 import org.junit.jupiter.params.provider.CsvFileSource;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 
 import grafiosch.types.Language;
 import grafioschtrader.GlobalConstants;
@@ -46,45 +43,55 @@ class SecurityResourceTest extends BaseIntegrationTest  {
   private static List<Assetclass> assetclasses;
   private static List<Stockexchange> stockexchanges;
   private static Comparator<Stockexchange> comparatorSE = (s1, s2) -> s1.getName().compareTo(s2.getName());
-  
+
   private Assetclass assetclass;
   private Stockexchange stockexchange;
   private Security security;
 
   @BeforeAll
   void setUpUserToken() {
-    RestTestHelper.inizializeUserTokens(restTemplate, port, jwtTokenHandler);
+    RestTestHelper.inizializeUserTokens(restTestClient, jwtTokenHandler);
   }
 
   @Test
   @Order(2)
   void getAllAssetclassTest() {
-    ResponseEntity<Assetclass[]> response = restTemplate.exchange(
-        RestTestHelper.createURLWithPort(RequestGTMappings.ASSETCLASS_MAP + "/", port), HttpMethod.GET,
-        RestTestHelper.getHttpEntity(RestTestHelper.LIMIT1, null), Assetclass[].class);
+    Assetclass[] body = authenticatedClient(RestTestHelper.LIMIT1)
+        .get()
+        .uri(RequestGTMappings.ASSETCLASS_MAP + "/")
+        .exchange()
+        .expectStatus().isOk()
+        .expectBody(Assetclass[].class)
+        .returnResult()
+        .getResponseBody();
 
-    Optional<Assetclass> assetclassOpt = Arrays.stream(response.getBody())
+    Optional<Assetclass> assetclassOpt = Arrays.stream(body)
         .filter(a -> a.getCategoryType() == AssetclassType.EQUITIES
             && a.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT
             && a.getSubCategoryByLanguage(Language.GERMAN).equals("Aktien Schweiz"))
         .findFirst();
     assertThat(assetclassOpt).isNotEmpty();
     assetclass = assetclassOpt.get();
-    assetclasses = Arrays.asList(response.getBody());
+    assetclasses = Arrays.asList(body);
   }
 
   @Test
   @Order(3)
   void getAllStockexchangesTest() {
-    ResponseEntity<Stockexchange[]> response = restTemplate.exchange(
-        RestTestHelper.createURLWithPort(RequestGTMappings.STOCKEXCHANGE_MAP + "/", port), HttpMethod.GET,
-        RestTestHelper.getHttpEntity(RestTestHelper.LIMIT1, null), Stockexchange[].class);
+    Stockexchange[] body = authenticatedClient(RestTestHelper.LIMIT1)
+        .get()
+        .uri(RequestGTMappings.STOCKEXCHANGE_MAP + "/")
+        .exchange()
+        .expectStatus().isOk()
+        .expectBody(Stockexchange[].class)
+        .returnResult()
+        .getResponseBody();
 
-    Optional<Stockexchange> stockexchangeOpt = Arrays.stream(response.getBody())
+    Optional<Stockexchange> stockexchangeOpt = Arrays.stream(body)
         .filter(s -> s.getMic().equals(GlobalConstants.STOCK_EX_MIC_SIX)).findFirst();
     assertThat(stockexchangeOpt).isPresent();
     stockexchange = stockexchangeOpt.get();
-    stockexchanges = Arrays.asList(response.getBody());
+    stockexchanges = Arrays.asList(body);
     stockexchanges.sort(comparatorSE);
   }
 
@@ -105,13 +112,19 @@ class SecurityResourceTest extends BaseIntegrationTest  {
     s.setTickerSymbol("ROG");
     s.setUrlHistoryExtend("CH0012032048CHF4");
     s.setUrlIntraExtend("CH0012032048");
-    HttpEntity<Security> request = RestTestHelper.getHttpEntity(RestTestHelper.LIMIT1, s);
 
-    ResponseEntity<Security> response = restTemplate.exchange(
-        RestTestHelper.createURLWithPort(RequestGTMappings.SECURITY_MAP + "/", port), HttpMethod.POST, request,
-        Security.class);
-    assertNotNull(response);
-    security = response.getBody();
+    Security created = authenticatedClient(RestTestHelper.LIMIT1)
+        .post()
+        .uri(RequestGTMappings.SECURITY_MAP + "/")
+        .body(s)
+        .exchange()
+        .expectStatus().isOk()
+        .expectBody(Security.class)
+        .returnResult()
+        .getResponseBody();
+
+    assertNotNull(created);
+    security = created;
     assertThat(security.getIdSecuritycurrency()).isGreaterThan(0);
   }
 
@@ -119,14 +132,21 @@ class SecurityResourceTest extends BaseIntegrationTest  {
   @Order(5)
   @DisplayName("Delete singe security with user 'limit1'")
   void deleteByIdTest() throws ParseException {
-    String entityUrl = RestTestHelper.createURLWithPort(RequestGTMappings.SECURITY_MAP + "/", port)
-        + security.getIdSecuritycurrency();
-    restTemplate.exchange(entityUrl, HttpMethod.DELETE, RestTestHelper.getHttpEntity(RestTestHelper.LIMIT1, null),
-        String.class);
+    String entityUrl = RequestGTMappings.SECURITY_MAP + "/" + security.getIdSecuritycurrency();
 
-    ResponseEntity<Security> s = restTemplate.exchange(entityUrl, HttpMethod.GET,
-        RestTestHelper.getHttpEntity(RestTestHelper.LIMIT1, null), Security.class);
-    assertThat(s.getBody()).isNull();
+    authenticatedClient(RestTestHelper.LIMIT1)
+        .delete()
+        .uri(entityUrl)
+        .exchange();
+
+    Security fetched = authenticatedClient(RestTestHelper.LIMIT1)
+        .get()
+        .uri(entityUrl)
+        .exchange()
+        .expectBody(Security.class)
+        .returnResult()
+        .getResponseBody();
+    assertThat(fetched).isNull();
   }
 
   @Order(10)
@@ -134,13 +154,18 @@ class SecurityResourceTest extends BaseIntegrationTest  {
   @CsvFileSource(resources = "/testdata/securities.csv", encoding = "UTF-8")
   @DisplayName("Create many securites from csv")
   void createAllSecuritiesTest(@AggregateWith(SecurityAggregator.class) Security security) {
-    HttpEntity<Security> request = RestTestHelper.getHttpEntity(RestTestHelper.getRadomUser(), security);
-    ResponseEntity<Security> response = restTemplate.exchange(
-        RestTestHelper.createURLWithPort(RequestGTMappings.SECURITY_MAP, port), HttpMethod.POST, request,
-        Security.class);
-    assertNotNull(response);
-    security = response.getBody();
-    assertThat(security.getIdSecuritycurrency()).isGreaterThan(0);
+    Security created = authenticatedClient(RestTestHelper.getRadomUser())
+        .post()
+        .uri(RequestGTMappings.SECURITY_MAP)
+        .body(security)
+        .exchange()
+        .expectStatus().isOk()
+        .expectBody(Security.class)
+        .returnResult()
+        .getResponseBody();
+
+    assertNotNull(created);
+    assertThat(created.getIdSecuritycurrency()).isGreaterThan(0);
   }
 
   static class SecurityAggregator implements ArgumentsAggregator {

@@ -1,68 +1,44 @@
 package grafioschtrader.rest;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.resttestclient.TestRestTemplate;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 import grafiosch.dto.ValueKeyHtmlSelectOptions;
-import grafioschtrader.test.start.GTforTest;
 
-@SpringBootTest(classes = GTforTest.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 class GlobalParameterResourceTest extends BaseIntegrationTest  {
-
-  @Autowired
-  TestRestTemplate restTemplate = new TestRestTemplate();
-
-  @LocalServerPort
-  private int port;
-
-  @BeforeAll
-  static void setUp() {
-    System.out.println("Hugo");
-  }
 
   @Test
   void testRequest() {
-    ResponseEntity<List<ValueKeyHtmlSelectOptions>> vkhso = this.restTemplate.exchange(
-        createURLWithPort("/api/globalparameters/locales"), HttpMethod.GET, null,
-        new ParameterizedTypeReference<List<ValueKeyHtmlSelectOptions>>() {
-        });
+    List<ValueKeyHtmlSelectOptions> body = restTestClient.get()
+        .uri("/api/globalparameters/locales")
+        .exchange()
+        .expectStatus().isOk()
+        .expectBody(new ParameterizedTypeReference<List<ValueKeyHtmlSelectOptions>>() {})
+        .returnResult()
+        .getResponseBody();
 
-    assertThat(vkhso.getStatusCode(), is(HttpStatus.OK));
-    System.out.println(vkhso.getBody());
+    assertThat(body).isNotNull();
   }
 
   @Test
   void testUserLogon() {
-
     String input = "{\"email\": \"hg@hugograf.com\", \"password\": \"a\", \"timezoneOffset\": -120}";
-    HttpEntity<String> entity = new HttpEntity<>(input);
 
-    ResponseEntity<String> response = restTemplate.exchange(createURLWithPort("/api/login"), HttpMethod.POST, entity,
-        String.class);
+    HttpHeaders responseHeaders = restTestClient.post()
+        .uri("/api/login")
+        .body(input)
+        .exchange()
+        .expectStatus().isOk()
+        .expectBody(String.class)
+        .returnResult()
+        .getResponseHeaders();
 
-    assertThat(response.getStatusCode(), is(HttpStatus.OK));
-    HttpHeaders headers = response.getHeaders();
-    System.out.println(headers.get("x-auth-token"));
-  }
-
-  private String createURLWithPort(String uri) {
-    return "http://localhost:" + port + uri;
+    assertThat(responseHeaders.getFirst("x-auth-token")).isNotNull();
   }
 
 }

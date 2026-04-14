@@ -18,10 +18,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.ResolvableType;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 
 import grafiosch.entities.BaseID;
 import grafiosch.repository.UserEntityChangeCountJpaRepository;
@@ -35,8 +32,6 @@ import grafioschtrader.repository.SecurityJpaRepository;
 @TestInstance(Lifecycle.PER_CLASS)
 class DeleteALLDataTest extends BaseIntegrationTest {
 
- 
-
   @Autowired
   private UserEntityChangeCountJpaRepository userEntityChangeCountJpaRepository;
 
@@ -48,7 +43,7 @@ class DeleteALLDataTest extends BaseIntegrationTest {
 
   @BeforeAll
   void setUpUserToken() {
-    RestTestHelper.inizializeUserTokens(restTemplate, port, jwtTokenHandler);
+    RestTestHelper.inizializeUserTokens(restTestClient, jwtTokenHandler);
   }
 
   @Test
@@ -75,27 +70,45 @@ class DeleteALLDataTest extends BaseIntegrationTest {
       JpaRepository<?, ?> jpaRepository) {
 
     if (jpaRepository == null) {
-      ResponseEntity<List<T>> response = restTemplate.exchange(
-          RestTestHelper.createURLWithPort(resourceMap + "/", port), HttpMethod.GET,
-          RestTestHelper.getHttpEntity(RestTestHelper.ADMIN, null),
-          ParameterizedTypeReference.forType(ResolvableType.forClassWithGenerics(List.class, clazz).getType()));
+      ParameterizedTypeReference<List<T>> listRef = listTypeRef(clazz);
 
-      for (T baseID : response.getBody()) {
-        String entityUrl = RestTestHelper.createURLWithPort(resourceMap + "/", port) + baseID.getId();
-        restTemplate.exchange(entityUrl, HttpMethod.DELETE,
-            RestTestHelper.getHttpEntity(RestTestHelper.ADMIN, null), BaseID.class);
+      List<T> all = authenticatedClient(RestTestHelper.ADMIN)
+          .get()
+          .uri(resourceMap + "/")
+          .exchange()
+          .expectStatus().isOk()
+          .expectBody(listRef)
+          .returnResult()
+          .getResponseBody();
+
+      for (T baseID : all) {
+        authenticatedClient(RestTestHelper.ADMIN)
+            .delete()
+            .uri(resourceMap + "/" + baseID.getId())
+            .exchange()
+            .expectStatus().isOk();
       }
 
-      response = restTemplate.exchange(
-          RestTestHelper.createURLWithPort(resourceMap + "/", port), HttpMethod.GET,
-          RestTestHelper.getHttpEntity(RestTestHelper.ADMIN, null),
-          ParameterizedTypeReference.forType(ResolvableType.forClassWithGenerics(List.class, clazz).getType()));
+      List<T> remaining = authenticatedClient(RestTestHelper.ADMIN)
+          .get()
+          .uri(resourceMap + "/")
+          .exchange()
+          .expectStatus().isOk()
+          .expectBody(listRef)
+          .returnResult()
+          .getResponseBody();
 
-      assertThat(response.getBody()).isEmpty();
+      assertThat(remaining).isEmpty();
     } else {
       jpaRepository.deleteAll();
       assertThat(jpaRepository.count()).isZero();
     }
+  }
+
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  private static <T> ParameterizedTypeReference<List<T>> listTypeRef(Class<T> clazz) {
+    return (ParameterizedTypeReference) ParameterizedTypeReference
+        .forType(org.springframework.core.ResolvableType.forClassWithGenerics(List.class, clazz).getType());
   }
 
   private Stream<Arguments> resoureClass() {

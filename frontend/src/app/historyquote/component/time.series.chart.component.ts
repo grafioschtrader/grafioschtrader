@@ -698,11 +698,18 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       }
     };
     let before = 0;
+    let seeded = false;
+    const fromDateStr = moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
     securityTransactionSummary.transactionPositionList.filter(stp =>
       stp.transaction.transactionType === TransactionType[TransactionType.ACCUMULATE]
       || stp.transaction.transactionType === TransactionType[TransactionType.REDUCE])
       .forEach(securityTransactionPosition => {
         if (moment(securityTransactionPosition.transaction.transactionTime).isSameOrAfter(this.fromDate)) {
+          if (!seeded) {
+            trace.x.push(fromDateStr);
+            trace.y.push(before);
+            seeded = true;
+          }
           const transaction = securityTransactionPosition.transaction;
           this.getDateTimeAsStringPutAsX(transaction, trace.x);
           trace.y.push(before);
@@ -712,6 +719,10 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
         before = securityTransactionPosition.holdingsSplitAdjusted;
       });
     if (before != 0) {
+      if (!seeded) {
+        trace.x.push(fromDateStr);
+        trace.y.push(before);
+      }
       trace.y.push(before);
       trace.x.push(moment(this.endDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE));
     }

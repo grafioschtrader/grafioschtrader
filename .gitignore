@@ -8,3 +8,6 @@
 AGENTS.md
 nul
 tmpclaude-*
+
+# Locally exported test-DB seed file (may contain Jasypt ciphertext — never commit)
+backend/grafioschtrader-server/src/test/resources/local-seed/

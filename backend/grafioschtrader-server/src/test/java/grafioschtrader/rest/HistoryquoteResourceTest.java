@@ -13,7 +13,7 @@ class HistoryquoteResourceTest extends BaseIntegrationTest {
 
   @BeforeAll
   void setUpUserToken() {
-    RestTestHelper.inizializeUserTokens(restTemplate, port, jwtTokenHandler);
+    RestTestHelper.inizializeUserTokens(restTestClient, jwtTokenHandler);
   }
 
   @Test

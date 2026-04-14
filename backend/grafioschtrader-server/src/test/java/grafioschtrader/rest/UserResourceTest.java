@@ -15,10 +15,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 
 import grafiosch.entities.Role;
 import grafiosch.entities.User;
@@ -37,13 +34,13 @@ import jakarta.transaction.Transactional;
 @TestInstance(Lifecycle.PER_CLASS)
 class UserResourceTest extends BaseIntegrationTest  {
 
-  
+
   @Autowired
   VerificationTokenJpaRepository verificationTokenJpaRepository;
 
   @Autowired
   RoleJpaRepository roleJpaRepository;
-  
+
   @Autowired
   private UserJpaRepository userJpaRepository;
 
@@ -52,13 +49,17 @@ class UserResourceTest extends BaseIntegrationTest  {
   @DisplayName("Crate all users")
   void createUserForVerification() {
     for (UserRegister user : RestTestHelper.users) {
-      HttpHeaders headers = new HttpHeaders();
-      headers.set("referer", "http://localhost:" + port + "/grafioschtrader/register");
-      HttpEntity<UserRegister> httpEntity = new HttpEntity<>(user, headers);
-      ResponseEntity<User> response = restTemplate.exchange(
-          RestTestHelper.createURLWithPort(RequestMappings.USER_MAP, port), HttpMethod.POST, httpEntity,
-          User.class);
-      assertThat(response.getBody().getIdUser()).isGreaterThan(0);
+      User created = restTestClient.post()
+          .uri(RequestMappings.USER_MAP)
+          .header("referer", "http://localhost:" + port + "/grafioschtrader/register")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(user)
+          .exchange()
+          .expectStatus().isOk()
+          .expectBody(User.class)
+          .returnResult()
+          .getResponseBody();
+      assertThat(created.getIdUser()).isGreaterThan(0);
     }
   }
 
@@ -68,9 +69,14 @@ class UserResourceTest extends BaseIntegrationTest  {
   void tokenverify() {
     List<VerificationToken> allTokens = verificationTokenJpaRepository.findAll();
     for (VerificationToken verificationToken : allTokens) {
-      ResponseEntity<String> response = restTemplate.getForEntity(RestTestHelper.createURLWithPort(
-          RequestMappings.USER_MAP + "/tokenverify/" + verificationToken.getToken(), port), String.class);
-      assertThat(response.getBody()).isEqualTo(UserResource.TOKEN_SUCCESS);
+      String body = restTestClient.get()
+          .uri(RequestMappings.USER_MAP + "/tokenverify/" + verificationToken.getToken())
+          .exchange()
+          .expectStatus().isOk()
+          .expectBody(String.class)
+          .returnResult()
+          .getResponseBody();
+      assertThat(body).isEqualTo(UserResource.TOKEN_SUCCESS);
     }
 
   }
@@ -80,38 +86,50 @@ class UserResourceTest extends BaseIntegrationTest  {
   @Transactional
   @DisplayName("Adjust user rights but admin")
   void adjustUserRights() {
-    RestTestHelper.inizializeUserTokens(restTemplate, port, jwtTokenHandler);
+    RestTestHelper.inizializeUserTokens(restTestClient, jwtTokenHandler);
     Map<String, Role> roleMap = roleJpaRepository.findAll().stream()
         .collect(Collectors.toMap(Role::getRolename, Function.identity()));
-    ResponseEntity<User> response = adjustUserRightsByNickname(RestTestHelper.ALLEDIT, Role.ROLE_ALL_EDIT, roleMap);
-    assertThat(response.getBody().getMostPrivilegedRole()).isEqualTo(Role.ROLE_ALL_EDIT);
+    User updated = adjustUserRightsByNickname(RestTestHelper.ALLEDIT, Role.ROLE_ALL_EDIT, roleMap);
+    assertThat(updated.getMostPrivilegedRole()).isEqualTo(Role.ROLE_ALL_EDIT);
 
-    response = adjustUserRightsByNickname(RestTestHelper.USER, Role.ROLE_USER, roleMap);
-    assertThat(response.getBody().getMostPrivilegedRole()).isEqualTo(Role.ROLE_USER);
+    updated = adjustUserRightsByNickname(RestTestHelper.USER, Role.ROLE_USER, roleMap);
+    assertThat(updated.getMostPrivilegedRole()).isEqualTo(Role.ROLE_USER);
   }
 
   @Order(4)
   @Test
   @DisplayName("Create tenant")
   void createTenant() {
-    RestTestHelper.inizializeUserTokens(restTemplate, port, jwtTokenHandler);
+    RestTestHelper.inizializeUserTokens(restTestClient, jwtTokenHandler);
     for (UserRegister user : RestTestHelper.users) {
       Tenant tenant = new Tenant("Tenant " + user.nickname, user.currency, user.idUser, TenantKindType.MAIN, false);
-      ResponseEntity<Tenant> response = restTemplate.exchange(
-          RestTestHelper.createURLWithPort(RequestGTMappings.TENANT_MAP, port), HttpMethod.POST,
-          RestTestHelper.getHttpEntity(user.nickname, tenant), Tenant.class);
-      assertThat(response.getBody().getIdTenant()).isGreaterThan(0);
+      Tenant created = authenticatedClient(user.nickname)
+          .post()
+          .uri(RequestGTMappings.TENANT_MAP)
+          .body(tenant)
+          .exchange()
+          .expectStatus().isOk()
+          .expectBody(Tenant.class)
+          .returnResult()
+          .getResponseBody();
+      assertThat(created.getIdTenant()).isGreaterThan(0);
     }
 
   }
 
-  private ResponseEntity<User> adjustUserRightsByNickname(String nickname, String mostPriviledRole,
+  private User adjustUserRightsByNickname(String nickname, String mostPriviledRole,
       Map<String, Role> roleMap) {
     User user = userJpaRepository.findByNickname(nickname).get();
     user.setMostPrivilegedRole(mostPriviledRole);
 
-    // Write user
-    return restTemplate.exchange(RestTestHelper.createURLWithPort(RequestMappings.USERADMIN_MAP, port),
-        HttpMethod.PUT, RestTestHelper.getHttpEntity(RestTestHelper.ADMIN, user), User.class);
+    return authenticatedClient(RestTestHelper.ADMIN)
+        .put()
+        .uri(RequestMappings.USERADMIN_MAP)
+        .body(user)
+        .exchange()
+        .expectStatus().isOk()
+        .expectBody(User.class)
+        .returnResult()
+        .getResponseBody();
   }
 }

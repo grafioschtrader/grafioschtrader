@@ -36,6 +36,7 @@ import grafioschtrader.entities.IctaxSecurityTaxData;
 import grafioschtrader.entities.ImportTransactionPos;
 import grafioschtrader.entities.ImportTransactionPosFailed;
 import grafioschtrader.entities.ImportTransactionTemplate;
+import grafioschtrader.entities.MicProviderMap;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.SecaccountTradingPeriod;
 import grafioschtrader.entities.Security;
@@ -52,6 +53,7 @@ import grafioschtrader.entities.StandingOrderCashaccount;
 import grafioschtrader.entities.StandingOrderFailure;
 import grafioschtrader.entities.StandingOrderSecurity;
 import grafioschtrader.entities.Stockexchange;
+import grafioschtrader.entities.StockexchangeMic;
 import grafioschtrader.entities.TradingDaysMinus;
 import grafioschtrader.entities.TradingDaysPlus;
 import grafioschtrader.entities.TradingPlatformPlan;
@@ -246,6 +248,9 @@ public class MyDataExportDeleteDefinition {
           ExportDefinition.EXPORT_USE | ExportDefinition.CHANGE_USER_ID_FOR_CREATED_BY),
       new ExportDefinition(TradingPlatformPlan.TABNAME, TENANT_USER.NONE, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.CHANGE_USER_ID_FOR_CREATED_BY),
+      // MIC reference data — must be exported before stockexchange (FK dependency)
+      new ExportDefinition(StockexchangeMic.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
+      new ExportDefinition(MicProviderMap.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
       // Stock exchange is fully exported but data owner must be changed too user
       new ExportDefinition(Stockexchange.TABNAME, TENANT_USER.NONE, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.CHANGE_USER_ID_FOR_CREATED_BY),

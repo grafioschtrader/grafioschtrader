@@ -20,6 +20,7 @@ import grafiosch.gtnet.handler.HandlerResult;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
+import grafioschtrader.service.GTNetExchangeLogService;
 import grafioschtrader.gtnet.model.SecurityGtnetLookupDTO;
 import grafioschtrader.gtnet.model.msg.SecurityBatchLookupMsg;
 import grafioschtrader.gtnet.model.msg.SecurityBatchLookupResponseMsg;
@@ -43,6 +44,9 @@ public class SecurityBatchLookupHandler extends AbstractGTNetMessageHandler {
 
   @Autowired
   private SecurityLookupHandler securityLookupHandler;
+
+  @Autowired
+  private GTNetExchangeLogService gtNetExchangeLogService;
 
   @Override
   public GTNetMessageCodeType getSupportedMessageCode() {
@@ -98,8 +102,14 @@ public class SecurityBatchLookupHandler extends AbstractGTNetMessageHandler {
       }
     }
 
+    int totalSecurities = results.values().stream().mapToInt(List::size).sum();
     log.info("Batch lookup completed: {} queries, {} with results, {} total securities found",
-        queries.size(), results.size(), results.values().stream().mapToInt(List::size).sum());
+        queries.size(), results.size(), totalSecurities);
+
+    // Log exchange statistics as supplier
+    gtNetExchangeLogService.logAsSupplier(context.getRemoteGTNet(),
+        GTNetExchangeKindType.SECURITY_METADATA,
+        queries.size(), results.size(), totalSecurities);
 
     // Build and return response
     return createSuccessResponse(context, storedRequest, results);

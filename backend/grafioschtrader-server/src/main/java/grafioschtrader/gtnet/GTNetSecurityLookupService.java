@@ -426,6 +426,10 @@ public class GTNetSecurityLookupService {
 
         log.info("Received {} securities from {} for batch lookup", totalResultsFromPeer, supplier.getDomainRemoteName());
 
+        // Log exchange statistics as consumer
+        gtNetExchangeLogService.logAsConsumer(supplier, GTNetExchangeKindType.SECURITY_METADATA,
+            batchRequest.size(), totalResultsFromPeer, totalResultsFromPeer);
+
       } catch (Exception e) {
         log.error("Failed to query GTNet server {} for batch lookup", supplier.getDomainRemoteName(), e);
       }
