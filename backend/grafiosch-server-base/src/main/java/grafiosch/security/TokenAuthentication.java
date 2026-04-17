@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -55,6 +57,8 @@ import tools.jackson.databind.ObjectMapper;
  * </p>
  */
 public abstract class TokenAuthentication {
+
+  private static final Logger log = LoggerFactory.getLogger(TokenAuthentication.class);
 
   /**
    * HTTP header name for JWT token transmission.
@@ -126,15 +130,20 @@ public abstract class TokenAuthentication {
   public void addJwtTokenToHeader(final HttpServletResponse response, final UserAuthentication authentication,
       boolean passwordRegexOk) throws IOException {
     try {
-    final UserDetails user = authentication.getDetails();
-    response.addHeader(AUTH_HEADER_NAME,
-        jwtTokenHandler.createTokenForUser(user, globalparametersJpaRepository.getJWTExpirationMinutes()));
-    PrintWriter out = response.getWriter();
-    final User userEntity = (User) user;
-    jacksonObjectMapper.writeValue(out, getConfigurationWithLogin(userEntity.isUiShowMyProperty(),
-        userEntity.getMostPrivilegedRole(), passwordRegexOk, userEntity.getIdTenant()));
-    } catch(Exception e) {
-      e.printStackTrace();
+      final UserDetails user = authentication.getDetails();
+      response.addHeader(AUTH_HEADER_NAME,
+          jwtTokenHandler.createTokenForUser(user, globalparametersJpaRepository.getJWTExpirationMinutes()));
+      PrintWriter out = response.getWriter();
+      final User userEntity = (User) user;
+      jacksonObjectMapper.writeValue(out, getConfigurationWithLogin(userEntity.isUiShowMyProperty(),
+          userEntity.getMostPrivilegedRole(), passwordRegexOk, userEntity.getIdTenant()));
+    } catch (Exception e) {
+      log.error("Failed to write login response for user {}",
+          authentication != null ? authentication.getName() : "<unknown>", e);
+      if (!response.isCommitted()) {
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      }
+      throw new IOException("Failed to write login response: " + e.getMessage(), e);
     }
   }
 

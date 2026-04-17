@@ -7,6 +7,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.time.LocalTime;
 import java.util.List;
 
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
@@ -37,11 +38,13 @@ class StockexchangeResourceTest extends BaseIntegrationTest {
 
   @Order(4)
   @ParameterizedTest
-  @CsvFileSource(resources = "/testdata/stockexchanges.csv", encoding = "UTF-8", nullValues = { "\\N" })
-  @DisplayName("Users create some Stockexchanges")
+  @CsvFileSource(resources = "/testdata/generated/stockexchanges.csv", encoding = "UTF-8", nullValues = { "\\N" }, delimiter = '|')
+  @DisplayName("Users create some Stockexchanges (e2e='i' rows; 'e' rows skipped for frontend Playwright test)")
   void createTest(String mic, String name, String countryCode, boolean noMarketValue,
-      boolean secondaryMarket, LocalTime timeOpen, LocalTime timeClose, String timeZone, String website)
+      boolean secondaryMarket, LocalTime timeOpen, LocalTime timeClose, String timeZone, String website, String e2e)
       throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+    Assumptions.assumeTrue("i".equals(e2e), "Row reserved for frontend e2e test: " + name);
+
     Stockexchange s = new Stockexchange(mic, name, countryCode, noMarketValue, secondaryMarket, timeOpen, timeClose,
         timeZone, website);
 

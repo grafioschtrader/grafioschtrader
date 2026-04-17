@@ -60,7 +60,11 @@ test.describe.serial('Create portfolio with accounts', () => {
     const dialog = page.locator('.p-dialog');
     await dialog.waitFor({state: 'visible', timeout: 10_000});
 
-    await dialog.locator('#name').fill(SECURITY_ACCOUNT_NAME);
+    const nameInput = dialog.locator('#name');
+    await nameInput.click();
+    await nameInput.fill(SECURITY_ACCOUNT_NAME);
+    await nameInput.dispatchEvent('input');
+    await nameInput.blur();
 
     // Select a trading platform plan — could be native select or PrimeNG p-select
     const tradingPlanNativeSelect = dialog.locator('select#tradingPlatformPlan');
@@ -70,6 +74,7 @@ test.describe.serial('Create portfolio with accounts', () => {
       const optionCount = await options.count();
       if (optionCount > 1) {
         await tradingPlanNativeSelect.selectOption({index: 1});
+        await tradingPlanNativeSelect.dispatchEvent('change');
       }
     } else {
       // PrimeNG p-select: click to open, then select the first option
@@ -81,9 +86,14 @@ test.describe.serial('Create portfolio with accounts', () => {
       await optionItem.click();
     }
 
-    // Set lowest transaction cost (PrimeNG p-inputnumber wraps an <input>)
+    // Set lowest transaction cost (PrimeNG p-inputnumber wraps an <input>). PrimeNG only
+    // commits the model on blur, so dispatch input then press Tab to trigger Angular's
+    // change detection — otherwise the reactive form stays invalid and Save stays disabled.
     const costInput = dialog.locator('#lowestTransactionCost input');
+    await costInput.click();
     await costInput.fill('5');
+    await costInput.dispatchEvent('input');
+    await costInput.press('Tab');
 
     await dialog.locator('button[type="submit"]').click();
 

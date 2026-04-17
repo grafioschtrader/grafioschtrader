@@ -3,6 +3,7 @@ package grafiosch.config;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -60,6 +61,24 @@ public class JacksonConfig {
           return LocalDateTime.parse(text).toLocalDate();
         }
       }
+    }
+  }
+
+  /**
+   * Flexible LocalTime deserializer that accepts both "HH:mm" (the format emitted by fields
+   * annotated {@code @JsonFormat(pattern = "HH:mm")}) and "HH:mm:ss" (the format produced by
+   * native HTML {@code <input type="time" step="1">} controls). Apply via
+   * {@code @JsonDeserialize(using = JacksonConfig.FlexibleLocalTimeDeserializer.class)}.
+   */
+  public static class FlexibleLocalTimeDeserializer extends StdDeserializer<LocalTime> {
+
+    public FlexibleLocalTimeDeserializer() {
+      super(LocalTime.class);
+    }
+
+    @Override
+    public LocalTime deserialize(JsonParser p, DeserializationContext ctxt) {
+      return LocalTime.parse(p.getString().trim());
     }
   }
 

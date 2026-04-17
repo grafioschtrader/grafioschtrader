@@ -240,6 +240,14 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
     return sessionStorage.getItem(GlobalSessionNames.GT_NET_LOG_ENABLED) === 'true';
   }
 
+  public hasGtNetHistoricalExchangePeer(): boolean {
+    return sessionStorage.getItem(GlobalSessionNames.GT_NET_HAS_HISTORICAL_PEER) === 'true';
+  }
+
+  public hasGtNetLastpriceExchangePeer(): boolean {
+    return sessionStorage.getItem(GlobalSessionNames.GT_NET_HAS_LASTPRICE_PEER) === 'true';
+  }
+
   private prepareUseFeatures(featureType: FeatureType): boolean {
     // Check if the feature state is already cached
     if (!this.featureCache.has(featureType)) {

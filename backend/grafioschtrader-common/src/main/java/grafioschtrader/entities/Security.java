@@ -256,7 +256,8 @@ public class Security extends Securitycurrency<Security>
     this.stockexchange = stockexchange;
     this.activeFromDate = activeFromDate;
     this.activeToDate = activeToDate;
-    this.distributionFrequency = distributionFrequency.getValue();
+    this.distributionFrequency = (distributionFrequency != null ? distributionFrequency
+        : DistributionFrequency.DF_NONE).getValue();
     this.tickerSymbol = tickerSymbol;
     this.isin = isin;
   }
@@ -340,7 +341,8 @@ public class Security extends Securitycurrency<Security>
   }
 
   public void setDistributionFrequency(DistributionFrequency distributionFrequency) {
-    this.distributionFrequency = distributionFrequency.getValue();
+    this.distributionFrequency = (distributionFrequency != null ? distributionFrequency
+        : DistributionFrequency.DF_NONE).getValue();
   }
 
   public float getLeverageFactor() {

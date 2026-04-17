@@ -111,19 +111,20 @@ export class SecurityEditSupport {
   }
 
   private static setGTNetFields(fc: FieldConfig[], gps: GlobalparameterService, sendFieldName: string, recvFieldName: string,
-    fieldsetName: string): void {
+    fieldsetName: string, hasExchangePeer: boolean): void {
     if(gps.useGtnet()) {
       fc.push(DynamicFieldHelper.createFieldCheckboxHeqF(sendFieldName,
-        {fieldsetName: fieldsetName, usedLayoutColumns: 6}));
+        {fieldsetName: fieldsetName, usedLayoutColumns: 6, defaultValue: hasExchangePeer}));
       fc.push(DynamicFieldHelper.createFieldCheckboxHeqF(recvFieldName,
-        {fieldsetName: fieldsetName, usedLayoutColumns: 6}));
+        {fieldsetName: fieldsetName, usedLayoutColumns: 6, defaultValue: hasExchangePeer}));
     }
   }
 
   static getIntraHistoryFieldDefinition(securityDerived: SecurityDerived, gps: GlobalparameterService): FieldConfig[] {
     const fc: FieldConfig[] = [];
     if (securityDerived === SecurityDerived.Security || securityDerived === SecurityDerived.Currencypair) {
-      this.setGTNetFields(fc, gps, 'gtNetHistoricalSend', 'gtNetHistoricalRecv', this.HISTORY_SETTINGS)
+      this.setGTNetFields(fc, gps, 'gtNetHistoricalSend', 'gtNetHistoricalRecv', this.HISTORY_SETTINGS,
+        gps.hasGtNetHistoricalExchangePeer())
       fc.push(DynamicFieldHelper.createFieldSelectString('idConnectorHistory', 'HISTORY_DATA_PROVIDER', false,
         {fieldsetName: this.HISTORY_SETTINGS}));
       fc.push(DynamicFieldHelper.createFieldInputStringHeqF('urlHistoryExtend', 254, false,
@@ -132,7 +133,8 @@ export class SecurityEditSupport {
     fc.push(DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'retryHistoryLoad',
       true, 0, 3, {defaultValue: 0, fieldsetName: this.HISTORY_SETTINGS}));
     if (securityDerived === SecurityDerived.Security || securityDerived === SecurityDerived.Currencypair) {
-      this.setGTNetFields(fc, gps, 'gtNetLastpriceSend', 'gtNetLastpriceRecv', this.INTRA_SETTINGS)
+      this.setGTNetFields(fc, gps, 'gtNetLastpriceSend', 'gtNetLastpriceRecv', this.INTRA_SETTINGS,
+        gps.hasGtNetLastpriceExchangePeer())
       fc.push(DynamicFieldHelper.createFieldSelectString('idConnectorIntra', 'INTRA_DATA_PROVIDER', false,
         {fieldsetName: this.INTRA_SETTINGS}));
       fc.push(DynamicFieldHelper.createFieldInputStringHeqF('urlIntraExtend', 254, false,

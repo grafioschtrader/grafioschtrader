@@ -110,6 +110,7 @@ public class SecurityGTConfig {
               RequestGTMappings.WATCHLIST_MAP + RequestGTMappings.SECURITY_DATAPROVIDER_DIV_SPLIT_HISTORICAL_RESPONSE
                   + "*")
           .permitAll().requestMatchers(HttpMethod.GET, RequestMappings.API + "actuator/**").permitAll()
+          .requestMatchers(HttpMethod.GET, RequestMappings.API + "gtinfo").permitAll()
           .requestMatchers(HttpMethod.GET, RequestMappings.M2M_API + "**").permitAll()
           .requestMatchers(HttpMethod.POST, RequestMappings.M2M_API + "**").permitAll();
       SecurityConfig.configureGlobalParameters(http);

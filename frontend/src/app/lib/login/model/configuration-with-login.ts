@@ -20,6 +20,20 @@ export interface ConfigurationWithLogin {
   gtNetLogEnabled: boolean;
 
   /**
+   * True when at least one GTNet peer is configured to exchange historical price data.
+   * Used to pre-check the historical send/receive checkboxes on the Security/Currencypair create form.
+   * False when GTNet is globally disabled.
+   */
+  gtNetHasHistoricalExchangePeer: boolean;
+
+  /**
+   * True when at least one GTNet peer is configured to exchange intraday (last price) data.
+   * Used to pre-check the lastprice send/receive checkboxes on the Security/Currencypair create form.
+   * False when GTNet is globally disabled.
+   */
+  gtNetHasLastpriceExchangePeer: boolean;
+
+  /**
    * List of entity names and their primary key field names.
    * The frontend may need to know the key field of individual information classes.
    */

@@ -206,4 +206,19 @@ public interface GTNetJpaRepository extends JpaRepository<GTNet, Integer>,
          "AND g.serverOnline = 1 AND g.serverBusy = false")
   List<GTNet> findSecurityMetadataSuppliers();
 
+  /**
+   * Checks whether at least one GTNet peer is configured to exchange data of the given entity kind.
+   * A peer counts as configured when its GTNetConfigEntity has {@code exchange = true} (bidirectional
+   * exchange enabled) or {@code consumerUsage > 0} (remote used as a supplier).
+   * Used to decide whether the matching GTNet send/receive flags should default to true when a new
+   * Security or Currencypair is created.
+   *
+   * @param entityKind the data kind to check (e.g. LAST_PRICE = 0, HISTORICAL_PRICES = 1)
+   * @return true if any peer has exchange or consumer usage configured for that kind
+   */
+  @Query("SELECT CASE WHEN COUNT(g) > 0 THEN TRUE ELSE FALSE END FROM GTNet g "
+      + "JOIN g.gtNetEntities e JOIN e.gtNetConfigEntity c "
+      + "WHERE e.entityKind = :entityKind AND (c.exchange = true OR c.consumerUsage > 0)")
+  boolean existsExchangePeerByEntityKind(@Param("entityKind") byte entityKind);
+
 }
