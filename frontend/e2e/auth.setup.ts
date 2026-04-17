@@ -1,24 +1,36 @@
-import {test as setup, expect, request} from '@playwright/test';
+import {test as setup, expect, Page, request} from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
+import {parseCsvRow} from './helpers';
 
 const MAILHOG_API = 'http://localhost:8025/api/v2';
 const AUTH_DIR = path.join(__dirname, '.auth');
-const CREDENTIALS_FILE = path.join(AUTH_DIR, 'credentials.json');
+const LEGACY_CREDENTIALS_FILE = path.join(AUTH_DIR, 'credentials.json');
+const USERS_CSV = path.resolve(__dirname,
+  '../../backend/grafioschtrader-server/src/test/resources/testdata/users.csv');
 
-// Test user credentials — unique per run to avoid conflicts
-const TEST_USER = {
-  nickname: `testuser_${Date.now()}`,
-  email: `testuser_${Date.now()}@test.local`,
-  password: 'Testuser1234',
-  locale: 'en',
-  tenantName: `TestTenant_${Date.now()}`,
-  tenantCurrency: 'CHF',
-};
+interface CsvUser {
+  email: string;
+  password: string;
+  nickname: string;
+  localeStr: string;
+  timezoneOffset: string;
+  currency: string;
+  role: string;
+  e2e: string;
+}
 
-/**
- * Fetches the latest email from MailHog and extracts the verification token.
- */
+function loadE2EUsers(): CsvUser[] {
+  const csv = fs.readFileSync(USERS_CSV, 'utf-8');
+  return csv.split(/\r?\n/)
+    .filter(l => l.trim().length > 0)
+    .map(line => {
+      const [email, password, nickname, localeStr, timezoneOffset, currency, role, e2e] = parseCsvRow(line);
+      return {email, password, nickname, localeStr, timezoneOffset, currency, role, e2e};
+    })
+    .filter(u => u.e2e === 'e');
+}
+
 async function getVerificationTokenFromMailHog(recipientEmail: string, maxAttempts = 10): Promise<string> {
   const apiContext = await request.newContext();
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
@@ -45,48 +57,46 @@ async function clearMailHog(): Promise<void> {
   await apiContext.dispose();
 }
 
-setup('register user, verify email, setup tenant, and save credentials', async ({page}) => {
-  await clearMailHog();
-
-  // === Step 1: Register ===
+async function registerAndSetupTenant(page: Page, user: CsvUser): Promise<void> {
+  // === Register ===
   await page.goto('/register');
   const nicknameInput = page.locator('#nickname');
   await nicknameInput.waitFor({state: 'visible', timeout: 15_000});
-  await nicknameInput.fill(TEST_USER.nickname);
-  await page.locator('#email').fill(TEST_USER.email);
-  await page.locator('#password').fill(TEST_USER.password);
-  await page.locator('#passwordConfirm').fill(TEST_USER.password);
+  await nicknameInput.fill(user.nickname);
+  await page.locator('#email').fill(user.email);
+  await page.locator('#password').fill(user.password);
+  await page.locator('#passwordConfirm').fill(user.password);
   const localeSelect = page.locator('#localeStr');
   await localeSelect.waitFor({state: 'visible'});
-  await localeSelect.selectOption({value: TEST_USER.locale});
+  // Frontend locale options use the language prefix (e.g. 'en' for 'en-US'). Try the full string first,
+  // fall back to the language code.
+  const langCode = user.localeStr.split('-')[0];
+  await localeSelect.selectOption({value: user.localeStr}).catch(() => localeSelect.selectOption({value: langCode}));
   await page.locator('button[type="submit"]').click();
   await expect(page.locator('.alert-info')).toBeVisible({timeout: 30_000});
 
-  // === Step 2: Verify email token via MailHog ===
-  const token = await getVerificationTokenFromMailHog(TEST_USER.email);
+  // === Verify ===
+  const token = await getVerificationTokenFromMailHog(user.email);
   expect(token).toBeTruthy();
   await page.goto(`/tokenverify?token=${token}`);
 
-  // === Step 3: First login ===
+  // === First login ===
   await page.locator('#email').waitFor({state: 'visible', timeout: 15_000});
   await expect(page.locator('.alert-success')).toBeVisible({timeout: 5_000});
-  await page.locator('#email').fill(TEST_USER.email);
-  await page.locator('#password').fill(TEST_USER.password);
+  await page.locator('#email').fill(user.email);
+  await page.locator('#password').fill(user.password);
   await page.locator('button[type="submit"]').click();
   await page.waitForURL(/\/tenant/, {timeout: 15_000});
 
-  // === Step 4: Tenant setup ===
+  // === Tenant setup — name follows UserResourceTest convention: "Tenant " + nickname ===
+  const tenantName = `Tenant ${user.nickname}`;
   const tenantNameInput = page.locator('#tenantName');
   await tenantNameInput.waitFor({state: 'visible', timeout: 15_000});
-  // Wait for the form to be fully initialized (dropdown options loaded from backend)
   await page.waitForTimeout(2000);
-  await tenantNameInput.fill(TEST_USER.tenantName);
+  await tenantNameInput.fill(tenantName);
 
-  // Select currency — native <select> rendered by FormInputSelectComponent
-  // Wait for options to be loaded from the backend before selecting
   const currencySelect = page.locator('select#currency');
   await currencySelect.waitFor({state: 'visible', timeout: 10_000});
-  // Wait until the select has more than 1 option (options loaded from backend)
   await page.waitForFunction(
     () => {
       const sel = document.querySelector('select#currency') as HTMLSelectElement;
@@ -94,21 +104,44 @@ setup('register user, verify email, setup tenant, and save credentials', async (
     },
     {timeout: 10_000}
   );
-  await currencySelect.selectOption({label: TEST_USER.tenantCurrency});
+  await currencySelect.selectOption({label: user.currency});
 
   await page.locator('button[type="submit"]').click();
 
-  // After tenant setup, user is logged out
+  // After tenant setup the user is logged out; wait for the login form
   await page.locator('#email').waitFor({state: 'visible', timeout: 15_000});
+}
 
-  // === Step 5: Save credentials for subsequent tests ===
+function saveCredentials(user: CsvUser, isPrimary: boolean): void {
   if (!fs.existsSync(AUTH_DIR)) {
     fs.mkdirSync(AUTH_DIR, {recursive: true});
   }
-  fs.writeFileSync(CREDENTIALS_FILE, JSON.stringify({
-    email: TEST_USER.email,
-    password: TEST_USER.password,
-    tenantName: TEST_USER.tenantName,
-    tenantCurrency: TEST_USER.tenantCurrency,
-  }));
+  const payload = {
+    email: user.email,
+    password: user.password,
+    nickname: user.nickname,
+    role: user.role,
+    tenantName: `Tenant ${user.nickname}`,
+    tenantCurrency: user.currency,
+  };
+  fs.writeFileSync(
+    path.join(AUTH_DIR, `credentials.${user.nickname}.json`),
+    JSON.stringify(payload),
+  );
+  if (isPrimary) {
+    fs.writeFileSync(LEGACY_CREDENTIALS_FILE, JSON.stringify(payload));
+  }
+}
+
+setup('register all e2e users from users.csv, verify, and setup their tenants', async ({page}) => {
+  const e2eUsers = loadE2EUsers();
+  if (e2eUsers.length === 0) {
+    throw new Error(`No rows with e2e='e' found in ${USERS_CSV}`);
+  }
+  await clearMailHog();
+  for (let i = 0; i < e2eUsers.length; i++) {
+    const u = e2eUsers[i];
+    await registerAndSetupTenant(page, u);
+    saveCredentials(u, i === 0);
+  }
 });

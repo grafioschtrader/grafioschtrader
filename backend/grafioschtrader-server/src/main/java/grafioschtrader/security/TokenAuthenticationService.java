@@ -11,11 +11,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import grafiosch.dto.ConfigurationWithLogin;
+import grafiosch.repository.GTNetJpaRepository;
 import grafiosch.security.TokenAuthentication;
 import grafiosch.security.UserAuthentication;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.config.FeatureConfig;
 import grafioschtrader.entities.Tenant;
+import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.service.GlobalparametersService;
 import jakarta.transaction.Transactional;
@@ -51,6 +53,9 @@ public class TokenAuthenticationService extends TokenAuthentication {
 
   @Autowired
   private TenantJpaRepository tenantJpaRepository;
+
+  @Autowired
+  private GTNetJpaRepository gtNetJpaRepository;
 
   /**
    * Generates authentication from STOMP WebSocket connection headers.
@@ -96,6 +101,11 @@ public class TokenAuthenticationService extends TokenAuthentication {
         getGlobalConstantsFieldsByFieldPrefix(GlobalConstants.class, "FID"), featureConfig.getEnabledFeatures(),
         tenantClosedUntil);
     configurationWithLogin.gtNetLogEnabled = globalparametersService.isGTNetLogEnabled();
+    boolean gtNetEnabled = featureConfig.isGtnet();
+    configurationWithLogin.gtNetHasHistoricalExchangePeer = gtNetEnabled && gtNetJpaRepository
+        .existsExchangePeerByEntityKind(GTNetExchangeKindType.HISTORICAL_PRICES.getValue());
+    configurationWithLogin.gtNetHasLastpriceExchangePeer = gtNetEnabled
+        && gtNetJpaRepository.existsExchangePeerByEntityKind(GTNetExchangeKindType.LAST_PRICE.getValue());
     return configurationWithLogin;
   }
 
@@ -134,6 +144,20 @@ public class TokenAuthenticationService extends TokenAuthentication {
      * If both portfolio and tenant closedUntil are null, there is no date restriction.</p>
      */
     public final LocalDate tenantClosedUntil;
+
+    /**
+     * Indicates whether at least one GTNet peer is configured to exchange historical price data.
+     * Drives the default value of the historical send/receive checkboxes when creating a new Security
+     * or Currencypair. False when GTNet is disabled globally.
+     */
+    public boolean gtNetHasHistoricalExchangePeer;
+
+    /**
+     * Indicates whether at least one GTNet peer is configured to exchange intraday (last price) data.
+     * Drives the default value of the lastprice send/receive checkboxes when creating a new Security
+     * or Currencypair. False when GTNet is disabled globally.
+     */
+    public boolean gtNetHasLastpriceExchangePeer;
 
     /**
      * Creates a comprehensive GrafioschTrader configuration object.

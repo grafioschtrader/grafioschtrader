@@ -6,9 +6,15 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 import java.beans.PropertyDescriptor;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Serializable;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -26,11 +32,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import grafiosch.entities.ProposeChangeField;
 import grafiosch.security.JwtTokenHandler;
 import grafiosch.types.Language;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Assetclass;
 import weka.core.Debug.Random;
 
 public class RestTestHelper {
+
+  private static final String USERS_CSV = "/testdata/users.csv";
+
   public static final String ADMIN = "admin";
   public static final String ALLEDIT = "alledit";
   public static final String USER = "user";
@@ -39,18 +47,69 @@ public class RestTestHelper {
 
   public static final Random random = new Random();
 
-  public static final String[] ALL_USERS = new String[] { ADMIN, ALLEDIT, USER, LIMIT1, LIMIT2 };
-  public static final String[] LIMIT_USERS = new String[] { LIMIT1, LIMIT2 };
+  /** Every row from users.csv, including both integration ('i') and e2e ('e') tagged users. */
+  public static final UserRegister[] allCsvUsers;
 
-  public static UserRegister[] users = {
-      new UserRegister("hg@hugograf.com", "A123abcd", ADMIN, "de-CH", -60, GlobalConstants.MC_CHF),
-      new UserRegister("hugo.graf@grafiosch.com", "A123abcd", ALLEDIT, "de-CH", -60, GlobalConstants.MC_CHF),
-      new UserRegister("hugo.graf@outlook.com", "A123abcd", USER, "de-CH", -60, GlobalConstants.MC_USD),
-      new UserRegister("grafiosch@outlook.com", "A123abcd", LIMIT1, "de-CH", -60, GlobalConstants.MC_EUR),
-      new UserRegister("hugo.graf@wirtschaftsfilz.ch", "A123abcd", LIMIT2, "de-CH", -60, GlobalConstants.MC_CHF) };
+  /** Integration-test subset of {@link #allCsvUsers} (rows where e2e = 'i'). Used by every backend test. */
+  public static UserRegister[] users;
+
+  /** Nicknames of all users in {@link #users}, in CSV order. */
+  public static final String[] ALL_USERS;
+
+  /** Nicknames of integration-test users whose role is LIMITEDIT. Driven by the CSV. */
+  public static final String[] LIMIT_USERS;
+
+  static {
+    allCsvUsers = loadUsersFromCsv();
+    users = Arrays.stream(allCsvUsers).filter(u -> "i".equals(u.e2e)).toArray(UserRegister[]::new);
+    ALL_USERS = Arrays.stream(users).map(u -> u.nickname).toArray(String[]::new);
+    LIMIT_USERS = Arrays.stream(users).filter(u -> "LIMITEDIT".equals(u.role)).map(u -> u.nickname)
+        .toArray(String[]::new);
+  }
+
+  private static UserRegister[] loadUsersFromCsv() {
+    List<UserRegister> rows = new ArrayList<>();
+    try (InputStream is = RestTestHelper.class.getResourceAsStream(USERS_CSV);
+        BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+      String line;
+      while ((line = br.readLine()) != null) {
+        if (line.isBlank()) {
+          continue;
+        }
+        List<String> cols = parseCsvRow(line);
+        // email, password, nickname, localeStr, timezoneOffset, currency, role, e2e
+        rows.add(new UserRegister(cols.get(0), cols.get(1), cols.get(2), cols.get(3), Integer.valueOf(cols.get(4)),
+            cols.get(5), cols.get(6), cols.get(7)));
+      }
+    } catch (IOException e) {
+      throw new UncheckedIOException("Unable to load " + USERS_CSV, e);
+    }
+    return rows.toArray(new UserRegister[0]);
+  }
+
+  private static List<String> parseCsvRow(String line) {
+    List<String> out = new ArrayList<>();
+    StringBuilder cur = new StringBuilder();
+    boolean inQuotes = false;
+    for (int i = 0; i < line.length(); i++) {
+      char c = line.charAt(i);
+      if (c == '"') {
+        inQuotes = !inQuotes;
+        continue;
+      }
+      if (c == '|' && !inQuotes) {
+        out.add(cur.toString());
+        cur.setLength(0);
+      } else {
+        cur.append(c);
+      }
+    }
+    out.add(cur.toString());
+    return out;
+  }
 
   public static String getRadomUser() {
-    return ALL_USERS[random.nextInt(4) + 1];
+    return ALL_USERS[random.nextInt(ALL_USERS.length - 1) + 1];
   }
 
   public static String createURLWithPort(String uri, int port) {
@@ -124,14 +183,22 @@ public class RestTestHelper {
     @JsonIgnore
     public String currency;
 
+    @JsonIgnore
+    public String role;
+
+    @JsonIgnore
+    public String e2e;
+
     public UserRegister(final String email, final String password, final String nickname, final String localeStr,
-        final Integer timezoneOffset, String currency) {
+        final Integer timezoneOffset, String currency, String role, String e2e) {
       this.email = email;
       this.password = password;
       this.nickname = nickname;
       this.localeStr = localeStr;
       this.timezoneOffset = timezoneOffset;
       this.currency = currency;
+      this.role = role;
+      this.e2e = e2e;
     }
   }
 

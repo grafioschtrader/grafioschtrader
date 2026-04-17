@@ -5,10 +5,8 @@ import org.junit.platform.suite.api.Suite;
 
 
 @Suite
-//@SelectClasses({ DeleteALLDataTest.class, UserEntityChangeLimitRessourceTest.class, StockexchangeResourceTest.class,
-//    AssetclassResourceTest.class, SecurityResourceTest.class })
-@SelectClasses({UserResourceTest.class, UserEntityChangeLimitRessourceTest.class, StockexchangeResourceTest.class,
-  AssetclassResourceTest.class})
+@SelectClasses({UserResourceTest.class, UserEntityChangeLimitRessourceTest.class, ImportTransactionPlatformResourceTest.class,
+  TradingPlatformPlanResourceTest.class, StockexchangeResourceTest.class, AssetclassResourceTest.class, SecurityResourceTest.class})
 public class ResoureTestSuite {
 
 }

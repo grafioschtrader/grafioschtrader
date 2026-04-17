@@ -21,8 +21,11 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import tools.jackson.databind.annotation.JsonDeserialize;
+
 import grafiosch.BaseConstants;
 import grafiosch.common.PropertyAlwaysUpdatable;
+import grafiosch.config.JacksonConfig;
 import grafiosch.common.PropertyOnlyCreation;
 import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
 import grafiosch.entities.Auditable;
@@ -94,6 +97,7 @@ public class Stockexchange extends Auditable implements Serializable {
   @Basic(optional = false)
   @Column(name = "time_open")
   @JsonFormat(pattern = "HH:mm")
+  @JsonDeserialize(using = JacksonConfig.FlexibleLocalTimeDeserializer.class)
   @NotNull
   @PropertyAlwaysUpdatable
   private LocalTime timeOpen;
@@ -102,6 +106,7 @@ public class Stockexchange extends Auditable implements Serializable {
   @Basic(optional = false)
   @Column(name = "time_close")
   @JsonFormat(pattern = "HH:mm")
+  @JsonDeserialize(using = JacksonConfig.FlexibleLocalTimeDeserializer.class)
   @NotNull
   @PropertyAlwaysUpdatable
   private LocalTime timeClose;

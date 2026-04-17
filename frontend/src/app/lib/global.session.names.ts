@@ -73,7 +73,13 @@ export enum GlobalSessionNames {
   OLDEST_TRADING_DAY = 'oldestTradingDay',
 
   /** Whether GTNet exchange logging is globally enabled. */
-  GT_NET_LOG_ENABLED = 'gtNetLogEnabled'
+  GT_NET_LOG_ENABLED = 'gtNetLogEnabled',
+
+  /** Whether at least one GTNet peer is configured to exchange historical price data. */
+  GT_NET_HAS_HISTORICAL_PEER = 'gtNetHasHistoricalExchangePeer',
+
+  /** Whether at least one GTNet peer is configured to exchange intraday (last price) data. */
+  GT_NET_HAS_LASTPRICE_PEER = 'gtNetHasLastpriceExchangePeer'
 }
 
 

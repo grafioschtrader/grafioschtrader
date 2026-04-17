@@ -44,14 +44,14 @@ import {DynamicFieldDirective} from '../../components/dynamic-field/dynamic-fiel
         } @else {
           <div class="row">
             @for (field of controlsWithGroups; track field) {
-              @if (field['inputType']) {
+              @if ('inputType' in field) {
                 <dynamic-form-layout [config]="field"
                                      [formConfig]="formConfig"
                                      [group]="form">
                 </dynamic-form-layout>
               } @else {
-                <ng-container [formGroupName]="field['formGroupName']">
-                  @for (childField of field['fieldConfig']; track childField) {
+                <ng-container [formGroupName]="field.formGroupName">
+                  @for (childField of field.fieldConfig; track childField) {
                     <dynamic-form-layout [config]="childField"
                                          [formConfig]="formConfig"
                                          [group]="field.formControl">

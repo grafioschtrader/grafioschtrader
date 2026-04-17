@@ -84,16 +84,19 @@ class UserResourceTest extends BaseIntegrationTest  {
   @Order(3)
   @Test
   @Transactional
-  @DisplayName("Adjust user rights but admin")
+  @DisplayName("Adjust user rights (driven by users.csv role column; ADMIN and LIMITEDIT need no promotion)")
   void adjustUserRights() {
     RestTestHelper.inizializeUserTokens(restTestClient, jwtTokenHandler);
     Map<String, Role> roleMap = roleJpaRepository.findAll().stream()
         .collect(Collectors.toMap(Role::getRolename, Function.identity()));
-    User updated = adjustUserRightsByNickname(RestTestHelper.ALLEDIT, Role.ROLE_ALL_EDIT, roleMap);
-    assertThat(updated.getMostPrivilegedRole()).isEqualTo(Role.ROLE_ALL_EDIT);
-
-    updated = adjustUserRightsByNickname(RestTestHelper.USER, Role.ROLE_USER, roleMap);
-    assertThat(updated.getMostPrivilegedRole()).isEqualTo(Role.ROLE_USER);
+    for (UserRegister u : RestTestHelper.users) {
+      if ("ADMIN".equals(u.role) || "LIMITEDIT".equals(u.role)) {
+        continue;
+      }
+      String roleName = Role.ROLE + u.role;
+      User updated = adjustUserRightsByNickname(u.nickname, roleName, roleMap);
+      assertThat(updated.getMostPrivilegedRole()).isEqualTo(roleName);
+    }
   }
 
   @Order(4)

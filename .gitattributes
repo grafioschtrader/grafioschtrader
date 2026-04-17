@@ -1,0 +1,1 @@
+backend/grafioschtrader-server/src/test/resources/db/migration/test/V2__testdata.sql filter=lfs diff=lfs merge=lfs -text

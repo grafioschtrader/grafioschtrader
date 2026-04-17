@@ -68,6 +68,10 @@ export class LoginService extends BaseAuthService<User> {
     sessionStorage.setItem(GlobalSessionNames.JWT, token);
     sessionStorage.setItem(GlobalSessionNames.USE_FEATURES, JSON.stringify(configurationWithLogin.useFeatures));
     sessionStorage.setItem(GlobalSessionNames.GT_NET_LOG_ENABLED, JSON.stringify(configurationWithLogin.gtNetLogEnabled));
+    sessionStorage.setItem(GlobalSessionNames.GT_NET_HAS_HISTORICAL_PEER,
+      JSON.stringify(configurationWithLogin.gtNetHasHistoricalExchangePeer));
+    sessionStorage.setItem(GlobalSessionNames.GT_NET_HAS_LASTPRICE_PEER,
+      JSON.stringify(configurationWithLogin.gtNetHasLastpriceExchangePeer));
     sessionStorage.setItem(GlobalSessionNames.STANDARD_CURRENCY_PRECISIONS_AND_LIMITS, JSON.stringify(configurationWithLogin.standardPrecision));
     sessionStorage.setItem(GlobalSessionNames.FIELD_SIZE, JSON.stringify(configurationWithLogin.fieldSize));
     sessionStorage.setItem(GlobalSessionNames.STANDARD_TIMEZONE, configurationWithLogin.standardTimeZone);
