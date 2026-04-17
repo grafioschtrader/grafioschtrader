@@ -266,7 +266,8 @@
       "Bash(rm /tmp/*)",
       "Bash(cp:*)",
       "Bash(cmd.exe /c nv.bat)",
-      "Bash(cmd.exe /c \"cd /d C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend && nv.bat\")"
+      "Bash(cmd.exe /c \"cd /d C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend && nv.bat\")",
+      "Bash(awk '{print length, NR}' backend/grafioschtrader-server/src/test/resources/db/migration/test/V2__testdata.sql)"
     ],
     "deny": [],
     "ask": []
