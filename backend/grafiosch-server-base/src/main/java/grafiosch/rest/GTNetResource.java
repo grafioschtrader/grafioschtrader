@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -75,6 +76,16 @@ public class GTNetResource extends UpdateCreateResource<GTNet> {
   public ResponseEntity<Void> deleteGTNet(@PathVariable final Integer idGtNet) {
     gtNetJpaRepository.deleteGTNet(idGtNet);
     return ResponseEntity.noContent().build();
+  }
+
+  @Operation(summary = "Triggers an immediate online-status check for a single GTNet peer",
+      description = "Sends a ping to the peer when the outbound handshake is complete and returns the updated "
+          + "GTNet entry. Peers without tokenRemote are set to SOS_UNKNOWN. The local entry is returned unchanged.",
+      tags = { RequestMappings.GTNET })
+  @PreAuthorize("hasRole('ADMIN')")
+  @PostMapping(value = "/{idGtNet}/checkstatus", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<GTNet> checkPeerStatus(@PathVariable final Integer idGtNet) {
+    return new ResponseEntity<>(gtNetJpaRepository.checkPeerStatusNow(idGtNet), HttpStatus.OK);
   }
 
   @Override

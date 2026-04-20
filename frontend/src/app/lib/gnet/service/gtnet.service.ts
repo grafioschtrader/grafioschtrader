@@ -36,6 +36,20 @@ export class GTNetService extends AuthServiceWithLogout<GTNet> implements Servic
   }
 
   /**
+   * Triggers an immediate online-status check for a single GTNet peer.
+   * The backend pings the peer (if the outbound handshake is complete) and returns
+   * the updated GTNet entry so the caller can refresh the row in place.
+   *
+   * @param idGtNet the ID of the remote GTNet entry to probe
+   * @returns the updated GTNet entry
+   */
+  checkPeerStatus(idGtNet: number): Observable<GTNet> {
+    return <Observable<GTNet>>this.httpClient.post(
+      `${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}/${idGtNet}/checkstatus`, null,
+      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /**
    * Sends an admin message to multiple selected targets via background delivery.
    * Creates one message and queues delivery to all selected targets.
    *

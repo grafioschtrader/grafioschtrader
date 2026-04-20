@@ -174,4 +174,24 @@ public interface GTNetJpaRepositoryCustom extends BaseRepositoryCustom<GTNet> {
    * @param expectedHeader the expected header comment (e.g., "-- GTNET_EXPORT_V1_BASE")
    */
   void importGTNetConfig(String sqlStatements, String expectedHeader);
+
+  /**
+   * Triggers an immediate online-status check for a single GTNet peer.
+   *
+   * <p>Behaviour mirrors the scheduled {@code GTNetServerStatusCheckTask} but for one peer:
+   * <ul>
+   *   <li>If the outbound handshake is complete, the peer is pinged. Its
+   *       {@code serverOnline}, {@code serverBusy} and child {@code GTNetEntity.serverState}
+   *       values are updated and persisted.</li>
+   *   <li>If the outbound handshake is incomplete ({@code tokenRemote} is null), the peer is
+   *       set to {@code SOS_UNKNOWN} and all its entities are closed.</li>
+   *   <li>If the target is the local server entry or the local entry is not configured, the
+   *       peer is returned unchanged.</li>
+   * </ul>
+   *
+   * @param idGtNet the ID of the remote GTNet entry to probe
+   * @return the updated {@link GTNet} entity
+   * @throws java.util.NoSuchElementException if no GTNet entry exists with the given ID
+   */
+  GTNet checkPeerStatusNow(Integer idGtNet);
 }

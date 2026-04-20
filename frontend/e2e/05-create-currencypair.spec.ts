@@ -79,9 +79,11 @@ test.describe.serial('Create currencypair watchlist and seed pairs (hugo.graf@gr
       // Wait for the watchlist table to render so the "skip-if-present" check is meaningful.
       await page.waitForTimeout(1500);
 
-      // Crypto currencies render with a "(Cryptocurrency)" suffix in the watchlist name cell (see
-      // GlobalparametersService.getCurrencies, key="BTC", value="BTC(Cryptocurrency)"), so the visible td text
-      // for BTC/USD becomes "BTC(Cryptocurrency)/USD". Match on the 3-letter codes with any text between.
+      // Crypto currencies render with a "(Cryptocurrency)" suffix in the watchlist name cell. The
+      // backend builds the dropdown value as `cc + "(" + i18n("cryptocurrency") + ")"` in
+      // GlobalparametersService.getCurrencies (key="BTC"); the frontend renders the visible label
+      // with a separating space, so the watchlist td reads "BTC (Cryptocurrency)/USD".
+      // Match on the 3-letter codes with any text between to tolerate either form.
       const pairPattern = new RegExp(`\\b${row.fromCurrency}\\b.*\\b${row.toCurrency}\\b`);
       if (await page.locator('td').filter({hasText: pairPattern}).count() > 0) {
         return;
@@ -133,8 +135,11 @@ test.describe.serial('Create currencypair watchlist and seed pairs (hugo.graf@gr
       await dialog.locator('button[type="submit"]').click();
       await dialog.waitFor({state: 'hidden', timeout: 15_000});
 
+      // Generous timeout: the new pair row appears only after the watchlist refetches its rows
+      // and the connector returns first quotes. 10s is too tight for crypto/Yahoo (BTC/USD) under
+      // load — bump to 30s.
       await expect(page.locator('td').filter({hasText: pairPattern}).first())
-        .toBeVisible({timeout: 10_000});
+        .toBeVisible({timeout: 30_000});
     });
   }
 });
