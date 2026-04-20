@@ -1,7 +1,7 @@
 import {test, expect} from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
-import {login, parseCsvRow} from './helpers';
+import {loginAsCsvUser, parseCsvRow} from './helpers';
 import {TradingPlatformFeePlan} from '../src/app/shared/types/trading.platform.fee.plan';
 
 interface TppRow {
@@ -38,9 +38,13 @@ function loadE2ERows(): TppRow[] {
 test.describe.serial('Create trading platform plans (e2e=\'e\' rows from shared CSV)', () => {
   const rows = loadE2ERows();
 
+  // Log in as 'alledit' (hugo.graf@grafiosch.com) — seeded by ResoureTestSuite. Using the e2e='e'
+  // primary user (e2euser) hits the 3/day TradingPlatformPlan creation limit on the 4th row.
+  const LOGIN_NICKNAME = 'alledit';
+
   for (const row of rows) {
     test(`creates TPP: ${row.platformPlanNameEN} (${row.importPlatformName})`, async ({page}) => {
-      await login(page);
+      await loginAsCsvUser(page, LOGIN_NICKNAME);
 
       // Navigate to the Trading Platform Plan view by clicking the tree node labelled "Trading platform plan"
       // (rendered from AppSettings.TRADING_PLATFORM_PLAN via i18n). The contributor lives in

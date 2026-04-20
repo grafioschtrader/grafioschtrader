@@ -267,7 +267,8 @@
       "Bash(cp:*)",
       "Bash(cmd.exe /c nv.bat)",
       "Bash(cmd.exe /c \"cd /d C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend && nv.bat\")",
-      "Bash(awk '{print length, NR}' backend/grafioschtrader-server/src/test/resources/db/migration/test/V2__testdata.sql)"
+      "Bash(awk '{print length, NR}' backend/grafioschtrader-server/src/test/resources/db/migration/test/V2__testdata.sql)",
+      "Bash(awk '/^INSERT INTO `\\(role|globalparameters|mic_provider_map|stockexchange_mic|udf_metadata|release_note|stockexchange|assetclass|multilinguestring|securitycurrency|currencypair|security|historyquote\\)`/ {print NR\": \" $0}' /c/SoftwareProjekte/Hugos/grafioschtrader/backend/grafioschtrader-server/src/test/resources/db/migration/test/V2__testdata.sql)"
     ],
     "deny": [],
     "ask": []

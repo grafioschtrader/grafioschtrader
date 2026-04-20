@@ -36,17 +36,18 @@ public class ExecuteStartupTask implements ApplicationListener<ApplicationReadyE
     Optional<Globalparameters> gpLastAppend = globalparametersJpaRepository
         .findById(GlobalParamKeyDefault.GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE);
     if (gpLastAppend.isEmpty() || gpLastAppend.get().getPropertyDate().isBefore(LocalDate.now().minusDays(1L))) {
-      addDataUpdateTask();
+      addDataUpdateTask(5);
     } else if (taskDataChangeJpaRepository.count() == 0) {
-      addDataUpdateTask();
+      var minutes = 10;
+      addDataUpdateTask(minutes);
       taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT,
-          TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(10), null, null));
+          TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(minutes + 10), null, null));
     }
   }
 
-  private void addDataUpdateTask() {
+  private void addDataUpdateTask(int minutes) {
     TaskDataChange taskDataChange = new TaskDataChange(TaskTypeExtended.PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU,
-        TaskDataExecPriority.PRIO_HIGH, LocalDateTime.now().plusMinutes(5), null, null);
+        TaskDataExecPriority.PRIO_HIGH, LocalDateTime.now().plusMinutes(minutes), null, null);
     taskDataChangeJpaRepository.save(taskDataChange);
   }
 

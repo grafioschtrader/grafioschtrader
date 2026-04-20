@@ -8,14 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import grafiosch.entities.GTNet;
-import grafiosch.entities.GTNetEntity;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.exceptions.TaskBackgroundException;
 import grafiosch.gtnet.GTNetServerOnlineStatusTypes;
-import grafiosch.gtnet.GTNetServerStateTypes;
-import grafiosch.m2m.GTNetMessageHelper;
-import grafiosch.m2m.client.BaseDataClient;
-import grafiosch.m2m.client.BaseDataClient.SendResult;
+import grafiosch.gtnet.GTNetStatusCheckService;
 import grafiosch.repository.GTNetJpaRepository;
 import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.task.ITask;
@@ -23,24 +19,14 @@ import grafiosch.types.ITaskType;
 import grafiosch.types.TaskTypeBase;
 
 /**
- * Background task that checks and updates the online/busy status of all configured GTNet servers.
+ * Background task that refreshes the online status of every configured GTNet peer.
  *
- * This task is scheduled to run shortly after application startup (with a 30-second delay) to allow the server to
- * become fully accessible before checking peer status. For each configured GTNet entry (excluding the local server),
- * it sends a ping to determine reachability and updates:
- * <ul>
- *   <li>{@code GTNet.serverOnline} - Whether the server is reachable</li>
- *   <li>{@code GTNet.serverBusy} - Whether the server reported it is busy</li>
- *   <li>{@code GTNetEntity.serverState} - Service availability for each data type (SS_OPEN if online and not busy,
- *       SS_CLOSED otherwise)</li>
- * </ul>
+ * <p>Orchestration only — the actual probe and DB update logic lives in
+ * {@link GTNetStatusCheckService} so that an administrator can trigger the same check on a
+ * single peer from the UI without duplicating code.
  *
- * The 30-second delay ensures that:
- * <ul>
- *   <li>The server is fully initialized and accepting HTTP requests</li>
- *   <li>Network interfaces are ready</li>
- *   <li>Users can access the UI immediately while status checks happen in the background</li>
- * </ul>
+ * <p>Scheduling: one run is queued 30 seconds after application startup
+ * (see {@code GTNetLifecycleListener}). The task does not schedule itself recurrently.
  */
 @Component
 public class GTNetServerStatusCheckTask implements ITask {
@@ -50,12 +36,11 @@ public class GTNetServerStatusCheckTask implements ITask {
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
 
-
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Autowired
-  private BaseDataClient baseDataClient;
+  private GTNetStatusCheckService statusCheckService;
 
   @Override
   public ITaskType getTaskType() {
@@ -92,11 +77,14 @@ public class GTNetServerStatusCheckTask implements ITask {
         continue;
       }
       if (peer.getGtNetConfig() == null || peer.getGtNetConfig().getTokenRemote() == null) {
-        log.debug("Skipping peer {} - no handshake completed", peer.getDomainRemoteName());
+        // Outbound handshake incomplete — we cannot ping. Reset any stale ONLINE flag set
+        // by an inbound handshake envelope so the UI does not show a false positive.
+        statusCheckService.markUnverifiable(peer);
         continue;
       }
       checkedCount++;
-      if (checkAndUpdatePeerStatus(peer, myGTNet)) {
+      GTNet updated = statusCheckService.checkAndUpdatePeer(peer, myGTNet);
+      if (updated.getServerOnline() == GTNetServerOnlineStatusTypes.SOS_ONLINE) {
         onlineCount++;
       }
     }
@@ -104,94 +92,8 @@ public class GTNetServerStatusCheckTask implements ITask {
     log.info("GTNet server status check completed: {}/{} peers online", onlineCount, checkedCount);
   }
 
-  /**
-   * Sends a ping to the specified peer and updates its online/busy status based on the response.
-   * Also updates the serverState on all GTNetEntity entries:
-   * <ul>
-   *   <li>SS_OPEN: Server is online and not busy</li>
-   *   <li>SS_CLOSED: Server is offline or busy</li>
-   * </ul>
-   *
-   * @param peer the GTNet peer to check
-   * @param myGTNet the local GTNet entry used as the sender
-   * @return true if the peer is online, false otherwise
-   */
-  private boolean checkAndUpdatePeerStatus(GTNet peer, GTNet myGTNet) {
-    GTNetServerOnlineStatusTypes previousStatus = peer.getServerOnline();
-    boolean stateChanged = false;
-
-    try {
-      SendResult result = GTNetMessageHelper.sendPingWithStatus(baseDataClient, myGTNet, peer, globalparametersJpaRepository);
-
-      // Server is considered online if it's reachable at network level (even if it returns HTTP errors)
-      GTNetServerOnlineStatusTypes newStatus = GTNetServerOnlineStatusTypes.fromReachable(result.serverReachable());
-      peer.setServerOnline(newStatus);
-
-      if (result.isDelivered()) {
-        peer.setServerBusy(result.serverBusy());
-        log.debug("Peer {} is online (busy={})", peer.getDomainRemoteName(), peer.isServerBusy());
-      } else if (result.httpError()) {
-        // Server is reachable but returned HTTP error (e.g., 404, 500)
-        log.debug("Peer {} is online but returned HTTP error {}", peer.getDomainRemoteName(), result.httpStatusCode());
-      } else {
-        log.debug("Peer {} is offline", peer.getDomainRemoteName());
-      }
-
-      // Update serverState on all GTNetEntity entries based on online/busy status
-      GTNetServerStateTypes entityState = determineEntityState(result.serverReachable(), peer.isServerBusy());
-      stateChanged = updateEntityStates(peer, entityState);
-
-      if (previousStatus != newStatus || stateChanged) {
-        gtNetJpaRepository.save(peer);
-      }
-
-      return result.serverReachable();
-    } catch (Exception e) {
-      log.warn("Error checking status for peer {}: {}", peer.getDomainRemoteName(), e.getMessage());
-      if (previousStatus == GTNetServerOnlineStatusTypes.SOS_ONLINE) {
-        peer.setServerOnline(GTNetServerOnlineStatusTypes.SOS_OFFLINE);
-        updateEntityStates(peer, GTNetServerStateTypes.SS_CLOSED);
-        gtNetJpaRepository.save(peer);
-      }
-      return false;
-    }
-  }
-
-  /**
-   * Determines the appropriate GTNetServerStateTypes based on server availability.
-   *
-   * @param serverReachable true if the server is reachable at network level
-   * @param serverBusy true if the server reported it is busy
-   * @return SS_OPEN if online and not busy, SS_CLOSED otherwise
-   */
-  private GTNetServerStateTypes determineEntityState(boolean serverReachable, boolean serverBusy) {
-    if (serverReachable && !serverBusy) {
-      return GTNetServerStateTypes.SS_OPEN;
-    }
-    return GTNetServerStateTypes.SS_CLOSED;
-  }
-
-  /**
-   * Updates the serverState on all GTNetEntity entries for the given peer.
-   *
-   * @param peer the GTNet peer whose entities should be updated
-   * @param newState the new serverState to set
-   * @return true if any entity state was changed
-   */
-  private boolean updateEntityStates(GTNet peer, GTNetServerStateTypes newState) {
-    boolean anyChanged = false;
-    for (GTNetEntity entity : peer.getGtNetEntities()) {
-      if (entity.getServerState() != newState) {
-        entity.setServerState(newState);
-        anyChanged = true;
-      }
-    }
-    return anyChanged;
-  }
-
   @Override
   public boolean removeAllOtherPendingJobsOfSameTask() {
-    // Remove any other pending status check tasks to avoid duplicate checks
     return true;
   }
 }

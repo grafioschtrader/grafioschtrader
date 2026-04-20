@@ -301,7 +301,30 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       label: 'GT_NET_MESSAGE_SEND', command: (e) => this.sendMsg(),
       disabled: !this.canSendMessage()
     });
+    menuItems.push({separator: true});
+    menuItems.push({
+      label: 'GT_NET_CHECK_STATUS_NOW',
+      command: () => this.checkPeerStatusNow(),
+      disabled: !this.selectedEntity || this.selectedEntity.idGtNet === this.gtNetMyEntryId
+    });
     return menuItems;
+  }
+
+  private checkPeerStatusNow(): void {
+    const id = this.selectedEntity.idGtNet;
+    this.gtNetService.checkPeerStatus(id).subscribe({
+      next: (updated) => {
+        const idx = this.gtNetList.findIndex(g => g.idGtNet === id);
+        if (idx >= 0) {
+          this.gtNetList[idx] = updated;
+          this.mapGTNetEntityToGTNet();
+          this.createTranslatedValueStoreAndFilterField(this.gtNetList);
+          this.prepareTableAndTranslate();
+        }
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'GT_NET_CHECK_STATUS_DONE');
+      },
+      error: () => this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'GT_NET_CHECK_STATUS_FAILED')
+    });
   }
 
   /**

@@ -54,6 +54,7 @@ import grafiosch.gtnet.GTNetModelHelper;
 import grafiosch.gtnet.GTNetModelHelper.GTNetMsgRequest;
 import grafiosch.gtnet.GTNetServerOnlineStatusTypes;
 import grafiosch.gtnet.GTNetServerStateTypes;
+import grafiosch.gtnet.GTNetStatusCheckService;
 import grafiosch.gtnet.GTNetTimeoutHelper;
 import grafiosch.gtnet.IExchangeKindType;
 import grafiosch.gtnet.MessageVisibility;
@@ -146,6 +147,9 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
   @Autowired
   private GTNetMessageCodeRegistry messageCodeRegistry;
+
+  @Autowired
+  private GTNetStatusCheckService statusCheckService;
 
   @Override
   @Transactional
@@ -1655,6 +1659,26 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       return;
     }
     throw new DataViolationException("gt.net", "gt.gtnet.import.invalid.statement", null);
+  }
+
+  @Override
+  public GTNet checkPeerStatusNow(Integer idGtNet) {
+    GTNet peer = gtNetJpaRepository.findById(idGtNet).orElseThrow();
+
+    Integer myEntryId = globalparametersJpaRepository.getGTNetMyEntryID();
+    if (myEntryId == null || idGtNet.equals(myEntryId)) {
+      // Own entry or GTNet not fully configured — nothing to probe; return current state.
+      return peer;
+    }
+    GTNet myGTNet = gtNetJpaRepository.findById(myEntryId).orElse(null);
+    if (myGTNet == null) {
+      return peer;
+    }
+
+    if (peer.getGtNetConfig() == null || peer.getGtNetConfig().getTokenRemote() == null) {
+      return statusCheckService.markUnverifiable(peer);
+    }
+    return statusCheckService.checkAndUpdatePeer(peer, myGTNet);
   }
 
 }

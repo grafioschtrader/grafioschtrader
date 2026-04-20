@@ -68,6 +68,7 @@ export class ConnectorApiKeyEditComponent extends SimpleEntityEditBase<Connector
     this.configObject.idProvider.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromObject
     ('readableName', this.strn, false, this.connectorApiKey? []: this.existingProviders);
     this.valueChangedOnIdProvider();
+    this.form.setDefaultValuesAndEnableSubmit();
     if (this.connectorApiKey) {
       this.form.transferBusinessObjectToForm(this.connectorApiKey);
       this.configObject.idProvider.formControl.disable();
