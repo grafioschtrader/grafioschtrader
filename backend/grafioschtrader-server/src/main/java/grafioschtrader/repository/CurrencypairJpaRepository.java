@@ -271,6 +271,22 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
   @Query(nativeQuery = false)
   List<SecurityCurrencyMaxHistoryquoteData<Currencypair>> getMaxHistoryquote(short maxHistoryRetry);
 
+  /**
+   * Finds GTNet-opted-in currency pairs currently in the GTNet fallback band — connector retry counter at or above its
+   * configured cap (gt.history.retry) but below the absolute exhaustion cap (gt.history.retry + gt.gtnet.quote.retry).
+   * Returns the pair and its most recent historyquote date (null if none yet), so the GTNet service knows where to
+   * start the requested range.
+   *
+   * Named query: Currencypair.findRetryExhaustedGTNetEnabled
+   *
+   * @param connectorCap the connector retry cap (gt.history.retry); inclusive lower bound
+   * @param absoluteCap  the absolute exhaustion cap (gt.history.retry + gt.gtnet.quote.retry); exclusive upper bound
+   * @return projections pairing each eligible Currencypair with its latest historyquote date (or null if empty history)
+   */
+  @Query(nativeQuery = false)
+  List<SecurityCurrencyMaxHistoryquoteData<Currencypair>> findRetryExhaustedGTNetEnabled(short connectorCap,
+      short absoluteCap);
+
   //@formatter:off
   /**
    * Retrieves currency pairs whose cash‐account deposit holds are stale compared to market quotes.

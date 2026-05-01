@@ -1,6 +1,9 @@
 <configurable-table [data]="data" [fields]="fields" [dataKey]="keyfield"
                     [multiSortMeta]="multiSortMeta" [paginator]="true" [rows]="20"
                     selectionMode="single" sortMode="multiple"
+                    [valueGetterFn]="getValueByPath.bind(this)"
+                    [customSortFn]="customSort.bind(this)"
+                    [baseLocale]="baseLocale"
                     customClass="datatable nestedtable leftRight2Table"
                     (pageChange)="onPage($event)">
   <div caption class="table-header">

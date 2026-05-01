@@ -36,6 +36,13 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
   
   /** Default number of retry attempts for historical price updates. */
   public static final short DEFAULT_HISTORY_RETRY = 4;
+
+  /**
+   * Default number of additional GTNet retry attempts allowed once the connector retry counter has reached its cap
+   * (gt.history.retry / gt.intra.retry). Acts as the GTNet-only fallback budget; a single value applies to both
+   * historical and intraday flows.
+   */
+  public static final short DEFAULT_GTNET_QUOTE_RETRY = 8;
   
   /** Default number of retry attempts for dividend data updates. */
   public static final short DEFAULT_DIVIDEND_RETRY = 2;
@@ -70,6 +77,11 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
   public static final String GLOB_KEY_CURRENCY_INTRA_CONNECTOR = GlobalConstants.GT_PREFIX + "currency.intra.connector";
   public static final String GLOB_KEY_INTRA_RETRY = GlobalConstants.GT_PREFIX + "intra.retry";
   public static final String GLOB_KEY_HISTORY_RETRY = GlobalConstants.GT_PREFIX + "history.retry";
+  /**
+   * Number of additional retry attempts allowed via GTNet after the connector retry cap is reached. Counter resumes
+   * climbing past gt.history.retry / gt.intra.retry only via GTNet failures.
+   */
+  public static final String GLOB_KEY_GTNET_QUOTE_RETRY = GlobalConstants.GT_PREFIX + "gtnet.quote.retry";
   public static final String GLOB_KEY_DIVIDEND_RETRY = GlobalConstants.GT_PREFIX + "dividend.retry";
   public static final String GLOB_KEY_SPLIT_RETRY = GlobalConstants.GT_PREFIX + "split.retry";
   public static final String GLOB_KEY_START_FEED_DATE = GlobalConstants.GT_PREFIX + "core.data.feed.start.date";

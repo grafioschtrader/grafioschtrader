@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TranslateModule} from '@ngx-translate/core';
-import {CheckboxModule} from 'primeng/checkbox';
+import {CheckboxChangeEvent, CheckboxModule} from 'primeng/checkbox';
 import {TooltipModule} from 'primeng/tooltip';
 
 /**
@@ -10,7 +10,7 @@ import {TooltipModule} from 'primeng/tooltip';
  */
 export interface CheckboxToggleEvent {
   field: string;
-  event: { checked: boolean };
+  event: CheckboxChangeEvent;
 }
 
 /**
@@ -99,7 +99,7 @@ export class GTNetExchangeCheckboxesComponent {
    * @param field The field name being toggled
    * @param event The checkbox change event
    */
-  onToggle(field: string, event: { checked: boolean }): void {
+  onToggle(field: string, event: CheckboxChangeEvent): void {
     this.toggle.emit({field, event});
   }
 }

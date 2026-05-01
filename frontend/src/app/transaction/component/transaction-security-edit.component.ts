@@ -691,7 +691,14 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       // For Edge an empty Option is needed, otherwise the first Account would be selected
       securityaccountsHtmlSelect.splice(0, 0, new ValueKeyHtmlSelectOptions('', ''));
       !(this.closedMarginPosition?.hasPosition === true) && this.configObject.idSecurityaccount.formControl.enable();
-      this.selectAccumulateSecurityaccountWhenAvailable(securityaccountsHtmlSelect);
+      if (this.transactionCallParam.transactionType === TransactionType.FINANCE_COST
+          && this.transactionCallParam.transaction?.idSecurityaccount) {
+        this.setValueToControl(this.configObject.idSecurityaccount,
+          this.transactionCallParam.transaction.idSecurityaccount);
+        this.configObject.idSecurityaccount.formControl.disable();
+      } else {
+        this.selectAccumulateSecurityaccountWhenAvailable(securityaccountsHtmlSelect);
+      }
     }
     this.transactionCallParam.transaction && this.setCurrencyOnSecurityAndCashaccount(this.transactionCallParam.transaction.security);
   }

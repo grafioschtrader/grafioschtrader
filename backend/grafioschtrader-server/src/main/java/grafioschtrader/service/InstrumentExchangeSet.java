@@ -157,6 +157,36 @@ public class InstrumentExchangeSet {
   }
 
   /**
+   * Returns securities that GTNet successfully filled with fresh price data.
+   *
+   * @return list of filled Security entities
+   */
+  public List<Security> getFilledSecurities() {
+    List<Security> result = new ArrayList<>();
+    for (Map.Entry<String, Security> entry : securities.entrySet()) {
+      if (filledKeys.contains(entry.getKey())) {
+        result.add(entry.getValue());
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Returns currency pairs that GTNet successfully filled with fresh price data.
+   *
+   * @return list of filled Currencypair entities
+   */
+  public List<Currencypair> getFilledCurrencypairs() {
+    List<Currencypair> result = new ArrayList<>();
+    for (Map.Entry<String, Currencypair> entry : currencypairs.entrySet()) {
+      if (filledKeys.contains(entry.getKey())) {
+        result.add(entry.getValue());
+      }
+    }
+    return result;
+  }
+
+  /**
    * Returns all securities (both filled and unfilled).
    *
    * @return list of all Security entities in this set

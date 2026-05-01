@@ -83,7 +83,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
     HistoryquoteThruConnector<Currencypair> connectorThru = new HistoryquoteThruConnector<>(entityManager,
         globalparametersService, feedConnectorbeans, this, Currencypair.class, genericConnectorEndpointJpaRepository);
     historyquoteThruConnector = new HistoryquoteThruGTNet<>(connectorThru, gtNetHistoryquoteService,
-        globalparametersJpaRepository, currencypairJpaRepository);
+        globalparametersJpaRepository, globalparametersService, currencypairJpaRepository);
     intradayThruConnector = new IntradayThruConnector<>(currencypairJpaRepository, globalparametersService,
         feedConnectorbeans, this, genericConnectorEndpointJpaRepository);
   }
@@ -257,6 +257,12 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   public List<SecurityCurrencyMaxHistoryquoteData<Currencypair>> getMaxHistoryquoteResult(final short maxHistoryRetry,
       BaseHistoryquoteThru<Currencypair> baseHistoryquoteThru, List<Integer> idsStockexchange) {
     return this.currencypairJpaRepository.getMaxHistoryquote(maxHistoryRetry);
+  }
+
+  @Override
+  public List<SecurityCurrencyMaxHistoryquoteData<Currencypair>> findGTNetFallbackBandInstruments(short connectorCap,
+      short absoluteCap) {
+    return currencypairJpaRepository.findRetryExhaustedGTNetEnabled(connectorCap, absoluteCap);
   }
 
   @Override

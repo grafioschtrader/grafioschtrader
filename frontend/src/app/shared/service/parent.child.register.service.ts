@@ -3,8 +3,8 @@ import {Injectable} from '@angular/core';
 @Injectable()
 export class ParentChildRegisterService {
 
-  childPreservePages: ChildPreservePage[];
-  pageServerMap: Map<number, PageFirstRowSelectedRow>;
+  childPreservePages: ChildPreservePage[] = [];
+  pageServerMap: Map<number, PageFirstRowSelectedRow> = new Map();
 
   public initRegistry() {
     this.childPreservePages = [];

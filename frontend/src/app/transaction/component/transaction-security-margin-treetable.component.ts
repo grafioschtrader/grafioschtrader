@@ -3,7 +3,7 @@ import {ConfirmationService, FilterService, MenuItem, TreeNode} from 'primeng/ap
 import {TransactionContextMenu} from './transaction.context.menu';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {SecurityService} from '../../securitycurrency/service/security.service';
-import {ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
+import {PageFirstRowSelectedRow, ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {TransactionService} from '../service/transaction.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
@@ -27,6 +27,8 @@ import {TreeTableModule} from 'primeng/treetable';
 import {TooltipModule} from 'primeng/tooltip';
 import {ContextMenuModule} from 'primeng/contextmenu';
 import {TransactionSecurityEditComponent} from './transaction-security-edit.component';
+import {ProcessedAction} from '../../lib/types/processed.action';
+import {ProcessedActionData} from '../../lib/types/processed.action.data';
 
 /**
  * Angular component that displays margin-based security transactions in a hierarchical tree table format.
@@ -44,7 +46,9 @@ import {TransactionSecurityEditComponent} from './transaction-security-edit.comp
         <p-treeTable [value]="transactionNodes" [columns]="fields" [(selection)]="selectedNode"
                      selectionMode="single" [scrollable]="false" dataKey="transaction.idTransaction"
                      (onNodeSelect)="onNodeSelect($event)" (onNodeUnselect)="onNodeUnselect($event)"
-                     [paginator]="true" [rows]="20" showGridlines="true">
+                     [paginator]="true" [rows]="ROWS_PER_PAGE"
+                     [first]="firstRowIndexOnPage" (onPage)="onPage($event)"
+                     showGridlines="true">
           <ng-template #header let-fields>
             <tr>
               @for (field of fields; track field.field) {
@@ -142,6 +146,9 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
   /** Current user language setting for display purposes */
   lang: string;
 
+  /** Root nodes per paginator page; matches the [rows] binding on the tree-table. */
+  readonly ROWS_PER_PAGE = 20;
+
   /**
    * Creates a new instance of TransactionSecurityMarginTreetableComponent.
    *
@@ -235,7 +242,13 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
         cc.headerSuffix = this.securityTransactionSummary.securityPositionSummary.mainCurrency;
         this.setFieldHeaderTranslation(cc);
       });
-      this.addTreeNodes();
+      // Build the tree locally, then set firstRowIndexOnPage BEFORE transactionNodes so
+      // PrimeNG's TreeTable.updateSerializedValue (triggered by [value]) reads the
+      // correct `first` and slices the right page in one CD cycle. setTimeout would land
+      // first in a later cycle and only update the paginator UI, not the rendered rows.
+      const rootNodes = this.buildTreeNodes();
+      this.firstRowIndexOnPage = this.computeRestoredFirstIndex(rootNodes);
+      this.transactionNodes = rootNodes;
     });
   }
 
@@ -282,9 +295,71 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
   }
 
   /**
-   * Builds the hierarchical tree structure from the flat list of transaction positions.
+   * Saves the current page and the just-saved transaction id before the parent refreshes
+   * (which destroys this component instance). The new instance reads this state in
+   * applySavedPagePosition() to navigate to the page containing the saved transaction.
    */
-  private addTreeNodes(): void {
+  override handleCloseTransactionDialog(processedActionData: ProcessedActionData): void {
+    if (processedActionData.action !== ProcessedAction.NO_CHANGE && processedActionData.data) {
+      const tx: Transaction = Array.isArray(processedActionData.data)
+        ? processedActionData.data[0] : processedActionData.data;
+      if (tx?.idTransaction != null) {
+        this.parentChildRegisterService.saveRowPosition(this.idSecuritycurrency,
+          new PageFirstRowSelectedRow(this.firstRowIndexOnPage, tx.idTransaction));
+      }
+    }
+    super.handleCloseTransactionDialog(processedActionData);
+  }
+
+  /**
+   * Preserves only the current page on delete — the deleted id won't exist after refresh,
+   * so applySavedPagePosition() falls back to topPageRow.
+   */
+  override afterDelete(transaction: Transaction): void {
+    this.parentChildRegisterService.saveRowPosition(this.idSecuritycurrency,
+      new PageFirstRowSelectedRow(this.firstRowIndexOnPage, null));
+    super.afterDelete(transaction);
+  }
+
+  /**
+   * Computes the page index (firstRowIndexOnPage value) that the paginator should land on
+   * after a refresh. Prefers the page of the most-recently saved transaction id; falls
+   * back to the previously saved page (e.g. on delete or when no target id was stored).
+   */
+  private computeRestoredFirstIndex(rootNodes: TreeNode[]): number {
+    const saved = this.parentChildRegisterService.getRowPosition(this.idSecuritycurrency);
+    const targetId = saved?.selectedRow as number | null;
+    let rootIndex = -1;
+    if (targetId != null) {
+      rootIndex = this.findRootIndexForTransaction(rootNodes, targetId);
+    }
+    return rootIndex >= 0
+      ? Math.floor(rootIndex / this.ROWS_PER_PAGE) * this.ROWS_PER_PAGE
+      : (saved?.topPageRow ?? 0);
+  }
+
+  /**
+   * Finds the root index whose data — or any direct child's data — matches the given
+   * transaction id. Children include both close positions and hypothetical buy/sell rows.
+   */
+  private findRootIndexForTransaction(rootNodes: TreeNode[], idTransaction: number): number {
+    for (let i = 0; i < rootNodes.length; i++) {
+      const root = rootNodes[i];
+      if (root.data?.transaction?.idTransaction === idTransaction) {
+        return i;
+      }
+      if (root.children?.some(c => c.data?.transaction?.idTransaction === idTransaction)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * Builds the hierarchical tree structure from the flat list of transaction positions and
+   * returns the new root array. Caller assigns the result to transactionNodes.
+   */
+  private buildTreeNodes(): TreeNode[] {
     const rootNodes: TreeNode[] = [];
     let parentNode: TreeNode;
     this.transactionPositionList.forEach((stp: SecurityTransactionPosition) => {
@@ -313,7 +388,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
         parentNode.data[this.OPEN_HAS_CLOSE_POSITION] = false;
       }
     });
-    this.transactionNodes = rootNodes;
+    return rootNodes;
   }
 
   /**

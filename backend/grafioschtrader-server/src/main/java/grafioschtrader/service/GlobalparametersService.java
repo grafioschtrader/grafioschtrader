@@ -386,6 +386,19 @@ public class GlobalparametersService {
   }
 
   /**
+   * Gets the additional GTNet retry budget that applies once the connector retry cap has been reached. The
+   * per-instrument counter (retry_history_load / retry_intra_load) keeps climbing through this band on GTNet failures
+   * and is capped down to the connector cap on GTNet successes.
+   *
+   * @return the GTNet-only fallback retry budget; defaults to {@link GlobalParamKeyDefault#DEFAULT_GTNET_QUOTE_RETRY}
+   * @see GlobalParamKeyDefault#GLOB_KEY_GTNET_QUOTE_RETRY
+   */
+  public short getGTNetQuoteRetry() {
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_GTNET_QUOTE_RETRY)
+        .map(g -> g.getPropertyInt().shortValue()).orElse(GlobalParamKeyDefault.DEFAULT_GTNET_QUOTE_RETRY);
+  }
+
+  /**
    * Gets the percentage threshold for historical data connector failure alerts.
    * 
    * 
