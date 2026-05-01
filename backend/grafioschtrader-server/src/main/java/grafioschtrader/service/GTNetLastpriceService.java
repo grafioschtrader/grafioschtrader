@@ -233,6 +233,13 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
       log.debug("Step 5 - Query open servers: {} ms", (System.nanoTime() - stepStart) / 1_000_000);
     }
 
+    // 5b. Apply GTNet outcome to retry_intra_load on GTNet-enabled instruments. Filled instruments have their
+    //     counter capped down to gt.intra.retry (preserves the connector-failure signal). Unfilled instruments
+    //     past the connector cap have their counter incremented by 1, capped at gt.intra.retry + gt.gtnet.quote.retry.
+    //     Instruments still within the connector retry budget are left alone — the connector path in step 7
+    //     manages their counter as today.
+    applyIntradayRetryAfterGTNet(gtNetInstruments);
+
     // 6. Collect unfilled instruments for connector fallback
     stepStart = System.nanoTime();
     List<Security> remainingSecurities = gtNetInstruments.getUnfilledSecurities();
@@ -281,6 +288,56 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
 
     log.debug("Total executeGTNetExchange: {} ms", (System.nanoTime() - totalStart) / 1_000_000);
     return new SecurityCurrency(allSecurities, allPairs);
+  }
+
+  /**
+   * Applies the layered retry-counter rules to GTNet-enabled instruments after the GTNet exchange completes.
+   *
+   * Rules per instrument:
+   * <ul>
+   *   <li><b>Filled by GTNet</b>: counter capped down to gt.intra.retry. Below the cap is a no-op (the connector
+   *       hasn't been signalled either way); at or above the cap, this resets the GTNet retry budget back to zero
+   *       used while preserving the connector-failure signal for monitoring.</li>
+   *   <li><b>Unfilled and counter &lt; gt.intra.retry</b>: leave the counter alone. The connector path in step 7
+   *       will try this instrument and bump the counter on its own failure (today's behaviour).</li>
+   *   <li><b>Unfilled and counter in [gt.intra.retry, absoluteCap)</b>: increment by 1, capped at the absolute
+   *       exhaustion cap. This is the GTNet-only fallback band where the connector won't be tried.</li>
+   *   <li><b>Unfilled and counter &gt;= absoluteCap</b>: stuck; leave alone (admin reset required).</li>
+   * </ul>
+   */
+  private void applyIntradayRetryAfterGTNet(InstrumentExchangeSet gtNetInstruments) {
+    short connectorCap = globalparametersService.getMaxIntraRetry();
+    short absoluteCap = (short) (connectorCap + globalparametersService.getGTNetQuoteRetry());
+
+    for (Security s : gtNetInstruments.getFilledSecurities()) {
+      capRetryDown(s, connectorCap, securityJpaRepository::save);
+    }
+    for (Currencypair cp : gtNetInstruments.getFilledCurrencypairs()) {
+      capRetryDown(cp, connectorCap, currencypairJpaRepository::save);
+    }
+    for (Security s : gtNetInstruments.getUnfilledSecurities()) {
+      incrementRetryInFallbackBand(s, connectorCap, absoluteCap, securityJpaRepository::save);
+    }
+    for (Currencypair cp : gtNetInstruments.getUnfilledCurrencypairs()) {
+      incrementRetryInFallbackBand(cp, connectorCap, absoluteCap, currencypairJpaRepository::save);
+    }
+  }
+
+  private static <T extends grafioschtrader.entities.Securitycurrency<T>> void capRetryDown(T entity,
+      short connectorCap, java.util.function.Function<T, T> saver) {
+    if (entity.getRetryIntraLoad() > connectorCap) {
+      entity.setRetryIntraLoad(connectorCap);
+      saver.apply(entity);
+    }
+  }
+
+  private static <T extends grafioschtrader.entities.Securitycurrency<T>> void incrementRetryInFallbackBand(T entity,
+      short connectorCap, short absoluteCap, java.util.function.Function<T, T> saver) {
+    short current = entity.getRetryIntraLoad();
+    if (current >= connectorCap && current < absoluteCap) {
+      entity.setRetryIntraLoad((short) (current + 1));
+      saver.apply(entity);
+    }
   }
 
   /**

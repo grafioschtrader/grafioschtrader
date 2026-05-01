@@ -267,6 +267,22 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   List<SecurityCurrencyMaxHistoryquoteData<Security>> getMaxHistoryquoteWithConnector(short maxHistoryRetry);
 
   /**
+   * Finds active, GTNet-opted-in securities currently in the GTNet fallback band — connector retry counter at or above
+   * its configured cap (gt.history.retry) but below the absolute exhaustion cap (gt.history.retry +
+   * gt.gtnet.quote.retry). Returns the security and its most recent historyquote date (null if none yet), so the GTNet
+   * service knows where to start the requested range.
+   *
+   * Named query: Security.findRetryExhaustedGTNetEnabled
+   *
+   * @param connectorCap the connector retry cap (gt.history.retry); inclusive lower bound
+   * @param absoluteCap  the absolute exhaustion cap (gt.history.retry + gt.gtnet.quote.retry); exclusive upper bound
+   * @return projections pairing each eligible Security with its latest historyquote date (or null if empty history)
+   */
+  @Query(nativeQuery = false)
+  List<SecurityCurrencyMaxHistoryquoteData<Security>> findRetryExhaustedGTNetEnabled(short connectorCap,
+      short absoluteCap);
+
+  /**
    * Retrieves the latest history-quote date for each formula-derived security (where idLinkSecuritycurrency is not
    * null) that still has retry attempts remaining.
    *

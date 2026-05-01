@@ -30,6 +30,11 @@ public interface GTNetMessageJpaRepository extends GTNetMessageJpaRepositoryBase
   /**
    * Finds unanswered request messages based on direction and message codes.
    *
+   * <p>Outgoing (SEND) requests whose delivery permanently failed (delivery_status = 2 / FAILED)
+   * are excluded, because the peer never received them and no reply can ever arrive. Incoming
+   * (RECEIVED) rows are returned regardless of delivery_status — that column is not applicable
+   * to received messages.</p>
+   *
    * Named query: GTNetMessage.findUnansweredRequests
    *
    * Returns Object[] with: [0] = id_gt_net (Integer), [1] = id_gt_net_message (Integer)

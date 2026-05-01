@@ -22,6 +22,7 @@ import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecurityServiceAsyncExectuion;
 import grafioschtrader.repository.SecuritycurrencyService;
 import grafioschtrader.service.GTNetHistoryquoteService;
+import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.service.HistoryquoteExchangeResult;
 
 /**
@@ -48,26 +49,37 @@ public class HistoryquoteThruGTNet<S extends Securitycurrency<S>> implements IHi
   private final HistoryquoteThruConnector<S> connectorThru;
   private final GTNetHistoryquoteService gtNetHistoryquoteService;
   private final GlobalparametersJpaRepository globalparametersJpaRepository;
+  private final GlobalparametersService globalparametersService;
   private final ISecuritycurrencyService<S> securitycurrencyService;
 
   public HistoryquoteThruGTNet(HistoryquoteThruConnector<S> connectorThru,
       GTNetHistoryquoteService gtNetHistoryquoteService, GlobalparametersJpaRepository globalparametersJpaRepository,
-      ISecuritycurrencyService<S> securitycurrencyService) {
+      GlobalparametersService globalparametersService, ISecuritycurrencyService<S> securitycurrencyService) {
     this.connectorThru = connectorThru;
     this.gtNetHistoryquoteService = gtNetHistoryquoteService;
     this.globalparametersJpaRepository = globalparametersJpaRepository;
+    this.globalparametersService = globalparametersService;
     this.securitycurrencyService = securitycurrencyService;
   }
 
   @Override
   public List<S> catchAllUpSecuritycurrencyHistoryquote(List<Integer> idsStockexchange) {
-    // First, fill empty historyquotes (no GTNet needed for completely empty instruments)
+    // 1. Connector-first cold start: instruments with no historyquotes that still have retries left.
+    //    This ensures the user can verify their connector configuration before GTNet is involved.
     List<S> catchUp = new ArrayList<>(connectorThru.delegateFillEmptyHistoryquote());
+
+    // 2. GTNet-only fallback: instruments whose connector retry counter has reached gt.history.retry
+    //    but is still below gt.history.retry + gt.gtnet.quote.retry, and whose owner has opted in via
+    //    gtNetHistoricalRecv. Includes both empty-history and partial-history instruments — without this
+    //    step, those entries are dropped from the partial-fill named query and stuck forever.
+    if (globalparametersJpaRepository.isGTNetEnabled()) {
+      catchUp.addAll(gtNetFallbackForExhaustedConnectors());
+    }
 
     // Determine if this is an exchange-specific update (allows 1-day updates after exchange close)
     final boolean isExchangeSpecificUpdate = idsStockexchange != null && !idsStockexchange.isEmpty();
 
-    // Get the partial fill data and call OUR fillHistoryquoteForSecuritiesCurrencies (with GTNet integration)
+    // 3. Partial-fill path with GTNet integration for instruments that already have some history.
     HistoryquoteThruConnector.PartialFillData<S> partialFillData = connectorThru.getPartialFillData(idsStockexchange);
     catchUp.addAll(this.fillHistoryquoteForSecuritiesCurrencies(
         partialFillData.getHistorySecurityCurrencyList(),
@@ -75,6 +87,47 @@ public class HistoryquoteThruGTNet<S extends Securitycurrency<S>> implements IHi
         isExchangeSpecificUpdate));
 
     return catchUp;
+  }
+
+  /**
+   * GTNet-only fallback for instruments whose connector retries are exhausted (retryHistoryLoad >= gt.history.retry)
+   * but who still have GTNet retries left (< gt.history.retry + gt.gtnet.quote.retry). Each instrument either gets
+   * fresh data from GTNet (counter capped down to gt.history.retry, preserving the connector-failure signal) or has
+   * its counter incremented by 1 toward the absolute exhaustion cap.
+   */
+  private List<S> gtNetFallbackForExhaustedConnectors() {
+    short connectorCap = globalparametersService.getMaxHistoryRetry();
+    short absoluteCap = (short) (connectorCap + globalparametersService.getGTNetQuoteRetry());
+    List<SecurityCurrencyMaxHistoryquoteData<S>> exhausted = securitycurrencyService
+        .findGTNetFallbackBandInstruments(connectorCap, absoluteCap);
+    if (exhausted.isEmpty()) {
+      return new ArrayList<>();
+    }
+    log.info("GTNet fallback: {} instruments in the GTNet-only retry band [{}, {})", exhausted.size(), connectorCap,
+        absoluteCap);
+
+    LocalDate currentDate = LocalDate.now();
+    HistoryquoteExchangeResult<S> gtNetResult = gtNetHistoryquoteService
+        .requestHistoryquotesFromBaseThru(exhausted, currentDate);
+
+    List<S> saved = saveGTNetFilledData(gtNetResult, currentDate);
+
+    // Bump the retry counter for the instruments GTNet did NOT serve (capped at absoluteCap).
+    incrementRetryForUnfilledFallback(gtNetResult.getRemainingForConnector(), absoluteCap);
+
+    return saved;
+  }
+
+  private void incrementRetryForUnfilledFallback(List<SecurityCurrencyMaxHistoryquoteData<S>> unfilled,
+      short absoluteCap) {
+    for (SecurityCurrencyMaxHistoryquoteData<S> data : unfilled) {
+      S instrument = data.getSecurityCurrency();
+      short next = (short) Math.min((int) instrument.getRetryHistoryLoad() + 1, (int) absoluteCap);
+      if (next != instrument.getRetryHistoryLoad()) {
+        instrument.setRetryHistoryLoad(next);
+        securitycurrencyService.getJpaRepository().save(instrument);
+      }
+    }
   }
 
   @Override
@@ -171,14 +224,17 @@ public class HistoryquoteThruGTNet<S extends Securitycurrency<S>> implements IHi
   }
 
   /**
-   * Saves GTNet-filled historyquote data through the proper connector save flow.
+   * Saves GTNet-filled historyquote data via the connector's "preserve retry" save flow. The retry counter is capped
+   * at gt.history.retry on success rather than reset to zero — GTNet success must not erase the connector-failure
+   * signal that monitoring depends on. Instruments whose counter is already below the cap are unaffected.
    *
-   * @param gtNetResult     the result from GTNet exchange containing filled instruments and their data
-   * @param currentCalendar the target end date for historyquote loading
+   * @param gtNetResult the result from GTNet exchange containing filled instruments and their data
+   * @param currentDate the target end date for historyquote loading
    * @return list of successfully saved instruments
    */
   private List<S> saveGTNetFilledData(HistoryquoteExchangeResult<S> gtNetResult, LocalDate currentDate) {
     List<S> savedInstruments = new ArrayList<>();
+    short connectorCap = globalparametersService.getMaxHistoryRetry();
 
     for (SecurityCurrencyMaxHistoryquoteData<S> filled : gtNetResult.getFilledByGTNet()) {
       S securitycurrency = filled.getSecurityCurrency();
@@ -194,13 +250,10 @@ public class HistoryquoteThruGTNet<S extends Securitycurrency<S>> implements IHi
           LocalDate fromDate = filled.getDate() != null ? filled.getDate().plusDays(1) : null;
           LocalDate toDate = currentDate;
 
-          // Save through connector's proper flow
-          S saved = connectorThru.savePrefetchedHistoryQuotes(securitycurrencyService, securitycurrency, historyquotes,
-              fromDate, toDate);
-
-          if (saved.getRetryHistoryLoad() == 0) {
-            savedInstruments.add(saved);
-          }
+          // Save while preserving the connector-failure signal (counter capped at gt.history.retry, never reset to 0).
+          S saved = connectorThru.savePrefetchedHistoryQuotesAsFallback(securitycurrencyService, securitycurrency,
+              historyquotes, fromDate, toDate, connectorCap);
+          savedInstruments.add(saved);
         } catch (Exception e) {
           log.warn("Failed to save GTNet historyquotes for {}: {}", securitycurrency.getIdSecuritycurrency(),
               e.getMessage());

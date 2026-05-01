@@ -130,6 +130,28 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   @Transactional
   public S savePrefetchedHistoryQuotes(final ISecuritycurrencyService<S> securitycurrencyService, S securitycurrency,
       final List<Historyquote> historyquotes, final LocalDate fromDate, final LocalDate toDate) {
+    return savePrefetchedHistoryQuotesInternal(securitycurrencyService, securitycurrency, historyquotes, fromDate,
+        toDate, current -> (short) 0);
+  }
+
+  /**
+   * Variant of {@link #savePrefetchedHistoryQuotes} for the GTNet-only fallback path. The retry counter is capped
+   * down to {@code connectorRetryCap} (i.e. gt.history.retry) instead of being reset to zero — this preserves the
+   * "connector is broken" signal for monitoring while granting GTNet a fresh fallback budget.
+   *
+   * @param connectorRetryCap the connector retry cap; counter is set to {@code min(currentValue, connectorRetryCap)}
+   */
+  @Transactional
+  public S savePrefetchedHistoryQuotesAsFallback(final ISecuritycurrencyService<S> securitycurrencyService,
+      S securitycurrency, final List<Historyquote> historyquotes, final LocalDate fromDate, final LocalDate toDate,
+      short connectorRetryCap) {
+    return savePrefetchedHistoryQuotesInternal(securitycurrencyService, securitycurrency, historyquotes, fromDate,
+        toDate, current -> (short) Math.min((int) current, (int) connectorRetryCap));
+  }
+
+  private S savePrefetchedHistoryQuotesInternal(final ISecuritycurrencyService<S> securitycurrencyService,
+      S securitycurrency, final List<Historyquote> historyquotes, final LocalDate fromDate, final LocalDate toDate,
+      java.util.function.Function<Short, Short> retryRule) {
 
     if (historyquotes == null || historyquotes.isEmpty()) {
       return securitycurrency;
@@ -144,8 +166,8 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
     // Set idSecuritycurrency on each historyquote
     historyquotes.forEach(hq -> hq.setIdSecuritycurrency(idSecuritycurrency));
 
-    // Reset retry counter on success
-    securitycurrency.setRetryHistoryLoad((short) 0);
+    // Apply caller-supplied retry rule (reset to 0 for connector success, cap-down for GTNet fallback success)
+    securitycurrency.setRetryHistoryLoad(retryRule.apply(securitycurrency.getRetryHistoryLoad()));
 
     // Add historyquotes to entity
     addHistoryquotesToSecurity(securitycurrency, historyquotes, fromDate, toDate);

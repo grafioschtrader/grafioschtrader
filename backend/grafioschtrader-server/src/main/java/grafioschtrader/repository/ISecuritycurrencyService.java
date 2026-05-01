@@ -8,6 +8,7 @@ import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Securitycurrency;
+import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteData;
 import grafioschtrader.reportviews.securitycurrency.ISecurityDataProviderUrls;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
 
@@ -92,5 +93,18 @@ public interface ISecuritycurrencyService<S extends Securitycurrency<S>> extends
    * @return A list of Historyquote objects that were added to fill the gaps.
    */
   List<Historyquote> fillGap(S securitycurrency);
+
+  /**
+   * Finds GTNet-opted-in instruments currently in the GTNet fallback band — connector retry counter at or above its
+   * configured cap (gt.history.retry) but below the absolute exhaustion cap (gt.history.retry + gt.gtnet.quote.retry).
+   * Each projection includes the instrument and its most recent historyquote date (null if there is no history yet),
+   * which lets the GTNet service compute the request range without a follow-up query.
+   *
+   * @param connectorCap the connector retry cap (gt.history.retry); inclusive lower bound for the GTNet fallback band
+   * @param absoluteCap  the absolute exhaustion cap; exclusive upper bound; instruments at or above this value are
+   *                     no longer retried automatically
+   * @return projections pairing each eligible instrument with its latest historyquote date (or null if no history yet)
+   */
+  List<SecurityCurrencyMaxHistoryquoteData<S>> findGTNetFallbackBandInstruments(short connectorCap, short absoluteCap);
 
 }

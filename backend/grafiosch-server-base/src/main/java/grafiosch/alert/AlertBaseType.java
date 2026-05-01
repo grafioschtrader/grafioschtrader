@@ -24,6 +24,6 @@ public enum AlertBaseType implements IAlertType {
 
   @Override
   public String getName() {
-    return this.getName();
+    return name();
   }
 }
