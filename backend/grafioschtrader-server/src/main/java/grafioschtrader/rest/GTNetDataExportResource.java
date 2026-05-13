@@ -88,7 +88,7 @@ public class GTNetDataExportResource {
       RequestGTMappings.GTNETDATAEXPORT })
   @PreAuthorize("hasRole('ADMIN')")
   @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  public ResponseEntity<Void> importGTNetData(@RequestParam("file") MultipartFile file) throws Exception {
+  public ResponseEntity<Void> importGTNetData(@RequestParam() MultipartFile file) throws Exception {
     String sqlStatements = new String(file.getBytes(), StandardCharsets.UTF_8);
     gtNetJpaRepository.importGTNetConfig(sqlStatements, EXPORT_HEADER);
     schedulePostImportTasks();

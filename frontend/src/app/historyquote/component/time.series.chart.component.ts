@@ -100,6 +100,9 @@ interface Data {
         <button type="button" (click)="threeMonth($event)">3M</button>
         <button type="button" (click)="yearToDate($event)">YTD</button>
         <button type="button" (click)="oneYear($event)">1{{ "Y" | translate }}</button>
+        <button type="button" (click)="threeYears($event)">3{{ "Y" | translate }}</button>
+        <button type="button" (click)="fiveYears($event)">5{{ "Y" | translate }}</button>
+        <button type="button" (click)="tenYears($event)">10{{ "Y" | translate }}</button>
         <button type="button" (click)="oldestTrade($event)" title="{{'OLDEST_TRADE_TOOLTIP' | translate}}">
           {{ "OLDEST_TRADE" | translate }}
         </button>
@@ -368,6 +371,18 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
   oneYear(event): void {
     this.goNextWorkDay(moment().add(-1, 'year'), event);
+  }
+
+  threeYears(event): void {
+    this.goNextWorkDay(moment().add(-3, 'year'), event);
+  }
+
+  fiveYears(event): void {
+    this.goNextWorkDay(moment().add(-5, 'year'), event);
+  }
+
+  tenYears(event): void {
+    this.goNextWorkDay(moment().add(-10, 'year'), event);
   }
 
   oldestTrade(event): void {
