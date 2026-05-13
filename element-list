@@ -24,6 +24,7 @@ grafiosch.m2m.client
 grafiosch.repository
 grafiosch.rest
 grafiosch.rest.helper
+grafiosch.schemagen
 grafiosch.security
 grafiosch.security.filter
 grafiosch.service

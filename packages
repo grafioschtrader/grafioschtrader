@@ -136,3 +136,4 @@ grafioschtrader.tax.swiss.ech0196.model
 grafiosch.integration.entities
 grafiosch.integration.repository
 grafiosch.integration.rest
+grafiosch.schemagen
