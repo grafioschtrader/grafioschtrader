@@ -30,19 +30,19 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 public class JwtConfig {
 
   @Bean
-  public SecretKey jwtSecretKey(@Value("${gt.jwt.secret}") String secret) {
+  SecretKey jwtSecretKey(@Value("${gt.jwt.secret}") String secret) {
     return new SecretKeySpec(secret.getBytes(), "HmacSHA256");
   }
 
   @Bean
-  public JwtEncoder jwtEncoder(SecretKey jwtSecretKey) {
+  JwtEncoder jwtEncoder(SecretKey jwtSecretKey) {
     OctetSequenceKey jwk = new OctetSequenceKey.Builder(jwtSecretKey)
         .algorithm(JWSAlgorithm.HS256).build();
     return new NimbusJwtEncoder(new ImmutableJWKSet<>(new JWKSet(jwk)));
   }
 
   @Bean
-  public JwtDecoder jwtDecoder(SecretKey jwtSecretKey) {
+  JwtDecoder jwtDecoder(SecretKey jwtSecretKey) {
     return NimbusJwtDecoder.withSecretKey(jwtSecretKey)
         .macAlgorithm(MacAlgorithm.HS256).build();
   }

@@ -16,7 +16,7 @@ import grafiosch.gtnet.IMessageRetentionProvider;
 public class GTNetMessageRetentionConfig {
 
   @Bean
-  public IMessageRetentionProvider lastPriceRetention() {
+  IMessageRetentionProvider lastPriceRetention() {
     return new IMessageRetentionProvider() {
       @Override
       public String getConfigKey() {
@@ -38,7 +38,7 @@ public class GTNetMessageRetentionConfig {
   }
 
   @Bean
-  public IMessageRetentionProvider historyPriceRetention() {
+  IMessageRetentionProvider historyPriceRetention() {
     return new IMessageRetentionProvider() {
       @Override
       public String getConfigKey() {
@@ -60,7 +60,7 @@ public class GTNetMessageRetentionConfig {
   }
 
   @Bean
-  public IMessageRetentionProvider securityLookupRetention() {
+  IMessageRetentionProvider securityLookupRetention() {
     return new IMessageRetentionProvider() {
       @Override
       public String getConfigKey() {

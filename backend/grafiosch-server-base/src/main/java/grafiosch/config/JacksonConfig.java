@@ -29,7 +29,7 @@ import tools.jackson.databind.module.SimpleModule;
 public class JacksonConfig {
 
   @Bean
-  public SimpleModule localDateTimeModule() {
+  SimpleModule localDateTimeModule() {
     SimpleModule module = new SimpleModule("LocalDateTimeModule");
     module.addDeserializer(LocalDateTime.class, new FlexibleLocalDateTimeDeserializer());
     module.addDeserializer(LocalDate.class, new FlexibleLocalDateDeserializer());
