@@ -303,7 +303,11 @@
       "PowerShell(Get-Content \"C:\\\\SoftwareProjekte\\\\Hugos\\\\grafioschtrader\\\\backend\\\\grafioschtrader-server\\\\src\\\\main\\\\resources\\\\db\\\\migration\\\\V0_35_5__riskfree_rate_mapping.sql\" -Raw | & \"C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe\" --user=grafioschtrader_t --password=grafioschtrader_t --database=grafioschtrader_t --batch 2>&1; & \"C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe\" --user=grafioschtrader_t --password=grafioschtrader_t --database=grafioschtrader_t --batch --execute=\"SELECT COUNT\\(*\\) AS rows_after_rerun FROM risk_free_rate_mapping;\")",
       "PowerShell(& \"C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe\" --user=grafioschtrader --password=adergraf --database=grafioschtrader --batch --execute=\"SELECT s.id_securitycurrency, s.name FROM security s JOIN securitycurrency sc ON s.id_securitycurrency=sc.id_securitycurrency WHERE sc.id_connector_history='gt.datafeed.fred' ORDER BY s.currency;\")",
       "Skill(update-user-manual)",
-      "Bash(awk -F'.' '{print $1}')"
+      "Bash(awk -F'.' '{print $1}')",
+      "WebFetch(domain:www.npmjs.com)",
+      "mcp__primeng__get_version_info",
+      "mcp__primeng__get_migration_guide",
+      "Bash(npm view *)"
     ],
     "deny": [],
     "ask": []
