@@ -93,6 +93,7 @@
 1|0|"Anleihen Neuseeland"|"Bond New Zealand"|"d"
 1|0|"Anleihen Österreich"|"Bond Austria"|"i"
 1|2|"Anleihen Österreich"|"Bond Austria"|"i"
+1|10|"Risikofreier Zinssatz"|"Risk-free rate"|"d"
 2|1|"Geldmarkt Europa"|"Time deposit Europe"|"d"
 2|0|"Festgeld"|"Time deposit"|"d"
 3|1|"Edelmetalle"|"Precious metals"|"d"

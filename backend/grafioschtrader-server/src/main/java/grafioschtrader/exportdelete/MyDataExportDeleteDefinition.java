@@ -38,6 +38,7 @@ import grafioschtrader.entities.ImportTransactionPosFailed;
 import grafioschtrader.entities.ImportTransactionTemplate;
 import grafioschtrader.entities.MicProviderMap;
 import grafioschtrader.entities.Portfolio;
+import grafioschtrader.entities.RiskFreeRateMapping;
 import grafioschtrader.entities.SecaccountTradingPeriod;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.SecurityAction;
@@ -118,7 +119,8 @@ public class MyDataExportDeleteDefinition {
       UNION SELECT DISTINCT s1.* FROM transaction t JOIN security s ON t.id_securitycurrency = s.id_securitycurrency
       JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency
       JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency WHERE t.id_tenant = ? AND sc.dtype = 'S' UNION SELECT s.* FROM correlation_set cs
-      JOIN correlation_instrument ci ON cs.id_correlation_set = ci.id_correlation_set JOIN security s ON ci.id_securitycurrency = s.id_securitycurrency WHERE cs.id_tenant = ?""";
+      JOIN correlation_instrument ci ON cs.id_correlation_set = ci.id_correlation_set JOIN security s ON ci.id_securitycurrency = s.id_securitycurrency WHERE cs.id_tenant = ?
+      UNION SELECT s.* FROM risk_free_rate_mapping rfm JOIN security s ON s.id_securitycurrency = rfm.id_securitycurrency""";
   private static String SECURITY_DELETE = String.format("FROM %s WHERE id_tenant_private = ?", Security.TABNAME);
   private static String SECURITY_DERIVED_LINK = String.format(
       """
@@ -148,7 +150,8 @@ public class MyDataExportDeleteDefinition {
       WHERE s.id_tenant_private = ? AND sc.dtype = 'S' UNION SELECT DISTINCT sc.* FROM transaction t JOIN security s ON t.id_securitycurrency = s.id_securitycurrency
       JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency
       JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency WHERE t.id_tenant = ? AND sc.dtype = 'S' UNION SELECT sc.* FROM correlation_set cs
-      JOIN correlation_instrument ci ON cs.id_correlation_set = ci.id_correlation_set JOIN securitycurrency sc ON ci.id_securitycurrency = sc.id_securitycurrency WHERE sc.dtype = 'S' AND cs.id_tenant = ?""";
+      JOIN correlation_instrument ci ON cs.id_correlation_set = ci.id_correlation_set JOIN securitycurrency sc ON ci.id_securitycurrency = sc.id_securitycurrency WHERE sc.dtype = 'S' AND cs.id_tenant = ?
+      UNION SELECT sc.* FROM risk_free_rate_mapping rfm JOIN securitycurrency sc ON sc.id_securitycurrency = rfm.id_securitycurrency WHERE sc.dtype = 'S'""";
   private static String SECURITYCURRENCY_DELETE = String.format(
       "sc.* FROM %s sc, %s s WHERE sc.id_securitycurrency = s.id_securitycurrency AND id_tenant_private = ?",
       Securitycurrency.TABNAME, Security.TABNAME);
@@ -199,7 +202,8 @@ public class MyDataExportDeleteDefinition {
   private static String HISTORYQUOTE_SELECT = """
       DISTINCT h.* FROM transaction t JOIN security s ON t.id_securitycurrency = s.id_securitycurrency JOIN historyquote h ON s.id_securitycurrency = h.id_securitycurrency
       WHERE t.id_tenant = ? AND s.active_to_date < now() + interval 1 month
-      UNION SELECT DISTINCT h.* FROM transaction t JOIN historyquote h ON h.id_securitycurrency = t.id_currency_pair WHERE t.id_tenant = ? """;
+      UNION SELECT DISTINCT h.* FROM transaction t JOIN historyquote h ON h.id_securitycurrency = t.id_currency_pair WHERE t.id_tenant = ?
+      UNION SELECT h.* FROM risk_free_rate_mapping rfm JOIN historyquote h ON h.id_securitycurrency = rfm.id_securitycurrency""";
   private static String HISTORYQUOTEPERIOD_SELECT = """
       hp.* FROM historyquote_period hp JOIN security s ON hp.id_securitycurrency = s.id_securitycurrency WHERE s.id_tenant_private = ?
       UNION SELECT DISTINCT hp.* FROM watchlist w JOIN watchlist_sec_cur wsc ON w.id_watchlist = wsc.id_watchlist JOIN historyquote_period hp ON wsc.id_securitycurrency = hp.id_securitycurrency
@@ -289,6 +293,10 @@ public class MyDataExportDeleteDefinition {
           ExportDefinition.DELETE_USE | ExportDefinition.CHANGE_USER_ID_FOR_CREATED_BY),
       new ExportDefinition(Security.TABNAME, TENANT_USER.ID_TENANT, SECURITY_DELETE, ExportDefinition.DELETE_USE),
       new ExportDefinition(Security.TABNAME, TENANT_USER.ID_TENANT, SECURITY_SELECT, ExportDefinition.EXPORT_USE),
+      // Risk-free rate mapping — shared reference data; the FK-referenced FRED synthetic
+      // securitycurrency/security/historyquote rows are pulled in via UNION clauses above.
+      new ExportDefinition(RiskFreeRateMapping.TABNAME, TENANT_USER.NONE, null,
+          ExportDefinition.EXPORT_USE | ExportDefinition.CHANGE_USER_ID_FOR_CREATED_BY),
       new ExportDefinition(SecurityDerivedLink.TABNAME, TENANT_USER.ID_TENANT, SECURITY_DERIVED_LINK,
           ExportDefinition.EXPORT_USE),
       new ExportDefinition(Securitysplit.TABNAME, TENANT_USER.ID_TENANT, SECURITYSPLIT_SELECT,

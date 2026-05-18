@@ -12,6 +12,7 @@ import java.util.Locale;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.IFeedConnector;
@@ -22,6 +23,7 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 import grafioschtrader.types.SubscriptionType;
 
 @SpringBootTest(classes = GTforTest.class)
+@ActiveProfiles("test")
 class FinnhubConnectorTest extends BaseFeedConnectorCheck {
 
   private final FinnhubConnector finnhubConnector;

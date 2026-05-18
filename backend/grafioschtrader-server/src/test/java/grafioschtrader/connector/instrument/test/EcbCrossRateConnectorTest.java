@@ -7,6 +7,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.IFeedConnector;
@@ -15,6 +16,7 @@ import grafioschtrader.connector.instrument.test.ConnectorTestHelper.CurrencyPai
 import grafioschtrader.test.start.GTforTest;
 
 @SpringBootTest(classes = GTforTest.class)
+@ActiveProfiles("test")
 public class EcbCrossRateConnectorTest extends BaseFeedConnectorCheck {
 
   @Autowired

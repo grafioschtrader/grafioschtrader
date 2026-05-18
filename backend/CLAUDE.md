@@ -345,6 +345,45 @@ Each globalparameter also needs:
 - **Asset subcategories**: `AssetclassResource.getSubcategoryForLanguage()` → frontend `AssetclassService.getSubcategoryForLanguage()`
 - **Swiss cantons**: `TaxDataResource.getCantons()` → frontend `TaxDataService.getCantons()`
 
+## Validation Placement — `saveOnlyAttributes`, Not Resource
+
+**IMPORTANT**: Custom pre-persist validation for an entity (cross-field checks, referential integrity beyond a foreign-key constraint, tenant limits, "locked-when-used" rules, etc.) belongs in `*JpaRepositoryImpl.saveOnlyAttributes(...)`, **not** in the `*Resource` class.
+
+### Why
+
+- All CUD paths (REST create/update, bulk import, programmatic save) funnel through `saveOnlyAttributes`. Validation there cannot be bypassed by alternative entry points.
+- A Resource override of `create()` / `update()` only protects the REST path. Anything that calls the repository directly (imports, scheduled jobs, internal services) silently skips it.
+- Keeps Resources thin and uniform with `UpdateCreateDeleteAuditResource` / similar base classes — overriding `create`/`update` purely to inject validation is an anti-pattern here.
+
+### Pattern
+
+```java
+@Override
+public MyEntity saveOnlyAttributes(MyEntity entity, MyEntity existingEntity,
+    Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
+  validateMyRules(entity, existingEntity);
+  return RepositoryHelper.saveOnlyAttributes(myJpaRepository, entity, existingEntity,
+      updatePropertyLevelClasses);
+}
+
+private void validateMyRules(MyEntity entity, MyEntity existingEntity) {
+  if (badCondition) {
+    throw new DataViolationException("field.dotted.key", "gt.my.error.key", new Object[] { /* args */ });
+  }
+}
+```
+
+Field key and message key conventions follow the **DataViolationException Field Parameter Rule** section above.
+
+### Examples
+
+- `StandingOrderJpaRepositoryImpl.validateStandingOrder(...)` — valid_from/valid_to ordering, transaction-type-per-subclass, units-xor-amount, day/month-required-per-repeat-unit.
+- `AlgoAssetclassJpaRepositoryImpl.validateMutualExclusivity(...)` — name XOR assetclass.
+- `SecurityaccountJpaRepositoryImpl` — trading-period overlap, transaction-conflict checks.
+- `RiskFreeRateMappingJpaRepositoryImpl.validateCurrencyMatch(...)` — posted currency must match the underlying security's ISO currency.
+
+The **Transaction Processing** section below is the canonical, fully-elaborated case of this rule.
+
 ## Transaction Processing — Always Route Through TransactionJpaRepositoryImpl
 
 **IMPORTANT**: When creating or saving `Transaction` entities programmatically, **never** call `transactionJpaRepository.save()` directly. Instead, use the methods on `TransactionJpaRepositoryCustom` / `TransactionJpaRepositoryImpl`:

@@ -32,4 +32,8 @@ export interface AnnualisedYears {
   numberOfYears: number;
   performanceAnnualised: number;
   performanceAnnualisedMC: number;
+  /** Sharpe ratio in the security's native currency for this horizon. Null when unmappable or stddev is non-positive. */
+  sharpeRatio?: number;
+  /** Sharpe ratio expressed in the tenant's main currency. Null on the same conditions as sharpeRatio. */
+  sharpeRatioMC?: number;
 }

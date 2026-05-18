@@ -1,0 +1,11 @@
+Federal Reserve Economic Data (FRED) historical observations endpoint. Used to populate the risk-free interest rate per currency (consumed e.g. by the Sharpe ratio).<br>
+Requires a free API key, registered under the existing "Connector API Keys" admin screen (provider id <code>fred</code>). Free tier: 120 requests/minute, more than enough for one call per series per day.<br>
+The input field corresponds to a FRED series id. Lookup at <a target="_blank" href="//fred.stlouisfed.org">fred.stlouisfed.org</a>.<br>
+Recommended series per currency (short-term, suitable for Sharpe):<br>
+&nbsp;&nbsp;USD &rarr; <code>DGS3MO</code> (3-month Treasury, daily)<br>
+&nbsp;&nbsp;EUR &rarr; <code>ECBESTRVOLWGTTRMDMNRT</code> (&euro;STR, daily)<br>
+&nbsp;&nbsp;GBP &rarr; <code>IUDSOIA</code> (SONIA, daily)<br>
+&nbsp;&nbsp;CHF &rarr; <code>IR3TIB01CHM156N</code> (3-month interbank, monthly)<br>
+&nbsp;&nbsp;JPY &rarr; <code>IRSTCI01JPM156N</code> (call rate, monthly)<br>
+&nbsp;&nbsp;Other OECD currencies &rarr; <code>IR3TIB01[CC]M156N</code> or <code>IRLTLT01[CC]M156N</code> (10-year, monthly).<br>
+Rates are returned as percent by FRED and stored as decimal fractions in <code>historyquote.close</code> (e.g. 4.32% &rarr; 0.0432). Missing observations (encoded "." by FRED) are skipped.<br>

@@ -95,6 +95,7 @@ import {
 import {ImportTransactionTemplateComponent} from './imptranstemplate/component/import.transaction.template.component';
 import {ImportTransactionTemplateService} from './imptranstemplate/service/import.transaction.template.service';
 import {ImportTransactionPlatformService} from './imptranstemplate/service/import.transaction.platform.service';
+import {RiskFreeRateMappingService} from './shared/riskfreeratemapping/service/risk.free.rate.mapping.service';
 import {
   ImportTransactionEditTemplateComponent
 } from './imptranstemplate/component/import-transaction-edit-template.component';
@@ -483,7 +484,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     GlobalparameterGTService, GTNetMessageService, TabMenuService, ReleaseNoteService,
     GTNetMessageAnswerService, GTNetService, GtnetSecurityLookupService, GTNetSecurityImpHeadService, GTNetSecurityImpPosService,
     HistoryquotePeriodService, HistoryquoteService, HoldingService, ImportTransactionHeadService,
-    ImportTransactionPlatformService, ImportTransactionPosService, ImportTransactionTemplateService, LoginService,
+    ImportTransactionPlatformService, ImportTransactionPosService, ImportTransactionTemplateService, RiskFreeRateMappingService, LoginService,
     MailSendRecvService, MailSendRecvService, MailSettingForwardService, MainDialogService, MessageToastService,
     MultipleRequestToOneService, ParentChildRegisterService, PortfolioService, ProductIconService, ProposeChangeEntityService,
     ProposeUserTaskService, SecurityaccountService, SecurityService, SecuritysplitService, StockexchangeService,

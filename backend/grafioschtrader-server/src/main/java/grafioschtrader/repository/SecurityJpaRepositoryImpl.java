@@ -34,7 +34,9 @@ import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
+import grafioschtrader.dto.AnnualisedPerformance;
 import grafioschtrader.dto.InstrumentStatisticsResult;
+import grafioschtrader.dto.StatisticsSummary;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.SecurityDerivedLink;
@@ -108,6 +110,9 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
   @Autowired
   private grafioschtrader.service.AlgoAlarmEvaluationService algoAlarmEvaluationService;
+
+  @Autowired
+  private grafioschtrader.service.RiskFreeRateService riskFreeRateService;
 
   // Circular Dependency -> Lazy
   private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
@@ -665,10 +670,12 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   public InstrumentStatisticsResult getSecurityStatisticsReturnResult(Integer idSecuritycurrency, LocalDate dateFrom,
       LocalDate dateTo) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     var securityStatisticsSummary = new InstrumentStatisticsSummary(securityJpaRepository, tenantJpaRepository,
-        currencypairJpaRepository);
+        currencypairJpaRepository, riskFreeRateService);
     securityStatisticsSummary.prepareSecurityCurrencypairs(idSecuritycurrency);
-    return new InstrumentStatisticsResult(securityStatisticsSummary.getAnnualisedSecurityPerformance(),
-        securityStatisticsSummary.getStandardDeviation(jdbcTemplate, dateFrom, dateTo, false));
+    AnnualisedPerformance ap = securityStatisticsSummary.getAnnualisedSecurityPerformance();
+    StatisticsSummary stats = securityStatisticsSummary.getStandardDeviation(jdbcTemplate, dateFrom, dateTo, false);
+    securityStatisticsSummary.populateSharpeRatios(ap, stats, dateTo != null ? dateTo : LocalDate.now());
+    return new InstrumentStatisticsResult(ap, stats);
   }
 
   @Override

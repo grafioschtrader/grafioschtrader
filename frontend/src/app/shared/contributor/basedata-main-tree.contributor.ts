@@ -132,6 +132,16 @@ export class BaseDataMainTreeContributor extends MainTreeContributor {
           null,
           null
         )
+      },
+      {
+        label: 'RISK_FREE_RATE_MAPPING',
+        data: new TypeNodeData(
+          TreeNodeType.RiskFreeRateMapping,
+          this.addMainRoute(AppSettings.RISK_FREE_RATE_MAPPING_KEY),
+          null,
+          null,
+          null
+        )
       }
     ];
     if (this.globalParamService.useGtnet()) {
