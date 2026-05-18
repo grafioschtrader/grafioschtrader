@@ -66,6 +66,7 @@ grafioschtrader.connector.instrument.finanzen
 grafioschtrader.connector.instrument.finanzench
 grafioschtrader.connector.instrument.finanzennet
 grafioschtrader.connector.instrument.finnhub
+grafioschtrader.connector.instrument.fred
 grafioschtrader.connector.instrument.fxubc
 grafioschtrader.connector.instrument.generic
 grafioschtrader.connector.instrument.investing
