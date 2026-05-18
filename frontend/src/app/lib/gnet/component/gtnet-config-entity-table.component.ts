@@ -180,7 +180,7 @@ export interface GTNetConfigEntityDisplay {
   supplierLog: SupplierConsumerLogTypes | string;
   consumerLog: SupplierConsumerLogTypes | string;
   consumerUsage: number;
-  entityKind: GTNetExchangeKindType | string;
+  entityKind: string;
   maxLimit?: number;
 }
 

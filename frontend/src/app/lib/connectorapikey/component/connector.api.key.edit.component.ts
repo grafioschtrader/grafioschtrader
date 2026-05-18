@@ -48,7 +48,7 @@ export class ConnectorApiKeyEditComponent extends SimpleEntityEditBase<Connector
     gps: GlobalparameterService,
     messageToastService: MessageToastService,
     connectorApiKeyService: ConnectorApiKeyService) {
-    super(HelpIds.HELP_CONNECTOR_API_KEY, BaseSettings.CONNECTOR_API_KEY.toUpperCase(), translateService, gps,
+    super(HelpIds.HELP_CONNECTOR_API_KEY, AppHelper.toUpperCaseWithUnderscore(BaseSettings.CONNECTOR_API_KEY), translateService, gps,
       messageToastService, connectorApiKeyService);
   }
 
