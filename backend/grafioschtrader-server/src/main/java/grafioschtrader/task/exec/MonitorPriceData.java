@@ -2,6 +2,8 @@ package grafioschtrader.task.exec;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 
@@ -17,6 +19,8 @@ import grafioschtrader.repository.SecurityJpaRepository.MonitorFailedConnector;
 import grafioschtrader.service.GlobalparametersService;
 
 abstract class MonitorPriceData {
+
+  private static final Logger log = LoggerFactory.getLogger(MonitorPriceData.class);
 
   @Autowired
   protected SecurityJpaRepository securityJpaRepository;
@@ -38,8 +42,18 @@ abstract class MonitorPriceData {
     for (MonitorFailedConnector mfc : monitorFaliedConnectors) {
       IFeedConnector ifeedConnector = ConnectorHelper
           .getConnectorByConnectorId(securityJpaRepository.getFeedConnectors(), mfc.getConnector(), feedSupport);
+      String name;
+      if (ifeedConnector != null) {
+        name = ifeedConnector.getReadableName();
+      } else {
+        name = mfc.getConnector() == null ? "[unknown connector]" : "[unregistered] " + mfc.getConnector();
+        log.warn("Failed-connector monitor: no registered IFeedConnector for id='{}' feedSupport={}; "
+            + "row likely from a stale securitycurrency.{} reference",
+            mfc.getConnector(), feedSupport,
+            feedSupport == FeedSupport.FS_HISTORY ? "id_connector_history" : "id_connector_intra");
+      }
       messageArg += String.format("%-30s %6d %6d %3d" + BaseConstants.RETURN_AND_NEW_LINE,
-          ifeedConnector.getReadableName(), mfc.getTotal(), mfc.getFailed(), mfc.getPercentageFailed());
+          name, mfc.getTotal(), mfc.getFailed(), mfc.getPercentageFailed());
     }
     applicationEventPublisher.publishEvent(new AlertEvent(this, alertType, messageArg));
   }
