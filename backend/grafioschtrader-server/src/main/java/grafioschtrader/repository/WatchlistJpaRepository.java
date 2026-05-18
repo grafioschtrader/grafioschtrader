@@ -112,12 +112,17 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
   List<IUDFEntityValues> getUDFByIdWatchlistAndIdUserAndEntity(Integer idWatchlist, Integer idUser, String[] entities);
 
   /**
-   * Returns the Security ids from used Securities. They can be referenced by a watchlist or a transaction. The
-   * watchlist in of the parameter is excluded. It checks if a Security could removed from the watchlist and aftewards
-   * delete without constraints violations.
+   * Returns the security IDs of watchlist entries that are already referenced elsewhere and therefore cannot be safely
+   * deleted. A security is considered "used elsewhere" when at least one of the following holds:
+   * <ul>
+   *   <li>it is referenced by a {@code transaction} row,</li>
+   *   <li>it belongs to another watchlist (excluding the one passed in),</li>
+   *   <li>it is mapped as the underlying instrument of a {@code risk_free_rate_mapping} entry.</li>
+   * </ul>
+   * The result is sorted ascending so callers may use binary search.
    *
-   * @param idWatchlist the watchlist ID to inspect
-   * @return an array of security-currency IDs matching the criteria
+   * @param idWatchlist the watchlist ID to inspect (this watchlist is excluded from the "other watchlist" branch)
+   * @return ascending-sorted array of security-currency IDs that are referenced elsewhere
    */
   @Query(nativeQuery = true)
   int[] watchlistSecuritiesHasTransactionOrOtherWatchlist(Integer idWatchlist);

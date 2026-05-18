@@ -1,0 +1,11 @@
+Federal Reserve Economic Data (FRED), Endpoint für historische Beobachtungen. Wird verwendet, um den risikofreien Zinssatz pro Währung zu pflegen (genutzt z.B. von der Sharpe Ratio).<br>
+Ein kostenloser API-Schlüssel ist erforderlich, einzutragen über den bestehenden Admin-Dialog "Connector API Keys" (Provider-ID <code>fred</code>). Freie Stufe: 120 Anfragen/Minute, mehr als genug für einen Aufruf pro Serie und Tag.<br>
+Das Eingabefeld entspricht einer FRED-Serien-ID. Nachschlagen unter <a target="_blank" href="//fred.stlouisfed.org">fred.stlouisfed.org</a>.<br>
+Empfohlene Serien pro Währung (kurzfristig, für die Sharpe Ratio geeignet):<br>
+&nbsp;&nbsp;USD &rarr; <code>DGS3MO</code> (3-Monats-Treasury, täglich)<br>
+&nbsp;&nbsp;EUR &rarr; <code>ECBESTRVOLWGTTRMDMNRT</code> (&euro;STR, täglich)<br>
+&nbsp;&nbsp;GBP &rarr; <code>IUDSOIA</code> (SONIA, täglich)<br>
+&nbsp;&nbsp;CHF &rarr; <code>IR3TIB01CHM156N</code> (3-Monats-Interbank, monatlich)<br>
+&nbsp;&nbsp;JPY &rarr; <code>IRSTCI01JPM156N</code> (Call Rate, monatlich)<br>
+&nbsp;&nbsp;Weitere OECD-Währungen &rarr; <code>IR3TIB01[CC]M156N</code> oder <code>IRLTLT01[CC]M156N</code> (10-Jahres, monatlich).<br>
+FRED liefert Zinssätze in Prozent; sie werden als Dezimalbruch in <code>historyquote.close</code> gespeichert (z.B. 4.32% &rarr; 0.0432). Fehlende Werte (FRED kodiert sie als ".") werden übersprungen.<br>

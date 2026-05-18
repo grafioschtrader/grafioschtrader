@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -31,6 +32,7 @@ import grafioschtrader.reports.ReportHelper.CurrencyRequired;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
+import grafioschtrader.service.RiskFreeRateService;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SamplingPeriodType;
 import grafioschtrader.types.TimePeriodType;
@@ -78,6 +80,7 @@ public class InstrumentStatisticsSummary {
   private final SecurityJpaRepository securityJpaRepository;
   private final TenantJpaRepository tenantJpaRepository;
   private final CurrencypairJpaRepository currencypairJpaRepository;
+  private final RiskFreeRateService riskFreeRateService;
 
   private String tenantCurrency = null;
   private Securitycurrency<?> securityCurrency;
@@ -91,10 +94,12 @@ public class InstrumentStatisticsSummary {
   private String currencyOfSecurity = null;
 
   public InstrumentStatisticsSummary(SecurityJpaRepository securityJpaRepository,
-      TenantJpaRepository tenantJpaRepository, CurrencypairJpaRepository currencypairJpaRepository) {
+      TenantJpaRepository tenantJpaRepository, CurrencypairJpaRepository currencypairJpaRepository,
+      RiskFreeRateService riskFreeRateService) {
     this.securityJpaRepository = securityJpaRepository;
     this.tenantJpaRepository = tenantJpaRepository;
     this.currencypairJpaRepository = currencypairJpaRepository;
+    this.riskFreeRateService = riskFreeRateService;
   }
 
   /**
@@ -427,6 +432,84 @@ public class InstrumentStatisticsSummary {
       ReportHelper.adjustCloseToSameCurrency(securitycurrencyList, closePrices);
       security.setCurrency(realCurrency);
     }
+  }
+
+  /**
+   * Populates Sharpe ratio fields on each {@link AnnualisedYears} entry of {@code ap}, using the annualised return
+   * already on the entry and the annual standard deviation already on {@code stats}.
+   *
+   * <p>
+   * For each horizon the risk-free leg is the arithmetic mean of {@link RiskFreeRateService#getRateSeries} over the
+   * window {@code [dateTo.minusYears(horizon), dateTo]}, falling back to
+   * {@link RiskFreeRateService#getRateOnDate(String, LocalDate)} at {@code dateTo} when the series is empty. The
+   * security-currency Sharpe uses the security's currency; the main-currency Sharpe uses the tenant currency.
+   *
+   * <p>
+   * Note: every horizon shares a single annualised standard deviation (the one computed by
+   * {@link #getStandardDeviation}) — matching the single value already shown to the user in the statistics-summary
+   * table on the same page. A per-horizon σ would cost an extra SQL round-trip per horizon and is left as a future
+   * refinement.
+   *
+   * <p>
+   * The Sharpe value is set to {@code null} when the risk-free rate is unmapped for the currency (so the caller can
+   * tell missing data from genuine zero), when σ is non-positive (constant series), or when the resulting ratio is
+   * non-finite.
+   *
+   * @param ap     the annualised performance to extend in place
+   * @param stats  the statistics summary containing annualised standard deviation
+   * @param dateTo end of the analysis window (inclusive); each horizon counts back this many years from here
+   */
+  public void populateSharpeRatios(AnnualisedPerformance ap, StatisticsSummary stats, LocalDate dateTo) {
+    if (currencyOfSecurity == null || ap == null || stats == null) {
+      // Currency pairs (currencyOfSecurity left null) have no risk-free counterpart in the Sharpe sense.
+      return;
+    }
+    List<StatsProperty> annualProps = stats.getPropertiesBySamplingPeriodType(TimePeriodType.ANNUAL);
+    if (annualProps == null) {
+      return;
+    }
+    StatsProperty annualStdDev = annualProps.stream()
+        .filter(p -> p.property.equals(StatisticsSummary.STANDARD_DEVIATION)).findAny().orElse(null);
+    if (annualStdDev == null) {
+      return;
+    }
+    double sigmaSc = annualStdDev.value;
+    double sigmaMc = annualStdDev.valueMC;
+
+    for (AnnualisedYears ay : ap.annualisedYears) {
+      LocalDate winFrom = dateTo.minusYears(ay.numberOfYears);
+
+      Double avgRfSc = averageRiskFreeRate(currencyOfSecurity, winFrom, dateTo);
+      ay.setSharpeRatio(computeSharpe(ay.performanceAnnualised, avgRfSc, sigmaSc));
+
+      if (securityTenantSameCurrency) {
+        ay.setSharpeRatioMC(ay.sharpeRatio);
+      } else {
+        Double avgRfMc = averageRiskFreeRate(tenantCurrency, winFrom, dateTo);
+        ay.setSharpeRatioMC(computeSharpe(ay.performanceAnnualisedMC, avgRfMc, sigmaMc));
+      }
+    }
+  }
+
+  private Double averageRiskFreeRate(String currency, LocalDate from, LocalDate to) {
+    Map<LocalDate, Double> series = riskFreeRateService.getRateSeries(currency, from, to);
+    if (series.isEmpty()) {
+      return riskFreeRateService.getRateOnDate(currency, to);
+    }
+    return series.values().stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+  }
+
+  private Double computeSharpe(double annualReturnPercent, Double avgRiskFreeDecimal, double annualStdDevPercent) {
+    if (avgRiskFreeDecimal == null) {
+      return null;
+    }
+    if (annualStdDevPercent <= 0.0 || !Double.isFinite(annualStdDevPercent)) {
+      return null;
+    }
+    double returnDecimal = annualReturnPercent / 100.0;
+    double sigmaDecimal = annualStdDevPercent / 100.0;
+    double sharpe = (returnDecimal - avgRiskFreeDecimal) / sigmaDecimal;
+    return Double.isFinite(sharpe) ? sharpe : null;
   }
 
 }

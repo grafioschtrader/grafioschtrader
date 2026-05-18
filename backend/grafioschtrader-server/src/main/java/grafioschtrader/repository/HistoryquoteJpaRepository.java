@@ -38,6 +38,9 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
 
   Optional<Historyquote> findByIdSecuritycurrencyAndDate(Integer idSecuritycurrency, LocalDate date);
 
+  Optional<Historyquote> findFirstByIdSecuritycurrencyAndDateLessThanEqualOrderByDateDesc(Integer idSecuritycurrency,
+      LocalDate date);
+
   List<Historyquote> findByIdSecuritycurrencyOrderByDateAsc(Integer idSecuritycurrency);
 
   List<SecurityCurrencyIdAndDate> findByIdSecuritycurrency(Integer idSecuritycurrency);

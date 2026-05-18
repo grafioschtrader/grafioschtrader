@@ -19,6 +19,7 @@ export const TreeNodeType = {
   TradingPlatformPlan: 'TradingPlatformPlan',
   GenericConnectorDef: 'GenericConnectorDef',
   ImpTransTemplate: 'ImpTransTemplate',
+  RiskFreeRateMapping: 'RiskFreeRateMapping',
   UDFMetadataSecurity: 'UDFMetadataSecurity',
   GTNetSecurityImport: 'GTNetSecurityImport',
   SecurityAction: 'SecurityAction',

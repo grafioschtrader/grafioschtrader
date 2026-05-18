@@ -15,7 +15,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import grafiosch.BaseConstants;
-import grafiosch.GlobalParamKeyBaseDefault;
 import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafiosch.entities.Globalparameters;
 import grafiosch.entities.User;

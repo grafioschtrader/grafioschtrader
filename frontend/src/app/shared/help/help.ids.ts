@@ -64,6 +64,7 @@ export const AppHelpIds: Record<string, string> = {
 
   HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_GROUP: 'basedata/imptranstemplate',
   HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_TEMPLATE: 'basedata/imptranstemplate/createimptranstemplate',
+  HELP_BASEDATA_RISK_FREE_RATE_MAPPING: 'basedata/riskfreeratemapping',
   HELP_BASEDATA_UDF_METADATA_SECURITY: 'basedata/udfmetadata/instruments',
   HELP_BASEDATA_GT_NET_IMPORT_SECURITY: 'basedata/gtnetsecurityimport',
   HELP_BASEDATA_SECURITY_ACTION: 'basedata/securityaction',

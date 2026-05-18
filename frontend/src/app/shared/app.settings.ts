@@ -105,6 +105,7 @@ export class AppSettings {
   public static readonly TRADING_PLATFORM_PLAN_KEY = AppSettings.TRADING_PLATFORM_PLAN.toLowerCase();
   public static readonly IMP_TRANS_PLATFORM_KEY = AppSettings.IMPORT_TRANSACTION_PLATFORM.toLowerCase();
   public static readonly IMP_TRANS_TEMPLATE_KEY = AppSettings.IMPORT_TRANSACTION_TEMPLATE.toLowerCase();
+  public static readonly RISK_FREE_RATE_MAPPING_KEY = 'riskfreeratemapping';
   public static readonly CASHACCOUNT_KEY = AppSettings.CASHACCOUNT.toLowerCase();
   public static readonly CURRENCYPAIR_KEY = AppSettings.CURRENCYPAIR.toLowerCase();
   public static readonly CURRENCY_KEY = 'currency';

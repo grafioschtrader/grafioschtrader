@@ -39,6 +39,7 @@ import {
   SecurityaccountImportTransactionComponent
 } from './imptransaction/component/securityaccount.import.transaction.component';
 import {ImportTransactionTemplateComponent} from './imptranstemplate/component/import.transaction.template.component';
+import {RiskFreeRateMappingTableComponent} from './shared/riskfreeratemapping/component/risk.free.rate.mapping.table.component';
 import {ProposeChangeTabMenuComponent} from './lib/proposechange/component/propose.change.tab.menu.component';
 import {RequestForYouTableComponent} from './lib/proposechange/component/request.for.you.table.component';
 import {YourProposalTableComponent} from './lib/proposechange/component/your.proposal.table.component';
@@ -272,6 +273,11 @@ const APP_ROUTES: Routes = [
       {
         path: AppSettings.IMP_TRANS_TEMPLATE_KEY,
         component: ImportTransactionTemplateComponent,
+        canActivate: [authGuard]
+      },
+      {
+        path: AppSettings.RISK_FREE_RATE_MAPPING_KEY,
+        component: RiskFreeRateMappingTableComponent,
         canActivate: [authGuard]
       },
       {

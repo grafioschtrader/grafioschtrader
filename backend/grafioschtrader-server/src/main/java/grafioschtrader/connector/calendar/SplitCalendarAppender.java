@@ -1,8 +1,8 @@
 package grafioschtrader.connector.calendar;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -193,8 +193,8 @@ public class SplitCalendarAppender {
           var taskDataChange = new TaskDataChange(TaskTypeExtended.SECURITY_SPLIT_UPDATE_FOR_SECURITY,
               TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(2), security.getIdSecuritycurrency(),
               Security.class.getSimpleName());
-          taskDataChange.setOldValueString(new SimpleDateFormat(GlobalConstants.SHORT_STANDARD_DATE_FORMAT)
-              .format(tss.securitysplit.getSplitDate()));
+          taskDataChange.setOldValueString(tss.securitysplit.getSplitDate()
+              .format(DateTimeFormatter.ofPattern(GlobalConstants.SHORT_STANDARD_DATE_FORMAT)));
           taskDataChangeJpaRepository.save(taskDataChange);
         }
       }

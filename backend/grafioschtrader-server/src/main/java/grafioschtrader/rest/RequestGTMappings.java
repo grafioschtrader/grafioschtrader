@@ -94,6 +94,9 @@ public interface RequestGTMappings {
   public static final String IMPORTTRANSACTIONTEMPLATE = "importtransactiontemplate";
   public static final String IMPORTTRANSACTIONTEMPLATE_MAP = RequestMappings.API + IMPORTTRANSACTIONTEMPLATE;
 
+  public static final String RISKFREERATEMAPPING = "riskfreeratemapping";
+  public static final String RISKFREERATEMAPPING_MAP = RequestMappings.API + RISKFREERATEMAPPING;
+
   public static final String MULTIPLE_REQUEST_TO_ONE = "multiplerequesttoone";
   public static final String MULTIPLE_REQUEST_TO_ONE_MAP = RequestMappings.API + MULTIPLE_REQUEST_TO_ONE;
 

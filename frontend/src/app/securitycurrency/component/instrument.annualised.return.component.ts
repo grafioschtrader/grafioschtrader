@@ -41,6 +41,10 @@ export class InstrumentAnnualisedReturnComponent extends TableConfigBase impleme
       {templateName: 'greenRed', headerSuffix: '%'});
     this.addColumn(DataType.Numeric, 'performanceAnnualisedMC', 'PERFORMANCE', true, false,
       {templateName: 'greenRed', headerSuffix: (this.mainCurrency ? this.mainCurrency + ' ' : '') + '%'});
+    this.addColumn(DataType.Numeric, 'sharpeRatio', 'SHARPE_RATIO', true, false,
+      {templateName: 'greenRed'});
+    this.addColumn(DataType.Numeric, 'sharpeRatioMC', 'SHARPE_RATIO', true, false,
+      {templateName: 'greenRed', headerSuffix: this.mainCurrency ? this.mainCurrency : ''});
     this.prepareTableAndTranslate();
   }
 }

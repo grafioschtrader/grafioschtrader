@@ -63,6 +63,15 @@ public class AnnualisedPerformance {
     public final double performanceAnnualised;
     public final double performanceAnnualisedMC;
 
+    @Schema(description = """
+        Sharpe ratio in the security's native currency for this horizon: (annualisedReturn - avgRiskFreeRate) / \
+        annualisedStdDev. Null when the risk-free rate is unmapped for the security's currency or when stdDev is \
+        non-positive / non-finite.""")
+    public Double sharpeRatio;
+
+    @Schema(description = "Sharpe ratio expressed in the tenant's main currency. Null on the same conditions as sharpeRatio.")
+    public Double sharpeRatioMC;
+
     public AnnualisedYears(int numberOfYears, double performanceAnnualised, double performanceAnnualisedMC) {
       this.numberOfYears = numberOfYears;
       this.performanceAnnualised = performanceAnnualised;
@@ -75,6 +84,22 @@ public class AnnualisedPerformance {
 
     public double getPerformanceAnnualisedMC() {
       return DataBusinessHelper.roundStandard(performanceAnnualisedMC);
+    }
+
+    public Double getSharpeRatio() {
+      return sharpeRatio == null ? null : DataBusinessHelper.roundStandard(sharpeRatio);
+    }
+
+    public void setSharpeRatio(Double sharpeRatio) {
+      this.sharpeRatio = sharpeRatio;
+    }
+
+    public Double getSharpeRatioMC() {
+      return sharpeRatioMC == null ? null : DataBusinessHelper.roundStandard(sharpeRatioMC);
+    }
+
+    public void setSharpeRatioMC(Double sharpeRatioMC) {
+      this.sharpeRatioMC = sharpeRatioMC;
     }
 
   }
