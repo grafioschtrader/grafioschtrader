@@ -200,6 +200,18 @@ public class GlobalparametersService {
     return globalparametersJpaRepository.isGTNetLogEnabled();
   }
 
+  /**
+   * Gets the connector / asset class compatibility enforcement mode.
+   * 0 = off, 1 = server-side enforcement, 2 = server-side + frontend dropdown filtering.
+   *
+   * @return the mode value (0, 1, or 2); defaults to {@link GlobalParamKeyDefault#DEFAULT_FORCE_CONNECTOR_MATCH}
+   * @see GlobalParamKeyDefault#GLOB_KEY_FORCE_CONNECTOR_MATCH
+   */
+  public int getForceConnectorMatch() {
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_FORCE_CONNECTOR_MATCH)
+        .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_FORCE_CONNECTOR_MATCH);
+  }
+
   
 
   /**

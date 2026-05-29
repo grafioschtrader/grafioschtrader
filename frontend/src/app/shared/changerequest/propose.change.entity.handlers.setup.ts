@@ -10,6 +10,7 @@ import {StockexchangePrepareEdit} from './stockexchange.prepare.edit';
 import {ImportTransactionPlatformPrepareEdit} from './import.transaction.platform.prepare.edit';
 import {SecurityPrepareEdit} from './security.prepare.edit';
 import {HistoryquotePrepareEdit} from './historyquote.prepare.edit';
+import {HistoryquoteLegacyPrepareEdit} from './historyquote.legacy.prepare.edit';
 import {GeneralEntityPrepareEdit} from '../../lib/proposechange/component/general.entity.prepare.edit';
 import {Currencypair} from '../../entities/currencypair';
 import {Security} from '../../entities/security';
@@ -24,6 +25,7 @@ import {SecurityEditComponent} from '../../shared/securitycurrency/security-edit
 import {SecurityDerivedEditComponent} from '../../securitycurrency/component/security-derived-edit.component';
 import {TradingPlatformPlanEditComponent} from '../../tradingplatform/component/trading-platform-plan-edit.component';
 import {HistoryquoteEditComponent} from '../../historyquote/component/historyquote-edit.component';
+import {HistoryquoteLegacyEditComponent} from '../../historyquote/component/historyquote-legacy-edit.component';
 
 /**
  * Sets up entity handlers for the propose change workflow.
@@ -112,5 +114,12 @@ export function setupProposeChangeEntityHandlers(
     AppSettings.HISTORYQUOTE,
     new HistoryquotePrepareEdit(securityService, currencypairService),
     HistoryquoteEditComponent
+  );
+
+  // Register HistoryquoteLegacy (archived shadow rows)
+  registry.registerEntityHandler(
+    AppSettings.HISTORYQUOTE_LEGACY,
+    new HistoryquoteLegacyPrepareEdit(securityService, currencypairService),
+    HistoryquoteLegacyEditComponent
   );
 }

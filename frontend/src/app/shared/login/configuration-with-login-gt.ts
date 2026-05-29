@@ -37,4 +37,12 @@ export interface ConfigurationWithLoginGT extends ConfigurationWithLogin {
    * If both portfolio and tenant closedUntil are null, there is no date restriction.</p>
    */
   tenantClosedUntil: string | null;
+
+  /**
+   * Connector / asset class compatibility enforcement mode (gt.force.connector.match):
+   * 0 = off, 1 = server-side enforcement, 2 = server-side + frontend dropdown pre-filter.
+   * Mode 2 makes the connector dropdown call the backend with the security/currencypair context
+   * so it can hide incompatible connectors.
+   */
+  forceConnectorMatch: number;
 }

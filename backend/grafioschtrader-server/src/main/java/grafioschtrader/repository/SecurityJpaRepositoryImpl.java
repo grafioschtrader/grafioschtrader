@@ -114,6 +114,12 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Autowired
   private grafioschtrader.service.RiskFreeRateService riskFreeRateService;
 
+  @Autowired
+  private SecuritysplitJpaRepository securitysplitJpaRepository;
+
+  @Autowired
+  private HistoryquoteLegacyJpaRepository historyquoteLegacyJpaRepository;
+
   // Circular Dependency -> Lazy
   private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
 
@@ -194,8 +200,14 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Transactional
   @Modifying
   public Security rebuildSecurityCurrencypairHisotry(Security security) {
+    if (security != null && !security.isDerivedInstrument()) {
+      historyquoteLegacyJpaRepository.copyLiveToLegacy(security.getIdSecuritycurrency(), LocalDate.now());
+    }
     historyquoteJpaRepository.removeAllSecurityHistoryquote(security.getIdSecuritycurrency());
-    return getHistorquoteLoad(security).createHistoryQuotesAndSave(securityJpaRepository, security, null, null);
+    Security rebuilt = getHistorquoteLoad(security).createHistoryQuotesAndSave(securityJpaRepository, security, null,
+        null);
+    supplementFromShadow(rebuilt);
+    return rebuilt;
   }
 
   @Override
@@ -203,7 +215,84 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Modifying
   public Security catchUpSecurityCurrencypairHisotry(Security security, final LocalDate fromDate, final LocalDate toDate) {
     security = securityJpaRepository.findByIdSecuritycurrency(security.getIdSecuritycurrency());
-    return getHistorquoteLoad(security).createHistoryQuotesAndSave(securityJpaRepository, security, fromDate, toDate);
+    Security caughtUp = getHistorquoteLoad(security).createHistoryQuotesAndSave(securityJpaRepository, security,
+        fromDate, toDate);
+    supplementFromShadow(caughtUp);
+    return caughtUp;
+  }
+
+  /**
+   * Archives every existing historyquote row of the given security into historyquote_legacy
+   * if the save changed id_connector_history or url_history_extend. Runs synchronously
+   * inside the save transaction so the archive is committed before the async wipe task
+   * ({@code SECURITY_LOAD_HISTORICAL_INTRA_PRICE_DATA}) fires.
+   */
+  private void archivePreviousHistoryIfConnectorChanged(Security security, Security securityBefore) {
+    if (securityBefore == null || security.isDerivedInstrument()) {
+      return;
+    }
+    boolean connectorOrUrlChanged = !Objects.equals(securityBefore.getIdConnectorHistory(),
+        security.getIdConnectorHistory())
+        || !Objects.equals(securityBefore.getUrlHistoryExtend(), security.getUrlHistoryExtend());
+    if (!connectorOrUrlChanged) {
+      return;
+    }
+    historyquoteLegacyJpaRepository.copyLiveToLegacy(security.getIdSecuritycurrency(), LocalDate.now());
+  }
+
+  /**
+   * After a connector-driven historyquote load, supplement the live table with archived
+   * rows the new connector did not cover. Shadow OHLC is adjusted for any splits that
+   * occurred after the row's transfer_date so live ends up on a single consistent
+   * adjustment basis: prices are divided by the post-archival factor (a 2:1 split halves
+   * pre-split prices on the new basis); volume is multiplied (share count doubled).
+   *
+   * Shadow lifecycle (per user's design):
+   *   - If findLegacyMissingInLive returns empty at entry, the new connector independently
+   *     covers every shadow date with real (non-filler) data. The shadow is redundant and
+   *     is dropped here. Safe because no insertion follows.
+   *   - If it returns rows, the shadow is actively contributing data. The shadow is kept
+   *     intact even after the merge: post-supplement we cannot distinguish "row came from
+   *     the new connector" from "row was supplemented from the shadow itself" (both end
+   *     up with create_type = 0), so any deletion in that case would erase the only
+   *     remaining record of where the pre-connector-switch data originated. The user
+   *     retires the shadow manually via the Issue #199 "Delete all legacy" UI when
+   *     satisfied the new connector is enough.
+   */
+  private void supplementFromShadow(Security security) {
+    if (security == null || security.isDerivedInstrument()) {
+      return;
+    }
+    Integer idSec = security.getIdSecuritycurrency();
+    List<grafioschtrader.dto.IShadowRow> shadowRows = historyquoteLegacyJpaRepository.findLegacyMissingInLive(idSec);
+    if (shadowRows.isEmpty()) {
+      historyquoteLegacyJpaRepository.deleteLegacyByIdSecuritycurrency(idSec);
+      return;
+    }
+    List<Securitysplit> splits = securitysplitJpaRepository.findByIdSecuritycurrencyOrderBySplitDateAsc(idSec);
+    for (grafioschtrader.dto.IShadowRow row : shadowRows) {
+      double postFactor = Securitysplit.calcSplitFatorForFromDate(splits, row.getTransferDate());
+      double close = row.getClose() / postFactor;
+      Double open = row.getOpen() == null ? null : row.getOpen() / postFactor;
+      Double high = row.getHigh() == null ? null : row.getHigh() / postFactor;
+      Double low = row.getLow() == null ? null : row.getLow() / postFactor;
+      Long volume = row.getVolume() == null ? null : Math.round(row.getVolume() * postFactor);
+      historyquoteLegacyJpaRepository.insertLegacyIntoLive(idSec, row.getDate(), close, open, high, low, volume,
+          row.getCreateType());
+    }
+  }
+
+  /**
+   * Service-level entry point used by {@link SecurityServiceAsyncExectuion}. Loads the
+   * Security by id and delegates to the existing private overload. The private overload
+   * already guards on null / derived instrument, so no duplicate guard is needed here.
+   */
+  @Override
+  protected void supplementFromShadow(Integer idSecuritycurrency) {
+    if (idSecuritycurrency == null) {
+      return;
+    }
+    supplementFromShadow(securityJpaRepository.findByIdSecuritycurrency(idSecuritycurrency));
   }
 
   @Override
@@ -589,12 +678,14 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
       FeedSupport fd = IFeedConnector.FeedSupport.FS_DIVIDEND;
       IFeedConnector fc = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
           security.getIdConnectorDividend(), fd);
+      validateConnectorSupports(security, fc, fd);
       fc.checkAndClearSecuritycurrencyUrlExtend(security, fd);
     }
     if (security.getIdConnectorSplit() != null) {
       FeedSupport fd = IFeedConnector.FeedSupport.FS_SPLIT;
       IFeedConnector fc = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans, security.getIdConnectorSplit(),
           fd);
+      validateConnectorSupports(security, fc, fd);
       fc.checkAndClearSecuritycurrencyUrlExtend(security, fd);
     }
   }
@@ -602,6 +693,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Override
   protected void afterSave(Security security, Security securityBefore, User user, boolean historyAccessHasChanged) {
     if (historyAccessHasChanged) {
+      archivePreviousHistoryIfConnectorChanged(security, securityBefore);
       taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.SECURITY_LOAD_HISTORICAL_INTRA_PRICE_DATA,
           TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(), security.getIdSecuritycurrency(),
           Security.class.getSimpleName()));

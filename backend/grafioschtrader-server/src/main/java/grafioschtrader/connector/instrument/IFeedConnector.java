@@ -114,7 +114,7 @@ public interface IFeedConnector {
    */
   public enum AssetclassCategory {
     CURRENCY_PAIR, CRYPTOCURRENCY, NON_INVESTABLE_INDICES, EQUITIES, FIXED_INCOME, ETF, MUTUAL_FUND,
-    REAL_ESTATE_FUND, ISSUER_RISK_PRODUCT;
+    REAL_ESTATE_FUND, ISSUER_RISK_PRODUCT, CFD_DERIVATIVE, PENSION_FUND;
 
     /**
      * Determines whether the given asset class type and special investment instrument combination matches this
@@ -135,6 +135,8 @@ public interface IFeedConnector {
         case MUTUAL_FUND -> specIns == SpecialInvestmentInstruments.MUTUAL_FUND;
         case REAL_ESTATE_FUND -> act == AssetclassType.REAL_ESTATE && specIns == SpecialInvestmentInstruments.MUTUAL_FUND;
         case ISSUER_RISK_PRODUCT -> specIns == SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT;
+        case CFD_DERIVATIVE -> specIns == SpecialInvestmentInstruments.CFD && act != AssetclassType.CURRENCY_PAIR;
+        case PENSION_FUND -> specIns == SpecialInvestmentInstruments.PENSION_FUNDS;
       };
     }
   }

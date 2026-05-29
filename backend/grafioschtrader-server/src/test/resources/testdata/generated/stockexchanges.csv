@@ -37,3 +37,4 @@
 "XMUN"|"Börse München"|"DE"|"false"|"true"|"07:30:00"|"23:00:00"|"Europe/Berlin"|"//www.boerse-muenchen.de"|"d"
 "OTXB"|"Berner kantonalbank otc-x"|"CH"|"false"|"true"|"08:30:00"|"17:00:00"|"Europe/Zurich"|"//www.otc-x.ch"|"d"
 \N|"Risk-Free Rate Sources"|"US"|"false"|"false"|"00:00:00"|"23:59:00"|"UTC"|\N|"d"
+"XBRN"|"BX Swiss"|"CH"|"false"|"true"|"09:00:00"|"17:30:00"|"Europe/Zurich"|"//www.bxswiss.com"|"d"

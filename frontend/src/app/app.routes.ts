@@ -1,5 +1,5 @@
 import {RouterModule, Routes} from '@angular/router';
-import {HistoryquoteTableComponent} from './historyquote/component/historyquote-table.component';
+import {HistoryquoteHostComponent} from './historyquote/component/historyquote-host.component';
 import {AppSettings} from './shared/app.settings';
 import {PortfolioCashaccountSummaryComponent} from './portfolio/component/portfolio.cashaccount.summary.component';
 import {SecurityaccountSummariesComponent} from './securityaccount/component/securityaccount.summaries.component';
@@ -226,7 +226,7 @@ const APP_ROUTES: Routes = [
         outlet: AppSettings.MAIN_BOTTOM, canActivate: [authGuard]
       },
       {
-        path: AppSettings.HISTORYQUOTE_P_KEY, component: HistoryquoteTableComponent, outlet: AppSettings.MAIN_BOTTOM,
+        path: AppSettings.HISTORYQUOTE_P_KEY, component: HistoryquoteHostComponent, outlet: AppSettings.MAIN_BOTTOM,
         canActivate: [authGuard]
       },
       {path: AppSettings.STRATEGY_OVERVIEW_KEY, component: StrategyOverviewComponent, canActivate: [authGuard]},

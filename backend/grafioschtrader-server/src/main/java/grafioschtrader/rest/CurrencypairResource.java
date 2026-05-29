@@ -30,6 +30,8 @@ import grafiosch.rest.UpdateCreateJpaRepository;
 import grafiosch.rest.UpdateCreateResource;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.IFeedConnector;
+import grafioschtrader.types.AssetclassType;
+import grafioschtrader.types.SpecialInvestmentInstruments;
 import grafioschtrader.dto.CrossRateRequest;
 import grafioschtrader.dto.CrossRateResponse;
 import grafioschtrader.dto.GTSecuritiyCurrencyExchange;
@@ -126,11 +128,17 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
     return new ResponseEntity<>(currencypairWithHistoryquote, HttpStatus.OK);
   }
 
-  @Operation(summary = "Returns all connectors of data provider with it supported capabilities", description = "", tags = {
+  @Operation(summary = "Returns all connectors of data provider with it supported capabilities", description = """
+      When gt.force.connector.match is set to 2 (frontend pre-filter), pass assetclassType=CURRENCY_PAIR and
+      specInvInstrument=FOREX (or CFD for crypto pairs) so the returned list excludes connectors that cannot
+      serve the currency pair being edited.""", tags = {
       Currencypair.TABNAME })
   @GetMapping(value = "/feedConnectors", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<IFeedConnector>> getFeedConnectors() {
-    return new ResponseEntity<>(currencypairJpaRepository.getFeedConnectors(true), HttpStatus.OK);
+  public ResponseEntity<List<IFeedConnector>> getFeedConnectors(
+      @Parameter(description = "Asset class type; pass CURRENCY_PAIR for currency pairs") @RequestParam(required = false) AssetclassType assetclassType,
+      @Parameter(description = "Special investment instrument; pass FOREX for fiat pairs, CFD for crypto pairs") @RequestParam(required = false) SpecialInvestmentInstruments specInvInstrument) {
+    return new ResponseEntity<>(
+        currencypairJpaRepository.getFeedConnectors(true, null, assetclassType, specInvInstrument), HttpStatus.OK);
   }
 
   /*

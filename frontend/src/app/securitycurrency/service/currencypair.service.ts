@@ -6,7 +6,7 @@ import {CurrencypairWithHistoryquote} from '../../entities/view/currencypair.wit
 import {CurrencypairWithTransaction} from '../../entities/view/currencypair.with.transaction';
 import {Observable} from 'rxjs';
 import {IFeedConnector} from '../../shared/securitycurrency/ifeed.connector';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
 import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../lib/login/service/log-in.service';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
@@ -61,9 +61,17 @@ export class CurrencypairService extends SecurityCurrencyService<Currencypair> {
       this.getOptionsWithIncludeForChart(forChart)).pipe(catchError(this.handleError.bind(this)));
   }
 
-  getFeedConnectors(): Observable<IFeedConnector[]> {
-    return <Observable<IFeedConnector[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/feedConnectors`,
-      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  getFeedConnectors(assetclassType?: string, specInvInstrument?: string): Observable<IFeedConnector[]> {
+    let params = new HttpParams();
+    if (assetclassType != null) {
+      params = params.set('assetclassType', assetclassType);
+    }
+    if (specInvInstrument != null) {
+      params = params.set('specInvInstrument', specInvInstrument);
+    }
+    return <Observable<IFeedConnector[]>>this.httpClient.get(
+      `${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/feedConnectors`,
+      {headers: this.prepareHeaders(), params}).pipe(catchError(this.handleError.bind(this)));
   }
 
   searchByCriteria(securitycurrencySearch: SecuritycurrencySearch): Observable<Currencypair[]> {

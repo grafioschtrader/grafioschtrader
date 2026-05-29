@@ -103,7 +103,8 @@ interface Data {
         <button type="button" (click)="threeYears($event)">3{{ "Y" | translate }}</button>
         <button type="button" (click)="fiveYears($event)">5{{ "Y" | translate }}</button>
         <button type="button" (click)="tenYears($event)">10{{ "Y" | translate }}</button>
-        <button type="button" (click)="oldestTrade($event)" title="{{'OLDEST_TRADE_TOOLTIP' | translate}}">
+        <button type="button" [disabled]="!hasTrades" (click)="oldestTrade($event)"
+                title="{{'OLDEST_TRADE_TOOLTIP' | translate}}">
           {{ "OLDEST_TRADE" | translate }}
         </button>
       </div>
@@ -158,6 +159,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   endDate = new Date();
   fromDate: Date;
   oldestTradeDate: number;
+  hasTrades = false;
   showHolding: boolean = true;
   usePercentage: boolean;
   connectGaps = true;
@@ -471,16 +473,24 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   private createAllMarkerTraces(): any[] {
     const traces: Traces = {};
     this.oldestTradeDate = new Date().getTime();
+    this.hasTrades = false;
     for (const ld of this.loadedData) {
       if (ld.currencySecurity) {
         const sts = <SecurityTransactionSummary>ld.nameSecuritycurrency;
-        this.oldestTradeDate = sts.transactionPositionList.length > 0 ? Math.min(this.oldestTradeDate,
-          sts.transactionPositionList[0].transaction.transactionTime) : this.oldestTradeDate;
+        if (sts.transactionPositionList.length > 0) {
+          this.hasTrades = true;
+          // transactionTime is an ISO-8601 string; convert to epoch millis (Math.min on a string yields NaN).
+          // The list is sorted ascending by transactionTime, so element [0] is the oldest trade.
+          this.oldestTradeDate = Math.min(this.oldestTradeDate,
+            moment(sts.transactionPositionList[0].transaction.transactionTime).valueOf());
+        }
         this.getBuySellDivMarkForSecurity(traces, ld, sts);
       } else {
         const cwt = <CurrencypairWithTransaction>ld.nameSecuritycurrency;
-        this.oldestTradeDate = cwt.transactionList.length > 0 ? Math.min(this.oldestTradeDate,
-          cwt.transactionList[0].transactionTime) : this.oldestTradeDate;
+        if (cwt.transactionList.length > 0) {
+          this.hasTrades = true;
+          this.oldestTradeDate = Math.min(this.oldestTradeDate, moment(cwt.transactionList[0].transactionTime).valueOf());
+        }
         this.getBuySellDivMarkForCurrency(traces, ld.historicalLine, cwt);
       }
     }
@@ -1087,10 +1097,18 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private matchEveryHistoryquotesYoungestDate(): void {
+    const youngest = this.youngestMatchDate;
     let i = 0;
     while (i < this.loadedData.length) {
-      const foundStartIndex = AppHelper.binarySearch(this.loadedData[i].historyquotesNorm,
-        moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE), this.compareHistoricalFN);
+      const fromStr = moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
+      // Never advance past the youngest common quote date — no later date can ever match exactly,
+      // which would spin this loop forever (e.g. fromDate set to today for an untraded security).
+      if (youngest && fromStr >= youngest) {
+        this.fromDate = new Date(youngest);
+        return;
+      }
+      const foundStartIndex = AppHelper.binarySearch(this.loadedData[i].historyquotesNorm, fromStr,
+        this.compareHistoricalFN);
       if (foundStartIndex < 0) {
         this.fromDate = moment(this.fromDate).add(1, 'days').toDate();
         i = 0;

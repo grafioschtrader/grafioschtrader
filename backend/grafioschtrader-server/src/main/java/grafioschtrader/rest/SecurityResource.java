@@ -40,6 +40,8 @@ import grafiosch.types.TaskDataExecPriority;
 import grafiosch.types.TaskTypeBase;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.IFeedConnector;
+import grafioschtrader.types.AssetclassType;
+import grafioschtrader.types.SpecialInvestmentInstruments;
 import grafioschtrader.dto.GTSecuritiyCurrencyExchange;
 import grafioschtrader.dto.HisotryqouteLinearFilledSummary;
 import grafioschtrader.dto.InstrumentStatisticsResult;
@@ -167,11 +169,18 @@ public class SecurityResource extends UpdateCreateResource<Security> {
    * ResponseEntity<>(securities, HttpStatus.OK); }
    */
 
-  @Operation(summary = "Returns all connectors of data provider with it supported capabilities", description = "", tags = {
+  @Operation(summary = "Returns all connectors of data provider with it supported capabilities", description = """
+      When gt.force.connector.match is set to 2 (frontend pre-filter), pass idStockexchange + assetclassType
+      + specInvInstrument so the returned list excludes connectors that cannot serve the security being edited.""", tags = {
       Security.TABNAME })
   @GetMapping(value = "/feedConnectors", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<IFeedConnector>> getFeedConnectors() {
-    return new ResponseEntity<>(securityJpaRepository.getFeedConnectors(false), HttpStatus.OK);
+  public ResponseEntity<List<IFeedConnector>> getFeedConnectors(
+      @Parameter(description = "Stock exchange id of the security being edited; used for the geo check") @RequestParam(required = false) Integer idStockexchange,
+      @Parameter(description = "Asset class type of the security being edited") @RequestParam(required = false) AssetclassType assetclassType,
+      @Parameter(description = "Special investment instrument of the security being edited") @RequestParam(required = false) SpecialInvestmentInstruments specInvInstrument) {
+    return new ResponseEntity<>(
+        securityJpaRepository.getFeedConnectors(false, idStockexchange, assetclassType, specInvInstrument),
+        HttpStatus.OK);
   }
 
   @Operation(summary = "Returns data provider URLs for a security", description = "Returns URLs for intraday, historical, dividend, and split data providers", tags = {

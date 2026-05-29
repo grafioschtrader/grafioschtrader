@@ -19,6 +19,7 @@ export class AppSettings {
 
   public static readonly GT_NET_MESSAGE = 'GTNetMessage';
   public static readonly HISTORYQUOTE = 'Historyquote';
+  public static readonly HISTORYQUOTE_LEGACY = 'HistoryquoteLegacy';
   public static readonly HISTORYQUOTE_PERIOD = 'HistoryquotePeriod';
   public static readonly IMPORT_TRANSACTION_HEAD = 'ImportTransactionHead';
   public static readonly IMPORT_TRANSACTION_PLATFORM = 'ImportTransactionPlatform';
@@ -118,6 +119,7 @@ export class AppSettings {
   public static readonly EOD_DATA_QUALITY_KEY = 'eoddataquality';
   public static readonly DEPOT_CASH_KEY = 'depotcash';
   public static readonly HISTORYQUOTE_KEY = AppSettings.HISTORYQUOTE.toLowerCase();
+  public static readonly HISTORYQUOTE_LEGACY_KEY = AppSettings.HISTORYQUOTE_LEGACY.toLowerCase();
   public static readonly HISTORYQUOTE_P_KEY = AppSettings.HISTORYQUOTE_KEY + 's';
   public static readonly HISTORYQUOTE_PERIOD_KEY = AppSettings.HISTORYQUOTE_PERIOD.toLowerCase();
   public static readonly CURRENCIES_P_KEY = 'currencies';

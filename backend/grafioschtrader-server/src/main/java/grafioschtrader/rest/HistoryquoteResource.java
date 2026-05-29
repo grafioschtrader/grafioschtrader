@@ -23,12 +23,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.Auditable;
 import grafiosch.entities.User;
-import grafiosch.rest.UpdateCreateDeleteAudit;
 import grafiosch.rest.UpdateCreateJpaRepository;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.DeleteHistoryquotesSuccess;
 import grafioschtrader.dto.HistoryquoteChartResponse;
 import grafioschtrader.dto.HistoryquotesWithMissings;
@@ -57,7 +54,7 @@ import tools.jackson.databind.ObjectMapper;
 @RestController
 @RequestMapping(RequestGTMappings.HISTORYQUOTE_MAP)
 @Tag(name = Historyquote.TABNAME, description = "Controller for historyquote")
-public class HistoryquoteResource extends UpdateCreateDeleteAudit<Historyquote> {
+public class HistoryquoteResource extends HistoryquoteResourceBase<Historyquote> {
 
   @Autowired
   private HistoryquoteJpaRepository historyquoteJpaRepository;
@@ -183,39 +180,18 @@ public class HistoryquoteResource extends UpdateCreateDeleteAudit<Historyquote> 
   }
 
   @Override
-  protected ResponseEntity<Historyquote> updateSpecialEntity(User user, Historyquote historyquote) throws Exception {
-    Auditable auditable = historyquoteJpaRepository.getParentSecurityCurrency(user, historyquote);
-    return checkProposeChangeAndSave(user, historyquote, auditable, UserAccessHelper.hasHigherPrivileges(user));
-
+  protected Auditable getParentSecurityCurrency(User user, Integer idSecuritycurrency) {
+    return historyquoteJpaRepository.getParentSecurityCurrency(user, idSecuritycurrency);
   }
 
   @Override
-  protected boolean hasRightsForEditingEntity(User user, Historyquote newEntity, Historyquote existingEntity,
-      Auditable parentEntity) {
-    if (existingEntity.getCreateType() != HistoryquoteCreateType.CALCULATED) {
-      return UserAccessHelper.hasRightsForEditingOrDeleteOnEntity(user, parentEntity);
-    }
-    return false;
-  }
-
-  @Override
-  protected boolean hasRightsForDeleteEntity(User user, Historyquote historyquote) {
-    if (historyquote.getCreateType() != HistoryquoteCreateType.CALCULATED) {
-      Auditable auditable = historyquoteJpaRepository.getParentSecurityCurrency(user, historyquote);
-      return UserAccessHelper.hasRightsOrPrivilegesForEditingOrDelete(user, auditable);
-    }
-    return false;
+  protected boolean isImmutableCreateType(Historyquote entity) {
+    return entity.getCreateType() == HistoryquoteCreateType.CALCULATED;
   }
 
   @Override
   protected UpdateCreateJpaRepository<Historyquote> getUpdateCreateJpaRepository() {
     return historyquoteJpaRepository;
-  }
-
-  
-  @Override
-  protected String getPrefixEntityLimit() {
-    return GlobalConstants.GT_LIMIT_DAY;
   }
 
 }

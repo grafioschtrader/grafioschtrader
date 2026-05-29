@@ -38,6 +38,9 @@ public class SecurityServiceAsyncExectuion<S extends Securitycurrency<S>, U exte
         }
         sc = securitycurrencyService.updateLastPriceSecurityCurrency(sc, maxIntraRetry, scIntradayUpdateTimeout);
         sc = securitycurrencyService.createWithHistoryQuote(sc);
+        if (withDeletion && sc.getIdSecuritycurrency() != null) {
+          securitycurrencyService.supplementFromShadow(sc.getIdSecuritycurrency());
+        }
         sc = securitycurrencyService.afterFullLoad(sc);
       } catch (final Exception ex) {
         log.error(ex.getMessage(), ex);

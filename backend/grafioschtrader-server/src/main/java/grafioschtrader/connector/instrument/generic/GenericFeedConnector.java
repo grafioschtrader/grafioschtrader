@@ -790,10 +790,13 @@ public class GenericFeedConnector extends BaseFeedConnector {
 
     JsonNode dataNode = endpoint.getJsonDataPath() != null ? navigatePath(root, endpoint.getJsonDataPath()) : root;
 
+    boolean useLastBar = endpoint.getEndpointOptions().contains(EndpointOption.INTRADAY_USE_LAST_BAR);
     Map<String, Double> values = new HashMap<>();
     if (endpoint.getJsonDataStructure() == JsonDataStructure.COLUMN_ROW_ARRAYS) {
       Map<String, Integer> colIndex = buildColumnIndex(root, endpoint);
-      JsonNode row = dataNode.isArray() && dataNode.size() > 0 ? dataNode.get(0) : dataNode;
+      JsonNode row = dataNode.isArray() && dataNode.size() > 0
+          ? dataNode.get(useLastBar ? dataNode.size() - 1 : 0)
+          : dataNode;
       if (row != null && row.isArray()) {
         for (GenericConnectorFieldMapping mapping : endpoint.getFieldMappings()) {
           Integer idx = colIndex.get(mapping.getSourceExpression());
@@ -811,7 +814,7 @@ public class GenericFeedConnector extends BaseFeedConnector {
       }
     } else {
       if (dataNode.isArray() && dataNode.size() > 0) {
-        dataNode = dataNode.get(0);
+        dataNode = dataNode.get(useLastBar ? dataNode.size() - 1 : 0);
       }
       for (GenericConnectorFieldMapping mapping : endpoint.getFieldMappings()) {
         JsonNode valueNode = navigatePath(dataNode, mapping.getSourceExpression());

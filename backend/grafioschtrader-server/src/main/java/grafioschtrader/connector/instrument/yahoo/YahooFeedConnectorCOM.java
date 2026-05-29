@@ -79,7 +79,8 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   public YahooFeedConnectorCOM() {
     super(supportedFeed, YahooHelper.YAHOO, "Yahoo USA Finance", null, EnumSet.noneOf(UrlCheck.class));
     supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR, AssetclassCategory.CRYPTOCURRENCY,
-        AssetclassCategory.NON_INVESTABLE_INDICES, AssetclassCategory.EQUITIES, AssetclassCategory.ETF);
+        AssetclassCategory.NON_INVESTABLE_INDICES, AssetclassCategory.EQUITIES, AssetclassCategory.ETF,
+        AssetclassCategory.ISSUER_RISK_PRODUCT, AssetclassCategory.CFD_DERIVATIVE);
   }
 
   @Override

@@ -29,6 +29,9 @@ export class GtAfterLoginHandler extends AfterLoginHandler {
     // Store earliest trading day supported by the backend
     sessionStorage.setItem(GlobalSessionNames.OLDEST_TRADING_DAY, configurationWithLogin.oldestTradingDay);
 
+    // Store connector / asset class enforcement mode
+    sessionStorage.setItem(GlobalGTSessionNames.FORCE_CONNECTOR_MATCH, String(configurationWithLogin.forceConnectorMatch ?? 0));
+
     BaseSettings.resetInterFractionLimit(AppSettings, GlobalSessionNames.STANDARD_CURRENCY_PRECISIONS_AND_LIMITS);
   }
 }

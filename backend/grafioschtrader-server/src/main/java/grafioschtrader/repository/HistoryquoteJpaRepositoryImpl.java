@@ -79,6 +79,9 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
   private HistoryquoteJpaRepository historyquoteJpaRepository;
 
   @Autowired
+  private HistoryquoteLegacyJpaRepository historyquoteLegacyJpaRepository;
+
+  @Autowired
   private GlobalparametersService globalparametersService;
 
   @Autowired
@@ -381,8 +384,11 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
       historyquoteQualityCF = CompletableFuture
           .supplyAsync(() -> historyquoteJpaRepository.getMissingsDaysCountByIdSecurity(idSecuritycurrency));
     }
-    return new HistoryquotesWithMissings<>((S) securityOrCurrencypairCF.get().get(), historyquoteQualityCF.get(),
-        historyquotesCF.get());
+    HistoryquotesWithMissings<S> result = new HistoryquotesWithMissings<>((S) securityOrCurrencypairCF.get().get(),
+        historyquoteQualityCF.get(), historyquotesCF.get());
+    Integer legacyCount = historyquoteLegacyJpaRepository.countLegacyForSecurity(idSecuritycurrency);
+    result.legacyCount = legacyCount == null ? 0 : legacyCount;
+    return result;
   }
 
   @Override

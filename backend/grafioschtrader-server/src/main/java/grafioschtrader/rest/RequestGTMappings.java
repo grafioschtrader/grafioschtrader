@@ -76,6 +76,9 @@ public interface RequestGTMappings {
 
   public static final String HISTORYQUOTE_MAP = RequestMappings.API + Historyquote.TABNAME;
 
+  public static final String HISTORYQUOTE_LEGACY = "historyquotelegacy";
+  public static final String HISTORYQUOTE_LEGACY_MAP = RequestMappings.API + HISTORYQUOTE_LEGACY;
+
   public static final String HISTORYQUOTE_PERIOD = "historyquoteperiod";
   public static final String HISTORYQUOTE_PERDIO_MAP = RequestMappings.API + HISTORYQUOTE_PERIOD;
 

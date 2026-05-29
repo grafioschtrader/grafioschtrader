@@ -25,7 +25,15 @@ public enum EndpointOption implements StableEnum {
    * data across pagination batches or duplicate rows within a single response. When enabled, only the first entry per
    * date is kept.
    */
-  REMOVE_DUPLICATE_DATES((byte) 1, "FS_HISTORY");
+  REMOVE_DUPLICATE_DATES((byte) 1, "FS_HISTORY"),
+
+  /**
+   * For intraday endpoints whose response is a chronological array of OHLC bars (e.g. BX Swiss
+   * {@code /candlestick/week/{ISIN}}), pick the last element of the array instead of the first. The default behavior
+   * of {@code parseJsonIntraday} takes element 0 — correct for snapshot-style endpoints, wrong for time-series-style
+   * endpoints where the latest tick lives at the end of the array.
+   */
+  INTRADAY_USE_LAST_BAR((byte) 2, "FS_INTRA");
 
   private final Byte value;
   private final String applicableFeedSupports;

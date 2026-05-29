@@ -73,7 +73,8 @@ public class SixFeedConnector extends BaseFeedConnector {
     super(supportedFeed, "six", "Swiss Stock Exchange", URL_EXTENDED_REGEX, EnumSet.noneOf(UrlCheck.class));
     supportedAssetclassCategories = EnumSet.of(AssetclassCategory.NON_INVESTABLE_INDICES, AssetclassCategory.EQUITIES,
         AssetclassCategory.FIXED_INCOME, AssetclassCategory.ETF, AssetclassCategory.MUTUAL_FUND,
-        AssetclassCategory.REAL_ESTATE_FUND, AssetclassCategory.ISSUER_RISK_PRODUCT);
+        AssetclassCategory.REAL_ESTATE_FUND, AssetclassCategory.ISSUER_RISK_PRODUCT,
+        AssetclassCategory.CFD_DERIVATIVE);
     parseGeoRestrictions("XSWX");
   }
 
