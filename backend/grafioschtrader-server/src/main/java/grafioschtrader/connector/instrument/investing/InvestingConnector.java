@@ -70,8 +70,9 @@ public class InvestingConnector extends BaseFeedConnector {
 
   public InvestingConnector() {
     super(supportedFeed, INVESTING, "Investing.com", null, EnumSet.of(UrlCheck.INTRADAY));
-    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR, AssetclassCategory.FIXED_INCOME,
-        AssetclassCategory.ETF, AssetclassCategory.ISSUER_RISK_PRODUCT);
+    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR, AssetclassCategory.NON_INVESTABLE_INDICES,
+        AssetclassCategory.EQUITIES, AssetclassCategory.FIXED_INCOME, AssetclassCategory.ETF,
+        AssetclassCategory.ISSUER_RISK_PRODUCT, AssetclassCategory.CFD_DERIVATIVE);
   }
 
   @Override

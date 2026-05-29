@@ -7,5 +7,7 @@ export enum AssetclassCategory {
   ETF = 5,
   MUTUAL_FUND = 6,
   REAL_ESTATE_FUND = 7,
-  ISSUER_RISK_PRODUCT = 8
+  ISSUER_RISK_PRODUCT = 8,
+  CFD_DERIVATIVE = 9,
+  PENSION_FUND = 10
 }

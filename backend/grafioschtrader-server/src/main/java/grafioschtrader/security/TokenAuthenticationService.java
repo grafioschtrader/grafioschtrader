@@ -101,6 +101,7 @@ public class TokenAuthenticationService extends TokenAuthentication {
         getGlobalConstantsFieldsByFieldPrefix(GlobalConstants.class, "FID"), featureConfig.getEnabledFeatures(),
         tenantClosedUntil);
     configurationWithLogin.gtNetLogEnabled = globalparametersService.isGTNetLogEnabled();
+    configurationWithLogin.forceConnectorMatch = globalparametersService.getForceConnectorMatch();
     boolean gtNetEnabled = featureConfig.isGtnet();
     configurationWithLogin.gtNetHasHistoricalExchangePeer = gtNetEnabled && gtNetJpaRepository
         .existsExchangePeerByEntityKind(GTNetExchangeKindType.HISTORICAL_PRICES.getValue());
@@ -158,6 +159,13 @@ public class TokenAuthenticationService extends TokenAuthentication {
      * or Currencypair. False when GTNet is disabled globally.
      */
     public boolean gtNetHasLastpriceExchangePeer;
+
+    /**
+     * Connector / asset class compatibility enforcement mode (see
+     * {@link grafioschtrader.GlobalParamKeyDefault#GLOB_KEY_FORCE_CONNECTOR_MATCH}). The frontend uses this to
+     * decide whether to request the pre-filtered connector list (mode 2) or accept the full list (modes 0 and 1).
+     */
+    public int forceConnectorMatch;
 
     /**
      * Creates a comprehensive GrafioschTrader configuration object.

@@ -1,18 +1,16 @@
-import {Component, Injector, OnDestroy} from '@angular/core';
+import {Component, EventEmitter, Injector, Input, OnChanges, OnDestroy, Output, SimpleChanges} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {Historyquote, HistoryquoteCreateType} from '../../entities/historyquote';
+import {Historyquote} from '../../entities/historyquote';
 import {HistoryquoteService} from '../service/historyquote.service';
-import {ActivatedRoute} from '@angular/router';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {AppSettings} from '../../shared/app.settings';
-import {combineLatest, Subscription} from 'rxjs';
+import {combineLatest} from 'rxjs';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {SecurityTransactionSummary} from '../../entities/view/security.transaction.summary';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 import {CurrencypairWithTransaction} from '../../entities/view/currencypair.with.transaction';
-import {TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {INameSecuritycurrency} from '../../entities/view/iname.securitycurrency';
 import {SecurityTransactionPosition} from '../../entities/view/security.transaction.position';
@@ -21,8 +19,8 @@ import {MessageToastService} from '../../lib/message/message.toast.service';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {HelpIds} from '../../lib/help/help.ids';
 import {TimeSeriesParam} from './time.series.chart.component';
-import {FilterType} from '../../lib/datashowbase/filter.type';
 import {AuditHelper} from '../../lib/helper/audit.helper';
+import {HistoryquoteTableBase} from './historyquote-table.base';
 import {Securitycurrency} from '../../entities/securitycurrency';
 import {Security} from '../../entities/security';
 import {Currencypair} from '../../entities/currencypair';
@@ -35,7 +33,6 @@ import {HistoryquotesWithMissings} from '../model/historyquotes.with.missings';
 import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {FileUploadParam} from '../../lib/generaldialog/model/file.upload.param';
-import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {AngularSvgIconModule, SvgIconRegistryService} from 'angular-svg-icon';
 import {DialogService} from 'primeng/dynamicdialog';
 import {BaseSettings} from '../../lib/base.settings';
@@ -48,9 +45,12 @@ import {HistoryquoteDeleteDialogComponent} from './historyquote-delete-dialog.co
 import {GlobalSessionNames} from '../../lib/global.session.names';
 
 /**
- * Shows the history quotes in a table
+ * Shows the history quotes in a table. Hosted by {@link HistoryquoteHostComponent}, which feeds
+ * it the time-series params parsed from the route and listens for {@code showLegacyRequested}
+ * to swap to the legacy archive view.
  */
 @Component({
+  selector: 'historyquote-table',
   template: `
     <div class="data-container" (click)="onComponentClick($event)" #cmDiv
          [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
@@ -145,19 +145,12 @@ import {GlobalSessionNames} from '../../lib/global.session.names';
     HistoryquoteDeleteDialogComponent
   ]
 })
-export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquote> implements OnDestroy {
+export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquote> implements OnChanges, OnDestroy {
+  @Input() timeSeriesParams: TimeSeriesParam[];
+  @Output() showLegacyRequested = new EventEmitter<void>();
+
   minDate: Date = new Date(sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK);
   maxDate: Date = new Date('2099-12-31');
-
-  private static createTypeIconMap: { [key: number]: string } = {
-    [HistoryquoteCreateType.CONNECTOR_CREATED]: 'connector',
-    [HistoryquoteCreateType.MANUAL_IMPORTED]: 'import',
-    [HistoryquoteCreateType.FILLED_CLOSED_LINEAR_TRADING_DAY]: 'fill_linear',
-    [HistoryquoteCreateType.CALCULATED]: 'calculation',
-    [HistoryquoteCreateType.ADD_MODIFIED_USER]: 'edit',
-    [HistoryquoteCreateType.FILL_GAP_BY_CONNECTOR]: 'gap_fill'
-  };
-  private static iconLoadDone = false;
 
   callParam: HistoryquoteSecurityCurrency;
   firstRow: number;
@@ -181,16 +174,17 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     label: 'DELETE_CREATE_TYPES_QUOTES' + BaseSettings.DIALOG_MENU_SUFFIX,
     command: (event) => this.deleteCreateTypeQuotes()
   };
+  showLegacyMenu: MenuItem = {
+    label: 'HISTORYQUOTE_SHOW_LEGACY',
+    command: (event) => this.showLegacyRequested.emit()
+  };
   protected transactionPositionList: SecurityTransactionPosition[] = [];
-  private routeSubscribe: Subscription;
-  private timeSeriesParams: TimeSeriesParam[];
   private historyquoteSpecMenuItems: MenuItem[];
 
 
   constructor(private iconReg: SvgIconRegistryService,
     private securityService: SecurityService,
     private currencypairService: CurrencypairService,
-    private activatedRoute: ActivatedRoute,
     private historyquoteService: HistoryquoteService,
     private dataChangedService: DataChangedService,
     usersettingsService: UserSettingsService,
@@ -205,37 +199,13 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
     super(AppSettings.HISTORYQUOTE, historyquoteService, confirmationService, messageToastService, activePanelService,
       dialogService, filterService, translateService, gps, usersettingsService, injector);
 
-    HistoryquoteTableComponent.registerIcons(this.iconReg);
-    this.addColumnFeqH(DataType.DateString, 'date', true, false,
-      {filterType: FilterType.likeDataType, export: true});
-    this.addColumn(DataType.NumericInteger, 'createType', 'T', true, true,
-      {fieldValueFN: this.getCreateTypeIcon.bind(this), templateName: 'icon', width: 20});
+    HistoryquoteTableBase.registerCreateTypeIcons(this.iconReg);
+    this.addDateColumn();
+    this.addCreateTypeColumn();
     this.addColumnFeqH(DataType.DateTimeString, 'createModifyTime', true, true);
-    this.addColumnFeqH(DataType.Numeric, 'volume', true, false, {export: true});
-    this.addColumnFeqH(DataType.Numeric, 'open', true, false, {
-      minFractionDigits: 5,
-      maxFractionDigits: this.gps.getMaxFractionDigits(),
-      export: true
-    });
-    this.addColumnFeqH(DataType.Numeric, 'high', true, false,
-      {maxFractionDigits: this.gps.getMaxFractionDigits(), export: true});
-    this.addColumnFeqH(DataType.Numeric, 'low', true, false,
-      {maxFractionDigits: this.gps.getMaxFractionDigits(), export: true});
-    this.addColumnFeqH(DataType.Numeric, 'close', true, false, {
-      minFractionDigits: 5,
-      maxFractionDigits: this.gps.getMaxFractionDigits(), filterType: FilterType.likeDataType, export: true
-    });
-    this.multiSortMeta.push({field: 'date', order: -1});
+    this.addOhlcvColumns();
+    this.applyDefaultDateSort();
     this.prepareTableAndTranslate();
-  }
-
-  private static registerIcons(iconReg: SvgIconRegistryService): void {
-    if (!HistoryquoteTableComponent.iconLoadDone) {
-      for (const [key, iconName] of Object.entries(HistoryquoteTableComponent.createTypeIconMap)) {
-        iconReg.loadSvg(BaseSettings.PATH_ASSET_ICONS + iconName + BaseSettings.SVG, iconName);
-      }
-      HistoryquoteTableComponent.iconLoadDone = false;
-    }
   }
 
   readData(): void {
@@ -251,23 +221,35 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
   ngOnDestroy(): void {
     this.activePanelService.destroyPanel(this);
     this.usersettingsService.saveSingleValue(AppSettings.HISTORYQUOTE_TABLE_SETTINGS_STORE, this.rowsPerPage);
-    this.routeSubscribe && this.routeSubscribe.unsubscribe();
   }
 
-  getCreateTypeIcon(historyquote: Historyquote, field: ColumnConfig): string {
-    return HistoryquoteTableComponent.createTypeIconMap[HistoryquoteCreateType[historyquote.createType]];
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['timeSeriesParams'] && this.timeSeriesParams && this.timeSeriesParams.length > 0) {
+      this.readAndShowData(this.timeSeriesParams[0]);
+    }
   }
 
   prepareMenu(): void {
+    // Both bulk-quote actions are always rendered. Permission state is reflected by the .disabled flag set in
+    // resetMenu() rather than by hiding the item, so a limited-edit user without rights on the parent security still
+    // sees the menu but cannot trigger the action.
     this.historyquoteSpecMenuItems = [
-      this.importQuotesMenu,
-      {label: 'EXPORT_CSV', command: (event) => this.downloadCSvFile(this.historyquotesWithMissings.historyquoteList)},
       this.deleteCreateTypesMenu,
+      this.fillGapsMenu,
     ];
-    if (this.security && this.hasRightsForCreateEntity(null)) {
-      this.historyquoteSpecMenuItems.push(this.fillGapsMenu);
-    }
+    // Always show the legacy menu (even when legacyCount is 0) so the user can
+    // reach the legacy view to import a CSV when the shadow archive is empty.
+    // Reset the label to the translation key on every prepareMenu invocation —
+    // we append the live count below after translation.
+    this.showLegacyMenu.label = 'HISTORYQUOTE_SHOW_LEGACY';
+    this.historyquoteSpecMenuItems.push(this.showLegacyMenu);
+    this.historyquoteSpecMenuItems.push({separator: true});
+    this.historyquoteSpecMenuItems.push(this.importQuotesMenu);
+    this.historyquoteSpecMenuItems.push({label: 'EXPORT_CSV',
+      command: (event) => this.downloadCSvFile(this.historyquotesWithMissings.historyquoteList)});
     TranslateHelper.translateMenuItems(this.historyquoteSpecMenuItems, this.translateService);
+    const legacyCount = this.historyquotesWithMissings?.legacyCount ?? 0;
+    this.showLegacyMenu.label = `${this.showLegacyMenu.label} (${legacyCount})`;
   }
 
   uploadImportQuotes(): void {
@@ -303,12 +285,17 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
       this.contextMenuItems = this.prepareEditMenu(this.selectedEntity);
       this.contextMenuItems.push({separator: true});
       this.importQuotesMenu.disabled = !this.hasRightsForDeleteEntity(null);
-      this.fillGapsMenu.disabled = !this.historyquotesWithMissings.historyquoteQuality
-        || this.historyquotesWithMissings.historyquoteQuality.totalMissing === 0 &&
-        this.historyquotesWithMissings.historyquoteQuality.toManyAsCalendar === 0;
-      this.deleteCreateTypesMenu.disabled = !this.historyquotesWithMissings.historyquoteQuality
-        || !this.historyquotesWithMissings.historyquoteQuality.filledLinear
-        && !this.historyquotesWithMissings.historyquoteQuality.manualImported;
+      // Both bulk-quote actions require owner-or-higher-privileges on the parent security (mirroring the backend
+      // gate hasRightsOrPrivilegesForEditingOrDelete). The data-quality preconditions follow.
+      const noEditRights = !this.hasRightsForCreateEntity(null);
+      this.fillGapsMenu.disabled = noEditRights
+        || !this.historyquotesWithMissings.historyquoteQuality
+        || (this.historyquotesWithMissings.historyquoteQuality.totalMissing === 0
+          && this.historyquotesWithMissings.historyquoteQuality.toManyAsCalendar === 0);
+      this.deleteCreateTypesMenu.disabled = noEditRights
+        || !this.historyquotesWithMissings.historyquoteQuality
+        || (!this.historyquotesWithMissings.historyquoteQuality.filledLinear
+          && !this.historyquotesWithMissings.historyquoteQuality.manualImported);
       this.contextMenuItems.push(...this.historyquoteSpecMenuItems);
     } else {
       this.contextMenuItems = null;
@@ -322,11 +309,9 @@ export class HistoryquoteTableComponent extends TableCrudSupportMenu<Historyquot
 
   protected override initialize(): void {
     this.rowsPerPage = this.usersettingsService.readSingleValue(AppSettings.HISTORYQUOTE_TABLE_SETTINGS_STORE) || 30;
-    this.routeSubscribe = this.activatedRoute.paramMap.subscribe(paramMap => {
-      const paramObject = AppHelper.createParamObjectFromParamMap(paramMap);
-      this.timeSeriesParams = paramObject.allParam;
+    if (this.timeSeriesParams && this.timeSeriesParams.length > 0) {
       this.readAndShowData(this.timeSeriesParams[0]);
-    });
+    }
   }
 
   protected prepareCallParam(entity: Historyquote) {

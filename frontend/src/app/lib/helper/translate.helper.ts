@@ -277,21 +277,27 @@ export class TranslateHelper {
   }
 
   /**
-   * Translates an array of values into a comma-separated string of translated values.
-   * Each array element is translated individually and then joined with commas.
+   * Translates a list of values into a comma-separated string of translated values.
+   * Each element is translated individually and then joined with commas. The input may be a real
+   * array or a comma-separated string (e.g. the persisted {@code supportedCategories} value
+   * {@code "EQUITIES,ETF"}); a string is split on commas and trimmed before translation. Null/blank
+   * input yields an empty result.
    *
    * @param translateService Angular's translation service
    * @param columnConfig Column configuration containing translation settings
-   * @param values Array of values to be translated and joined
+   * @param values Array or comma-separated string of values to be translated and joined
    * @param dataObject The data object to update with the comma-separated translated string
    *
    * @private Internal method used by createTranslatedValueStoreForTranslation
    */
   private static translateArrayIntoCommaSeparatorString(translateService: TranslateService,
-    columnConfig: ColumnConfig, values: Array<any>, dataObject: any): void {
+    columnConfig: ColumnConfig, values: Array<any> | string, dataObject: any): void {
+    const valueArray: Array<any> = typeof values === 'string'
+      ? values.split(',').map(v => v.trim()).filter(v => v.length > 0)
+      : (values ?? []);
     const commaSpace = ', ';
     let commaSeparatorValue = '';
-    values.forEach(value => {
+    valueArray.forEach(value => {
       if (columnConfig.translatedValueMap.hasOwnProperty(value)) {
         commaSeparatorValue = commaSeparatorValue + (commaSeparatorValue.length === 0 ? '' : commaSpace) + columnConfig.translatedValueMap[value];
       } else {

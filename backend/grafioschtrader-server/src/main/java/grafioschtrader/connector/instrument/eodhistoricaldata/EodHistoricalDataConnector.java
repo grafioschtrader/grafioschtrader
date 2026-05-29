@@ -73,7 +73,8 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
   public EodHistoricalDataConnector() {
     super(supportedFeed, "eodhistoricaldata", "EOD Historical Data", null, EnumSet.of(UrlCheck.HISTORY));
     supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR, AssetclassCategory.CRYPTOCURRENCY,
-        AssetclassCategory.EQUITIES, AssetclassCategory.ETF, AssetclassCategory.ISSUER_RISK_PRODUCT);
+        AssetclassCategory.EQUITIES, AssetclassCategory.ETF, AssetclassCategory.ISSUER_RISK_PRODUCT,
+        AssetclassCategory.CFD_DERIVATIVE);
   }
 
   private String getApiKeyString() {

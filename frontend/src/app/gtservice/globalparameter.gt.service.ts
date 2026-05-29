@@ -75,4 +75,32 @@ export class GlobalparameterGTService extends BaseAuthService<Globalparameters> 
     return dateStr ? new Date(dateStr) : null;
   }
 
+  /**
+   * Returns the connector / asset class enforcement mode set by gt.force.connector.match.
+   * 0 = off, 1 = server-side only, 2 = server-side + frontend dropdown pre-filter.
+   */
+  public getForceConnectorMatch(): number {
+    const raw = sessionStorage.getItem(GlobalGTSessionNames.FORCE_CONNECTOR_MATCH);
+    return raw == null ? 0 : Number(raw);
+  }
+
+  /**
+   * True when the given currency code is one of the supported cryptocurrencies stored at login.
+   */
+  public isCryptocurrency(currencyCode: string): boolean {
+    if (!currencyCode) {
+      return false;
+    }
+    const raw = sessionStorage.getItem(GlobalGTSessionNames.CRYPTOS);
+    if (!raw) {
+      return false;
+    }
+    try {
+      const list: string[] = JSON.parse(raw);
+      return Array.isArray(list) && list.includes(currencyCode);
+    } catch {
+      return false;
+    }
+  }
+
 }

@@ -43,7 +43,6 @@ public class ConsorsbankFeedConnector extends BaseFeedConnector {
   public ConsorsbankFeedConnector() {
     super(supportedFeed, "consorsbank", "Consorsbank", "^_[0-9]+,[A-Z,@]+$", EnumSet.of(UrlCheck.INTRADAY));
     supportedAssetclassCategories = EnumSet.of(AssetclassCategory.EQUITIES, AssetclassCategory.FIXED_INCOME, AssetclassCategory.ETF);
-    parseGeoRestrictions("US");
   }
 
   @Override

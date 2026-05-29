@@ -47,6 +47,7 @@ export const AppHelpIds: Record<string, string> = {
   HELP_WATCHLIST_SEARCHDIALOG: 'watchlistinstrument/instrument/searchdialog',
   HELP_WATCHLIST_DERIVED_INSTRUMENT: 'watchlistinstrument/instrument/securityderived/derivedinstrument',
   HELP_WATCHLIST_HISTORYQUOTES: 'watchlistinstrument/externaldata/historyquote/pricedata',
+  HELP_WATCHLIST_HISTORYQUOTES_LEGACY: 'watchlistinstrument/externaldata/historyquote/pricedata/archive',
   HELP_WATCHLIST_HISTORYQUOTES_CHART: 'watchlistinstrument/eodchart',
   HELP_WATCHLIST_WITHOUT_PRICE_DATA: 'watchlistinstrument/instrument/securityderived/security/securitywithoutpricedata',
 

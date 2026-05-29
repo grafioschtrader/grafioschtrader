@@ -28,6 +28,7 @@ import grafioschtrader.entities.CorrelationSet;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Historyquote;
+import grafioschtrader.entities.HistoryquoteLegacy;
 import grafioschtrader.entities.HistoryquotePeriod;
 import grafioschtrader.entities.ImportTransactionHead;
 import grafioschtrader.entities.ImportTransactionPlatform;
@@ -204,6 +205,30 @@ public class MyDataExportDeleteDefinition {
       WHERE t.id_tenant = ? AND s.active_to_date < now() + interval 1 month
       UNION SELECT DISTINCT h.* FROM transaction t JOIN historyquote h ON h.id_securitycurrency = t.id_currency_pair WHERE t.id_tenant = ?
       UNION SELECT h.* FROM risk_free_rate_mapping rfm JOIN historyquote h ON h.id_securitycurrency = rfm.id_securitycurrency""";
+  // Scope mirrors SECURITY_SELECT: every security exported via that query must carry its
+  // historyquote_legacy archive — archived rows are irreplaceable once the connector switch
+  // is complete, so a narrower scope would silently lose data on export.
+  private static String HISTORYQUOTE_LEGACY_SELECT = """
+      DISTINCT hl.* FROM watchlist w JOIN watchlist_sec_cur ws ON w.id_watchlist = ws.id_watchlist JOIN security s ON s.id_securitycurrency = ws.id_securitycurrency
+      JOIN historyquote_legacy hl ON hl.id_securitycurrency = s.id_securitycurrency WHERE w.id_tenant = ?
+      UNION SELECT hl.* FROM security s JOIN historyquote_legacy hl ON hl.id_securitycurrency = s.id_securitycurrency WHERE s.id_tenant_private = ?
+      UNION SELECT DISTINCT hl.* FROM transaction t JOIN security s ON t.id_securitycurrency = s.id_securitycurrency
+      JOIN historyquote_legacy hl ON hl.id_securitycurrency = s.id_securitycurrency WHERE t.id_tenant = ?
+      UNION SELECT DISTINCT hl.* FROM watchlist w JOIN watchlist_sec_cur ws ON w.id_watchlist = ws.id_watchlist JOIN security s ON s.id_securitycurrency = ws.id_securitycurrency
+      JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency
+      JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency JOIN historyquote_legacy hl ON hl.id_securitycurrency = s1.id_securitycurrency
+      WHERE w.id_tenant = ? AND sc.dtype = 'S'
+      UNION SELECT hl.* FROM security s JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency
+      JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency
+      JOIN historyquote_legacy hl ON hl.id_securitycurrency = s1.id_securitycurrency WHERE s.id_tenant_private = ? AND sc.dtype = 'S'
+      UNION SELECT DISTINCT hl.* FROM transaction t JOIN security s ON t.id_securitycurrency = s.id_securitycurrency
+      JOIN security_derived_link sdl ON s.id_securitycurrency = sdl.id_securitycurrency JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency
+      JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency JOIN historyquote_legacy hl ON hl.id_securitycurrency = s1.id_securitycurrency
+      WHERE t.id_tenant = ? AND sc.dtype = 'S'
+      UNION SELECT hl.* FROM correlation_set cs JOIN correlation_instrument ci ON cs.id_correlation_set = ci.id_correlation_set
+      JOIN security s ON ci.id_securitycurrency = s.id_securitycurrency JOIN historyquote_legacy hl ON hl.id_securitycurrency = s.id_securitycurrency
+      WHERE cs.id_tenant = ?
+      UNION SELECT hl.* FROM risk_free_rate_mapping rfm JOIN historyquote_legacy hl ON hl.id_securitycurrency = rfm.id_securitycurrency""";
   private static String HISTORYQUOTEPERIOD_SELECT = """
       hp.* FROM historyquote_period hp JOIN security s ON hp.id_securitycurrency = s.id_securitycurrency WHERE s.id_tenant_private = ?
       UNION SELECT DISTINCT hp.* FROM watchlist w JOIN watchlist_sec_cur wsc ON w.id_watchlist = wsc.id_watchlist JOIN historyquote_period hp ON wsc.id_securitycurrency = hp.id_securitycurrency
@@ -311,6 +336,8 @@ public class MyDataExportDeleteDefinition {
           ExportDefinition.DELETE_USE),
       new ExportDefinition(Currencypair.TABNAME, TENANT_USER.NONE, CURRENCYPAIR_SELECT, ExportDefinition.EXPORT_USE),
       new ExportDefinition(Historyquote.TABNAME, TENANT_USER.NONE, HISTORYQUOTE_SELECT, ExportDefinition.EXPORT_USE),
+      new ExportDefinition(HistoryquoteLegacy.TABNAME, TENANT_USER.ID_TENANT, HISTORYQUOTE_LEGACY_SELECT,
+          ExportDefinition.EXPORT_USE),
       new ExportDefinition(Watchlist.TABNAME, TENANT_USER.ID_TENANT, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       new ExportDefinition(Watchlist.TABNAME_SEC_CUR, TENANT_USER.NONE, WATCHLIST_SEC_CUR_SELDEL,

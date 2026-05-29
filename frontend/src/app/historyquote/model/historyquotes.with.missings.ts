@@ -10,6 +10,7 @@ export interface HistoryquotesWithMissings {
   securitycurrency: Securitycurrency | Currencypair;
   historyquoteQuality: IHistoryquoteQuality;
   supportedCSVFormats: SupportedCSVFormats;
+  legacyCount: number;
 }
 
 

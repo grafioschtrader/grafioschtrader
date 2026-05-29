@@ -67,10 +67,21 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
         .pipe(catchError(this.handleError.bind(this)));
   }
 
-  getFeedConnectors(): Observable<IFeedConnector[]> {
-    return <Observable<IFeedConnector[]>>this.httpClient.get(`
-    ${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/feedConnectors`,
-      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  getFeedConnectors(idStockexchange?: number, assetclassType?: string, specInvInstrument?: string)
+    : Observable<IFeedConnector[]> {
+    let params = new HttpParams();
+    if (idStockexchange != null) {
+      params = params.set('idStockexchange', String(idStockexchange));
+    }
+    if (assetclassType != null) {
+      params = params.set('assetclassType', assetclassType);
+    }
+    if (specInvInstrument != null) {
+      params = params.set('specInvInstrument', specInvInstrument);
+    }
+    return <Observable<IFeedConnector[]>>this.httpClient.get(
+      `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/feedConnectors`,
+      {headers: this.prepareHeaders(), params}).pipe(catchError(this.handleError.bind(this)));
   }
 
   /**

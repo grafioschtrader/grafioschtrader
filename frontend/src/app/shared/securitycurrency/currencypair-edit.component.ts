@@ -130,7 +130,15 @@ export class CurrencypairEditComponent extends SecuritycurrencyEdit implements O
   protected loadHelperData(): void {
     this.hideVisibleFeedConnectorsFields(this.connectorPriceFieldConfig, false, FeedIdentifier.CURRENCY);
     const observableCurrencies: Observable<ValueKeyHtmlSelectOptions[]> = this.gpsGT.getCurrencies();
-    const observableFeedConnectors: Observable<IFeedConnector[]> = this.currencypairService.getFeedConnectors();
+    // Mode 2 (frontend pre-filter): tell the backend whether this pair is crypto so it can pick FOREX vs CFD.
+    // For a new pair we don't know the currencies yet — fall back to the unfiltered list; the save-time check
+    // still rejects mismatches.
+    const cp = <Currencypair>this.securityCurrencypairCallParam;
+    const isCrypto = !!cp && (this.gpsGT.isCryptocurrency(cp.fromCurrency) || this.gpsGT.isCryptocurrency(cp.toCurrency));
+    const observableFeedConnectors: Observable<IFeedConnector[]> =
+      (this.gpsGT.getForceConnectorMatch() === 2 && cp)
+        ? this.currencypairService.getFeedConnectors('CURRENCY_PAIR', isCrypto ? 'CFD' : 'FOREX')
+        : this.currencypairService.getFeedConnectors();
     const observableAllCurrencypairs: Observable<Currencypair[]> = this.currencypairService.getAllCurrencypairs();
     combineLatest([observableCurrencies, observableFeedConnectors, observableAllCurrencypairs])
       .subscribe(([currencies, feedConnectors, allCurrencypairs]: [ValueKeyHtmlSelectOptions[],

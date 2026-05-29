@@ -75,6 +75,7 @@
 0|4|"AAA"|"AAA"|"d"
 0|0|"Aktien USA"|"Stocks USA"|"d"
 0|0|"Aktien Schweiz"|"Stocks Switzerland"|"d"
+0|1|"Aktien Autstralien"|"Stocks Australia"|"i"
 1|0|"Anleihen Schweiz"|"Bond Switzerland"|"d"
 1|1|"Anleihen Schwellenländer"|"Bond Emerging Markets"|"d"
 1|1|"Anleihen Europa inflationsgeschützt"|"Bond Europe inflation Linked"|"d"

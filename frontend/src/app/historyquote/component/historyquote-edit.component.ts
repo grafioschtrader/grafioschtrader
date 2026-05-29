@@ -1,26 +1,20 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input} from '@angular/core';
 import {Historyquote} from '../../entities/historyquote';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {AppHelper} from '../../lib/helper/app.helper';
+import {Securitycurrency} from '../../entities/securitycurrency';
 import {HistoryquoteService} from '../service/historyquote.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {HistoryquoteSecurityCurrency} from './historyquote-table.component';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {HelpIds} from '../../lib/help/help.ids';
-import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
-import {AuditHelper} from '../../lib/helper/audit.helper';
-import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import moment from 'moment';
 import {AppSettings} from '../../shared/app.settings';
 import {DialogModule} from 'primeng/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
+import {HistoryquoteEditBase} from './historyquote-edit.base';
 
 /**
- * Edit historical quotes.
+ * Edit historical quotes. A new row enables the trading date; an existing row keeps it read-only.
  */
 @Component({
     selector: 'historyquote-edit',
@@ -37,10 +31,9 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
     standalone: true,
     imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
-export class HistoryquoteEditComponent extends SimpleEntityEditBase<Historyquote> implements OnInit {
+export class HistoryquoteEditComponent extends HistoryquoteEditBase<Historyquote> {
 
   @Input() callParam: HistoryquoteSecurityCurrency;
-  @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
 
   constructor(translateService: TranslateService,
               gps: GlobalparameterService,
@@ -50,36 +43,19 @@ export class HistoryquoteEditComponent extends SimpleEntityEditBase<Historyquote
       messageToastService, historyquoteService);
   }
 
-  ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
-      4, this.helpLink.bind(this));
-
-    this.config = [
-      DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'date', true,
-        {
-          calendarConfig: {
-            maxDate: moment().subtract(1, 'days').toDate(),
-            disabledDays: [0, 6]
-          }
-        }),
-      DynamicFieldHelper.createFieldInputNumberHeqF('volume', false,
-        AppSettings.FID_MAX_INTEGER_DIGITS, 0, false),
-      DynamicFieldHelper.createFieldInputNumberHeqF('open', false,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), false),
-      DynamicFieldHelper.createFieldInputNumberHeqF('high', false,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), false),
-      DynamicFieldHelper.createFieldInputNumberHeqF('low', false,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), false),
-      DynamicFieldHelper.createFieldInputNumberHeqF('close', true,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), false),
-      ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
-    ];
-    this.configObject = this.config.reduce((acc, d) => ({
-      ...acc, [d.field]: d }), {});
-    TranslateHelper.translateMessageErrors(this.translateService, this.config);
+  protected getSecuritycurrency(): Securitycurrency {
+    return this.callParam.securitycurrency;
   }
 
-  protected override initialize(): void {
+  protected getExistingEntity(): Historyquote {
+    return this.callParam.historyquote;
+  }
+
+  protected createEntityInstance(): Historyquote {
+    return new Historyquote();
+  }
+
+  protected transferAndToggleImmutableFields(): void {
     if (this.callParam.historyquote) {
       this.form.transferBusinessObjectToForm(this.callParam.historyquote);
       FormHelper.disableEnableFieldConfigs(true, [this.configObject.date]);
@@ -87,15 +63,6 @@ export class HistoryquoteEditComponent extends SimpleEntityEditBase<Historyquote
       this.form.setDefaultValuesAndEnableSubmit();
       FormHelper.disableEnableFieldConfigs(false, [this.configObject.date]);
     }
-    AuditHelper.configureFormFromAuditableRights(this.translateService, this.gps,
-      this.callParam.securitycurrency, this.form, this.configObject, this.proposeChangeEntityWithEntity, false);
-  }
-
-  protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Historyquote {
-    const historyquote = new Historyquote();
-    this.copyFormToPublicBusinessObject(historyquote, this.callParam.historyquote, this.proposeChangeEntityWithEntity);
-    historyquote.idSecuritycurrency = this.callParam.securitycurrency.idSecuritycurrency;
-    return historyquote;
   }
 
 }

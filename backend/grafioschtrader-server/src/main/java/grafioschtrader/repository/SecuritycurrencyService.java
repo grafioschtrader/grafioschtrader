@@ -25,12 +25,15 @@ import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
 import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafiosch.entities.User;
+import grafiosch.exceptions.DataViolationException;
 import grafiosch.repository.BaseRepositoryImpl;
 import grafiosch.repository.GlobalparametersJpaRepository;
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
+import grafioschtrader.entities.Currencypair;
+import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.priceupdate.historyquote.IHistoryquoteEntityAccess;
 import grafioschtrader.priceupdate.historyquote.IHistoryquoteLoad;
@@ -38,9 +41,12 @@ import grafioschtrader.priceupdate.intraday.IIntradayEntityAccess;
 import grafioschtrader.priceupdate.intraday.IIntradayLoad;
 import grafioschtrader.reportviews.SecuritycurrencyPositionSummary;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
+import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.reportviews.securitycurrency.ISecurityDataProviderUrls;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
 import grafioschtrader.service.GlobalparametersService;
+import grafioschtrader.types.AssetclassType;
+import grafioschtrader.types.SpecialInvestmentInstruments;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
@@ -57,6 +63,9 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
 
   @Autowired
   protected GlobalparametersService globalparametersService;
+
+  @Autowired
+  protected StockexchangeJpaRepository stockexchangeJpaRepository;
 
   @Autowired
   protected HistoryquoteJpaRepository historyquoteJpaRepository;
@@ -102,6 +111,18 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
 
   protected S afterFullLoad(final S securitycurrency) throws Exception {
     return securitycurrency;
+  }
+
+  /**
+   * Supplements the live historyquote table with archived rows from historyquote_legacy
+   * that the current connector does not cover. Default implementation is a no-op — only
+   * {@link SecurityJpaRepositoryImpl} produces shadow rows; currency-pair flows never do.
+   * Called from {@link SecurityServiceAsyncExectuion#asyncLoadHistoryIntraData} after a
+   * wipe-and-reload so the shadow is re-merged on the async path the same way the sync
+   * {@code rebuildSecurityCurrencypairHisotry} does.
+   */
+  protected void supplementFromShadow(Integer idSecuritycurrency) {
+    // no-op; overridden in SecurityJpaRepositoryImpl
   }
 
   @Override
@@ -193,6 +214,31 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
   }
 
   @Override
+  public List<IFeedConnector> getFeedConnectors(final boolean isCurrency, Integer idStockexchange,
+      AssetclassType assetclassType, SpecialInvestmentInstruments specInvInstrument) {
+    List<IFeedConnector> base = getFeedConnectors(isCurrency);
+    // Context-aware filter is only applied in mode 2 and only when the caller actually supplied enough context.
+    // Mode 0/1 and the legacy no-context call path keep the unfiltered behaviour so non-UI callers are unaffected.
+    if (globalparametersService.getForceConnectorMatch() != 2 || assetclassType == null
+        || specInvInstrument == null) {
+      return base;
+    }
+    final String mic;
+    final String country;
+    if (idStockexchange != null) {
+      Stockexchange se = stockexchangeJpaRepository.findById(idStockexchange).orElse(null);
+      mic = se != null ? se.getMic() : null;
+      country = se != null ? se.getCountryCode() : null;
+    } else {
+      mic = null;
+      country = null;
+    }
+    return base.stream()
+        .filter(fc -> fc.supports(mic, country, assetclassType, specInvInstrument))
+        .collect(Collectors.toList());
+  }
+
+  @Override
   public List<ValueKeyHtmlSelectOptions> getAllFeedConnectorsAsKeyValue(FeedSupport feedSupport) {
     return feedConnectorbeans.stream().filter(f -> f.getSecuritycurrencyFeedSupport().containsKey(feedSupport))
         .sorted(Comparator.comparing(IFeedConnector::getReadableName, String::compareToIgnoreCase))
@@ -232,13 +278,64 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
       FeedSupport fd = IFeedConnector.FeedSupport.FS_INTRA;
       IFeedConnector fc = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
           securitycurrency.getIdConnectorIntra(), fd);
+      validateConnectorSupports(securitycurrency, fc, fd);
       fc.checkAndClearSecuritycurrencyUrlExtend(securitycurrency, fd);
     }
     if (securitycurrency.getIdConnectorHistory() != null) {
       FeedSupport fd = IFeedConnector.FeedSupport.FS_HISTORY;
       IFeedConnector fc = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
           securitycurrency.getIdConnectorHistory(), fd);
+      validateConnectorSupports(securitycurrency, fc, fd);
       fc.checkAndClearSecuritycurrencyUrlExtend(securitycurrency, fd);
+    }
+  }
+
+  /**
+   * Enforces the {@link IFeedConnector#supports(String, String, AssetclassType, SpecialInvestmentInstruments)} check
+   * for one connector slot on the given entity, gated by {@code gt.force.connector.match} >= 1. Throws
+   * {@link DataViolationException} keyed by the slot ({@code id.connector.history/intra/dividend/split}) so the
+   * frontend's validation-error pipeline can localize the message.
+   *
+   * <p>Skipped silently in mode 0, or when the connector reference is unresolved (orphan connector id — already
+   * tolerated elsewhere), or when the entity lacks the metadata to evaluate (no asset class / unresolvable
+   * stockexchange). The (mic, country) tuple is derived from the security's stock exchange; for currency pairs the
+   * tuple is null and the instrument flag is {@code CFD} when either leg is a supported cryptocurrency,
+   * {@code FOREX} otherwise.
+   */
+  protected void validateConnectorSupports(final S securitycurrency, IFeedConnector connector, FeedSupport slot) {
+    if (connector == null || globalparametersService.getForceConnectorMatch() < 1) {
+      return;
+    }
+    String mic = null;
+    String country = null;
+    AssetclassType act = null;
+    SpecialInvestmentInstruments specInst = null;
+    if (securitycurrency instanceof Security s) {
+      Stockexchange se = s.getStockexchange();
+      if (se != null) {
+        mic = se.getMic();
+        country = se.getCountryCode();
+      }
+      if (s.getAssetClass() != null) {
+        act = s.getAssetClass().getCategoryType();
+        specInst = s.getAssetClass().getSpecialInvestmentInstrument();
+      }
+    } else if (securitycurrency instanceof Currencypair cp) {
+      act = AssetclassType.CURRENCY_PAIR;
+      specInst = cp.getIsCryptocurrency() ? SpecialInvestmentInstruments.CFD : SpecialInvestmentInstruments.FOREX;
+    }
+    if (act == null || specInst == null) {
+      return;
+    }
+    if (!connector.supports(mic, country, act, specInst)) {
+      String fieldKey = switch (slot) {
+        case FS_HISTORY -> "id.connector.history";
+        case FS_INTRA -> "id.connector.intra";
+        case FS_DIVIDEND -> "id.connector.dividend";
+        case FS_SPLIT -> "id.connector.split";
+      };
+      throw new DataViolationException(fieldKey, "gt.connector.unsupported.assetclass",
+          new Object[] { connector.getReadableName() });
     }
   }
 

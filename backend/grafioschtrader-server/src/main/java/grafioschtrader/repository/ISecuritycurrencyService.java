@@ -11,6 +11,8 @@ import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteData;
 import grafioschtrader.reportviews.securitycurrency.ISecurityDataProviderUrls;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
+import grafioschtrader.types.AssetclassType;
+import grafioschtrader.types.SpecialInvestmentInstruments;
 
 /**
  * Interface for services handling entities that are either a Security or a Currencypair. It provides common
@@ -67,6 +69,23 @@ public interface ISecuritycurrencyService<S extends Securitycurrency<S>> extends
    * @return A list of relevant IFeedConnector instances.
    */
   List<IFeedConnector> getFeedConnectors(boolean isCurrency);
+
+  /**
+   * Like {@link #getFeedConnectors(boolean)} but additionally filtered by the supplied entity context using
+   * {@link IFeedConnector#supports(String, String, AssetclassType, SpecialInvestmentInstruments)}. The extra filter is
+   * only applied when {@code gt.force.connector.match} is set to mode 2 (frontend pre-filter) AND both
+   * {@code assetclassType} and {@code specInvInstrument} are provided. In all other situations the unfiltered list is
+   * returned, preserving the legacy behaviour.
+   *
+   * @param isCurrency        true → currency-pair connectors, false → security connectors
+   * @param idStockexchange   stock-exchange id used to resolve MIC + country code for the geo check; may be null
+   * @param assetclassType    the security's asset class type, or {@code CURRENCY_PAIR} for currency pairs; may be null
+   * @param specInvInstrument the special investment instrument, or {@code FOREX}/{@code CFD} for currency pairs; may be
+   *                          null
+   * @return filtered connector list
+   */
+  List<IFeedConnector> getFeedConnectors(boolean isCurrency, Integer idStockexchange,
+      AssetclassType assetclassType, SpecialInvestmentInstruments specInvInstrument);
 
   /**
    * Retrieves all feed connectors that support a specific type of data feed (e.g., historical, intraday) as a list of

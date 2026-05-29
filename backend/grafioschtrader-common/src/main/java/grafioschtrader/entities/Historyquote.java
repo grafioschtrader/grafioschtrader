@@ -12,15 +12,8 @@ import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import grafiosch.BaseConstants;
-import grafiosch.common.ImportDataRequired;
-import grafiosch.common.PropertyAlwaysUpdatable;
-import grafiosch.common.PropertyOnlyCreation;
-import grafiosch.entities.ProposeTransientTransfer;
-import grafiosch.validation.AfterEqual;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.types.HistoryquoteCreateType;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -31,7 +24,7 @@ import jakarta.persistence.Table;
 @Schema(description = "Contains a single qoute for end of day data")
 @Entity
 @Table(name = Historyquote.TABNAME)
-public class Historyquote extends ProposeTransientTransfer implements Serializable {
+public class Historyquote extends BaseHistoryquote implements Serializable {
 
   public static final String TABNAME = "historyquote";
 
@@ -41,53 +34,10 @@ public class Historyquote extends ProposeTransientTransfer implements Serializab
   @Column(name = "id_history_quote")
   private Integer idHistoryQuote;
 
-  @Schema(description = "Trading date to which these data belong")
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
-  @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = BaseConstants.STANDARD_DATE_FORMAT)
-  @Basic(optional = false)
-  @Column(name = "date")
-  @PropertyOnlyCreation
-  @ImportDataRequired
-  private LocalDate date;
-
-  @Schema(description = "Close price of the day")
-  @Basic(optional = false)
-  @Column(name = "close")
-  @PropertyAlwaysUpdatable
-  @ImportDataRequired
-  private double close;
-
-  @Schema(description = "Volume changed on one day")
-  @Column(name = "volume")
-  @PropertyAlwaysUpdatable
-  private Long volume;
-
-  @Schema(description = "Open price of the day")
-  @Column(name = "open")
-  @PropertyAlwaysUpdatable
-  private Double open;
-
-  @Schema(description = "High price of the day")
-  @Column(name = "high")
-  @PropertyAlwaysUpdatable
-  private Double high;
-
-  @Schema(description = "Low price of the day")
-  @Column(name = "low")
-  @PropertyAlwaysUpdatable
-  private Double low;
-
-  @Schema(description = "Who has crated this EOD record")
-  @Column(name = "create_type")
-  private byte createType;
-
   @Schema(description = "When was this recored added or last time modified")
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "create_modify_time")
   private LocalDateTime createModifyTime;
-
-  @Column(name = "id_securitycurrency")
-  private Integer idSecuritycurrency;
 
   public Historyquote() {
     this.createType = HistoryquoteCreateType.CONNECTOR_CREATED.getValue();
@@ -132,70 +82,6 @@ public class Historyquote extends ProposeTransientTransfer implements Serializab
 
   public void setIdHistoryQuote(Integer idhistoryQuote) {
     this.idHistoryQuote = idhistoryQuote;
-  }
-
-  public LocalDate getDate() {
-    return date;
-  }
-
-  public void setDate(LocalDate date) {
-    this.date = date;
-  }
-
-  public double getClose() {
-    return close;
-  }
-
-  public void setClose(double close) {
-    this.close = close;
-  }
-
-  public Long getVolume() {
-    return volume;
-  }
-
-  public void setVolume(Long volume) {
-    this.volume = volume;
-  }
-
-  public Double getOpen() {
-    return open;
-  }
-
-  public void setOpen(Double open) {
-    this.open = open;
-  }
-
-  public Double getHigh() {
-    return high;
-  }
-
-  public void setHigh(Double high) {
-    this.high = high;
-  }
-
-  public Double getLow() {
-    return low;
-  }
-
-  public void setLow(Double low) {
-    this.low = low;
-  }
-
-  public Integer getIdSecuritycurrency() {
-    return idSecuritycurrency;
-  }
-
-  public void setIdSecuritycurrency(Integer idSecuritycurrency) {
-    this.idSecuritycurrency = idSecuritycurrency;
-  }
-
-  public HistoryquoteCreateType getCreateType() {
-    return HistoryquoteCreateType.getHistoryquoteCreateType(createType);
-  }
-
-  public void setCreateType(HistoryquoteCreateType historyquoteCreateType) {
-    this.createType = historyquoteCreateType.getValue();
   }
 
   public LocalDateTime getCreateModifyTime() {

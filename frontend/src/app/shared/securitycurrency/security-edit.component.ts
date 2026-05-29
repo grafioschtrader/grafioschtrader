@@ -220,6 +220,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
         !this.securityEditSupport.hasMarketValue, FeedIdentifier.SECURITY);
       this.enableDisableDividendSplitConnector(Helper.getReferencedDataObject(this.configObject.assetClass, null));
       this.securityEditSupport.enableDisableDenominationStockexchangeAssetclass(this.configObject);
+      this.reloadFeedConnectorsForContext();
     });
   }
 
@@ -233,6 +234,47 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
 
   valueChangedOnAssetClassExtend(assetClass: Assetclass): void {
     this.enableDisableDividendSplitConnector(assetClass);
+    this.reloadFeedConnectorsForContext();
+  }
+
+  /**
+   * Re-fetches the connector list whenever the stockexchange or asset class changes while the dialog is open, so the
+   * intraday / history / dividend / split dropdowns reflect the new instrument context. Only active in
+   * gt.force.connector.match mode 2 (where the backend pre-filters connectors) and only after the initial load has
+   * completed — the guard on dataLoaded avoids a redundant fetch while the existing security is transferred into the
+   * form, which triggers the same value-change subscriptions.
+   */
+  private reloadFeedConnectorsForContext(): void {
+    if (this.gpsGT.getForceConnectorMatch() !== 2 || !this.dataLoaded) {
+      return;
+    }
+    const idStockexchange: number = this.configObject.stockexchange.formControl.value;
+    const assetClass: Assetclass = Helper.getReferencedDataObject(this.configObject.assetClass, null);
+    if (!idStockexchange || !assetClass) {
+      return;
+    }
+    this.securityService.getFeedConnectors(idStockexchange, <string>assetClass.categoryType,
+      <string>assetClass.specialInvestmentInstrument).subscribe((connectors: IFeedConnector[]) => {
+      this.prepareFeedConnectors(connectors, false);
+      this.prepareSplitDividendConnector(connectors);
+      this.clearInvalidConnectorSelections();
+    });
+  }
+
+  /**
+   * Clears any selected connector that is no longer offered after the connector list was rebuilt for a changed
+   * context. Without this an incompatible connector would silently remain selected; clearing it also drives the
+   * connector value-change subscription to hide the associated url-extend field.
+   */
+  private clearInvalidConnectorSelections(): void {
+    [this.configObject[this.ID_CONNECTOR_HISTORY], this.configObject[this.ID_CONNECTOR_INTRA],
+      this.configObject[this.securityEditSupport.ID_CONNECTOR_DIVIDEND], this.configObject.idConnectorSplit]
+      .forEach(fieldConfig => {
+        const selected = fieldConfig.formControl.value;
+        if (selected && !fieldConfig.valueKeyHtmlOptions?.some(option => option.key === selected)) {
+          fieldConfig.formControl.setValue(null);
+        }
+      });
   }
 
   addSplit(value: { [name: string]: any }): void {
@@ -463,7 +505,18 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     observables.push(this.securityCurrencypairCallParam ?
       this.assetclassService.getPossibleAssetclassForExistingSecurityOrAll(this.securityCurrencypairCallParam.idSecuritycurrency) :
       this.assetclassService.getAllAssetclass());
-    observables.push(this.securityService.getFeedConnectors());
+    // Pre-filter the connector list only in gt.force.connector.match mode 2, and only when editing an existing
+    // security (create mode has no stockexchange/asset class chosen yet — the save-time check still catches
+    // incompatible picks).
+    if (this.gpsGT.getForceConnectorMatch() === 2 && this.securityCurrencypairCallParam) {
+      const existing = <Security>this.securityCurrencypairCallParam;
+      observables.push(this.securityService.getFeedConnectors(
+        existing.stockexchange?.idStockexchange,
+        <string>existing.assetClass?.categoryType,
+        <string>existing.assetClass?.specialInvestmentInstrument));
+    } else {
+      observables.push(this.securityService.getFeedConnectors());
+    }
 
     if (this.securityCurrencypairCallParam) {
       this.securityEditSupport.hasMarketValue = !(<Security>this.securityCurrencypairCallParam).stockexchange.noMarketValue;

@@ -11,6 +11,8 @@ import grafiosch.entities.ProposeUserTask;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.GenericConnectorDef;
+import grafioschtrader.entities.Historyquote;
+import grafioschtrader.entities.HistoryquoteLegacy;
 import grafioschtrader.entities.ImportTransactionPlatform;
 import grafioschtrader.entities.ImportTransactionTemplate;
 import grafioschtrader.entities.RiskFreeRateMapping;
@@ -66,6 +68,9 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
   public static final int DEFAULT_HISTORY_OBSERVATION_FALLING_PERCENTAGE = 80;
   public static final int DEFAULT_HISTORY_MAX_FILLDAYS_CURRENCY = 5;
   public static final int DEFAULT_UPDATE_PRICE_BY_EXCHANGE = 0;
+
+  /** Default mode for connector / asset class compatibility enforcement (0=off, 1=server only, 2=server + UI). */
+  public static final int DEFAULT_FORCE_CONNECTOR_MATCH = 0;
 
   public static final String GLOB_KEY_CURRENCY_PRECISION = GlobalConstants.GT_PREFIX + "currency.precision";
   /** Connector settings */
@@ -137,6 +142,12 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
   public static final String GLOB_KEY_MAX_CORRELATION_INSTRUMENTS = GlobalConstants.GT_PREFIX + MAX
       + "correlation.instruments";
   public static final String GLOB_KEY_UPDATE_PRICE_BY_EXCHANGE = GlobalConstants.GT_PREFIX + "update.price.by.exchange";
+  /**
+   * Three-state switch for connector ↔ asset class compatibility checking, evaluated against
+   * {@link grafioschtrader.connector.instrument.BaseFeedConnector#supports}: 0 disables, 1 enforces server-side
+   * only, 2 enforces server-side AND tells the frontend dropdown to hide incompatible connectors.
+   */
+  public static final String GLOB_KEY_FORCE_CONNECTOR_MATCH = GlobalConstants.GT_PREFIX + "force.connector.match";
 
   public static final String GLOB_KEY_LIMIT_DAY_ASSETCLASS = GlobalConstants.GT_LIMIT_DAY
       + Assetclass.class.getSimpleName();
@@ -164,6 +175,10 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
       + GenericConnectorDef.class.getSimpleName();
   public static final String GLOB_KEY_LIMIT_DAY_RISKFREERATEMAPPING = GlobalConstants.GT_LIMIT_DAY
       + RiskFreeRateMapping.class.getSimpleName();
+  public static final String GLOB_KEY_LIMIT_DAY_HISTORYQUOTE = GlobalConstants.GT_LIMIT_DAY
+      + Historyquote.class.getSimpleName();
+  public static final String GLOB_KEY_LIMIT_DAY_HISTORYQUOTELEGACY = GlobalConstants.GT_LIMIT_DAY
+      + HistoryquoteLegacy.class.getSimpleName();
   public static final String GLOB_KEY_MAX_SIMULATION_ENVIRONMENTS = GlobalConstants.GT_PREFIX + MAX
       + "simulation.environments";
   public static final String GLOB_KEY_MAX_STANDING_ORDER = GlobalConstants.GT_PREFIX + MAX + "standing.order";
@@ -200,6 +215,8 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_GTNETSECURITYIMPORT, new MaxDefaultDBValue(150));
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_GENERICCONNECTORDEF, new MaxDefaultDBValue(10));
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_RISKFREERATEMAPPING, new MaxDefaultDBValue(2));
+    defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_HISTORYQUOTE, new MaxDefaultDBValue(15));
+    defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_HISTORYQUOTELEGACY, new MaxDefaultDBValue(15));
 
   }
 

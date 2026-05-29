@@ -1,7 +1,7 @@
 package grafioschtrader.connector.instrument.xetra;
 
-import java.net.URI;
 import java.net.URLEncoder;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 import grafiosch.common.DateHelper;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import tools.jackson.databind.DeserializationFeature;
@@ -61,7 +62,7 @@ public class XetraFeedConnector extends BaseFeedConnector {
     super(supportedFeed, "xetra", "Xetra", null, EnumSet.of(UrlCheck.INTRADAY, UrlCheck.HISTORY));
     supportedAssetclassCategories = EnumSet.of(AssetclassCategory.EQUITIES, AssetclassCategory.FIXED_INCOME,
         AssetclassCategory.ETF, AssetclassCategory.MUTUAL_FUND, AssetclassCategory.REAL_ESTATE_FUND,
-        AssetclassCategory.ISSUER_RISK_PRODUCT);
+        AssetclassCategory.ISSUER_RISK_PRODUCT, AssetclassCategory.CFD_DERIVATIVE);
     parseGeoRestrictions("XETR XFRA");
   }
 
@@ -77,8 +78,12 @@ public class XetraFeedConnector extends BaseFeedConnector {
 
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
-    final PriceInformation priceInfo = objectMapper.readValue(new URI(getSecurityIntradayDownloadLink(security)).toURL().openStream(),
-        PriceInformation.class);
+    final HttpResponse<String> response = FeedConnectorHelper.getByHttpClient(getSecurityIntradayDownloadLink(security));
+    if (response.statusCode() != 200) {
+      throw new RuntimeException(
+          "Failed to fetch intraday data from Xetra connector. HTTP status: " + response.statusCode());
+    }
+    final PriceInformation priceInfo = objectMapper.readValue(response.body(), PriceInformation.class);
     if (priceInfo.lastPrice != null) {
       security.setSLast(priceInfo.lastPrice);
     }
@@ -175,7 +180,12 @@ public class XetraFeedConnector extends BaseFeedConnector {
       log.debug("Fetching data for period: {} to {} using URL: {}", currentFrom, chunkEndDate, url);
 
       try {
-        final Quotes quotes = objectMapper.readValue(new URI(url).toURL().openStream(), Quotes.class);
+        final HttpResponse<String> response = FeedConnectorHelper.getByHttpClient(url);
+        if (response.statusCode() != 200) {
+          throw new RuntimeException(
+              "Failed to fetch historical data from Xetra connector. HTTP status: " + response.statusCode());
+        }
+        final Quotes quotes = objectMapper.readValue(response.body(), Quotes.class);
 
         if (quotes.s.equals("ok")) {
           for (int i = 0; i < quotes.t.length; i++) {
@@ -196,6 +206,12 @@ public class XetraFeedConnector extends BaseFeedConnector {
               log.debug("Skipping quote outside requested range: {} (requested: {} to {})", quoteDate, from, to);
             }
           }
+        } else if ("no_data".equals(quotes.s)) {
+          // TradingView UDF protocol: "no_data" means the request was valid but no bars exist in this
+          // period. This is not an error — it happens when active_from_date predates the instrument's
+          // first trading day on this exchange (e.g. a US stock only listed on Xetra years later). Skip
+          // the empty chunk and continue so the remaining chunks still load.
+          log.debug("No data for period: {} to {} (symbol not traded in this range)", currentFrom, chunkEndDate);
         } else {
           log.error("Failed to fetch data for period: {} to {}. Status: {}", currentFrom, chunkEndDate, quotes.s);
           throw new RuntimeException("Failed to fetch historical data from Xetra connector. Status: " + quotes.s);
@@ -234,7 +250,9 @@ public class XetraFeedConnector extends BaseFeedConnector {
     public double[] o;
     public double[] h;
     public double[] l;
-    public long[] v;
+    // Volume is a nullable boxed array: the API returns null entries (and fractional turnover values)
+    // for instruments/days without traded pieces, which a primitive long[] cannot represent.
+    public Long[] v;
   }
 
   /**

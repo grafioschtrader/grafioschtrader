@@ -2,6 +2,7 @@ import {BrowserModule} from '@angular/platform-browser';
 import {inject, NgModule, provideAppInitializer} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {HistoryquoteService} from './historyquote/service/historyquote.service';
+import {HistoryquoteLegacyService} from './historyquote/service/historyquote.legacy.service';
 import {TaxDataService} from './taxdata/service/tax-data.service';
 import {UserChartShapeService} from './historyquote/service/user.chart.shape.service';
 import {MenuModule} from 'primeng/menu';
@@ -483,7 +484,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     CorrelationSetService, CurrencypairService, DataChangedService, DialogService, DividendService, GlobalparameterService, TreeNavigationStateService,
     GlobalparameterGTService, GTNetMessageService, TabMenuService, ReleaseNoteService,
     GTNetMessageAnswerService, GTNetService, GtnetSecurityLookupService, GTNetSecurityImpHeadService, GTNetSecurityImpPosService,
-    HistoryquotePeriodService, HistoryquoteService, HoldingService, ImportTransactionHeadService,
+    HistoryquotePeriodService, HistoryquoteService, HistoryquoteLegacyService, HoldingService, ImportTransactionHeadService,
     ImportTransactionPlatformService, ImportTransactionPosService, ImportTransactionTemplateService, RiskFreeRateMappingService, LoginService,
     MailSendRecvService, MailSendRecvService, MailSettingForwardService, MainDialogService, MessageToastService,
     MultipleRequestToOneService, ParentChildRegisterService, PortfolioService, ProductIconService, ProposeChangeEntityService,
