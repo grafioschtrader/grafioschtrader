@@ -41,6 +41,13 @@ export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implem
   private securityaccount: Securityaccount;
   private lastRouteKey: string = AppSettings.SECURITYACCOUNT_SUMMERY_ROUTE_KEY;
   private successFailedImportTransParam: any = null;
+  /**
+   * Id of the security account the default-tab navigation was last performed for. Guards against the
+   * spurious params re-emission that occurs when entering a child route strips the matrix param from
+   * this component's :id segment - without it, handleNormalNavigation() would re-fire and issue a
+   * competing navigation that resets the child router-outlet (e.g. losing the failed-import param).
+   */
+  private lastHandledId: number;
 
   constructor(
     router: Router,
@@ -67,9 +74,13 @@ export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implem
         if (this.securityaccount) {
           // Handle special import transaction parameter
           if (params[AppSettings.SUCCESS_FAILED_IMP_TRANS]) {
+            this.lastHandledId = id;
             this.successFailedImportTransParam = params[AppSettings.SUCCESS_FAILED_IMP_TRANS];
             this.navigateTo(AppSettings.SECURITYACCOUNT_IMPORT_TAB_MENU_KEY);
-          } else {
+          } else if (id !== this.lastHandledId) {
+            // Genuine account entry/switch - pick the default/last tab. Skipped on the re-emission
+            // triggered by internal child navigation (same id, no param) to avoid a competing navigate.
+            this.lastHandledId = id;
             this.handleNormalNavigation();
           }
         }

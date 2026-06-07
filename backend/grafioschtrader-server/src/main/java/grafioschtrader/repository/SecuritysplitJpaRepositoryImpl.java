@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.Globalparameters;
+import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafiosch.entities.ProposeChangeEntity;
 import grafiosch.entities.ProposeChangeField;
 import grafiosch.entities.TaskDataChange;
@@ -94,6 +95,11 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
   @Transactional
   @Modifying
   public List<Securitysplit> deleteAndCreateMultiple(SecuritysplitDeleteAndCreateMultiple sdacm) {
+    int maxSplits = globalparametersService.getMaxInstrumentSplits();
+    if (sdacm.getSecuritysplits().length > maxSplits) {
+      throw new GeneralNotTranslatedWithArgumentsException("gt.max.instrument.splits.exceeded",
+          new Object[] { maxSplits });
+    }
     final BiPredicate<Securitysplit, Securitysplit> splitCompare = (ss1,
         ss2) -> ss1.getSplitDate().equals(ss2.getSplitDate()) && ss1.getFromFactor().equals(ss2.getFromFactor())
             && ss1.getToFactor().equals(ss2.getToFactor());

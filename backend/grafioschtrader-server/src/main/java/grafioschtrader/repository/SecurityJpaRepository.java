@@ -468,6 +468,26 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   List<MonitorFailedConnector> getFailedHistoryConnector(LocalDate dateBackAfter, int retry, int percentageFailed);
 
   /**
+   * Returns the securities in the personal-data export scope of a tenant that are still active and have a historical
+   * price-data connector configured. These are the candidates that may have a broken (retry-exhausted or unregistered)
+   * EOD connector; the runtime connector-registry check that decides "broken" cannot be expressed in SQL and is applied
+   * by the caller.
+   *
+   * The export scope mirrors the securities exported for a tenant: privately owned securities, securities referenced by
+   * the tenant's transactions, securities on the tenant's watchlists, the underlying securities of derived instruments
+   * in those scopes, and securities used in the tenant's correlation sets.
+   *
+   * Named query: Security.findHistoryConnectorExportCandidates
+   *
+   * @param idTenant   the tenant whose export scope is examined (bound to ?1)
+   * @param activeDate securities with {@code active_to_date >= activeDate} are considered active (bound to ?2; pass
+   *                   today's date)
+   * @return active export-scope securities with a non-null history connector
+   */
+  @Query(nativeQuery = true)
+  List<HistoryConnectorExportCandidate> findHistoryConnectorExportCandidates(Integer idTenant, LocalDate activeDate);
+
+  /**
    * Counts all working and non-functioning intraday connectors. Both securities and currency pairs are taken into
    * account.
    *
@@ -639,6 +659,45 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
      * @return the failure rate as a percentage (0–100)
      */
     int getPercentageFailed();
+  }
+
+  /**
+   * Projection for an active security in a tenant's export scope that has a historical price-data connector configured.
+   * Returned by {@link #findHistoryConnectorExportCandidates(Integer, LocalDate)} and used to decide, and report,
+   * whether the connector is broken (retry-exhausted or no longer registered).
+   */
+  public static interface HistoryConnectorExportCandidate {
+
+    /**
+     * @return the securitycurrency ID of the security
+     */
+    Integer getIdSecuritycurrency();
+
+    /**
+     * @return the human-readable security name
+     */
+    String getName();
+
+    /**
+     * @return the ISIN, or null when the security has none
+     */
+    String getIsin();
+
+    /**
+     * @return the configured historical price-data connector ID (e.g. "gt.datafeed.yahoo"); never null for candidates
+     */
+    String getIdConnectorHistory();
+
+    /**
+     * @return the current retry counter for failed history loads; compared against the configured maximum to detect a
+     *         retry-exhausted connector
+     */
+    Short getRetryHistoryLoad();
+
+    /**
+     * @return the date until which the security is active
+     */
+    LocalDate getActiveToDate();
   }
 
 }

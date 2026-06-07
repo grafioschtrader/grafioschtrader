@@ -15,6 +15,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.test.ConnectorTestHelper;
@@ -23,6 +24,7 @@ import grafioschtrader.repository.MicProviderMapRepository;
 import grafioschtrader.test.start.GTforTest;
 
 @SpringBootTest(classes = GTforTest.class)
+@ActiveProfiles("prod")
 public class YahooUDFConnectTest {
 
   @Autowired

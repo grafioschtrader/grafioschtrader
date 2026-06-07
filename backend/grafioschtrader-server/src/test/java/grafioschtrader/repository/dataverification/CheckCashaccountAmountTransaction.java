@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.data.domain.Sort;
 
 import grafiosch.BaseConstants;
@@ -26,6 +27,7 @@ import grafioschtrader.types.TransactionType;
  *
  */
 @SpringBootTest(classes = GTforTest.class)
+@ActiveProfiles("prod")
 class CheckCashaccountAmountTransaction {
 
   @Autowired

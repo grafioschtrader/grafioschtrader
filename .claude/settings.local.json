@@ -332,7 +332,9 @@
       "PowerShell(git log *)",
       "PowerShell(& \"C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe\" --user=grafioschtrader --password=adergraf --database=grafioschtrader --table --execute=\"SELECT ``date``, ``close``, create_type FROM historyquote WHERE id_securitycurrency = 3615 AND ``date`` BETWEEN '2018-05-20' AND '2018-05-30' ORDER BY ``date``;\")",
       "PowerShell(Get-Content 3615_historyquote.csv -TotalCount 5; Write-Output \"...\"; \\(Get-Content 3615_historyquote.csv | Measure-Object -Line\\).Lines)",
-      "Bash(Get-ChildItem *)"
+      "Bash(Get-ChildItem *)",
+      "PowerShell(npx playwright install chromium)",
+      "WebFetch(domain:stockanalysis.com)"
     ],
     "deny": [],
     "ask": []

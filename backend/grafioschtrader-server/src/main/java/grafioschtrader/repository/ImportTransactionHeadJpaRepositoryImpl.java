@@ -24,6 +24,7 @@ import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.platform.GenericTransactionImport;
 import grafioschtrader.platform.IPlatformTransactionImport;
 import grafioschtrader.platformimport.ImportTransactionHelper;
+import grafioschtrader.repository.ImportTransactionPosJpaRepositoryImpl.CreatedTransactionsResult;
 import grafioschtrader.repository.ImportTransactionPosJpaRepositoryImpl.SavedImpPosAndTransaction;
 import grafioschtrader.types.TemplateFormatType;
 import jakarta.transaction.Transactional;
@@ -99,21 +100,26 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
    */
   private SuccessFailedDirectImportTransaction createRealTransactions(ImportTransactionHead importTransactionHead,
       List<ImportTransactionPos> importTransactionPosList) {
-    List<SavedImpPosAndTransaction> savedImpPosAndTransactions = importTransactionPosJpaRepository
+    CreatedTransactionsResult result = importTransactionPosJpaRepository
         .createAndSaveTransactionsFromImpPos(importTransactionPosList, null);
+    List<SavedImpPosAndTransaction> savedImpPosAndTransactions = result.savedImpPosAndTransactions;
     Optional<ImportTransactionPos> itpErrorOpt = importTransactionPosList.stream()
         .filter(itp -> itp.getTransactionError() != null).findFirst();
     if (itpErrorOpt.isPresent()) {
       // Failed to create a transaction
       return new SuccessFailedDirectImportTransaction(importTransactionHead.getIdTransactionHead());
     } else {
-      // Every transaction was created
+      // Remove only the positions that were actually imported. Positions skipped because of the total transaction
+      // limit are kept (together with the head) so the user can import them later after deleting existing transactions.
       importTransactionPosJpaRepository.deleteAll(
           savedImpPosAndTransactions.stream().map(spat -> spat.importTransactionPos).collect(Collectors.toList()));
-      importTransactionHeadJpaRepository.delete(importTransactionHead);
+      if (result.overTransactionLimitCount == 0) {
+        importTransactionHeadJpaRepository.delete(importTransactionHead);
+      }
       int noOfDifferentSecurities = (int) savedImpPosAndTransactions.stream()
           .map(spat -> spat.transaction.getSecurity().getIdSecuritycurrency()).distinct().count();
-      return new SuccessFailedDirectImportTransaction(savedImpPosAndTransactions.size(), noOfDifferentSecurities);
+      return new SuccessFailedDirectImportTransaction(savedImpPosAndTransactions.size(), noOfDifferentSecurities,
+          result.overTransactionLimitCount);
     }
   }
 
@@ -232,15 +238,22 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
     public Integer idTransactionHead;
     public Integer noOfImportedTransactions;
     public Integer noOfDifferentSecurities;
+    /**
+     * Number of transactions that could not be imported because the tenant reached the total transaction limit
+     * ({@code gt.max.transaction}). When greater than 0 the import partially succeeded and the frontend shows a warning.
+     */
+    public Integer overTransactionLimitCount = 0;
     public boolean failed = true;
 
     public SuccessFailedDirectImportTransaction(Integer idTransactionHead) {
       this.idTransactionHead = idTransactionHead;
     }
 
-    public SuccessFailedDirectImportTransaction(Integer noOfImportedTransactions, Integer noOfDifferentSecurities) {
+    public SuccessFailedDirectImportTransaction(Integer noOfImportedTransactions, Integer noOfDifferentSecurities,
+        Integer overTransactionLimitCount) {
       this.noOfImportedTransactions = noOfImportedTransactions;
       this.noOfDifferentSecurities = noOfDifferentSecurities;
+      this.overTransactionLimitCount = overTransactionLimitCount;
 
       this.failed = false;
     }

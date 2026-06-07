@@ -160,6 +160,15 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
         if (sfdit.failed) {
           this.ngZone.run(() => this.router.navigate([`${BaseSettings.MAINVIEW_KEY}/${AppSettings.SECURITYACCOUNT_TAB_MENU_KEY}`,
             this.idSecurityaccount, data])).then();
+        } else if (sfdit.overTransactionLimitCount > 0) {
+          // Partial success: some transactions were not imported because the total transaction limit was reached
+          this.messageToastService.showMessageI18nEnableHtml(InfoLevelType.WARNING, 'CREATED_TRANS_FROM_IMPORT_OVER_LIMIT',
+            {
+              noOfImportedTransactions: sfdit.noOfImportedTransactions,
+              noOfDifferentSecurities: sfdit.noOfDifferentSecurities,
+              overTransactionLimitCount: sfdit.overTransactionLimitCount
+            });
+          this.readData();
         } else {
           // Success created transactions
           this.messageToastService.showMessageI18nEnableHtml(InfoLevelType.INFO, 'CREATED_TRANS_FROM_IMPORT',

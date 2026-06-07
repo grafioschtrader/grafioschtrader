@@ -70,5 +70,7 @@ export interface SuccessFailedDirectImportTransaction {
   idTransactionHead: number;
   noOfImportedTransactions: number;
   noOfDifferentSecurities: number;
+  /** Number of transactions not imported because the tenant reached the total transaction limit. */
+  overTransactionLimitCount: number;
   failed: boolean;
 }

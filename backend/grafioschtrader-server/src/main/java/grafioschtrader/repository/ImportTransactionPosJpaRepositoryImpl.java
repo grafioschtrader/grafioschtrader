@@ -32,7 +32,9 @@ import grafiosch.entities.User;
 import grafiosch.error.ValidationError;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
+import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.rest.helper.RestHelper;
+import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.CashAccountTransfer;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
@@ -80,6 +82,9 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
 
   @Autowired
   private TransactionJpaRepository transactionJpaRepository;
+
+  @Autowired
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Autowired
   private HistoryquoteJpaRepository historyquoteJpaRepository;
@@ -415,7 +420,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
   }
 
   @Override
-  public List<SavedImpPosAndTransaction> createAndSaveTransactionsFromImpPos(
+  public CreatedTransactionsResult createAndSaveTransactionsFromImpPos(
       List<ImportTransactionPos> importTransactionPosList, Map<Integer, ImportTransactionPos> idItpMap) {
 
     List<Currencypair> currencypairs = null;
@@ -427,11 +432,33 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
     ImportTransactionHead importTransactionHead = importTransactionHeadJpaRepository
         .findByIdTransactionHeadAndIdTenant(importTransactionPosList.get(0).getIdTransactionHead(), user.getIdTenant());
 
+    // Enforce the total (lifetime) per-tenant transaction limit. Import as many positions as fit under the cap and
+    // count the rest; already-created transactions are never rolled back, and skipped positions are left untouched so
+    // they can be imported later (after the user deletes existing transactions).
+    int maxTransaction = globalparametersJpaRepository.getMaxValueByKey(GlobalParamKeyDefault.GLOB_KEY_MAX_TRANSACTION);
+    int tenantTransactionCount = transactionJpaRepository.countByIdTenant(user.getIdTenant());
+    int overTransactionLimitCount = 0;
+
     if (importTransactionHead != null) {
       // Sort by transaction time is required
       Collections.sort(importTransactionPosList);
       for (ImportTransactionPos itp : importTransactionPosList) {
         if (!doneCashaccountTranssferId.contains(itp.getIdTransactionPos())) {
+          boolean connectedTransfer = idItpMap != null && itp.getConnectedIdTransactionPos() != null
+              && idItpMap.containsKey(itp.getIdTransactionPos());
+          ImportTransactionPos otherItp = connectedTransfer ? idItpMap.get(itp.getConnectedIdTransactionPos()) : null;
+          // Number of NEW transactions this position (or connected pair) would create. Updates of existing
+          // transactions do not count against the total limit.
+          int newTransactions = (itp.getIdTransaction() == null ? 1 : 0)
+              + (connectedTransfer && otherItp.getIdTransaction() == null ? 1 : 0);
+          if (newTransactions > 0 && tenantTransactionCount + newTransactions > maxTransaction) {
+            // Total transaction limit reached: do not create, count it and keep the position(s) for a later import.
+            overTransactionLimitCount += newTransactions;
+            if (connectedTransfer) {
+              doneCashaccountTranssferId.add(otherItp.getIdTransactionPos());
+            }
+            continue;
+          }
           Integer idCurrencypair = null;
           // Only transaction that belongs to this tenant will be processed
           if (itp.isReadyForTransaction()
@@ -447,24 +474,27 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
             }
             itp.calcCashaccountAmount();
           }
-          if (idItpMap != null && itp.getConnectedIdTransactionPos() != null
-              && idItpMap.containsKey(itp.getIdTransactionPos())) {
+          if (connectedTransfer) {
             // Connected cash account transfer
-            ImportTransactionPos otherItp = idItpMap.get(itp.getConnectedIdTransactionPos());
             savedImpPosAndTransactions.addAll(saveCashAccountTransferTransaction(importTransactionHead,
                 new ImportTransactionPos[] { itp, otherItp }, user, idCurrencypair));
             doneCashaccountTranssferId.add(otherItp.getIdTransactionPos());
+            tenantTransactionCount += newTransactions;
           } else {
             // Other transaction
-            saveSingleTransaction(importTransactionHead, itp, user, idCurrencypair)
-                .ifPresent(savedImpPosAndTransactions::add);
+            Optional<SavedImpPosAndTransaction> saved = saveSingleTransaction(importTransactionHead, itp, user,
+                idCurrencypair);
+            saved.ifPresent(savedImpPosAndTransactions::add);
+            if (saved.isPresent()) {
+              tenantTransactionCount += newTransactions;
+            }
           }
         }
       }
     } else {
       throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
-    return savedImpPosAndTransactions;
+    return new CreatedTransactionsResult(savedImpPosAndTransactions, overTransactionLimitCount);
   }
 
   /**
@@ -843,5 +873,25 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
       this.importTransactionPos = importTransactionPos;
     }
 
+  }
+
+  /**
+   * Result of {@link #createAndSaveTransactionsFromImpPos(List, Map)}. Carries the successfully created
+   * transaction/position pairs together with the number of transactions that were not created because the tenant
+   * reached the total transaction limit ({@code gt.max.transaction}). Already-created transactions are kept; positions
+   * not imported because of the limit are left untouched so they can be imported later.
+   */
+  public static class CreatedTransactionsResult {
+    /** The successfully created or updated transaction and position pairs. */
+    public final List<SavedImpPosAndTransaction> savedImpPosAndTransactions;
+
+    /** Number of transactions not created because the tenant's total transaction limit was reached. */
+    public final int overTransactionLimitCount;
+
+    public CreatedTransactionsResult(List<SavedImpPosAndTransaction> savedImpPosAndTransactions,
+        int overTransactionLimitCount) {
+      this.savedImpPosAndTransactions = savedImpPosAndTransactions;
+      this.overTransactionLimitCount = overTransactionLimitCount;
+    }
   }
 }

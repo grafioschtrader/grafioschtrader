@@ -157,6 +157,7 @@
   "COUNTRY_CODE": "Land",
   "COUNT_MISSING_YEAR": "Fehlende in jenem Jahr",
   "CREATED_TRANS_FROM_IMPORT": "Erfoglreich {{noOfImportedTransactions}} Transaktion/en von {{noOfDifferentSecurities}} Wertpapier/e importiert",
+  "CREATED_TRANS_FROM_IMPORT_OVER_LIMIT": "{{noOfImportedTransactions}} Transaktion/en von {{noOfDifferentSecurities}} Wertpapier/e importiert; {{overTransactionLimitCount}} nicht importiert, da das Transaktionslimit erreicht wurde. Löschen Sie bestehende Transaktionen und importieren Sie den Rest.",
   "CREATE_AND_ADD_CURRENCYPAIR": "Hinzufügen neu erstelltes Währungspaar",
   "CREATE_AND_ADD_SECURITY": "Hinzufügen neues Wertpapier",
   "CREATE_GTNET_IMPORT_FROM_MISSING": "GTNet-Import für fehlende Wertapapiere erstellen",

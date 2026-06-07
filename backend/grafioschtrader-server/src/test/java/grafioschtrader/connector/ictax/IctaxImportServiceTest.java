@@ -20,6 +20,7 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -38,6 +39,7 @@ import grafioschtrader.service.IctaxImportService;
 import grafioschtrader.test.start.GTforTest;
 
 @SpringBootTest(classes = GTforTest.class)
+@ActiveProfiles("prod")
 @TestMethodOrder(OrderAnnotation.class)
 @TestInstance(Lifecycle.PER_CLASS)
 class IctaxImportServiceTest {

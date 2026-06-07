@@ -3,6 +3,12 @@ package grafiosch.repository;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -14,6 +20,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import grafiosch.entities.User;
+import grafiosch.exportdelete.AdditionalExportQuery;
+import grafiosch.exportdelete.IExportMyDataAddon;
 import grafiosch.exportdelete.MySqlDeleteMyData;
 import grafiosch.exportdelete.MySqlExportMyData;
 import grafiosch.rest.helper.RestHelper;
@@ -38,6 +46,13 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
 
   @Autowired
   private ResourceLoader resourceLoader;
+
+  /**
+   * Optional application-specific contributors that add extra rows and/or plain-text documents to the export ZIP. May be
+   * empty when no module provides one.
+   */
+  @Autowired(required = false)
+  private List<IExportMyDataAddon> exportMyDataAddons;
 
   @Override
   public void deleteMyDataAndUserAccount() throws Exception {
@@ -72,7 +87,15 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
     String ddlFileName = "gt_ddl.sql";
     Resource resourceDdl = resourceLoader.getResource("classpath:db/migration/" + ddlFileName);
 
-    StringBuilder sqlStatement = new MySqlExportMyData(jdbcTemplate, user).exportDataMyData();
+    List<IExportMyDataAddon> addons = exportMyDataAddons == null ? Collections.emptyList() : exportMyDataAddons;
+    List<AdditionalExportQuery> additionalExportQueries = new ArrayList<>();
+    Map<String, String> zipTextEntries = new LinkedHashMap<>();
+    for (IExportMyDataAddon addon : addons) {
+      additionalExportQueries.addAll(addon.getAdditionalExportQueries(user));
+      zipTextEntries.putAll(addon.getZipTextEntries(user));
+    }
+
+    StringBuilder sqlStatement = new MySqlExportMyData(jdbcTemplate, user).exportDataMyData(additionalExportQueries);
 
     // setting headers
     response.setStatus(HttpServletResponse.SC_OK);
@@ -82,6 +105,10 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
     addZipEntry(zipOutputStream, resourceDdl.getInputStream(), ddlFileName);
     InputStream dmlInputStream = new ByteArrayInputStream(sqlStatement.toString().getBytes());
     addZipEntry(zipOutputStream, dmlInputStream, "gt_data.sql");
+    for (Map.Entry<String, String> textEntry : zipTextEntries.entrySet()) {
+      addZipEntry(zipOutputStream, new ByteArrayInputStream(textEntry.getValue().getBytes(StandardCharsets.UTF_8)),
+          textEntry.getKey());
+    }
     zipOutputStream.close();
   }
 

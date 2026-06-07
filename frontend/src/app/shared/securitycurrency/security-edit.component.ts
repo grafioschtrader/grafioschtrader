@@ -122,8 +122,11 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   @ViewChild('periodPriceForm') dynamicPeriodPriceForm: DynamicFormComponent;
   @ViewChild(SecurityHistoryquotePeriodEditTableComponent) shpetc: SecurityHistoryquotePeriodEditTableComponent;
 
-  readonly maxSplits = 20;
-  readonly maxHistoryquotePeriods = 20;
+  // Per-instrument limits sourced from the backend (gt.max.instrument.splits /
+  // gt.max.instrument.historyquote.periods), loaded in loadHelperData(). The 20 defaults are a safe fallback while
+  // the backend value is in flight and only matter if a user adds a row before the request resolves.
+  maxSplits = 20;
+  maxHistoryquotePeriods = 20;
 
   // Input from parent view
   @Input() visibleEditSecurityDialog: boolean;
@@ -492,6 +495,10 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   }
 
   protected override loadHelperData(): void {
+    this.gpsGT.getMaxInstrumentLimits().subscribe(limits => {
+      this.maxSplits = limits.maxInstrumentSplits;
+      this.maxHistoryquotePeriods = limits.maxInstrumentHistoryquotePeriods;
+    });
     this.securityEditSupport.registerValueOnChanged(SecurityDerived.Security, this.configObject);
     this.valueChangedOnStockexchange();
     this.valueChangedOnDistributionFrequency();

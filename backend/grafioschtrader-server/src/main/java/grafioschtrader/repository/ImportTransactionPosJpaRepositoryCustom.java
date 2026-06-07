@@ -8,7 +8,7 @@ import grafioschtrader.entities.ImportTransactionHead;
 import grafioschtrader.entities.ImportTransactionPos;
 import grafioschtrader.entities.Security;
 import grafioschtrader.platformimport.CombineTemplateAndImpTransPos;
-import grafioschtrader.repository.ImportTransactionPosJpaRepositoryImpl.SavedImpPosAndTransaction;
+import grafioschtrader.repository.ImportTransactionPosJpaRepositoryImpl.CreatedTransactionsResult;
 
 /**
  * Custom repository interface for advanced import transaction position operations and transaction lifecycle management.
@@ -225,11 +225,18 @@ public interface ImportTransactionPosJpaRepositoryCustom {
    * <li>Weekend date adjustments for dividend payments</li>
    * </ul>
    * 
+   * <p>
+   * The total per-tenant transaction limit ({@code gt.max.transaction}) is enforced here: as many positions as fit
+   * under the cap are created, the remaining ones are skipped (left untouched for a later import) and counted. Already
+   * created transactions are never rolled back.
+   * </p>
+   *
    * @param importTransactionPosList List of validated import positions to convert
    * @param idItpMap                 Optional map of position IDs to positions for handling connected transactions
-   * @return List of successfully created transaction and position pairs
+   * @return the created transaction/position pairs together with the number of transactions skipped because the total
+   *         transaction limit was reached
    */
-  List<SavedImpPosAndTransaction> createAndSaveTransactionsFromImpPos(
+  CreatedTransactionsResult createAndSaveTransactionsFromImpPos(
       List<ImportTransactionPos> importTransactionPosList, Map<Integer, ImportTransactionPos> idItpMap);
 
   /**

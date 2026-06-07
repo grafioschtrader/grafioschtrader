@@ -158,6 +158,7 @@
   "COUNTRY_CODE": "Country",
   "COUNT_MISSING_YEAR": "Missing in that year",
   "CREATED_TRANS_FROM_IMPORT": "Successful  {{noOfImportedTransactions}} transaction(s) von {{noOfDifferentSecurities}} security(s) imported",
+  "CREATED_TRANS_FROM_IMPORT_OVER_LIMIT": "{{noOfImportedTransactions}} transaction(s) from {{noOfDifferentSecurities}} security(s) imported; {{overTransactionLimitCount}} not imported because the transaction limit was reached. Delete existing transactions and import the rest.",
   "CREATE_AND_ADD_CURRENCYPAIR": "Create and add currencypair",
   "CREATE_AND_ADD_SECURITY": "Create and add security",
   "CREATE_GTNET_IMPORT_FROM_MISSING": "Create GTNet import from missing securities",

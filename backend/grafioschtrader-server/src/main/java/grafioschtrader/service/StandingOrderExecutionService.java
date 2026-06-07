@@ -24,7 +24,9 @@ import com.ezylang.evalex.data.EvaluationValue;
 
 import grafiosch.exceptions.DataViolation;
 import grafiosch.exceptions.DataViolationException;
+import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.repository.UserJpaRepository;
+import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.StandingOrder;
@@ -60,6 +62,9 @@ public class StandingOrderExecutionService {
 
   @Autowired
   private TransactionJpaRepository transactionJpaRepository;
+
+  @Autowired
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Autowired
   private HistoryquoteJpaRepository historyquoteJpaRepository;
@@ -125,7 +130,23 @@ public class StandingOrderExecutionService {
     List<StandingOrderFailure> failures = new ArrayList<>();
     LocalDate scheduledDate = so.getNextExecutionDate();
 
+    // Enforce the total (lifetime) per-tenant transaction limit, also for automatic standing-order executions.
+    int maxTransaction = globalparametersJpaRepository.getMaxValueByKey(GlobalParamKeyDefault.GLOB_KEY_MAX_TRANSACTION);
+    int tenantTransactionCount = transactionJpaRepository.countByIdTenant(so.getIdTenant());
+
     while (scheduledDate != null && !scheduledDate.isAfter(processingDate) && so.getNextExecutionDate() != null) {
+      if (tenantTransactionCount >= maxTransaction) {
+        // Transaction limit reached: stop without advancing nextExecutionDate so this standing order resumes
+        // automatically once the tenant deletes transactions. Already-created catch-up transactions are kept.
+        Locale locale = userJpaRepository.findByIdTenant(so.getIdTenant()).map(user -> user.createAndGetJavaLocale())
+            .orElse(Locale.ENGLISH);
+        String msg = messageSource.getMessage("gt.transaction.limit.exceeded", new Object[] { maxTransaction },
+            "gt.transaction.limit.exceeded", locale);
+        failures.add(new StandingOrderFailure(so.getIdStandingOrder(), scheduledDate, msg, null));
+        log.warn("Standing order {} skipped on {}: transaction limit {} reached", so.getIdStandingOrder(),
+            scheduledDate, maxTransaction);
+        break;
+      }
       LocalDate effectiveDate = adjustForWeekend(scheduledDate, so.getWeekendAdjust());
       if (so instanceof StandingOrderSecurity sos) {
         effectiveDate = adjustForTradingDay(effectiveDate, sos, processingDate);
@@ -141,6 +162,7 @@ public class StandingOrderExecutionService {
 
         if (transaction != null) {
           transactionJpaRepository.saveOnlyAttributesFormImport(transaction, null);
+          tenantTransactionCount++;
           log.debug("Standing order {} created transaction on {}", so.getIdStandingOrder(), effectiveDate);
         }
       } catch (StandingOrderBusinessException e) {

@@ -212,7 +212,31 @@ public class GlobalparametersService {
         .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_FORCE_CONNECTOR_MATCH);
   }
 
-  
+  /**
+   * Gets the maximum number of split entries a user may record per instrument.
+   *
+   * @return the configured limit; defaults to {@link GlobalParamKeyDefault#DEFAULT_MAX_INSTRUMENT_SPLITS}
+   * @see GlobalParamKeyDefault#GLOB_KEY_MAX_INSTRUMENT_SPLITS
+   */
+  public int getMaxInstrumentSplits() {
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_MAX_INSTRUMENT_SPLITS)
+        .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_MAX_INSTRUMENT_SPLITS);
+  }
+
+  /**
+   * Gets the maximum number of history-quote periods a user may record per instrument.
+   *
+   * @return the configured limit; defaults to
+   *         {@link GlobalParamKeyDefault#DEFAULT_MAX_INSTRUMENT_HISTORYQUOTE_PERIODS}
+   * @see GlobalParamKeyDefault#GLOB_KEY_MAX_INSTRUMENT_HISTORYQUOTE_PERIODS
+   */
+  public int getMaxInstrumentHistoryquotePeriods() {
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_MAX_INSTRUMENT_HISTORYQUOTE_PERIODS)
+        .map(Globalparameters::getPropertyInt)
+        .orElse(GlobalParamKeyDefault.DEFAULT_MAX_INSTRUMENT_HISTORYQUOTE_PERIODS);
+  }
+
+
 
   /**
    * Gets the timestamp when GTNetExchange was last synchronized with peers.

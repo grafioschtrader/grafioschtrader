@@ -15,12 +15,14 @@ import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.ProposeChangeEntity;
 import grafiosch.entities.ProposeChangeField;
 import grafiosch.entities.User;
+import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafiosch.repository.ProposeChangeEntityJpaRepository;
 import grafiosch.repository.ProposeChangeFieldJpaRepository;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.HistoryquotePeriodDeleteAndCreateMultiple;
 import grafioschtrader.entities.HistoryquotePeriod;
 import grafioschtrader.entities.Security;
+import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.types.HistoryquotePeriodCreateType;
 
 /**
@@ -41,6 +43,9 @@ public class HistoryquotePeriodJpaRepositoryImpl implements HistoryquotePeriodJp
 
   @Autowired
   private ProposeChangeFieldJpaRepository proposeChangeFieldJpaRepository;
+
+  @Autowired
+  private GlobalparametersService globalparametersService;
 
   @Override
   public void adjustHistoryquotePeriod(Security security) {
@@ -74,6 +79,11 @@ public class HistoryquotePeriodJpaRepositoryImpl implements HistoryquotePeriodJp
   @Transactional
   @Modifying
   public List<HistoryquotePeriod> deleteAndCreateMultiple(User user, HistoryquotePeriodDeleteAndCreateMultiple hpdacm) {
+    int maxPeriods = globalparametersService.getMaxInstrumentHistoryquotePeriods();
+    if (hpdacm.getHistoryquotePeriods().length > maxPeriods) {
+      throw new GeneralNotTranslatedWithArgumentsException("gt.max.instrument.historyquote.periods.exceeded",
+          new Object[] { maxPeriods });
+    }
 
     Security security = securityJpaRepository.findByIdTenantPrivateIsNullOrIdTenantPrivateAndIdSecuritycurrency(
         hpdacm.idSecuritycurrency, user.getIdTenant());

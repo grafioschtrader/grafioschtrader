@@ -9,6 +9,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.alphavantage.AlphaVantageFeedConnector;
@@ -17,6 +18,7 @@ import grafioschtrader.test.start.GTforTest;
 import grafioschtrader.types.SubscriptionType;
 
 @SpringBootTest(classes = GTforTest.class)
+@ActiveProfiles("prod")
 class AlphaVantageFeedConnectorTest extends BaseFeedConnectorCheck {
 
   private final AlphaVantageFeedConnector alphaVantageConnector;
