@@ -72,6 +72,11 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
   /** Default mode for connector / asset class compatibility enforcement (0=off, 1=server only, 2=server + UI). */
   public static final int DEFAULT_FORCE_CONNECTOR_MATCH = 0;
 
+  /** Default maximum number of split entries a user may record per instrument. */
+  public static final int DEFAULT_MAX_INSTRUMENT_SPLITS = 20;
+  /** Default maximum number of history-quote periods a user may record per instrument. */
+  public static final int DEFAULT_MAX_INSTRUMENT_HISTORYQUOTE_PERIODS = 20;
+
   public static final String GLOB_KEY_CURRENCY_PRECISION = GlobalConstants.GT_PREFIX + "currency.precision";
   /** Connector settings */
   public static final String GLOB_KEY_CRYPTOCURRENCY_HISTORY_CONNECTOR = GlobalConstants.GT_PREFIX
@@ -131,6 +136,8 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
   public static final LocalDateTime DEFAULT_GTNET_EXCHANGE_SYNC_TIMESTAMP = LocalDateTime.of(1970, 1, 1, 0, 0, 0);
   /** Tenant data entity limits */
   private static final String MAX = "max.";
+  /** Total (lifetime) number of transactions a single tenant may create. Resolves to {@code gt.max.transaction}. */
+  public static final String GLOB_KEY_MAX_TRANSACTION = GlobalConstants.GT_PREFIX + MAX + "transaction";
   public static final String GLOB_KEY_MAX_CASH_ACCOUNT = GlobalConstants.GT_PREFIX + MAX + "cash.account";
   public static final String GLOB_KEY_MAX_PORTFOLIO = GlobalConstants.GT_PREFIX + MAX + "portfolio";
   public static final String GLOB_KEY_MAX_SECURITY_ACCOUNT = GlobalConstants.GT_PREFIX + MAX + "security.account";
@@ -141,10 +148,17 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
   public static final String GLOB_KEY_MAX_CORRELATION_SET = GlobalConstants.GT_PREFIX + MAX + "correlation.set";
   public static final String GLOB_KEY_MAX_CORRELATION_INSTRUMENTS = GlobalConstants.GT_PREFIX + MAX
       + "correlation.instruments";
+  /** Maximum number of split entries per instrument. Resolves to {@code gt.max.instrument.splits}. */
+  public static final String GLOB_KEY_MAX_INSTRUMENT_SPLITS = GlobalConstants.GT_PREFIX + MAX + "instrument.splits";
+  /**
+   * Maximum number of history-quote periods per instrument. Resolves to
+   * {@code gt.max.instrument.historyquote.periods}.
+   */
+  public static final String GLOB_KEY_MAX_INSTRUMENT_HISTORYQUOTE_PERIODS = GlobalConstants.GT_PREFIX + MAX
+      + "instrument.historyquote.periods";
   public static final String GLOB_KEY_UPDATE_PRICE_BY_EXCHANGE = GlobalConstants.GT_PREFIX + "update.price.by.exchange";
   /**
    * Three-state switch for connector ↔ asset class compatibility checking, evaluated against
-   * {@link grafioschtrader.connector.instrument.BaseFeedConnector#supports}: 0 disables, 1 enforces server-side
    * only, 2 enforces server-side AND tells the frontend dropdown to hide incompatible connectors.
    */
   public static final String GLOB_KEY_FORCE_CONNECTOR_MATCH = GlobalConstants.GT_PREFIX + "force.connector.match";
@@ -189,6 +203,7 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
     super();
     Map<String, MaxDefaultDBValue> defaultLimitMap = Globalparameters.defaultLimitMap;
     /** Set tenant data entity limits in total on not shared entries. */
+    defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_MAX_TRANSACTION, new MaxDefaultDBValue(5000));
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_MAX_CASH_ACCOUNT, new MaxDefaultDBValue(30));
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_MAX_PORTFOLIO, new MaxDefaultDBValue(20));
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_MAX_SECURITY_ACCOUNT, new MaxDefaultDBValue(20));

@@ -2,11 +2,9 @@ package grafioschtrader.dto;
 
 import grafioschtrader.entities.HistoryquotePeriod;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Size;
 
 public class HistoryquotePeriodDeleteAndCreateMultiple extends DeleteAndCreateMultiple {
 
-  @Size(max = 20)
   @Valid
   private HistoryquotePeriod[] historyquotePeriods;
 

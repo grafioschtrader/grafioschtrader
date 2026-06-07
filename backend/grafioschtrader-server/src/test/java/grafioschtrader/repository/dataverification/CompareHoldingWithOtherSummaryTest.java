@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafioschtrader.entities.TradingDaysPlus;
@@ -29,6 +30,7 @@ import grafioschtrader.test.start.GTforTest;
 
 @Transactional
 @SpringBootTest(classes = GTforTest.class)
+@ActiveProfiles("prod")
 class CompareHoldingWithOtherSummaryTest {
 
   @Autowired

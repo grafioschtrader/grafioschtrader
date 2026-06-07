@@ -1,5 +1,6 @@
 package grafiosch.exportdelete;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -37,6 +38,20 @@ public class MySqlExportMyData {
    * @throws Exception if an error occurs during data fetching or statement creation.
    */
   public StringBuilder exportDataMyData() throws Exception {
+    return exportDataMyData(Collections.emptyList());
+  }
+
+  /**
+   * Exports the user's data as a series of SQL INSERT statements, with additional rows contributed by
+   * {@link IExportMyDataAddon} implementations. The additional rows are appended after the regular
+   * {@link ExportDefinition}-driven export but before the user-role grant, so they stay within the
+   * {@code NO_AUTO_VALUE_ON_ZERO} sql_mode wrapper and benefit from all parent rows already inserted.
+   *
+   * @param additionalExportQueries extra queries whose rows are appended as INSERT statements; may be empty
+   * @return A {@link StringBuilder} containing the SQL INSERT statements for the exported data.
+   * @throws Exception if an error occurs during data fetching or statement creation.
+   */
+  public StringBuilder exportDataMyData(List<AdditionalExportQuery> additionalExportQueries) throws Exception {
     StringBuilder sqlStatement = new StringBuilder();
     sqlStatement.append("SET @old_sql_mode = @@SESSION.sql_mode;\n");
     sqlStatement.append("SET SESSION sql_mode = CONCAT_WS(',', @@SESSION.sql_mode, 'NO_AUTO_VALUE_ON_ZERO');\n");
@@ -44,6 +59,10 @@ public class MySqlExportMyData {
       if (exportDefinition.isExport()) {
         sqlStatement.append(getDataAndCreateInsertStatement(exportDefinition));
       }
+    }
+    for (AdditionalExportQuery additionalExportQuery : additionalExportQueries) {
+      sqlStatement.append(
+          getDataAndCreateInsertStatementRaw(additionalExportQuery.getTableName(), additionalExportQuery.getSelectSql()));
     }
     sqlStatement.append(createInsertUserRole(user.getIdUser()));
     sqlStatement.append("SET SESSION sql_mode = @old_sql_mode;\n");
@@ -79,6 +98,29 @@ public class MySqlExportMyData {
       sqlStatement.append(MySqlInsertStatementGenerator.createInsertStatements(exportDefinition.table, metaData, rows));
     }
 
+    return sqlStatement;
+  }
+
+  /**
+   * Runs a ready-to-use {@code SELECT} (no bind parameters) and turns its rows into INSERT statements for the given
+   * table. Unlike {@link #getDataAndCreateInsertStatement(ExportDefinition)} this bypasses
+   * {@link ExportDeleteHelper#getQuery} / parameter binding, because the SQL is already complete with all identifiers
+   * inlined. Used for rows contributed by {@link IExportMyDataAddon}.
+   *
+   * @param tableName the target table the rows belong to (INSERT target)
+   * @param sql       the complete {@code SELECT ... FROM ...} statement to execute
+   * @return a {@link StringBuilder} with the INSERT statements, or empty if the query returned no rows
+   * @throws Exception if an error occurs during the database query or metadata retrieval
+   */
+  private StringBuilder getDataAndCreateInsertStatementRaw(String tableName, String sql) throws Exception {
+    StringBuilder sqlStatement = new StringBuilder();
+    log.debug("Execute additional export query: table={}, query={}", tableName, sql);
+    final List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+    if (!rows.isEmpty()) {
+      java.sql.ResultSetMetaData metaData = jdbcTemplate
+          .query(sql + " LIMIT 1", (resultSet, rowNum) -> resultSet.getMetaData()).get(0);
+      sqlStatement.append(MySqlInsertStatementGenerator.createInsertStatements(tableName, metaData, rows));
+    }
     return sqlStatement;
   }
 

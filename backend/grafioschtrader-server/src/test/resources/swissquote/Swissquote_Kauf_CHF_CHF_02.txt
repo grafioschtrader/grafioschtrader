@@ -1,0 +1,20 @@
+
+Gland, 08.03.2026
+Börsentransaktion: Kauf Unsere Referenz: 12345678 
+Gemäss Ihrem Kaufauftrag vom 08.03.2026 haben wir folgende Transaktionen vorgenommen:
+Titel Börse
+21Shares Bitcoin Core ETP ISIN: CH1199067674 SIX Swiss Exchange 
+NKN: 175230
+Anzahl Preis Betrag
+1'200 12.88 CHF 15'456.00
+Total CHF 15'456.00
+Kommission Swissquote Bank AG CHF 9.85
+Börsengebühren CHF 3.82
+Zu Ihren Lasten CHF 15'469.67
+Betrag belastet auf Kontonummer  99999900, Valutadatum 04.06.2026
+Dieser Transaktionsbeleg sowie die darin beschriebene Transaktion unterliegen unseren Allgemeinen Geschäftsbedingungen und unserem
+Depotreglement.
+Vielen Dank für Ihren Auftrag.
+Swissquote Bank AG, 33 chemin de la Crétaux, CH-1196 Gland  Formular ohne Unterschrift | SE&O.
+Customer Care : 0848 25 88 88 (Aus dem Ausland +41 44 825 88 88)
+MwSt n° CHE-116.310.079 

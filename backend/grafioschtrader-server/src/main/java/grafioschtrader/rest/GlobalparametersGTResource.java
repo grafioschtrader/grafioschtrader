@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafiosch.entities.Globalparameters;
+import grafioschtrader.dto.MaxInstrumentLimits;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.types.AssetclassType;
@@ -55,5 +56,13 @@ public class GlobalparametersGTResource {
   @GetMapping(value = "/possibleassetclassspezinstrument", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<EnumMap<AssetclassType, SpecialInvestmentInstruments[]>> getPossibleAssetclassInstrumentMap() {
     return new ResponseEntity<>(Assetclass.possibleInstrumentsMap, HttpStatus.OK);
+  }
+
+  @Operation(summary = "Return the per-instrument maximum number of splits and history-quote periods", description = "", tags = {
+      Globalparameters.TABNAME })
+  @GetMapping(value = "/maxinstrumentlimits", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<MaxInstrumentLimits> getMaxInstrumentLimits() {
+    return new ResponseEntity<>(new MaxInstrumentLimits(globalparametersService.getMaxInstrumentSplits(),
+        globalparametersService.getMaxInstrumentHistoryquotePeriods()), HttpStatus.OK);
   }
 }

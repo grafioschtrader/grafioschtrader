@@ -40,4 +40,10 @@ export enum GlobalGTSessionNames {
    * Connector / asset class compatibility enforcement mode (gt.force.connector.match): 0/1/2.
    */
   FORCE_CONNECTOR_MATCH = 'forceConnectorMatch',
+
+  /**
+   * Per-instrument editing limits (max splits / max history-quote periods) as a JSON-serialized
+   * {@link MaxInstrumentLimits} object.
+   */
+  MAX_INSTRUMENT_LIMITS = 'maxInstrumentLimits',
 }

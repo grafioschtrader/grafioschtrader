@@ -17,9 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 import grafiosch.BaseConstants;
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
+import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafiosch.repository.BaseRepositoryImpl;
+import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.types.OperationType;
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.CashAccountTransfer;
 import grafioschtrader.dto.ClosedMarginUnits;
@@ -54,6 +57,9 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
   @Autowired
   private GlobalparametersService globalparametersService;
+
+  @Autowired
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Autowired
   private SecurityaccountJpaRepository securityaccountJpaRepository;
@@ -159,6 +165,14 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   public Transaction saveOnlyAttributes(final Transaction transaction, Transaction existingEntity,
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
     return saveOnly(transaction, existingEntity, updatePropertyLevelClasses);
+  }
+
+  @Override
+  public void throwWhenTransactionLimitReached(Integer idTenant) {
+    int max = globalparametersJpaRepository.getMaxValueByKey(GlobalParamKeyDefault.GLOB_KEY_MAX_TRANSACTION);
+    if (transactionJpaRepository.countByIdTenant(idTenant) >= max) {
+      throw new GeneralNotTranslatedWithArgumentsException("gt.transaction.limit.exceeded", new Object[] { max });
+    }
   }
 
   private Transaction saveOnly(final Transaction transaction, Transaction existingEntity,

@@ -12,6 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafioschtrader.dto.TransactionCostEstimateRequest;
@@ -32,6 +33,7 @@ import jakarta.persistence.EntityManager;
  * Requires a populated database — not for CI.
  */
 @SpringBootTest(classes = GTforTest.class)
+@ActiveProfiles("prod")
 @Transactional
 // @Disabled("Manual report — requires database with transaction data")
 class TransactionCostEstimatorReportTest {

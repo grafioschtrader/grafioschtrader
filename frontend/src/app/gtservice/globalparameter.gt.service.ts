@@ -12,6 +12,7 @@ import {AssetclassType} from '../shared/types/assetclass.type';
 import {SpecialInvestmentInstruments} from '../shared/types/special.investment.instruments';
 import {BaseSettings} from '../lib/base.settings';
 import {GlobalGTSessionNames} from '../shared/global.gt.session.names';
+import {MaxInstrumentLimits} from './max.instrument.limits';
 
 @Injectable()
 export class GlobalparameterGTService extends BaseAuthService<Globalparameters> {
@@ -30,6 +31,23 @@ export class GlobalparameterGTService extends BaseAuthService<Globalparameters> 
   public getStartFeedDateAsTime(): Observable<number> {
     return this.getGlobalparameterNumber(GlobalGTSessionNames.START_FEED_DATE,
       AppSettings.GT_GLOBALPARAMETERS_P_KEY, 'startfeeddate');
+  }
+
+  /**
+   * Returns the per-instrument editing limits (max splits and max history-quote periods) from the backend. The
+   * result is cached in sessionStorage so the Security edit dialog fetches it at most once per session.
+   */
+  public getMaxInstrumentLimits(): Observable<MaxInstrumentLimits> {
+    const cached = sessionStorage.getItem(GlobalGTSessionNames.MAX_INSTRUMENT_LIMITS);
+    if (cached) {
+      return of(JSON.parse(cached));
+    }
+    return <Observable<MaxInstrumentLimits>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}`
+      + `${AppSettings.GT_GLOBALPARAMETERS_P_KEY}/maxinstrumentlimits`,
+      this.getHeaders()).pipe(
+      tap(value => sessionStorage.setItem(GlobalGTSessionNames.MAX_INSTRUMENT_LIMITS, JSON.stringify(value))),
+      catchError(this.handleError.bind(this))
+    );
   }
 
   public getCurrencies(): Observable<ValueKeyHtmlSelectOptions[]> {

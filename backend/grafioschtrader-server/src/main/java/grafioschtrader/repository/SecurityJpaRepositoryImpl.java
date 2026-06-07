@@ -772,9 +772,13 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
   @Override
   public List<Historyquote> fillGap(Security security) {
+    List<Historyquote> historyquotesFill = new ArrayList<>();
+    // Without at least one real quote there is no anchor to fill from; never fabricate from nothing.
+    if (security.getHistoryquoteList().isEmpty()) {
+      return historyquotesFill;
+    }
     List<LocalDate> missingDates = historyquoteJpaRepository.getMissingEODForSecurityByUpdCalendarIndex(
         security.getStockexchange().getIdIndexUpdCalendar(), security.getIdSecuritycurrency());
-    List<Historyquote> historyquotesFill = new ArrayList<>();
     if (!missingDates.isEmpty()) {
       int missingDateCounter = 0;
       int historyIdxFirst = Collections.binarySearch(security.getHistoryquoteList(),
@@ -783,32 +787,35 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
         fillGapEODAfterFirstHistoryquote(security, historyquotesFill, historyIdxFirst, missingDates,
             missingDateCounter);
       } else {
-        fillGapEODBeforeFirstHistoryquote(security, historyquotesFill, missingDates, missingDateCounter);
+        skipGapEODBeforeFirstHistoryquote(security, historyquotesFill, missingDates, missingDateCounter);
       }
     }
     return historyquotesFill;
   }
 
   /**
-   * Fills gaps in End-Of-Day (EOD) history quotes for a security before its first recorded history quote. This method
-   * is used when missing trading days are identified before the earliest available history quote for the security. It
-   * assumes the closing price of the first available quote for subsequent missing dates until it reaches a point where
-   * existing data takes over or all missing dates before the first quote are filled.
+   * Skips missing trading days that fall <i>before</i> the security's first connector-delivered quote, then delegates
+   * the remaining (interior) gaps to {@link #fillGapEODAfterFirstHistoryquote}.
+   *
+   * <p>The span between the trade date ({@code activeFromDate}, often defaulted to
+   * {@link grafioschtrader.GlobalConstants#OLDEST_TRADING_DAY}) and the first quote the connector actually returns must
+   * never be fabricated with a carried-back close — the instrument did not trade then. Pre-first-quote history can only
+   * legitimately come from {@code historyquote_legacy} (real preserved data) via {@code supplementFromShadow}; that
+   * archive intentionally ignores synthetic {@link HistoryquoteCreateType#FILL_GAP_BY_CONNECTOR} rows. Therefore these
+   * leading missing dates are skipped rather than filled.
    *
    * @param security           The security for which to fill history quote gaps.
-   * @param historyquotesFill  A list to which the newly created {@link Historyquote} objects will be added.
+   * @param historyquotesFill  A list to which interior gap {@link Historyquote} objects will be added.
    * @param missingDates       A sorted list of dates for which EOD data is missing.
    * @param missingDateCounter The starting index in {@code missingDates} to process.
    */
-  private void fillGapEODBeforeFirstHistoryquote(Security security, List<Historyquote> historyquotesFill,
+  private void skipGapEODBeforeFirstHistoryquote(Security security, List<Historyquote> historyquotesFill,
       List<LocalDate> missingDates, int missingDateCounter) {
-    do {
-      historyquotesFill
-          .add(new Historyquote(security.getIdSecuritycurrency(), HistoryquoteCreateType.FILL_GAP_BY_CONNECTOR,
-              missingDates.get(missingDateCounter), security.getHistoryquoteList().get(0).getClose()));
+    LocalDate firstRealDate = security.getHistoryquoteList().get(0).getDate();
+    while (missingDateCounter < missingDates.size()
+        && firstRealDate.isAfter(missingDates.get(missingDateCounter))) {
       missingDateCounter++;
-    } while (missingDateCounter < missingDates.size()
-        && security.getHistoryquoteList().get(0).getDate().isAfter(missingDates.get(missingDateCounter)));
+    }
     fillGapEODAfterFirstHistoryquote(security, historyquotesFill, 0, missingDates, missingDateCounter);
   }
 

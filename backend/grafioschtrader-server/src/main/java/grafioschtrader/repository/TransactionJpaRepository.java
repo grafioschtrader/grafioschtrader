@@ -22,6 +22,15 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   long countByIdStandingOrder(Integer idStandingOrder);
 
   /**
+   * Counts all transactions belonging to a tenant. Used to enforce the total (lifetime) transaction limit
+   * {@code gt.max.transaction} per tenant.
+   *
+   * @param idTenant the tenant id
+   * @return the total number of transactions owned by the tenant
+   */
+  int countByIdTenant(Integer idTenant);
+
+  /**
    * Counts the number of transactions per standing order for a batch of standing order IDs.
    * Used to populate the transactionCount transient field without N+1 queries.
    *

@@ -151,4 +151,15 @@ public interface TransactionJpaRepositoryCustom extends BaseRepositoryCustom<Tra
    */
   ClosedMarginUnits getClosedMarginUnitsByIdTransaction(final Integer idTransaction);
 
+  /**
+   * Enforces the total (lifetime) per-tenant transaction limit {@code gt.max.transaction}. Throws when the tenant has
+   * already reached or exceeded the limit. Atomic multi-transaction operations (cash transfer, security transfer, ISIN
+   * action) call this once at their start, so they may slightly overshoot the cap but are blocked entirely once the
+   * tenant is already at/over it. This is a total limit, not a daily limit.
+   *
+   * @param idTenant the tenant id
+   * @throws grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException if the tenant is already at/over the limit
+   */
+  void throwWhenTransactionLimitReached(Integer idTenant);
+
 }

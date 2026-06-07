@@ -210,6 +210,8 @@ public class SecurityActionService {
   public SecurityActionApplication applySecurityAction(Integer idSecurityAction) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     Integer idTenant = user.getIdTenant();
+    // Atomic multi-transaction operation: block only when the tenant is already at/over the limit.
+    transactionJpaRepository.throwWhenTransactionLimitReached(idTenant);
 
     SecurityAction action = securityActionJpaRepository.findById(idSecurityAction)
         .orElseThrow(() -> new DataViolationException("id.security.action", "gt.security.action.not.found", null));
@@ -387,6 +389,8 @@ public class SecurityActionService {
   public SecurityTransfer createTransfer(SecurityTransfer transfer) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     Integer idTenant = user.getIdTenant();
+    // Atomic multi-transaction operation: block only when the tenant is already at/over the limit.
+    transactionJpaRepository.throwWhenTransactionLimitReached(idTenant);
     transfer.setIdTenant(idTenant);
 
     TransferContext ctx = validateAndPrepareTransfer(transfer, idTenant);

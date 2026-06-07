@@ -222,7 +222,7 @@ public class ConnectorTestHelper {
       Map<String, Integer> overrideExpectedRowsMap) throws ParseException {
     List<DividendCount> dividendCount = new ArrayList<>();
     dividendCount.add(new DividendCount("Nestlé S.A", ISIN_Nestle, getSymbolMapping("NESN.SW", symbolMappingMap),
-        getExpectedRowsMapping(ISIN_Nestle, 22, overrideExpectedRowsMap), "2000-01-03", "2024-03-31",
+        getExpectedRowsMapping(ISIN_Nestle, 24, overrideExpectedRowsMap), "2000-01-03", "2024-03-31",
         GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, SpecialInvestmentInstruments.DIRECT_INVESTMENT));
     dividendCount.add(new DividendCount("Apple Inc", ISIN_Apple, getSymbolMapping("AAPL", symbolMappingMap),
         getExpectedRowsMapping(ISIN_Apple, 47, overrideExpectedRowsMap), "2000-01-03", "2024-03-31", "America/New_York",
