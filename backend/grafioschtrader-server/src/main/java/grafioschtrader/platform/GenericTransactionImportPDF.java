@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -74,6 +76,8 @@ import grafioschtrader.repository.SecurityJpaRepository;
  * custom text cleaning logic for PDF documents that require preprocessing before template matching.</p>
  */
 public class GenericTransactionImportPDF extends GenericTransactionImportCsvPdfBase {
+
+  private static final Logger log = LoggerFactory.getLogger(GenericTransactionImportPDF.class);
 
   /**
    * Creates a new generic PDF transaction importer with the specified import context.
@@ -269,8 +273,7 @@ public class GenericTransactionImportPDF extends GenericTransactionImportCsvPdfB
               importTransactionPosFailedJpaRepository);
         }
       } catch (Exception e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        log.error(e.getMessage(), e);
       }
     }
   }
@@ -313,8 +316,7 @@ public class GenericTransactionImportPDF extends GenericTransactionImportCsvPdfB
       }
 
     } catch (Exception e) {
-      // TODO
-      e.printStackTrace();
+      log.error(e.getMessage(), e);
     }
   }
 

@@ -73,8 +73,8 @@ export class TenantService extends AuthServiceWithLogout<Tenant> {
       {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }
 
-  public switchTenant(idTargetTenant: number): Observable<{token: string}> {
-    return <Observable<{token: string}>>this.httpClient.post(
+  public switchTenant(idTargetTenant: number): Observable<{token: string; readOnly: string}> {
+    return <Observable<{token: string; readOnly: string}>>this.httpClient.post(
       `${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/switchto/${idTargetTenant}`, null,
       {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
   }

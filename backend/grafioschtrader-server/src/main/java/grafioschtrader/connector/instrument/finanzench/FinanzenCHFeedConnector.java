@@ -23,6 +23,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import grafioschtrader.GlobalConstants;
@@ -88,6 +90,8 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
  */
 @Component
 public class FinanzenCHFeedConnector extends FinanzenConnetorBase {
+
+  private static final Logger log = LoggerFactory.getLogger(FinanzenCHFeedConnector.class);
 
   protected static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static final String domain = "https://www.finanzen.ch/";
@@ -330,7 +334,7 @@ public class FinanzenCHFeedConnector extends FinanzenConnetorBase {
       try {
         return numberFormat.parse(text);
       } catch (ParseException e) {
-        e.printStackTrace();
+        log.warn(e.getMessage(), e);
       }
     }
     return null;

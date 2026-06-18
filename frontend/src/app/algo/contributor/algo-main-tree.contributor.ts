@@ -258,6 +258,7 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
       next: (response) => {
         sessionStorage.setItem(GlobalSessionNames.JWT, response.token);
         sessionStorage.setItem(GlobalSessionNames.ID_TENANT, simIdTenant.toString());
+        sessionStorage.setItem(GlobalSessionNames.TENANT_READ_ONLY, JSON.stringify(response.readOnly === 'true'));
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'SIMULATION_SWITCHED');
         this.callbacks?.refreshTree();
       },
@@ -275,6 +276,7 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
       next: (response) => {
         sessionStorage.setItem(GlobalSessionNames.JWT, response.token);
         sessionStorage.setItem(GlobalSessionNames.ID_TENANT, mainIdTenant);
+        sessionStorage.setItem(GlobalSessionNames.TENANT_READ_ONLY, JSON.stringify(response.readOnly === 'true'));
         sessionStorage.removeItem(GlobalSessionNames.MAIN_ID_TENANT);
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MAIN_TENANT_SWITCHED');
         this.callbacks?.refreshTree();

@@ -15,6 +15,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Lazy;
@@ -71,6 +73,8 @@ import jakarta.annotation.PostConstruct;
 
 public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security, SecurityPositionSummary>
     implements IPositionCloseOnLatestPrice<Security, SecurityPositionSummary>, SecurityJpaRepositoryCustom {
+
+  private static final Logger log = LoggerFactory.getLogger(SecurityJpaRepositoryImpl.class);
 
   private IHistoryquoteLoad<Security> historyquoteThruCalculation;
   private IIntradayLoad<Security> intradayThruCalculation;
@@ -652,8 +656,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
         cloneSecurity = new Security();
         BeanUtils.copyProperties(cloneSecurity, existingSecurity);
       } catch (IllegalAccessException | InvocationTargetException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        log.error(e.getMessage(), e);
       }
     }
 

@@ -276,7 +276,11 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
       {columnGroupConfigs: [new ColumnGroupConfig(null, 'TOTAL')], width: 60});
 
     this.addColumnFeqH(DataType.Numeric, 'gainLossSecurity', true, false,
-      {columnGroupConfigs: [new ColumnGroupConfig('groupGainLossSecurity')]});
+      {
+        currencyPrecisionField: 'security.currency',
+        columnGroupConfigs: [new ColumnGroupConfig('groupGainLossSecurity', null, null,
+          {currencyPrecisionField: 'currency'})]
+      });
 
     this.internalColumnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'gainLossSecurityMC', true, true,
       {
@@ -290,7 +294,11 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     */
 
     this.addColumn(DataType.Numeric, 'accountValueSecurity', AppSettings.VALUE_SECURITY_ACCOUNT_HEADER, true, false,
-      {columnGroupConfigs: [new ColumnGroupConfig('groupAccountValueSecurity')]});
+      {
+        currencyPrecisionField: 'security.currency',
+        columnGroupConfigs: [new ColumnGroupConfig('groupAccountValueSecurity', null, null,
+          {currencyPrecisionField: 'currency'})]
+      });
 
     this.internalColumnConfigs.push(this.addColumn(DataType.Numeric, AppSettings.VALUE_SECURITY_MAIN_CURRENCY_FIELD,
       AppSettings.VALUE_SECURITY_ACCOUNT_HEADER,
@@ -311,7 +319,10 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   }
 
   protected initTableTextTranslation() {
-    this.internalColumnConfigs.forEach(columnConfig => columnConfig.headerSuffix = this.securityPositionSummary.currency);
+    this.internalColumnConfigs.forEach(columnConfig => {
+      columnConfig.headerSuffix = this.securityPositionSummary.currency;
+      columnConfig.fixedCurrency = this.securityPositionSummary.currency;
+    });
     this.prepareTableAndTranslate();
     this.securityaccountGroupBase.translateGroupValues(<any[]>this.securityPositionSummary.securityPositionGroupSummaryList);
     this.changeToOpenChart();

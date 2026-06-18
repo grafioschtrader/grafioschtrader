@@ -23,8 +23,8 @@ import {InputNumberModule} from 'primeng/inputnumber';
                    currencyDisplay="code" inputStyleClass="text-end"></p-inputNumber>
 
 
-    <p-button (click)="showBasicDialog()" icon="pi pi-external-link" label="Show"></p-button>
-    <p-button (click)="changeCurrency()" icon="pi pi-external-link" label="Change currency"></p-button>
+    <p-button (click)="showBasicDialog()" label="Show"><i class="pi pi-external-link" pButtonIcon></i></p-button>
+    <p-button (click)="changeCurrency()" label="Change currency"><i class="pi pi-external-link" pButtonIcon></i></p-button>
     <p-dialog header="Header" [(visible)]="displayBasic" [style]="{width: '50vw'}" [baseZIndex]="10000"
               focusTrap="false">
 
@@ -40,7 +40,7 @@ import {InputNumberModule} from 'primeng/inputnumber';
       <input type="number" id="tentacles2" name="tentacles">
 
       <ng-template pTemplate="footer">
-        <p-button icon="pi pi-check" (click)="displayBasic=false" label="Ok" styleClass="p-button-text"></p-button>
+        <p-button (click)="displayBasic=false" label="Ok" styleClass="p-button-text"><i class="pi pi-check" pButtonIcon></i></p-button>
       </ng-template>
     </p-dialog>
   `,

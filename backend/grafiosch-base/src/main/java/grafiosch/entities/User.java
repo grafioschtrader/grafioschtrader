@@ -145,6 +145,14 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   @PropertyAlwaysUpdatable
   private boolean uiShowMyProperty;
 
+  @Schema(description = """
+      Marks this user as read-only on their own home tenant. Used for client accounts whose portfolio is managed by an
+      advisor: the client may view all portfolio data but every write to tenant data is rejected. The user can still
+      manage their own account (for example change their password). Default false keeps existing users fully editable.""")
+  @JsonIgnore
+  @Column(name = "home_tenant_read_only")
+  private boolean homeTenantReadOnly;
+
   @Schema(description = "Contains the user role with the most extensive rights.")
   @Transient
   @PropertyAlwaysUpdatable
@@ -154,12 +162,18 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   private Map<String, Role> roleMap;
 
   @Schema(description = """
-      Not used yet. Designed for the future:
-      - A portfolio is simulated and would have to be linked to another tenant ID.
-      Only then could the result of this simulation be viewed in full.
-      - An additional table would be created containing the permission to view a tenant.""")
+      Holds the user's persisted home tenant ID while the request operates in a different tenant. It is set when the
+      tenant is overridden (simulation switching, or an advisor switching into a managed client tenant via a
+      'tenant_access' grant); getActualIdTenant() falls back to idTenant when no override is active.""")
   @Transient
   private Integer actualIdTenant;
+
+  @Schema(description = """
+      Request-scoped flag: true when the tenant this request currently operates in is read-only for the user. Recomputed
+      on every request from the user's home-tenant flag or their 'tenant_access' grant, so revoking or downgrading
+      access takes effect immediately. Enforced by the write-blocking security filter; not persisted.""")
+  @Transient
+  private boolean tenantAccessReadOnly;
 
   @Override
   @JsonProperty("email")
@@ -398,6 +412,22 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
 
   public void setUiShowMyProperty(boolean uiShowMyProperty) {
     this.uiShowMyProperty = uiShowMyProperty;
+  }
+
+  public boolean isHomeTenantReadOnly() {
+    return homeTenantReadOnly;
+  }
+
+  public void setHomeTenantReadOnly(boolean homeTenantReadOnly) {
+    this.homeTenantReadOnly = homeTenantReadOnly;
+  }
+
+  public boolean isTenantAccessReadOnly() {
+    return tenantAccessReadOnly;
+  }
+
+  public void setTenantAccessReadOnly(boolean tenantAccessReadOnly) {
+    this.tenantAccessReadOnly = tenantAccessReadOnly;
   }
 
   @JsonIgnore

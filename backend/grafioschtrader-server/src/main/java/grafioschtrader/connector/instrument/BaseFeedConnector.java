@@ -658,7 +658,8 @@ public abstract class BaseFeedConnector implements IFeedConnector {
         try {
           Thread.sleep(waitForRefill);
         } catch (InterruptedException e) {
-          e.printStackTrace();
+          Thread.currentThread().interrupt();
+          log.warn("Interrupted while waiting for rate-limit token", e);
         }
       }
     } while (true);

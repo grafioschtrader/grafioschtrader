@@ -245,18 +245,27 @@ export class AppHelper {
    * @param dataobject Source data object
    * @param field Column configuration specifying data type and formatting
    * @param valueField Path to the value within the data object
+   * @param currencyFieldOverride Optional path to the currency code within the data object. Used by group/grand-total
+   *                              rows whose object shape differs from detail rows; takes precedence over the
+   *                              column's currencyPrecisionField.
    * @returns Formatted value string or undefined if no data
    */
   public static getValueByPathWithField(gps: GlobalparameterService, translateService: TranslateService,
-    dataobject: any, field: ColumnConfig, valueField: string) {
+    dataobject: any, field: ColumnConfig, valueField: string, currencyFieldOverride?: string) {
+    const rowObject = dataobject;
     dataobject = Helper.getValueByPath(dataobject, valueField);
     if (dataobject || field.dataType === DataType.NumericShowZero && dataobject === 0) {
       switch (field.dataType) {
         case DataType.NumericInteger:
           return AppHelper.numberIntegerFormat(gps, dataobject);
         case DataType.Numeric:
-        case DataType.NumericShowZero:
+        case DataType.NumericShowZero: {
+          const currency = AppHelper.resolvePrecisionCurrency(rowObject, field, currencyFieldOverride);
+          if (currency) {
+            return gps.getNumberFormatForPrecision(gps.getCurrencyPrecision(currency)).format(dataobject);
+          }
           return AppHelper.numberFormat(gps, dataobject, field.maxFractionDigits, field.minFractionDigits);
+        }
         case DataType.NumericRaw:
           return gps.getNumberFormatRaw().format(dataobject);
         case DataType.DateNumeric:
@@ -272,6 +281,29 @@ export class AppHelper {
           return dataobject;
       }
     }
+  }
+
+  /**
+   * Resolves the currency code that determines the display precision of a numeric column value. Detail rows resolve
+   * the currency through the column's currencyPrecisionField path, group/grand-total rows through the override path
+   * of their ColumnGroupConfig. When neither path resolves on the row object, the column's fixedCurrency applies
+   * (typically the tenant/portfolio main currency set after data load). Returns undefined for columns that did not
+   * opt in to currency-specific precision, which keeps the standard formatting path.
+   *
+   * @param rowObject The complete row data object (detail or group summary)
+   * @param field Column configuration possibly carrying currencyPrecisionField/fixedCurrency
+   * @param currencyFieldOverride Optional currency path of a group configuration
+   * @returns Resolved currency code or undefined
+   */
+  private static resolvePrecisionCurrency(rowObject: any, field: ColumnConfig, currencyFieldOverride?: string): string {
+    const currencyPath = currencyFieldOverride || field.currencyPrecisionField;
+    if (currencyPath && rowObject) {
+      const currency = Helper.getValueByPath(rowObject, currencyPath);
+      if (currency) {
+        return currency;
+      }
+    }
+    return field.fixedCurrency;
   }
 
   /**

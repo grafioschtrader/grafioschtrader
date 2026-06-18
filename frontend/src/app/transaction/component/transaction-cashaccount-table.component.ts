@@ -112,11 +112,14 @@ export class TransactionCashaccountTableComponent extends TransactionContextMenu
     this.addColumn(DataType.Numeric, 'transaction.quotation', 'QUOTATION_DIV', true, false);
     this.addColumn(DataType.String, 'transaction.currencypair.fromCurrency', 'CURRENCY', true, false);
     this.addColumn(DataType.String, 'transaction.currencyExRate', 'EXCHANGE_RATE', true, false);
-    this.addColumn(DataType.Numeric, 'transaction.taxCost', 'TAX_COST', true, false);
-    this.addColumnFeqH(DataType.Numeric, 'transaction.transactionCost', true, false);
+    this.addColumn(DataType.Numeric, 'transaction.taxCost', 'TAX_COST', true, false,
+      {currencyPrecisionField: 'transaction.security.currency'});
+    this.addColumnFeqH(DataType.Numeric, 'transaction.transactionCost', true, false,
+      {currencyPrecisionField: 'transaction.security.currency'});
     this.addColumnFeqH(DataType.Numeric, 'transaction.cashaccountAmount', true, false,
-      {templateName: 'greenRed'});
-    this.addColumnFeqH(DataType.Numeric, 'balance', true, false, {templateName: 'greenRed'});
+      {templateName: 'greenRed', currencyPrecisionField: 'transaction.cashaccount.currency'});
+    this.addColumnFeqH(DataType.Numeric, 'balance', true, false,
+      {templateName: 'greenRed', currencyPrecisionField: 'transaction.cashaccount.currency'});
     this.prepareTableAndTranslate();
     // this.pageFirstRowSelectedRow = this.parentChildRegisterService.getRowPostion(this.idSecuritycashAccount);
     this.multiSortMeta.push({field: 'transaction.transactionTime', order: -1});

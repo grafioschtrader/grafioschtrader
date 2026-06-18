@@ -184,14 +184,17 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    * @param data - Data object or collection containing values
    * @param mapKey - Key for accessing data from collections/maps
    * @param field - Specific field path to access
+   * @param currencyFieldOverride - Optional path to the currency code within the group data object for
+   *                                currency-specific precision formatting
    * @returns Formatted field value ready for display
    */
-  getFieldValueForFieldColumnTotal(columnConfig: ColumnConfig, arrIndex: number, data: any, mapKey: any, field: string) {
+  getFieldValueForFieldColumnTotal(columnConfig: ColumnConfig, arrIndex: number, data: any, mapKey: any, field: string,
+    currencyFieldOverride?: string) {
     if (mapKey !== null) {
       data = data.get(mapKey);
     }
     return AppHelper.getValueByPathWithField(this.gps, this.translateService, data, columnConfig,
-      field);
+      field, currencyFieldOverride);
   }
 
   /**
@@ -206,7 +209,8 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    */
   getFieldValueColumnTotal(columnConfig: ColumnConfig, arrIndex: number, data: any, mapKey: any) {
     return this.getFieldValueForFieldColumnTotal(columnConfig, arrIndex, data, mapKey,
-      columnConfig.columnGroupConfigs[arrIndex].fieldValue);
+      columnConfig.columnGroupConfigs[arrIndex].fieldValue,
+      columnConfig.columnGroupConfigs[arrIndex].currencyPrecisionField);
   }
 
   /**

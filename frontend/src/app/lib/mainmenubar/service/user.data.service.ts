@@ -44,4 +44,18 @@ export class UserDataService extends BaseAuthService<any> {
       .pipe(catchError(this.handleError.bind(this)));
   }
 
+  /**
+   * Read-only pre-check whether the current user may delete their own account. Returns 'DELETABLE',
+   * 'HAS_CLIENTS' (still manages clients) or 'HAS_VIEWERS' (others still have read access). Lets the menu
+   * warn the user up front instead of opening the deletion confirmation; the delete endpoint enforces the
+   * same conditions on the backend.
+   *
+   * @returns Observable emitting the deletion eligibility status
+   */
+  public getAccountDeletionEligibility(): Observable<{status: string}> {
+    return <Observable<{status: string}>>this.httpClient.get(
+      `${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/deletion-eligibility`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
 }

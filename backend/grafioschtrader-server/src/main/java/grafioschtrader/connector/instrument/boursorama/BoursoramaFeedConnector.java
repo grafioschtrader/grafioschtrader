@@ -3,6 +3,7 @@ package grafioschtrader.connector.instrument.boursorama;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.http.HttpRequest;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -17,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
@@ -31,13 +33,23 @@ import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * A regex check of the URL extension is not active. The connector for checking the instrument always returns an HTTP
- * OK. In such a case, the body of the response is "[]", so there is a special implementation here.
+ * A regex check of the URL extension is not active.
+ *
+ * Boursorama's EOD endpoint ({@code .../graph/ws/GetTicksEOD}) is gated behind an anti-scraping check: it only
+ * answers requests that carry the {@code X-Requested-With: XMLHttpRequest} header that its own browser JavaScript
+ * sends. Plain requests without that header receive HTTP 410 (Gone). Therefore every request issued by this connector
+ * sets {@link #XHR_HEADER}, including the URL-connectivity check inherited from {@link BaseFeedConnector} (see the
+ * {@link #getRequest(String)} override).
  */
 @Component
 public class BoursoramaFeedConnector extends BaseFeedConnector {
 
   private static String BOURSORAMA_ID = "boursorama";
+
+  /**
+   * Request header required by Boursorama's graph/ws endpoints. Without it the EOD endpoint returns HTTP 410.
+   */
+  private static final Map<String, String> XHR_HEADER = Map.of("X-Requested-With", "XMLHttpRequest");
 
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static List<BoursoramaPeriodEOD> boursoramaPeriods;
@@ -67,6 +79,16 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
     super(supportedFeed, BOURSORAMA_ID, "Boursorama", null, EnumSet.of(UrlCheck.HISTORY, UrlCheck.INTRADAY));
     supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR, AssetclassCategory.NON_INVESTABLE_INDICES,
         AssetclassCategory.EQUITIES, AssetclassCategory.FIXED_INCOME, AssetclassCategory.ETF, AssetclassCategory.MUTUAL_FUND);
+  }
+
+  /**
+   * Adds the {@code X-Requested-With: XMLHttpRequest} header to the URL-connectivity check inherited from
+   * {@link BaseFeedConnector}. Without it Boursorama's EOD endpoint returns HTTP 410 and the check would fail.
+   */
+  @Override
+  protected HttpRequest getRequest(String url) {
+    return HttpRequest.newBuilder().uri(URI.create(url)).header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT)
+        .header("Accept-Language", "en").header("X-Requested-With", "XMLHttpRequest").GET().build();
   }
 
   private String getSecurityCurrecnypairHistoricalDownloadLink(final Securitycurrency<?> securitycurrency,
@@ -113,7 +135,7 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
     long endDay = to.toEpochDay();
 
     final List<Historyquote> historyquotes = new ArrayList<>();
-    final HeaderEOD header = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr, 40).body(),
+    final HeaderEOD header = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr, 40, XHR_HEADER).body(),
         HeaderEOD.class);
     for (QuoteTabEOD data : header.d.QuoteTab) {
       if (data.d >= startDay && data.d <= endDay) {
@@ -122,10 +144,20 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
         LocalDate localDate = LocalDate.ofEpochDay(data.d);
         histroyquote.setDate(localDate);
         histroyquote.setClose(data.c / divider);
-        histroyquote.setOpen(data.o / divider);
-        histroyquote.setLow(data.l / divider);
-        histroyquote.setHigh(data.h / divider);
-        histroyquote.setVolume(data.v);
+        // QuoteTab fields are primitives, so JSON keys missing in the response arrive as 0 — only a
+        // positive value carries information (same rule as setValues() for the intraday update).
+        if (data.o > 0d) {
+          histroyquote.setOpen(data.o / divider);
+        }
+        if (data.l > 0d) {
+          histroyquote.setLow(data.l / divider);
+        }
+        if (data.h > 0d) {
+          histroyquote.setHigh(data.h / divider);
+        }
+        if (data.v > 0) {
+          histroyquote.setVolume(data.v);
+        }
       }
     }
     return historyquotes;
@@ -174,7 +206,7 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
 
   private <T extends Securitycurrency<T>> void updateSecuritycurrency(T securitycurrency, String urlStr, double divider)
       throws Exception {
-    final HeaderIntra header = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr, 10).body(),
+    final HeaderIntra header = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr, 10, XHR_HEADER).body(),
         HeaderIntra.class);
     if (header != null) {
       header.d[0].setValues(securitycurrency, divider);
@@ -185,7 +217,8 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
   }
 
   private void getLastPriceFromHistoryQuotes(Security security, String urlStr) throws Exception {
-    final HeaderEOD header = objectMapper.readValue(new URI(urlStr).toURL().openStream(), HeaderEOD.class);
+    final HeaderEOD header = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr, 40, XHR_HEADER).body(),
+        HeaderEOD.class);
     QuoteTabEOD lastPrice = header.d.QuoteTab[header.d.QuoteTab.length - 1];
     lastPrice.setValues(security, FeedConnectorHelper.getGBXLondonDivider(security));
     setSTimestamp(security);

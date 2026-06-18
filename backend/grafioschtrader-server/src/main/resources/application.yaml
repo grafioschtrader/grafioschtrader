@@ -23,8 +23,15 @@ gt:
   limit:
     # Limit Data
     #-------------------------------------
-    # GT has bandwidth limits to avoid an overuse, it may be disabled for tests  
-    request: true  
+    # GT has bandwidth limits to avoid an overuse, it may be disabled for tests
+    request: true
+
+# Library-level optional features (g.use.*), independent of the application-specific gt.use.* features above.
+g:
+  use:
+    # manageclient: a user (advisor) can create additional tenants with a read-only client login,
+    # switch between the tenants they manage, and return to their own tenant.
+    manageclient: true
 
 spring:
   main:

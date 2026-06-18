@@ -40,6 +40,8 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
   private fieldSizeMap: { [fieldNameOrKey: string]: number };
   private dateFormatWithoutYear: string;
   private featureCache = new Map<FeatureType, boolean>();
+  private currencyPrecisionMap: { [currency: string]: number };
+  private numberFormatPrecisionCache = new Map<number, NumberFormat>();
 
 
   constructor(httpClient: HttpClient, messageToastService: MessageToastService) {
@@ -57,6 +59,44 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
         this[key] = null;
       }
     }
+    this.currencyPrecisionMap = null;
+    this.numberFormatPrecisionCache.clear();
+  }
+
+  /**
+   * Returns the number of decimal places for amounts in the given currency (e.g. BTC=8, JPY=0). The map is provided
+   * by the backend at login and cached from sessionStorage. Currencies not contained in the map fall back to the
+   * standard fraction digits, mirroring the backend's GlobalparametersService.getPrecisionForCurrency().
+   *
+   * @param currency ISO 4217 or crypto currency code
+   * @returns Number of decimal places for amounts in this currency
+   */
+  public getCurrencyPrecision(currency: string): number {
+    if (!this.currencyPrecisionMap) {
+      this.currencyPrecisionMap = JSON.parse(sessionStorage.getItem(GlobalSessionNames.CURRENCY_PRECISION)) || {};
+    }
+    return this.currencyPrecisionMap[currency] != null ? this.currencyPrecisionMap[currency]
+      : BaseSettings.FID_STANDARD_FRACTION_DIGITS;
+  }
+
+  /**
+   * Returns a locale-aware number format with a fixed number of fraction digits (minimum = maximum = precision).
+   * Instances are cached per precision. Used for displaying currency amounts with their currency-specific precision,
+   * including precision 0 (e.g. JPY).
+   *
+   * @param precision Fixed number of fraction digits
+   * @returns Cached Intl.NumberFormat for the user's locale and the given precision
+   */
+  public getNumberFormatForPrecision(precision: number): NumberFormat {
+    let numberFormat = this.numberFormatPrecisionCache.get(precision);
+    if (!numberFormat) {
+      numberFormat = new Intl.NumberFormat(this.getLocale(), {
+        minimumFractionDigits: precision,
+        maximumFractionDigits: precision
+      });
+      this.numberFormatPrecisionCache.set(precision, numberFormat);
+    }
+    return numberFormat;
   }
 
   public getMaxFractionDigits(): number {
@@ -106,6 +146,15 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
 
   public getMostPrivilegedRole(): string {
     return sessionStorage.getItem(GlobalSessionNames.MOST_PRIVILEGED_ROLE);
+  }
+
+  /**
+   * Whether the user has read-only access to the tenant they currently operate in. True for a managed client account or
+   * an advisor switched into a READ-level tenant. Used to hide create/update/delete actions in the UI; the backend
+   * write-blocking filter enforces it regardless.
+   */
+  public isReadOnlyUser(): boolean {
+    return sessionStorage.getItem(GlobalSessionNames.TENANT_READ_ONLY) === 'true';
   }
 
   public isEntityCreatedByUser(entity: Auditable): boolean {
@@ -234,6 +283,14 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
 
   public useGtnet(): boolean {
     return this.prepareUseFeatures(FeatureType.GTNET);
+  }
+
+  /**
+   * Whether the manage-client feature (advisor manages additional tenants with read-only client logins) is enabled
+   * for this deployment (g.use.manageclient).
+   */
+  public useManageClient(): boolean {
+    return this.prepareUseFeatures(FeatureType.MANAGECLIENT);
   }
 
   public isGtNetLogEnabled(): boolean {

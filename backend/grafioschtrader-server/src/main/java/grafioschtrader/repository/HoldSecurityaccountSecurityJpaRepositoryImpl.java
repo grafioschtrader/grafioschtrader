@@ -346,7 +346,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
       this.createSecurityHoldingsBySecurityaccount(idTenant, idPortfolio, idSecuritycashAccount, tenantCurrency,
           portfolioCurrency, css, transSplitCF.get(), marginTransactionCF.get());
     } catch (InterruptedException | ExecutionException ex) {
-      ex.printStackTrace();
+      log.error(ex.getMessage(), ex);
       throw new RuntimeException(ex);
     }
 
@@ -479,7 +479,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
           portfolioCurrency, css, transSplitCF.get(), (marginTransactionCF == null) ? null : marginTransactionCF.get(),
           isAdded);
     } catch (InterruptedException | ExecutionException ex) {
-      ex.printStackTrace();
+      log.error(ex.getMessage(), ex);
       throw new RuntimeException(ex);
     }
   }

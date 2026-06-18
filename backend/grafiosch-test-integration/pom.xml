@@ -4,13 +4,13 @@
 
     <groupId>grafiosch</groupId>
     <artifactId>grafiosch-test-integration</artifactId>
-    <version>0.35.6</version>
+    <version>0.35.7</version>
     <packaging>jar</packaging>
 
     <parent>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-parent</artifactId>
-      <version>4.0.6</version>
+      <version>4.1.0</version>
       <relativePath/> <!-- lookup parent from repository -->
    </parent>
 
@@ -18,20 +18,19 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <start-class>grafiosch.grafiosch_test_integration.App</start-class>
-        <rest.assured.version>2.3.3</rest.assured.version>
     </properties>
 
     <dependencies>
      	<dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafiosch-base</artifactId>
-	        <version>0.35.7</version>	
+	        <version>0.36.0</version>	
 		</dependency>
 
  		<dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafiosch-server-base</artifactId>
-	        <version>0.35.7</version>	
+	        <version>0.36.0</version>	
 		</dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -60,12 +59,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.jayway.restassured</groupId>
-            <artifactId>rest-assured</artifactId>
-            <version>${rest.assured.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

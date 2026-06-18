@@ -21,7 +21,10 @@ export const HelpIds: Record<string, string> = {
   HELP_GLOBAL_SETTINGS: 'admindata/globalsettings',
   HELP_TASK_DATA_CHANGE_MONITOR: 'admindata/taskdatachangemonitor',
   HELP_CONNECTOR_API_KEY: 'admindata/connectorapikey',
-  HELP_USER: 'admindata/user'
+  HELP_USER: 'admindata/user',
+
+  // Manage client (library feature g.use.manageclient)
+  HELP_MANAGE_CLIENT: 'tenantportfolio/client/managedclients'
 };
 
 /**

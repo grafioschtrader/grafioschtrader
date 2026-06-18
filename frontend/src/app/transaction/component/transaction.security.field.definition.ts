@@ -39,15 +39,19 @@ export class TransactionSecurityFieldDefinition {
     }
     tcm.addColumn(DataType.Numeric, 'transaction.quotation', 'QUOTATION_DIV', true, false,
       {maxFractionDigits: gps.getMaxFractionDigits()});
-    tcm.addColumnFeqH(DataType.Numeric, 'transaction.taxCost', true, false);
+    tcm.addColumnFeqH(DataType.Numeric, 'transaction.taxCost', true, false,
+      {currencyPrecisionField: 'transaction.security.currency'});
 
     if (tsop && tsop.indexOf(TransactionSecurityOptionalParam.SHOW_TAXABLE_COLUMN) >= 0) {
       tcm.addColumnFeqH(DataType.Boolean, 'transaction.taxableInterest', true, false, {templateName: 'check'});
     }
     tcm.addColumnFeqH(DataType.Numeric, 'holdingsSplitAdjusted', true, false);
-    tcm.addColumnFeqH(DataType.Numeric, 'transaction.transactionCost', true, false);
-    tcm.addColumnFeqH(DataType.Numeric, 'transaction.cashaccountAmount', true, false);
-    tcm.addColumn(DataType.Numeric, 'transactionGainLoss', 'GAIN', true, false);
+    tcm.addColumnFeqH(DataType.Numeric, 'transaction.transactionCost', true, false,
+      {currencyPrecisionField: 'transaction.security.currency'});
+    tcm.addColumnFeqH(DataType.Numeric, 'transaction.cashaccountAmount', true, false,
+      {currencyPrecisionField: 'transaction.cashaccount.currency'});
+    tcm.addColumn(DataType.Numeric, 'transactionGainLoss', 'GAIN', true, false,
+      {currencyPrecisionField: 'transaction.security.currency'});
     tcm.addColumn(DataType.Numeric, 'transactionGainLossPercentage', 'GAIN_PERCENTAGE', true, false);
     tcm.addColumn(DataType.Numeric, 'transactionExchangeRate', 'EXCHANGE_RATE', true, false,
       {maxFractionDigits: gps.getMaxFractionDigits()});

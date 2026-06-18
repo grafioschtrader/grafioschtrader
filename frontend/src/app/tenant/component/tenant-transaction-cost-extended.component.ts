@@ -145,14 +145,24 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
       {translateValues: TranslateValue.NORMAL});
     this.addColumn(DataType.String, 'transaction.cashaccount.currency', 'CURRENCY_CASHACCOUNT', true, false);
     this.addColumn(DataType.String, 'transaction.security.currency', 'CURRENCY_SECURITY', true, false);
-    this.addColumn(DataType.Numeric, 'transaction.transactionCost', 'TRANSACTION_COST', true, false);
+    this.addColumn(DataType.Numeric, 'transaction.transactionCost', 'TRANSACTION_COST', true, false,
+      {currencyPrecisionField: 'transaction.security.currency'});
     this.addColumn(DataType.Numeric, 'taxCostMC', 'TAX_COST', true, false,
-      {headerSuffix: this.transactionCostGrandSummary.mainCurrency});
+      {
+        headerSuffix: this.transactionCostGrandSummary.mainCurrency,
+        fixedCurrency: this.transactionCostGrandSummary.mainCurrency
+      });
     this.addColumn(DataType.Numeric, 'basePriceForTransactionCostMC', 'NET_VALUE_TRANSACTION', true, false,
-      {headerSuffix: this.transactionCostGrandSummary.mainCurrency});
+      {
+        headerSuffix: this.transactionCostGrandSummary.mainCurrency,
+        fixedCurrency: this.transactionCostGrandSummary.mainCurrency
+      });
     this.addColumn(DataType.Numeric, 'transaction.currencyExRate', 'EXCHANGE_RATE', true, false);
     this.addColumn(DataType.Numeric, 'transactionCostMC', 'TRANSACTION_COST', true, false,
-      {headerSuffix: this.transactionCostGrandSummary.mainCurrency});
+      {
+        headerSuffix: this.transactionCostGrandSummary.mainCurrency,
+        fixedCurrency: this.transactionCostGrandSummary.mainCurrency
+      });
     this.multiSortMeta.push({field: 'transaction.transactionTime', order: -1});
     this.prepareTableAndTranslate();
     this.createTranslatedValueStoreAndFilterField(this.transactionCostPositions);

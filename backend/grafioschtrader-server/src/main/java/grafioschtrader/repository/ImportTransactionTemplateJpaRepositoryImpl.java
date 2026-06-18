@@ -19,6 +19,8 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,6 +88,8 @@ import jakarta.servlet.http.HttpServletResponse;
  */
 public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryImpl<ImportTransactionTemplate>
     implements ImportTransactionTemplateJpaRepositoryCustom {
+
+  private static final Logger log = LoggerFactory.getLogger(ImportTransactionTemplateJpaRepositoryImpl.class);
 
   @Autowired
   private ImportTransactionPlatformJpaRepository importTransactionPlatformJpaRepository;
@@ -190,7 +194,7 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
         }
         zipOutStream.close();
       } catch (Exception e) {
-        e.printStackTrace();
+        log.error(e.getMessage(), e);
       }
     }
   }

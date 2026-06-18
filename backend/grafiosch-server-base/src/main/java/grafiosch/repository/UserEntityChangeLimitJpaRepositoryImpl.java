@@ -55,12 +55,28 @@ public class UserEntityChangeLimitJpaRepositoryImpl extends BaseRepositoryImpl<U
       Class<?> clazz = entity.getBindableJavaType();
       if (Auditable.class.isAssignableFrom(clazz) && !Modifier.isAbstract(clazz.getModifiers())
           && !AdminEntity.class.isAssignableFrom(clazz)) {
-        if (!usedEntityLimits.contains(entity.getName())) {
-          entitiesVKHSO.add(new ValueKeyHtmlSelectOptions(entity.getName(), entity.getName()
-              .replaceAll("([A-Z]+)([A-Z][a-z])", "$1_$2").replaceAll("([a-z])([A-Z])", "$1_$2").toUpperCase()));
-        }
+        addEntityNameOption(entitiesVKHSO, usedEntityLimits, entity.getName());
       }
     }
+    for (String pseudoEntityName : UserEntityChangeLimit.ADDITIONAL_LIMIT_ENTITY_NAMES) {
+      addEntityNameOption(entitiesVKHSO, usedEntityLimits, pseudoEntityName);
+    }
     return entitiesVKHSO;
+  }
+
+  /**
+   * Adds an entity name as select option with an UPPER_SNAKE_CASE display key, skipping names the user already has a
+   * limit for.
+   *
+   * @param entitiesVKHSO    target option list
+   * @param usedEntityLimits entity names already covered by an existing limit of the user
+   * @param entityName       JPA entity name or registered pseudo entity name
+   */
+  private void addEntityNameOption(List<ValueKeyHtmlSelectOptions> entitiesVKHSO, Set<String> usedEntityLimits,
+      String entityName) {
+    if (!usedEntityLimits.contains(entityName)) {
+      entitiesVKHSO.add(new ValueKeyHtmlSelectOptions(entityName, entityName
+          .replaceAll("([A-Z]+)([A-Z][a-z])", "$1_$2").replaceAll("([a-z])([A-Z])", "$1_$2").toUpperCase()));
+    }
   }
 }

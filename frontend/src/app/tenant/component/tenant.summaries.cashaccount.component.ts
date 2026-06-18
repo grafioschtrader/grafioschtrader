@@ -142,7 +142,8 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
         columnGroupConfigs: [new ColumnGroupConfig('groupValueSecuritiesMC'),
           new ColumnGroupConfig('grandValueSecuritiesMC')]
       }));
-    this.addColumnFeqH(DataType.Numeric, 'cashBalance', true, false);
+    this.addColumnFeqH(DataType.Numeric, 'cashBalance', true, false,
+      {currencyPrecisionField: 'cashaccount.currency'});
     this.columnConfigs.push(this.addColumn(DataType.Numeric, this.CASHBALANCE_MC, 'CASH_BALANCE', true, false,
       {
         templateName: 'greenRed',
@@ -226,7 +227,10 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
         this.transformToFlatArray(result);
         this.excludedDivTaxColumn.visible = result.accountPositionGroupSummaryList
           .some(g => g.excludeDivTax);
-        this.columnConfigs.forEach(columnConfig => columnConfig.headerSuffix = this.accountPositionGrandSummary.mainCurrency);
+        this.columnConfigs.forEach(columnConfig => {
+          columnConfig.headerSuffix = this.accountPositionGrandSummary.mainCurrency;
+          columnConfig.fixedCurrency = this.accountPositionGrandSummary.mainCurrency;
+        });
         this.prepareTableAndTranslate();
         this.changeToOpenChart();
       });

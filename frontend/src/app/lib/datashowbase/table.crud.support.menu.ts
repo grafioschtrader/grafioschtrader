@@ -296,7 +296,10 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
    */
   protected getEditMenuItems(entity: T): MenuItem[] {
     const menuItems: MenuItem[] = [];
-    if (this.crudMenuOptions.indexOf(CrudMenuOptions.Allow_Create) >= 0) {
+    // A read-only user (managed client account, or advisor in a READ-level tenant) cannot create/update/delete tenant
+    // data, so these actions are not shown at all rather than shown disabled. The backend enforces this regardless.
+    const readOnly = this.gps.isReadOnlyUser();
+    if (!readOnly && this.crudMenuOptions.indexOf(CrudMenuOptions.Allow_Create) >= 0) {
       menuItems.push({
         label: 'CREATE|' + this.entityNameUpper + BaseSettings.DIALOG_MENU_SUFFIX,
         command: (event) => this.handleEditEntity(null),
@@ -304,14 +307,14 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
       });
     }
     if (entity) {
-      if (this.crudMenuOptions.indexOf(CrudMenuOptions.Allow_Edit) >= 0) {
+      if (!readOnly && this.crudMenuOptions.indexOf(CrudMenuOptions.Allow_Edit) >= 0) {
         menuItems.push({
           label: 'EDIT_RECORD|' + this.entityNameUpper + BaseSettings.DIALOG_MENU_SUFFIX,
           command: (event) => this.handleEditEntity(entity),
           disabled: !this.hasRightsForUpdateEntity(entity)
         });
       }
-      if (this.crudMenuOptions.indexOf(CrudMenuOptions.Allow_Delete) >= 0) {
+      if (!readOnly && this.crudMenuOptions.indexOf(CrudMenuOptions.Allow_Delete) >= 0) {
         menuItems.push({
           label: 'DELETE_RECORD|' + this.entityNameUpper,
           command: (event) => this.handleDeleteEntity(entity),

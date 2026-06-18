@@ -20,8 +20,10 @@ import {ButtonModule} from 'primeng/button';
   template: `
     <p>{{ 'ADMIN_SELF_RELEASE_QUESTION' | translate }}</p>
     <div class="flex justify-content-end mt-3">
-      <p-button [label]="'ADMIN_SELF_RELEASE_CONFIRM' | translate" icon="pi pi-check"
-                (click)="confirm()" [loading]="loading" />
+      <p-button [label]="'ADMIN_SELF_RELEASE_CONFIRM' | translate"
+                (click)="confirm()" [loading]="loading">
+        <i class="pi pi-check" pButtonIcon></i>
+      </p-button>
     </div>`,
   standalone: true,
   imports: [TranslateModule, ButtonModule]

@@ -39,7 +39,9 @@ import {GenericConnectorHttpHeader} from '../../entities/generic.connector.http.
       <div caption style="display: flex; align-items: center;">
         <h6 style="margin: 0;">{{ 'HTTP_HEADERS' | translate }}</h6>
         @if (editable) {
-          <p-button icon="pi pi-plus" [rounded]="true" [text]="true" (click)="entityTable.addNewRow()" [style]="{'margin-left': '0.5rem'}" />
+          <p-button [rounded]="true" [text]="true" (click)="entityTable.addNewRow()" [style]="{'margin-left': '0.5rem'}">
+            <i class="pi pi-plus" pButtonIcon></i>
+          </p-button>
         }
       </div>
     </editable-table>

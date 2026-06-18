@@ -38,6 +38,7 @@ import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.priceupdate.historyquote.HistoryquoteImport;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
+import grafioschtrader.service.HistoryquoteReadLimitService;
 import grafioschtrader.ta.TaFormDefinition;
 import grafioschtrader.ta.TaIndicatorHelper;
 import grafioschtrader.ta.TaIndicators;
@@ -60,6 +61,9 @@ public class HistoryquoteResource extends HistoryquoteResourceBase<Historyquote>
   private HistoryquoteJpaRepository historyquoteJpaRepository;
 
   @Autowired
+  private HistoryquoteReadLimitService historyquoteReadLimitService;
+
+  @Autowired
   private ObjectMapper jacksonObjectMapper;
 
   @Autowired
@@ -73,6 +77,7 @@ public class HistoryquoteResource extends HistoryquoteResourceBase<Historyquote>
       @Parameter(description = "Date as string in format yyyymmdd", required = true) @PathVariable final String dateString,
       @Parameter(description = "Price at that time when true otherweise adjusted price", required = true) @PathVariable final boolean asTraded)
       throws ParseException {
+    historyquoteReadLimitService.assertReadAllowed(idSecuritycurrency);
     return new ResponseEntity<>(historyquoteJpaRepository.getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(
         idSecuritycurrency, dateString, asTraded), HttpStatus.OK);
   }
@@ -84,6 +89,7 @@ public class HistoryquoteResource extends HistoryquoteResourceBase<Historyquote>
       @Parameter(description = "Id of security or currency pair", required = true) @PathVariable final Integer idSecuritycurrency,
       @Parameter(description = "True if it is a currency pair", required = true) @RequestParam() final boolean isCurrencypair)
       throws InterruptedException, ExecutionException {
+    historyquoteReadLimitService.assertReadAllowed(idSecuritycurrency);
     return new ResponseEntity<>(
         historyquoteJpaRepository.getHistoryqoutesByIdSecuritycurrencyWithMissing(idSecuritycurrency, isCurrencypair),
         HttpStatus.OK);
@@ -94,6 +100,7 @@ public class HistoryquoteResource extends HistoryquoteResourceBase<Historyquote>
   @GetMapping(value = "/securitycurrency/{idSecuritycurrency}/dateclose", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<IDateAndClose>> getDateCloseByIdSecuritycurrency(
       @Parameter(description = "Id of security or currency pair", required = true) @PathVariable final Integer idSecuritycurrency) {
+    historyquoteReadLimitService.assertReadAllowed(idSecuritycurrency);
     return new ResponseEntity<>(historyquoteJpaRepository.getHistoryquoteDateClose(idSecuritycurrency), HttpStatus.OK);
   }
 
@@ -105,6 +112,7 @@ public class HistoryquoteResource extends HistoryquoteResourceBase<Historyquote>
   @GetMapping(value = "/securitycurrency/{idSecuritycurrency}/forchart", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<HistoryquoteChartResponse> getHistoryquoteForChart(
       @Parameter(description = "Id of security or currency pair", required = true) @PathVariable final Integer idSecuritycurrency) {
+    historyquoteReadLimitService.assertReadAllowed(idSecuritycurrency);
     return new ResponseEntity<>(historyquoteJpaRepository.getHistoryquoteForChart(idSecuritycurrency), HttpStatus.OK);
   }
 
@@ -122,6 +130,7 @@ public class HistoryquoteResource extends HistoryquoteResourceBase<Historyquote>
       @PathVariable final Integer idSecuritycurrency,
       @Parameter(description = "The required tecnical indicator", required = true) @PathVariable final TaIndicators taIndicator,
       @RequestBody String dynamicModel) throws IOException {
+    historyquoteReadLimitService.assertReadAllowed(idSecuritycurrency);
     List<TaTraceIndicatorData> taTraceIndicatorData = new ArrayList<>();
     switch (taIndicator) {
     case SMA:

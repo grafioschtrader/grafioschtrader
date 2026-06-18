@@ -3,7 +3,6 @@ package grafioschtrader.rest;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,7 +22,7 @@ import grafiosch.entities.User;
 import grafiosch.repository.TenantBaseCustom;
 import grafiosch.rest.TenantBaseResource;
 import grafiosch.rest.UpdateCreateJpaRepository;
-import grafiosch.security.JwtTokenHandler;
+import grafiosch.types.TenantAccessLevel;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.algo.SimulationTenantCreateDTO;
 import grafioschtrader.algo.SimulationTenantInfo;
@@ -47,9 +46,6 @@ public class TenantResource extends TenantBaseResource<Tenant> {
 
   @Autowired
   private SimulationTenantService simulationTenantService;
-
-  @Autowired
-  private JwtTokenHandler jwtTokenHandler;
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Tenant> getTenantAndPortfolio() {
@@ -98,28 +94,6 @@ public class TenantResource extends TenantBaseResource<Tenant> {
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
-  @Operation(summary = "Switch to a different tenant (main or simulation) and receive a new JWT", tags = {
-      TenantBase.TABNAME })
-  @PostMapping(value = "/switchto/{idTargetTenant}", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Map<String, String>> switchTenant(
-      @Parameter(description = "ID of the target tenant", required = true) @PathVariable Integer idTargetTenant) {
-    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    // Use actualIdTenant which preserves the DB main tenant even when user is in a simulation
-    Integer mainIdTenant = user.getActualIdTenant();
-
-    // Validate: target must be the user's main tenant or a simulation child of it
-    if (!mainIdTenant.equals(idTargetTenant)) {
-      Tenant target = tenantJpaRepository.findById(idTargetTenant).orElse(null);
-      if (target == null || target.getTenantKindType() != TenantKindType.SIMULATION_COPY
-          || !mainIdTenant.equals(target.getIdParentTenant())) {
-        return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-      }
-    }
-
-    String token = jwtTokenHandler.createTokenForUser(user, 120, idTargetTenant);
-    return new ResponseEntity<>(Map.of("token", token), HttpStatus.OK);
-  }
-
   @Operation(summary = "Persist the tax export dialog settings for the current tenant", tags = {
       TenantBase.TABNAME })
   @PatchMapping(value = "/taxexportsettings", produces = APPLICATION_JSON_VALUE)
@@ -139,6 +113,33 @@ public class TenantResource extends TenantBaseResource<Tenant> {
   @Override
   protected String getPrefixEntityLimit() {
     return GlobalConstants.GT_LIMIT_DAY;
+  }
+
+  /**
+   * Allows switching into a simulation tenant that is a child of the user's home tenant (in addition to the generic
+   * home/grant rules handled by the base class).
+   */
+  @Override
+  protected TenantAccessLevel resolveAppSpecificSwitchTargetLevel(User user, Integer homeIdTenant, Integer idTarget) {
+    Tenant target = tenantJpaRepository.findById(idTarget).orElse(null);
+    if (target != null && target.getTenantKindType() == TenantKindType.SIMULATION_COPY
+        && homeIdTenant.equals(target.getIdParentTenant())) {
+      return TenantAccessLevel.MANAGE;
+    }
+    return null;
+  }
+
+  @Override
+  protected Integer createManagedClientTenant(String tenantName, User advisor) {
+    Tenant advisorTenant = tenantJpaRepository.findById(advisor.getActualIdTenant())
+        .orElseThrow(() -> new IllegalStateException("Advisor tenant not found"));
+    Tenant tenant = new Tenant(tenantName, advisorTenant.getCurrency(), advisor.getIdUser(), TenantKindType.MAIN, false);
+    return tenantJpaRepository.save(tenant).getIdTenant();
+  }
+
+  @Override
+  protected String getManagedTenantName(Integer idTenant) {
+    return tenantJpaRepository.findById(idTenant).map(Tenant::getTenantName).orElse(null);
   }
 
 }

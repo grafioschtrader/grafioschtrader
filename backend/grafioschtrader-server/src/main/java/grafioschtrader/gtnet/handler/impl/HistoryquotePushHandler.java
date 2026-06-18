@@ -304,6 +304,7 @@ public class HistoryquotePushHandler extends AbstractGTNetMessageHandler {
             hq.setLow(record.getLow());
             hq.setClose(record.getClose());
             hq.setVolume(record.getVolume());
+            hq.resetNonPositiveOhlcvToNull();
             historyquoteJpaRepository.save(hq);
             storedCount++;
           }

@@ -240,6 +240,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
       this.transactionPositionList = this.securityTransactionSummary.transactionPositionList;
       this.currencyColumnConfigMC.forEach(cc => {
         cc.headerSuffix = this.securityTransactionSummary.securityPositionSummary.mainCurrency;
+        cc.fixedCurrency = this.securityTransactionSummary.securityPositionSummary.mainCurrency;
         this.setFieldHeaderTranslation(cc);
       });
       // Build the tree locally, then set firstRowIndexOnPage BEFORE transactionNodes so

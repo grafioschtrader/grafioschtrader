@@ -996,6 +996,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
             hq.setLow(record.getLow());
             hq.setClose(record.getClose());
             hq.setVolume(record.getVolume());
+            hq.resetNonPositiveOhlcvToNull();
             historyquoteJpaRepository.save(hq);
             storedCount++;
           }

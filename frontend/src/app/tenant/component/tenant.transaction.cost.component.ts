@@ -121,7 +121,10 @@ export class TenantTransactionCostComponent extends TableConfigBase implements I
     this.portfolioService.getTransactionCostGrandSummaryByTenant().subscribe((data: TransactionCostGrandSummary) => {
       this.transactionCostGrandSummary = data;
       this.transactionCostGroupSummaries = this.transactionCostGrandSummary.transactionCostGroupSummaries;
-      this.columnConfigs.forEach(columnConfig => columnConfig.headerSuffix = this.transactionCostGrandSummary.mainCurrency);
+      this.columnConfigs.forEach(columnConfig => {
+        columnConfig.headerSuffix = this.transactionCostGrandSummary.mainCurrency;
+        columnConfig.fixedCurrency = this.transactionCostGrandSummary.mainCurrency;
+      });
       this.prepareTableAndTranslate();
 
       const urlPattern = new RegExp(`.*\/\/${AppSettings.MAIN_BOTTOM}.*\/${AppSettings.TRANSACTION_COST_KEY}\\\)`);

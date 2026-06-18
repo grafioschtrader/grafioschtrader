@@ -135,6 +135,26 @@ public abstract class BaseHistoryquote extends ProposeTransientTransfer implemen
     this.idSecuritycurrency = idSecuritycurrency;
   }
 
+  /**
+   * Connectors and remote peers sometimes deliver 0 instead of "missing" for open/high/low/volume. A non-positive
+   * value in these nullable fields carries no information, so it is normalized to NULL before persisting. The
+   * mandatory close value is never touched.
+   */
+  public void resetNonPositiveOhlcvToNull() {
+    if (open != null && open <= 0) {
+      open = null;
+    }
+    if (high != null && high <= 0) {
+      high = null;
+    }
+    if (low != null && low <= 0) {
+      low = null;
+    }
+    if (volume != null && volume <= 0) {
+      volume = null;
+    }
+  }
+
   public HistoryquoteCreateType getCreateType() {
     return HistoryquoteCreateType.getHistoryquoteCreateType(createType);
   }

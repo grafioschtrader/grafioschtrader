@@ -83,7 +83,9 @@ import {BaseSettings} from '../../base.settings';
         </editable-table>
 
         <div style="margin-top: 1rem; text-align: right;">
-          <p-button [label]="'SAVE' | translate" icon="pi pi-check" (click)="submitAll()"/>
+          <p-button [label]="'SAVE' | translate" (click)="submitAll()">
+            <i class="pi pi-check" pButtonIcon></i>
+          </p-button>
         </div>
       }
     </p-dialog>

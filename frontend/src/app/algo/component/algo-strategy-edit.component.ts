@@ -167,9 +167,13 @@ outputs:
       @if (isComplexStrategy) {
         <yaml-editor [(value)]="yamlContent" [height]="'500px'" [schema]="yamlSchema" />
         <div class="mt-2 text-end">
-          <p-button [label]="'LOAD_TEMPLATE' | translate" icon="pi pi-file"
-                    severity="secondary" (click)="loadTemplate()" styleClass="me-2" />
-          <p-button [label]="'APPLY' | translate" icon="pi pi-check" (click)="submitComplexStrategy()" />
+          <p-button [label]="'LOAD_TEMPLATE' | translate"
+                    severity="secondary" (click)="loadTemplate()" styleClass="me-2">
+            <i class="pi pi-file" pButtonIcon></i>
+          </p-button>
+          <p-button [label]="'APPLY' | translate" (click)="submitComplexStrategy()">
+            <i class="pi pi-check" pButtonIcon></i>
+          </p-button>
         </div>
       }
     </p-dialog>`,

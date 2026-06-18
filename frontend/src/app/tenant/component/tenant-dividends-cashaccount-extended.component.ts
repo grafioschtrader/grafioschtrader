@@ -77,22 +77,43 @@ export class TenantDividendsCashaccountExtendedComponent extends TenantDividends
     this.addColumn(DataType.String, 'cashaccount.name', 'NAME', true, false, {width: 200});
     this.addColumnFeqH(DataType.String, 'cashaccount.currency', true, false);
     this.addColumnFeqH(DataType.Numeric, 'closeEndOfYear', true, false);
-    this.addColumnFeqH(DataType.Numeric, 'feeCashAccount', true, false, {width: 60});
+    this.addColumnFeqH(DataType.Numeric, 'feeCashAccount', true, false,
+      {width: 60, currencyPrecisionField: 'cashaccount.currency'});
     this.addColumnFeqH(DataType.Numeric, 'feeCashAccountMC', true, false,
-      {width: 60, headerSuffix: this.securityDividendsGrandTotal.mainCurrency});
-    this.addColumnFeqH(DataType.Numeric, 'feeSecurityAccount', true, false);
+      {
+        width: 60, headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
+        fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
+      });
+    this.addColumnFeqH(DataType.Numeric, 'feeSecurityAccount', true, false,
+      {currencyPrecisionField: 'cashaccount.currency'});
     this.addColumnFeqH(DataType.Numeric, 'feeSecurityAccountMC', true, false,
-      {headerSuffix: this.securityDividendsGrandTotal.mainCurrency});
-    this.addGeneralColumns(this.securityDividendsGrandTotal.mainCurrency);
-    this.addColumnFeqH(DataType.Numeric, 'cashBalance', true, false);
+      {
+        headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
+        fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
+      });
+    this.addGeneralColumns(this.securityDividendsGrandTotal.mainCurrency, 'cashaccount.currency');
+    this.addColumnFeqH(DataType.Numeric, 'cashBalance', true, false,
+      {currencyPrecisionField: 'cashaccount.currency'});
     this.addColumnFeqH(DataType.Numeric, 'cashBalanceMC', true, false,
-      {headerSuffix: this.securityDividendsGrandTotal.mainCurrency});
+      {
+        headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
+        fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
+      });
     this.addColumnFeqH(DataType.Numeric, 'marginEarningsMC', false, true,
-      {headerSuffix: this.securityDividendsGrandTotal.mainCurrency});
+      {
+        headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
+        fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
+      });
     this.addColumnFeqH(DataType.Numeric, 'hypotheticalFinanceCostMC', false, true,
-      {headerSuffix: this.securityDividendsGrandTotal.mainCurrency});
+      {
+        headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
+        fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
+      });
     this.addColumnFeqH(DataType.Numeric, 'cashBalancePlusMarginMC', false, true,
-      {headerSuffix: this.securityDividendsGrandTotal.mainCurrency});
+      {
+        headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
+        fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
+      });
     this.multiSortMeta.push({field: 'cashaccount.name', order: 1});
     this.prepareTableAndTranslate();
     if (this.securityDividendsGrandTotal.hasMarginData) {

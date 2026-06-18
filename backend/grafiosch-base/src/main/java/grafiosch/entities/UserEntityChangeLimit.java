@@ -2,6 +2,8 @@ package grafiosch.entities;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -23,6 +25,13 @@ import jakarta.validation.constraints.NotNull;
 public class UserEntityChangeLimit extends Auditable implements AdminEntity, Serializable {
 
   public static final String TABNAME = "user_entity_change_limit";
+
+  /**
+   * Pseudo entity names (no JPA entity behind them) that may also carry a per-user daily limit, e.g. counters for
+   * read operations. Applications register their names at startup so the admin UI offers them in the entity
+   * selection. Mirrors the registry pattern of {@code Globalparameters.defaultLimitMap}.
+   */
+  public static final Set<String> ADDITIONAL_LIMIT_ENTITY_NAMES = new HashSet<>();
 
   private static final long serialVersionUID = 1L;
 
