@@ -19,12 +19,16 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import grafiosch.dto.AccountDeletionEligibility;
+import grafiosch.dto.AccountDeletionEligibility.DeletionEligibility;
 import grafiosch.entities.User;
+import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafiosch.exportdelete.AdditionalExportQuery;
 import grafiosch.exportdelete.IExportMyDataAddon;
 import grafiosch.exportdelete.MySqlDeleteMyData;
 import grafiosch.exportdelete.MySqlExportMyData;
 import grafiosch.rest.helper.RestHelper;
+import grafiosch.types.TenantAccessLevel;
 import jakarta.servlet.http.HttpServletResponse;
 
 /**
@@ -47,6 +51,12 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
   @Autowired
   private ResourceLoader resourceLoader;
 
+  @Autowired
+  private TenantAccessJpaRepository tenantAccessJpaRepository;
+
+  @Autowired
+  private UserJpaRepository userJpaRepository;
+
   /**
    * Optional application-specific contributors that add extra rows and/or plain-text documents to the export ZIP. May be
    * empty when no module provides one.
@@ -59,9 +69,59 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     RestHelper.isDemoAccount(demoAccountPatternDE, user.getUsername());
     RestHelper.isDemoAccount(demoAccountPatternEN, user.getUsername());
+    assertNoDependentClientsOrViewers(user);
 
     MySqlDeleteMyData mySqlDeleteMyData = new MySqlDeleteMyData(jdbcTemplate, user);
     mySqlDeleteMyData.deleteMyData();
+  }
+
+  /**
+   * Refuses self-account-deletion while the user is still tied to other tenants, because the deletion only removes the
+   * user's own home tenant and would otherwise orphan those relationships: managed client tenants would lose their only
+   * MANAGE grant (cascade-deleted with the user) and become permanently read-only, and shared viewers would silently
+   * lose access. The user must delete their clients and revoke all shared access first. Enforced on the backend so it
+   * cannot be bypassed by a non-frontend caller.
+   *
+   * @param user the user requesting deletion of their own account
+   * @throws GeneralNotTranslatedWithArgumentsException if the user still manages clients or still shares their portfolio
+   */
+  private void assertNoDependentClientsOrViewers(User user) {
+    switch (getAccountDeletionEligibility(user).getStatus()) {
+    case HAS_CLIENTS -> throw new GeneralNotTranslatedWithArgumentsException("g.delete.account.has.clients", null);
+    case HAS_VIEWERS -> throw new GeneralNotTranslatedWithArgumentsException("g.delete.account.has.viewers", null);
+    default -> {
+      // DELETABLE: nothing to do.
+    }
+    }
+  }
+
+  @Override
+  public AccountDeletionEligibility getAccountDeletionEligibility(User user) {
+    // (A) The user is an advisor: any MANAGE grant on another tenant is a managed client.
+    boolean hasManagedClients = tenantAccessJpaRepository.findByIdUser(user.getIdUser()).stream()
+        .anyMatch(ta -> ta.getAccessLevel() == TenantAccessLevel.MANAGE);
+    if (hasManagedClients) {
+      return new AccountDeletionEligibility(DeletionEligibility.HAS_CLIENTS);
+    }
+    // (B) Others can still read the user's own home tenant: read grants held by other users, or pure read-only viewer
+    // logins co-resident on the home tenant.
+    Integer homeTenant = user.getActualIdTenant();
+    boolean sharedToOthers = tenantAccessJpaRepository.findByIdTenant(homeTenant).stream()
+        .anyMatch(ta -> !ta.getIdUser().equals(user.getIdUser()));
+    boolean hasViewerLogins = userJpaRepository.findByIdTenantAndHomeTenantReadOnlyTrue(homeTenant).stream()
+        .anyMatch(v -> !v.getIdUser().equals(user.getIdUser()));
+    if (sharedToOthers || hasViewerLogins) {
+      return new AccountDeletionEligibility(DeletionEligibility.HAS_VIEWERS);
+    }
+    return new AccountDeletionEligibility(DeletionEligibility.DELETABLE);
+  }
+
+  @Override
+  public void deleteManagedClientData(User clientUser) throws Exception {
+    RestHelper.isDemoAccount(demoAccountPatternDE, clientUser.getUsername());
+    RestHelper.isDemoAccount(demoAccountPatternEN, clientUser.getUsername());
+
+    new MySqlDeleteMyData(jdbcTemplate, clientUser).deleteMyData();
   }
 
   /**

@@ -20,6 +20,24 @@ public interface UserJpaRepository
 
   Optional<User> findByIdTenant(Integer idTenant);
 
+  /**
+   * Returns all pure read-only viewer logins co-resident on the given tenant: users whose home tenant is this tenant and
+   * who are flagged read-only on it. Used to list the people a tenant owner has granted a dedicated read-only login to.
+   *
+   * @param idTenant the tenant whose read-only viewer logins are requested
+   * @return the list of read-only viewer users, possibly empty
+   */
+  List<User> findByIdTenantAndHomeTenantReadOnlyTrue(Integer idTenant);
+
+  /**
+   * Returns the writable owner of a tenant: the (first) user whose home tenant is this tenant and who is not flagged
+   * read-only on it. Used to label a tenant by its owner's e-mail even when read-only viewer logins also reside on it.
+   *
+   * @param idTenant the tenant whose owner is requested
+   * @return the owner user if one exists, otherwise empty
+   */
+  Optional<User> findFirstByIdTenantAndHomeTenantReadOnlyFalse(Integer idTenant);
+
   User findByIdTenantAndIdUser(Integer idTenant, Integer idUser);
 
   UserOwnProjection findByIdUserAndIdTenant(Integer idUser, Integer idTenant);

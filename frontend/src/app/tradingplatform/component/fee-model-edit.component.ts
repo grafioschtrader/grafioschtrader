@@ -57,7 +57,9 @@ import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
                    [fieldCompletions]="evalExCompletions"></yaml-editor>
 
       <div class="flex justify-end mt-3">
-        <p-button [label]="'SAVE' | translate" icon="pi pi-check" (click)="save()" />
+        <p-button [label]="'SAVE' | translate" (click)="save()">
+          <i class="pi pi-check" pButtonIcon></i>
+        </p-button>
       </div>
 
       <p-fieldset [legend]="'TEST_FEE_ESTIMATION' | translate" [toggleable]="true" [collapsed]="true"

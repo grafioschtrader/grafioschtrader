@@ -133,6 +133,10 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
     this.setupCostFormulaListeners();
   }
 
+  protected override getCashaccountPrecisionFields(): FieldConfig[] {
+    return [this.configObject.investAmount, this.configObject.taxCost, this.configObject.transactionCost];
+  }
+
   protected override setExistingValues(): void {
     const so = this.callParam?.standingOrder as StandingOrderSecurity;
     if (so) {

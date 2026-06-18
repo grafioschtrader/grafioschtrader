@@ -253,7 +253,9 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
                 if (quotes.open.get(i) != null) {
                   historyquote.setOpen(quotes.open.get(i) / divider);
                 }
-                historyquote.setVolume(quotes.volume.get(i));
+                if (quotes.volume.get(i) != null && quotes.volume.get(i) > 0) {
+                  historyquote.setVolume(quotes.volume.get(i));
+                }
                 historyquote.setDate(quoteDate);
 
                 // Update the last added date after successful addition
@@ -310,7 +312,17 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
         DateHelper.LocalDateToEpocheSeconds(toDate) + (24 * 60 * 60) - 1);
   }
 
-  // TODO
+  /**
+   * Intentionally disables the connectivity-based URL check for this connector.
+   *
+   * <p>Yahoo's "download links" produced by {@code getSecurityHistoricalDownloadLink} /
+   * {@code getCurrencypairHistoricalDownloadLink} point at the HTML history page, not the JSON API
+   * ({@code query2 .../v8/finance/chart/...}) that actually delivers the data, so a base-class HTTP 200 check would
+   * validate the wrong endpoint. URL-extension correctness is instead enforced by the regex validation in
+   * {@link #clearAndCheckUrlPatternSecuritycurrencyConnector}. This override is kept (rather than removed) as a guard:
+   * should a {@code UrlCheck} flag ever be added to the constructor, the unsuitable base connectivity check must not
+   * run.</p>
+   */
   @Override
   protected void checkUrl(String url, String failureMsgKey, FeedSupport feedSupport) {
 

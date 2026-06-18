@@ -86,6 +86,13 @@ public class ConfigurationWithLogin {
   public boolean gtNetLogEnabled;
 
   /**
+   * Whether the user has read-only access to the tenant they are logging into (a managed client account). When true the
+   * frontend hides create/update/delete actions; the backend write-blocking filter is the actual guarantee. Recomputed
+   * on each tenant switch via the switch response.
+   */
+  public boolean tenantReadOnly;
+
+  /**
    * Standard precision configuration for numeric field formatting.
    *
    * <p>

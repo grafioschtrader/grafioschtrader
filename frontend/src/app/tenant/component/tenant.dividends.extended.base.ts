@@ -15,15 +15,22 @@ export class TenantDividendsExtendedBase extends TableConfigBase {
     super(filterService, usersettingsService, translateService, gps, injector);
   }
 
-  protected addGeneralColumns(currency: string) {
-    this.addColumnFeqH(DataType.Numeric, 'autoPaidTax', true, false);
+  /**
+   * Adds the tax and dividend/interest columns shared by the security and cash account extended views.
+   *
+   * @param currency Tenant main currency, used as header suffix and fixed precision currency of the MC columns
+   * @param currencyPrecisionField Path to the row's own currency code (e.g. 'security.currency' or
+   *                               'cashaccount.currency') for the non-MC amount columns
+   */
+  protected addGeneralColumns(currency: string, currencyPrecisionField: string) {
+    this.addColumnFeqH(DataType.Numeric, 'autoPaidTax', true, false, {currencyPrecisionField});
     this.addColumnFeqH(DataType.Numeric, 'autoPaidTaxMC', true, false,
-      {headerSuffix: currency});
-    this.addColumnFeqH(DataType.Numeric, 'taxableAmount', true, false);
+      {headerSuffix: currency, fixedCurrency: currency});
+    this.addColumnFeqH(DataType.Numeric, 'taxableAmount', true, false, {currencyPrecisionField});
     this.addColumnFeqH(DataType.Numeric, 'taxableAmountMC', true, false,
-      {headerSuffix: currency});
+      {headerSuffix: currency, fixedCurrency: currency});
     this.addColumnFeqH(DataType.Numeric, 'realReceivedDivInterestMC', true, false,
-      {headerSuffix: currency});
+      {headerSuffix: currency, fixedCurrency: currency});
   }
 
   protected addIctaxColumns(): void {

@@ -21,7 +21,7 @@ export class GtAfterLoginHandler extends AfterLoginHandler {
     // Store supported cryptocurrencies
     sessionStorage.setItem(GlobalGTSessionNames.CRYPTOS, JSON.stringify(configurationWithLogin.cryptocurrencies));
 
-    sessionStorage.setItem(GlobalGTSessionNames.CURRENCY_PRECISION, JSON.stringify(configurationWithLogin.currencyPrecision));
+    sessionStorage.setItem(GlobalSessionNames.CURRENCY_PRECISION, JSON.stringify(configurationWithLogin.currencyPrecision));
 
     // Store tenant-level closed-until date for transaction period locking
     sessionStorage.setItem(GlobalGTSessionNames.TENANT_CLOSED_UNTIL, configurationWithLogin.tenantClosedUntil || '');

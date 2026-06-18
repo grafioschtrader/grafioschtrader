@@ -79,6 +79,7 @@ export class LoginService extends BaseAuthService<User> {
       (ac, eNK) => ({...ac, [eNK.entityName]: eNK.keyName}), {});
     sessionStorage.setItem(GlobalSessionNames.ENTITY_KEY_MAPPING, JSON.stringify(entityNameWithKeyNameMap));
     sessionStorage.setItem(GlobalSessionNames.MOST_PRIVILEGED_ROLE, configurationWithLogin.mostPrivilegedRole);
+    sessionStorage.setItem(GlobalSessionNames.TENANT_READ_ONLY, JSON.stringify(configurationWithLogin.tenantReadOnly));
     sessionStorage.setItem(GlobalSessionNames.UDF_CONFIG, JSON.stringify(configurationWithLogin.udfConfig));
 
     // Call application-specific handler if provided

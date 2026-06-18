@@ -16,6 +16,7 @@ import {AppSettings} from '../../shared/app.settings';
 import {TransactionType} from '../../shared/types/transaction.type';
 import {StandingOrderEditBase} from './standing-order-edit-base';
 import {AppHelpIds} from '../../shared/help/help.ids';
+import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 
 /**
  * Dialog component for creating and editing cashaccount standing orders (WITHDRAWAL/DEPOSIT).
@@ -67,6 +68,10 @@ export class StandingOrderCashaccountEditComponent extends StandingOrderEditBase
   protected override initializeTransactionTypeOptions(): void {
     this.configObject.transactionType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
       this.translateService, TransactionType, [TransactionType.WITHDRAWAL, TransactionType.DEPOSIT]);
+  }
+
+  protected override getCashaccountPrecisionFields(): FieldConfig[] {
+    return [this.configObject.cashaccountAmount, this.configObject.transactionCost];
   }
 
   protected override setExistingValues(): void {

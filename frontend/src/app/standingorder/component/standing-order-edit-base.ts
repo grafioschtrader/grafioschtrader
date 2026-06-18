@@ -17,6 +17,7 @@ import {PeriodDayPosition} from '../../shared/types/period.day.position';
 import {WeekendAdjustType} from '../../shared/types/weekend.adjust.type';
 import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
  * Abstract base class for standing order edit dialogs. Provides shared scheduling field definitions,
@@ -87,6 +88,7 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
       SelectOptionsHelper.createMonthOptions(this.gps.getUserLang());
     this.setupRepeatUnitListener();
     this.setupPeriodDayPositionListener();
+    this.setupCashaccountPrecisionListener();
     this.loadCashaccountsFromPortfolios();
   }
 
@@ -94,6 +96,41 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
    * Subclasses must populate the transactionType select with the appropriate enum subset.
    */
   protected abstract initializeTransactionTypeOptions(): void;
+
+  /**
+   * Subclasses return the amount fields whose fraction digits must follow the selected cash account's
+   * currency precision (e.g. BTC=8, JPY=0).
+   */
+  protected abstract getCashaccountPrecisionFields(): FieldConfig[];
+
+  /**
+   * Subscribes to cash account selection changes and applies the currency-specific decimal precision to the
+   * amount fields returned by getCashaccountPrecisionFields(). The currency is resolved from the loaded
+   * portfolios, which are available before any cash account value is set by loadCashaccountsFromPortfolios().
+   */
+  private setupCashaccountPrecisionListener(): void {
+    this.configObject.idCashaccount.formControl.valueChanges.subscribe((idCashaccount: any) => {
+      const currency = this.getCashaccountCurrency(+idCashaccount);
+      if (currency) {
+        const precision = this.gps.getCurrencyPrecision(currency);
+        this.getCashaccountPrecisionFields().forEach(fc =>
+          DynamicFieldHelper.adjustNumberFraction(fc, AppSettings.FID_STANDARD_INTEGER_DIGITS, precision));
+      }
+    });
+  }
+
+  /**
+   * Resolves the currency of a cash account from the loaded portfolios.
+   */
+  private getCashaccountCurrency(idCashaccount: number): string {
+    for (const portfolio of this.portfolios) {
+      const cashaccount = portfolio.cashaccountList?.find(ca => ca.idSecuritycashAccount === idCashaccount);
+      if (cashaccount) {
+        return cashaccount.currency;
+      }
+    }
+    return null;
+  }
 
   /**
    * Subclasses must set form values from existing standing order or transaction.

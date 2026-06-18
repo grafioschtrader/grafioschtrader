@@ -61,8 +61,10 @@ import {AppHelpIds} from '../../help/help.ids';
       (componentClick)="onComponentClick()">
       <div caption style="display: flex; align-items: center;">
         <h6 style="margin: 0;">{{ 'RISK_FREE_RATE_MAPPING' | translate }}</h6>
-        <p-button icon="pi pi-plus" [rounded]="true" [text]="true"
-                  (click)="entityTable.addNewRow()" [style]="{'margin-left': '0.5rem'}" />
+        <p-button [rounded]="true" [text]="true"
+                  (click)="entityTable.addNewRow()" [style]="{'margin-left': '0.5rem'}">
+          <i class="pi pi-plus" pButtonIcon></i>
+        </p-button>
       </div>
     </editable-table>
   `,

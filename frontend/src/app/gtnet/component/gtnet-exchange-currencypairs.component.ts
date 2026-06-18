@@ -94,10 +94,11 @@ import {HelpIds} from '../../lib/help/help.ids';
                        (input)="configurableTable.table.filterGlobal($any($event.target).value, 'contains')"
                        [placeholder]="'SEARCH' | translate" />
               </span>
-          <p-button icon="pi pi-save"
-                    [label]="'SAVE' | translate"
+          <p-button [label]="'SAVE' | translate"
                     (onClick)="saveChanges()"
-                    [disabled]="!hasUnsavedChanges()"></p-button>
+                    [disabled]="!hasUnsavedChanges()">
+            <i class="pi pi-save" pButtonIcon></i>
+          </p-button>
         </div>
       </div>
 

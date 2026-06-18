@@ -22,6 +22,7 @@ import grafiosch.rest.RequestMappings;
 import grafiosch.security.SecurityConfig;
 import grafiosch.security.filter.StatelessAuthenticationFilter;
 import grafiosch.security.filter.StatelessLoginFilter;
+import grafiosch.security.filter.TenantReadOnlyFilter;
 import grafiosch.service.UserService;
 import grafioschtrader.rest.RequestGTMappings;
 import grafioschtrader.security.TokenAuthenticationService;
@@ -113,6 +114,10 @@ public class SecurityGTConfig {
           .requestMatchers(HttpMethod.GET, RequestMappings.API + "gtinfo").permitAll()
           .requestMatchers(HttpMethod.GET, RequestMappings.M2M_API + "**").permitAll()
           .requestMatchers(HttpMethod.POST, RequestMappings.M2M_API + "**").permitAll();
+      // Creating a managed client (advisor capability) requires ROLE_USER or higher; must precede the broad API/**
+      // rule (which also permits ROLE_LIMITEDIT) so limited-edit users are excluded.
+      authz.requestMatchers(HttpMethod.POST, RequestGTMappings.TENANT_MAP + "/createclient")
+          .hasAnyRole(Role.USER, Role.ALL_EDIT, Role.ADMIN);
       SecurityConfig.configureGlobalParameters(http);
       authz.requestMatchers(HttpMethod.PUT, RequestGTMappings.TRADINGDAYSPLUS_MAP).hasRole(Role.ADMIN);
     }); // Close authorizeHttpRequests
@@ -123,6 +128,15 @@ public class SecurityGTConfig {
     http.addFilterBefore(
         new StatelessAuthenticationFilter(tokenAuthenticationService, messages, userService, limitRequest),
         UsernamePasswordAuthenticationFilter.class);
+
+    // Block writes for users operating in a read-only tenant (read-only client, or advisor with READ-level access).
+    // Account-self paths and the tenant switch-back path stay writable so the user can still manage their own account
+    // and leave the read-only tenant.
+    http.addFilterAfter(
+        new TenantReadOnlyFilter(messages,
+            java.util.Set.of(RequestGTMappings.TENANT_MAP + "/switchto/**", RequestMappings.USER_MAP + "/password",
+                RequestMappings.USER_MAP + "/nicknamelocale")),
+        StatelessAuthenticationFilter.class);
     return http.build();
   }
 

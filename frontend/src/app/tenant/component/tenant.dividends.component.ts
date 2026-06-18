@@ -225,7 +225,10 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
       this.idsAccounts.idsCashaccount).subscribe((data: SecurityDividendsGrandTotal) => {
       this.securityDividendsGrandTotal = data;
       this.securityDividendsYearGroup = this.securityDividendsGrandTotal.securityDividendsYearGroup;
-      this.columnConfigs.forEach(columnConfig => columnConfig.headerSuffix = this.securityDividendsGrandTotal.mainCurrency);
+      this.columnConfigs.forEach(columnConfig => {
+        columnConfig.headerSuffix = this.securityDividendsGrandTotal.mainCurrency;
+        columnConfig.fixedCurrency = this.securityDividendsGrandTotal.mainCurrency;
+      });
       const marginCol = this.fields.find(f => f.field === 'yearFinanceCostMC');
       if (marginCol) { marginCol.visible = !!data.hasMarginData; }
       const ictaxFields = ['yearIctaxTotalTaxValueChf', 'yearIctaxTotalPaymentValueChf'];

@@ -293,9 +293,12 @@ this.addColumn(DataType.String, 'cashaccount.name', 'CASHACCOUNT', true, false);
 this.addColumn(DataType.String, 'security.name', 'SECURITY', true, false);
 ```
 
-## PrimeNG Button Patterns (PrimeNG 17+)
+## PrimeNG Button Patterns (PrimeNG 21+)
 
-**IMPORTANT**: In PrimeNG 17+, the `pButton` directive **deprecated** the `label` and `icon` attributes. Use these patterns instead:
+**IMPORTANT**: In PrimeNG 21+, the `icon` attribute on `<p-button>` and `pButton` is **deprecated**. Set the
+icon with the **`pButtonIcon` directive** on a projected child element instead. The `<i pButtonIcon>` element is
+picked up via content projection (the button's `iconSignal = contentChild(ButtonIcon)` query) and styled as the
+button icon. `ButtonModule` already exports the `pButtonIcon` directive, so no extra import is needed.
 
 ### Preferred: `<p-button>` Component
 
@@ -303,19 +306,25 @@ this.addColumn(DataType.String, 'security.name', 'SECURITY', true, false);
 <!-- Basic button with label -->
 <p-button [label]="'SAVE' | translate" (click)="save()" />
 
-<!-- Button with icon -->
-<p-button [label]="'SAVE' | translate" icon="pi pi-check" (click)="save()" />
+<!-- Button with icon (project an <i pButtonIcon> child) -->
+<p-button [label]="'SAVE' | translate" (click)="save()">
+  <i class="pi pi-check" pButtonIcon></i>
+</p-button>
 
 <!-- Icon-only button -->
-<p-button icon="pi pi-check" (click)="save()" />
+<p-button (click)="save()">
+  <i class="pi pi-check" pButtonIcon></i>
+</p-button>
 
 <!-- Button with severity/style -->
-<p-button [label]="'DELETE' | translate" icon="pi pi-trash" severity="danger" (click)="delete()" />
+<p-button [label]="'DELETE' | translate" severity="danger" (click)="delete()">
+  <i class="pi pi-trash" pButtonIcon></i>
+</p-button>
 ```
 
 ### Alternative: `pButton` Directive with Content Projection
 
-When you need a native `<button>` element (e.g., for form submission), use content projection:
+When you need a native `<button>` element (e.g., for form submission), project the icon the same way:
 
 ```html
 <!-- Text only -->
@@ -323,9 +332,9 @@ When you need a native `<button>` element (e.g., for form submission), use conte
   {{ 'SAVE' | translate }}
 </button>
 
-<!-- With icon - use nested elements -->
+<!-- With icon - use a pButtonIcon child element -->
 <button pButton type="submit" class="btn">
-  <i class="pi pi-check"></i>
+  <i class="pi pi-check" pButtonIcon></i>
   {{ 'SAVE' | translate }}
 </button>
 ```
@@ -333,8 +342,9 @@ When you need a native `<button>` element (e.g., for form submission), use conte
 ### DEPRECATED - Do NOT Use
 
 ```html
-<!-- WRONG: label and icon attributes on pButton are deprecated -->
-<button pButton [label]="'SAVE' | translate" icon="pi pi-check" (click)="save()"></button>
+<!-- WRONG: the icon attribute on p-button / pButton is deprecated -->
+<p-button [label]="'SAVE' | translate" icon="pi pi-check" (click)="save()" />
+<button pButton icon="pi pi-check" (click)="save()"></button>
 ```
 
 ## Dialog Components
@@ -486,10 +496,19 @@ export class PortfolioEditDynamicComponent extends SimpleDynamicEditBase<Portfol
 // Opening the dialog
 const dialogRef = this.dialogService.open(PortfolioEditDynamicComponent, {
   header: 'Create Portfolio',
-  data: { callParam: { thisObject, parentObject } }
+  data: { callParam: { thisObject, parentObject } },
+  modal: true, closable: true, closeOnEscape: true
 });
 dialogRef.onClose.subscribe((result: ProcessedActionData) => { ... });
 ```
+
+> **ALWAYS make `DialogService.open(...)` dialogs closable.** This PrimeNG DynamicDialog setup does
+> **not** reliably default to a closable dialog, so every `dialogService.open(...)` config **must**
+> include `closable: true` (shows the X) and `closeOnEscape: true` (ESC closes), plus `modal: true`.
+> Omitting them produces a dialog the user cannot dismiss — especially a read-only/table dialog that
+> has no submit button. The only exception is a deliberately forced dialog (e.g. forced password
+> change), which sets them to `false` on purpose. Match the existing convention used by
+> `ColumnVisibilityDialogComponent` (`lib/datashowbase/table.config.base.ts`) and the search dialogs.
 
 ### Dialog Components with Tables
 

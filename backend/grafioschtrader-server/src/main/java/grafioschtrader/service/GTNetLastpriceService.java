@@ -358,8 +358,7 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
       try {
         queryRemoteServerWithTracking(supplier, instruments, null, pushContext);
       } catch (Exception e) {
-        e.printStackTrace();
-        log.warn("Failed to query GTNet server {}: {}", supplier.getDomainRemoteName(), e.getMessage());
+        log.warn("Failed to query GTNet server {}: {}", supplier.getDomainRemoteName(), e.getMessage(), e);
       }
     }
   }
@@ -379,8 +378,7 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
       try {
         queryRemoteServerWithTracking(supplier, instruments, filter, null);
       } catch (Exception e) {
-        e.printStackTrace();
-        log.warn("Failed to query GTNet server {}: {}", supplier.getDomainRemoteName(), e.getMessage());
+        log.warn("Failed to query GTNet server {}: {}", supplier.getDomainRemoteName(), e.getMessage(), e);
       }
     }
   }

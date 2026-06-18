@@ -18,6 +18,8 @@ import grafioschtrader.entities.AlgoSimulationResult;
 import grafioschtrader.entities.AlgoStrategy;
 import grafioschtrader.entities.AlgoTop;
 import grafioschtrader.entities.AlgoTopAssetSecurity;
+import grafioschtrader.entities.GTNetSecurityImpHead;
+import grafioschtrader.entities.GTNetSecurityImpPos;
 import grafioschtrader.entities.GenericConnectorDef;
 import grafioschtrader.entities.GenericConnectorEndpoint;
 import grafioschtrader.entities.GenericConnectorFieldMapping;
@@ -260,6 +262,11 @@ public class MyDataExportDeleteDefinition {
   private static String STANDING_ORDER_FAILURE_SELDEL = String.format(
       "sof.* FROM %s sof JOIN %s so ON sof.id_standing_order = so.id_standing_order WHERE so.id_tenant = ?",
       StandingOrderFailure.TABNAME, StandingOrder.TABNAME);
+  // GTNet security import positions carry no id_tenant; they are scoped to the tenant through their
+  // parent header. Select/delete by joining the header so the position rows of the tenant are matched.
+  private static String GT_NET_SECURITY_IMP_POS_SELDEL = String.format(
+      "p.* FROM %s p JOIN %s h ON p.id_gt_net_security_imp_head = h.id_gt_net_security_imp_head WHERE h.id_tenant = ?",
+      GTNetSecurityImpPos.TABNAME, GTNetSecurityImpHead.TABNAME);
   private static String TRANSACTION_NULL_SECURITY_ACTION_APP =
       "UPDATE transaction SET id_security_action_app = NULL WHERE id_tenant = ? AND id_security_action_app IS NOT NULL";
   private static String TRANSACTION_NULL_SECURITY_TRANSFER =
@@ -370,6 +377,14 @@ public class MyDataExportDeleteDefinition {
       new ExportDefinition(ImportTransactionPos.TABNAME, TENANT_USER.ID_TENANT, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       new ExportDefinition(ImportTransactionPosFailed.TABNAME, TENANT_USER.NONE, IMPORT_TRANS_FAILED_SELDEL,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+
+      // GTNet security import sets — header is tenant-scoped and has a RESTRICT FK to tenant, so it
+      // must be deleted before the tenant row. Header before positions: export runs forward (parent
+      // first for import FK integrity), delete runs backwards (positions first, then header).
+      new ExportDefinition(GTNetSecurityImpHead.TABNAME, TENANT_USER.ID_TENANT, null,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      new ExportDefinition(GTNetSecurityImpPos.TABNAME, TENANT_USER.NONE, GT_NET_SECURITY_IMP_POS_SELDEL,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
 
       new ExportDefinition(CorrelationSet.TABNAME, TENANT_USER.ID_TENANT, null,

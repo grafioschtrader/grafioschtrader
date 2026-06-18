@@ -87,13 +87,13 @@ export abstract class TransactionTable extends TransactionContextMenu {
       {maxFractionDigits: gps.getMaxFractionDigits(), filterType: FilterType.likeDataType});
 
     this.addColumnFeqH(DataType.Numeric, 'taxCost', true, false,
-      {filterType: FilterType.likeDataType, maxFractionDigits: gps.getMaxFractionDigits()});
+      {filterType: FilterType.likeDataType, currencyPrecisionField: 'security.currency'});
     this.addColumnFeqH(DataType.Numeric, 'transactionCost', true, false,
-      {width: 60, filterType: FilterType.likeDataType, maxFractionDigits: gps.getMaxFractionDigits()});
+      {width: 60, filterType: FilterType.likeDataType, currencyPrecisionField: 'security.currency'});
     this.addColumnFeqH(DataType.Numeric, 'cashaccountAmount', true, false,
       {
         width: 70, filterType: FilterType.likeDataType, templateName: 'greenRed',
-        maxFractionDigits: gps.getMaxFractionDigits()
+        currencyPrecisionField: 'cashaccount.currency'
       });
   }
 

@@ -244,9 +244,9 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   }
 
   private adjustNumberInputFractions(): void {
-    const fromCurrencyFraction = this.gpsGT.getCurrencyPrecision(this.currencypair ?
+    const fromCurrencyFraction = this.gps.getCurrencyPrecision(this.currencypair ?
       this.currencypair.fromCurrency : this.creditCashaccount.currency);
-    const toCurrencyFraction = this.gpsGT.getCurrencyPrecision(this.currencypair ? this.currencypair.toCurrency :
+    const toCurrencyFraction = this.gps.getCurrencyPrecision(this.currencypair ? this.currencypair.toCurrency :
       this.debitCashaccount.currency);
     DynamicFieldHelper.adjustNumberFraction(this.configObject.creditAmount, AppSettings.FID_MAX_INT_REAL_DOUBLE,
       toCurrencyFraction);

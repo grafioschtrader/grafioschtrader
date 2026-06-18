@@ -1,5 +1,7 @@
 package grafioschtrader.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.messaging.Message;
@@ -19,6 +21,8 @@ import grafioschtrader.security.TokenAuthenticationService;
 @ConditionalOnExpression("${gt.use.websocket:false}")
 public class AuthChannelInterceptorAdapter implements ChannelInterceptor {
 
+  private static final Logger log = LoggerFactory.getLogger(AuthChannelInterceptorAdapter.class);
+
   @Autowired
   private TokenAuthenticationService tokenAuthenticationService;
 
@@ -32,7 +36,7 @@ public class AuthChannelInterceptorAdapter implements ChannelInterceptor {
         accessor.setUser(auth);
       }
     } catch (RequestLimitAndSecurityBreachException lee) {
-      lee.printStackTrace();
+      log.warn(lee.getMessage(), lee);
     }
 
     return message;

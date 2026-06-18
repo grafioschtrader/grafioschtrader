@@ -87,9 +87,9 @@ import {AppSettings} from '../../shared/app.settings';
 
     <div class="flex justify-content-end mt-3">
       <p-button [label]="'APPLY_SELECTED' | translate"
-                icon="pi pi-check"
                 (onClick)="applySelected()"
                 [disabled]="!selectedSecurity">
+        <i class="pi pi-check" pButtonIcon></i>
       </p-button>
     </div>
   `,

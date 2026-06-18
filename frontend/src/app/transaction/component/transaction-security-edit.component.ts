@@ -463,7 +463,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   private openCalcExRateDialog(): void {
     const ddh = new DynamicDialogHelper(this.translateService, this.dialogService,
       CalcExRateDialogComponent, this.configObject.calcExRateButton.labelKey);
-    const ref = ddh.openDynamicDialog(400);
+    const ref = ddh.openDynamicDialog(400, {cashaccountCurrency: this.currencyCashaccount});
     ref.onClose.subscribe((amount: number) => {
       if (amount != null) {
         this.calcExRateFromAmount(amount);
@@ -578,6 +578,40 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       .map(fc => {
         DynamicFieldHelper.setCurrency(fc, this.currencyCashaccount);
       });
+    this.adjustAmountFieldFractions(currencySecurity, currencyCashaccount);
+  }
+
+  /**
+   * Applies the currency-specific decimal precision (e.g. BTC=8, JPY=0) to the settled cash amount fields.
+   * Quotation fields keep the maximum fraction digits because unit prices need more digits than the currency's
+   * cash precision. For open margin instruments assetInvestmentValue1 holds the daily finance cost and keeps its
+   * maximum fraction digits as set by setVisibilityOnFields().
+   *
+   * @param currencySecurity Currency of the selected security, or null when unchanged/unknown
+   * @param currencyCashaccount Currency of the selected cash account, or null when unchanged/unknown
+   */
+  private adjustAmountFieldFractions(currencySecurity: string, currencyCashaccount: string): void {
+    const maxIntegerDigits = AppSettings.FID_MAX_DIGITS - this.gps.getMaxFractionDigits();
+    if (currencySecurity) {
+      const precision = this.gps.getCurrencyPrecision(currencySecurity);
+      DynamicFieldHelper.adjustNumberFraction(this.configObject.taxCost,
+        AppSettings.FID_STANDARD_INTEGER_DIGITS, precision);
+      DynamicFieldHelper.adjustNumberFraction(this.configObject.transactionCost,
+        AppSettings.FID_STANDARD_INTEGER_DIGITS, precision);
+      if (!this.isOpenMarginInstrument) {
+        DynamicFieldHelper.adjustNumberFraction(this.configObject.assetInvestmentValue1,
+          AppSettings.FID_STANDARD_INTEGER_DIGITS, precision);
+      }
+    }
+    if (currencyCashaccount) {
+      const precision = this.gps.getCurrencyPrecision(currencyCashaccount);
+      DynamicFieldHelper.adjustNumberFraction(this.configObject.taxCostCA,
+        AppSettings.FID_STANDARD_INTEGER_DIGITS, precision);
+      DynamicFieldHelper.adjustNumberFraction(this.configObject.transactionCostCA,
+        AppSettings.FID_STANDARD_INTEGER_DIGITS, precision);
+      DynamicFieldHelper.adjustNumberFraction(this.configObject.securityRisk, maxIntegerDigits, precision);
+      DynamicFieldHelper.adjustNumberFraction(this.configObject.cashaccountAmount, maxIntegerDigits, precision);
+    }
   }
 
   private setVisibilityOnFields(): void {

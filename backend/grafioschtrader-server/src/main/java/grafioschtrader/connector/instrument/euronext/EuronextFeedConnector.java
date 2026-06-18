@@ -24,6 +24,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
@@ -47,6 +49,8 @@ import tools.jackson.databind.json.JsonMapper;
  */
 @Component
 public class EuronextFeedConnector extends BaseFeedConnector {
+
+  private static final Logger log = LoggerFactory.getLogger(EuronextFeedConnector.class);
 
   public static final String STOCK_EX_MIC_AMSTERDAM = "XAMS";
   public static final String STOCK_EX_MIC_BRUSSELS = "XBRU";
@@ -230,7 +234,7 @@ public class EuronextFeedConnector extends BaseFeedConnector {
       }
       return decrypted;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage(), e);
     }
     return null;
   }

@@ -460,6 +460,7 @@
   "HISTORYQUOTE_LEGACY_APPLY_SPLIT": "Apply split to archived data",
   "HISTORYQUOTE_LEGACY_DELETE_ALL": "Delete all archived data",
   "HISTORYQUOTE_LEGACY_DELETE_ALL_CONFIRM": "Are you sure you want to delete every archived historical price for this security?",
+  "HISTORYQUOTE_READ": "Historical price retrieval (instruments per day)",
   "HISTORYQUOTE_SHOW_LEGACY": "Show archived historical price data",
   "HISTORYQUOTE_SHOW_LIVE": "Return to current historical price data",
   "HISTORY_DATA_PROVIDER": "Historical data source",

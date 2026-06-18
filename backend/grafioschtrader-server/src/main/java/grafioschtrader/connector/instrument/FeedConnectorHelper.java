@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.commons.lang3.math.NumberUtils;
@@ -163,12 +164,49 @@ public class FeedConnectorHelper {
    */
   public static HttpResponse<String> getByHttpClient(String urlStr, Integer seconds, boolean useRadomAgent)
       throws IOException, InterruptedException {
+    return getByHttpClient(urlStr, seconds, useRadomAgent, null);
+  }
+
+  /**
+   * Performs an HTTP GET request with a configurable connection timeout and additional request headers. Uses the
+   * standard (non-random) user agent. Intended for providers that require provider-specific request headers, such as
+   * Boursorama, whose EOD endpoint only responds to requests carrying {@code X-Requested-With: XMLHttpRequest}.
+   *
+   * @param urlStr  the URL to request
+   * @param seconds the connection timeout in seconds, or null for no timeout
+   * @param headers additional request headers to set, or null for none
+   * @return the HTTP response containing the response body as a string
+   * @throws IOException          if an I/O error occurs during the request
+   * @throws InterruptedException if the operation is interrupted
+   */
+  public static HttpResponse<String> getByHttpClient(String urlStr, Integer seconds, Map<String, String> headers)
+      throws IOException, InterruptedException {
+    return getByHttpClient(urlStr, seconds, false, headers);
+  }
+
+  /**
+   * Core HTTP GET implementation shared by the public overloads. Sets the user agent (standard or randomized) and any
+   * additional request headers, then sends the request with an optional connection timeout.
+   *
+   * @param urlStr        the URL to request
+   * @param seconds       the connection timeout in seconds, or null for no timeout
+   * @param useRadomAgent true to use a randomized user agent, false for the standard user agent
+   * @param headers       additional request headers to set, or null for none
+   * @return the HTTP response containing the response body as a string
+   * @throws IOException          if an I/O error occurs during the request
+   * @throws InterruptedException if the operation is interrupted
+   */
+  private static HttpResponse<String> getByHttpClient(String urlStr, Integer seconds, boolean useRadomAgent,
+      Map<String, String> headers) throws IOException, InterruptedException {
     HttpClient client = (seconds != null) ? HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(seconds)).build()
         : HttpClient.newHttpClient();
 
-    HttpRequest request = HttpRequest.newBuilder().GET().header("User-Agent", getHttpAgentAsString(useRadomAgent))
-        .uri(URI.create(urlStr)).build();
-    return client.send(request, HttpResponse.BodyHandlers.ofString());
+    HttpRequest.Builder builder = HttpRequest.newBuilder().GET()
+        .header("User-Agent", getHttpAgentAsString(useRadomAgent)).uri(URI.create(urlStr));
+    if (headers != null) {
+      headers.forEach(builder::header);
+    }
+    return client.send(builder.build(), HttpResponse.BodyHandlers.ofString());
   }
 
   /**

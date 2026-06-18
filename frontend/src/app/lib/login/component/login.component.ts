@@ -45,7 +45,7 @@ import {PasswordEditComponent} from './password-edit.component';
           </dynamic-form>
         }
         @if (releaseNotes && releaseNotes.length > 0) {
-          <p-card header="{{'RELEASE_NOTE' | translate}}">
+          <p-card class="mt-2 d-block" header="{{'RELEASE_NOTE' | translate}}">
             @for (note of releaseNotes; track note.idReleaseNote) {
               <div class="mb-3">
                 <h4>{{ note.version }}</h4>
@@ -54,7 +54,7 @@ import {PasswordEditComponent} from './password-edit.component';
             }
           </p-card>
         } @else {
-          <p-card header="{{'RELEASE_NOTE' | translate}}">
+          <p-card class="mt-2 d-block" header="{{'RELEASE_NOTE' | translate}}">
             <div class="text-center text-muted">
               <i class="pi pi-info-circle me-2"></i>
               {{ 'NO_RELEASE_NOTES_AVAILABLE' | translate }}

@@ -217,7 +217,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
         this.checkTransactionLocked(effectiveClosedUntil, this.transactionCallParam.transaction.transactionTime);
       }
 
-      const precision = this.gpsGT.getCurrencyPrecision(this.cashaccountCurrency);
+      const precision = this.gps.getCurrencyPrecision(this.cashaccountCurrency);
       this.adjustNumberInputFractions(this.configObject.cashaccountAmount, AppSettings.FID_MAX_INT_REAL_DOUBLE, precision);
       this.adjustNumberInputFractions(this.configObject.debitAmount, AppSettings.FID_MAX_INT_REAL_DOUBLE, precision);
       this.adjustNumberInputFractions(this.configObject.transactionCost, AppSettings.FID_MAX_INT_REAL_DOUBLE, precision);

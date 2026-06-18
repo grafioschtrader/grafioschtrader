@@ -15,6 +15,8 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.collections4.map.PassiveExpiringMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import grafiosch.BaseConstants;
 import grafiosch.entities.UDFData;
@@ -58,6 +60,8 @@ import io.github.bucket4j.ConsumptionProbe;
  * values for securities, enabling automated financial data collection and analysis across the application.
  */
 public class YahooUDFConnect extends AbstractYahooFinanceConnector {
+
+  private static final Logger log = LoggerFactory.getLogger(YahooUDFConnect.class);
 
   private YahooSymbolSearch yahooSymbolSearch = new YahooSymbolSearch();
   private Bucket bucket;
@@ -251,7 +255,8 @@ public class YahooUDFConnect extends AbstractYahooFinanceConnector {
         try {
           Thread.sleep(waitForRefill);
         } catch (InterruptedException e) {
-          e.printStackTrace();
+          Thread.currentThread().interrupt();
+          log.warn("Interrupted while waiting for rate-limit token", e);
         }
       }
     } while (true);

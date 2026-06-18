@@ -148,6 +148,7 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
       this.transactionPositionList = this.securityTransactionSummary.transactionPositionList;
       this.currencyColumnConfigMC.forEach(cc => {
         cc.headerSuffix = this.securityTransactionSummary.securityPositionSummary.mainCurrency;
+        cc.fixedCurrency = this.securityTransactionSummary.securityPositionSummary.mainCurrency;
         this.setFieldHeaderTranslation(cc);
       });
     });

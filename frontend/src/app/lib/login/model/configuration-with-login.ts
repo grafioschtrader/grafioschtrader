@@ -66,6 +66,12 @@ export interface ConfigurationWithLogin {
   mostPrivilegedRole: string;
 
   /**
+   * Whether the user has read-only access to the tenant they log into (a managed client account). When true the
+   * frontend hides create/update/delete actions. Refreshed on each tenant switch via the switch response.
+   */
+  tenantReadOnly: boolean;
+
+  /**
    * Current password policy compliance status.
    * Regular expression to check the password for the security aspect.
    * For example, minimum length of required characters.
@@ -137,5 +143,11 @@ export enum FeatureType {
    * Enables discovery of other instances, trust token exchange, data sharing negotiation,
    * and intraday price distribution.
    */
-  GTNET
+  GTNET,
+  /**
+   * Manage clients: a user (advisor) can create additional tenants with a read-only client login,
+   * switch between the tenants they manage, and return to their own tenant. Library-level feature
+   * (g.use.manageclient).
+   */
+  MANAGECLIENT
 }

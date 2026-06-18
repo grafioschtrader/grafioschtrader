@@ -163,8 +163,11 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
     final Integer idSecuritycurrency = securitycurrency.getIdSecuritycurrency();
     securitycurrency = securitycurrencyService.getJpaRepository().findByIdSecuritycurrency(idSecuritycurrency);
 
-    // Set idSecuritycurrency on each historyquote
-    historyquotes.forEach(hq -> hq.setIdSecuritycurrency(idSecuritycurrency));
+    // Set idSecuritycurrency on each historyquote and normalize 0-valued OHLCV from remote peers to NULL
+    historyquotes.forEach(hq -> {
+      hq.setIdSecuritycurrency(idSecuritycurrency);
+      hq.resetNonPositiveOhlcvToNull();
+    });
 
     // Apply caller-supplied retry rule (reset to 0 for connector success, cap-down for GTNet fallback success)
     securitycurrency.setRetryHistoryLoad(retryRule.apply(securitycurrency.getRetryHistoryLoad()));
@@ -323,7 +326,10 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
 
     hdc.historyquotes = hdc.historyquotes.stream().parallel()
         .filter(historyquote -> hdc.removeFromDate != null || !historyquote.getDate().isBefore(hdc.correctedFromDate))
-        .peek(h -> h.setIdSecuritycurrency(securitycurrency.getIdSecuritycurrency())).collect(Collectors.toList());
+        .peek(h -> {
+          h.setIdSecuritycurrency(securitycurrency.getIdSecuritycurrency());
+          h.resetNonPositiveOhlcvToNull();
+        }).collect(Collectors.toList());
 
     return hdc;
 

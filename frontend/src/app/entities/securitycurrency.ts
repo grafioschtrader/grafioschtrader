@@ -26,13 +26,13 @@ export class Securitycurrency extends Auditable {
   sTimestamp?: string = null;
 
   /** Receive intraday prices for this instrument via GTNet. */
-  gtNetLastpriceRecv?: boolean = null;
+  gtNetLastpriceRecv?: boolean = false;
   /** Receive historical price data for this instrument via GTNet. */
-  gtNetHistoricalRecv?: boolean = null;
+  gtNetHistoricalRecv?: boolean = false;
   /** Share intraday prices of this instrument via GTNet. */
-  gtNetLastpriceSend?: boolean = null;
+  gtNetLastpriceSend?: boolean = false;
   /** Share historical price data of this instrument via GTNet. */
-  gtNetHistoricalSend?: boolean = null;
+  gtNetHistoricalSend?: boolean = false;
   /** Timestamp when GTNet exchange settings were last modified. */
   gtNetLastModifiedTime?: string;
 

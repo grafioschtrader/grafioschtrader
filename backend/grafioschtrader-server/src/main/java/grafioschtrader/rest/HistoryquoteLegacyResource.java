@@ -31,6 +31,7 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.priceupdate.historyquote.HistoryquoteLegacyImport;
 import grafioschtrader.repository.HistoryquoteLegacyJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
+import grafioschtrader.service.HistoryquoteReadLimitService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -52,10 +53,14 @@ public class HistoryquoteLegacyResource extends HistoryquoteResourceBase<History
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
 
+  @Autowired
+  private HistoryquoteReadLimitService historyquoteReadLimitService;
+
   @Operation(summary = "List archived historyquote_legacy rows for a security", tags = { HistoryquoteLegacy.TABNAME })
   @GetMapping(value = "/security/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<HistoryquoteLegacy>> getLegacyForSecurity(
       @Parameter(description = "Id of the security", required = true) @PathVariable Integer idSecuritycurrency) {
+    historyquoteReadLimitService.assertReadAllowed(idSecuritycurrency);
     return new ResponseEntity<>(
         historyquoteLegacyJpaRepository.findByIdSecuritycurrencyOrderByDateDesc(idSecuritycurrency), HttpStatus.OK);
   }

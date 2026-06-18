@@ -36,10 +36,10 @@ public class ViennaStockExchangeFeedConnectorTest extends BaseFeedConnectorCheck
           AssetclassType.FIXED_INCOME, "8595610", null, 4428, "2004-11-04", dateTo));
       hisoricalDate
           .add(new SecurityHistoricalDate("ANDRITZ AG", "AT0000730007", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
-              AssetclassType.EQUITIES, "740752", null, 6173, "2001-06-25", dateTo));
+              AssetclassType.EQUITIES, "740752", null, 6170, "2001-06-25", dateTo));
       hisoricalDate.add(
           new SecurityHistoricalDate("ATX Index", "AT0000999982", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
-              AssetclassType.EQUITIES, "92866", null, 6539, "2000-01-03", dateTo));
+              AssetclassType.EQUITIES, "92866", null, 6533, "2000-01-03", dateTo));
       hisoricalDate.add(
           new SecurityHistoricalDate("iShares EURO STOXX 50 U.ETF", "IE0008471009", SpecialInvestmentInstruments.ETF,
               AssetclassType.EQUITIES, "200477480", null, 2060, "2017-10-16", dateTo));

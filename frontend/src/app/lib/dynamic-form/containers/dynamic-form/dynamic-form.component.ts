@@ -67,11 +67,13 @@ import {DynamicFieldDirective} from '../../components/dynamic-field/dynamic-fiel
         }
 
         <!-- Buttons -->
-        <div [class.ui-widget-content]="!formConfig.nonModal">
+        <div class="d-flex align-items-center" [class.ui-widget-content]="!formConfig.nonModal">
           @if (formConfig.helpLinkFN) {
-            <p-button icon="pi pi-question" [rounded]="true" (click)="helpLink($event)" />
+            <p-button [rounded]="true" (click)="helpLink($event)">
+              <i class="pi pi-question" pButtonIcon></i>
+            </p-button>
           }
-          <div class="float-end">
+          <div class="ms-auto">
             @for (field of buttons; track field) {
               @if (!field.invisible) {
                 <dynamicField [config]="field"

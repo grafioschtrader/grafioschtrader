@@ -244,18 +244,6 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
 
   //@formatter:off
   /**
-   * Returns the total number of times a given security is referenced by the current tenant,
-   * summing counts from both transactions and watchlist entries.
-   * - Filters transactions by id_tenant = ?1 and id_securitycurrency = ?2.
-   * - Filters watchlist entries by id_tenant = ?1 via watchlist and watchlist_sec_cur joins for the same security.
-   * - Uses UNION ALL to combine both counts and SUM() to produce a single total.
-   */
-  //@formatter:on
-  @Query(nativeQuery = true)
-  Integer countSecuritycurrencyForHistoryquoteAccess(Integer idTenant, Integer idSecuritycurrency);
-
-  //@formatter:off
-  /**
    * Fetches complete quote records for a security and its related links within a given date range,
    * but only on dates where all expected linked entities have quotes.
    * - Unions historyquote entries from security_derived_link and security.id_link_securitycurrency sources

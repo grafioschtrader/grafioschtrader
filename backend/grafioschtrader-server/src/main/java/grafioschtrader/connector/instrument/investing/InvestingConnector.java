@@ -22,6 +22,8 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import grafiosch.common.DataHelper;
@@ -49,6 +51,8 @@ import tools.jackson.databind.json.JsonMapper;
  */
 @Component
 public class InvestingConnector extends BaseFeedConnector {
+
+  private static final Logger log = LoggerFactory.getLogger(InvestingConnector.class);
 
   private static final int MAX_ROWS_DELIVERD = 5000;
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
@@ -143,7 +147,8 @@ public class InvestingConnector extends BaseFeedConnector {
       try {
         Thread.sleep(800);
       } catch (InterruptedException e) {
-        e.printStackTrace();
+        Thread.currentThread().interrupt();
+        log.warn("Interrupted while waiting between Investing requests", e);
       }
     } while (div == null && i <= 2);
 

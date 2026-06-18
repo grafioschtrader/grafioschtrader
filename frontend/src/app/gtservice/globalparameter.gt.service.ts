@@ -17,8 +17,6 @@ import {MaxInstrumentLimits} from './max.instrument.limits';
 @Injectable()
 export class GlobalparameterGTService extends BaseAuthService<Globalparameters> {
 
-  private currencyPrecisionMap: { [currency: string]: number };
-
   constructor(httpClient: HttpClient, messageToastService: MessageToastService) {
     super(httpClient, messageToastService);
   }
@@ -74,13 +72,6 @@ export class GlobalparameterGTService extends BaseAuthService<Globalparameters> 
         catchError(this.handleError.bind(this))
       );
     }
-  }
-
-  public getCurrencyPrecision(currency: string): number {
-    if (!this.currencyPrecisionMap) {
-      this.currencyPrecisionMap = JSON.parse(sessionStorage.getItem(GlobalGTSessionNames.CURRENCY_PRECISION));
-    }
-    return this.currencyPrecisionMap[currency] ? this.currencyPrecisionMap[currency] : BaseSettings.FID_STANDARD_FRACTION_DIGITS;
   }
 
   /**

@@ -117,7 +117,6 @@ public class RestErrorHandler {
   @ExceptionHandler(value = { Exception.class })
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   public ErrorWrapper serverException(final Exception ex) {
-    ex.printStackTrace();
     log.error(ex.getMessage(), ex);
     return new ErrorWrapper(new SingleNativeMsgError(ExceptionUtils.getRootCauseMessage(ex)));
   }
@@ -136,7 +135,7 @@ public class RestErrorHandler {
   @ExceptionHandler(value = { NoSuchElementException.class })
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ErrorWrapper noSuchElementException(final NoSuchElementException ex) {
-    ex.printStackTrace();
+    log.warn(ex.getMessage(), ex);
     return new ErrorWrapper(new SingleNativeMsgError(ex.getMessage()));
   }
 
@@ -155,7 +154,7 @@ public class RestErrorHandler {
   @ExceptionHandler(value = { DataIntegrityViolationException.class })
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ErrorWrapper processDataIntegrityViolationError(final DataIntegrityViolationException ex) {
-    ex.printStackTrace();
+    log.warn(ex.getMessage(), ex);
     return new ErrorWrapper(new SingleNativeMsgError(ExceptionUtils.getRootCauseMessage(ex), true));
   }
 
@@ -173,7 +172,7 @@ public class RestErrorHandler {
   @ExceptionHandler(value = { RequestLimitAndSecurityBreachException.class })
   @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
   public ErrorWrapper processDataIntegrityViolationError(final RequestLimitAndSecurityBreachException ex) {
-    ex.printStackTrace();
+    log.warn(ex.getMessage(), ex);
     return new ErrorWrapper(new ErrorWithLogout(ex.getMessage()));
   }
 
@@ -191,7 +190,7 @@ public class RestErrorHandler {
   @ExceptionHandler(value = { LimitEntityTransactionException.class })
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ErrorWrapper processDataIntegrityViolationError(final LimitEntityTransactionException ex) {
-    ex.printStackTrace();
+    log.warn(ex.getMessage(), ex);
     return new ErrorWrapper(ex.limitEntityTransactionError);
   }
 
@@ -242,7 +241,7 @@ public class RestErrorHandler {
     if (authentication != null && authentication.getDetails() instanceof User user) {
       userService.incrementRightsLimitCount(user.getIdUser(), UserRightLimitCounter.SECURITY_BREACH);
     }
-    ex.printStackTrace();
+    log.warn(ex.getMessage(), ex);
     final Locale currentLocale = LocaleContextHolder.getLocale();
     return new ErrorWrapper(new SecurityBreachError(messageSource.getMessage(ex.getMessage(), null, currentLocale)));
   }
@@ -261,7 +260,7 @@ public class RestErrorHandler {
   @ExceptionHandler(value = { StaleObjectStateException.class })
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ErrorWrapper processEntityVersionError(final StaleObjectStateException ex) {
-    ex.printStackTrace();
+    log.warn(ex.getMessage(), ex);
     final Locale currentLocale = LocaleContextHolder.getLocale();
     return new ErrorWrapper(
         new SingleNativeMsgError(messageSource.getMessage("version.lock.error", null, currentLocale)));

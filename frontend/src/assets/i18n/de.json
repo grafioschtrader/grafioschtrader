@@ -459,6 +459,7 @@
   "HISTORYQUOTE_LEGACY_APPLY_SPLIT": "Split auf archivierte Daten anwenden",
   "HISTORYQUOTE_LEGACY_DELETE_ALL": "Alle archivierten Daten löschen",
   "HISTORYQUOTE_LEGACY_DELETE_ALL_CONFIRM": "Wollen Sie wirklich alle archivierten historischen Kursdaten dieses Wertpapiers löschen?",
+  "HISTORYQUOTE_READ": "Abruf historischer Kurse (Instrumente pro Tag)",
   "HISTORYQUOTE_SHOW_LEGACY": "Archivierte historische Kursdaten anzeigen",
   "HISTORYQUOTE_SHOW_LIVE": "Zurück zu den aktuellen historischen Kursdaten",
   "HISTORY_DATA_PROVIDER": "Historische Datenquelle",

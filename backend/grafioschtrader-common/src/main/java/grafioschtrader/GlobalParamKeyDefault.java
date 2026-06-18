@@ -8,6 +8,7 @@ import grafiosch.GlobalParamKeyBaseDefault;
 import grafiosch.dto.MaxDefaultDBValue;
 import grafiosch.entities.Globalparameters;
 import grafiosch.entities.ProposeUserTask;
+import grafiosch.entities.UserEntityChangeLimit;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.GenericConnectorDef;
@@ -193,6 +194,20 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
       + Historyquote.class.getSimpleName();
   public static final String GLOB_KEY_LIMIT_DAY_HISTORYQUOTELEGACY = GlobalConstants.GT_LIMIT_DAY
       + HistoryquoteLegacy.class.getSimpleName();
+  /**
+   * Pseudo entity name for counting distinct historyquote reads in user_entity_change_count and for per-user
+   * exceptions in user_entity_change_limit. Not a JPA entity.
+   */
+  public static final String ENTITY_NAME_HISTORYQUOTE_READ = "HistoryquoteRead";
+  /**
+   * Daily budget of distinct instruments per user whose price history may be read over REST. Guards against GT being
+   * abused as a data provider (issue #53); enforced by HistoryquoteReadLimitService. Resolves to
+   * {@code gt.limit.day.HistoryquoteRead}.
+   */
+  public static final String GLOB_KEY_LIMIT_DAY_HISTORYQUOTE_READ = GlobalConstants.GT_LIMIT_DAY
+      + ENTITY_NAME_HISTORYQUOTE_READ;
+  /** Fallback for {@link #GLOB_KEY_LIMIT_DAY_HISTORYQUOTE_READ} when no database row exists. */
+  public static final int DEFAULT_LIMIT_DAY_HISTORYQUOTE_READ = 250;
   public static final String GLOB_KEY_MAX_SIMULATION_ENVIRONMENTS = GlobalConstants.GT_PREFIX + MAX
       + "simulation.environments";
   public static final String GLOB_KEY_MAX_STANDING_ORDER = GlobalConstants.GT_PREFIX + MAX + "standing.order";
@@ -232,6 +247,9 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_RISKFREERATEMAPPING, new MaxDefaultDBValue(2));
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_HISTORYQUOTE, new MaxDefaultDBValue(15));
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_HISTORYQUOTELEGACY, new MaxDefaultDBValue(15));
+    defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_HISTORYQUOTE_READ,
+        new MaxDefaultDBValue(DEFAULT_LIMIT_DAY_HISTORYQUOTE_READ));
+    UserEntityChangeLimit.ADDITIONAL_LIMIT_ENTITY_NAMES.add(ENTITY_NAME_HISTORYQUOTE_READ);
 
   }
 

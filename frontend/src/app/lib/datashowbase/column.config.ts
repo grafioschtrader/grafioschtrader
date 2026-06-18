@@ -106,6 +106,21 @@ export interface ColumnConfig extends BaseFieldDefinition {
 
   /** Maximum number of decimal places to display for numeric values */
   maxFractionDigits?: number;
+
+  /**
+   * Path within the row data object to the currency code (e.g. 'security.currency', 'cashaccount.currency').
+   * When set on a numeric column, the value is formatted with the currency-specific precision (e.g. BTC=8, JPY=0)
+   * resolved per row. Use only for settled cash amounts, never for unit prices, exchange rates or quantities.
+   */
+  currencyPrecisionField?: string;
+
+  /**
+   * Fixed currency code whose precision is applied to all values of this numeric column. Typically set
+   * programmatically after data load for main-currency columns (mirrors the mutable headerSuffix pattern).
+   * currencyPrecisionField takes precedence when both are set and the row path resolves.
+   */
+  fixedCurrency?: string;
+
   /**
    * Some columns may have a row group, for example the total of values of this cholumn.
    * The format is the same but the field property is different.
@@ -167,6 +182,12 @@ export interface ColumnConfig extends BaseFieldDefinition {
 
   /** Minimum decimal places for numeric display */
   minFractionDigits?: number;
+
+  /** Path within the row data object to the currency code for currency-specific precision formatting */
+  currencyPrecisionField?: string;
+
+  /** Fixed currency code whose precision is applied to all values of this numeric column */
+  fixedCurrency?: string;
 
   /** Group/total row configurations */
   columnGroupConfigs?: ColumnGroupConfig[];
@@ -329,6 +350,12 @@ export class ColumnGroupConfig {
   colspan: number;
 
   /**
+   * Path within the group data object to the currency code (e.g. 'currency'). Group/grand-total rows have a
+   * different shape than detail rows, so the currency path of the detail column does not apply to them.
+   */
+  currencyPrecisionField: string;
+
+  /**
    * Creates a new column group configuration for accessing backend model data.
    *
    * @param fieldValue - Field path to access the value directly from the backend model data.
@@ -344,6 +371,7 @@ export class ColumnGroupConfig {
     optionalsGropuParams?: OptionalGroupParams) {
     if (optionalsGropuParams) {
       this.colspan = optionalsGropuParams.colspan;
+      this.currencyPrecisionField = optionalsGropuParams.currencyPrecisionField;
     }
   }
 }
@@ -357,7 +385,10 @@ export interface OptionalGroupParams {
    * Number of columns this group should span. Special value 99 indicates spanning all remaining available columns.
    * This value may be modified programmatically during layout calculations.
    */
-  colspan: number;
+  colspan?: number;
+
+  /** Path within the group data object to the currency code for currency-specific precision formatting */
+  currencyPrecisionField?: string;
 }
 
 /**

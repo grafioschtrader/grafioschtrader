@@ -189,6 +189,8 @@ export abstract class ShowRecordConfigBase {
       cc.templateName = (optionalParams.templateName) ? optionalParams.templateName : '';
       cc.maxFractionDigits = optionalParams.maxFractionDigits;
       cc.minFractionDigits = optionalParams.minFractionDigits;
+      cc.currencyPrecisionField = optionalParams.currencyPrecisionField;
+      cc.fixedCurrency = optionalParams.fixedCurrency;
       cc.columnGroupConfigs = optionalParams.columnGroupConfigs;
       cc.filterType = optionalParams.filterType;
       cc.filterValues = optionalParams.filterValues;

@@ -1,12 +1,7 @@
 package grafioschtrader.connector.instrument.vienna;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URLConnection;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,16 +13,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriUtils;
 
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.entities.Historyquote;
@@ -40,10 +30,10 @@ import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * The Vienna Stock Exchange provides for different asset classes the download of a CSV file of the historical price
- * data. Unfortunately, for some asset classes a rounding to integers is performed for the CSV export. Another access to
- * more precise figures is available via the "Profi Chart". The disadvantage there is that only figures for the trading
- * days are delivered if they were traded on this day.
+ * Historical and intraday price data for the Vienna Stock Exchange is retrieved via the "Profi Chart" JSON endpoint.
+ * The disadvantage there is that only figures for the trading days are delivered if they were traded on this day, so a
+ * historical gap filler is always required. (The exchange formerly offered a CSV export for equities and indices, but
+ * that download has been removed from the website.)
  *
  * The URL extension consists of a number and is therefore subjected to a regex check. The check via the connector
  * obviously always results in an HTTP OK. However, the body of the return contains an error code, which is checked
@@ -56,7 +46,6 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
   private static final String DOMAIN_NAME = "https://www.wienerborse.at/";
   private static final String DOMAIN_NAME_WITH_CHART = DOMAIN_NAME + "interactive-chart/canvas/data/";
   private static final String QUERY_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
-  private static final String QUERY_CSV_DATE_FORMAT = "MM/dd/yyyy";
   private static final ObjectMapper objectMapper = JsonMapper.builder()
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
   private final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -122,96 +111,28 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
   }
 
   private String getSecurityHistoricalDownloadLink(final Security security, LocalDate from, LocalDate to) {
-    if (useCSVEOD(security)) {
-      DateTimeFormatter dtf = DateTimeFormatter.ofPattern(QUERY_CSV_DATE_FORMAT);
-      try {
-        return createUrlForHistoricalData(security, from, to, dtf);
-      } catch (Exception e) {
-        return null;
-      }
-    } else {
-      DateTimeFormatter dtf = DateTimeFormatter.ofPattern(QUERY_DATE_FORMAT);
-      return DOMAIN_NAME_WITH_CHART + "?DATETIME_TZ_START_RANGE=" + dtf.format(from.atStartOfDay())
-          + "&DATETIME_TZ_END_RANGE=" + dtf.format(to.atStartOfDay()) + "&ID_NOTATION="
-          + security.getUrlHistoryExtend()
-          + "&useExchanges=false&PRICE_TYPE=LAST&ID_SECURITY_TYPE=&GRANULARITY=1D&WITH_EARNINGS=0&INSTRUMENT_DATA_NEEDED="
-          + "&ID_QUALITY_PRICE=2&MAX_HISTORY_YEARS=33&reqType=TSStimeSeries";
-    }
+    DateTimeFormatter dtf = DateTimeFormatter.ofPattern(QUERY_DATE_FORMAT);
+    return DOMAIN_NAME_WITH_CHART + "?DATETIME_TZ_START_RANGE=" + dtf.format(from.atStartOfDay())
+        + "&DATETIME_TZ_END_RANGE=" + dtf.format(to.atStartOfDay()) + "&ID_NOTATION=" + security.getUrlHistoryExtend()
+        + "&useExchanges=false&PRICE_TYPE=LAST&ID_SECURITY_TYPE=&GRANULARITY=1D&WITH_EARNINGS=0&INSTRUMENT_DATA_NEEDED="
+        + "&ID_QUALITY_PRICE=2&MAX_HISTORY_YEARS=33&reqType=TSStimeSeries";
   }
 
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
-    return useCSVEOD(security) ? getEodSecurityHistoryFromHistoricalCSV(security, from, to)
-        : getEodSecurityHistoryFromChart(security, from, to);
-
+    return getEodSecurityHistoryFromChart(security, from, to);
   }
 
   @Override
   public boolean needHistoricalGapFiller(final Security security) {
-    return useCSVEOD(security) ? false : true;
-  }
-
-  private boolean useCSVEOD(Security security) {
-    return security.getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT
-        && security.getAssetClass().getCategoryType() == AssetclassType.EQUITIES
-        || security.getAssetClass()
-            .getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.NON_INVESTABLE_INDICES;
-  }
-
-  /**
-   * Currently, the CSV download should be used only for stocks and indices. For other asset classes the price data is
-   * too inaccurately rounded.
-   */
-  private List<Historyquote> getEodSecurityHistoryFromHistoricalCSV(final Security security, final LocalDate from,
-      final LocalDate to) throws Exception {
-
-    DateTimeFormatter dtf = DateTimeFormatter.ofPattern(QUERY_CSV_DATE_FORMAT);
-    String csvUrl = createUrlForHistoricalData(security, from, to, dtf);
-
-    final List<Historyquote> historyquotes = new ArrayList<>();
-
-    URLConnection connection = new URI(csvUrl).toURL().openConnection();
-    try (InputStreamReader inputStream = new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8);
-        BufferedReader bufferedReader = new BufferedReader(inputStream)) {
-
-      String inputLine;
-      int columns = 0;
-      while ((inputLine = bufferedReader.readLine()) != null) {
-        inputLine = inputLine.replace("\"", "");
-        if (inputLine.trim().length() == 0 || columns == 0) {
-          // First line throw away
-          columns = inputLine.split(";").length;
-          continue;
-        }
-        final String[] items = inputLine.split(";");
-        historyquotes.add(parseResponseLineItems(items, dtf));
-      }
-    }
-    return historyquotes;
+    // The chart endpoint only delivers quotes for days that were actually traded.
+    return true;
   }
 
   @Override
   public EnumSet<DownloadLink> isDownloadLinkCreatedLazy() {
     return EnumSet.of(DownloadLink.DL_LAZY_HISTORY);
-  }
-
-  /**
-   * Index: Date;Open;High;Low;Last Close;Chg.%;<br>
-   * Bond: Date;Open;High;Low;LastClose;Chg.%;Total Value<sup>1</sup>;Total Volume<sup>1</sup>;<br>
-   * Stock: Date;Open;High;Low;Last Close;Chg.%;Total Value<sup>1</sup>;Total Volume<sup>1</sup>;<br>
-   */
-  private Historyquote parseResponseLineItems(final String[] items, DateTimeFormatter dtf) {
-    Historyquote historyquote = new Historyquote();
-    historyquote.setDate(LocalDate.parse(items[0], dtf));
-    historyquote.setOpen(Double.parseDouble(items[1]));
-    historyquote.setHigh(Double.parseDouble(items[2]));
-    historyquote.setLow(Double.parseDouble(items[3]));
-    historyquote.setClose(Double.parseDouble(items[4]));
-    if (items.length == 8 && !items[7].equals("-")) {
-      historyquote.setVolume(Long.parseLong(items[7].replace(",", "")));
-    }
-    return historyquote;
   }
 
   @Override
@@ -222,40 +143,6 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
       log.error("Could not open connection", e);
     }
     return true;
-  }
-
-  private String createUrlForHistoricalData(final Security security, final LocalDate from, final LocalDate to,
-      DateTimeFormatter dtf) throws Exception {
-    String urlPrefix = "market-data/";
-    // Currently only shares and indices pass thru here
-    switch (security.getAssetClass().getSpecialInvestmentInstrument()) {
-    case ETF:
-      urlPrefix += "exchange-traded-funds";
-      break;
-    case NON_INVESTABLE_INDICES:
-      urlPrefix = "indices/index-values";
-      break;
-    case DIRECT_INVESTMENT:
-      urlPrefix += (security.getAssetClass().getCategoryType() == AssetclassType.EQUITIES ? "shares-others" : "bonds");
-      break;
-    case ISSUER_RISK_PRODUCT:
-      urlPrefix += "certificates";
-      break;
-    default:
-      throw new IllegalArgumentException(getReadableName() + " does not support this kind of security!");
-    }
-
-    String url = "https://www.wienerborse.at/en/" + urlPrefix + "/historical-data/?ISIN=" + security.getIsin()
-        + "&ID_NOTATION=" + security.getUrlHistoryExtend();
-
-    Document doc = Jsoup.connect(url).userAgent(GlobalConstants.USER_AGENT_HTTPCLIENT).get();
-    Element link = doc.select("a:contains(csv)").first();
-    String linkHref = UriUtils.decode(link.attr("href"), "UTF-8");
-    linkHref = linkHref.replaceFirst("(.*\\[DATETIME_TZ_START_RANGE\\]=)([0-9/])*(.*)", "$1" + dtf.format(from) + "$3");
-    linkHref = DOMAIN_NAME
-        + linkHref.replaceFirst("(.*\\[DATETIME_TZ_END_RANGE\\]=)([0-9/])*(.*)", "$1" + dtf.format(to) + "$3");
-    return linkHref;
-
   }
 
   private List<Historyquote> getEodSecurityHistoryFromChart(final Security security, final LocalDate from,
@@ -276,8 +163,8 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
         historyquote.setOpen(quote.FIRST);
         historyquote.setHigh(quote.HIGH);
         historyquote.setLow(quote.LOW);
-        if (quote.TOTAL_VOLUME % 1 == 0) {
-          historyquote.setVolume((long) quote.TOTAL_VOLUME);
+        if (quote.TOTAL_VOLUME != null && quote.TOTAL_VOLUME % 1 == 0) {
+          historyquote.setVolume(quote.TOTAL_VOLUME.longValue());
         }
       }
     }
@@ -295,7 +182,7 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
 
   private static class Quote extends Ohlc {
     public long DATETIME_LAST;
-    public double TOTAL_VOLUME;
+    public Double TOTAL_VOLUME;
   }
 
   private static class CurrentPrice extends Ohlc {

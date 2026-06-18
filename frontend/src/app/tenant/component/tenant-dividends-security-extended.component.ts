@@ -145,13 +145,20 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
     this.addColumnFeqH(DataType.String, 'exchangeRateEndOfYear', true, false);
     this.addColumnFeqH(DataType.Numeric, 'unitsAtEndOfYear', true, false);
     this.addColumnFeqH(DataType.Numeric, 'closeEndOfYear', true, false);
-    this.addColumnFeqH(DataType.Numeric, 'taxFreeIncome', true, false);
+    this.addColumnFeqH(DataType.Numeric, 'taxFreeIncome', true, false,
+      {currencyPrecisionField: 'security.currency'});
     this.addColumnFeqH(DataType.Numeric, 'financeCostMC', false, true,
-      {width: 80, headerSuffix: this.securityDividendsGrandTotal.mainCurrency});
-    this.addGeneralColumns(this.securityDividendsGrandTotal.mainCurrency);
+      {
+        width: 80, headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
+        fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
+      });
+    this.addGeneralColumns(this.securityDividendsGrandTotal.mainCurrency, 'security.currency');
     this.addIctaxColumns();
     this.addColumnFeqH(DataType.Numeric, 'valueAtEndOfYearMC', true, false,
-      {width: 70, headerSuffix: this.securityDividendsGrandTotal.mainCurrency});
+      {
+        width: 70, headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
+        fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
+      });
     this.multiSortMeta.push({field: 'security.name', order: 1});
     this.prepareTableAndTranslate();
     if (this.securityDividendsGrandTotal.hasMarginData) {

@@ -145,7 +145,8 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
     this.columnConfigs.push(this.addColumn(DataType.Numeric, 'valueSecuritiesMC', AppSettings.SECURITY.toUpperCase(), true, false,
       {templateName: 'greenRed', columnGroupConfigs: [new ColumnGroupConfig('groupValueSecuritiesMC')]}));
 
-    this.addColumnFeqH(DataType.Numeric, 'cashBalance', true, false, {templateName: 'greenRed'});
+    this.addColumnFeqH(DataType.Numeric, 'cashBalance', true, false,
+      {templateName: 'greenRed', currencyPrecisionField: 'cashaccount.currency'});
 
     this.columnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'cashBalanceMC', true, false,
       {templateName: 'greenRed', columnGroupConfigs: [new ColumnGroupConfig('groupCashBalanceMC')]}));
@@ -177,7 +178,10 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
         this.excludedDivTaxColumn.visible = this.accountPositionGroupSummary.excludeDivTax;
         this.expandedAccountPositionSummary = this.accountPositionGroupSummary.accountPositionSummaryList.filter(accountPositionSummary =>
           this.expandedIdCashaccount.indexOf(accountPositionSummary.cashaccount.idSecuritycashAccount) >= 0);
-        this.columnConfigs.forEach(columnConfig => columnConfig.headerSuffix = this.accountPositionGroupSummary.currency);
+        this.columnConfigs.forEach(columnConfig => {
+          columnConfig.headerSuffix = this.accountPositionGroupSummary.currency;
+          columnConfig.fixedCurrency = this.accountPositionGroupSummary.currency;
+        });
         this.prepareTableAndTranslate();
         this.isActivated() && this.resetMenu(null);
       });

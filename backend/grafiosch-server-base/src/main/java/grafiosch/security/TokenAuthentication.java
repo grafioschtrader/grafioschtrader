@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,8 +17,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import grafiosch.config.BaseFeatureConfig;
 import grafiosch.dto.ConfigurationWithLogin;
 import grafiosch.dto.ConfigurationWithLogin.EntityNameWithKeyName;
+import grafiosch.dto.ConfigurationWithLogin.FeatureType;
 import grafiosch.entities.User;
 import grafiosch.repository.GlobalparametersJpaRepository;
 import jakarta.persistence.EntityManager;
@@ -82,6 +85,9 @@ public abstract class TokenAuthentication {
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
 
+  @Autowired
+  private BaseFeatureConfig baseFeatureConfig;
+
   /**
    * Creates configuration data for successful login responses.
    *
@@ -135,8 +141,19 @@ public abstract class TokenAuthentication {
           jwtTokenHandler.createTokenForUser(user, globalparametersJpaRepository.getJWTExpirationMinutes()));
       PrintWriter out = response.getWriter();
       final User userEntity = (User) user;
-      jacksonObjectMapper.writeValue(out, getConfigurationWithLogin(userEntity.isUiShowMyProperty(),
-          userEntity.getMostPrivilegedRole(), passwordRegexOk, userEntity.getIdTenant()));
+      ConfigurationWithLogin configuration = getConfigurationWithLogin(userEntity.isUiShowMyProperty(),
+          userEntity.getMostPrivilegedRole(), passwordRegexOk, userEntity.getIdTenant());
+      // At login the user is in their home tenant, so read-only depends on the home-tenant flag (client accounts).
+      configuration.tenantReadOnly = userEntity.isHomeTenantReadOnly();
+      // Merge the library-level features (g.use.*) into the application's feature set so they reach the frontend
+      // regardless of the application; each FeatureType is serialized by its enum name.
+      Set<FeatureType> mergedFeatures = new HashSet<>();
+      if (configuration.useFeatures != null) {
+        mergedFeatures.addAll(configuration.useFeatures);
+      }
+      mergedFeatures.addAll(baseFeatureConfig.getEnabledFeatures());
+      configuration.useFeatures = mergedFeatures;
+      jacksonObjectMapper.writeValue(out, configuration);
     } catch (Exception e) {
       log.error("Failed to write login response for user {}",
           authentication != null ? authentication.getName() : "<unknown>", e);
@@ -234,7 +251,7 @@ public abstract class TokenAuthentication {
           try {
             globalConstantsMap.put(f.getName(), f.getInt(null));
           } catch (IllegalArgumentException | IllegalAccessException e) {
-            e.printStackTrace();
+            log.warn(e.getMessage(), e);
           }
         }
       }

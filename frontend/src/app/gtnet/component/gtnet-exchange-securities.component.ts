@@ -106,10 +106,11 @@ import {HelpIds} from '../../lib/help/help.ids';
                         (onChange)="loadData()" inputId="activeOnly"></p-checkbox>
             <label for="activeOnly" style="margin-bottom: 0">{{ 'ACTIVE_NOW_SECURITIES' | translate }}</label>
           </div>
-          <p-button icon="pi pi-save"
-                    [label]="'SAVE' | translate"
+          <p-button [label]="'SAVE' | translate"
                     (onClick)="saveChanges()"
-                    [disabled]="!hasUnsavedChanges()"></p-button>
+                    [disabled]="!hasUnsavedChanges()">
+            <i class="pi pi-save" pButtonIcon></i>
+          </p-button>
         </div>
       </div>
 

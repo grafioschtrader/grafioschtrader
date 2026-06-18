@@ -43,6 +43,7 @@ import {ConfigurableTableComponent} from './lib/datashowbase/configurable-table.
 import {SecuritysplitService} from './securitycurrency/service/securitysplit.service';
 import {TenantEditFullPageComponent} from './tenant/component/tenant.edit.full.page.component';
 import {MainDialogService} from './lib/mainmenubar/service/main.dialog.service';
+import {ManageClientService} from './lib/manageclient/service/manage-client.service';
 import {ParentChildRegisterService} from './shared/service/parent.child.register.service';
 import {HttpClient, provideHttpClient, withInterceptorsFromDi} from '@angular/common/http';
 import {WatchlistTabMenuComponent} from './watchlist/component/watchlist.tab.menu.component';
@@ -486,7 +487,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     GTNetMessageAnswerService, GTNetService, GtnetSecurityLookupService, GTNetSecurityImpHeadService, GTNetSecurityImpPosService,
     HistoryquotePeriodService, HistoryquoteService, HistoryquoteLegacyService, HoldingService, ImportTransactionHeadService,
     ImportTransactionPlatformService, ImportTransactionPosService, ImportTransactionTemplateService, RiskFreeRateMappingService, LoginService,
-    MailSendRecvService, MailSendRecvService, MailSettingForwardService, MainDialogService, MessageToastService,
+    MailSendRecvService, MailSendRecvService, MailSettingForwardService, MainDialogService, ManageClientService, MessageToastService,
     MultipleRequestToOneService, ParentChildRegisterService, PortfolioService, ProductIconService, ProposeChangeEntityService,
     ProposeUserTaskService, SecurityaccountService, SecurityService, SecuritysplitService, StockexchangeService,
     SecurityActionService, StandingOrderService, TaskDataChangeService, TaxDataService, TenantService, TimeSeriesQuotesService, TradingDaysMinusService, TradingDaysPlusService,

@@ -63,11 +63,24 @@ export enum GlobalSessionNames {
    */
   STANDARD_CURRENCY_PRECISIONS_AND_LIMITS = 'standardPrecision',
 
+  /**
+   * Map of currency code to the number of decimal places for amounts in that currency (e.g. BTC=8, JPY=0).
+   * Currencies not contained in the map use the standard fraction digits.
+   */
+  CURRENCY_PRECISION = 'currencyPrecision',
+
   /** Base URL for external help documentation (e.g., "//APP.github.io/gt-user-manual"). */
   EXTERNAL_HELP_URL = 'externalHelpUrl',
 
   /** Stores the user's main tenant ID when switched to a simulation tenant. */
   MAIN_ID_TENANT = 'mainIdTenant',
+
+  /**
+   * Whether the user has read-only access to the tenant they currently operate in (a managed client account, or an
+   * advisor switched into a READ-level tenant). When 'true' the frontend hides create/update/delete actions. Set at
+   * login and refreshed on every tenant switch. The backend write-blocking filter is the actual guarantee.
+   */
+  TENANT_READ_ONLY = 'tenantReadOnly',
 
   /** Earliest trading day that GT supports for transactions and historical prices (e.g. "2000-01-03"). */
   OLDEST_TRADING_DAY = 'oldestTradingDay',

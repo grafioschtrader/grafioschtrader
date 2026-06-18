@@ -238,27 +238,28 @@ export interface ValidationErrorEvent<T> {
                 <div class="flex align-items-center justify-content-center gap-2">
                   @if (!editing && canEditRow(rowData)) {
                     <button pButton pRipple type="button" pInitEditableRow
-                            icon="pi pi-pencil"
                             (click)="onRowEditInit(rowData, ri)"
                             class="p-button-rounded p-button-text">
+                      <i class="pi pi-pencil" pButtonIcon></i>
                     </button>
                   }
                   @if (!editing && canDeleteRowFn && canDeleteRowFn(rowData)) {
-                    <button pButton pRipple type="button" icon="pi pi-trash"
+                    <button pButton pRipple type="button"
                             (click)="onRowDeleteClick(rowData, ri)"
                             class="p-button-rounded p-button-text p-button-danger">
+                      <i class="pi pi-trash" pButtonIcon></i>
                     </button>
                   }
                   @if (editing) {
                     <button pButton pRipple type="button" pSaveEditableRow
-                            icon="pi pi-check"
                             (click)="onRowEditSave(rowData, ri)"
                             class="p-button-rounded p-button-text p-button-success mr-2">
+                      <i class="pi pi-check" pButtonIcon></i>
                     </button>
                     <button pButton pRipple type="button" pCancelEditableRow
-                            icon="pi pi-times"
                             (click)="onRowEditCancel(rowData, ri)"
                             class="p-button-rounded p-button-text p-button-danger">
+                      <i class="pi pi-times" pButtonIcon></i>
                     </button>
                   }
                 </div>
