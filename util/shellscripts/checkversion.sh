@@ -9,6 +9,9 @@ node_required="^20.19.0 || ^22.12.0 || ^24.0.0"
 # Required Angular CLI version
 angular_cli_required=21
 
+# Required Java version
+java_required=25
+
 # Function to check and install semver if missing
 ensure_semver_installed() {
     if ! npm list -g semver >/dev/null 2>&1; then
@@ -87,6 +90,30 @@ if [[ "$CLIVERSION" -lt "$angular_cli_required" ]]; then
     tput sgr0
     exit 1
 fi
+
+# Check Java version
+JAVAVERSION=$(java -version 2>&1 | head -1 | sed 's/.*version "\([0-9]*\).*/\1/')
+if [ -z "$JAVAVERSION" ]; then
+    tput setaf 1
+    echo "=========================================================="
+    echo "Java is not installed or not available in the PATH."
+    echo "Install JDK $java_required and ensure 'java' is on PATH."
+    echo "=========================================================="
+    tput sgr0
+    exit 1
+fi
+
+if [[ "$JAVAVERSION" -lt "$java_required" ]]; then
+    tput setaf 1
+    echo "=========================================================="
+    echo "Java version ($JAVAVERSION) is less than the required version ($java_required)."
+    echo "Install JDK $java_required and ensure 'java' is on PATH."
+    echo "=========================================================="
+    tput sgr0
+    exit 1
+fi
+
+echo "Java version ($JAVAVERSION) meets the required version: $java_required"
 
 echo "All checks passed!"
 exit 0
