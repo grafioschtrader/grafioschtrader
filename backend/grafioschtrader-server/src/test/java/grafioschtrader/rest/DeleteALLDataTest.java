@@ -1,10 +1,9 @@
 package grafioschtrader.rest;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
@@ -51,7 +50,7 @@ class DeleteALLDataTest extends BaseIntegrationTest {
   @DisplayName("Delete user entity change counter for all users")
   void deleteUserEntityChangeCounter() {
     userEntityChangeCountJpaRepository.deleteAll();
-    assertThat(userEntityChangeCountJpaRepository.count()).isZero();
+    Assertions.assertThat(userEntityChangeCountJpaRepository.count()).isZero();
   }
 
   @Test
@@ -59,7 +58,7 @@ class DeleteALLDataTest extends BaseIntegrationTest {
   @DisplayName("Delete user entity change limit for all users")
   void deleteUserEntityChangeLimit() {
     userEntityChangeLimitJpaRepository.deleteAll();
-    assertThat(userEntityChangeLimitJpaRepository.count()).isZero();
+    Assertions.assertThat(userEntityChangeLimitJpaRepository.count()).isZero();
   }
 
   @ParameterizedTest
@@ -98,10 +97,10 @@ class DeleteALLDataTest extends BaseIntegrationTest {
           .returnResult()
           .getResponseBody();
 
-      assertThat(remaining).isEmpty();
+      Assertions.assertThat(remaining).isEmpty();
     } else {
       jpaRepository.deleteAll();
-      assertThat(jpaRepository.count()).isZero();
+      Assertions.assertThat(jpaRepository.count()).isZero();
     }
   }
 

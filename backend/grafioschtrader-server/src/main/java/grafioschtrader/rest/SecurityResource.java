@@ -41,10 +41,12 @@ import grafiosch.types.TaskTypeBase;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.types.AssetclassType;
+import grafioschtrader.types.SeasonalPeriodType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 import grafioschtrader.dto.GTSecuritiyCurrencyExchange;
 import grafioschtrader.dto.HisotryqouteLinearFilledSummary;
 import grafioschtrader.dto.InstrumentStatisticsResult;
+import grafioschtrader.dto.SeasonalReturnsResult;
 import grafioschtrader.dto.SecurityCurrencypairDerivedLinks;
 import grafioschtrader.entities.GTNetSupplierDetailHist;
 import grafioschtrader.entities.GTNetSupplierDetailLast;
@@ -295,6 +297,19 @@ public class SecurityResource extends UpdateCreateResource<Security> {
       throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     return new ResponseEntity<>(
         securityJpaRepository.getSecurityStatisticsReturnResult(idSecuritycurrency, dateFrom, dateTo), HttpStatus.OK);
+  }
+
+  @Operation(summary = "Seasonality heat map: period returns by year and month or quarter.", description = """
+      Returns a matrix of period returns (rows = years, columns = months or quarters) plus an annual-return column and
+      per-column statistics for a security or currency pair. The result carries capability flags telling the client
+      whether the dividend and currency toggles apply to this instrument.""", tags = { Security.TABNAME })
+  @GetMapping(value = "/{idSecuritycurrency}/seasonalreturns", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<SeasonalReturnsResult> getSeasonalReturns(@PathVariable final Integer idSecuritycurrency,
+      @RequestParam(required = false, defaultValue = "MONTHLY") final SeasonalPeriodType periodType,
+      @RequestParam(required = false, defaultValue = "false") final boolean includeDividends,
+      @RequestParam(required = false, defaultValue = "false") final boolean inTenantCurrency) {
+    return new ResponseEntity<>(securityJpaRepository.getSeasonalReturns(idSecuritycurrency, periodType,
+        includeDividends, inTenantCurrency), HttpStatus.OK);
   }
 
   @Operation(summary = "For a derived instrument it returns base instruments", description = "", tags = {

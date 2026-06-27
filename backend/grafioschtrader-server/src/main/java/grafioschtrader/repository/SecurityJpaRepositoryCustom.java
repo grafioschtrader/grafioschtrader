@@ -7,6 +7,8 @@ import java.util.Map;
 
 import grafiosch.entities.User;
 import grafioschtrader.dto.InstrumentStatisticsResult;
+import grafioschtrader.dto.SeasonalReturnsResult;
+import grafioschtrader.types.SeasonalPeriodType;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
@@ -271,6 +273,20 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
       LocalDate dateTo) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException;
 
   /**
+   * Builds a seasonality heat map (period returns by year and month/quarter) for a security or currency pair.
+   *
+   * @param idSecuritycurrency the security or currency pair to analyse
+   * @param periodType         column granularity, monthly or quarterly
+   * @param includeDividends   when true, dividends/interest are added to the period return (ignored for instruments
+   *                           that pay none)
+   * @param inTenantCurrency   when true, returns are converted into the tenant main currency (ignored when no
+   *                           conversion is possible, e.g. currency pairs or matching currencies)
+   * @return the seasonality result including footer statistics and capability flags
+   */
+  SeasonalReturnsResult getSeasonalReturns(Integer idSecuritycurrency, SeasonalPeriodType periodType,
+      boolean includeDividends, boolean inTenantCurrency);
+
+  /**
    * Rebuilds the historical price data for a security or currency pair. This can be necessary in cases like data
    * corruption or after significant events like splits.
    *
@@ -292,7 +308,16 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    */
   Map<Integer, String> getSecurityCurrencyPairInfo();
 
-  // TODO remove it
+  /**
+   * Checks whether the configured intraday, historical, dividend, and split connectors support the security and
+   * clears URL extension fields that are not used by the corresponding connector.
+   * <p>
+   * This method is exposed through the repository interface only for {@code ConnectorUrlExtenstionTest}. Remove this
+   * public test hook when that data-verification test is removed or redesigned; the protected save-path implementation
+   * must remain.
+   *
+   * @param security the security whose connector configuration and URL extensions are checked
+   */
   void checkAndClearSecuritycurrencyConnectors(final Security security);
 
   /**

@@ -36,7 +36,7 @@ public class MySqlInsertStatementGenerator {
     final List<Map<String, Object>> rows = jdbcTemplate.queryForList(query);
     if (!rows.isEmpty()) {
       ResultSetMetaData metaData = jdbcTemplate
-          .query(query + " LIMIT 1", (resultSet, rowNum) -> resultSet.getMetaData()).get(0);
+          .query(query + " LIMIT 1", (resultSet, _) -> resultSet.getMetaData()).get(0);
       try {
         sqlStatement.append(createInsertStatements(tableName, metaData, rows));
       } catch (SQLException e) {
@@ -140,7 +140,7 @@ public class MySqlInsertStatementGenerator {
     if (rowsNoRef.isEmpty() && rowsWithRef.isEmpty()) {
       return sqlStatement;
     }
-    metaData = jdbcTemplate.query(baseQuery + " LIMIT 1", (resultSet, rowNum) -> resultSet.getMetaData()).get(0);
+    metaData = jdbcTemplate.query(baseQuery + " LIMIT 1", (resultSet, _) -> resultSet.getMetaData()).get(0);
 
     try {
       if (!rowsNoRef.isEmpty()) {

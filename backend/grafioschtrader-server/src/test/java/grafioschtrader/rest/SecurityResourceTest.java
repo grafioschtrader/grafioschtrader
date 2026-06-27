@@ -1,6 +1,5 @@
 package grafioschtrader.rest;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.time.LocalDate;
@@ -10,6 +9,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -65,7 +65,7 @@ class SecurityResourceTest extends BaseIntegrationTest  {
             && a.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT
             && a.getSubCategoryByLanguage(Language.GERMAN).equals("Aktien Schweiz"))
         .findFirst();
-    assertThat(assetclassOpt).isNotEmpty();
+    Assertions.assertThat(assetclassOpt).isNotEmpty();
     assetclasses = Arrays.asList(body);
   }
 
@@ -83,7 +83,7 @@ class SecurityResourceTest extends BaseIntegrationTest  {
 
     Optional<Stockexchange> stockexchangeOpt = Arrays.stream(body)
         .filter(s -> GlobalConstants.STOCK_EX_MIC_SIX.equals(s.getMic())).findFirst();
-    assertThat(stockexchangeOpt).isPresent();
+    Assertions.assertThat(stockexchangeOpt).isPresent();
     stockexchanges = Arrays.asList(body);
     stockexchanges.sort(comparatorSE);
   }
@@ -115,7 +115,7 @@ class SecurityResourceTest extends BaseIntegrationTest  {
         .getResponseBody();
 
     assertNotNull(created);
-    assertThat(created.getIdSecuritycurrency()).isGreaterThan(0);
+    Assertions.assertThat(created.getIdSecuritycurrency()).isGreaterThan(0);
   }
 
   static class SecurityAggregator implements ArgumentsAggregator {

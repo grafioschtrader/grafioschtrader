@@ -334,7 +334,8 @@
       "PowerShell(Get-Content 3615_historyquote.csv -TotalCount 5; Write-Output \"...\"; \\(Get-Content 3615_historyquote.csv | Measure-Object -Line\\).Lines)",
       "Bash(Get-ChildItem *)",
       "PowerShell(npx playwright install chromium)",
-      "WebFetch(domain:stockanalysis.com)"
+      "WebFetch(domain:stockanalysis.com)",
+      "PowerShell(java *)"
     ],
     "deny": [],
     "ask": []

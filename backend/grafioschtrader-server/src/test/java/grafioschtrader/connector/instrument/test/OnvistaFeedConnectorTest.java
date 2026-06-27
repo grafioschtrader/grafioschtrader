@@ -1,7 +1,5 @@
 package grafioschtrader.connector.instrument.test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -10,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import grafioschtrader.GlobalConstants;
@@ -73,7 +72,7 @@ class OnvistaFeedConnectorTest extends BaseFeedConnectorCheck {
       } catch (Exception e) {
         e.printStackTrace();
       }
-      assertThat(historyquote.size()).isEqualByComparingTo(7514);
+      Assertions.assertThat(historyquote.size()).isEqualByComparingTo(7514);
     });
   }
 

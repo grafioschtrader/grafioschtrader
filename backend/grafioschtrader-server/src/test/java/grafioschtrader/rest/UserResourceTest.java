@@ -1,12 +1,11 @@
 package grafioschtrader.rest;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
@@ -59,7 +58,7 @@ class UserResourceTest extends BaseIntegrationTest  {
           .expectBody(User.class)
           .returnResult()
           .getResponseBody();
-      assertThat(created.getIdUser()).isGreaterThan(0);
+      Assertions.assertThat(created.getIdUser()).isGreaterThan(0);
     }
   }
 
@@ -76,7 +75,7 @@ class UserResourceTest extends BaseIntegrationTest  {
           .expectBody(String.class)
           .returnResult()
           .getResponseBody();
-      assertThat(body).isEqualTo(UserResource.TOKEN_SUCCESS);
+      Assertions.assertThat(body).isEqualTo(UserResource.TOKEN_SUCCESS);
     }
 
   }
@@ -95,7 +94,7 @@ class UserResourceTest extends BaseIntegrationTest  {
       }
       String roleName = Role.ROLE + u.role;
       User updated = adjustUserRightsByNickname(u.nickname, roleName, roleMap);
-      assertThat(updated.getMostPrivilegedRole()).isEqualTo(roleName);
+      Assertions.assertThat(updated.getMostPrivilegedRole()).isEqualTo(roleName);
     }
   }
 
@@ -115,7 +114,7 @@ class UserResourceTest extends BaseIntegrationTest  {
           .expectBody(Tenant.class)
           .returnResult()
           .getResponseBody();
-      assertThat(created.getIdTenant()).isGreaterThan(0);
+      Assertions.assertThat(created.getIdTenant()).isGreaterThan(0);
     }
 
   }

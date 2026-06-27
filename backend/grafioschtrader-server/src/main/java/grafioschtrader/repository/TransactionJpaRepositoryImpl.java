@@ -33,6 +33,7 @@ import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.SecaccountTradingPeriod;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securityaccount;
+import grafioschtrader.entities.Securitycashaccount;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.TradingDaysPlus;
 import grafioschtrader.entities.Transaction;
@@ -223,10 +224,47 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     // Validate transaction date against closedUntil restriction
     checkTransactionDateAgainstClosedUntil(transaction, cashaccount);
 
+    // Validate transaction date against the accounts' active-until date
+    checkTransactionDateAgainstActiveToDate(transaction, cashaccount, securityaccount);
+
     // Validate trading period restrictions
     checkTradingPeriodAllowed(transaction, securityaccount);
 
     return securityaccount;
+  }
+
+  /**
+   * Validates that the transaction date does not fall after the active-until date of the cash account or, when present,
+   * the security account. A {@code null} active-until date means the account is active indefinitely and imposes no
+   * restriction. This complements the closedUntil check by preventing bookings into terminated accounts.
+   *
+   * @param transaction     the transaction to validate
+   * @param cashaccount     the cash account associated with the transaction (always present)
+   * @param securityaccount the security account associated with the transaction, or null for cash-only transactions
+   * @throws DataViolationException if the transaction date is after an account's active-until date
+   */
+  private void checkTransactionDateAgainstActiveToDate(Transaction transaction, Cashaccount cashaccount,
+      Securityaccount securityaccount) {
+    LocalDate transactionDate = transaction.getTransactionTime().toLocalDate();
+    checkSingleAccountActiveToDate(cashaccount, transactionDate);
+    checkSingleAccountActiveToDate(securityaccount, transactionDate);
+  }
+
+  /**
+   * Throws a {@link DataViolationException} when the given account has an active-until date that is before the
+   * transaction date. Does nothing when the account is null or has no active-until date.
+   *
+   * @param account         the cash or security account to check (may be null)
+   * @param transactionDate the date of the transaction
+   */
+  private void checkSingleAccountActiveToDate(Securitycashaccount account, LocalDate transactionDate) {
+    if (account == null || account.getActiveToDate() == null) {
+      return;
+    }
+    if (transactionDate.isAfter(account.getActiveToDate())) {
+      throw new DataViolationException("transaction.time", "gt.transaction.date.after.account.active",
+          new Object[] { account.getName(), account.getActiveToDate() });
+    }
   }
 
   /**

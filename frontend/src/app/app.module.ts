@@ -234,8 +234,6 @@ import {SendRecvTreetableComponent} from './lib/mail/component/send.recv.treetab
 import {MailForwardSettingTableEditComponent} from './lib/mail/component/mail.forward.setting.table.edit.component';
 import {SendRecvForwardTabMenuComponent} from './lib/mail/component/send.recv.forward.tab.menu.component';
 import {MailSettingForwardService} from './lib/mail/service/mail.setting.forward.service';
-import {MailForwardSettingTableComponent} from './lib/mail/component/mail.forward.setting.table.component';
-import {MailForwardSettingEditComponent} from './lib/mail/component/mail-forward-setting-edit.component';
 import {UDFMetadataSecurityService} from './udfmetasecurity/service/udf.metadata.security.service';
 import {UDFMetadataSecurityTableComponent} from './udfmetasecurity/components/udf.metadata.security.table.component';
 import {UDFMetadataSecurityEditComponent} from './udfmetasecurity/components/udf-metadata-security-edit.component';
@@ -439,8 +437,6 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     GlobalSettingsEditComponent,
     ConnectorApiKeyTableComponent,
     ConnectorApiKeyEditComponent,
-    MailForwardSettingEditComponent,
-    MailForwardSettingTableComponent,
     MailForwardSettingTableEditComponent,
     SendRecvForwardTabMenuComponent,
     SendRecvTreetableComponent,

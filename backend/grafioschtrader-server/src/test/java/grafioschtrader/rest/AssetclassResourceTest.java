@@ -1,11 +1,11 @@
 package grafioschtrader.rest;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -54,9 +54,9 @@ class AssetclassResourceTest extends BaseIntegrationTest  {
         .getResponseBody();
 
     assertNotNull(aNew);
-    assertThat(aNew.getIdAssetClass()).isGreaterThan(0);
+    Assertions.assertThat(aNew.getIdAssetClass()).isGreaterThan(0);
     List<ProposeChangeField> pcf = RestTestHelper.getDiffPropertiesOfTwoObjects(a, aNew);
-    assertThat(pcf).isEmpty();
+    Assertions.assertThat(pcf).isEmpty();
   }
 
 }

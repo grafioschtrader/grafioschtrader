@@ -31,6 +31,7 @@ export class AppSettings {
 
   public static readonly STANDING_ORDER = 'StandingOrder';
   public static readonly SECURITY = 'Security';
+  public static readonly SECURITYCURRENCY = 'Securitycurrency';
   public static readonly SECURITY_SPLIT = 'Securitysplit';
   public static readonly SECURITYACCOUNT = 'Securityaccount';
   public static readonly STOCKEXCHANGE = 'Stockexchange';
@@ -128,6 +129,7 @@ export class AppSettings {
   public static readonly UDF_METADATA_SECURITY_KEY = AppSettings.UDF_METADATA_SECURITY.toLowerCase()
 
   public static readonly TIME_SERIE_QUOTES = 'timeSerieQuotes';
+  public static readonly SEASONALITY = 'seasonality';
   public static readonly CHART_GENERAL_PURPOSE = 'chartgeneralpurpose';
 
   public static readonly MAIN_BOTTOM = 'mainbottom';

@@ -104,7 +104,7 @@ public class ParseFormInputPDFasTXT {
    */
   public List<ImportProperties> parseInput(Integer fileNumber) throws Exception {
     templateScannedMap
-        .forEach((k, v) -> formInputTemplateMatchStateList.add(new FormInputTemplateMatchState(k, fileNumber)));
+        .forEach((k, _) -> formInputTemplateMatchStateList.add(new FormInputTemplateMatchState(k, fileNumber)));
     String formInput = inputString.replaceAll(REMOVE_EMPTY_LINE_PATTERN, "")
         .replaceAll("\r\n|\r|\n", System.lineSeparator()).replaceAll(" +", " ").trim();
     formInputLines = formInput.split(System.lineSeparator());

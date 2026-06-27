@@ -418,7 +418,7 @@ public class GTNetSecurityLookupService {
 
             // Add to results for this position
             resultsByPosition
-                .computeIfAbsent(positionId, k -> new ArrayList<>())
+                .computeIfAbsent(positionId, _ -> new ArrayList<>())
                 .addAll(dtoList);
             totalResultsFromPeer += dtoList.size();
           }

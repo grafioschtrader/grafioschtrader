@@ -24,6 +24,8 @@ export class MailSendRecv implements BaseID {
   sendRecvTime: Date;
   roleNameTo: string;
   hasBeenRead: boolean;
+  contextEntity: string;
+  idEntityContext: number;
 
   @Exclude()
   getId(): number {

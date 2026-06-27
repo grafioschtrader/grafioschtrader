@@ -157,7 +157,7 @@ public class SecurityDividendsReport {
         .supplyAsync(() -> getSecuritycurrencyHistoryEndOfYearsByIdTenant(idTenant));
 
     CompletableFuture.allOf(cfSecurityDividendsGrandTotal, cfHistoryquotes)
-        .thenAccept(ignoredVoid -> createGrandTotal(idTenant, cfSecurityDividendsGrandTotal.join(),
+        .thenAccept(_ -> createGrandTotal(idTenant, cfSecurityDividendsGrandTotal.join(),
             cfHistoryquotes.join(), dateCurrencyMap))
         .join();
     securityDividendsGrandTotal.portfolioList = tenant.getPortfolioList();
@@ -329,7 +329,7 @@ public class SecurityDividendsReport {
       }
 
       Double amount = cashAccountsAmountMap.computeIfAbsent(transaction.getCashaccount().getIdSecuritycashAccount(),
-          k -> Double.valueOf(0.0));
+          _ -> Double.valueOf(0.0));
       amount += transaction.getCashaccountAmount();
       cashAccountsAmountMap.put(transaction.getCashaccount().getIdSecuritycashAccount(), amount);
       if (transaction.getSecurity() != null) {
@@ -564,7 +564,7 @@ public class SecurityDividendsReport {
       return;
     }
     Map<String, IctaxSecurityTaxData> taxDataByIsin = taxDataList.stream()
-        .collect(Collectors.toMap(IctaxSecurityTaxData::getIsin, Function.identity(), (a, b) -> a));
+        .collect(Collectors.toMap(IctaxSecurityTaxData::getIsin, Function.identity(), (a, _) -> a));
 
     yearGroup.yearIctaxTotalTaxValueChf = 0.0;
     yearGroup.yearIctaxTotalPaymentValueChf = 0.0;
@@ -724,7 +724,7 @@ public class SecurityDividendsReport {
       Map<Integer, MarginTracker> securityMarginOpenTransaction = marginOpenTransaction
           .get(securityDividendsPosition.security.getId());
       if (transaction.isMarginOpenPosition()) {
-        marginOpenTransaction.computeIfAbsent(idSecurity, k -> new HashMap<>()).put(transaction.getIdTransaction(),
+        marginOpenTransaction.computeIfAbsent(idSecurity, _ -> new HashMap<>()).put(transaction.getIdTransaction(),
             new MarginTracker(transaction, unitsSplited));
       } else if (transaction.isMarginClosePosition()) {
         MarginTracker marginTracker = securityMarginOpenTransaction.get(transaction.getConnectedIdTransaction());

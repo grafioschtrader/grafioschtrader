@@ -34,6 +34,30 @@ export class BusinessSelectOptionsHelper {
     });
   }
 
+  /**
+   * Enables/disables cash or security account options depending on whether the account is still active at the given
+   * reference date. An account is active when it has no active-until date or that date is not before the reference
+   * date. Mirrors {@link securitiesEnableDisableOptionsByActiveDate} so a terminated account cannot be chosen for a
+   * transaction (or standing order) dated after its active-until date. A previously selected account stays visible
+   * but disabled rather than being removed.
+   *
+   * @param accounts the cash or security accounts backing the options
+   * @param fieldConfig the select field whose options are toggled
+   * @param activeDateNol the reference date (e.g. transaction time) as epoch milliseconds
+   */
+  public static accountsEnableDisableOptionsByActiveDate(
+    accounts: { idSecuritycashAccount: number; activeToDate?: string | Date }[],
+    fieldConfig: FieldConfig, activeDateNol: number): void {
+    const activeDate: string = moment(activeDateNol).format('YYYYMMDD');
+    fieldConfig.valueKeyHtmlOptions.forEach(vkho => {
+      const account = accounts.find(a => a.idSecuritycashAccount === vkho.key);
+      if (account) {
+        vkho.disabled = account.activeToDate != null
+          && activeDate > moment(account.activeToDate).format('YYYYMMDD');
+      }
+    });
+  }
+
   public static assetclassCreateValueKeyHtmlSelectOptions(gps: GlobalparameterService,
     translateService: TranslateService,
     assetClasses: Assetclass[]): ValueKeyHtmlSelectOptions[] {

@@ -1,6 +1,5 @@
 package grafioschtrader.connector.instrument.test;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.time.LocalDate;
@@ -8,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -82,16 +82,16 @@ class FredFeedConnectorTest {
 
     List<Historyquote> quotes = fredFeedConnector.getEodSecurityHistory(security, from, to);
 
-    assertThat(quotes).as("FRED returned no observations for %s (%s) in [%s, %s]", name, fredSeriesId, from, to)
+    Assertions.assertThat(quotes).as("FRED returned no observations for %s (%s) in [%s, %s]", name, fredSeriesId, from, to)
         .isNotEmpty();
 
     Set<LocalDate> seen = new HashSet<>();
     for (Historyquote h : quotes) {
-      assertThat(h.getDate()).as("Quote date for %s outside requested window", fredSeriesId)
+      Assertions.assertThat(h.getDate()).as("Quote date for %s outside requested window", fredSeriesId)
           .isBetween(from, to);
-      assertThat(h.getClose()).as("Rate for %s on %s is outside plausible 0..0.25 band", fredSeriesId, h.getDate())
+      Assertions.assertThat(h.getClose()).as("Rate for %s on %s is outside plausible 0..0.25 band", fredSeriesId, h.getDate())
           .isBetween(-0.05, 0.25);
-      assertThat(seen.add(h.getDate())).as("Duplicate date %s in FRED response for %s", h.getDate(), fredSeriesId)
+      Assertions.assertThat(seen.add(h.getDate())).as("Duplicate date %s in FRED response for %s", h.getDate(), fredSeriesId)
           .isTrue();
     }
 

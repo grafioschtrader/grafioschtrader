@@ -147,7 +147,7 @@ public class AlgoAlarmEvaluationService {
     // Build a map: watchlistId -> list of AlgoTops
     Map<Integer, List<AlgoTop>> watchlistToAlgoTops = new HashMap<>();
     for (AlgoTop at : activeAlgoTops) {
-      watchlistToAlgoTops.computeIfAbsent(at.getIdWatchlist(), k -> new ArrayList<>()).add(at);
+      watchlistToAlgoTops.computeIfAbsent(at.getIdWatchlist(), _ -> new ArrayList<>()).add(at);
     }
     // Build a map: securityId -> Security for quick lookup
     Map<Integer, Security> updatedMap = new HashMap<>();

@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Grafioschtrader (GT) is a **multi-tenant portfolio management web application** for tracking investments across multiple portfolios, securities accounts, and cash accounts. It supports multiple currencies, various financial instruments (stocks, bonds, ETFs, CFDs, Forex), and provides asset class evaluations and correlation matrices.
 
 **Tech Stack:**
-- **Backend**: Java 21 + Spring Boot 4.0.4 (multi-module Maven project)
+- **Backend**: Java 25 + Spring Boot 4.1.0 (multi-module Maven project)
 - **Frontend**: Angular 21 + TypeScript 5.9.3 + PrimeNG 21
 - **Database**: MariaDB with Flyway migrations
 - **Security**: JWT authentication, Jasypt property encryption
@@ -189,7 +189,7 @@ gt.dividend.update.data=0 0 06 * * ?         # Dividend updates
 ### Backend
 
 **Prerequisites**:
-- Java 21 installed
+- Java 25 installed
 - Maven 3.6+ installed
 - MariaDB running (configurable via properties)
 - `JASYPT_ENCRYPTOR_PASSWORD` environment variable set
@@ -733,7 +733,7 @@ Before committing documented code, verify:
 ## Important Notes
 
 ### Version Requirements
-- **Java 21** required (upgraded from Java 17 in v0.31.6)
+- **Java 25** required (upgraded from Java 21 in v0.36.1; Java 21 was adopted in v0.31.6)
 - **Node.js**: ^20.19.0, ^22.12.0 or ^24.0.0
 - **Maven**: 3.6+ recommended
 - **Angular**: 21.x

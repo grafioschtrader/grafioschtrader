@@ -25,13 +25,13 @@ import grafiosch.entities.Auditable;
 import grafiosch.entities.BaseID;
 import grafiosch.entities.ProposeChangeEntity;
 import grafiosch.entities.ProposeChangeField;
-import grafiosch.entities.ProposeRequest;
 import grafiosch.entities.ProposeTransientTransfer;
 import grafiosch.entities.TenantBase;
 import grafiosch.entities.TenantBaseID;
 import grafiosch.entities.User;
 import grafiosch.entities.UserBaseID;
 import grafiosch.entities.UserEntityChangeLimit;
+import grafiosch.exceptions.ResourceNotFoundException;
 import grafiosch.repository.ProposeChangeEntityJpaRepository;
 import grafiosch.repository.ProposeChangeFieldJpaRepository;
 import grafiosch.repository.TenantLimitsHelper;
@@ -154,13 +154,12 @@ public abstract class UpdateCreate<T extends BaseID<Integer>> extends DailyLimit
       return create(entity);
     }
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    if (entity instanceof ProposeRequest) {
-      // TODO Only admin and all edit rights can edit ProposeChangeEntity
-      // When a proposal is refused, it runs here
-      // Owner of entity and referenced entity owner can edit ProposeChangeEntity
-      resultEntity = updateSaveEntity(entity, null);
-
-      logAddUpdDel(((ProposeChangeEntity) entity).getLastModifiedBy(), entity, OperationType.UPDATE);
+    if (entity instanceof ProposeChangeEntity) {
+      // A proposal is being rejected/updated here (accepting runs through the target entity's resource).
+      // Only an admin/all-edit user or the owner of the referenced entity may act on it, mirroring the read-side
+      // rule in ProposeChangeEntityJpaRepositoryImpl.getProposeChangeEntityWithEntity. Note: ProposeUserTask (the
+      // other ProposeRequest subclass) has its own reject endpoint and is not handled here.
+      resultEntity = updateProposeChangeEntity(user, (ProposeChangeEntity) entity);
     } else if (entity instanceof TenantBaseID) {
       existingEntity = checkAndSetEntityWithTenant(entity, user);
       resultEntity = updateSaveEntity(entity, existingEntity);
@@ -182,6 +181,43 @@ public abstract class UpdateCreate<T extends BaseID<Integer>> extends DailyLimit
       // Special implementation, for example rights are checked by a parent entity
       resultEntity = updateSpecialEntity(user, entity);
     }
+    return resultEntity;
+  }
+
+  /**
+   * Handles the reject/update of a {@link ProposeChangeEntity}. This is the path a refused proposal takes (accepting a
+   * proposal runs through the target entity's resource instead). Access is restricted to users with higher privileges
+   * (admin / all-edit) or the owner of the referenced entity, mirroring the read-side rule in
+   * {@code ProposeChangeEntityJpaRepositoryImpl.getProposeChangeEntityWithEntity}. Only the reject-related fields
+   * ({@code dataChangeState}, {@code noteAcceptReject}) of the stored row are updated; identity and target fields are
+   * never taken from the client payload.
+   *
+   * @param user   The user performing the rejection/update.
+   * @param entity The proposal as supplied by the client.
+   * @return ResponseEntity containing the updated proposal.
+   * @throws Exception         If any error occurs during saving.
+   * @throws SecurityException If the user is not allowed to act on the proposal, or it is no longer open.
+   */
+  @SuppressWarnings("unchecked")
+  protected ResponseEntity<T> updateProposeChangeEntity(User user, ProposeChangeEntity entity) throws Exception {
+    ProposeChangeEntity existing = proposeChangeEntityJpaRepository.findById(entity.getId())
+        .orElseThrow(() -> new ResourceNotFoundException(entity.getId()));
+
+    if (!UserAccessHelper.hasHigherPrivileges(user) && !user.getIdUser().equals(existing.getIdOwnerEntity())) {
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
+    }
+    if (existing.getDataChangeState() != ProposeDataChangeState.OPEN) {
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
+    }
+
+    // This is exclusively the reject path; accepting a proposal runs through the target entity's resource. The
+    // client-supplied state is ignored so an owner cannot forge ACCEPTED (handled without applying the change) or OPEN.
+    existing.setDataChangeState(ProposeDataChangeState.REJECT);
+    existing.setNoteAcceptReject(entity.getNoteAcceptReject());
+    T existingAsT = (T) existing;
+    ResponseEntity<T> resultEntity = updateSaveEntity(existingAsT, existingAsT);
+
+    logAddUpdDel(user.getIdUser(), existingAsT, OperationType.UPDATE);
     return resultEntity;
   }
 
@@ -271,6 +307,11 @@ public abstract class UpdateCreate<T extends BaseID<Integer>> extends DailyLimit
         ProposeChangeEntity proposeChangeEntity = proposeChangeEntityOpt.get();
         if (proposeChangeEntity.getEntity().equals(entity.getClass().getSimpleName())
             && proposeChangeEntity.getIdEntity().equals(entity.getId())) {
+          // Reject acting on a proposal that was already handled (rejected/accepted) to prevent re-processing a
+          // stale proposal.
+          if (proposeChangeEntity.getDataChangeState() != ProposeDataChangeState.OPEN) {
+            throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
+          }
           proposeChangeEntity.setDataChangeState(ProposeDataChangeState.ACCEPTED);
           proposeChangeEntity.setNoteAcceptReject(((ProposeTransientTransfer) entity).getNoteRequestOrReject());
           result = updateSaveEntity(entity, existingEntity);
@@ -358,13 +399,10 @@ public abstract class UpdateCreate<T extends BaseID<Integer>> extends DailyLimit
     ((TenantBaseID) entity).setIdTenant(user.getIdTenant());
 
     if (entity.getId() != null) {
-      existingEntity = getUpdateCreateJpaRepository().findById(entity.getId()).orElse(null);
-      if (existingEntity != null) {
-        if (!user.getIdTenant().equals(((TenantBaseID) existingEntity).getIdTenant())) {
-          throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
-        }
-      } else {
-        // TODO Not existing ID -> should not happened
+      existingEntity = getUpdateCreateJpaRepository().findById(entity.getId())
+          .orElseThrow(() -> new ResourceNotFoundException(entity.getId()));
+      if (!user.getIdTenant().equals(((TenantBaseID) existingEntity).getIdTenant())) {
+        throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
       }
     } else {
       // New Entity with Tenant
@@ -388,13 +426,10 @@ public abstract class UpdateCreate<T extends BaseID<Integer>> extends DailyLimit
     checkAndSetUserBaseIDWithUser((UserBaseID) entity, user);
 
     if (entity.getId() != null) {
-      existingEntity = getUpdateCreateJpaRepository().findById(entity.getId()).orElse(null);
-      if (existingEntity != null) {
-        if (!user.getIdUser().equals(((UserBaseID) existingEntity).getIdUser())) {
-          throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
-        }
-      } else {
-        // TODO Not existing ID -> should not happened
+      existingEntity = getUpdateCreateJpaRepository().findById(entity.getId())
+          .orElseThrow(() -> new ResourceNotFoundException(entity.getId()));
+      if (!user.getIdUser().equals(((UserBaseID) existingEntity).getIdUser())) {
+        throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
       }
     } else {
       // New Entity with Tenant

@@ -1,12 +1,12 @@
 package grafioschtrader.rest;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalTime;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -59,9 +59,9 @@ class StockexchangeResourceTest extends BaseIntegrationTest {
         .getResponseBody();
 
     assertNotNull(sNew);
-    assertThat(sNew.getIdStockexchange()).isGreaterThan(0);
+    Assertions.assertThat(sNew.getIdStockexchange()).isGreaterThan(0);
     List<ProposeChangeField> pcf = RestTestHelper.getDiffPropertiesOfTwoObjects(s, sNew);
-    assertThat(pcf).isEmpty();
+    Assertions.assertThat(pcf).isEmpty();
   }
 
   @Test
@@ -80,7 +80,7 @@ class StockexchangeResourceTest extends BaseIntegrationTest {
         .returnResult()
         .getResponseBody();
 
-    assertThat(stockexchanges.length).isGreaterThan(0);
+    Assertions.assertThat(stockexchanges.length).isGreaterThan(0);
     Stockexchange s = stockexchanges[0];
 
     authenticatedClient(RestTestHelper.LIMIT1)
@@ -89,7 +89,7 @@ class StockexchangeResourceTest extends BaseIntegrationTest {
         .exchange()
         .expectStatus().isUnauthorized()
         .expectBody(String.class)
-        .value(body -> assertThat(body).contains(SecurityBreachError.class.getSimpleName()));
+        .value(body -> Assertions.assertThat(body).contains(SecurityBreachError.class.getSimpleName()));
   }
 
 }

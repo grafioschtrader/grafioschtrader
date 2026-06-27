@@ -4,12 +4,14 @@ import {
   EventEmitter,
   Input,
   OnChanges,
+  OnInit,
   Output,
   SimpleChanges,
   TemplateRef,
   ViewChild
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
+import {TranslateService} from '@ngx-translate/core';
 import {FormsModule, Validators} from '@angular/forms';
 import {Table, TableModule} from 'primeng/table';
 import {ContextMenuModule} from 'primeng/contextmenu';
@@ -367,12 +369,12 @@ export interface ValidationErrorEvent<T> {
 
       <!-- Context Menu -->
       @if (contextMenuEnabled && showContextMenu) {
-        <p-contextMenu [target]="cmDiv" [model]="computedContextMenuItems" [appendTo]="contextMenuAppendTo"></p-contextMenu>
+        <p-contextMenu [target]="cmDiv" [model]="menuModel" [appendTo]="contextMenuAppendTo"></p-contextMenu>
       }
     </div>
   `
 })
-export class EditableTableComponent<T = any> implements OnChanges {
+export class EditableTableComponent<T = any> implements OnInit, OnChanges {
 
   // ============================================================================
   // Data and Column Configuration
@@ -612,6 +614,14 @@ export class EditableTableComponent<T = any> implements OnChanges {
   /** Set of row keys that are new (not yet persisted) */
   private newRows: Set<string> = new Set();
 
+  /**
+   * Set when the component reassigns {@link data} itself (addNewRow / cancel-remove) and emits
+   * dataChange. The two-way [(data)] round-trip re-enters ngOnChanges as a non-first data change;
+   * this flag tells ngOnChanges that change is self-initiated, so it must NOT wipe edit state
+   * (clonedRows / newRows / ...). Only a genuinely external data replacement should reset state.
+   */
+  private internalDataChange = false;
+
   /** Counter for generating temporary keys for new rows */
   private newRowCounter = 0;
 
@@ -622,19 +632,37 @@ export class EditableTableComponent<T = any> implements OnChanges {
   protected readonly EditInputType = EditInputType;
 
   // ============================================================================
-  // Computed Properties
+  // Context Menu Model
   // ============================================================================
 
-  /** Context menu items including "Add new row" if createNewEntityFn is provided */
-  get computedContextMenuItems(): MenuItem[] {
+  /**
+   * Stable context-menu model bound to the PrimeNG context menu. Rebuilt only when the relevant
+   * inputs change (see {@link buildContextMenu}). It must hold a stable array reference between
+   * rebuilds: PrimeNG's ContextMenu reprocesses its internal items on every `model` assignment, so
+   * binding a getter that returns a fresh array each change-detection cycle would rebuild the menu
+   * continuously and swallow item clicks.
+   */
+  menuModel: MenuItem[] = [];
+
+  constructor(private translateService: TranslateService) {
+  }
+
+  /**
+   * Rebuilds {@link menuModel} from the current inputs. Prepends an "Add new row" item when
+   * {@link createNewEntityFn} is provided and translates its label (the only label this component
+   * owns); the parent-supplied {@link contextMenuItems} arrive pre-translated and are appended as-is.
+   */
+  private buildContextMenu(): void {
     const items: MenuItem[] = [];
 
     if (this.createNewEntityFn) {
-      items.push({
+      const addRowItem: MenuItem = {
         label: this.addRowLabel,
         icon: 'pi pi-plus',
         command: () => this.addNewRow()
-      });
+      };
+      this.translateService.get(this.addRowLabel).subscribe(translated => addRowItem.label = translated);
+      items.push(addRowItem);
     }
 
     if (this.contextMenuItems.length > 0) {
@@ -644,20 +672,39 @@ export class EditableTableComponent<T = any> implements OnChanges {
       items.push(...this.contextMenuItems);
     }
 
-    return items;
+    this.menuModel = items;
   }
 
   // ============================================================================
   // Lifecycle Hooks
   // ============================================================================
 
+  ngOnInit(): void {
+    this.buildContextMenu();
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['data'] && !changes['data'].firstChange) {
-      // Data changed externally - clear internal state
-      this.clonedRows = {};
-      this.rowOptions = {};
-      this.rowErrors = {};
-      this.newRows.clear();
+      if (this.internalDataChange) {
+        // Self-initiated data change (addNewRow / cancel-remove) - keep edit state, consume the flag
+        this.internalDataChange = false;
+      } else {
+        // Data changed externally - clear internal state
+        this.clonedRows = {};
+        this.rowOptions = {};
+        this.rowErrors = {};
+        this.newRows.clear();
+      }
+    }
+    // Rebuild only when the parent-supplied items actually change. The add-row item is derived from
+    // createNewEntityFn / addRowLabel, but those must NOT be rebuild triggers: parents commonly bind
+    // createNewEntityFn as `someFn.bind(this)`, which yields a fresh function reference on every change
+    // detection cycle. Rebuilding on that churn replaces menuModel (and thus the PrimeNG menu's DOM
+    // items) on every CD, so a real mouse-down's CD tick recreates the item between mousedown and
+    // mouseup and the click never reaches it. createNewEntityFn / addRowLabel are captured once in
+    // ngOnInit, which is sufficient because they are set declaratively and do not change at runtime.
+    if (changes['contextMenuItems'] && !changes['contextMenuItems'].firstChange) {
+      this.buildContextMenu();
     }
   }
 
@@ -721,6 +768,7 @@ export class EditableTableComponent<T = any> implements OnChanges {
 
     if (isNew) {
       // Remove new row entirely
+      this.internalDataChange = true;
       this.data = this.data.filter((_, i) => i !== index);
       this.dataChange.emit(this.data);
     } else if (this.clonedRows[rowKey]) {
@@ -769,6 +817,7 @@ export class EditableTableComponent<T = any> implements OnChanges {
     this.newRows.add(rowKey);
 
     // Add to data array
+    this.internalDataChange = true;
     this.data = [...this.data, newEntity];
     this.dataChange.emit(this.data);
 

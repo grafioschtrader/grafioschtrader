@@ -10,12 +10,12 @@ import {MessageToastService} from '../../lib/message/message.toast.service';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {HelpIds} from '../../lib/help/help.ids';
 import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
+import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.helper';
+import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
-import {BaseSettings} from '../../lib/base.settings';
 import {DialogModule} from 'primeng/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
@@ -56,29 +56,32 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
       4, this.helpLink.bind(this));
-
-    this.config = [
-      DynamicFieldHelper.createFieldInputString('name', 'CASHACCOUNT_NAME', 25, true),
-      DynamicFieldHelper.createFieldSelectStringHeqF('currency', true,
-        {inputWidth: 5, disabled: this.callParam.optParam && this.callParam.optParam.hasTransaction}),
-      DynamicFieldHelper.createFieldSelectNumber('connectIdSecurityaccount', 'SECURITYACCOUNT_ASSIGNMENT', false),
-      DynamicFieldHelper.createFieldInputNumberHeqF('borrowingRate', false, 3, 4, false),
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', BaseSettings.FID_MAX_LETTERS, false),
-      DynamicFieldHelper.createSubmitButton()
-    ];
+    // The whole form (fields, order, constraints, labels) is generated from the Cashaccount entity's
+    // @DynamicFormField + Bean Validation annotations. The definition is pre-fetched by the opener and
+    // passed via callParam, so the form is built synchronously here and edit values transfer reliably.
+    this.config = <FieldConfig[]>DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
+      this.translateService, this.callParam.optParam.formDefinition, '', true);
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
   protected override initialize(): void {
     this.portfolio = <Portfolio>this.callParam.parentObject;
+    // Initialise and transfer synchronously (config is ready from ngOnInit). Doing this inside the async
+    // getCurrencies() subscription would let a later form.reset() wipe fields the user already entered
+    // before the currency dropdown was populated (e.g. activeToDate).
+    this.configObject.currency.inputWidth = 5;
+    if (this.callParam.optParam && this.callParam.optParam.hasTransaction) {
+      this.configObject.currency.formControl.disable();
+    }
+    this.prepareSecurityaccountOption();
+    this.form.setDefaultValuesAndEnableSubmit();
+    if (this.callParam.thisObject != null) {
+      this.form.transferBusinessObjectToForm(this.callParam.thisObject);
+    }
+    this.configObject.name.elementRef.nativeElement.focus();
+    // Currency options load asynchronously and only populate the dropdown; they must not reset the form.
     this.gpsGT.getCurrencies().subscribe(data => {
       this.configObject.currency.valueKeyHtmlOptions = data;
-      this.prepareSecurityaccountOption();
-      this.form.setDefaultValuesAndEnableSubmit();
-      if (this.callParam.thisObject != null) {
-        this.form.transferBusinessObjectToForm(this.callParam.thisObject);
-      }
-      this.configObject.name.elementRef.nativeElement.focus();
     });
   }
 

@@ -2,8 +2,16 @@ package grafiosch.types;
 
 public enum TaskTypeBase implements ITaskType {
 
+  // Library task types occupy the byte range 1-29 for normal (user-creatable) tasks; the application
+  // enum TaskTypeExtended owns 30-79. System tasks that must NOT be user-created live in the shared
+  // 80+ band so that the single maxUserCreateTask threshold (see TaskDataChangeFormConstraints) cleanly
+  // separates creatable (<= threshold) from non-creatable (> threshold). See GitHub issue #205.
+
   /** Deletes all expired token of the registration process with its created user */
   TOKEN_USER_REGISTRATION_PURGE((byte) 15),
+
+  /** Physically deletes role messages that every corresponding role member has marked as deleted. */
+  MAIL_ROLE_MESSAGE_PURGE((byte) 29),
 
   /** Checks and updates the online/busy status of all configured GTNet servers. */
   GTNET_SERVER_STATUS_CHECK((byte) 20),
@@ -23,10 +31,10 @@ public enum TaskTypeBase implements ITaskType {
   /** Delivers pending GTNet admin messages to multiple targets. Created when admin sends message via multi-select. */
   GTNET_ADMIN_MESSAGE_DELIVERY((byte) 26),
 
-  // Task which used oldValueNumber or oldValueString can not created by the admin
+  // Task which used oldValueNumber or oldValueString can not created by the admin (80+ system band)
   ///////////////////////////////////////////////////////////////////////////////
   /** Moves shared entities from one user to another user by changing field created_by */
-  MOVE_CREATED_BY_USER_TO_OTHER_USER((byte) 31);
+  MOVE_CREATED_BY_USER_TO_OTHER_USER((byte) 80);
 
   private final Byte value;
 

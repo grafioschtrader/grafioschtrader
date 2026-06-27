@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import grafiosch.BaseConstants;
 import grafiosch.entities.TenantBaseID;
 import grafiosch.entities.User;
+import grafiosch.exceptions.ResourceNotFoundException;
 import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
 import grafiosch.types.OperationType;
 
@@ -51,8 +52,9 @@ public abstract class AlgoBaseResource<T extends TenantBaseID> extends UpdateCre
     }
     entity.setIdTenant(mainIdTenant);
     if (entity.getId() != null) {
-      existingEntity = getUpdateCreateJpaRepository().findById(entity.getId()).orElse(null);
-      if (existingEntity != null && !mainIdTenant.equals(existingEntity.getIdTenant())) {
+      existingEntity = getUpdateCreateJpaRepository().findById(entity.getId())
+          .orElseThrow(() -> new ResourceNotFoundException(entity.getId()));
+      if (!mainIdTenant.equals(existingEntity.getIdTenant())) {
         throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
       }
     } else {

@@ -9,18 +9,27 @@ import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.DynamicFormField;
 import grafiosch.common.DynamicFormPropertySupport;
 import grafiosch.dynamic.model.ClassDescriptorInputAndShow.DateRangeClass;
 import grafiosch.dynamic.model.udf.UDFDataHelper;
+import grafiosch.validation.AfterEqual;
 import grafiosch.validation.DateRange;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /**
@@ -122,35 +131,170 @@ public abstract class DynamicModelHelper {
           if (possibleAnnotationSet.isEmpty()
               || Arrays.stream(annotations).anyMatch(a -> possibleAnnotationSet.contains(a.annotationType()))) {
             FieldDescriptorInputAndShow fieldDescriptorInputAndShow = createFieldDescriptor(field);
-            for (Annotation annotation : annotations) {
-              if (annotation.annotationType() == NotNull.class || annotation.annotationType() == NotNull.List.class) {
-                fieldDescriptorInputAndShow.required = true;
-              } else if (annotation instanceof Future) {
-                fieldDescriptorInputAndShow.dynamicFormPropertyHelps = new DynamicFormPropertyHelps[] {
-                    DynamicFormPropertyHelps.DATE_FUTURE };
-              } else if (annotation instanceof Min) {
-                fieldDescriptorInputAndShow.min = (double) ((Min) annotation).value();
-              } else if (annotation instanceof Max) {
-                fieldDescriptorInputAndShow.max = (double) ((Max) annotation).value();
-              } else if (annotation instanceof DynamicFormPropertySupport) {
-                fieldDescriptorInputAndShow.dynamicFormPropertyHelps = ((DynamicFormPropertySupport) annotation)
-                    .value();
-              } else if (annotation instanceof Size) {
-                fieldDescriptorInputAndShow.min = (double) ((Size) annotation).min();
-                fieldDescriptorInputAndShow.max = (double) ((Size) annotation).max();
-              }
-            }
-            if (fieldDescriptorInputAndShow.dataType == DataType.Numeric && fieldDescriptorInputAndShow.max == null) {
-              fieldDescriptorInputAndShow.max = UDFDataHelper.getMaxDecimalValue(BaseConstants.FID_MAX_DIGITS,
-                  BaseConstants.FID_MAX_FRACTION_DIGITS);
-            }
-
+            applyFieldConstraintAnnotations(annotations, fieldDescriptorInputAndShow);
+            applyNumericDefaultMax(fieldDescriptorInputAndShow);
             fieldDescriptorInputAndShowList.add(fieldDescriptorInputAndShow);
           }
         }
       }
     }
     return fieldDescriptorInputAndShowList;
+  }
+
+  /**
+   * Creates a complete form definition for an entity that uses {@code @DynamicFormField} to mark its
+   * input fields. Unlike {@link #getFormDefinitionOfModelClass(Class)} this walks the full class
+   * hierarchy (so inherited form fields are included), keeps only the fields that belong to the
+   * requested dialog, and orders them by the position encoded in {@code @DynamicFormField.uiOrder()}.
+   *
+   * <p>Class-level annotations such as {@code @DateRange} are processed and added as constraint
+   * validators, identical to {@link #getFormDefinitionOfModelClass(Class)}.</p>
+   *
+   * @param entityClass the entity to analyse
+   * @param dialogId    the dialog id whose fields should be returned (entities with a single form
+   *                    use dialog 1)
+   * @return a class descriptor whose field list contains the ordered
+   *         {@link FieldDescriptorInputAndShowExtendedEntity} instances for the requested dialog
+   */
+  public static ClassDescriptorInputAndShow getFormDefinitionOfEntityClass(Class<?> entityClass, int dialogId) {
+    ClassDescriptorInputAndShow cdiss = new ClassDescriptorInputAndShow(getEntityFormFields(entityClass, dialogId));
+    for (Annotation annotation : entityClass.getDeclaredAnnotations()) {
+      if (annotation.annotationType() == DateRange.class) {
+        cdiss.putConstraint(ConstraintValidatorType.DateRange,
+            new DateRangeClass(((DateRange) annotation).start(), ((DateRange) annotation).end()));
+      }
+    }
+    return cdiss;
+  }
+
+  /**
+   * Collects, constrains and orders the {@code @DynamicFormField} annotated fields of an entity
+   * (including inherited ones) for a single dialog.
+   *
+   * @param entityClass the entity to analyse
+   * @param dialogId    the dialog id to filter by
+   * @return the ordered list of entity field descriptors
+   */
+  private static List<FieldDescriptorInputAndShow> getEntityFormFields(Class<?> entityClass, int dialogId) {
+    String entityName = entityClass.getSimpleName();
+    List<OrderedField> ordered = new ArrayList<>();
+    for (Class<?> c = entityClass; c != null && c != Object.class; c = c.getSuperclass()) {
+      for (Field field : c.getDeclaredFields()) {
+        if (Modifier.isStatic(field.getModifiers())) {
+          continue;
+        }
+        DynamicFormField dff = field.getAnnotation(DynamicFormField.class);
+        if (dff == null) {
+          continue;
+        }
+        Integer position = parsePosition(dff.uiOrder(), dialogId);
+        if (position == null) {
+          continue;
+        }
+        FieldDescriptorInputAndShow base = createFieldDescriptor(field);
+        applyFieldConstraintAnnotations(field.getDeclaredAnnotations(), base);
+        if (dff.helps().length > 0) {
+          base.dynamicFormPropertyHelps = dff.helps();
+        }
+        if (dff.integerLimit() > 0) {
+          base.digitsInteger = dff.integerLimit();
+          base.digitsFraction = dff.fractionLimit();
+        }
+        applyNumericDefaultMax(base);
+        String labelKey = dff.labelKey().isEmpty() ? null : dff.labelKey();
+        ordered.add(new OrderedField(position,
+            new FieldDescriptorInputAndShowExtendedEntity(base, entityName, dff.uiOrder(), labelKey)));
+      }
+    }
+    ordered.sort(Comparator.comparingInt(OrderedField::position));
+    return ordered.stream().map(OrderedField::descriptor).collect(Collectors.toList());
+  }
+
+  /**
+   * Returns the position of a field within a dialog from a {@code uiOrder} string, or null when the
+   * field does not belong to the dialog. Tokens are {@code dialogId.position}; a bare number is
+   * interpreted as a position in dialog 1.
+   *
+   * @param uiOrder  the comma separated {@code dialogId.position} list
+   * @param dialogId the dialog id to look up
+   * @return the position within the dialog, or null if the field is not part of it
+   */
+  private static Integer parsePosition(String uiOrder, int dialogId) {
+    for (String token : uiOrder.split(",")) {
+      String t = token.trim();
+      if (t.isEmpty()) {
+        continue;
+      }
+      int dot = t.indexOf('.');
+      try {
+        if (dot < 0) {
+          if (dialogId == 1) {
+            return Integer.parseInt(t);
+          }
+        } else if (Integer.parseInt(t.substring(0, dot).trim()) == dialogId) {
+          return Integer.parseInt(t.substring(dot + 1).trim());
+        }
+      } catch (NumberFormatException e) {
+        // ignore malformed token
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Extracts the supported Bean Validation and dynamic-form annotations from a field into the given
+   * descriptor. Shared by the generic member analysis and the entity form producer.
+   *
+   * @param annotations the field's declared annotations
+   * @param fd          the descriptor to populate
+   */
+  private static void applyFieldConstraintAnnotations(Annotation[] annotations, FieldDescriptorInputAndShow fd) {
+    for (Annotation annotation : annotations) {
+      if (annotation.annotationType() == NotNull.class || annotation.annotationType() == NotNull.List.class
+          || annotation instanceof NotBlank) {
+        fd.required = true;
+      } else if (annotation instanceof Future) {
+        fd.dynamicFormPropertyHelps = new DynamicFormPropertyHelps[] { DynamicFormPropertyHelps.DATE_FUTURE };
+      } else if (annotation instanceof Min) {
+        fd.min = (double) ((Min) annotation).value();
+      } else if (annotation instanceof Max) {
+        fd.max = (double) ((Max) annotation).value();
+      } else if (annotation instanceof DecimalMin) {
+        fd.min = Double.parseDouble(((DecimalMin) annotation).value());
+      } else if (annotation instanceof DecimalMax) {
+        fd.max = Double.parseDouble(((DecimalMax) annotation).value());
+      } else if (annotation instanceof Digits) {
+        fd.digitsInteger = ((Digits) annotation).integer();
+        fd.digitsFraction = ((Digits) annotation).fraction();
+      } else if (annotation instanceof Pattern) {
+        fd.pattern = ((Pattern) annotation).regexp();
+      } else if (annotation instanceof AfterEqual) {
+        fd.dateMin = ((AfterEqual) annotation).value();
+      } else if (annotation instanceof DynamicFormPropertySupport) {
+        fd.dynamicFormPropertyHelps = ((DynamicFormPropertySupport) annotation).value();
+      } else if (annotation instanceof Size) {
+        fd.min = (double) ((Size) annotation).min();
+        fd.max = (double) ((Size) annotation).max();
+      }
+    }
+  }
+
+  /**
+   * Applies the system-wide default maximum to a numeric field that has neither an explicit maximum
+   * nor a {@code @Digits} precision constraint.
+   *
+   * @param fd the descriptor to adjust
+   */
+  private static void applyNumericDefaultMax(FieldDescriptorInputAndShow fd) {
+    if (fd.dataType == DataType.Numeric && fd.max == null && fd.digitsInteger == null) {
+      fd.max = UDFDataHelper.getMaxDecimalValue(BaseConstants.FID_MAX_DIGITS, BaseConstants.FID_MAX_FRACTION_DIGITS);
+    }
+  }
+
+  /**
+   * Pairs a generated entity field descriptor with its resolved position for sorting within a dialog.
+   */
+  private record OrderedField(int position, FieldDescriptorInputAndShowExtendedEntity descriptor) {
   }
 
   /**

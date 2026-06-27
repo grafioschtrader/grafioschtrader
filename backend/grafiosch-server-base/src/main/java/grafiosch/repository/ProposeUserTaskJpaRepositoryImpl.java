@@ -23,6 +23,7 @@ import grafiosch.entities.ProposeUserTask;
 import grafiosch.entities.Role;
 import grafiosch.entities.User;
 import grafiosch.entities.UserEntityChangeLimit;
+import grafiosch.exceptions.DataViolationException;
 import grafiosch.service.MailExternalService;
 import grafiosch.service.SendMailInternalExternalService;
 import grafiosch.types.MessageComType;
@@ -91,6 +92,7 @@ public class ProposeUserTaskJpaRepositoryImpl extends ProposeRequestService<Prop
         .setEntity(proposeUserTask.getUserTaskType() == UserTaskType.RELEASE_LOGOUT ? User.class.getSimpleName()
             : UserEntityChangeLimit.class.getSimpleName());
     checkPropertiesInModel(proposeUserTask);
+    rejectDuplicatePendingLimitRequest(proposeUserTask);
     Role role = roleJpaRepository.findByRolename(Role.ROLE_ADMIN);
     proposeUserTask.setIdRoleTo(role.getIdRole());
     List<ProposeChangeField> proposeChangeField = proposeUserTask.getProposeChangeFieldList();
@@ -122,6 +124,49 @@ public class ProposeUserTaskJpaRepositoryImpl extends ProposeRequestService<Prop
       valueFormatConverter.convertAndSetValue(bean, proposeChangeField.getField(),
           proposeChangeField.getValueDesarialized(), dataTypesMap.get(proposeChangeField.getField()));
     }
+  }
+
+  /**
+   * Prevents a user from filing a second open CUD-limit increase request for an entity they already have a pending
+   * request for. Two pending requests for the same (user, entity) could both be approved, and the second approval would
+   * collide with the unique key on {@code user_entity_change_limit (id_user, entity_name)}. Only
+   * {@link UserTaskType#LIMIT_CUD_CHANGE} requests carry an entity and are checked.
+   *
+   * @param proposeUserTask the incoming request whose target entity is matched against existing pending requests
+   * @throws DataViolationException if another pending request of the same user already targets the same entity
+   */
+  private void rejectDuplicatePendingLimitRequest(ProposeUserTask proposeUserTask) {
+    if (proposeUserTask.getUserTaskType() != UserTaskType.LIMIT_CUD_CHANGE) {
+      return;
+    }
+    String requestedEntity = extractEntityName(proposeUserTask.getProposeChangeFieldList());
+    if (requestedEntity == null) {
+      return;
+    }
+    boolean duplicate = proposeUserTaskJpaRepository
+        .findByIdTargetUserAndUserTaskType(proposeUserTask.getIdTargetUser(),
+            UserTaskType.LIMIT_CUD_CHANGE.getValue())
+        .stream()
+        .filter(existing -> !existing.getIdProposeRequest().equals(proposeUserTask.getIdProposeRequest()))
+        .anyMatch(existing -> requestedEntity.equals(extractEntityName(existing.getProposeChangeFieldList())));
+    if (duplicate) {
+      throw new DataViolationException("entity.name", "g.user.entity.change.limit.request.pending",
+          new Object[] { requestedEntity });
+    }
+  }
+
+  /**
+   * Reads the requested entity class name from a {@link grafiosch.usertask.LimitCudChange} proposal's change fields.
+   *
+   * @param proposeChangeFieldList the propose-change fields of a {@link UserTaskType#LIMIT_CUD_CHANGE} request
+   * @return the entity name carried in the {@code entity} field, or {@code null} if not present
+   */
+  private String extractEntityName(List<ProposeChangeField> proposeChangeFieldList) {
+    if (proposeChangeFieldList == null) {
+      return null;
+    }
+    return proposeChangeFieldList.stream().filter(field -> "entity".equals(field.getField()))
+        .map(ProposeChangeField::getValueDesarialized).findFirst().orElse(null);
   }
 
   @Override

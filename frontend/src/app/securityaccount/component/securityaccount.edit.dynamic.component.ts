@@ -13,6 +13,7 @@ import {TradingPlatformPlanService} from '../../tradingplatform/service/trading.
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 import {Helper} from '../../lib/helper/helper';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {SimpleDynamicEditBase} from '../../lib/edit/simple.dynamic.edit.base';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
@@ -74,6 +75,7 @@ export class SecurityaccountEditDynamicComponent extends SimpleDynamicEditBase<S
         true, {dataproperty: 'tradingPlatformPlan.idTradingPlatformPlan'}),
       DynamicFieldHelper.createFieldInputNumberHeqF('lowestTransactionCost', true,
         3, 2, false, {inputWidth: 10}),
+      DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'activeToDate', false),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', BaseSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];

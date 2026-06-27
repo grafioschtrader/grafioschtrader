@@ -95,8 +95,7 @@ public class Ech0196BarcodeGenerator {
    * ZLIB-compresses data using Deflater with BEST_COMPRESSION, as required by eCH-0196 v2.2.0.
    */
   private byte[] zlibCompress(byte[] data) {
-    Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
-    try {
+    try (Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION)) {
       deflater.setInput(data);
       deflater.finish();
       ByteArrayOutputStream baos = new ByteArrayOutputStream(data.length);
@@ -106,8 +105,6 @@ public class Ech0196BarcodeGenerator {
         baos.write(buffer, 0, count);
       }
       return baos.toByteArray();
-    } finally {
-      deflater.end();
     }
   }
 

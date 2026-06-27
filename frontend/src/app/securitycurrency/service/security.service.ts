@@ -21,6 +21,7 @@ import {SecurityCurrencypairDerivedLinks} from '../model/security.currencypair.d
 import {SecurityDataProviderUrls} from '../model/security.data.provider.urls';
 import {SecurityCurrencyService} from './security.currency.service';
 import {InstrumentStatisticsResult} from '../../entities/view/instrument.statistics.result';
+import {SeasonalPeriodType, SeasonalReturnsResult} from '../../entities/seasonal.returns.result';
 import moment from 'moment';
 import {ITaskExtendService} from '../../lib/taskdatamonitor/component/itask.extend.service';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
@@ -159,6 +160,17 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
     return <Observable<InstrumentStatisticsResult>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}`
       + `${AppSettings.SECURITY_KEY}/${idSecuritycurrency}/securitystatistics`,
       this.getDateFromAndTo(dateFrom, dateTo, this.prepareHeaders())).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  getSeasonalReturns(idSecuritycurrency: number, periodType: SeasonalPeriodType, includeDividends: boolean,
+    inTenantCurrency: boolean): Observable<SeasonalReturnsResult> {
+    const httpParams = new HttpParams()
+      .append('periodType', periodType)
+      .append('includeDividends', includeDividends)
+      .append('inTenantCurrency', inTenantCurrency);
+    return <Observable<SeasonalReturnsResult>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}`
+      + `${AppSettings.SECURITY_KEY}/${idSecuritycurrency}/seasonalreturns`,
+      {headers: this.prepareHeaders(), params: httpParams}).pipe(catchError(this.handleError.bind(this)));
   }
 
   private getDateFromAndTo(dateFrom: Date | string, dateTo: Date | string, httpHeaders: HttpHeaders) {

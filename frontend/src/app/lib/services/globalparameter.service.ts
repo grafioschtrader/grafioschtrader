@@ -5,9 +5,9 @@ import {ValueKeyHtmlSelectOptions} from '../dynamic-form/models/value.key.html.s
 import {Observable} from 'rxjs';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {GlobalSessionNames} from '../global.session.names';
-import {catchError} from 'rxjs/operators';
+import {catchError, shareReplay} from 'rxjs/operators';
 import {ServiceEntityUpdate} from '../edit/service.entity.update';
-import {FieldDescriptorInputAndShow} from '../dynamicfield/field.descriptor.input.and.show';
+import {ClassDescriptorInputAndShow, FieldDescriptorInputAndShow} from '../dynamicfield/field.descriptor.input.and.show';
 import {BaseSettings} from '../base.settings';
 import {AppHelper} from '../helper/app.helper';
 import {Auditable} from '../entities/auditable';
@@ -42,6 +42,7 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
   private featureCache = new Map<FeatureType, boolean>();
   private currencyPrecisionMap: { [currency: string]: number };
   private numberFormatPrecisionCache = new Map<number, NumberFormat>();
+  private formDefinitionCache: { [entityAndDialog: string]: Observable<ClassDescriptorInputAndShow> } = {};
 
 
   constructor(httpClient: HttpClient, messageToastService: MessageToastService) {
@@ -345,6 +346,26 @@ export class GlobalparameterService extends BaseAuthService<Globalparameters> im
     return <Observable<FieldDescriptorInputAndShow[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}`
       + `${BaseSettings.GLOBALPARAMETERS_P_KEY}/userformdefinition`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /**
+   * Returns the dynamic form definition of an entity for the given dialog, derived on the backend from the entity's
+   * @DynamicFormField + Bean Validation annotations. The result is memoised per entity/dialog because the definition
+   * is static metadata, so an edit dialog opened repeatedly fetches it only once.
+   *
+   * @param entityName simple name of the registered entity (e.g. 'Cashaccount')
+   * @param dialog dialog id whose fields should be returned (default 1)
+   * @returns the class descriptor with the ordered field descriptors for the dialog
+   */
+  public getEntityFormDefinition(entityName: string, dialog = 1): Observable<ClassDescriptorInputAndShow> {
+    const cacheKey = `${entityName}:${dialog}`;
+    if (!this.formDefinitionCache[cacheKey]) {
+      this.formDefinitionCache[cacheKey] = (<Observable<ClassDescriptorInputAndShow>>this.httpClient.get(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.GLOBALPARAMETERS_P_KEY}/formdefinition/${entityName}`,
+        {headers: this.getHeaders().headers, params: new HttpParams().set('dialog', dialog)}))
+        .pipe(catchError(this.handleError.bind(this)), shareReplay(1));
+    }
+    return this.formDefinitionCache[cacheKey];
   }
 
   public getSupportedLocales(): Observable<ValueKeyHtmlSelectOptions[]> {

@@ -71,7 +71,7 @@ class IctaxImportServiceTest {
 
   @BeforeAll
   void setup() {
-    new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+    new TransactionTemplate(transactionManager).executeWithoutResult(_ -> {
       TaxCountry country = findOrCreateCountry("CH");
       Optional<TaxYear> existing = taxYearJpaRepository.findByIdTaxCountryOrderByTaxYearDesc(
           country.getIdTaxCountry()).stream().filter(y -> y.getTaxYear() == TAX_YEAR).findFirst();
@@ -131,7 +131,7 @@ class IctaxImportServiceTest {
     }
     if (yearCreatedByTest) {
       new TransactionTemplate(transactionManager).executeWithoutResult(
-          status -> taxYearJpaRepository.deleteById(yearId));
+          _ -> taxYearJpaRepository.deleteById(yearId));
     }
   }
 

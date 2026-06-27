@@ -190,8 +190,10 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
 
   protected override initialize(): void {
     this.readTableDefinition(TaskDataChangeTableComponent.STORE_KEY);
-    // Load stored filter from LocalStorage (null means load all)
-    this.currentTaskFilter = TaskFilterDialogComponent.getStoredTaskIdsStatic();
+    // Load stored filter from LocalStorage (null means load all). The stored selection is validated
+    // against the current set of task types, so a stale filter (e.g. after task-type renumbering or a
+    // newly added task) is discarded and all tasks are shown.
+    this.currentTaskFilter = TaskFilterDialogComponent.getValidatedStoredTaskIds(this.taskTypeEnum);
     this.taskDataChangeService.getFormConstraints().subscribe((tdcFormConstraints: TaskDataChangeFormConstraints) => {
       // Only needs to be read once, as this is configuration data.
       this.tdcFormConstraints = tdcFormConstraints

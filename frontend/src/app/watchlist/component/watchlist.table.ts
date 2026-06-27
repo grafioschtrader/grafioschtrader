@@ -869,7 +869,8 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     const subject = securitycurrency instanceof CurrencypairWatchlist ? (<CurrencypairWatchlist>securitycurrency).name
       : (<Security>securitycurrency).name;
     DynamicDialogs.getOpenedMailSendComponent(this.translateService, this.dialogService,
-      new MailSendParam(securitycurrency.createdBy, null, subject));
+      new MailSendParam(securitycurrency.createdBy, null, subject, undefined, AppSettings.SECURITYCURRENCY,
+        securitycurrency.idSecuritycurrency));
   }
 
   /**

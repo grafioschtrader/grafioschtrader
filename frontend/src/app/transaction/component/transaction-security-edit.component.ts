@@ -310,6 +310,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       if (portfolio != null) {
         this.configObject.idCashaccount.valueKeyHtmlOptions = this.createHtmlSelectKeyValue(portfolio.name,
           portfolio.cashaccountList);
+        this.toggleAccountOptionsByActiveDate(this.configObject.idCashaccount, portfolio.cashaccountList || []);
 
         // Update transaction time minDate and validator based on portfolio's closedUntil
         const effectiveClosedUntil = FormDefinitionHelper.getEffectiveClosedUntil(portfolio, this.gpsGT);
@@ -717,6 +718,8 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
         portfolio.securityaccountList, this.getUnitsForSecurityAccountAsString.bind(this)));
     });
     this.configObject.idSecurityaccount.valueKeyHtmlOptions = securityaccountsHtmlSelect;
+    this.toggleAccountOptionsByActiveDate(this.configObject.idSecurityaccount,
+      this.portfolios.flatMap(p => p.securityaccountList || []));
     // if there is only one security account, select it
     if (securityaccountsHtmlSelect.length === 1) {
       this.configObject.idSecurityaccount.formControl.disable();
@@ -758,6 +761,18 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     return this.transactionCallParam.transactionType === TransactionType.DIVIDEND
     && this.configObject.exDate.formControl.value ?
       +this.configObject.exDate.formControl.value : null;
+  }
+
+  /**
+   * Disables account options that are no longer active at the relevant date (the ex-date for dividends, otherwise the
+   * transaction time), so a terminated security or cash account cannot be chosen for a later-dated transaction.
+   */
+  private toggleAccountOptionsByActiveDate(fieldConfig: FieldConfig,
+    accounts: { idSecuritycashAccount: number; activeToDate?: string | Date }[]): void {
+    const time = this.getExDate() || +this.configObject.transactionTime.formControl.value;
+    if (time) {
+      BusinessSelectOptionsHelper.accountsEnableDisableOptionsByActiveDate(accounts, fieldConfig, time);
+    }
   }
 
   private loadSecuritiesOnce(timeValue: number): void {

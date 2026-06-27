@@ -103,6 +103,63 @@ public class InstrumentStatisticsSummary {
   }
 
   /**
+   * The resolved security or currency pair after {@link #prepareSecurityCurrencypairs(Integer)} ran.
+   *
+   * @return the analysed instrument
+   */
+  public Securitycurrency<?> getSecurityCurrency() {
+    return securityCurrency;
+  }
+
+  /**
+   * Whether the instrument needs no currency conversion, i.e. its currency already equals the tenant main currency or
+   * the instrument is a currency pair.
+   *
+   * @return true when no conversion to the main currency is required or possible
+   */
+  public boolean isSecurityTenantSameCurrency() {
+    return securityTenantSameCurrency;
+  }
+
+  /**
+   * Currency pairs required to convert the instrument currency into the tenant main currency, or null when no
+   * conversion is needed.
+   *
+   * @return the conversion currency pairs, or null
+   */
+  public List<Currencypair> getCurrencypairs() {
+    return currencypairs;
+  }
+
+  /**
+   * ISO currency code of the analysed security, or null for a currency pair.
+   *
+   * @return the instrument currency
+   */
+  public String getCurrencyOfSecurity() {
+    return currencyOfSecurity;
+  }
+
+  /**
+   * The tenant's main currency (only set when a security needed currency resolution).
+   *
+   * @return the tenant main currency, or null
+   */
+  public String getTenantCurrency() {
+    return tenantCurrency;
+  }
+
+  /**
+   * Direction of the currency conversion for the resolved pair: true when close prices must be divided by the
+   * currency-pair close, false when they must be multiplied.
+   *
+   * @return true to divide, false to multiply
+   */
+  public boolean isCurrencyDivide() {
+    return divideOrMultiplyCurrency(tenantCurrency);
+  }
+
+  /**
    * Prepares the security and currency pair configuration for statistical analysis. Determines whether the security
    * requires currency conversion and sets up the necessary currency pairs for accurate multi-currency calculations.
    * 
@@ -360,7 +417,7 @@ public class InstrumentStatisticsSummary {
     adjustCloseOfDifferentTenantCurrency(securitycurrencyList, currencyAvailableRequired, closePrices);
     int columns = currencyAvailableRequired == null ? 1 : 2;
     double[][] percentageChange = ReportHelper.transformToPercentageChange(closePrices.dateCloseTree, columns);
-    SummaryStatistics[] stats = Stream.iterate(0, x -> x + 1).limit(columns).map(i -> new SummaryStatistics())
+    SummaryStatistics[] stats = Stream.iterate(0, x -> x + 1).limit(columns).map(_ -> new SummaryStatistics())
         .toArray(SummaryStatistics[]::new);
     for (double[] element : percentageChange) {
       for (int col = 0; col < columns; col++) {

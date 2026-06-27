@@ -149,7 +149,7 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
    */
   public CashAccountPosition getOrCreateAccountDividendPosition(Cashaccount cashaccount) {
     return cashaccountGroupMap.computeIfAbsent(cashaccount.getIdSecuritycashAccount(),
-        k -> new CashAccountPosition(cashaccount, precisionMC, currencyPrecisionMap));
+        _ -> new CashAccountPosition(cashaccount, precisionMC, currencyPrecisionMap));
   }
 
   /**

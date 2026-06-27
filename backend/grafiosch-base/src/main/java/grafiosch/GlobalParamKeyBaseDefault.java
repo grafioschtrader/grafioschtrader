@@ -6,6 +6,7 @@ import grafiosch.dto.MaxDefaultDBValue;
 import grafiosch.entities.Globalparameters;
 import grafiosch.entities.MailSendRecv;
 import grafiosch.entities.MailSettingForward;
+import grafiosch.entities.ProposeUserTask;
 import grafiosch.entities.UDFMetadataGeneral;
 
 /**
@@ -50,6 +51,14 @@ public class GlobalParamKeyBaseDefault {
   /** Access key for global parameters. Daily MailSendRecv operation limit per user or tenant. */
   public static final String GLOB_KEY_LIMIT_DAY_MAIL_SEND = GlobalParamKeyBaseDefault.G_LIMIT_DAY
       + MailSendRecv.class.getSimpleName();
+
+  /**
+   * Access key for global parameters. Daily ProposeUserTask creation limit per limited user. Caps how many unlock or
+   * limit-increase requests a limited user can file per day; without this entry the daily-limit check on the propose
+   * request create path has no configured default and fails.
+   */
+  public static final String GLOB_KEY_LIMIT_DAY_PROPOSEUSERTASK = GlobalParamKeyBaseDefault.G_LIMIT_DAY
+      + ProposeUserTask.class.getSimpleName();
 
   /** Access key for global parameters. Set expiration time for the JWT token in minutes. */
   public static final String GLOB_KEY_JWT_EXPIRATION_MINUTES = BaseConstants.G_PREFIX + "jwt.expiration.minutes";
@@ -102,6 +111,7 @@ public class GlobalParamKeyBaseDefault {
     defaultLimitMap.put(GlobalParamKeyBaseDefault.GLOB_KEY_LIMIT_DAY_MAIL_SEND, new MaxDefaultDBValue(200));
     defaultLimitMap.put(GlobalParamKeyBaseDefault.GLOB_KEY_LIMIT_DAY_MAILSETTINGFORWARD, new MaxDefaultDBValue(12));
     defaultLimitMap.put(GlobalParamKeyBaseDefault.GLOB_KEY_LIMIT_DAY_UDFMETADATAGENERAL, new MaxDefaultDBValue(20));
+    defaultLimitMap.put(GlobalParamKeyBaseDefault.GLOB_KEY_LIMIT_DAY_PROPOSEUSERTASK, new MaxDefaultDBValue(10));
 
   }
 }

@@ -35,6 +35,7 @@ import grafiosch.exceptions.DataViolationException;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafiosch.exceptions.LimitEntityTransactionException;
 import grafiosch.exceptions.RequestLimitAndSecurityBreachException;
+import grafiosch.exceptions.ResourceNotFoundException;
 import grafiosch.service.UserService;
 import grafiosch.types.UserRightLimitCounter;
 import jakarta.servlet.http.HttpServletResponse;
@@ -137,6 +138,21 @@ public class RestErrorHandler {
   public ErrorWrapper noSuchElementException(final NoSuchElementException ex) {
     log.warn(ex.getMessage(), ex);
     return new ErrorWrapper(new SingleNativeMsgError(ex.getMessage()));
+  }
+
+  /**
+   * Handles requests that reference an entity which does not exist.
+   *
+   * @param ex exception containing the missing entity identifier
+   * @return localized error response
+   */
+  @ExceptionHandler(value = { ResourceNotFoundException.class })
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  public ErrorWrapper resourceNotFoundException(final ResourceNotFoundException ex) {
+    log.warn("Entity with ID {} not found", ex.getId());
+    final Locale currentLocale = LocaleContextHolder.getLocale();
+    String message = messageSource.getMessage("entity.not.found", new Object[] { ex.getId() }, currentLocale);
+    return new ErrorWrapper(new SingleNativeMsgError(message));
   }
 
   /**

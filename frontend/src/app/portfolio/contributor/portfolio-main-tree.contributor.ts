@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core';
 import {Observable, combineLatest} from 'rxjs';
 import {map, tap} from 'rxjs/operators';
+import moment from 'moment';
 import {MenuItem, TreeNode, ConfirmationService} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
 import {MainTreeContributor} from '../../lib/maintree/contributor/main-tree-contributor.interface';
@@ -288,6 +289,7 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
     for (const securityaccount of securityaccountList) {
       const treeNode = {
         label: securityaccount.name,
+        styleClass: this.isAccountTerminated(securityaccount) ? 'gt-account-terminated' : undefined,
         data: new TypeNodeData(
           TreeNodeType.SecurityAccount,
           this.addMainRoute(AppSettings.SECURITYACCOUNT_TAB_MENU_KEY),
@@ -301,6 +303,18 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
       securitycashaccountNode.push(treeNode);
     }
     return securitycashaccountNode;
+  }
+
+  /**
+   * Determines whether an account has been terminated, i.e. its active-until date lies before today. Terminated
+   * accounts stay visible in the tree but are marked via a CSS class so their history remains reachable.
+   *
+   * @param account the cash or security account to check
+   * @returns true when the account has an active-until date in the past
+   */
+  private isAccountTerminated(account: { activeToDate?: string | Date }): boolean {
+    return account.activeToDate != null
+      && moment(account.activeToDate).format('YYYYMMDD') < moment().format('YYYYMMDD');
   }
 
   private handleDeletePortfolio(treeNode: TreeNode, idPortfolio: number): void {

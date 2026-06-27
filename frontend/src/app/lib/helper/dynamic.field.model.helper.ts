@@ -11,6 +11,8 @@ import {AppHelper} from './app.helper';
 import {DataType} from '../dynamic-form/models/data.type';
 import {BaseParam} from '../entities/base.param';
 import {DynamicFieldHelper, FieldOptions, FieldOptionsCc, VALIDATION_SPECIAL} from './dynamic.field.helper';
+import {Validators} from '@angular/forms';
+import {RuleEvent} from '../dynamic-form/error/error.message.rules';
 import {dateRange, gteDate} from '../validator/validator';
 import {ErrorMessageRules} from '../dynamic-form/error/error.message.rules';
 import {FieldFormGroup} from '../dynamic-form/models/form.group.definition';
@@ -247,7 +249,7 @@ export class DynamicFieldModelHelper {
     labelPrefix: string, labelKey: string, fieldOptionsCc?: FieldOptionsCc): FieldConfig {
     let fieldConfig: FieldConfig;
     const targetField = fieldOptionsCc && fieldOptionsCc.targetField ? fieldOptionsCc.targetField : fd.fieldName;
-    labelKey = labelKey ? labelKey : labelPrefix + AppHelper.toUpperCaseWithUnderscore(fd.fieldName);
+    labelKey = labelKey ? labelKey : (fd.labelKey ? fd.labelKey : labelPrefix + AppHelper.toUpperCaseWithUnderscore(fd.fieldName));
 
     switch (DataType[fd.dataType]) {
       case DataType.Boolean:
@@ -258,9 +260,7 @@ export class DynamicFieldModelHelper {
         break;
       case DataType.Numeric:
       case DataType.NumericInteger:
-        fieldConfig = DynamicFieldHelper.createFieldMinMaxNumber(DataType[fd.dataType], targetField,
-          labelKey, fd.required, fd.min, fd.max,
-          {fieldSuffix: DynamicFieldModelHelper.getFieldPercentageSuffix(fd)});
+        fieldConfig = this.createNumericInputFromDescriptor(fd, labelKey, targetField, fieldOptionsCc);
         break;
       case DataType.URLString:
         fieldConfig = DynamicFieldHelper.createFieldInputWebUrl(targetField, labelKey, fd.required,
@@ -275,23 +275,77 @@ export class DynamicFieldModelHelper {
       case DataType.DateTimeString:
       case DataType.DateStringShortUS:
         fieldConfig = DynamicFieldHelper.createFieldPcalendar(DataType[fd.dataType], targetField, labelKey, fd.required);
-        fieldConfig.defaultValue = new Date();
         if (fd.dynamicFormPropertyHelps
           && DynamicFormPropertyHelps[fd.dynamicFormPropertyHelps[0]] === DynamicFormPropertyHelps.DATE_FUTURE) {
-          fieldConfig.calendarConfig = {minDate: fieldConfig.defaultValue};
-          fieldConfig.validation = fd.required ? [...fieldConfig.validation, gteDate(fieldConfig.defaultValue)]
-            : [gteDate(fieldConfig.defaultValue)];
-          const emr: ErrorMessageRules = {
-            name: 'gteDate',
-            keyi18n: 'gteDate',
-            param1: fieldConfig.defaultValue,
-            rules: ['dirty']
-          };
-          fieldConfig.errors = fd.required ? [...fieldConfig.errors, emr] : [emr];
+          fieldConfig.defaultValue = new Date();
+          this.applyMinDate(fieldConfig, fieldConfig.defaultValue, fd.required);
+        } else {
+          // Only required dates pre-fill today; an optional date (e.g. Cashaccount.activeToDate) stays empty/null.
+          if (fd.required) {
+            fieldConfig.defaultValue = new Date();
+          }
+          if (fd.dateMin) {
+            this.applyMinDate(fieldConfig, new Date(fd.dateMin), fd.required);
+          }
         }
         break;
     }
     return fieldConfig;
+  }
+
+  /**
+   * Adds a minimum-date constraint to a calendar field: sets the calendar's minDate and appends a
+   * gteDate validator with its error rule. Used both for @Future (DATE_FUTURE) and @AfterEqual (dateMin).
+   *
+   * @param fieldConfig the calendar field configuration to constrain
+   * @param minDate the earliest selectable/valid date
+   * @param required whether the field is required (kept for symmetry with the existing required validators)
+   */
+  private static applyMinDate(fieldConfig: FieldConfig, minDate: Date, required: boolean): void {
+    fieldConfig.calendarConfig = {...fieldConfig.calendarConfig, minDate};
+    const validator = gteDate(minDate);
+    fieldConfig.validation = fieldConfig.validation ? [...fieldConfig.validation, validator] : [validator];
+    const emr: ErrorMessageRules = {name: 'gteDate', keyi18n: 'gteDate', param1: <any>minDate, rules: ['dirty']};
+    fieldConfig.errors = fieldConfig.errors ? [...fieldConfig.errors, emr] : [emr];
+  }
+
+  /**
+   * Creates a numeric input field configuration from descriptor properties. A SELECT_OPTIONS hint yields a
+   * numeric select (options filled at runtime by the component), a @Digits precision yields an input-number
+   * with integer/fraction limits, otherwise a min/max number input is produced.
+   *
+   * @param fd descriptor with numeric metadata (min, max, digitsInteger/digitsFraction, helps)
+   * @param labelKey translation key for the field label
+   * @param targetField target field name for data binding
+   * @param fieldOptionsCc additional field options
+   * @returns FieldConfig for the appropriate numeric input type
+   */
+  private static createNumericInputFromDescriptor(fd: FieldDescriptorInputAndShow, labelKey: string,
+    targetField: string, fieldOptionsCc?: FieldOptionsCc): FieldConfig {
+    const helpNames = <string[]>(fd.dynamicFormPropertyHelps || []);
+    if (helpNames.indexOf(DynamicFormPropertyHelps[DynamicFormPropertyHelps.SELECT_OPTIONS]) >= 0) {
+      return DynamicFieldHelper.createFieldSelectNumber(targetField, labelKey, fd.required, fieldOptionsCc);
+    }
+    if (fd.digitsInteger != null) {
+      const allowNegative = fd.min == null || fd.min < 0;
+      return DynamicFieldHelper.createFieldInputNumber(targetField, labelKey, fd.required, fd.digitsInteger,
+        fd.digitsFraction != null ? fd.digitsFraction : 0, allowNegative, fieldOptionsCc);
+    }
+    return DynamicFieldHelper.createFieldMinMaxNumber(DataType[fd.dataType], targetField, labelKey, fd.required,
+      fd.min, fd.max, {...fieldOptionsCc, fieldSuffix: DynamicFieldModelHelper.getFieldPercentageSuffix(fd)});
+  }
+
+  /**
+   * Appends a regular-expression validator (from a backend @Pattern annotation) and its error rule to a field.
+   *
+   * @param fieldConfig the field configuration to constrain
+   * @param pattern the regular expression the value must match
+   */
+  private static applyPattern(fieldConfig: FieldConfig, pattern: string): void {
+    const validator = Validators.pattern(pattern);
+    fieldConfig.validation = fieldConfig.validation ? [...fieldConfig.validation, validator] : [validator];
+    const emr: ErrorMessageRules = {name: 'pattern', keyi18n: 'pattern', rules: [RuleEvent.FOCUSOUT]};
+    fieldConfig.errors = fieldConfig.errors ? [...fieldConfig.errors, emr] : [emr];
   }
 
   /**
@@ -335,6 +389,9 @@ export class DynamicFieldModelHelper {
       } else {
         fieldConfig = DynamicFieldHelper.createFieldInputString(targetField, labelKey, fd.max, fd.required,
           fieldOptions);
+      }
+      if (fd.pattern) {
+        this.applyPattern(fieldConfig, fd.pattern);
       }
     }
     return fieldConfig;

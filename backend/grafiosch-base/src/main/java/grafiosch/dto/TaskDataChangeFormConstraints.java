@@ -29,8 +29,11 @@ public class TaskDataChangeFormConstraints {
       example = "{\"IFeedConnector\": [{\"key\": \"118005765\", \"value\": \"Yahoo Finance\"}]}")
   public Map<String, List<ValueKeyHtmlSelectOptions>> entityIdOptions = new HashMap<>();
 
-  @Schema(description = "Maximum number of tasks that a single user is allowed to create")
-  public int maxUserCreateTask = 30;
+  @Schema(description = """
+      Highest task type id_task value that a user is allowed to create. Task types with a value less than or
+      equal to this threshold are offered in the create-task form; task types above it are system tasks that
+      cannot be user-created (see the 80+ system band in TaskTypeBase / TaskTypeExtended).""")
+  public int maxUserCreateTask = 79;
   @Schema(description = "Maximum number of days in the future that a task can be scheduled for execution")
   public int maxDaysInFuture = 32;
 }

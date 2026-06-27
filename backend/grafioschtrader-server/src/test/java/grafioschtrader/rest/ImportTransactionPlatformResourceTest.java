@@ -1,11 +1,11 @@
 package grafioschtrader.rest;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
@@ -49,9 +49,9 @@ class ImportTransactionPlatformResourceTest extends BaseIntegrationTest {
         .getResponseBody();
 
     assertNotNull(created);
-    assertThat(created.getIdTransactionImportPlatform()).isGreaterThan(0);
+    Assertions.assertThat(created.getIdTransactionImportPlatform()).isGreaterThan(0);
     List<ProposeChangeField> diff = RestTestHelper.getDiffPropertiesOfTwoObjects(itp, created);
-    assertThat(diff).isEmpty();
+    Assertions.assertThat(diff).isEmpty();
   }
 
 }

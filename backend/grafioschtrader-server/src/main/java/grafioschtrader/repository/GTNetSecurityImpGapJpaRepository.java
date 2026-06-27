@@ -13,7 +13,6 @@ import grafioschtrader.entities.GTNetSecurityImpGap;
  * Repository for managing GTNetSecurityImpGap entities. Gap records document what didn't match
  * when importing securities from GTNet peers.
  */
-@Repository
 public interface GTNetSecurityImpGapJpaRepository extends JpaRepository<GTNetSecurityImpGap, Integer> {
 
   /**

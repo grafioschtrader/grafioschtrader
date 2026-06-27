@@ -354,8 +354,12 @@ export class PortfolioCashaccountSummaryComponent extends TableConfigBase implem
   }
 
   private handleEditAccount(portfolio: Portfolio, cashaccount: Cashaccount, optParam: { [key: string]: boolean }) {
-    this.callParam = new CallParam(portfolio, cashaccount, optParam);
-    this.visibleCashaccountDialog = true;
+    // Pre-fetch the entity form definition (memoised) before opening the dialog, so the dialog can build
+    // its dynamic form synchronously in ngOnInit and edit values populate reliably.
+    this.gps.getEntityFormDefinition(AppSettings.CASHACCOUNT).subscribe(formDefinition => {
+      this.callParam = new CallParam(portfolio, cashaccount, {...optParam, formDefinition});
+      this.visibleCashaccountDialog = true;
+    });
   }
 
   private resetMenu(selectedAccountPositionSummary: AccountPositionSummary): void {
