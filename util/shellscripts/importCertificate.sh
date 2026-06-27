@@ -26,6 +26,10 @@ if [ ! -d "$CERT_DIR" ]; then
   exit 1
 fi
 
+# Report the Java version used for this import (truststore is JDK-specific)
+JAVA_VERSION=$("$JAVA_HOME/bin/java" -version 2>&1 | head -n 1)
+echo "Importing certificates using Java: $JAVA_VERSION ($JAVA_HOME)"
+
 CERT_COUNT=0
 for CERT_FILE in "$CERT_DIR"/*.crt "$CERT_DIR"/*.cer "$CERT_DIR"/*.pem; do
   [ -f "$CERT_FILE" ] || continue
