@@ -19,7 +19,7 @@ GT_PROF_PROD=application-production.properties
 GT_PROF_PATH=grafioschtrader/backend/grafioschtrader-server/src/main/resources
 BACKUP_DONE_MARKER="$builddir/.gt_backup_done"
 
-# Backup nur einmal machen (vor git reset) — Marker verhindert Wiederholung beim Neustart
+# Backup nur einmal machen (vor git reset) ï¿½ Marker verhindert Wiederholung beim Neustart
 if [ ! -f "$BACKUP_DONE_MARKER" ]; then
     cp $GT_PROF_PATH/$GT_PROF .
     if [ -e $GT_PROF_PATH/$GT_PROF_PROD ]; then
@@ -27,18 +27,18 @@ if [ ! -f "$BACKUP_DONE_MARKER" ]; then
     fi
     touch "$BACKUP_DONE_MARKER"
 else
-    echo "Backup bereits vorhanden (Neustart nach Skript-Update erkannt) — überspringe Backup-Schritt"
+    echo "Backup bereits vorhanden (Neustart nach Skript-Update erkannt) ï¿½ ï¿½berspringe Backup-Schritt"
 fi
 
 # Update repository
 cd grafioschtrader/
-if ! git remote get-url raspi >/dev/null 2>&1; then
-    git remote add raspi git@gt8p1.duckdns.org:/home/git/repos/grafioschtrader.git
+if ! git remote get-url origin >/dev/null 2>&1; then
+    git remote add origin https://github.com/grafioschtrader/grafioschtrader.git
 fi
 
 rm -fr frontend
-git fetch raspi
-git reset --hard raspi/master
+git fetch origin
+git reset --hard origin/master
 
 # Check if this script was updated
 SCRIPT_PATH="${BASH_SOURCE[0]}"
