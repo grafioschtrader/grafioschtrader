@@ -91,6 +91,19 @@ public class MailSendRecv extends BaseID<Integer> {
   @Transient
   boolean hasBeenRead;
 
+  @Schema(description = """
+      Request-time context that justifies an initial user-to-user message from a non-privileged user. Names the entity
+      type (matching a registered context verifier, e.g. 'Securitycurrency') from whose context the message is sent.
+      Not persisted; used only for server-side legitimacy verification.""")
+  @Transient
+  private String contextEntity;
+
+  @Schema(description = """
+      Request-time id of the context entity referenced by contextEntity (e.g. the id of the security whose creator is
+      being contacted). Not persisted; used only for server-side legitimacy verification.""")
+  @Transient
+  private Integer idEntityContext;
+
   public MailSendRecv() {
   }
 
@@ -218,6 +231,22 @@ public class MailSendRecv extends BaseID<Integer> {
 
   public void setHasBeenRead(boolean hasBeenRead) {
     this.hasBeenRead = hasBeenRead;
+  }
+
+  public String getContextEntity() {
+    return contextEntity;
+  }
+
+  public void setContextEntity(String contextEntity) {
+    this.contextEntity = contextEntity;
+  }
+
+  public Integer getIdEntityContext() {
+    return idEntityContext;
+  }
+
+  public void setIdEntityContext(Integer idEntityContext) {
+    this.idEntityContext = idEntityContext;
   }
 
   @Override

@@ -1,11 +1,10 @@
 package strategy;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -74,7 +73,7 @@ class Ta4jTest {
     int l = 0;
     for (int i = 0; i < historyquotes.size(); i++) {
       if (taIndicatorData[l].date.equals(historyquotes.get(i).getDate())) {
-        assertThat(Math.abs(shortSma.getValue(i).doubleValue() - taIndicatorData[l++].value) < 0.01);
+        Assertions.assertThat(Math.abs(shortSma.getValue(i).doubleValue() - taIndicatorData[l++].value) < 0.01);
       }
     }
 

@@ -33,7 +33,7 @@ import {ConfigurableTreeTableComponent} from '../../datashowbase/configurable-tr
       [data]="sendRecvRootNode" [fields]="fields" dataKey="idMailSendRecv"
       [(selection)]="selectedNode" (nodeSelect)="nodeSelect($event)"
       sortField="sendRecvTime" [sortOrder]="sortOrder"
-      [contextMenuItems]="contextMenuItems" [showContextMenu]="true"
+      [contextMenuItems]="contextMenuItems" [showContextMenu]="true" [contextMenuAppendTo]="'body'"
       [containerClass]="{'data-container': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
       [rowClassFn]="getRowClass.bind(this)"
       [valueGetterFn]="getValueByPath.bind(this)"

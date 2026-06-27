@@ -53,6 +53,12 @@ export class TimeSeriesQuotesService {
           command: (e) => this.showEodChartTable(AppSettings.HISTORYQUOTE_P_KEY, true)
         }
       );
+      menuItems.push(
+        {
+          label: 'SEASONALITY',
+          command: (e) => this.showEodChartTable(AppSettings.SEASONALITY, true)
+        }
+      );
     }
     return menuItems;
   }

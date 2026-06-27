@@ -322,7 +322,7 @@ public class SecruityTransactionsReport {
           && !securityTransactionPosition.transaction.getIdTransaction().equals(excludeIdTransaction)) {
         final Integer idSecurityaccount = securityTransactionPosition.transaction.getIdSecurityaccount();
         List<Transaction> transactions = securityTransactionMap.computeIfAbsent(idSecurityaccount,
-            key -> new ArrayList<>());
+            _ -> new ArrayList<>());
         transactions.add(securityTransactionPosition.transaction);
       }
     });

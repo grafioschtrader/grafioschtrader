@@ -1,10 +1,9 @@
 package grafioschtrader.connector.calendar;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.time.LocalDate;
 import java.util.Map;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import grafioschtrader.connector.calendar.ISplitCalendarFeedConnector.TickerSecuritysplit;
@@ -22,7 +21,7 @@ class YahooSplitCalendarTest {
       e.printStackTrace();
     }
     securitySplitMap.entrySet().forEach(System.out::println);
-    assertThat(securitySplitMap).hasSize(18);
+    Assertions.assertThat(securitySplitMap).hasSize(18);
   }
 
 }

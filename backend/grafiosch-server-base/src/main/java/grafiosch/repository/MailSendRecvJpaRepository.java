@@ -3,7 +3,9 @@ package grafiosch.repository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.dto.MailSendRecvDTO;
 import grafiosch.entities.MailSendRecv;
@@ -64,6 +66,40 @@ public interface MailSendRecvJpaRepository extends JpaRepository<MailSendRecv, I
    */
   @Query(nativeQuery = true)
   List<CountRoleSend> countRoleSend(Integer idUser);
+
+  /**
+   * Finds role-message conversation threads that are eligible for physical deletion because every corresponding role
+   * member has marked the role message as deleted ({@code mark_hide_del = 1}).
+   *
+   * <p>A role conversation is identified by its thread key {@code id_reply_to_local}. For each role-visible message
+   * ({@code id_role_to IS NOT NULL AND send_recv = 'R'}) the "corresponding users" are the members of that role who
+   * were members at the message's send time, mirroring {@code MailSendRecv.findByUserOrGroup} (i.e.
+   * {@code send_recv_time >= user.last_role_modified_time}). A thread is returned only when no such corresponding user
+   * is still missing a {@code mark_hide_del = 1} marker for the role message. Freshly sent messages are protected
+   * automatically: a member who never opened the message has no marker and therefore keeps the thread alive.
+   *
+   * Named query: MailSendRecv.findPurgeableRoleThreadKeys
+   *
+   * @return the distinct {@code id_reply_to_local} thread keys whose role conversation can be physically deleted
+   */
+  @Query(nativeQuery = true)
+  List<Integer> findPurgeableRoleThreadKeys();
+
+  /**
+   * Physically deletes all mail messages belonging to the given conversation threads, i.e. every row whose
+   * {@code id_reply_to_local} is contained in {@code idReplyToLocals} (the role-visible message plus all replies). The
+   * sender's personal 'S' root row (which has {@code id_reply_to_local = NULL}) is intentionally not matched and stays
+   * untouched. Associated {@code mail_send_recv_read_del} rows are removed via the database CASCADE constraint.
+   *
+   * Named query: MailSendRecv.deleteThreadsByIdReplyToLocalIn
+   *
+   * @param idReplyToLocals the thread keys to delete, typically the result of {@link #findPurgeableRoleThreadKeys()}
+   * @return the number of deleted {@code mail_send_recv} rows
+   */
+  @Transactional
+  @Modifying
+  @Query(nativeQuery = true)
+  int deleteThreadsByIdReplyToLocalIn(List<Integer> idReplyToLocals);
 
   /**
    * Projection interface for the result of the {@link #countRoleSend(Integer)} query.

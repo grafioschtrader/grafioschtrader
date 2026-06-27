@@ -740,7 +740,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
     case ACCUMULATE:
     case REDUCE:
     case DIVIDEND:
-      // TODO should not happened
+      //  Security transactions should always have units and quotation at this stage.
       if (units != null && quotation != null) {
         correctQuotationForDividend();
         calcCashaccountAmount = DataBusinessHelper.round(units * quotation);

@@ -88,7 +88,7 @@ public class MySqlExportMyData {
     if (!rows.isEmpty()) {
       query = query + " LIMIT 1";
       java.sql.ResultSetMetaData metaData = jdbcTemplate
-          .query(query, (resultSet, rowNum) -> resultSet.getMetaData(), idArray).get(0);
+          .query(query, (resultSet, _) -> resultSet.getMetaData(), idArray).get(0);
       if (log.isDebugEnabled()) {
         log.debug(exportDefinition.table);
         for (int columnIndex = 1; columnIndex <= metaData.getColumnCount(); columnIndex++) {
@@ -118,7 +118,7 @@ public class MySqlExportMyData {
     final List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
     if (!rows.isEmpty()) {
       java.sql.ResultSetMetaData metaData = jdbcTemplate
-          .query(sql + " LIMIT 1", (resultSet, rowNum) -> resultSet.getMetaData()).get(0);
+          .query(sql + " LIMIT 1", (resultSet, _) -> resultSet.getMetaData()).get(0);
       sqlStatement.append(MySqlInsertStatementGenerator.createInsertStatements(tableName, metaData, rows));
     }
     return sqlStatement;

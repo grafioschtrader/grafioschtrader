@@ -14,6 +14,7 @@ import {
   MessageTargetType
 } from '../model/mail.send.recv';
 import {DataType} from '../../dynamic-form/models/data.type';
+import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {ColumnConfig, TranslateValue} from '../../datashowbase/column.config';
 import {TableEditConfigBase} from '../../datashowbase/table.edit.config.base';
 import {SelectOptionsHelper} from '../../helper/select.options.helper';
@@ -42,7 +43,7 @@ import {TranslateModule} from '@ngx-translate/core';
       [baseLocale]="baseLocale"
       [customSortFn]="customSort.bind(this)"
       [createNewEntityFn]="createNewEntity.bind(this)"
-      [contextMenuItems]="contextMenuItems"
+      [contextMenuItems]="contextMenuItems" [contextMenuAppendTo]="'body'"
       [showContextMenu]="isActivated()"
       [containerClass]="{'data-container': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
       (rowEditSave)="onRowEditSave($event)"
@@ -89,8 +90,13 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
     targetTypeCol.cec.dependsOnField = MailSettingForwardVar.MESSAGE_COM_TYPE;
     targetTypeCol.cec.optionsProviderFn = (row: MailSettingForward) => this.getTargetTypeOptions(row);
 
-    // Configure ID_USER_DIRECT column
-    this.addEditColumnFeqH(DataType.NumericInteger, MailSettingForwardVar.ID_USER_DIRECT, false);
+    // Configure ID_USER_REDIRECT column as an admin-only dependent dropdown of other admins
+    this.addEditColumnFeqH(DataType.String, MailSettingForwardVar.ID_USER_DIRECT, false,
+      {fieldValueFN: this.getRedirectNickname.bind(this)});
+    const redirectCol = this.getColumnConfigByField(MailSettingForwardVar.ID_USER_DIRECT);
+    redirectCol.cec.dependsOnField = MailSettingForwardVar.MESSAGE_COM_TYPE;
+    redirectCol.cec.optionsProviderFn = (row: MailSettingForward) => this.getRedirectUserOptions(row);
+    redirectCol.cec.canEditFn = (row: MailSettingForward) => this.canRedirect(row);
   }
 
   // ============================================================================
@@ -174,6 +180,37 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
       SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, MessageComType, availableTypes, false);
   }
 
+  /**
+   * Determines whether the redirect target may be edited for the given row. Only an admin (the backend only
+   * populates canRedirectToUsers for admins) may redirect, and only for message com types whose configuration
+   * allows redirection (today only MAIN_ADMIN_RELEASE_LOGOUT).
+   */
+  private canRedirect(row: MailSettingForward): boolean {
+    return row.messageComType != null
+      && this.mailSendForwardDefault?.canRedirectToUsers?.length > 0
+      && this.mailSendForwardDefault.mailSendForwardDefaultMapForUser[row.messageComType]?.canRedirect === true;
+  }
+
+  /**
+   * Provides the dropdown options for the redirect target: an empty entry (to clear the optional redirect) followed
+   * by the other admins served by the backend. Returns an empty list when redirection is not allowed for the row.
+   */
+  private getRedirectUserOptions(row: MailSettingForward): ValueKeyHtmlSelectOptions[] {
+    if (!this.canRedirect(row)) {
+      return [];
+    }
+    return [new ValueKeyHtmlSelectOptions(null, ''), ...this.mailSendForwardDefault.canRedirectToUsers];
+  }
+
+  /** Non-edit display: maps the redirect target user id to the admin's nickname served by the backend. */
+  private getRedirectNickname(dataobject: MailSettingForward, field: ColumnConfig, value: any): string {
+    if (value == null || !this.mailSendForwardDefault?.canRedirectToUsers) {
+      return '';
+    }
+    const option = this.mailSendForwardDefault.canRedirectToUsers.find(o => o.key === String(value));
+    return option ? option.value : '';
+  }
+
   // ============================================================================
   // Entity Factory
   // ============================================================================
@@ -224,6 +261,9 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
       this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'REQUIRED_FIELDS_MISSING');
       return;
     }
+
+    // The native select binds string keys; normalize the optional redirect to a number or null (empty option).
+    entity.idUserRedirect = entity.idUserRedirect ? Number(entity.idUserRedirect) : null;
 
     this.mailSettingForwardService.update(entity).subscribe({
       next: () => {

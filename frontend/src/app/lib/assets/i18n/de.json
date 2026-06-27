@@ -18,6 +18,7 @@
   "CREATED_BY": "Von Benutzer",
   "MANAGE_CLIENT": "Klient",
   "CREATE_CLIENT": "Klient erstellen",
+  "CREATE_NEW_RECORD": "Neuen Datensatz erstellen",
   "SWITCH_TO_CLIENT": "Zu Klient wechseln",
   "BACK_TO_MY_CLIENT": "Zurück zu mir",
   "CLIENT_CREATED": "Der Klient wurde erstellt und per E-Mail benachrichtigt.",
@@ -94,6 +95,7 @@
   "ID_PROVIDER": "Datenquelle",
   "ID_TASK": "Aufgabenbeschreibung",
   "ID_USER_FROM": "Von",
+  "ID_USER_REDIRECT": "Weiterleiten an Admin",
   "ID_USER_TO": "An",
   "INFO": "Info",
   "INPUT_RULE": "Validierungsregel",
@@ -239,6 +241,7 @@
   "gteDate": "Zeitpunkt muss gleich oder später {{param1}} sein!",
   "max": "Darf {{param1}} nicht übersteigen!",
   "notContainStringInList": "Diese Bezeichnung wurde schon verwendet!",
+  "pattern": "entspricht nicht dem erforderlichen Format!",
   "patternEmail": "Die Mailadresse hat falsches Format!",
   "primeng": {
     "startsWith": "Startet mit",

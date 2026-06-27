@@ -83,6 +83,34 @@ Each property key must appear **exactly once** within the same `.properties` fil
 
 Backend `dot.separated.lowercase` keys and frontend `UPPER_SNAKE_CASE` keys are **independent systems**. Backend field labels in `DataViolationException` are translated server-side before being sent to the frontend. The comment in `messages.properties` — `# Field names should match with client. On server "abc.def" gets "ABC_DEF" on client` — refers to the convention that the same human-readable text should appear in both systems when the same concept is displayed. However, backend keys are resolved by `MessageSource` and frontend keys by `TranslateService`, so they are not required to have matching counterparts.
 
+## Configuration Prefix Convention (`g.` vs `gt.`)
+
+**IMPORTANT**: Configuration and naming keys are prefixed by the **module layer that owns them**, so that the reusable grafiosch library stays independent of the grafioschtrader application.
+
+| Owning layer | Prefix | Constant |
+|--------------|--------|----------|
+| `grafiosch-base` / `grafiosch-server-base` (generic library) | `g.` | `BaseConstants.G_PREFIX` |
+| `grafioschtrader-common` / `grafioschtrader-server` / `frontend` (application) | `gt.` | `GlobalConstants.GT_PREFIX` |
+
+The library defines `g.`-prefixed **defaults**; the application may override them and adds its own `gt.` keys.
+
+### Applies to
+
+- `globalparameters` property names (the `property_name` primary key)
+- NLS / message keys in `messages*.properties`
+- `@Value("${...}")` and `@ConfigurationProperties(prefix = "...")` property names (and their entries in `application*.properties`)
+- Daily-limit keys: `BaseConstants.G_LIMIT_DAY` (`g.limit.day.`) for base-module entities vs `GlobalConstants.GT_LIMIT_DAY` (`gt.limit.day.`) for application entities
+
+### Rule when adding a new key
+
+Pick the prefix by the module that owns the **code** reading/defining the key — not by where the value happens to be configured. A key read by `grafiosch-server-base` must be `g.`, even if grafioschtrader is the only current consumer.
+
+### Exception — connector IDs stay `gt.`
+
+The `gt.datafeed.` connector ID prefix (`BaseFeedConnector.ID_PREFIX`) is **not** subject to this rule and must **not** be renamed. Connectors live entirely in the application layer (`grafioschtrader-server`), so `gt.datafeed.` is the correct application prefix, and it is persisted in `securitycurrency.id_connector_history` / `id_connector_intra` and in `globalparameters` connector defaults (see the "should not be changed, otherwise the persistence must also be adjusted" comment in `BaseFeedConnector`).
+
+> Tracking issue: migrating the remaining library-owned `gt.` keys to `g.` is tracked in GitHub issue #75.
+
 ## SQL Statement Placement
 
 ### Repository Interface Pattern
@@ -410,3 +438,48 @@ The only exception is `applySecurityAction()` (ISIN changes), which intentionall
 @Modifying          // Indicates UPDATE/DELETE operation
 @Query(nativeQuery = true)  // Uses SQL from jpa-named-queries.properties
 ```
+
+## Dynamic Form Definitions — Entity Annotations Drive the Frontend Form
+
+To avoid duplicating field constraints (max length, required, ranges, regex) in the Angular forms,
+input forms can be generated entirely from the entity's annotations. The backend is the single
+source of truth.
+
+### How to expose an entity's edit form
+
+1. **Mark each input field with `@DynamicFormField`** (`grafiosch.common.DynamicFormField`):
+   - `uiOrder` — comma list of `dialogId.position` tokens. `"1.3"` = position 3 of dialog 1;
+     `"1.4,2.1"` = position 4 of dialog 1 **and** position 1 of dialog 2. A bare number is a
+     position in dialog 1. The serving endpoint filters by dialog id and sorts by position.
+   - `helps` — optional `DynamicFormPropertyHelps` (EMAIL, PASSWORD, SELECT_OPTIONS, PERCENTAGE).
+   - `labelKey` — optional explicit NLS key; omit to let the frontend derive it (HeqF).
+   The presence of the annotation selects the field; the **constraints still come from the standard
+   Bean Validation annotations** on the same field.
+
+2. **Declare the constraints with Bean Validation** — these now propagate to the frontend:
+   `@NotNull`/`@NotBlank` (required), `@Size` (string length), `@Min`/`@Max`,
+   `@DecimalMin`/`@DecimalMax` (numeric bounds), `@Pattern` (regex), `@AfterEqual` (minimum date),
+   `@Future` (future date). Inherited fields are included —
+   `DynamicModelHelper.getFormDefinitionOfEntityClass()` walks the whole class hierarchy.
+   - **Numeric precision**: `@Digits(integer, fraction)` is honoured, **but only use it on
+     `BigDecimal`/integer columns**. On a `Double`/`Float` column Hibernate derives a SQL *scale* from
+     `@Digits` and startup fails with *"scale has no meaning for SQL floating point types"*. For
+     floating point fields put the precision on the form annotation instead:
+     `@DynamicFormField(uiOrder = "…", integerLimit = 3, fractionLimit = 4)`.
+
+3. **Register the entity in the allow-list** so it can be requested by name. Add it in the
+   application layer (e.g. `grafioschtrader.config.FormDefinitionConfig`) via
+   `FormDefinitionRegistry.register(MyEntity.class)`. The endpoint never reflects an arbitrary
+   client-supplied class name — only registered entities are served. Keep the registration in the
+   `grafioschtrader-*` layer so `grafiosch-base` stays free of application references.
+
+### Endpoint
+
+`GET /globalparameters/formdefinition/{entityName}?dialog={n}` (default `dialog=1`) returns a
+`ClassDescriptorInputAndShow` whose ordered `FieldDescriptorInputAndShowExtendedEntity` list the
+frontend turns into a form. Class-level `@DateRange` is included as a cross-field constraint.
+
+### Reference implementation
+
+`Cashaccount` / `Securitycashaccount` (annotated fields) + `CashaccountEditComponent`
+(`getEntityFormDefinition('Cashaccount')` → `createFieldsFromClassDescriptorInputAndShow`).

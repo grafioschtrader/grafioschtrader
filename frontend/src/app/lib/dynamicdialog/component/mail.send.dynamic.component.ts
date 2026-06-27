@@ -90,6 +90,8 @@ export class MailSendDynamicComponent extends FormBase implements OnInit {
     mailSendRecv.idUserFrom = this.gps.getIdUser();
     mailSendRecv.idReplyToLocal = this.mailSendParam.mailSendRecv?.idReplyToLocal ? this.mailSendParam.mailSendRecv.idReplyToLocal :
       this.mailSendParam.mailSendRecv ? this.mailSendParam.mailSendRecv.idMailSendRecv : null;
+    mailSendRecv.contextEntity = this.mailSendParam.contextEntity;
+    mailSendRecv.idEntityContext = this.mailSendParam.idEntityContext;
     this.sendRecvService.sendMessage(mailSendRecv).subscribe({
       next: (mailSendRecvRc: MailSendRecv) => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_PROPOSE_SAVED');
@@ -185,8 +187,11 @@ export class MailSendParam {
    * @param mailSendRecv A message can be a specific response to an existing message.
    * @param subject The subject can be predefined for a message.
    * @param roleName Optional role name to pre-select and lock the role dropdown (e.g. BaseSettings.ROLE_ADMIN).
+   * @param contextEntity Optional context entity type (e.g. 'Securitycurrency') that justifies an initial
+   *                      user-to-user message to a non-admin recipient; verified by the backend.
+   * @param idEntityContext Optional id of the context entity referenced by contextEntity.
    */
   constructor(public idUserTo: number, public mailSendRecv?: MailSendRecv, public subject?: string,
-    public roleName?: string) {
+    public roleName?: string, public contextEntity?: string, public idEntityContext?: number) {
   }
 }

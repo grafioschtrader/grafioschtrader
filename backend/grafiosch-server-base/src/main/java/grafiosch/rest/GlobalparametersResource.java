@@ -22,8 +22,10 @@ import grafiosch.common.PropertyOnlyCreation;
 import grafiosch.dto.PasswordRegexProperties;
 import grafiosch.dto.TenantLimit;
 import grafiosch.dto.ValueKeyHtmlSelectOptions;
+import grafiosch.dynamic.model.ClassDescriptorInputAndShow;
 import grafiosch.dynamic.model.DynamicModelHelper;
 import grafiosch.dynamic.model.FieldDescriptorInputAndShow;
+import grafiosch.dynamic.model.FormDefinitionRegistry;
 import grafiosch.entities.Globalparameters;
 import grafiosch.entities.User;
 import grafiosch.repository.GlobalparametersJpaRepository;
@@ -70,6 +72,22 @@ public class GlobalparametersResource {
         DynamicModelHelper.getFormDefinitionOfModelClassMembers(User.class,
             Set.of(PropertyAlwaysUpdatable.class, PropertyChangePassword.class, PropertyOnlyCreation.class)),
         HttpStatus.OK);
+  }
+
+  @Operation(summary = """
+      Provides the dynamic form definition of an allow-listed entity for a given dialog.
+      The frontend uses this to generate input fields (constraints, ordering, labels) directly from the
+      backend entity, avoiding duplicated field definitions. The entity must be registered in the
+      FormDefinitionRegistry and annotate its input fields with @DynamicFormField.""", description = "", tags = {
+      Globalparameters.TABNAME })
+  @GetMapping(value = "/formdefinition/{entityName}", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<ClassDescriptorInputAndShow> getEntityFormDefinition(@PathVariable final String entityName,
+      @RequestParam(defaultValue = "1") final int dialog) {
+    Class<?> entityClass = FormDefinitionRegistry.resolve(entityName);
+    if (entityClass == null) {
+      return ResponseEntity.notFound().build();
+    }
+    return new ResponseEntity<>(DynamicModelHelper.getFormDefinitionOfEntityClass(entityClass, dialog), HttpStatus.OK);
   }
 
   @Operation(summary = "Returns the possible countries as it can be used in html option", description = "", tags = {

@@ -72,6 +72,13 @@ label {
   width: auto;
 }
 
+/* Terminated accounts (activeToDate in the past) stay visible in the tree but are visually marked */
+.gt-account-terminated > .p-treenode-content .p-treenode-label,
+.gt-account-terminated .p-treenode-label {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
 .p-datatable .p-datatable-header {
   text-align: left;
 }

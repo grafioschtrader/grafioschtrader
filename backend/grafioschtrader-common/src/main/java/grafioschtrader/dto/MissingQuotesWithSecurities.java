@@ -80,7 +80,7 @@ public class MissingQuotesWithSecurities {
    * @param idSecuritycurrency the security ID missing the quote on this date
    */
   public void addDateSecurity(LocalDate date, Integer idSecuritycurrency) {
-    dateSecurityMissingMap.computeIfAbsent(date, (x -> new ArrayList<>())).add(idSecuritycurrency);
+    dateSecurityMissingMap.computeIfAbsent(date, (_ -> new ArrayList<>())).add(idSecuritycurrency);
   }
 
   /**

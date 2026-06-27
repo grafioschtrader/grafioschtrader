@@ -6,6 +6,8 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.common.DynamicFormField;
+import grafiosch.dynamic.model.DynamicFormPropertyHelps;
 import grafioschtrader.validation.ValidCurrencyCode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
@@ -32,6 +34,7 @@ public class Cashaccount extends Securitycashaccount implements Serializable {
   @Basic(optional = false)
   @NotNull
   @ValidCurrencyCode
+  @DynamicFormField(uiOrder = "1.2", helps = { DynamicFormPropertyHelps.SELECT_OPTIONS })
   private String currency;
 
   @Schema(description = "In some cases, it is helpful to have direct access to the transactions.")
@@ -44,6 +47,7 @@ public class Cashaccount extends Securitycashaccount implements Serializable {
       balance. A value >= 0 means the account can be overdrawn at the specified annual interest rate.""")
   @DecimalMin("0.0")
   @Column(name = "borrowing_rate")
+  @DynamicFormField(uiOrder = "1.4", integerLimit = 3, fractionLimit = 4)
   private Double borrowingRate;
 
   @Schema(description = """
@@ -51,6 +55,8 @@ public class Cashaccount extends Securitycashaccount implements Serializable {
       This prevents ambiguities in portfolio evaluations. Therefore, this assignment should be made if there
       are multiple deposits and bank accounts with the same currency.""")
   @Column(name = "connect_id_securityaccount")
+  @DynamicFormField(uiOrder = "1.3", helps = { DynamicFormPropertyHelps.SELECT_OPTIONS },
+      labelKey = "SECURITYACCOUNT_ASSIGNMENT")
   private Integer connectIdSecurityaccount;
 
   public Cashaccount() {
@@ -111,6 +117,7 @@ public class Cashaccount extends Securitycashaccount implements Serializable {
       // Only accept a change of currency when there is no transaction
       this.setCurrency(sourceCashaccount.getCurrency());
     }
+    this.setActiveToDate(sourceCashaccount.getActiveToDate());
     this.setNote(sourceCashaccount.getNote());
     this.setBorrowingRate(sourceCashaccount.getBorrowingRate());
     this.setConnectIdSecurityaccount(sourceCashaccount.connectIdSecurityaccount);

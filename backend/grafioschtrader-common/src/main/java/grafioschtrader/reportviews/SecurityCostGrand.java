@@ -92,7 +92,7 @@ public abstract class SecurityCostGrand<S, T> extends MapGroup<S, T> {
    * group's totals are current before performing enterprise-level aggregation.
    */
   public void caclulateGrandSummary() {
-    this.groupMap.forEach((idSecuritycurrency, groupSummary) -> {
+    this.groupMap.forEach((_, groupSummary) -> {
       SecurityCostGroup securityCostGroup = getSecurityCostGroup(groupSummary);
       securityCostGroup.caclulateGroupSummary();
       grandTotalTaxCostMC += securityCostGroup.groupTotalTaxCostMC;

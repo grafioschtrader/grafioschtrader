@@ -112,7 +112,7 @@ public class SupplierScoreCalculator {
     Map<String, List<ScoredSupplier>> groups = new LinkedHashMap<>();
     for (ScoredSupplier ss : scored) {
       String key = ss.score + ":" + ss.priority;
-      groups.computeIfAbsent(key, k -> new ArrayList<>()).add(ss);
+      groups.computeIfAbsent(key, _ -> new ArrayList<>()).add(ss);
     }
 
     // Shuffle within each group and flatten

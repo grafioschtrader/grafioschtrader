@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import grafiosch.BaseConstants;
 import grafiosch.entities.User;
+import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafiosch.repository.BaseRepositoryImpl;
 import grafioschtrader.entities.ImportTransactionHead;
 import grafioschtrader.entities.ImportTransactionPlatform;
@@ -210,7 +211,9 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
             importTransactionPosJpaRepository, securityJpaRepository, importTransactionPosFailedJpaRepository,
             user.createAndGetJavaLocale());
       } else {
-        // TODO not the right format
+        // Multiple files were uploaded but the leading file is a CSV. CSV import supports only a single file (one file
+        // carries many transactions); only PDF/TXT support multi-file batches.
+        throw new GeneralNotTranslatedWithArgumentsException("gt.import.csv.single.file", null);
       }
     }
   }

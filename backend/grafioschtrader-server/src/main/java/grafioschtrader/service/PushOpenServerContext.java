@@ -52,7 +52,7 @@ public class PushOpenServerContext {
 
     // Initialize or get the timestamp map for this server
     Map<String, LocalDateTime> timestamps = serverReceivedTimestamps.computeIfAbsent(
-        server.getIdGtNet(), k -> new HashMap<>());
+        server.getIdGtNet(), _ -> new HashMap<>());
 
     // Record security timestamps
     if (securities != null) {

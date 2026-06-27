@@ -13,6 +13,7 @@ import {TenantEditFullPageComponent} from './tenant/component/tenant.edit.full.p
 import {WatchlistTabMenuComponent} from './watchlist/component/watchlist.tab.menu.component';
 import {WatchlistPerformanceComponent} from './watchlist/component/watchlist.performance.component';
 import {TimeSeriesChartComponent} from './historyquote/component/time.series.chart.component';
+import {SeasonalityComponent} from './historyquote/component/seasonality.component';
 import {ChartGeneralPurposeComponent} from './shared/chart/component/chart.general.purpose.component';
 import {RegistrationTokenVerifyComponent} from './lib/login/component/registration.token.verify.component';
 import {CorrelationComponent} from './correlation/component/correlation.component';
@@ -227,6 +228,10 @@ const APP_ROUTES: Routes = [
       },
       {
         path: AppSettings.HISTORYQUOTE_P_KEY, component: HistoryquoteHostComponent, outlet: AppSettings.MAIN_BOTTOM,
+        canActivate: [authGuard]
+      },
+      {
+        path: AppSettings.SEASONALITY, component: SeasonalityComponent, outlet: AppSettings.MAIN_BOTTOM,
         canActivate: [authGuard]
       },
       {path: AppSettings.STRATEGY_OVERVIEW_KEY, component: StrategyOverviewComponent, canActivate: [authGuard]},

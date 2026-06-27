@@ -18,6 +18,7 @@
   "CREATED_BY": "By user",
   "MANAGE_CLIENT": "Client",
   "CREATE_CLIENT": "Create client",
+  "CREATE_NEW_RECORD": "Create new record",
   "SWITCH_TO_CLIENT": "Switch to client",
   "BACK_TO_MY_CLIENT": "Back to my",
   "CLIENT_CREATED": "The client has been created and notified by e-mail.",
@@ -94,6 +95,7 @@
   "ID_PROVIDER": "Data source",
   "ID_TASK": "Task description",
   "ID_USER_FROM": "From",
+  "ID_USER_REDIRECT": "Redirect to admin",
   "ID_USER_TO": "To",
   "INFO": "Info",
   "INPUT_RULE": "Validation rule",
@@ -239,6 +241,7 @@
   "gteDate": "Time must be equal or later {{param1}}!",
   "max": "May not exceed {{param1}}!",
   "notContainStringInList": "This name has already been used!",
+  "pattern": "does not match the required format!",
   "patternEmail": "is not a valid email address!",
   "primeng": {
     "startsWith": "Starts with",

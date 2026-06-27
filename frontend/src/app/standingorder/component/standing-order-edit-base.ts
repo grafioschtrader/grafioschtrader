@@ -10,7 +10,9 @@ import {StandingOrderCallParam} from '../model/standing.order.call.param';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {Portfolio} from '../../entities/portfolio';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
+import {BusinessSelectOptionsHelper} from '../../shared/securitycurrency/business.select.options.helper';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
+import moment from 'moment';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {RepeatUnit} from '../../shared/types/repeat.unit';
 import {PeriodDayPosition} from '../../shared/types/period.day.position';
@@ -248,9 +250,24 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
       this.configObject.idCashaccount.valueKeyHtmlOptions = cashaccountsHtmlOptions;
       this.afterPortfoliosLoaded();
       this.setExistingValues();
+      this.toggleCashaccountOptionsByValidFrom();
+      this.configObject.validFrom.formControl.valueChanges.subscribe(() => this.toggleCashaccountOptionsByValidFrom());
       const unit = this.configObject.repeatUnit.formControl.value;
       this.applyRepeatUnit(unit ?? RepeatUnit[RepeatUnit.MONTHS]);
     });
+  }
+
+  /**
+   * Disables cash account options that are no longer active on the order's validity start date, so a terminated
+   * account cannot be selected for a standing order that begins after the account's active-until date.
+   */
+  private toggleCashaccountOptionsByValidFrom(): void {
+    const validFrom = this.configObject.validFrom.formControl.value;
+    if (!validFrom || !this.portfolios) {
+      return;
+    }
+    BusinessSelectOptionsHelper.accountsEnableDisableOptionsByActiveDate(
+      this.portfolios.flatMap(p => p.cashaccountList || []), this.configObject.idCashaccount, moment(validFrom).valueOf());
   }
 
   /**

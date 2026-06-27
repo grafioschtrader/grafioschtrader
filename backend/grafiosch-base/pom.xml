@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.36.0</version>
+		<version>0.36.1</version>
 	</parent>
 
 
@@ -30,7 +30,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<release>21</release>
+					<release>${java.version}</release>
 				</configuration>
 			</plugin>
 		</plugins>

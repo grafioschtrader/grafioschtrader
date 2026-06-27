@@ -1,6 +1,7 @@
 package grafioschtrader.repository;
 
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -197,8 +198,10 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
    * rights for the instrument. If so, all its history quotes are deleted, followed by the deletion of the instrument
    * entity itself.
    * </p>
-   * <b>Note:</b> The deletion of the instrument and its history quotes is a critical operation and depends on the
-   * user's privileges. 
+   * <b>Note:</b> The deletion of the instrument and its history quotes is a critical operation. It depends on the
+   * user's privileges and additionally requires that the instrument is not referenced elsewhere (see
+   * {@link #isSecuritycurrencyUsedElsewhere}). If the instrument is still in use, it is only removed from the
+   * watchlist and otherwise left untouched.
    *
    * @param <T>                               The type of the security or currencypair, extending
    *                                          {@link Securitycurrency}.
@@ -216,12 +219,30 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
     final Watchlist watchlist = removeInstrumentFromWatchlist(idWatchlist, securitycurrencypair);
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
 
-    if (UserAccessHelper.hasRightsOrPrivilegesForEditingOrDelete(user, securitycurrencypair)) {
+    if (UserAccessHelper.hasRightsOrPrivilegesForEditingOrDelete(user, securitycurrencypair)
+        && !isSecuritycurrencyUsedElsewhere(idWatchlist, securitycurrencypair)) {
       historyquoteJpaRepository.removeAllSecurityHistoryquote(idSecuritycurrency);
       securityCurrencypairJpaRepository.deleteById(securitycurrencypair.getIdSecuritycurrency());
-      // TODO may be not allowed action
     }
     return watchlist;
+  }
+
+  /**
+   * Determines whether the given instrument is still referenced outside the watchlist it is being removed from. A
+   * security is "used elsewhere" when it appears in a transaction, in another watchlist, or in a risk-free-rate
+   * mapping; a currency pair additionally when it backs a portfolio or cash-account currency. Such an instrument must
+   * not be hard-deleted even when the user has delete rights, because the delete would orphan those references and
+   * destroy shared history quotes.
+   *
+   * @param idWatchlist the watchlist the instrument is being removed from (excluded from the "other watchlist" check)
+   * @param instrument  the security or currency pair about to be deleted
+   * @return {@code true} if the instrument is referenced elsewhere and therefore must be kept
+   */
+  private boolean isSecuritycurrencyUsedElsewhere(final Integer idWatchlist, final Securitycurrency<?> instrument) {
+    final int[] usedElsewhereIds = (instrument instanceof Security)
+        ? watchlistJpaRepository.watchlistSecuritiesHasTransactionOrOtherWatchlist(idWatchlist)
+        : watchlistJpaRepository.watchlistCurrencypairsHasReferencesButThisWatchlist(idWatchlist);
+    return Arrays.binarySearch(usedElsewhereIds, instrument.getIdSecuritycurrency().intValue()) >= 0;
   }
 
   @Override

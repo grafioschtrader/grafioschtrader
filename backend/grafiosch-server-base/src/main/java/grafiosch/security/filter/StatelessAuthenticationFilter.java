@@ -246,7 +246,7 @@ public class StatelessAuthenticationFilter extends GenericFilterBean {
   private void doFilterWithlimitWatcher(final ServletRequest servletRequest, final ServletResponse servletResponse,
       final FilterChain chain, final Authentication authentication) throws IOException, ServletException {
     Integer idUser = ((User) authentication.getDetails()).getIdUser();
-    Bucket bucket = limitRateMap.computeIfAbsent(idUser, k -> createNewBucket());
+    Bucket bucket = limitRateMap.computeIfAbsent(idUser, _ -> createNewBucket());
     if (bucket.tryConsume(1)) {
       // the limit is not exceeded
       chain.doFilter(servletRequest, servletResponse);

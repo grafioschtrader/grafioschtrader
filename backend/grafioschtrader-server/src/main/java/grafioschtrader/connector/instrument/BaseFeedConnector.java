@@ -334,7 +334,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
         String geo = token.substring(0, colonIdx);
         String catName = token.substring(colonIdx + 2);
         geos.add(geo);
-        exclusions.computeIfAbsent(geo, k -> EnumSet.noneOf(AssetclassCategory.class))
+        exclusions.computeIfAbsent(geo, _ -> EnumSet.noneOf(AssetclassCategory.class))
             .add(AssetclassCategory.valueOf(catName));
       } else {
         geos.add(token);

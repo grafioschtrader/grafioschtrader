@@ -37,6 +37,18 @@ public class FieldDescriptorInputAndShow implements Serializable {
   @Schema(description = "Available enum constant names when dataType is EnumSet. Used to populate multi-select options.")
   public String[] enumValues;
 
+  @Schema(description = "Regular expression the input must match, taken from a @Pattern annotation. Null when not constrained.")
+  public String pattern;
+
+  @Schema(description = "Lower-bound date (ISO yyyy-MM-dd) the value must be on or after, taken from an @AfterEqual annotation. Null when not constrained.")
+  public String dateMin;
+
+  @Schema(description = "Maximum number of integer digits for a numeric field, taken from a @Digits annotation. Null when not constrained.")
+  public Integer digitsInteger;
+
+  @Schema(description = "Maximum number of fraction digits for a numeric field, taken from a @Digits annotation. Null when not constrained.")
+  public Integer digitsFraction;
+
   /**
    * Creates a field descriptor with explicit data type and constraints.
    * 

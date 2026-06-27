@@ -10,11 +10,13 @@ import static jakarta.persistence.InheritanceType.JOINED;
 import java.io.Serializable;
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.DynamicFormField;
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.entities.TenantBaseID;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -57,12 +59,14 @@ public abstract class Securitycashaccount extends TenantBaseID implements Serial
   @Basic(optional = false)
   @Column(name = "name")
   @PropertyAlwaysUpdatable
+  @DynamicFormField(uiOrder = "1.1", labelKey = "CASHACCOUNT_NAME")
   private String name;
 
   @Schema(description = "User note for this account.")
   @Column(name = "note")
   @Size(max = BaseConstants.FID_MAX_LETTERS)
   @PropertyAlwaysUpdatable
+  @DynamicFormField(uiOrder = "1.6")
   private String note;
 
   @JsonProperty(access = Access.WRITE_ONLY)
@@ -74,9 +78,12 @@ public abstract class Securitycashaccount extends TenantBaseID implements Serial
   @Column(name = "id_tenant")
   private Integer idTenant;
 
-  // TODO integrate in UI and somewhere else
-  @Schema(description = "Up to what date can entries be made to this account?")
+  @Schema(description = "Up to what date can entries be made to this account? Null means the account is active "
+      + "indefinitely; a non-null date marks the account as terminated after that day.")
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "active_to_date")
+  @PropertyAlwaysUpdatable
+  @DynamicFormField(uiOrder = "1.5")
   private LocalDate activeToDate;
 
   public Securitycashaccount() {

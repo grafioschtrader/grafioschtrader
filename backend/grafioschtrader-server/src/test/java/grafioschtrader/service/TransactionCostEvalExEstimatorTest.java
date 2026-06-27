@@ -1,9 +1,8 @@
 package grafioschtrader.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,9 +36,9 @@ class TransactionCostEvalExEstimatorTest {
         """;
     TransactionCostEstimateRequest req = buildRequest(10000.0, 100.0, null, null, null, null, null, null);
     TransactionCostEstimateResult result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getError()).isNull();
-    assertThat(result.getEstimatedCost()).isEqualTo(25.0);
-    assertThat(result.getMatchedRuleName()).isEqualTo("Flat fee");
+    Assertions.assertThat(result.getError()).isNull();
+    Assertions.assertThat(result.getEstimatedCost()).isEqualTo(25.0);
+    Assertions.assertThat(result.getMatchedRuleName()).isEqualTo("Flat fee");
   }
 
   // ---------- Percentage with minimum ----------
@@ -56,13 +55,13 @@ class TransactionCostEvalExEstimatorTest {
     // 0.1% of 5000 = 5.0 → MIN wins → 9.0
     TransactionCostEstimateRequest req = buildRequest(5000.0, 50.0, null, null, null, null, null, null);
     TransactionCostEstimateResult result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getError()).isNull();
-    assertThat(result.getEstimatedCost()).isEqualTo(9.0);
+    Assertions.assertThat(result.getError()).isNull();
+    Assertions.assertThat(result.getEstimatedCost()).isEqualTo(9.0);
 
     // 0.1% of 20000 = 20.0 → percentage wins → 20.0
     req = buildRequest(20000.0, 200.0, null, null, null, null, null, null);
     result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getEstimatedCost()).isEqualTo(20.0);
+    Assertions.assertThat(result.getEstimatedCost()).isEqualTo(20.0);
   }
 
   // ---------- Multiple rules, first match ----------
@@ -85,20 +84,20 @@ class TransactionCostEvalExEstimatorTest {
     // SIX match
     TransactionCostEstimateRequest req = buildRequest(10000.0, 100.0, null, null, "XSWX", null, null, null);
     TransactionCostEstimateResult result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getMatchedRuleName()).isEqualTo("Swiss stocks (SIX)");
-    assertThat(result.getEstimatedCost()).isEqualTo(10.0);
+    Assertions.assertThat(result.getMatchedRuleName()).isEqualTo("Swiss stocks (SIX)");
+    Assertions.assertThat(result.getEstimatedCost()).isEqualTo(10.0);
 
     // NYSE match
     req = buildRequest(10000.0, 100.0, null, null, "XNYS", null, null, null);
     result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getMatchedRuleName()).isEqualTo("US stocks");
-    assertThat(result.getEstimatedCost()).isEqualTo(15.0);
+    Assertions.assertThat(result.getMatchedRuleName()).isEqualTo("US stocks");
+    Assertions.assertThat(result.getEstimatedCost()).isEqualTo(15.0);
 
     // Default match
     req = buildRequest(10000.0, 100.0, null, null, "XLON", null, null, null);
     result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getMatchedRuleName()).isEqualTo("Default");
-    assertThat(result.getEstimatedCost()).isEqualTo(20.0);
+    Assertions.assertThat(result.getMatchedRuleName()).isEqualTo("Default");
+    Assertions.assertThat(result.getEstimatedCost()).isEqualTo(20.0);
   }
 
   // ---------- Portfolio-value tiers ----------
@@ -118,14 +117,14 @@ class TransactionCostEvalExEstimatorTest {
     // Premium tier
     TransactionCostEstimateRequest req = buildRequest(10000.0, 100.0, null, null, null, null, 250000.0, null);
     TransactionCostEstimateResult result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getMatchedRuleName()).isEqualTo("Premium (>= 200k)");
-    assertThat(result.getEstimatedCost()).isEqualTo(8.0);
+    Assertions.assertThat(result.getMatchedRuleName()).isEqualTo("Premium (>= 200k)");
+    Assertions.assertThat(result.getEstimatedCost()).isEqualTo(8.0);
 
     // Standard tier
     req = buildRequest(10000.0, 100.0, null, null, null, null, 50000.0, null);
     result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getMatchedRuleName()).isEqualTo("Standard (< 200k)");
-    assertThat(result.getEstimatedCost()).isEqualTo(15.0);
+    Assertions.assertThat(result.getMatchedRuleName()).isEqualTo("Standard (< 200k)");
+    Assertions.assertThat(result.getEstimatedCost()).isEqualTo(15.0);
   }
 
   // ---------- Per-share pricing ----------
@@ -141,7 +140,7 @@ class TransactionCostEvalExEstimatorTest {
         """;
     TransactionCostEstimateRequest req = buildRequest(50000.0, 1000.0, null, null, null, null, null, null);
     TransactionCostEstimateResult result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getEstimatedCost()).isEqualTo(5.0);
+    Assertions.assertThat(result.getEstimatedCost()).isEqualTo(5.0);
   }
 
   // ---------- ETF flat fee using instrument string variable ----------
@@ -161,14 +160,14 @@ class TransactionCostEvalExEstimatorTest {
     // ETF (specInvestInstrument=1 → instrument="ETF")
     TransactionCostEstimateRequest req = buildRequest(10000.0, 100.0, 1, null, null, null, null, null);
     TransactionCostEstimateResult result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getMatchedRuleName()).isEqualTo("ETF flat fee");
-    assertThat(result.getEstimatedCost()).isEqualTo(5.0);
+    Assertions.assertThat(result.getMatchedRuleName()).isEqualTo("ETF flat fee");
+    Assertions.assertThat(result.getEstimatedCost()).isEqualTo(5.0);
 
     // Direct investment (specInvestInstrument=0 → instrument="DIRECT_INVESTMENT")
     req = buildRequest(10000.0, 100.0, 0, null, null, null, null, null);
     result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getMatchedRuleName()).isEqualTo("Stocks");
-    assertThat(result.getEstimatedCost()).isEqualTo(10.0);
+    Assertions.assertThat(result.getMatchedRuleName()).isEqualTo("Stocks");
+    Assertions.assertThat(result.getEstimatedCost()).isEqualTo(10.0);
   }
 
   // ---------- Bond (FIXED_INCOME) with DIRECT_INVESTMENT ----------
@@ -191,21 +190,21 @@ class TransactionCostEvalExEstimatorTest {
     // Bond direct: FIXED_INCOME=1, DIRECT_INVESTMENT=0, tradeValue=50000 → MAX(25, 100) = 100
     TransactionCostEstimateRequest req = buildRequest(50000.0, 50.0, 0, 1, null, null, null, null);
     TransactionCostEstimateResult result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getError()).isNull();
-    assertThat(result.getMatchedRuleName()).isEqualTo("Bond direct");
-    assertThat(result.getEstimatedCost()).isEqualTo(100.0);
+    Assertions.assertThat(result.getError()).isNull();
+    Assertions.assertThat(result.getMatchedRuleName()).isEqualTo("Bond direct");
+    Assertions.assertThat(result.getEstimatedCost()).isEqualTo(100.0);
 
     // Bond ETF: FIXED_INCOME=1, ETF=1, tradeValue=50000 → MAX(9, 50) = 50
     req = buildRequest(50000.0, 50.0, 1, 1, null, null, null, null);
     result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getMatchedRuleName()).isEqualTo("Bond ETF");
-    assertThat(result.getEstimatedCost()).isEqualTo(50.0);
+    Assertions.assertThat(result.getMatchedRuleName()).isEqualTo("Bond ETF");
+    Assertions.assertThat(result.getEstimatedCost()).isEqualTo(50.0);
 
     // Equity direct: EQUITIES=0, DIRECT_INVESTMENT=0 → falls to Default
     req = buildRequest(50000.0, 50.0, 0, 0, null, null, null, null);
     result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getMatchedRuleName()).isEqualTo("Default");
-    assertThat(result.getEstimatedCost()).isEqualTo(150.0);
+    Assertions.assertThat(result.getMatchedRuleName()).isEqualTo("Default");
+    Assertions.assertThat(result.getEstimatedCost()).isEqualTo(150.0);
   }
 
   // ---------- Graduated model with IF ----------
@@ -221,15 +220,15 @@ class TransactionCostEvalExEstimatorTest {
         """;
     TransactionCostEstimateRequest req = buildRequest(3000.0, 30.0, null, null, null, null, null, null);
     TransactionCostEstimateResult result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getEstimatedCost()).isEqualTo(20.0);
+    Assertions.assertThat(result.getEstimatedCost()).isEqualTo(20.0);
 
     req = buildRequest(15000.0, 150.0, null, null, null, null, null, null);
     result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getEstimatedCost()).isEqualTo(35.0);
+    Assertions.assertThat(result.getEstimatedCost()).isEqualTo(35.0);
 
     req = buildRequest(50000.0, 500.0, null, null, null, null, null, null);
     result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getEstimatedCost()).isEqualTo(50.0);
+    Assertions.assertThat(result.getEstimatedCost()).isEqualTo(50.0);
   }
 
   // ---------- No match ----------
@@ -245,8 +244,8 @@ class TransactionCostEvalExEstimatorTest {
         """;
     TransactionCostEstimateRequest req = buildRequest(10000.0, 100.0, null, null, "XLON", null, null, null);
     TransactionCostEstimateResult result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getError()).contains("No rule matched");
-    assertThat(result.getEstimatedCost()).isNull();
+    Assertions.assertThat(result.getError()).contains("No rule matched");
+    Assertions.assertThat(result.getEstimatedCost()).isNull();
   }
 
   // ---------- Invalid YAML ----------
@@ -257,7 +256,7 @@ class TransactionCostEvalExEstimatorTest {
     String yaml = "not: valid: yaml: [";
     TransactionCostEstimateRequest req = buildRequest(10000.0, 100.0, null, null, null, null, null, null);
     TransactionCostEstimateResult result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getError()).isNotNull();
+    Assertions.assertThat(result.getError()).isNotNull();
   }
 
   // ---------- Invalid expression ----------
@@ -273,7 +272,7 @@ class TransactionCostEvalExEstimatorTest {
         """;
     TransactionCostEstimateRequest req = buildRequest(10000.0, 100.0, null, null, null, null, null, null);
     TransactionCostEstimateResult result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getError()).isNotNull();
+    Assertions.assertThat(result.getError()).isNotNull();
   }
 
   // ---------- Validation ----------
@@ -288,7 +287,7 @@ class TransactionCostEvalExEstimatorTest {
             expression: "MAX(9.0, tradeValue * 0.001)"
         """;
     List<String> errors = estimator.validate(yaml);
-    assertThat(errors).isEmpty();
+    Assertions.assertThat(errors).isEmpty();
   }
 
   @Test
@@ -300,8 +299,8 @@ class TransactionCostEvalExEstimatorTest {
             condition: "true"
         """;
     List<String> errors = estimator.validate(yaml);
-    assertThat(errors).isNotEmpty();
-    assertThat(errors.stream().anyMatch(e -> e.contains("expression"))).isTrue();
+    Assertions.assertThat(errors).isNotEmpty();
+    Assertions.assertThat(errors.stream().anyMatch(e -> e.contains("expression"))).isTrue();
   }
 
   @Test
@@ -311,7 +310,7 @@ class TransactionCostEvalExEstimatorTest {
         rules: []
         """;
     List<String> errors = estimator.validate(yaml);
-    assertThat(errors).isNotEmpty();
+    Assertions.assertThat(errors).isNotEmpty();
   }
 
   // ---------- Periods: old period uses old rules ----------
@@ -335,9 +334,9 @@ class TransactionCostEvalExEstimatorTest {
         """;
     TransactionCostEstimateRequest req = buildRequest(10000.0, 100.0, null, null, null, null, null, null, "2022-06-15");
     TransactionCostEstimateResult result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getError()).isNull();
-    assertThat(result.getMatchedRuleName()).isEqualTo("Old fee");
-    assertThat(result.getEstimatedCost()).isEqualTo(30.0);
+    Assertions.assertThat(result.getError()).isNull();
+    Assertions.assertThat(result.getMatchedRuleName()).isEqualTo("Old fee");
+    Assertions.assertThat(result.getEstimatedCost()).isEqualTo(30.0);
   }
 
   // ---------- Periods: new period uses new rules ----------
@@ -361,9 +360,9 @@ class TransactionCostEvalExEstimatorTest {
         """;
     TransactionCostEstimateRequest req = buildRequest(10000.0, 100.0, null, null, null, null, null, null, "2025-03-01");
     TransactionCostEstimateResult result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getError()).isNull();
-    assertThat(result.getMatchedRuleName()).isEqualTo("New fee");
-    assertThat(result.getEstimatedCost()).isEqualTo(15.0);
+    Assertions.assertThat(result.getError()).isNull();
+    Assertions.assertThat(result.getMatchedRuleName()).isEqualTo("New fee");
+    Assertions.assertThat(result.getEstimatedCost()).isEqualTo(15.0);
   }
 
   // ---------- Periods: open-ended period ----------
@@ -381,9 +380,9 @@ class TransactionCostEvalExEstimatorTest {
         """;
     TransactionCostEstimateRequest req = buildRequest(10000.0, 100.0, null, null, null, null, null, null, "2030-12-31");
     TransactionCostEstimateResult result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getError()).isNull();
-    assertThat(result.getMatchedRuleName()).isEqualTo("Current fee");
-    assertThat(result.getEstimatedCost()).isEqualTo(20.0);
+    Assertions.assertThat(result.getError()).isNull();
+    Assertions.assertThat(result.getMatchedRuleName()).isEqualTo("Current fee");
+    Assertions.assertThat(result.getEstimatedCost()).isEqualTo(20.0);
   }
 
   // ---------- Periods: no matching period ----------
@@ -402,8 +401,8 @@ class TransactionCostEvalExEstimatorTest {
         """;
     TransactionCostEstimateRequest req = buildRequest(10000.0, 100.0, null, null, null, null, null, null, "2023-06-15");
     TransactionCostEstimateResult result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getError()).contains("No fee period applies for date");
-    assertThat(result.getEstimatedCost()).isNull();
+    Assertions.assertThat(result.getError()).contains("No fee period applies for date");
+    Assertions.assertThat(result.getEstimatedCost()).isNull();
   }
 
   // ---------- Flat rules backward compatible ----------
@@ -420,9 +419,9 @@ class TransactionCostEvalExEstimatorTest {
     // No transactionDate set — should work as before
     TransactionCostEstimateRequest req = buildRequest(10000.0, 100.0, null, null, null, null, null, null, null);
     TransactionCostEstimateResult result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getError()).isNull();
-    assertThat(result.getEstimatedCost()).isEqualTo(25.0);
-    assertThat(result.getMatchedRuleName()).isEqualTo("Default");
+    Assertions.assertThat(result.getError()).isNull();
+    Assertions.assertThat(result.getEstimatedCost()).isEqualTo(25.0);
+    Assertions.assertThat(result.getMatchedRuleName()).isEqualTo("Default");
   }
 
   // ---------- Periods: boundary date on validFrom ----------
@@ -441,8 +440,8 @@ class TransactionCostEvalExEstimatorTest {
         """;
     TransactionCostEstimateRequest req = buildRequest(10000.0, 100.0, null, null, null, null, null, null, "2024-01-01");
     TransactionCostEstimateResult result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getError()).isNull();
-    assertThat(result.getMatchedRuleName()).isEqualTo("2024 fee");
+    Assertions.assertThat(result.getError()).isNull();
+    Assertions.assertThat(result.getMatchedRuleName()).isEqualTo("2024 fee");
   }
 
   // ---------- Periods: boundary date on validTo ----------
@@ -461,8 +460,8 @@ class TransactionCostEvalExEstimatorTest {
         """;
     TransactionCostEstimateRequest req = buildRequest(10000.0, 100.0, null, null, null, null, null, null, "2024-12-31");
     TransactionCostEstimateResult result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getError()).isNull();
-    assertThat(result.getMatchedRuleName()).isEqualTo("2024 fee");
+    Assertions.assertThat(result.getError()).isNull();
+    Assertions.assertThat(result.getMatchedRuleName()).isEqualTo("2024 fee");
   }
 
   // ---------- Periods: validation passes ----------
@@ -485,7 +484,7 @@ class TransactionCostEvalExEstimatorTest {
                 expression: "15.0"
         """;
     List<String> errors = estimator.validate(yaml);
-    assertThat(errors).isEmpty();
+    Assertions.assertThat(errors).isEmpty();
   }
 
   // ---------- Periods: neither rules nor periods ----------
@@ -498,7 +497,7 @@ class TransactionCostEvalExEstimatorTest {
         """;
     TransactionCostEstimateRequest req = buildRequest(10000.0, 100.0, null, null, null, null, null, null, null);
     TransactionCostEstimateResult result = estimator.evaluateYaml(yaml, req);
-    assertThat(result.getError()).contains("neither rules nor periods");
+    Assertions.assertThat(result.getError()).contains("neither rules nor periods");
   }
 
   // ---------- Helper ----------

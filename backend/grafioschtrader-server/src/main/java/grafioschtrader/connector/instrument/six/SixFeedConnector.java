@@ -32,8 +32,10 @@ import org.springframework.stereotype.Component;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
+import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
+import grafioschtrader.types.CreateType;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
@@ -41,8 +43,10 @@ import tools.jackson.databind.json.JsonMapper;
 /*-
  * Stock, Bond, ETF:
  *
- * Dividend: TODO Implement Dividend
- * https://www.six-group.com/sheldon/share_details/v1/CH0244767585/share/dividend.json
+ * Dividend: Supported via the SIX share_details v3 API. The URL extension is the same valorId
+ * (ISIN + currency + check digit, e.g. CH0244767585CHF4) used for price history, stored in
+ * urlDividendExtend:
+ * https://www.six-group.com/sheldon/share_details/v3/CH0244767585CHF4/share/dividend.json
  *
  * Splits: Not Supported
  *
@@ -60,6 +64,7 @@ public class SixFeedConnector extends BaseFeedConnector {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.FS_HISTORY, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL });
     supportedFeed.put(FeedSupport.FS_INTRA, new FeedIdentifier[] { FeedIdentifier.SECURITY_URL });
+    supportedFeed.put(FeedSupport.FS_DIVIDEND, new FeedIdentifier[] { FeedIdentifier.DIVIDEND_URL });
   }
 
   private static final String DOMAIN_NAME_WITH_PROTO = "https://www.six-group.com/";
@@ -201,6 +206,53 @@ public class SixFeedConnector extends BaseFeedConnector {
     return historyquotes;
   }
 
+  @Override
+  public String getDividendHistoricalDownloadLink(final Security security) {
+    return DOMAIN_NAME_WITH_PROTO + "sheldon/share_details/v3/" + security.getUrlDividendExtend()
+        + "/share/dividend.json";
+  }
+
+  /**
+   * Reads the dividend history from the SIX share_details v3 API. SIX delivers the items in
+   * descending ex-date order; they are returned here in ascending order. SIX provides both a raw
+   * ({@code value}) and a split-adjusted ({@code adjustedValue}) amount, but only the raw value is
+   * passed on. The adjusted amount is recalculated downstream from GT's own split records (see
+   * {@link #isDividendSplitAdjusted()} returning the default {@code false}).
+   */
+  @Override
+  public List<Dividend> getDividendHistory(final Security security, final LocalDate fromDate) throws Exception {
+    final List<Dividend> dividends = new ArrayList<>();
+    final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern(FROM_DATE_FORMAT_SIX);
+    final String urlStr = getDividendHistoricalDownloadLink(security);
+    final SixDividendResponse response = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr).body(),
+        SixDividendResponse.class);
+
+    if (response.itemList != null) {
+      for (final SixDividend sixDividend : response.itemList) {
+        final LocalDate exDate = LocalDate.parse(sixDividend.exDividendDate, dateFormat);
+        if (!exDate.isBefore(fromDate)) {
+          dividends.add(0, new Dividend(security.getIdSecuritycurrency(), exDate, null, sixDividend.value, null,
+              sixDividend.currency, CreateType.CONNECTOR_CREATED));
+        }
+      }
+    }
+    return dividends;
+  }
+
+}
+
+class SixDividendResponse {
+  public String status;
+  public int totalCount;
+  public SixDividend[] itemList;
+}
+
+class SixDividend {
+  public String exDividendDate;
+  public Double value;
+  public Double adjustedValue;
+  public String currency;
+  public Double capitalRepayment;
 }
 
 class HistoryQuote {

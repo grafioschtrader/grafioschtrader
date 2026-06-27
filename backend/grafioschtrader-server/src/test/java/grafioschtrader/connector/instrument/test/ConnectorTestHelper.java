@@ -1,7 +1,5 @@
 package grafioschtrader.connector.instrument.test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.security.SecureRandom;
 import java.text.ParseException;
 import java.time.LocalDate;
@@ -12,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.assertj.core.api.Assertions;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.entities.Assetclass;
@@ -39,7 +38,7 @@ public class ConnectorTestHelper {
 
     List<Historyquote> historyquotesDuplicateByDate = historyquotes.stream().filter(h -> !dateSet.add(h.getDate()))
         .collect(Collectors.toList());
-    assertThat(historyquotesDuplicateByDate.size()).as("Duplicate date entries for %s", name).isEqualTo(0);
+    Assertions.assertThat(historyquotesDuplicateByDate.size()).as("Duplicate date entries for %s", name).isEqualTo(0);
   }
 
   public static Currencypair createCurrencyPair(final String fromCurrency, final String toCurrency) {
@@ -214,7 +213,7 @@ public class ConnectorTestHelper {
       } catch (final Exception e) {
         e.printStackTrace();
       }
-      assertThat(seucritysplitList.size()).isEqualTo(sc.expectedRows);
+      Assertions.assertThat(seucritysplitList.size()).isEqualTo(sc.expectedRows);
     });
   }
 
@@ -244,7 +243,7 @@ public class ConnectorTestHelper {
         e.printStackTrace();
       }
 
-      assertThat(dividends.size()).isEqualTo(dc.expectedRows);
+      Assertions.assertThat(dividends.size()).isEqualTo(dc.expectedRows);
     });
   }
 

@@ -17,7 +17,7 @@ public interface DividendJpaRepositoryCustom {
    * addition, the dividend payments of the transactions are also taken into account if the dividend payment is more
    * recent than the date in the dividend entity.
    *
-   * TODO If the dividend calendars cover enough securities, this periodic update no longer needs to be supported.
+   * If the dividend calendars cover enough securities, this periodic update no longer needs to be supported.
    */
   List<String> periodicallyUpdate();
 

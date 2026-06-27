@@ -28,7 +28,7 @@ public class MailSendForwardDefaultBase {
 
   public static void initialize() {
     mailSendForwardDefaultMap.put(MessageComType.USER_ADMIN_ANNOUNCEMENT,
-        new MailSendForwardDefaultConfig(MessageTargetType.INTERNAL_AND_EXTERNAL_MAIL, intExtTargetTypeSet, false));
+        new MailSendForwardDefaultConfig(MessageTargetType.INTERNAL_AND_EXTERNAL_MAIL, standardTargetTypeSet, false));
     mailSendForwardDefaultMap.put(MessageComType.USER_ADMIN_PERSONAL_TO_USER,
         new MailSendForwardDefaultConfig(MessageTargetType.INTERNAL_AND_EXTERNAL_MAIL, intExtTargetTypeSet, false));
     mailSendForwardDefaultMap.put(MessageComType.MAIN_ADMIN_RELEASE_LOGOUT,

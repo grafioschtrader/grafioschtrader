@@ -131,7 +131,7 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   public S savePrefetchedHistoryQuotes(final ISecuritycurrencyService<S> securitycurrencyService, S securitycurrency,
       final List<Historyquote> historyquotes, final LocalDate fromDate, final LocalDate toDate) {
     return savePrefetchedHistoryQuotesInternal(securitycurrencyService, securitycurrency, historyquotes, fromDate,
-        toDate, current -> (short) 0);
+        toDate, _ -> (short) 0);
   }
 
   /**

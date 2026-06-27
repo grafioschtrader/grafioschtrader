@@ -91,7 +91,7 @@ class TransactionCostEstimatorReportTest {
       }
 
       PlanStats stats = statsByPlan.computeIfAbsent(plan.getIdTradingPlatformPlan(),
-          id -> new PlanStats(plan));
+          _ -> new PlanStats(plan));
       stats.totalTransactions++;
 
       if (tx.getTransactionCost() == null || tx.getTransactionCost() == 0.0) {

@@ -35,6 +35,16 @@ public class UserEntityChangeLimitJpaRepositoryImpl extends BaseRepositoryImpl<U
   public UserEntityChangeLimit saveOnlyAttributes(UserEntityChangeLimit userEntityChangeLimit,
       UserEntityChangeLimit existingEntity, final Set<Class<? extends Annotation>> updatePropertyLevelClasses)
       throws Exception {
+    // A user may hold at most one limit per entity (unique key Uecl_unique). When a limit-increase request is
+    // approved the frontend sends a row without id, which would INSERT and collide with an already existing
+    // (often expired) limit for the same (user, entity). Resolve that row here and pass it as existingEntity so the
+    // save renews the existing limit (its updatable day_limit/until_date) instead of triggering a constraint
+    // violation.
+    if (existingEntity == null && userEntityChangeLimit.getIdUserEntityChangeLimit() == null) {
+      existingEntity = userEntityChangeLimitJpaRepository
+          .findByIdUserAndEntityName(userEntityChangeLimit.getIdUser(), userEntityChangeLimit.getEntityName())
+          .orElse(null);
+    }
     return RepositoryHelper.saveOnlyAttributes(userEntityChangeLimitJpaRepository, userEntityChangeLimit,
         existingEntity, updatePropertyLevelClasses);
   }

@@ -24,6 +24,7 @@ import {HelpIds} from '../../lib/help/help.ids';
 import {FormDefinitionHelper} from '../../shared/edit/form.definition.helper';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
+import {BusinessSelectOptionsHelper} from '../../shared/securitycurrency/business.select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {BaseSettings} from '../../lib/base.settings';
@@ -168,8 +169,23 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
   }
 
   valueChangedOnTransactionTime() {
-    this.transactionTimeChangeSub = this.configObject.transactionTime.formControl.valueChanges.subscribe(() =>
-      this.disableEnableExchangeRateButtons());
+    this.transactionTimeChangeSub = this.configObject.transactionTime.formControl.valueChanges.subscribe(() => {
+      this.disableEnableExchangeRateButtons();
+      this.toggleDebitCashaccountOptionsByTransactionTime();
+    });
+  }
+
+  /**
+   * Disables debit cash account options that are no longer active at the selected transaction time. The credit
+   * options are re-toggled separately by {@link filterCreditHtmlOptions} since they are rebuilt on every debit change.
+   */
+  private toggleDebitCashaccountOptionsByTransactionTime(): void {
+    const transactionTime = this.configObject.transactionTime.formControl.value;
+    if (!transactionTime || !this.portfolios) {
+      return;
+    }
+    BusinessSelectOptionsHelper.accountsEnableDisableOptionsByActiveDate(
+      this.portfolios.flatMap(p => p.cashaccountList || []), this.configObject.idDebitCashaccount, +transactionTime);
   }
 
   valueChangedOnDebitCashaccount(): void {
@@ -269,6 +285,7 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
 
   private setupCashaccountSelect(debitIdCashaccount: number, creditIdCashaccount: number) {
     this.configObject.idDebitCashaccount.valueKeyHtmlOptions = this.prepareCashaccountOptions(this.portfolios);
+    this.toggleDebitCashaccountOptionsByTransactionTime();
     this.filterCreditHtmlOptions(this.configObject.idDebitCashaccount.valueKeyHtmlOptions,
       creditIdCashaccount);
     this.valueChangedOnDebitCashaccount();
@@ -359,6 +376,11 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
       debitHtmlOption.key !== idCashaccountCredit);
 
     this.configObject.idCreditCashaccount.valueKeyHtmlOptions = valueKeyHtmlOptions;
+    if (this.portfolios && this.configObject.transactionTime.formControl.value) {
+      BusinessSelectOptionsHelper.accountsEnableDisableOptionsByActiveDate(
+        this.portfolios.flatMap(p => p.cashaccountList || []), this.configObject.idCreditCashaccount,
+        +this.configObject.transactionTime.formControl.value);
+    }
     this.configObject.idCreditCashaccount.valueKeyHtmlOptions.unshift(new ValueKeyHtmlSelectOptions('', ''));
     if (valueKeyHtmlOptions.length === 2) {
       this.configObject.idCreditCashaccount.formControl.setValue(valueKeyHtmlOptions[1].key);

@@ -73,7 +73,7 @@ public class HistoryquoteReadLimitService {
     }
     final LocalDate today = LocalDate.now();
     final UserDaySeen userDaySeen = seenByUser.compute(user.getIdUser(),
-        (id, existing) -> existing == null || !existing.day.equals(today) ? new UserDaySeen(today) : existing);
+        (_, existing) -> existing == null || !existing.day.equals(today) ? new UserDaySeen(today) : existing);
     synchronized (userDaySeen) {
       if (userDaySeen.seenIds.contains(idSecuritycurrency)) {
         return;

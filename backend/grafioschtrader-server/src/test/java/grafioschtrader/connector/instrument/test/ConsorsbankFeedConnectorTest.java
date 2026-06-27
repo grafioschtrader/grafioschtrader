@@ -1,10 +1,9 @@
 package grafioschtrader.connector.instrument.test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import grafioschtrader.connector.instrument.consorsbank.ConsorsbankFeedConnector;
@@ -30,7 +29,7 @@ class ConsorsbankFeedConnectorTest {
       } catch (final Exception e) {
         e.printStackTrace();
       }
-      assertThat(security.getSLast()).isGreaterThan(0.0);
+      Assertions.assertThat(security.getSLast()).isGreaterThan(0.0);
     });
   }
 

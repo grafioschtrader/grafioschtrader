@@ -15,12 +15,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.UserAccessHelper;
 import grafiosch.dto.MailSendForwardDefaultBase;
 import grafiosch.entities.MailSendRecv;
 import grafiosch.entities.MailSettingForward;
 import grafiosch.entities.Role;
 import grafiosch.entities.User;
 import grafiosch.repository.MailSendRecvJpaRepository;
+import grafiosch.repository.MailSendRecvReadDelJpaRepository;
 import grafiosch.repository.MailSettingForwardJpaRepository;
 import grafiosch.repository.RoleJpaRepository;
 import grafiosch.repository.UserJpaRepository;
@@ -67,6 +69,9 @@ public class SendMailInternalExternalService {
   private MailSendRecvJpaRepository mailSendRecvJpaRepository;
 
   @Autowired
+  private MailSendRecvReadDelJpaRepository mailSendRecvReadDelJpaRepository;
+
+  @Autowired
   private MessageSource messagesSource;
 
   @Autowired
@@ -77,6 +82,13 @@ public class SendMailInternalExternalService {
 
   @Autowired
   private MailExternalService mailExternalService;
+
+  /**
+   * Context verifiers for initial user-to-user messages, supplied by the application layer. Optional: when no verifier
+   * is registered, a non-privileged user cannot start a direct user-to-user message at all.
+   */
+  @Autowired(required = false)
+  private List<IMailUserToUserContextVerifier> contextVerifiers;
 
   /**
    * Processes mail messages received via REST API with validation and routing.
@@ -127,44 +139,59 @@ public class SendMailInternalExternalService {
         && !isAdmin) {
       throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
-    // this.initialMsgUserToUserSecurityCheck(mailSendRecv, fromUser, isAdmin);
+    this.initialMsgUserToUserSecurityCheck(mailSendRecv, fromUser);
     return isAdmin;
   }
 
   /**
-   * Security validation for initial user-to-user messages (currently disabled).
-   * 
+   * Security validation for direct user-to-user messages from non-privileged users.
+   *
    * <p>
-   * This method would validate that non-admin users can only send initial messages to other users in specific contexts
-   * (e.g., related to shared entities). The validation is currently commented out as it requires additional context
-   * about entity relationships.
-   * 
+   * Privileged users (admin / all-edit) and role-addressed messages are not restricted here. For everyone else a
+   * direct message to a specific user is only allowed when it is either a reply within a thread the sender is part of,
+   * or an initial message justified by a verified in-app context (delegated to the registered
+   * {@link IMailUserToUserContextVerifier} beans). This prevents API abuse where a well-formed payload targets an
+   * arbitrary user without any legitimate relationship.
+   *
    * @param mailSendRecv the message being sent
    * @param fromUser     the user sending the message
-   * @param isAdmin      whether the sender has admin privileges
    * @throws SecurityException if the message violates security policies
    */
-  private void initialMsgUserToUserSecurityCheck(MailSendRecv mailSendRecv, User fromUser, boolean isAdmin) {
-    if (!isAdmin && mailSendRecv.getIdUserTo() != null) {
-      if (mailSendRecv.getIdReplyToLocal() == null) {
-        // Initial message from user to user only possible for admin
+  private void initialMsgUserToUserSecurityCheck(MailSendRecv mailSendRecv, User fromUser) {
+    if (mailSendRecv.getIdUserTo() == null || UserAccessHelper.hasHigherPrivileges(fromUser)) {
+      return;
+    }
+    if (mailSendRecv.getIdReplyToLocal() == null) {
+      // Initial message: a non-privileged user may only start it from a verified in-app context.
+      verifyInitialUserToUserContext(mailSendRecv, fromUser);
+    } else {
+      // Reply: the sender must be connected to the referenced parent message (as sender, receiver or receiver role).
+      MailSendRecv initialMsg = mailSendRecvJpaRepository.findById(mailSendRecv.getIdReplyToLocal())
+          .orElseThrow(() -> new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH));
+      if (!(initialMsg.getIdUserFrom().equals(fromUser.getId()) || fromUser.getId().equals(initialMsg.getIdUserTo())
+          || (initialMsg.getIdRoleTo() != null && fromUser.hasIdRole(initialMsg.getIdRoleTo())))) {
         throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
-      } else {
-        Optional<MailSendRecv> initialMsgOpt = mailSendRecvJpaRepository.findById(mailSendRecv.getIdReplyToLocal());
-        if (initialMsgOpt.isEmpty()) {
-          // Initial message must be present otherwise misuse is possible
-          throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
-        } else {
-          MailSendRecv initialMsg = initialMsgOpt.get();
-          if (!(initialMsg.getIdUserFrom().equals(fromUser.getId()) || fromUser.getId().equals(initialMsg.getIdUserTo())
-              || (initialMsg.getIdRoleTo() != null && fromUser.hasIdRole(initialMsg.getIdRoleTo())))) {
-            // There is no connection of this user with the initial messages.
-            // Neither via the sender nor the receiver or the receiver role.
-            throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
-          }
-        }
       }
     }
+  }
+
+  /**
+   * Delegates verification of an initial user-to-user message to the registered context verifier matching the
+   * message's {@code contextEntity}. Rejects the message when no context is supplied or no verifier accepts it.
+   *
+   * @param mailSendRecv the initial message being sent, carrying the context entity type and id
+   * @param fromUser     the user sending the message
+   * @throws SecurityException if no context is supplied, no verifier supports it, or verification fails
+   */
+  private void verifyInitialUserToUserContext(MailSendRecv mailSendRecv, User fromUser) {
+    String contextEntity = mailSendRecv.getContextEntity();
+    Integer idEntityContext = mailSendRecv.getIdEntityContext();
+    if (contextEntity == null || idEntityContext == null || contextVerifiers == null) {
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
+    }
+    IMailUserToUserContextVerifier verifier = contextVerifiers.stream().filter(v -> v.supports(contextEntity))
+        .findFirst().orElseThrow(() -> new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH));
+    verifier.verify(fromUser, mailSendRecv.getIdUserTo(), idEntityContext);
   }
 
   /**
@@ -196,8 +223,9 @@ public class SendMailInternalExternalService {
    * 
    * <p>
    * Creates separate internal messages for both USER and LIMIT_EDIT roles to ensure all users receive admin
-   * announcements in their internal message inbox.
-   * 
+   * announcements in their internal message inbox. Users who configured external-email-only delivery for admin
+   * announcements get the role message pre-marked as hidden, so it is delivered only as an external email.
+   *
    * @param mailSendRecv the admin announcement to send internally
    * @return the last processed {@link MailSendRecv} entity
    */
@@ -206,9 +234,24 @@ public class SendMailInternalExternalService {
     MailSendRecv msr = new MailSendRecv();
     BeanUtils.copyProperties(msr, mailSendRecv);
     msr.setRoleNameTo(Role.ROLE_USER);
-    sendFromRESTApi(msr);
+    hideForEmailOnlyUsers(sendFromRESTApi(msr));
     mailSendRecv.setRoleNameTo(Role.ROLE_LIMIT_EDIT);
-    return sendFromRESTApi(mailSendRecv);
+    MailSendRecv saved = sendFromRESTApi(mailSendRecv);
+    hideForEmailOnlyUsers(saved);
+    return saved;
+  }
+
+  /**
+   * Hides a role-addressed admin announcement from the internal inbox of every member of its role who chose
+   * external-email-only delivery for {@link MessageComType#USER_ADMIN_ANNOUNCEMENT}. The external email itself is sent
+   * separately by {@link #sendExternalAdminMessageToEveryUser(MailSendRecv)}.
+   *
+   * @param roleMsg the saved RECEIVE role message whose id and role identify the announcement and its recipients
+   */
+  private void hideForEmailOnlyUsers(MailSendRecv roleMsg) {
+    mailSendRecvReadDelJpaRepository.markHideForExternalOnlyAnnouncement(roleMsg.getIdMailSendRecv(),
+        roleMsg.getIdRoleTo(), MessageComType.USER_ADMIN_ANNOUNCEMENT.getValue(),
+        MessageTargetType.EXTERNAL_MAIL.getValue());
   }
 
   /**

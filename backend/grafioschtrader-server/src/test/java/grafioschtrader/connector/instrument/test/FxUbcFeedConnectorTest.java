@@ -1,13 +1,12 @@
 package grafioschtrader.connector.instrument.test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import grafioschtrader.GlobalConstants;
@@ -48,9 +47,9 @@ class FxUbcFeedConnectorTest {
       } catch (Exception e) {
         e.printStackTrace();
       }
-      assertThat(historyquotes.size()).isEqualTo(cphd.expectedRows);
-      assertThat(historyquotes.get(0).getDate()).isEqualTo(cphd.from);
-      assertThat(historyquotes.get(historyquotes.size() - 1).getDate()).isEqualTo(cphd.to);
+      Assertions.assertThat(historyquotes.size()).isEqualTo(cphd.expectedRows);
+      Assertions.assertThat(historyquotes.get(0).getDate()).isEqualTo(cphd.from);
+      Assertions.assertThat(historyquotes.get(historyquotes.size() - 1).getDate()).isEqualTo(cphd.to);
       ConnectorTestHelper.checkHistoryquoteUniqueDate(cphd.currencypair.getName(), historyquotes);
     });
   }

@@ -1,6 +1,7 @@
 package grafioschtrader.repository;
 
 import java.lang.annotation.Annotation;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -39,8 +40,31 @@ public class SecurityaccountJpaRepositoryImpl extends BaseRepositoryImpl<Securit
   public Securityaccount saveOnlyAttributes(final Securityaccount securityaccount, Securityaccount existingEntity,
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
     validateTradingPeriods(securityaccount, existingEntity);
+    validateActiveToDate(securityaccount, existingEntity);
     return RepositoryHelper.saveOnlyAttributes(securityaccountJpaRepository, securityaccount, existingEntity,
         updatePropertyLevelClasses);
+  }
+
+  /**
+   * Validates that the account's active-until date is not earlier than its most recent transaction. A {@code null}
+   * active-until date (active indefinitely) or a new account without existing transactions imposes no restriction.
+   *
+   * @param securityaccount the account being saved, carrying the proposed active-until date
+   * @param existingEntity  the previously persisted account, or null when creating a new one
+   * @throws DataViolationException if the active-until date precedes the latest transaction date
+   */
+  private void validateActiveToDate(Securityaccount securityaccount, Securityaccount existingEntity) {
+    if (securityaccount.getActiveToDate() == null || existingEntity == null
+        || existingEntity.getIdSecuritycashAccount() == null) {
+      return;
+    }
+    transactionJpaRepository.findMaxTransactionTimeBySecurityaccount(existingEntity.getIdSecuritycashAccount())
+        .map(LocalDateTime::toLocalDate)
+        .filter(maxDate -> maxDate.isAfter(securityaccount.getActiveToDate()))
+        .ifPresent(maxDate -> {
+          throw new DataViolationException("active.to.date", "gt.account.active.before.transaction",
+              new Object[] { maxDate });
+        });
   }
 
   /**

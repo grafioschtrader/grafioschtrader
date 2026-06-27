@@ -10,7 +10,6 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.entities.TaskDataChange;
@@ -21,14 +20,8 @@ import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.types.TaskTypeExtended;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 
 public class PortfolioJpaRepositoryImpl extends BaseRepositoryImpl<Portfolio> implements PortfolioJpaRepositoryCustom {
-
-  // TODO Remove EntityManager and use Spring Data for queries
-  @PersistenceContext
-  private EntityManager em;
 
   @Autowired
   private PortfolioJpaRepository portfolioJpaRepository;
@@ -45,24 +38,6 @@ public class PortfolioJpaRepositoryImpl extends BaseRepositoryImpl<Portfolio> im
   @Autowired
   public void setCurrencypairJpaRepository(@Lazy final CurrencypairJpaRepository currencypairJpaRepository) {
     this.currencypairJpaRepository = currencypairJpaRepository;
-  }
-
-  @Override
-  @Transactional
-  @Modifying
-  public Portfolio removeCashaccounts(final Integer idPortfolio) {
-    em.createQuery("DELETE FROM Cashaccount c WHERE c.portfolio.idPortfolio = ?1").setParameter(1, idPortfolio)
-        .executeUpdate();
-    return portfolioJpaRepository.getReferenceById(idPortfolio);
-  }
-
-  @Override
-  @Transactional
-  @Modifying
-  public Portfolio removeSecurityaccounts(final Integer idPortfolio) {
-    em.createQuery("DELETE FROM Securityaccount s WHERE s.portfolio.idPortfolio = ?1").setParameter(1, idPortfolio)
-        .executeUpdate();
-    return portfolioJpaRepository.getReferenceById(idPortfolio);
   }
 
   @Override

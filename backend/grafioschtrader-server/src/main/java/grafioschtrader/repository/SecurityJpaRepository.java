@@ -19,6 +19,7 @@ import grafioschtrader.dto.IHistoryquoteQualityFlat;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.projection.IFormulaSecurityLoad;
 import grafioschtrader.entities.projection.IdSecurityCurrencyPairInfo;
+import grafioschtrader.entities.projection.SecurityPeriodClose;
 import grafioschtrader.entities.projection.SecurityYearClose;
 import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteData;
 import grafioschtrader.reportviews.historyquotequality.IHistoryquoteQualityWithSecurityProp;
@@ -450,6 +451,36 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
    */
   @Query(nativeQuery = true)
   List<SecurityYearClose> getSecurityYearDivSumCurrencyClose(Integer idSecurity, Integer idCurrencypair);
+
+  /**
+   * Retrieves the month-end close price and the dividend sum per calendar month for the given security. One row is
+   * returned per month that has at least one quote, holding the close of the last available trading day of that month
+   * and the sum of dividends whose ex-date falls in the same month. Used by the seasonality heat map, which aggregates
+   * these rows into monthly, quarterly and annual returns.
+   *
+   * Named query: Security.getSecurityMonthCloseDivSum
+   *
+   * @param idSecurity the securitycurrency ID
+   * @return a list of SecurityPeriodClose projections (date = month-end, securityClose, periodDiv), ordered by date
+   *         descending
+   */
+  @Query(nativeQuery = true)
+  List<SecurityPeriodClose> getSecurityMonthCloseDivSum(Integer idSecurity);
+
+  /**
+   * Like {@link #getSecurityMonthCloseDivSum(Integer)} but additionally returns, for every month-end date, the close
+   * of the supplied currency pair on the same date so the seasonality report can convert the returns into the tenant
+   * main currency. Months for which the currency pair has no quote on the exact month-end date are omitted.
+   *
+   * Named query: Security.getSecurityMonthDivSumCurrencyClose
+   *
+   * @param idSecurity     the securitycurrency ID for closes and dividends
+   * @param idCurrencypair the currency-pair ID supplying currencyClose
+   * @return a list of SecurityPeriodClose projections (date, securityClose, periodDiv, currencyClose), ordered by date
+   *         descending
+   */
+  @Query(nativeQuery = true)
+  List<SecurityPeriodClose> getSecurityMonthDivSumCurrencyClose(Integer idSecurity, Integer idCurrencypair);
 
   /**
    * Counts all working and non-functioning historical price data connectors, grouped by connector. Security and

@@ -230,24 +230,25 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
       return ChronoUnit.DAYS.between(aDate, aNextDate);
     }
 
-    return getDaysInYear(basis) / frequency;
+    return getDaysInYear(settlementDate, basis) / frequency;
   }
 
   /**
    * Gets the number of days in a year based on the basis.
    *
+   * @param date  a date within the relevant coupon year; its year determines the 365/366 result for the actual/actual
+   *              (exact/exact) basis
    * @param nMode The day count basis.
    * @return The number of days in a year.
    */
-  private int getDaysInYear(int nMode) {
+  private int getDaysInYear(LocalDate date, int nMode) {
     switch (nMode) {
     case 0: // 0=USA (NASD) 30/360
     case 2: // 2=exact/360
     case 4: // 4=Europe 30/360
       return 360;
-    case 1: // 1=exact/exact
-      // TODO Miss leap year
-      return 365;
+    case 1: // 1=exact/exact — 366 in a leap year, otherwise 365
+      return date.lengthOfYear();
     default: // 3=exact/365
       return 365;
     }

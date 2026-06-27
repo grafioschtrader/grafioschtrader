@@ -25,6 +25,7 @@ import {FormDefinitionHelper} from '../../shared/edit/form.definition.helper';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
+import {BusinessSelectOptionsHelper} from '../../shared/securitycurrency/business.select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {BaseSettings} from '../../lib/base.settings';
@@ -80,6 +81,9 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
 
   /** Subscription for cash account changes */
   private chashaccountChangedSub: Subscription;
+
+  /** Subscription for transaction time changes, used to re-evaluate which accounts are active */
+  private transactionTimeChangedSub: Subscription;
 
   /** Standard required field error configuration */
   private errorRequired = {name: 'required', keyi18n: 'required', rules: [RuleEvent.TOUCHED]};
@@ -246,6 +250,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
   onHide(event) {
     this.transactionTypeChangedSub && this.transactionTypeChangedSub.unsubscribe();
     this.chashaccountChangedSub && this.chashaccountChangedSub.unsubscribe();
+    this.transactionTimeChangedSub && this.transactionTimeChangedSub.unsubscribe();
     super.close();
   }
 
@@ -312,6 +317,27 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     this.valueChangedOnCashaccount();
     this.valueChangedOnTransactionType();
     this.valueChangedOnCalcFields();
+    this.transactionTimeChangedSub = this.configObject.transactionTime.formControl.valueChanges.subscribe(() =>
+      this.toggleAccountOptionsByTransactionTime());
+  }
+
+  /**
+   * Disables cash and security account options that are no longer active at the currently selected transaction time,
+   * so a terminated account cannot be booked after its active-until date. A previously selected account remains
+   * visible but disabled.
+   */
+  private toggleAccountOptionsByTransactionTime(): void {
+    const transactionTime = this.configObject.transactionTime.formControl.value;
+    if (!transactionTime || !this.portfolios) {
+      return;
+    }
+    const time = +transactionTime;
+    BusinessSelectOptionsHelper.accountsEnableDisableOptionsByActiveDate(
+      this.portfolios.flatMap(p => p.cashaccountList || []), this.configObject.idCashaccount, time);
+    if (!this.configObject.idSecurityaccount.invisible) {
+      BusinessSelectOptionsHelper.accountsEnableDisableOptionsByActiveDate(
+        this.portfolios.flatMap(p => p.securityaccountList || []), this.configObject.idSecurityaccount, time);
+    }
   }
 
   /**
@@ -324,6 +350,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
         this.portfolios = [portfolio];
         this.configObject.idCashaccount.valueKeyHtmlOptions = this.prepareCashaccountOptions(this.portfolios);
         this.setValueChanged();
+        this.toggleAccountOptionsByTransactionTime();
         this.setExistingTransactionToView();
       }
     );
@@ -338,6 +365,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
         this.portfolios = data;
         this.configObject.idCashaccount.valueKeyHtmlOptions = this.prepareCashaccountOptions(this.portfolios);
         this.setValueChanged();
+        this.toggleAccountOptionsByTransactionTime();
         this.setExistingTransactionToView();
       });
   }
@@ -383,6 +411,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
       this.configObject.idSecurityaccount.valueKeyHtmlOptions =
         SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idSecuritycashAccount', 'name',
           portfolio.securityaccountList, true);
+      this.toggleAccountOptionsByTransactionTime();
       this.selectSingleOptions(this.configObject.idSecurityaccount, true);
     }
   }

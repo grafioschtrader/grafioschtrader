@@ -67,15 +67,7 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   List<TradingPeriodTransactionSummary> getTransactionSummariesBySecurityaccount(
       @Param("idSecurityaccount") Integer idSecurityaccount);
 
-  // TODO remove it after usage
-
-  @Query(value = """
-      SELECT t.* FROM transaction t JOIN cashaccount c ON t.id_cash_account = c.id_securitycash_account
-      JOIN security s ON t.id_securitycurrency = s.id_securitycurrency
-      JOIN currencypair cp ON t.id_currency_pair = cp.id_securitycurrency
-      WHERE cp.from_currency = s.currency""", nativeQuery = true)
-  List<Transaction> findWrongCurrencypairTransaction();
-
+ 
   /**
    * Finds the latest transaction date for a specific security in a given security account, excluding system-created
    * transfer transactions. Used to validate that a new transfer date is after all existing transactions.
@@ -102,6 +94,26 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
       "WHERE t.idSecurityaccount = ?1 AND s.idSecuritycurrency = ?2 " +
       "AND t.transactionTime > ?3 AND t.idSecurityTransfer IS NULL")
   long countTransactionsAfterDate(Integer idSecurityaccount, Integer idSecuritycurrency, LocalDateTime afterDate);
+
+  /**
+   * Finds the latest transaction time booked against the given cash account. Used to ensure an account's
+   * active-until date cannot be set earlier than its most recent transaction.
+   *
+   * @param idCashaccount the cash account id
+   * @return the latest transaction time, or empty if the account has no transactions
+   */
+  @Query("SELECT MAX(t.transactionTime) FROM Transaction t WHERE t.cashaccount.idSecuritycashAccount = ?1")
+  Optional<LocalDateTime> findMaxTransactionTimeByCashaccount(Integer idCashaccount);
+
+  /**
+   * Finds the latest transaction time booked against the given security account. Used to ensure an account's
+   * active-until date cannot be set earlier than its most recent transaction.
+   *
+   * @param idSecurityaccount the security account id
+   * @return the latest transaction time, or empty if the account has no transactions
+   */
+  @Query("SELECT MAX(t.transactionTime) FROM Transaction t WHERE t.idSecurityaccount = ?1")
+  Optional<LocalDateTime> findMaxTransactionTimeBySecurityaccount(Integer idSecurityaccount);
 
   List<Transaction> findByIdSecurityTransfer(Integer idSecurityTransfer);
 

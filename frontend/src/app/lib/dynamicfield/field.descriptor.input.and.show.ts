@@ -110,6 +110,25 @@ export interface FieldDescriptorInputAndShow {
 
   /** Available enum constant names when dataType is EnumSet. Used to populate multi-select options. */
   enumValues: string[];
+
+  /** Regular expression the input must match (from a backend @Pattern annotation). Null if unconstrained. */
+  pattern?: string;
+
+  /** Lower-bound date (ISO yyyy-MM-dd) the value must be on or after (from @AfterEqual). Null if unconstrained. */
+  dateMin?: string;
+
+  /** Maximum number of integer digits for a numeric field (from @Digits). Null if unconstrained. */
+  digitsInteger?: number;
+
+  /** Maximum number of fraction digits for a numeric field (from @Digits). Null if unconstrained. */
+  digitsFraction?: number;
+
+  /**
+   * Explicit label translation key sent by the backend for entity form fields; when absent the key is
+   * derived from the field name (HeqF). The backend already returns the fields ordered, so the uiOrder
+   * and entity metadata it carries are not needed on the client.
+   */
+  labelKey?: string;
 }
 
 /**

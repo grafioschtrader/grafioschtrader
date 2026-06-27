@@ -154,12 +154,13 @@ export class TaskFilterDialogComponent extends ShowRecordConfigBase {
 
   /**
    * Restores the selection state from LocalStorage.
-   * If no saved state exists, all items are selected by default.
+   * If no saved state exists or the stored preference is stale (the set of task types changed since it
+   * was saved), all items are selected by default.
    */
   private restoreSelectionFromStorage(): void {
-    const savedTaskIds = this.getStoredTaskIds();
+    const savedTaskIds = TaskFilterDialogComponent.getValidatedStoredTaskIds(this.taskTypeEnum);
     if (savedTaskIds === null) {
-      // No stored preference - select all
+      // No (valid) stored preference - select all
       this.selectedItems = [...this.taskFilterItems];
     } else {
       // Restore saved selection
@@ -170,31 +171,103 @@ export class TaskFilterDialogComponent extends ShowRecordConfigBase {
   }
 
   /**
-   * Saves the selected task IDs to LocalStorage.
+   * Saves the selected task IDs to LocalStorage together with a checksum of the currently known set of
+   * task types. The checksum lets {@link getValidatedStoredTaskIds} detect when the available task
+   * types have changed (renumbering, additions, removals) and discard the now-stale selection.
    */
   private saveSelectionToStorage(taskIds: number[]): void {
-    localStorage.setItem(TaskFilterDialogComponent.STORAGE_KEY, JSON.stringify(taskIds));
-  }
-
-  /**
-   * Retrieves the stored task IDs from LocalStorage.
-   * @returns Array of task IDs or null if no stored preference exists.
-   */
-  private getStoredTaskIds(): number[] | null {
-    const stored = localStorage.getItem(TaskFilterDialogComponent.STORAGE_KEY);
-    return stored ? JSON.parse(stored) : null;
+    const payload: StoredTaskFilter = {
+      checksum: TaskFilterDialogComponent.computeTaskSetChecksum(this.taskTypeEnum),
+      taskIds
+    };
+    localStorage.setItem(TaskFilterDialogComponent.STORAGE_KEY, JSON.stringify(payload));
   }
 
   /** LocalStorage key for persisting task filter selections */
   static readonly STORAGE_KEY = 'taskDataChangeFilter';
 
   /**
-   * Static utility method to get stored task IDs without instantiating the component.
-   * Used by TaskDataChangeService to retrieve filter values.
-   * @returns Array of task IDs or null if no stored preference exists.
+   * Extracts the numeric task ids of an injected task type enum, sorted ascending. Mirrors the value
+   * set enumerated by {@link initializeTaskFilterItems}.
+   *
+   * @param taskTypeEnum the merged task type enum (e.g. TaskType)
+   * @returns the sorted numeric task ids
    */
-  static getStoredTaskIdsStatic(): number[] | null {
-    const stored = localStorage.getItem(TaskFilterDialogComponent.STORAGE_KEY);
-    return stored ? JSON.parse(stored) : null;
+  static extractTaskIds(taskTypeEnum: any): number[] {
+    return Object.keys(taskTypeEnum)
+      .filter(key => isNaN(Number(key)))
+      .map(key => taskTypeEnum[key])
+      .filter((value): value is number => typeof value === 'number')
+      .sort((a, b) => a - b);
   }
+
+  /**
+   * Computes a small deterministic checksum over the current set of possible task ids. Any change to
+   * the set (a renumbered, added or removed task type) yields a different checksum.
+   *
+   * @param taskTypeEnum the merged task type enum
+   * @returns a short checksum string
+   */
+  static computeTaskSetChecksum(taskTypeEnum: any): string {
+    const key = TaskFilterDialogComponent.extractTaskIds(taskTypeEnum).join(',');
+    let hash = 5381;
+    for (let i = 0; i < key.length; i++) {
+      hash = ((hash << 5) + hash + key.charCodeAt(i)) | 0; // djb2, kept in 32-bit range
+    }
+    return (hash >>> 0).toString(36);
+  }
+
+  /**
+   * Validates a raw LocalStorage value against the current task-set checksum. Pure helper (no
+   * LocalStorage access) so the validation logic can be unit tested.
+   *
+   * @param raw the raw string read from LocalStorage, or null
+   * @param currentChecksum the checksum of the currently known task set
+   * @returns the stored task ids when the value is the current format and the checksum matches,
+   *          otherwise null (missing, legacy bare-array format, corrupt JSON, or checksum mismatch)
+   */
+  static parseStoredFilter(raw: string | null, currentChecksum: string): number[] | null {
+    if (!raw) {
+      return null;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      if (!parsed || Array.isArray(parsed) || typeof parsed !== 'object'
+        || !Array.isArray(parsed.taskIds) || parsed.checksum !== currentChecksum) {
+        return null;
+      }
+      return parsed.taskIds as number[];
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Static utility method to get the stored task ids without instantiating the component, validated
+   * against the current set of task types. Used by TaskDataChangeTableComponent to retrieve the filter.
+   * When the stored value is missing, in the legacy format, corrupt, or no longer matches the current
+   * task set, the stale key is cleared and null is returned (meaning "show all tasks").
+   *
+   * @param taskTypeEnum the merged task type enum
+   * @returns the stored task ids, or null when there is no valid stored preference
+   */
+  static getValidatedStoredTaskIds(taskTypeEnum: any): number[] | null {
+    const currentChecksum = TaskFilterDialogComponent.computeTaskSetChecksum(taskTypeEnum);
+    const raw = localStorage.getItem(TaskFilterDialogComponent.STORAGE_KEY);
+    const taskIds = TaskFilterDialogComponent.parseStoredFilter(raw, currentChecksum);
+    if (taskIds === null && raw !== null) {
+      // Drop a stale or legacy value so the next applied filter is written in the current format.
+      localStorage.removeItem(TaskFilterDialogComponent.STORAGE_KEY);
+    }
+    return taskIds;
+  }
+}
+
+/**
+ * Persisted shape of the task filter in LocalStorage: the selected numeric task ids together with a
+ * checksum of the task-type set they were chosen from.
+ */
+interface StoredTaskFilter {
+  checksum: string;
+  taskIds: number[];
 }

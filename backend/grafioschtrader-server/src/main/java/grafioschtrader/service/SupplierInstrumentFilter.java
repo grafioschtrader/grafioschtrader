@@ -41,7 +41,7 @@ public class SupplierInstrumentFilter {
         Integer instrumentId = detail.getIdEntity();
 
         if (supplierId != null && instrumentId != null) {
-          supplierToInstruments.computeIfAbsent(supplierId, k -> new HashSet<>()).add(instrumentId);
+          supplierToInstruments.computeIfAbsent(supplierId, _ -> new HashSet<>()).add(instrumentId);
         }
       }
     }

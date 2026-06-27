@@ -978,3 +978,62 @@ The child component (e.g., one extending `TransactionContextMenu`) marks the eve
 
 - `MailForwardSettingTableEditComponent` - Clean example of IGlobalMenuAttach pattern
 - `GTNetSecurityImportTableComponent` - Example with CSV upload functionality
+
+## Generate Edit Forms From Backend Entity Definitions (Issue #27)
+
+**Prefer generating an edit form from the backend entity's annotations over hand-coding
+`DynamicFieldHelper.createField*` calls.** This removes duplicated constraints (max length,
+required, ranges, regex) — the backend entity is the single source of truth.
+
+### When to use which approach
+
+| Form | Approach |
+|------|----------|
+| Whole form derivable from the entity | `DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(translateService, cdias, '', true)` |
+| Form with custom layout, only some fields from backend | per-field `DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(translateService, fieldName, fdias)` |
+| A constraint that no backend annotation can express | hand-coded `DynamicFieldHelper.createField*` (last resort) |
+
+### How
+
+1. Backend: annotate the entity fields with `@DynamicFormField` + Bean Validation and register the
+   entity (see `backend/CLAUDE.md` → "Dynamic Form Definitions").
+2. Fetch the definition (memoised) via `GlobalparameterService.getEntityFormDefinition(entityName, dialog?)`.
+3. Build the config with `createFieldsFromClassDescriptorInputAndShow(...)`, then
+   `TranslateHelper.prepareFieldsAndErrors(...)`.
+4. The component only injects **runtime** concerns the entity cannot know: select options loaded at
+   runtime (`configObject.field.valueKeyHtmlOptions = …`), and conditional enable/disable/visibility.
+
+### Timing: config must be built synchronously in the dialog's `ngOnInit`
+
+`<dynamic-form>` builds its `FormGroup` from `config` during its own `ngOnInit`, so for a dialog
+mounted lazily (`@if (visibleDialog)`) the config **must already be set when the dialog renders** —
+assigning it later from an async fetch leaves the form empty (edit values do not transfer reliably).
+
+**Pattern: the opener pre-fetches the descriptor and passes it via `callParam`.** Because
+`getEntityFormDefinition()` is memoised, the first open does one request and subsequent opens are
+instant:
+
+```typescript
+// Opener (parent) — fetch, then show the dialog
+this.gps.getEntityFormDefinition(AppSettings.CASHACCOUNT).subscribe(formDefinition => {
+  this.callParam = new CallParam(portfolio, cashaccount, {...optParam, formDefinition});
+  this.visibleDialog = true;
+});
+
+// Dialog ngOnInit — build config synchronously from the pre-fetched descriptor
+this.config = <FieldConfig[]>DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
+  this.translateService, this.callParam.optParam.formDefinition, '', true);
+this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+```
+
+`initialize()` (on dialog show) then keeps the original flow — runtime option injection, conditional
+enable/disable, `setDefaultValuesAndEnableSubmit()`, `transferBusinessObjectToForm()`. See
+`PortfolioCashaccountSummaryComponent.handleEditAccount` + `CashaccountEditComponent` for the
+reference pattern.
+
+### What propagates from the backend
+
+`@NotNull`/`@NotBlank` → required, `@Size` → length, `@Min`/`@Max` and `@DecimalMin`/`@DecimalMax`
+→ range, `@Digits` → integer/fraction precision, `@Pattern` → regex validator, `@AfterEqual` →
+calendar `minDate`, `@Future` → future-date. `SELECT_OPTIONS` yields a select (string **or** numeric)
+with empty options for the component to fill.

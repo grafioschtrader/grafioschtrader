@@ -37,6 +37,7 @@ export const AppHelpIds: Record<string, string> = {
   // Watchlist
   HELP_WATCHLIST: 'watchlistinstrument',
   HELP_WATCHLIST_CORRELATION: 'watchlistinstrument/correlation',
+  HELP_WATCHLIST_SEASONALITY_HEATMAP: 'watchlistinstrument/seasonalityheatmap',
   HELP_WATCHLIST_WATCHLIST: 'watchlistinstrument/watchlist',
   HELP_WATCHLIST_PERFORMANCE: 'watchlistinstrument/watchlist/performance',
   HELP_WATCHLIST_UDF: 'watchlistinstrument/watchlist/udf',

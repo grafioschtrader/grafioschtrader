@@ -1,9 +1,8 @@
 package grafioschtrader.rest;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
@@ -22,7 +21,7 @@ class GlobalParameterResourceTest extends BaseIntegrationTest  {
         .returnResult()
         .getResponseBody();
 
-    assertThat(body).isNotNull();
+    Assertions.assertThat(body).isNotNull();
   }
 
   @Test
@@ -38,7 +37,7 @@ class GlobalParameterResourceTest extends BaseIntegrationTest  {
         .returnResult()
         .getResponseHeaders();
 
-    assertThat(responseHeaders.getFirst("x-auth-token")).isNotNull();
+    Assertions.assertThat(responseHeaders.getFirst("x-auth-token")).isNotNull();
   }
 
 }

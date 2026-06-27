@@ -1,7 +1,6 @@
 package grafiosch.entities;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import grafiosch.types.IBaseEnum;
@@ -25,18 +24,32 @@ public class EnumRegistry<S, T extends IBaseEnum<S>> {
    * Constructs a new registry with the specified initial enum types.
    *
    * @param initialTypes an array of enum types to initialize the registry
+   * @throws IllegalStateException if two of the supplied types share the same value
    */
   public EnumRegistry(T[] initialTypes) {
-    this.types = new ArrayList<>(Arrays.asList(initialTypes));
+    this.types = new ArrayList<>();
+    addTypes(initialTypes);
   }
 
   /**
-   * Adds new enum types to the registry.
+   * Adds new enum types to the registry. Each value must be unique across all types already
+   * registered, otherwise {@link #getTypeByValue(Object)} would silently resolve a value to the first
+   * registered type and mask the conflict. This guard fails fast on a cross-enum value collision (for
+   * example when a base enum and an application enum are merged into the same registry).
    *
    * @param newTypes an array of enum types to be added
+   * @throws IllegalStateException if a type's value duplicates one that is already registered
    */
   public void addTypes(T[] newTypes) {
-    types.addAll(Arrays.asList(newTypes));
+    for (T newType : newTypes) {
+      T existing = getTypeByValue(newType.getValue());
+      if (existing != null) {
+        throw new IllegalStateException(String.format(
+            "Duplicate value %s in enum registry: %s collides with already registered %s",
+            newType.getValue(), ((Enum<?>) newType).name(), ((Enum<?>) existing).name()));
+      }
+      types.add(newType);
+    }
   }
 
   /**

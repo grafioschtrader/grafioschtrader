@@ -38,6 +38,7 @@ import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.dto.AnnualisedPerformance;
 import grafioschtrader.dto.InstrumentStatisticsResult;
+import grafioschtrader.dto.SeasonalReturnsResult;
 import grafioschtrader.dto.StatisticsSummary;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
@@ -54,6 +55,7 @@ import grafioschtrader.priceupdate.intraday.IIntradayLoad;
 import grafioschtrader.priceupdate.intraday.IntradayThruCalculation;
 import grafioschtrader.priceupdate.intraday.IntradayThruConnector;
 import grafioschtrader.reports.InstrumentStatisticsSummary;
+import grafioschtrader.reports.SeasonalReturnsReport;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityHead;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
@@ -68,6 +70,7 @@ import grafioschtrader.search.SecuritycurrencySearch;
 import grafioschtrader.service.GTNetHistoryquoteService;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.HistoryquoteCreateType;
+import grafioschtrader.types.SeasonalPeriodType;
 import grafioschtrader.types.TaskTypeExtended;
 import jakarta.annotation.PostConstruct;
 
@@ -771,6 +774,13 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     StatisticsSummary stats = securityStatisticsSummary.getStandardDeviation(jdbcTemplate, dateFrom, dateTo, false);
     securityStatisticsSummary.populateSharpeRatios(ap, stats, dateTo != null ? dateTo : LocalDate.now());
     return new InstrumentStatisticsResult(ap, stats);
+  }
+
+  @Override
+  public SeasonalReturnsResult getSeasonalReturns(Integer idSecuritycurrency, SeasonalPeriodType periodType,
+      boolean includeDividends, boolean inTenantCurrency) {
+    return new SeasonalReturnsReport(securityJpaRepository, tenantJpaRepository, currencypairJpaRepository,
+        riskFreeRateService).calculate(idSecuritycurrency, periodType, includeDividends, inTenantCurrency);
   }
 
   @Override
