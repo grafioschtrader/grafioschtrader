@@ -85,6 +85,11 @@ public class IctaxKurslisteParser {
           currentData.setTaxValueChf(getAttrDouble(reader, "taxValueCHF"));
           currentData.setQuotationType(getAttr(reader, "quotationType"));
         } else if ("payment".equals(localName) && currentData != null) {
+          // Skip superseded entries: the Kursliste keeps corrected/breakdown rows flagged
+          // deleted="1" alongside the current valid coupon. Importing them would double-count.
+          if (isXmlTrue(getAttr(reader, "deleted"))) {
+            continue;
+          }
           IctaxPayment payment = new IctaxPayment();
           payment.setIctaxSecurityTaxData(currentData);
           payment.setPaymentDate(getAttrDate(reader, "paymentDate"));
@@ -93,8 +98,10 @@ public class IctaxKurslisteParser {
           payment.setPaymentValue(getAttrDouble(reader, "paymentValue"));
           payment.setExchangeRate(getAttrDouble(reader, "exchangeRate"));
           payment.setPaymentValueChf(getAttrDouble(reader, "paymentValueCHF"));
-          String capitalGain = getAttr(reader, "capitalGain");
-          payment.setCapitalGain("1".equals(capitalGain));
+          // Mark non-taxable capital-gain coupons. The valid KEP (Kapitaleinlage / return of
+          // capital) coupon carries sign="KEP" and has no capitalGain attribute, so accept both.
+          payment.setCapitalGain(isXmlTrue(getAttr(reader, "capitalGain"))
+              || "KEP".equals(getAttr(reader, "sign")));
           currentData.getPayments().add(payment);
         }
       } else if (event == XMLStreamConstants.END_ELEMENT) {
@@ -114,11 +121,32 @@ public class IctaxKurslisteParser {
     XMLInputFactory factory = XMLInputFactory.newInstance();
     factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, Boolean.FALSE);
     factory.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
+    // The full Kursliste is a very large, DTD-free document. With DTD and external entities
+    // disabled above there is no entity-expansion risk, so the JDK general/total entity-size
+    // limits (which count the streamed document entity "[xml]") only get in the way. Disable
+    // them so multi-hundred-thousand-line files parse. Best-effort: ignore if a non-JDK StAX
+    // implementation does not recognise the property name.
+    setLimitProperty(factory, "jdk.xml.maxGeneralEntitySizeLimit", "0");
+    setLimitProperty(factory, "jdk.xml.totalEntitySizeLimit", "0");
     return factory;
+  }
+
+  /** Best-effort: sets a JDK-specific size-limit property, ignoring StAX implementations that reject it. */
+  private void setLimitProperty(XMLInputFactory factory, String name, String value) {
+    try {
+      factory.setProperty(name, value);
+    } catch (IllegalArgumentException ex) {
+      // Property not supported by the active StAX implementation; safe to ignore.
+    }
   }
 
   private String getAttr(XMLStreamReader reader, String name) {
     return reader.getAttributeValue(null, name);
+  }
+
+  /** Interprets an xs:boolean attribute value; treats both "1" and "true" (case-insensitive) as true. */
+  private boolean isXmlTrue(String value) {
+    return "1".equals(value) || "true".equalsIgnoreCase(value);
   }
 
   private Integer getAttrInt(XMLStreamReader reader, String name) {

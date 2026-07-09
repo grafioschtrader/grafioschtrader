@@ -108,9 +108,12 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
           && !topLevelChart.chart.result.isEmpty()) {
         ResultData resultData = topLevelChart.chart.result.get(0);
         Meta m = resultData.meta;
-        securitycurrency.setSLast(m.regularMarketPrice);
-        securitycurrency.setSHigh(m.regularMarketDayHigh);
-        securitycurrency.setSLow(m.regularMarketDayLow);
+        // Yahoo quotes LSE securities in pence (GBp) and JSE securities in cents (ZAc); the same divider
+        // as in the history and dividend paths keeps intraday prices in the security's major currency.
+        final double divider = FeedConnectorHelper.getMinorUnitDivider(securitycurrency);
+        securitycurrency.setSLast(m.regularMarketPrice / divider);
+        securitycurrency.setSHigh(m.regularMarketDayHigh / divider);
+        securitycurrency.setSLow(m.regularMarketDayLow / divider);
         if (securitycurrency instanceof Security security) {
           security.setSVolume(m.regularMarketVolume);
         }
@@ -161,7 +164,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
     return this.getEodHistory(security.getUrlHistoryExtend(), from, to, false,
-        FeedConnectorHelper.getGBXLondonDivider(security),
+        FeedConnectorHelper.getMinorUnitDivider(security),
         security.getStockexchange().getTimeDifferenceFromUTCInSeconds());
   }
 
@@ -285,7 +288,7 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   @Override
   public List<Dividend> getDividendHistory(Security security, LocalDate fromDate) throws Exception {
-    final double divider = FeedConnectorHelper.getGBXLondonDivider(security);
+    final double divider = FeedConnectorHelper.getMinorUnitDivider(security);
 
     Events events = getSplitDividendEvent(security.getUrlDividendExtend(), fromDate, LocalDate.now(), DIVDEND_EVENT);
     if (events != null && events.dividends != null) {

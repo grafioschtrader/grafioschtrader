@@ -28,6 +28,7 @@ import grafiosch.rest.UpdateCreateJpaRepository;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.CashAccountTransfer;
 import grafioschtrader.dto.ClosedMarginUnits;
+import grafioschtrader.dto.ExDateFromTaxDataResult;
 import grafioschtrader.dto.ProposedMarginFinanceCost;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.entities.Transaction.CashTransaction;
@@ -151,6 +152,21 @@ public class TransactionResource extends UpdateCreate<Transaction> {
   public ResponseEntity<Transaction> updateSingleCash(@Validated(CashTransaction.class) @RequestBody Transaction entity)
       throws Exception {
     return updateEntity(entity);
+  }
+
+  @Operation(summary = "Change only the taxable flag of a dividend or interest transaction, bypassing the closedUntil lock", description = "", tags = {
+      Transaction.TABNAME })
+  @PutMapping(value = "/{idTransaction}/taxableinterest/{taxableInterest}", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<Transaction> updateTaxableInterest(@PathVariable final Integer idTransaction,
+      @PathVariable final boolean taxableInterest) {
+    return ResponseEntity.ok(transactionJpaRepository.updateTaxableInterest(idTransaction, taxableInterest));
+  }
+
+  @Operation(summary = "Back-fill the ex-date of the tenant's dividend transactions of a tax year from the imported Swiss ICTax tax data, bypassing the closedUntil lock and never overwriting an existing ex-date", description = "", tags = {
+      Transaction.TABNAME })
+  @PutMapping(value = "/exdatefromtaxdata/{year}", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<ExDateFromTaxDataResult> applyExDatesFromTaxData(@PathVariable final short year) {
+    return ResponseEntity.ok(transactionJpaRepository.applyExDatesFromTaxData(year));
   }
 
   //////////////////////////////////////////////////////////////////////

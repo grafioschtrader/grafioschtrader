@@ -8,8 +8,10 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import grafiosch.entities.User;
 import grafioschtrader.dto.TaxStatementExportRequest;
 import grafioschtrader.entities.IctaxPayment;
 import grafioschtrader.entities.IctaxSecurityTaxData;
@@ -74,7 +76,8 @@ public class Ech0196MappingService {
         // The report has no year group for the requested year (no transactions in that year).
         // We use the last available year's positions (which carry forward) but must load
         // ICTax data for the actual requested tax year, not the fallback year.
-        securityDividendsReport.enrichWithIctaxData(yearGroup, (short) taxYear);
+        var user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+        securityDividendsReport.enrichWithIctaxData(yearGroup, (short) taxYear, user.getIdTenant());
       }
 
       Ech0196ListOfSecurities listOfSecurities = buildListOfSecurities(positions, taxYear);

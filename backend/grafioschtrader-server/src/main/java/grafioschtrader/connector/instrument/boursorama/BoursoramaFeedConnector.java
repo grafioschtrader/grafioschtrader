@@ -112,7 +112,7 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
       throws Exception {
     return getEodSecurityCurrencypairHistory(from, to,
         getSecurityCurrecnypairHistoricalDownloadLink(security, from, true),
-        FeedConnectorHelper.getGBXLondonDivider(security));
+        FeedConnectorHelper.getMinorUnitDivider(security));
   }
 
   @Override
@@ -195,7 +195,7 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
       getLastPriceFromHistoryQuotes(security, getSecurityIntradayDownloadLink(security));
     } else {
       updateSecuritycurrency(security, getUpdateSecurityCurrecnypairLastPriceLink(security),
-          FeedConnectorHelper.getGBXLondonDivider(security));
+          FeedConnectorHelper.getMinorUnitDivider(security));
     }
   }
 
@@ -220,7 +220,7 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
     final HeaderEOD header = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr, 40, XHR_HEADER).body(),
         HeaderEOD.class);
     QuoteTabEOD lastPrice = header.d.QuoteTab[header.d.QuoteTab.length - 1];
-    lastPrice.setValues(security, FeedConnectorHelper.getGBXLondonDivider(security));
+    lastPrice.setValues(security, FeedConnectorHelper.getMinorUnitDivider(security));
     setSTimestamp(security);
   }
 

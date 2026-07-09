@@ -35,7 +35,10 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
   @Schema(description = "The calendar year this group represents")
   public Integer year;
 
-  @Schema(description = "Total market value of all security positions at the end of the year in main currency")
+  @Schema(description = """
+      Total market value of all security positions at the end of the year in main currency. Margin instruments
+      (CFD/Forex) are excluded: their unrealized gain/loss is already contained in the cash accounts'
+      cashBalancePlusMarginMC, so including it here would double count it when reading net worth.""")
   public double valueAtEndOfYearMC;
 
   @Schema(description = "Total interest earned on cash accounts during the year in main currency")
@@ -97,7 +100,10 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
    */
   public void calcDivInterest() {
     groupMap.values().forEach(securityDividendsPosition -> {
-      if (securityDividendsPosition.valueAtEndOfYearMC != null) {
+      // Margin instruments are skipped: their unrealized P&L is already part of the cash accounts'
+      // cashBalancePlusMarginMC and must not be counted twice in the net worth reading.
+      if (securityDividendsPosition.valueAtEndOfYearMC != null
+          && !securityDividendsPosition.security.isMarginInstrument()) {
         valueAtEndOfYearMC += securityDividendsPosition.valueAtEndOfYearMC;
       }
     });
@@ -207,10 +213,23 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
       if (securityDividendsPosition != null) {
         securityDividendsPosition.unitsAtEndOfYear = entry.getValue().units;
         securityDividendsPosition.unitsCounter = entry.getValue();
+        securityDividendsPosition.positionOpenedInYear = entry.getValue().wasOpenedInYear(year);
+        securityDividendsPosition.zeroUnitsAtStartAndEndOfYear = entry.getValue().wasZeroAtStartAndEndOfYear(year);
+        Security sec = securityDividendsPosition.security;
+        if (sec.isBondDirectInvestment() && sec.getActiveToDate() != null) {
+          LocalDate redemptionDate = entry.getValue().getMaturityRedemptionDate(sec.getActiveToDate());
+          securityDividendsPosition.redeemedAtMaturityInYear = redemptionDate != null
+              && redemptionDate.getYear() == year;
+        }
         if (securityDividendsPosition.security.isMarginInstrument()) {
+          // Snapshot the trackers instead of keeping a reference: the source map keeps mutating while later
+          // years are processed (closes remove trackers, new opens add them), but this position must reflect
+          // the open lots exactly as they were at the end of THIS year.
           Map<Integer, MarginTracker> securityMarginOpen = marginOpenTransaction
               .get(securityDividendsPosition.security.getId());
-          securityDividendsPosition.marginOpenPositions = securityMarginOpen;
+          securityDividendsPosition.marginOpenPositions = securityMarginOpen == null ? null
+              : securityMarginOpen.entrySet().stream()
+                  .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().copy()));
         }
       }
     }
@@ -328,6 +347,19 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
     public void applySplitFactor(double factor) {
       openUnits *= factor;
       splitFactorSinceOpen *= factor;
+    }
+
+    /**
+     * Creates a copy of this tracker for a per-year snapshot. The transaction reference is shared (it is not
+     * mutated by the report), while the mutable state is copied so later-year processing cannot alter it.
+     *
+     * @return an independent copy reflecting the current tracker state
+     */
+    public MarginTracker copy() {
+      MarginTracker copy = new MarginTracker(transaction, openUnits);
+      copy.splitFactorSinceOpen = splitFactorSinceOpen;
+      copy.lastFinanceCostDate = lastFinanceCostDate;
+      return copy;
     }
 
     @Override

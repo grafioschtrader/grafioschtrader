@@ -5,6 +5,7 @@ import java.util.List;
 import grafiosch.repository.BaseRepositoryCustom;
 import grafioschtrader.dto.CashAccountTransfer;
 import grafioschtrader.dto.ClosedMarginUnits;
+import grafioschtrader.dto.ExDateFromTaxDataResult;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.currencypair.CurrencypairWithTransaction;
 import grafioschtrader.reportviews.transaction.CashaccountTransactionPosition;
@@ -161,5 +162,42 @@ public interface TransactionJpaRepositoryCustom extends BaseRepositoryCustom<Tra
    * @throws grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException if the tenant is already at/over the limit
    */
   void throwWhenTransactionLimitReached(Integer idTenant);
+
+  /**
+   * Updates only the {@code taxableInterest} flag of a single transaction, deliberately bypassing the
+   * {@code closedUntil} period lock (and the other date/period guards applied on the normal save path).
+   *
+   * <p>
+   * This is intended for correcting the tax classification of an income booking after the accounting period has
+   * already been closed. The change is restricted to {@link grafioschtrader.types.TransactionType#DIVIDEND} and
+   * {@link grafioschtrader.types.TransactionType#INTEREST_CASHACCOUNT} transactions; any other type is rejected. The
+   * transaction must belong to the current tenant.
+   * </p>
+   *
+   * @param idTransaction   the id of the transaction whose taxable flag is changed
+   * @param taxableInterest the new taxable state to set
+   * @return the saved transaction
+   * @throws SecurityException if the transaction does not exist for the current tenant
+   * @throws grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException if the transaction type is not a
+   *         dividend or cash-account interest transaction
+   */
+  Transaction updateTaxableInterest(Integer idTransaction, boolean taxableInterest);
+
+  /**
+   * Back-fills the ex-date of the current tenant's dividend transactions of a tax year from the imported Swiss ICTax
+   * tax data, deliberately bypassing the {@code closedUntil} period lock (and the other date/period guards of the
+   * normal save path).
+   *
+   * <p>
+   * Only transactions whose ex-date is currently unset are touched; an existing ex-date is never overwritten. Each
+   * eligible transaction is matched to the official ex-date of a tax payment of the same ISIN within a date tolerance
+   * (see {@link grafioschtrader.tax.swiss.ictax.IctaxExDateMatcher}); transactions without a confident match are left
+   * unchanged.
+   * </p>
+   *
+   * @param taxYear the tax year whose dividend transactions are processed
+   * @return counts describing how many transactions were examined, already set, assigned and left unmatched
+   */
+  ExDateFromTaxDataResult applyExDatesFromTaxData(short taxYear);
 
 }

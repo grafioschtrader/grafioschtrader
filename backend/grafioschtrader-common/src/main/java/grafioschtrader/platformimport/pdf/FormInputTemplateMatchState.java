@@ -65,6 +65,7 @@ public class FormInputTemplateMatchState {
     importPropertiesPrimary = new ImportProperties(templateConfigurationPDFasTXT.getTransactionTypesMap(),
         templateConfigurationPDFasTXT.getImportKnownOtherFlagsSet().clone(), fileNumber,
         templateConfigurationPDFasTXT.getIgnoreTaxOnDivInt());
+    importPropertiesPrimary.setCalcRoundingMap(templateConfigurationPDFasTXT.getCalcRoundingMap());
     importPropertiesList.add(importPropertiesPrimary);
 
     valueFormatConverter = new ValueFormatConverter(templateConfigurationPDFasTXT.getDateFormat(),

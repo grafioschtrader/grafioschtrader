@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Locale;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -266,8 +267,13 @@ public class Security extends Securitycurrency<Security>
     return currency;
   }
 
+  /**
+   * Sets the security currency normalized to the upper-case ISO 4217 code. The currency validator accepts codes
+   * case-insensitively, so without this normalization a value like "GBp" could be persisted and would bypass the
+   * case-sensitive minor-unit divider check of the price connectors.
+   */
   public void setCurrency(String currency) {
-    this.currency = currency;
+    this.currency = currency == null ? null : currency.trim().toUpperCase(Locale.ROOT);
   }
 
   public String getIsin() {

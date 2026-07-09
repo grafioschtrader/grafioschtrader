@@ -1305,7 +1305,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     // Process the result and include our serverBusy status in responses
     return switch (result) {
     case HandlerResult.ImmediateResponse(var response) -> addServerBusyToResponse((MessageEnvelope) response, myGTNet);
-    case HandlerResult.AwaitingManualResponse(var msg) -> {
+    case HandlerResult.AwaitingManualResponse(var _) -> {
       log.info("Message {} from {} awaiting manual response", messageCode, me.sourceDomain);
       yield buildAckResponse(myGTNet);
     }

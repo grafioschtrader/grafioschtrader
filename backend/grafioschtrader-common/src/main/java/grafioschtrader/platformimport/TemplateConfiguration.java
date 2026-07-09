@@ -72,6 +72,15 @@ public abstract class TemplateConfiguration {
   /** Configuration key for optional feature flags. */
   private static final String CONF_OTHER_FLAG_OPTIONS = "otherFlagOptions";
 
+  /** Configuration key for the accepted calculation rounding tolerance (default plus optional per-currency overrides). */
+  private static final String CONF_CALC_ROUNDING = "calcRounding";
+
+  /**
+   * Map key under which the default (currency-independent) rounding tolerance is stored in {@link #calcRoundingMap}.
+   * A real per-currency override is keyed by the three-letter ISO currency code, so this sentinel cannot collide.
+   */
+  public static final String CALC_ROUNDING_DEFAULT_KEY = "*";
+
   /** Wildcard separator configuration applying to all locales. */
   private static final String ALL_SEPARATOR = "All";
 
@@ -92,6 +101,16 @@ public abstract class TemplateConfiguration {
 
   /** Transaction type text that should be treated as tax-exempt. */
   protected String ignoreTaxOnDivInt;
+
+  /**
+   * Accepted rounding tolerance between the calculated cash amount and the imported amount. The default value is
+   * stored under {@link #CALC_ROUNDING_DEFAULT_KEY}; per-currency overrides are keyed by the upper-case ISO currency
+   * code of the cash account. Empty when the template does not configure calcRounding.
+   */
+  protected Map<String, Double> calcRoundingMap = new HashMap<>();
+
+  /** Raw calcRounding value that failed to parse, used to report a validation error when saving the template. */
+  protected String calcRoundingConfigError;
 
   /** Regex pattern for matching thousand separators in numbers. */
   protected String thousandSeparatorsPattern = "";
@@ -227,6 +246,13 @@ public abstract class TemplateConfiguration {
         case CONF_OTHER_FLAG_OPTIONS:
           processOtherFlagOptions(splitEqual[1]);
           break;
+        case CONF_CALC_ROUNDING:
+          try {
+            parseCalcRounding(splitEqual[1]);
+          } catch (RuntimeException ex) {
+            calcRoundingConfigError = splitEqual.length > 1 ? splitEqual[1] : "";
+          }
+          break;
         default:
           // May be some other configurations
           addionalConfigurations(splitEqual);
@@ -347,9 +373,51 @@ public abstract class TemplateConfiguration {
   }
 
   /**
+   * Parses the calcRounding configuration value into {@link #calcRoundingMap}. The value is a comma separated list
+   * where a bare number sets the default tolerance and every {@code CUR=value} token sets a per-currency override,
+   * e.g. {@code 0.01,JPY=1,CHF=0.05}. The decimal separator is always a dot, independent of the user locale.
+   *
+   * @param value the raw configuration value (right-hand side of {@code calcRounding=})
+   * @throws IllegalArgumentException if a number cannot be parsed, is not positive, or a currency code is malformed
+   */
+  private void parseCalcRounding(String value) {
+    for (String token : value.split(",")) {
+      token = token.trim();
+      if (token.isEmpty()) {
+        continue;
+      }
+      int eq = token.indexOf('=');
+      if (eq < 0) {
+        calcRoundingMap.put(CALC_ROUNDING_DEFAULT_KEY, parsePositiveDouble(token));
+      } else {
+        String currency = token.substring(0, eq).trim().toUpperCase();
+        if (!currency.matches("[A-Z]{3}")) {
+          throw new IllegalArgumentException("Invalid currency code: " + currency);
+        }
+        calcRoundingMap.put(currency, parsePositiveDouble(token.substring(eq + 1)));
+      }
+    }
+  }
+
+  /**
+   * Parses a strictly positive double using a dot as the decimal separator.
+   *
+   * @param numberStr the number text to parse
+   * @return the parsed value
+   * @throws IllegalArgumentException if the value is not a number or is not greater than zero
+   */
+  private double parsePositiveDouble(String numberStr) {
+    double parsed = Double.parseDouble(numberStr.trim());
+    if (parsed <= 0) {
+      throw new IllegalArgumentException("Rounding value must be positive: " + numberStr);
+    }
+    return parsed;
+  }
+
+  /**
    * Hook method for subclasses to handle additional configuration options. Called during configuration parsing for
    * unrecognized configuration keys.
-   * 
+   *
    * @param splitEqual Array containing the configuration key and value (split on "=")
    */
   protected void addionalConfigurations(String[] splitEqual) {
@@ -375,6 +443,10 @@ public abstract class TemplateConfiguration {
     if (transactionTypesMap.isEmpty()) {
       dataViolationException.addDataViolation(CONF_TRANSACTION_TYPE, "gt.imptemplate.missing.transactiontype", null,
           false);
+    }
+    if (calcRoundingConfigError != null) {
+      dataViolationException.addDataViolation(CONF_CALC_ROUNDING, "gt.imptemplate.calcrounding",
+          new Object[] { calcRoundingConfigError }, false);
     }
   }
 
@@ -431,6 +503,17 @@ public abstract class TemplateConfiguration {
 
   public String getIgnoreTaxOnDivInt() {
     return ignoreTaxOnDivInt;
+  }
+
+  /**
+   * Returns the accepted rounding tolerance configuration. The default tolerance is keyed by
+   * {@link #CALC_ROUNDING_DEFAULT_KEY}; per-currency overrides are keyed by upper-case ISO currency code. The map is
+   * empty when the template does not configure calcRounding.
+   *
+   * @return map of currency code (or default sentinel) to accepted rounding tolerance
+   */
+  public Map<String, Double> getCalcRoundingMap() {
+    return calcRoundingMap;
   }
 
   /**

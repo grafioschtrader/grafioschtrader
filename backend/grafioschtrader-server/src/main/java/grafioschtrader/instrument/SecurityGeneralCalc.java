@@ -98,7 +98,6 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
 
     SecurityPositionSummary securityPositionSummary = getSecurityPositionSummary(transaction, summarySecurityMap,
         dateCurrencyMap, currencyPrecisionMap);
-    // TODO excludeDivTaxcost
     calcTransactionPosition(transaction, securityPositionSummary, excludeDivTaxcost, securitysplitMap, true,
         dateCurrencyMap, negativeIdNumberCreater);
   }

@@ -62,6 +62,9 @@ import jakarta.persistence.PersistenceContext;
  */
 public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionPosJpaRepositoryCustom {
 
+  /** Numerical slack when comparing an absolute calculation difference against the configured rounding tolerance. */
+  private static final double ROUNDING_TOLERANCE_EPSILON = 1e-6;
+
   @Autowired
   private ImportTransactionTemplateJpaRepository importTransactionTemplateJpaRepository;
 
@@ -333,7 +336,13 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
       case ACCUMULATE:
       case REDUCE:
         if (itp.getSecurity() != null) {
+          // Persist the template's rounding tolerance for this currency while the (transient) template config is
+          // still available, so it can be applied when the transaction is created from the reloaded position.
+          if (itp.getCalcRoundingMap() != null) {
+            itp.setCalcRoundingStep(itp.resolveConfiguredRoundingStep());
+          }
           itp.calcDiffCashaccountAmountWhenPossible();
+          autoAcceptRoundingDiff(itp);
           if (itp.getDiffCashaccountAmount() == 0.0
               || (itp.getDiffCashaccountAmount() != 0.0 && itp.getAcceptedTotalDiff() != null
                   && itp.getDiffCashaccountAmount() == itp.getAcceptedTotalDiff().doubleValue())) {
@@ -344,6 +353,24 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
       default:
         itp.setReadyForTransaction(true);
         break;
+      }
+    }
+  }
+
+  /**
+   * Automatically accepts a small calculation difference when it lies within the rounding tolerance configured in the
+   * import template (calcRounding). Such differences originate from rounding on the trading platform's document
+   * (e.g. {@code 175 * 1.2546 = 219.555} booked as {@code 219.56}). When accepted, the imported amount is booked to
+   * the cash account and the residual difference is later recorded on the transaction. Has no effect when the
+   * template configures no tolerance, the difference is zero, or the user already decided on the difference.
+   *
+   * @param itp the import position whose calculation difference is evaluated
+   */
+  private void autoAcceptRoundingDiff(ImportTransactionPos itp) {
+    if (itp.getDiffCashaccountAmount() != 0.0 && itp.getAcceptedTotalDiff() == null) {
+      Double step = itp.getCalcRoundingStep();
+      if (step != null && Math.abs(itp.getDiffCashaccountAmount()) <= step + ROUNDING_TOLERANCE_EPSILON) {
+        itp.adjustAcceptedTotalDiffToDiffTotal();
       }
     }
   }
@@ -746,11 +773,21 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
 
     return transactionTemplate.execute(status -> {
       try {
+        // Book the imported document amount (so the cash account ties out to the statement) and let validation
+        // record the residual rounding difference when either the user explicitly accepted the total difference
+        // ("Accept difference total") or the template configured a calcRounding tolerance for this currency.
+        // Otherwise keep the previous behaviour of booking the calculated amount.
+        Double roundingStep = itp.getCalcRoundingStep();
+        boolean explicitlyAccepted = itp.getAcceptedTotalDiff() != null;
+        double cashaccountAmount = explicitlyAccepted || roundingStep != null ? itp.getCashaccountAmount()
+            : itp.getCalcCashaccountAmount();
         Transaction transaction = new Transaction(importTransactionHead.getSecurityaccount().getIdSecuritycashAccount(),
-            itp.getCashaccount(), itp.getSecurity(), itp.getCalcCashaccountAmount(), itp.getUnits(), itp.getQuotation(),
+            itp.getCashaccount(), itp.getSecurity(), cashaccountAmount, itp.getUnits(), itp.getQuotation(),
             itp.getTransactionType(), itp.getTaxCost(), itp.getTransactionCost(), itp.getAccruedInterest(),
             itp.getTransactionTime(), itp.getCurrencyExRate(), idCurrencypair, itp.getExDate(),
             itp.getTaxableInterest());
+        transaction.setAcceptableRoundingStep(roundingStep);
+        transaction.setRoundingDiffExplicitlyAccepted(explicitlyAccepted);
 
         Transaction existingEntity = null;
         if (itp.getIdTransaction() != null) {

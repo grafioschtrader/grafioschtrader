@@ -14,6 +14,7 @@ import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.reportviews.SecurityCostPosition;
 import grafioschtrader.reportviews.securitydividends.SecurityDividendsYearGroup.MarginTracker;
+import grafioschtrader.types.TaxYearCorrectionType;
 import grafioschtrader.types.TransactionType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -45,6 +46,21 @@ public class SecurityDividendsPosition extends AccountDividendPosition {
 
   @Schema(description = "Number of units/shares held at the end of the year after all transactions and stock splits")
   public double unitsAtEndOfYear = 0.0;
+
+  @Schema(description = """
+      True when the holding of this security went from 0 units to a positive amount in this year (position opened or
+      re-opened after a complete sale in an earlier year).""")
+  public boolean positionOpenedInYear;
+
+  @Schema(description = """
+      True when this directly-held bond was redeemed on or after its maturity (activeToDate) in this year. Always
+      false for securities other than direct bond investments.""")
+  public boolean redeemedAtMaturityInYear;
+
+  @Schema(description = """
+      True when the holding of this security was 0 units both at the beginning and at the end of this year (e.g.
+      position opened and fully closed within the year, or only a trailing dividend was received).""")
+  public boolean zeroUnitsAtStartAndEndOfYear;
 
   /**
    * Indicates whether at least one accumulate (buy) or reduce (sell) transaction occurred during the year.
@@ -86,9 +102,28 @@ public class SecurityDividendsPosition extends AccountDividendPosition {
   @Schema(description = "Whether this security is excluded from the eCH-0196 tax statement export for this year")
   public boolean excludedFromTax;
 
+  @Schema(description = """
+      Kind of manual tax year correction applied to ictaxTotalPaymentValueChf for this year: TAXABLE_AMOUNT
+      (replaced by taxableAmountMC), DIRECT_VALUE (replaced by a directly entered value), COMMENT_ONLY (record
+      exists but no value was changed). Null when no correction record exists for this year.""")
+  public TaxYearCorrectionType taxYearCorrectionType;
+
+  @Schema(description = """
+      True when a tax year correction record (including comment-only) exists for this security in this or the
+      previous tax year. Used by the frontend to highlight the ISIN cell.""")
+  public boolean taxYearCorrectionNearby;
+
+  @Schema(description = "Note of the correction record applying to this tax year, shown as tooltip in the frontend")
+  public String taxYearCorrectionNote;
+
   @Schema(description = "Total finance costs for margin positions in main currency")
   public double financeCostMC = 0.0;
 
+  /**
+   * Per-year snapshot of the margin lots still open at the end of this position's year, keyed by the opening
+   * transaction ID. This is a deep copy taken at the year boundary, NOT a reference to the report's live tracking
+   * map — later-year opens/closes must not alter the state used for this year's valuation.
+   */
   @JsonIgnore
   public Map<Integer, MarginTracker> marginOpenPositions;
 

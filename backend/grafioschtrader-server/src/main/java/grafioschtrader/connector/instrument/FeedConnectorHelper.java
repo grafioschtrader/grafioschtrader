@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.common.MinorCurrencyUnit;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
@@ -278,20 +279,20 @@ public class FeedConnectorHelper {
   }
 
   /**
-   * Calculates the price divider for London Stock Exchange securities quoted in GBX (pence). UK securities are often
-   * quoted in pence rather than pounds, requiring division by 100 to convert to the correct currency unit. This method
-   * determines whether such conversion is needed based on the security's exchange, currency, and instrument type.
-   * 
+   * Calculates the price divider for securities listed on exchanges that quote in a minor currency unit, such as the
+   * London Stock Exchange in pence (GBX/GBp) or the Johannesburg Stock Exchange in cents (ZAc). Such quotes require
+   * division by 100 to reach the security's ISO 4217 currency. This method determines whether such conversion is
+   * needed based on the security's exchange, currency, and instrument type; indices are excluded because they are
+   * published in the major unit.
+   *
    * @param securitycurrency the security or currency pair to check
    * @param <T>              the type of security currency (Security or Currencypair)
-   * @return 100.0 if the security requires GBX to GBP conversion, 1.0 otherwise
+   * @return 100.0 if the security's quotes must be converted from the minor to the major unit, 1.0 otherwise
    */
-  public static <T extends Securitycurrency<T>> double getGBXLondonDivider(T securitycurrency) {
-    if (securitycurrency instanceof Security security) {
-      return security.getAssetClass()
-          .getSpecialInvestmentInstrument() != SpecialInvestmentInstruments.NON_INVESTABLE_INDICES
-          && GlobalConstants.STOCK_EX_MIC_UK.equals(security.getStockexchange().getMic())
-          && security.getCurrency().equals(GlobalConstants.MC_GBP) ? 100.0 : 1.0;
+  public static <T extends Securitycurrency<T>> double getMinorUnitDivider(T securitycurrency) {
+    if (securitycurrency instanceof Security security
+        && security.getAssetClass().getSpecialInvestmentInstrument() != SpecialInvestmentInstruments.NON_INVESTABLE_INDICES) {
+      return MinorCurrencyUnit.getExchangeDivider(security.getStockexchange().getMic(), security.getCurrency());
     }
     return 1.0;
   }

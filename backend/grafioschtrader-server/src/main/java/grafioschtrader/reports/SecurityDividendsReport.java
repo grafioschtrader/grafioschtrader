@@ -41,9 +41,12 @@ import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.IctaxSecurityTaxDataJpaRepository;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.TaxSecurityYearConfigJpaRepository;
+import grafioschtrader.entities.TaxYearCorrection;
+import grafioschtrader.repository.TaxYearCorrectionJpaRepository;
 import grafioschtrader.repository.TaxYearJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.service.GlobalparametersService;
+import grafioschtrader.types.TaxYearCorrectionType;
 import grafioschtrader.types.TransactionType;
 
 /**
@@ -101,6 +104,9 @@ public class SecurityDividendsReport {
 
   @Autowired
   private TaxYearJpaRepository taxYearJpaRepository;
+
+  @Autowired
+  private TaxYearCorrectionJpaRepository taxYearCorrectionJpaRepository;
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -520,7 +526,7 @@ public class SecurityDividendsReport {
     securityDividendsGrandTotal.hasMarginData = securityDividendsGrandTotal.getSecurityDividendsYearGroup().stream()
         .flatMap(yg -> yg.getSecurityDividendsPositions().stream())
         .anyMatch(p -> p.security.isMarginInstrument());
-    enrichWithIctaxData(securityDividendsGrandTotal);
+    enrichWithIctaxData(securityDividendsGrandTotal, idTenant);
     markExcludedSecurities(idTenant, securityDividendsGrandTotal);
   }
 
@@ -528,14 +534,28 @@ public class SecurityDividendsReport {
    * Enriches the dividend report with ICTax Swiss tax data. For each year group, looks up matching tax data by ISIN and
    * attaches tax values and payment details to each security position.
    */
-  private void enrichWithIctaxData(SecurityDividendsGrandTotal grandTotal) {
+  private void enrichWithIctaxData(SecurityDividendsGrandTotal grandTotal, Integer idTenant) {
     for (SecurityDividendsYearGroup yearGroup : grandTotal.getSecurityDividendsYearGroup()) {
-      enrichWithIctaxData(yearGroup, yearGroup.year.shortValue());
+      enrichWithIctaxData(yearGroup, yearGroup.year.shortValue(), idTenant);
       if (yearGroup.getSecurityDividendsPositions().stream()
           .anyMatch(p -> p.ictaxPayments != null || p.ictaxTotalTaxValueChf != null)) {
         grandTotal.hasIctaxData = true;
       }
     }
+  }
+
+  /**
+   * Enriches a specific year group with ICTax data for the given tax year and applies the tenant's manual tax year
+   * corrections afterwards. The correction pass always runs, even when no ICTax data exists for the year, so that
+   * comment-only records and the "correction nearby" flag reach the frontend.
+   *
+   * @param yearGroup the year group to enrich
+   * @param taxYear   the tax year to look up ICTax data and corrections for
+   * @param idTenant  the tenant whose corrections are applied
+   */
+  public void enrichWithIctaxData(SecurityDividendsYearGroup yearGroup, short taxYear, Integer idTenant) {
+    enrichWithRawIctaxData(yearGroup, taxYear);
+    applyTaxYearCorrections(yearGroup, taxYear, idTenant);
   }
 
   /**
@@ -546,7 +566,7 @@ public class SecurityDividendsReport {
    * @param yearGroup the year group to enrich
    * @param taxYear   the tax year to look up ICTax data for
    */
-  public void enrichWithIctaxData(SecurityDividendsYearGroup yearGroup, short taxYear) {
+  private void enrichWithRawIctaxData(SecurityDividendsYearGroup yearGroup, short taxYear) {
     Set<String> isins = yearGroup.getSecurityDividendsPositions().stream()
         .filter(p -> p.security.getIsin() != null && !p.security.getIsin().isEmpty())
         .map(p -> p.security.getIsin()).collect(Collectors.toSet());
@@ -585,10 +605,15 @@ public class SecurityDividendsReport {
         if (taxData.getPayments() != null) {
           double totalPayment = 0.0;
           for (var payment : taxData.getPayments()) {
+            // Capital-gain / KEP (return of capital) coupons are not taxable income; exclude them
+            // from the payment total so it reconciles with the taxable amount (taxableAmountMC).
+            if (Boolean.TRUE.equals(payment.getCapitalGain())) {
+              continue;
+            }
             if (payment.getPaymentValueChf() != null && position.unitsCounter != null) {
               LocalDate paymentDate = payment.getExDate() != null ? payment.getExDate() : payment.getPaymentDate();
               if (paymentDate != null) {
-                double unitsAtPayment = position.unitsCounter.getUnitsAtDate(paymentDate);
+                double unitsAtPayment = resolveUnitsAtPayment(position, paymentDate);
                 double multiplier = calcIctaxMultiplierForUnits(position, unitsAtPayment);
                 double paymentTotal = payment.getPaymentValueChf() * multiplier;
                 payment.setComputedUnitsAtDate(unitsAtPayment);
@@ -607,6 +632,78 @@ public class SecurityDividendsReport {
         position.ictaxTotalPaymentValueChf = null;
       }
     }
+  }
+
+  /**
+   * Applies the tenant's manual tax year corrections to a year group. Positions with a correction for this tax
+   * year get their {@code ictaxTotalPaymentValueChf} replaced by the position's {@code taxableAmountMC} or the
+   * directly entered taxable income; comment-only records change no value. Every position with a correction in
+   * this or the previous tax year is flagged via {@code taxYearCorrectionNearby} for the ISIN highlight in the
+   * frontend. When at least one value was overridden, the year sum {@code yearIctaxTotalPaymentValueChf} is
+   * recomputed from the corrected position values.
+   *
+   * @param yearGroup the year group whose positions are corrected
+   * @param taxYear   the tax year of the year group
+   * @param idTenant  the tenant whose corrections are applied
+   */
+  private void applyTaxYearCorrections(SecurityDividendsYearGroup yearGroup, short taxYear, Integer idTenant) {
+    List<TaxYearCorrection> corrections = taxYearCorrectionJpaRepository.findByIdTenantAndTaxYearIn(idTenant,
+        List.of(taxYear, (short) (taxYear - 1)));
+    if (corrections.isEmpty()) {
+      return;
+    }
+    Set<Integer> nearbyIds = corrections.stream().map(TaxYearCorrection::getIdSecuritycurrency)
+        .collect(Collectors.toSet());
+    Map<Integer, TaxYearCorrection> thisYearById = corrections.stream().filter(c -> c.getTaxYear() == taxYear)
+        .collect(Collectors.toMap(TaxYearCorrection::getIdSecuritycurrency, Function.identity(), (a, _) -> a));
+    boolean overrideApplied = false;
+    for (SecurityDividendsPosition position : yearGroup.getSecurityDividendsPositions()) {
+      Integer idSecuritycurrency = position.security.getIdSecuritycurrency();
+      position.taxYearCorrectionNearby = nearbyIds.contains(idSecuritycurrency);
+      TaxYearCorrection correction = thisYearById.get(idSecuritycurrency);
+      if (correction != null) {
+        position.taxYearCorrectionNote = correction.getNote();
+        if (correction.isUseTaxableAmount()) {
+          position.taxYearCorrectionType = TaxYearCorrectionType.TAXABLE_AMOUNT;
+          position.ictaxTotalPaymentValueChf = position.taxableAmountMC;
+          overrideApplied = true;
+        } else if (correction.getTaxableIncome() != null) {
+          position.taxYearCorrectionType = TaxYearCorrectionType.DIRECT_VALUE;
+          position.ictaxTotalPaymentValueChf = correction.getTaxableIncome();
+          overrideApplied = true;
+        } else {
+          position.taxYearCorrectionType = TaxYearCorrectionType.COMMENT_ONLY;
+        }
+      }
+    }
+    if (overrideApplied) {
+      yearGroup.yearIctaxTotalPaymentValueChf = yearGroup.getSecurityDividendsPositions().stream()
+          .filter(p -> p.ictaxTotalPaymentValueChf != null).mapToDouble(p -> p.ictaxTotalPaymentValueChf).sum();
+    }
+  }
+
+  /**
+   * Resolves the units used to value an ICTax coupon. Normally the units held at the payment/ex date. Special case: a
+   * directly-held bond redeemed on or after its maturity (activeToDate) is assumed to have been held until maturity, so
+   * a coupon dated on/after activeToDate is valued with the units held immediately before the maturity redemption —
+   * which {@link UnitsCounter#getUnitsAtDate} would otherwise report as 0, because the same-day REDUCE zeroes the unit
+   * timeline.
+   *
+   * @param position    the security position (provides the security and its unit timeline)
+   * @param paymentDate the coupon's ex/payment date
+   * @return the units to apply for this coupon
+   */
+  private double resolveUnitsAtPayment(SecurityDividendsPosition position, LocalDate paymentDate) {
+    Security security = position.security;
+    if (security.isBondDirectInvestment() && security.getActiveToDate() != null
+        && !paymentDate.isBefore(security.getActiveToDate())) {
+      double unitsBeforeRedemption = position.unitsCounter
+          .getUnitsBeforeRedemptionOnOrAfter(security.getActiveToDate());
+      if (unitsBeforeRedemption > 0) {
+        return unitsBeforeRedemption;
+      }
+    }
+    return position.unitsCounter.getUnitsAtDate(paymentDate);
   }
 
   /**

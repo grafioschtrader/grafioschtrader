@@ -236,6 +236,8 @@ export enum EditInputType {
   DatePicker = 'datePicker',
   /** PrimeNG Checkbox component for boolean values */
   Checkbox = 'checkbox',
+  /** Native HTML textarea (pTextarea styled) for multi-line string values */
+  Textarea = 'textarea',
   /** Read-only display - cell is not editable even in edit mode */
   ReadOnly = 'readonly'
 }
@@ -328,6 +330,9 @@ export interface ColumnEditConfig extends PropertyEditShare, ValidationErrorRule
 
   /** Maximum character length for text inputs */
   maxLength?: number;
+
+  /** Number of visible text rows for Textarea inputs (default 3) */
+  rows?: number;
 }
 
 /**

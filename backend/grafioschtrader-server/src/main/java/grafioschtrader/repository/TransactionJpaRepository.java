@@ -256,6 +256,23 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
       AND t.transactionType >=4  AND t.transactionType <= ?2  ORDER BY t.transactionTime, s.idSecuritycurrency""")
   List<Transaction> getSecurityAccountTransactionsByTenant(Integer idTenant, Byte transactonMaxType);
 
+  /**
+   * Returns the dividend security transactions of a tenant booked within the given date range, with the security
+   * eagerly fetched. Used to back-fill missing ex-dates from the Swiss ICTax tax data.
+   *
+   * @param idTenant            the tenant whose transactions are loaded
+   * @param transactionType     the transaction type to match (the dividend type)
+   * @param transactionDateFrom inclusive lower bound on the transaction date (tt_date)
+   * @param transactionDateTo   inclusive upper bound on the transaction date (tt_date)
+   * @return matching dividend transactions ordered by ISIN and transaction date
+   */
+  @Query(value = """
+      SELECT t FROM Transaction t JOIN FETCH t.security s
+      WHERE t.idTenant = ?1 AND t.transactionType = ?2 AND t.transactionDate >= ?3 AND t.transactionDate <= ?4
+      ORDER BY s.isin, t.transactionDate""")
+  List<Transaction> getDividendTransactionsByTenantAndPeriod(Integer idTenant, byte transactionType,
+      LocalDate transactionDateFrom, LocalDate transactionDateTo);
+
   @Query(value = """
       SELECT t FROM Portfolio p JOIN p.securitycashaccountList a JOIN a.transactionList t JOIN Fetch t.cashaccount
       LEFT JOIN Fetch t.security WHERE p.idTenant=?1 AND t.idCurrencypair=?2 ORDER BY t.transactionTime""")

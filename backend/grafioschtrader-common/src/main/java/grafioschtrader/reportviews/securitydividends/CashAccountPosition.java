@@ -41,7 +41,10 @@ public class CashAccountPosition extends AccountDividendPosition {
   @Schema(description = "Projected financing costs from last FINANCE_COST to year-end/today, in main currency.")
   public double hypotheticalFinanceCostMC = 0.0;
 
-  @Schema(description = "Cash balance + margin earnings + hypothetical financing costs, in main currency.")
+  @Schema(description = """
+      Cash balance + margin earnings + hypothetical financing costs, in main currency. This is where the unrealized
+      P&L of open margin (CFD/Forex) positions is reflected for the net worth reading; the securities year total
+      valueAtEndOfYearMC deliberately excludes it to avoid double counting.""")
   public double cashBalancePlusMarginMC = 0.0;
 
   public CashAccountPosition(Cashaccount cashaccount, int precisionMC, Map<String, Integer> currencyPrecisionMap) {

@@ -96,11 +96,11 @@ public class GlobalParamKeyBaseDefault {
   public static final int DEFAULT_GTNET_CONNECTION_TIMEOUT = 30;
 
   /** GTNet message deletion retention (PropertyString: KEY=days pairs, range 1-10). */
-  public static final String GLOB_KEY_GTNET_DEL_MESSAGE_RECV = "gt.gtnet.del.message.recv";
+  public static final String GLOB_KEY_GTNET_DEL_MESSAGE_RECV = GNET + "del.message.recv";
   /** Default retention: LP=1 day, HP=5 days, SL=5 days. */
   public static final String DEFAULT_GTNET_DEL_MESSAGE_RECV = "LP=1,HP=5,SL=5";
   /** GTNet log aggregation days (PropertyString: D=days,W=days,M=days,Y=days). */
-  public static final String GLOB_KEY_GTNET_LOG_AGGREGATE_DAYS = "gt.gtnet.log.aggregate.days";
+  public static final String GLOB_KEY_GTNET_LOG_AGGREGATE_DAYS = GNET + "log.aggregate.days";
   /** Default aggregation: D=1 (daily after 1 day), W=7 (weekly after 7 days), M=30 (monthly after 30 days), Y=365 (yearly after 365 days). */
   public static final String DEFAULT_GTNET_LOG_AGGREGATE_DAYS = "D=1,W=7,M=30,Y=365";
 

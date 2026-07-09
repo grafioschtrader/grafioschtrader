@@ -37,8 +37,8 @@ import grafiosch.types.TaskTypeBase;
  *
  * <p>Configuration is read from global parameters:
  * <ul>
- *   <li>{@code gt.gtnet.log.aggregate.days}: Log aggregation thresholds (D=1,W=7,M=30,Y=365)</li>
- *   <li>{@code gt.gtnet.del.message.recv}: Message retention periods per provider config key</li>
+ *   <li>{@code g.gnet.log.aggregate.days}: Log aggregation thresholds (D=1,W=7,M=30,Y=365)</li>
+ *   <li>{@code g.gnet.del.message.recv}: Message retention periods per provider config key</li>
  * </ul>
  */
 @Component
@@ -94,7 +94,7 @@ public class GTNetExchangeLogAggregationAndDelGTNetMessagesTask implements ITask
 
   /**
    * Aggregates GTNet exchange log entries from shorter to longer periods.
-   * Reads configuration from global parameter {@code gt.gtnet.log.aggregate.days}.
+   * Reads configuration from global parameter {@code g.gnet.log.aggregate.days}.
    */
   private void aggregateLogs() {
     PropertyStringParser logConfig = globalparametersJpaRepository.getGTNetLogAggregationConfig();

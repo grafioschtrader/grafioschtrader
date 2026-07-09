@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,7 @@ import grafiosch.entities.TenantBaseID;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.platformimport.ImportProperties;
 import grafioschtrader.platformimport.ImportTransactionHelper;
+import grafioschtrader.platformimport.TemplateConfiguration;
 import grafioschtrader.types.ImportKnownOtherFlags;
 import grafioschtrader.types.TransactionType;
 import grafioschtrader.validation.ValidCurrencyCodeValidator;
@@ -163,6 +165,13 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   @Column(name = "accepted_total_diff")
   private Double acceptedTotalDiff;
 
+  @Schema(description = """
+      Accepted rounding tolerance (calcRounding) resolved from the import template for this position's cash-account
+      currency, persisted at import time so it is available when the transaction is created later. Null when the
+      template configured no tolerance for this currency.""")
+  @Column(name = "calc_rounding_step")
+  private Double calcRoundingStep;
+
   @Schema(description = "Accrued interest may be incurred when buying or selling a bond.")
   @Column(name = "accrued_interest")
   private Double accruedInterest;
@@ -231,6 +240,15 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   @Schema(description = "It is the difference between the imported and calculated total. At best, this should be 0.")
   @Transient
   private double diffCashaccountAmount;
+
+  /**
+   * Accepted rounding tolerance configuration carried over from the import template during a single import run. Keyed
+   * by upper-case ISO currency code with a default sentinel entry. Not persisted; the accepted decision is persisted
+   * in {@code acceptedTotalDiff}.
+   */
+  @Schema(hidden = true)
+  @Transient
+  private transient Map<String, Double> calcRoundingMap;
 
   public ImportTransactionPos() {
   }
@@ -639,6 +657,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
 
   public static ImportTransactionPos createFromImportPropertiesSuccess(Integer idTenant, String fileNameOriginal,
       Integer idTransactionHead, Integer idTransactionImportTemplate, ImportProperties importProperties) {
+    importProperties.normalizeMinorCurrencyUnits();
     ImportTransactionPos importTransactionPos = new ImportTransactionPos(idTenant, fileNameOriginal, idTransactionHead,
         idTransactionImportTemplate);
     return createFromImportPropertiesForEveryKindOfTransaction(importTransactionPos, importProperties);
@@ -651,6 +670,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   public static ImportTransactionPos createFromImportPropertiesSecuritySuccess(Integer idTenant,
       String fileNameOriginal, Integer idTransactionHead, Integer idTransactionImportTemplate,
       List<ImportProperties> importPropertiesList) {
+    importPropertiesList.forEach(ImportProperties::normalizeMinorCurrencyUnits);
     ImportTransactionPos importTransactionPos = new ImportTransactionPos(idTenant, fileNameOriginal, idTransactionHead,
         idTransactionImportTemplate);
     return createFromImportPropertiesForSecurityTransaction(importTransactionPos, importPropertiesList);
@@ -728,6 +748,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
     importTransactionPos.setField1StringImp(ip.getSf1());
     importTransactionPos.setIdFilePart(ip.getFileOrLineNumber());
     importTransactionPos.setKnownOtherFlags(ip.getKnownOtherFlags());
+    importTransactionPos.setCalcRoundingMap(ip.getCalcRoundingMap());
     Double exchangeRate = ip.getCex() != null || ip.getCin() != null && !ip.getCac().equals(ip.getCin()) ? ip.getCex()
         : null;
     importTransactionPos.setCurrencyExRate(exchangeRate);
@@ -802,6 +823,37 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
 
   public double getCalcCashaccountAmount() {
     return calcCashaccountAmount;
+  }
+
+  public Map<String, Double> getCalcRoundingMap() {
+    return calcRoundingMap;
+  }
+
+  public void setCalcRoundingMap(Map<String, Double> calcRoundingMap) {
+    this.calcRoundingMap = calcRoundingMap;
+  }
+
+  /**
+   * Resolves the accepted rounding tolerance for this position's cash-account currency from the template
+   * configuration map carried over during a single import run. A per-currency override takes precedence over the
+   * configured default. This is the source for the persisted {@link #calcRoundingStep}.
+   *
+   * @return the accepted rounding tolerance, or null if the template configured none for this currency
+   */
+  public Double resolveConfiguredRoundingStep() {
+    if (calcRoundingMap == null || calcRoundingMap.isEmpty()) {
+      return null;
+    }
+    Double step = currencyAccount == null ? null : calcRoundingMap.get(currencyAccount.toUpperCase());
+    return step != null ? step : calcRoundingMap.get(TemplateConfiguration.CALC_ROUNDING_DEFAULT_KEY);
+  }
+
+  public Double getCalcRoundingStep() {
+    return calcRoundingStep;
+  }
+
+  public void setCalcRoundingStep(Double calcRoundingStep) {
+    this.calcRoundingStep = calcRoundingStep;
   }
 
   @Override

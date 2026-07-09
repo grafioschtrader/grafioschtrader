@@ -20,6 +20,7 @@ import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
 import {HelpIds} from '../../lib/help/help.ids';
 import {StandingOrderCallParam} from '../../standingorder/model/standing.order.call.param';
+import {BaseSettings} from '../../lib/base.settings';
 
 
 /**
@@ -145,6 +146,16 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
   handleCloseStandingOrderDialog(processedActionData: ProcessedActionData): void {
     this.visibleStandingOrderCashaccountDialog = false;
     this.visibleStandingOrderSecurityDialog = false;
+  }
+
+  /**
+   * Toggles the taxable flag of a dividend or interest transaction, bypassing the closedUntil period lock.
+   * Emits a change event afterward so dependent views (e.g. the dividends overview) recalculate.
+   * @param transaction The dividend or interest transaction whose taxable flag is toggled
+   */
+  handleToggleTaxableInterest(transaction: Transaction): void {
+    this.transactionService.updateTaxableInterest(transaction.idTransaction, !(transaction.taxableInterest === true))
+      .subscribe(() => this.dateChanged.emit(new ProcessedActionData(ProcessedAction.UPDATED, transaction)));
   }
 
   /**
@@ -338,6 +349,13 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
         command: (e) => (transaction) ? this.handleCreateStandingOrderFromTransaction(transaction) : null,
         disabled: !transaction || !transaction.idTransaction
           || !(Transaction.isSecurityTransaction(transaction.transactionType) || Transaction.isWithdrawalOrDeposit(transaction.transactionType))
+      });
+
+      menuItems.push({
+        label: 'TAXABLE_INTEREST_TOGGLE',
+        icon: transaction.taxableInterest === true ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY,
+        command: (e) => (transaction) ? this.handleToggleTaxableInterest(transaction) : null,
+        disabled: !transaction || !transaction.idTransaction || !Transaction.isDividendOrInterest(transaction.transactionType)
       });
 
       TranslateHelper.translateMenuItems(menuItems, this.translateService);

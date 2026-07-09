@@ -2,6 +2,7 @@ import {Injectable} from '@angular/core';
 
 import {AppSettings} from '../../shared/app.settings';
 import {Transaction} from '../../entities/transaction';
+import {ExDateFromTaxDataResult} from '../../entities/ex.date.from.tax.data.result';
 import {CashaccountTransactionPosition} from '../../entities/view/cashaccount.transaction.position';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
@@ -86,6 +87,32 @@ export class TransactionService extends AuthServiceWithLogout<Transaction> {
 
   deleteTransaction(idTransaction: number) {
     return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.TRANSACTION_KEY}/${idTransaction}`,
+      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /**
+   * Changes only the taxable flag of a dividend or interest transaction, bypassing the closedUntil period lock.
+   *
+   * @param idTransaction the id of the transaction to update
+   * @param taxableInterest the new taxable state to set
+   * @returns the updated transaction
+   */
+  updateTaxableInterest(idTransaction: number, taxableInterest: boolean): Observable<Transaction> {
+    return <Observable<Transaction>>this.httpClient.put(`${BaseSettings.API_ENDPOINT}${AppSettings.TRANSACTION_KEY}`
+      + `/${idTransaction}/taxableinterest/${taxableInterest}`, null,
+      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /**
+   * Back-fills the ex-date of the tenant's dividend transactions of a tax year from the imported Swiss ICTax tax data,
+   * bypassing the closedUntil lock and never overwriting an existing ex-date.
+   *
+   * @param year the tax year whose dividend transactions are processed
+   * @returns counts of examined, already-set, assigned and unmatched transactions
+   */
+  applyExDatesFromTaxData(year: number): Observable<ExDateFromTaxDataResult> {
+    return <Observable<ExDateFromTaxDataResult>>this.httpClient.put(`${BaseSettings.API_ENDPOINT}`
+      + `${AppSettings.TRANSACTION_KEY}/exdatefromtaxdata/${year}`, null,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 

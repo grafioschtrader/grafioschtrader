@@ -155,9 +155,11 @@ public class InvestingConnector extends BaseFeedConnector {
     String[] numbers = StringUtils.normalizeSpace(div.text().replace("%", "").replace("(", " ").replace(")", ""))
         .split(" ");
     var offset = NumberUtils.isCreatable(numbers[0].replaceAll(",", "")) ? 0 : 1;
-    securitycurrency.setSLast(FeedConnectorHelper.parseDoubleUS(numbers[0 + offset]));
-    securitycurrency.setSOpen(
-        DataBusinessHelper.round(securitycurrency.getSLast() - FeedConnectorHelper.parseDoubleUS(numbers[1 + offset])));
+    // Investing.com displays LSE quotes in pence (labeled "GBP" but numerically GBX); divide to the major currency.
+    final double divider = FeedConnectorHelper.getMinorUnitDivider(securitycurrency);
+    securitycurrency.setSLast(FeedConnectorHelper.parseDoubleUS(numbers[0 + offset]) / divider);
+    securitycurrency.setSOpen(DataBusinessHelper.round(
+        securitycurrency.getSLast() - FeedConnectorHelper.parseDoubleUS(numbers[1 + offset]) / divider));
     securitycurrency.setSChangePercentage(FeedConnectorHelper.parseDoubleUS(numbers[2 + offset]));
     securitycurrency.setSTimestamp(LocalDateTime.now().minusSeconds(getIntradayDelayedSeconds()));
   }

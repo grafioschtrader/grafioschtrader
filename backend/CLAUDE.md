@@ -2,6 +2,27 @@
 
 This file provides backend-specific guidance to Claude Code when working with the Java/Spring Boot backend modules.
 
+## Unused Lambda Parameters / Bindings — Use the Unnamed Variable `_`
+
+The project targets **Java 25**, so the unnamed variable `_` (JEP 456) is available. When a lambda
+parameter, `catch` parameter, or record-deconstruction binding is required syntactically but never
+read, name it `_` instead of a throwaway identifier (`k`, `p`, `y`, `msg`, ...). The IDE flags the
+throwaway names as *"The value of the ... is not used"* warnings; `_` silences them and documents
+intent.
+
+```java
+// WRONG — unused parameter triggers a warning
+map.computeIfAbsent(key, k -> new ArrayList<>());
+case HandlerResult.AwaitingManualResponse(var msg) -> { ... }   // msg never used
+
+// CORRECT — unnamed variable
+map.computeIfAbsent(key, _ -> new ArrayList<>());
+case HandlerResult.AwaitingManualResponse(var _) -> { ... }
+```
+
+Unlike a normal identifier, `_` may appear more than once in the same scope, so multiple unused
+parameters are fine — e.g. `(_, _) -> ...`. Give any parameter you actually read a real name.
+
 ## NLS / Message Properties Placement
 
 **IMPORTANT**: Message properties must be placed in the module where the code using them resides.

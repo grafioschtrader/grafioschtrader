@@ -20,6 +20,7 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
+import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 
@@ -130,6 +131,8 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
       final LocalDate to, boolean intraday) throws Exception {
 
     final List<Historyquote> historyquotes = new ArrayList<>();
+    // Alpha Vantage delivers most LSE (.LON) equities in pence (GBX); divide to the security's major currency.
+    final double divider = FeedConnectorHelper.getMinorUnitDivider(security);
     String outputsize = ChronoUnit.DAYS.between(from, LocalDate.now()) / 7 * 5 >= 100 ? FULL : COMPACT;
 
     URL request = new URI((intraday) ? getSecurityIntradayDownloadLink(security)
@@ -147,9 +150,9 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
           continue;
         }
         if (intraday) {
-          parseResponseLineAndSetIndraday(security, inputLine);
+          parseResponseLineAndSetIndraday(security, inputLine, divider);
         } else {
-          final Historyquote historyquote = parseResponseLine(inputLine, from, to);
+          final Historyquote historyquote = parseResponseLine(inputLine, from, to, divider);
           if (historyquote != null) {
             historyquotes.add(historyquote);
           }
@@ -160,30 +163,31 @@ public class AlphaVantageFeedConnector extends BaseFeedApiKeyConnector {
     return historyquotes;
   }
 
-  private Historyquote parseResponseLine(final String inputLine, final LocalDate from, final LocalDate to) {
+  private Historyquote parseResponseLine(final String inputLine, final LocalDate from, final LocalDate to,
+      final double divider) {
     Historyquote historyquote = null;
     final String[] item = inputLine.split(",");
     LocalDate day = LocalDate.parse(item[0], DATE_FORMAT);
     if (!day.isBefore(from) && !day.isAfter(to)) {
       historyquote = new Historyquote();
       historyquote.setDate(day);
-      historyquote.setOpen(Double.parseDouble(item[1]));
-      historyquote.setHigh(Double.parseDouble(item[2]));
-      historyquote.setLow(Double.parseDouble(item[3]));
-      historyquote.setClose(Double.parseDouble(item[5]));
+      historyquote.setOpen(Double.parseDouble(item[1]) / divider);
+      historyquote.setHigh(Double.parseDouble(item[2]) / divider);
+      historyquote.setLow(Double.parseDouble(item[3]) / divider);
+      historyquote.setClose(Double.parseDouble(item[5]) / divider);
       historyquote.setVolume(Long.parseLong(item[6]));
     }
     return historyquote;
   }
 
-  private void parseResponseLineAndSetIndraday(final Security security, final String inputLine) {
+  private void parseResponseLineAndSetIndraday(final Security security, final String inputLine, final double divider) {
     final String[] item = inputLine.split(",");
-    security.setSOpen(Double.parseDouble(item[1]));
-    security.setSHigh(Double.parseDouble(item[2]));
-    security.setSLow(Double.parseDouble(item[3]));
-    security.setSLast(Double.parseDouble(item[4]));
+    security.setSOpen(Double.parseDouble(item[1]) / divider);
+    security.setSHigh(Double.parseDouble(item[2]) / divider);
+    security.setSLow(Double.parseDouble(item[3]) / divider);
+    security.setSLast(Double.parseDouble(item[4]) / divider);
     security.setSVolume(Long.parseLong(item[5]));
-    security.setSPrevClose(Double.parseDouble(item[7]));
+    security.setSPrevClose(Double.parseDouble(item[7]) / divider);
     security.setSChangePercentage(Double.parseDouble(item[9].replace("%", "")));
   }
 

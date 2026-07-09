@@ -95,6 +95,8 @@ export abstract class TransactionTable extends TransactionContextMenu {
         width: 70, filterType: FilterType.likeDataType, templateName: 'greenRed',
         currencyPrecisionField: 'cashaccount.currency'
       });
+    this.addColumnFeqH(DataType.Numeric, 'cashaccountRoundingDiff', false, true,
+      {filterType: FilterType.likeDataType, currencyPrecisionField: 'cashaccount.currency'});
   }
 
   /**

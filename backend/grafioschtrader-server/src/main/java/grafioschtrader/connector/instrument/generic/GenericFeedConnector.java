@@ -277,7 +277,24 @@ public class GenericFeedConnector extends BaseFeedConnector {
     }
     String ticker = buildTicker(endpoint, security.getUrlIntraExtend(), null);
     Map<String, Double> values = fetchIntraday(endpoint, ticker, null);
+    applyMinorUnitDivider(security, values);
     applyIntradayValues(security, values);
+  }
+
+  /**
+   * Converts intraday price values from a minor currency unit (pence, cents) to the security's major currency when
+   * this connector has the divider enabled, mirroring the conversion of the historical data path. Only price fields
+   * are divided; volume and change percentage are unit-independent.
+   */
+  private void applyMinorUnitDivider(Security security, Map<String, Double> values) {
+    if (connectorDef.isGbxDividerEnabled()) {
+      double divider = FeedConnectorHelper.getMinorUnitDivider(security);
+      if (divider != 1.0) {
+        for (String key : new String[] { "last", "open", "high", "low", "prevClose" }) {
+          values.computeIfPresent(key, (_, value) -> value / divider);
+        }
+      }
+    }
   }
 
   @Override
@@ -357,7 +374,7 @@ public class GenericFeedConnector extends BaseFeedConnector {
         quotes.removeIf(hq -> !seenDates.add(hq.getDate()));
       }
       if (security != null && connectorDef.isGbxDividerEnabled()) {
-        double divider = FeedConnectorHelper.getGBXLondonDivider(security);
+        double divider = FeedConnectorHelper.getMinorUnitDivider(security);
         if (divider != 1.0) {
           for (Historyquote hq : quotes) {
             hq.setClose(hq.getClose() / divider);

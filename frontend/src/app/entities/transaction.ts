@@ -17,6 +17,7 @@ export class Transaction {
   currencyExRate?: number = null;
   note?: string = null;
   cashaccountAmount?: number = null;
+  cashaccountRoundingDiff?: number = null;
   transactionTime = null;
   exDate = null;
 
@@ -58,6 +59,16 @@ export class Transaction {
         return true;
       default:
         return this.isWithdrawalOrDeposit(transactionType);
+    }
+  }
+
+  public static isDividendOrInterest(transactionType: string): boolean {
+    switch (TransactionType[transactionType]) {
+      case TransactionType.DIVIDEND:
+      case TransactionType.INTEREST_CASHACCOUNT:
+        return true;
+      default:
+        return false;
     }
   }
 

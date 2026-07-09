@@ -90,7 +90,7 @@ public class SeasonalReturnsReport {
     ToIntFunction<Point> colFn = periodType == SeasonalPeriodType.MONTHLY ? p -> p.month - 1
         : p -> (p.month - 1) / 3;
     Map<Integer, Map<Integer, Double>> periodReturns = computeReturns(aggregate(points, colFn));
-    Map<Integer, Map<Integer, Double>> annualReturns = computeReturns(aggregate(points, p -> 0));
+    Map<Integer, Map<Integer, Double>> annualReturns = computeReturns(aggregate(points, _ -> 0));
 
     fillYearRows(result, points, periodReturns, annualReturns, columns);
     fillColumnStats(result, periodReturns, annualReturns, columns);
@@ -128,7 +128,7 @@ public class SeasonalReturnsReport {
     Map<String, Agg> map = new LinkedHashMap<>();
     for (Point p : ascPoints) {
       int col = colFn.applyAsInt(p);
-      Agg agg = map.computeIfAbsent(p.year + ":" + col, k -> new Agg(p.year, col));
+      Agg agg = map.computeIfAbsent(p.year + ":" + col, _ -> new Agg(p.year, col));
       agg.endDate = p.date;
       agg.value = p.value;
       agg.div += p.div;
@@ -146,7 +146,7 @@ public class SeasonalReturnsReport {
       Agg prev = ordered.get(i - 1);
       if (prev.value != 0.0) {
         double ret = ((cur.value + cur.div) / prev.value - 1.0) * 100.0;
-        result.computeIfAbsent(cur.year, y -> new HashMap<>()).put(cur.col, round2(ret));
+        result.computeIfAbsent(cur.year, _ -> new HashMap<>()).put(cur.col, round2(ret));
       }
     }
     return result;

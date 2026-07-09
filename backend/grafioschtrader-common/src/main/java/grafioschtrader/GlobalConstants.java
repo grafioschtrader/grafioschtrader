@@ -21,6 +21,7 @@ public class GlobalConstants extends BaseConstants {
   public static final String STOCK_EX_MIC_AUSTRIA = "XVIE";
   public static final String STOCK_EX_MIC_FRANCE = "XPAR";
   public static final String STOCK_EX_MIC_AUSTRALIA = "XASX";
+  public static final String STOCK_EX_MIC_JSE = "XJSE";
 
   public static final String STOCK_EX_MIC_ZKB = "ZKBX";
   public static final String STOCK_EX_MIC_STUTTGART = "XSTU";
@@ -32,6 +33,7 @@ public class GlobalConstants extends BaseConstants {
   public static final String MC_JPY = "JPY";
   public static final String MC_CHF = "CHF";
   public static final String MC_AUD = "AUD";
+  public static final String MC_ZAR = "ZAR";
   public static final String CC_BTC = "BTC";
 
   /** Prefix for users day entity limits */

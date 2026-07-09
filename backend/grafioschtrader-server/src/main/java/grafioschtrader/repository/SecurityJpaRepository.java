@@ -326,10 +326,37 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
    * A new payment of interest or dividend is expected: - Last payment with this client plus the addition of days
    * determined based on the frequency of payments. Instruments with entries in the Dividend entity that have a payment
    * date are ignored.<br>
-   * TODO First interest of a bond determined on the basis of the trading date plus addition of the frequency.<br>
+   * This check anchors on the most recent income transaction, so it can only detect a missing second-or-later payment.
+   * The overdue very first coupon of a freshly bought bond is handled by
+   * {@link #getPossibleMissingFirstInterestByFrequency()}.
+   *
+   * Named query: Security.getPossibleMissingDivInterestByFrequency
+   *
+   * @return a list of CheckSecurityTransIntegrity projections, one per held position with an overdue subsequent payment
    */
   @Query(nativeQuery = true)
   List<CheckSecurityTransIntegrity> getPossibleMissingDivInterestByFrequency();
+
+  /**
+   * Detects the overdue very first interest payment (coupon) of a held bond.
+   * <p>
+   * Complements {@link #getPossibleMissingDivInterestByFrequency()}: that query anchors on an existing income
+   * transaction and therefore cannot flag a bond that has never paid a coupon yet. This query instead anchors on the
+   * earliest buy (ACCUMULATE, transaction type 4) trade date and expects the first payment after one distribution
+   * interval ({@code 360 / dist_frequency} days plus a 10-day tolerance).
+   * <p>
+   * Restricted to bonds (assetclass category type FIXED_INCOME = 1 or CONVERTIBLE_BOND = 6) that are currently held,
+   * have a regular distribution frequency ({@code 0 < dist_frequency < 99}), have no income transaction (type 6) yet
+   * for that holding, and have no Dividend entity with a payment date (those are covered by
+   * {@link #getPossibleMissingDividentsByDividendTable(int, int)}). The reported mark date is the bond's first trade
+   * date, which keeps the mail_entity notification de-duplication distinct from the subsequent-payment check.
+   *
+   * Named query: Security.getPossibleMissingFirstInterestByFrequency
+   *
+   * @return a list of CheckSecurityTransIntegrity projections, one per held bond with an overdue first coupon
+   */
+  @Query(nativeQuery = true)
+  List<CheckSecurityTransIntegrity> getPossibleMissingFirstInterestByFrequency();
 
   /**
    * If an instrument was held during the period of a dividend payment, the dividend entity is used to determine whether

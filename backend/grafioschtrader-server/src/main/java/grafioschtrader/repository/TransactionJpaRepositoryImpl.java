@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,9 +27,11 @@ import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.CashAccountTransfer;
 import grafioschtrader.dto.ClosedMarginUnits;
+import grafioschtrader.dto.ExDateFromTaxDataResult;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Currencypair;
+import grafioschtrader.entities.IctaxSecurityTaxData;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.SecaccountTradingPeriod;
 import grafioschtrader.entities.Security;
@@ -42,6 +45,7 @@ import grafioschtrader.instrument.SecurityMarginUnitsCheck;
 import grafioschtrader.reportviews.currencypair.CurrencypairWithTransaction;
 import grafioschtrader.reportviews.transaction.CashaccountTransactionPosition;
 import grafioschtrader.service.GlobalparametersService;
+import grafioschtrader.tax.swiss.ictax.IctaxExDateMatcher;
 import grafioschtrader.types.TransactionType;
 
 public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction>
@@ -82,6 +86,9 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
   @Autowired
   private TenantJpaRepository tenantJpaRepository;
+
+  @Autowired
+  private IctaxSecurityTaxDataJpaRepository ictaxSecurityTaxDataJpaRepository;
 
   // Circular Dependency -> Lazy
   private CashaccountJpaRepository cashaccountJpaRepository;
@@ -166,6 +173,60 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   public Transaction saveOnlyAttributes(final Transaction transaction, Transaction existingEntity,
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
     return saveOnly(transaction, existingEntity, updatePropertyLevelClasses);
+  }
+
+  @Override
+  @Transactional
+  @Modifying
+  public Transaction updateTaxableInterest(final Integer idTransaction, final boolean taxableInterest) {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    final Transaction transaction = transactionJpaRepository.findByIdTransactionAndIdTenant(idTransaction,
+        user.getIdTenant());
+    if (transaction == null) {
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
+    }
+    if (transaction.getTransactionType() != TransactionType.DIVIDEND
+        && transaction.getTransactionType() != TransactionType.INTEREST_CASHACCOUNT) {
+      throw new GeneralNotTranslatedWithArgumentsException("gt.transaction.taxableinterest.wrong.type", null);
+    }
+    // The taxable flag is a read-time tax-reporting input only, so no holdings recalculation is required.
+    // Save directly to bypass the closedUntil / active-to-date / trading-period guards of the normal save path.
+    transaction.setTaxableInterest(taxableInterest);
+    transaction.setSkipClosedUntilCheck(true);
+    return transactionJpaRepository.save(transaction);
+  }
+
+  @Override
+  @Transactional
+  @Modifying
+  public ExDateFromTaxDataResult applyExDatesFromTaxData(final short taxYear) {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    final List<Transaction> dividends = transactionJpaRepository.getDividendTransactionsByTenantAndPeriod(
+        user.getIdTenant(), TransactionType.DIVIDEND.getValue(), LocalDate.of(taxYear, 1, 1),
+        LocalDate.of(taxYear, 12, 31));
+
+    final List<Transaction> withoutExDate = dividends.stream().filter(t -> t.getExDate() == null).toList();
+    final int alreadySet = dividends.size() - withoutExDate.size();
+    if (withoutExDate.isEmpty()) {
+      return new ExDateFromTaxDataResult(dividends.size(), alreadySet, 0, 0);
+    }
+
+    final List<String> isins = withoutExDate.stream().map(t -> t.getSecurity().getIsin()).distinct().toList();
+    final List<IctaxSecurityTaxData> taxData = ictaxSecurityTaxDataJpaRepository.findByIsinInAndTaxYear(isins, taxYear);
+    final Map<Transaction, LocalDate> matches = IctaxExDateMatcher.assignExDates(withoutExDate, taxData,
+        IctaxExDateMatcher.DEFAULT_TOLERANCE_DAYS);
+
+    // The ex-date is a read-time tax-reporting input only, so no holdings recalculation is required. Save directly to
+    // bypass the closedUntil / active-to-date / trading-period guards of the normal save path (same rationale as
+    // updateTaxableInterest).
+    for (Map.Entry<Transaction, LocalDate> entry : matches.entrySet()) {
+      final Transaction transaction = entry.getKey();
+      transaction.setExDate(entry.getValue());
+      transaction.setSkipClosedUntilCheck(true);
+      transactionJpaRepository.save(transaction);
+    }
+    return new ExDateFromTaxDataResult(dividends.size(), alreadySet, matches.size(),
+        withoutExDate.size() - matches.size());
   }
 
   @Override

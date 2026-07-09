@@ -126,7 +126,7 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
       throws Exception {
     return getEodSecurityCurrencypairHistory(
         new URI(getSecurityHistoricalDownloadLink(security, from, to)).toURL(),
-        FeedConnectorHelper.getGBXLondonDivider(security));
+        FeedConnectorHelper.getMinorUnitDivider(security));
   }
 
   @Override
@@ -181,7 +181,7 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
     updateLastPrice(security, getSecurityIntradayDownloadLink(security),
-        FeedConnectorHelper.getGBXLondonDivider(security));
+        FeedConnectorHelper.getMinorUnitDivider(security));
   }
 
   @Override

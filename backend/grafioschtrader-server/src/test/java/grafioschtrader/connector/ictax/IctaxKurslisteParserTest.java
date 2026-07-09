@@ -1,0 +1,90 @@
+package grafioschtrader.connector.ictax;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import grafioschtrader.entities.IctaxPayment;
+import grafioschtrader.entities.IctaxSecurityTaxData;
+import grafioschtrader.tax.swiss.ictax.IctaxKurslisteParser;
+
+/**
+ * Pure parser tests (no Spring context) verifying that superseded payment rows are dropped and that
+ * KEP coupons are flagged as capital gains.
+ */
+class IctaxKurslisteParserTest {
+
+  /**
+   * Mirrors the structure observed for CH0237935652/2025: each valid coupon is accompanied by
+   * deleted="1" correction/breakdown rows, and the valid KEP coupon carries sign="KEP" instead of
+   * capitalGain="1".
+   */
+  private static final String XML = """
+      <?xml version="1.0" encoding="ISO-8859-1"?>
+      <kursliste>
+        <fund id="1" valorNumber="23793565" isin="CH0237935652" securityGroup="FUND" country="CH" currency="CHF" nominalValue="0">
+          <yearend id="9" quotationType="PIECE" taxValue="159.02" taxValueCHF="159.02"/>
+          <payment id="100" deleted="1" paymentDate="2025-04-15" currency="CHF" paymentValueCHF="0.6594891684" exDate="2025-04-11"/>
+          <payment id="101" deleted="1" paymentDate="2025-04-15" currency="CHF" paymentValueCHF="0.0005108316" sign="(G)" exDate="2025-04-11" capitalGain="1"/>
+          <payment id="102" paymentDate="2025-04-15" currency="CHF" paymentValueCHF="0.66" exDate="2025-04-11" coupon="62"/>
+          <payment id="200" deleted="1" paymentDate="2025-07-17" currency="CHF" paymentValueCHF="0.4" sign="(G)" exDate="2025-07-15" capitalGain="1"/>
+          <payment id="201" paymentDate="2025-07-17" currency="CHF" paymentValueCHF="0.4" sign="KEP" exDate="2025-07-15" coupon="65"/>
+          <payment id="202" paymentDate="2025-07-17" currency="CHF" paymentValueCHF="0.44" exDate="2025-07-15" coupon="64"/>
+        </fund>
+      </kursliste>
+      """;
+
+  @Test
+  @DisplayName("Deleted rows are dropped; KEP coupon is flagged as capital gain")
+  void parsesValidPaymentsOnly() throws Exception {
+    IctaxKurslisteParser parser = new IctaxKurslisteParser();
+    List<IctaxSecurityTaxData> result = parser.parseFull(
+        new ByteArrayInputStream(XML.getBytes(StandardCharsets.ISO_8859_1)), 1);
+
+    assertEquals(1, result.size());
+    List<IctaxPayment> payments = result.getFirst().getPayments();
+
+    // Only the three non-deleted coupons survive (0.66, 0.40 KEP, 0.44).
+    assertEquals(3, payments.size(), "deleted=1 rows must not be imported");
+
+    IctaxPayment kep = payments.stream()
+        .filter(p -> Double.valueOf(0.4).equals(p.getPaymentValueChf())).findFirst().orElseThrow();
+    assertTrue(Boolean.TRUE.equals(kep.getCapitalGain()), "sign=\"KEP\" coupon must be flagged capitalGain");
+
+    // The two genuine taxable coupons are not flagged.
+    assertEquals(2, payments.stream().filter(p -> !Boolean.TRUE.equals(p.getCapitalGain())).count());
+  }
+
+  @Test
+  @DisplayName("Large Kursliste parses despite a strict jdk.xml.maxGeneralEntitySizeLimit")
+  void parsesDocumentLargerThanEntitySizeLimit() throws Exception {
+    String previous = System.getProperty("jdk.xml.maxGeneralEntitySizeLimit");
+    System.setProperty("jdk.xml.maxGeneralEntitySizeLimit", "1000"); // simulate strict env
+    try {
+      StringBuilder sb = new StringBuilder("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<kursliste>\n");
+      for (int i = 0; i < 5000; i++) { // well over 1000 chars total
+        sb.append("  <fund id=\"").append(i).append("\" valorNumber=\"").append(i)
+            .append("\" isin=\"CH000000000").append(i % 10)
+            .append("\" securityGroup=\"FUND\" country=\"CH\" currency=\"CHF\"/>\n");
+      }
+      sb.append("</kursliste>\n");
+
+      IctaxKurslisteParser parser = new IctaxKurslisteParser();
+      List<IctaxSecurityTaxData> result = parser.parseFull(
+          new ByteArrayInputStream(sb.toString().getBytes(StandardCharsets.ISO_8859_1)), 1);
+      assertEquals(5000, result.size());
+    } finally {
+      if (previous == null) {
+        System.clearProperty("jdk.xml.maxGeneralEntitySizeLimit");
+      } else {
+        System.setProperty("jdk.xml.maxGeneralEntitySizeLimit", previous);
+      }
+    }
+  }
+}

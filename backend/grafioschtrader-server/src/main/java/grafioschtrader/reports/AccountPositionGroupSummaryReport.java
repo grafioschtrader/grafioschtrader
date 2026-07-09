@@ -431,8 +431,6 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
   private void foreignCurrencyTransaction(final Currencypair currencypair, final AccessCashaccountPositionSummary acps,
       final CashaccountPositionSummary accountPositionSummary, final DateTransactionCurrencypairMap dateCurrencyMap,
       final Transaction transaction) {
-    // Transfer between two foreign cash accounts
-
     if (transaction.isCashaccountTransfer()) {
       // Transfer between two foreign cash accounts
       Double exchangeRate = acps.exchangeRateConnectedTransactionMap.get(transaction.getIdTransaction());
@@ -457,9 +455,11 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
     } else {
       final Double exchangeRate = dateCurrencyMap.getPriceByDateAndFromCurrency(transaction.getTransactionDateAsLocalDate(),
           accountPositionSummary.securitycurrency.getFromCurrency(), true);
-      // Transaction between to currencies when main currency is not involved.
-      // TODO Fix many currency should not be involved
-      // Transaction 40024 GBP / USD
+      // Security transaction between two foreign currencies where the main currency is not involved (e.g. a USD
+      // security paid from a GBP cash account while the tenant currency is CHF). The transaction's own exchange rate
+      // only converts between the two foreign currencies, so the main-currency amounts are derived from a separately
+      // looked-up rate, and the security-currency counter-side is booked into a pseudo cash account since no real
+      // account in that currency participates in the transaction.
       accountPositionSummary.balanceCurrencyTransaction += transaction.getCashaccountAmount();
       accountPositionSummary.balanceCurrencyTransactionMC += transaction.getCashaccountAmount() * exchangeRate;
       final CashaccountPositionSummary securityACPS = getOrCreatePseudoAccountPositionGroupSummary(acps,

@@ -26,7 +26,7 @@ public interface IMessageRetentionProvider {
   /**
    * Returns the configuration key used in the PropertyString format.
    * This key is used to look up retention days from the global parameter
-   * {@code gt.gtnet.del.message.recv} (e.g., "LP=1,HP=5,SL=5").
+   * {@code g.gnet.del.message.recv} (e.g., "LP=1,HP=5,SL=5").
    *
    * @return the config key (e.g., "LP", "HP", "SL")
    */

@@ -47,6 +47,9 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   public static final String TABNAME = "transaction";
   private static final Logger log = LoggerFactory.getLogger(Transaction.class);
 
+  /** Numerical slack when comparing an absolute cash-amount difference against the configured rounding tolerance. */
+  private static final double ROUNDING_STEP_EPSILON = 1e-6;
+
   private static final long serialVersionUID = 1L;
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -105,6 +108,14 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   @Column(name = "cashaccount_amount")
   @NotNull
   private Double cashaccountAmount;
+
+  @Schema(description = """
+      Residual rounding difference between the calculated cash amount (units * quotation +/- costs) and the
+      imported document/bank amount that is actually booked to the cash account. Only set when a document import
+      accepted a difference within the import template's calcRounding tolerance; null otherwise. It keeps the
+      security-side math and the cash-side amount reconciled and is added back during cash-amount validation.""")
+  @Column(name = "cashaccount_rounding_diff")
+  private Double cashaccountRoundingDiff;
 
   @Schema(description = """
       The transaction time is the date and time when the transaction took place. The exact time is not so important,
@@ -196,6 +207,25 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   @JsonIgnore
   @Transient
   private Double splitFactorFromBaseTransaction = 1.0;
+
+  /**
+   * Maximum cash-amount difference accepted as a rounding artifact during cash-amount validation (the import
+   * template's calcRounding tolerance). When set and the calculated amount deviates from the booked amount by no
+   * more than this value, the residual is recorded in {@link #cashaccountRoundingDiff} instead of failing. Null
+   * (the default for manually entered transactions) means strict validation.
+   */
+  @JsonIgnore
+  @Transient
+  private Double acceptableRoundingStep;
+
+  /**
+   * Marks that a cash-amount difference was explicitly accepted by the user (the "Accept difference total" action on
+   * the document import). When true, any residual between the calculated and booked amount is recorded in
+   * {@link #cashaccountRoundingDiff} without a tolerance limit, instead of failing validation.
+   */
+  @JsonIgnore
+  @Transient
+  private boolean roundingDiffExplicitlyAccepted;
 
   public Transaction() {
   }
@@ -292,6 +322,22 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
 
   public void setCashaccountAmount(Double cashaccountAmount) {
     this.cashaccountAmount = cashaccountAmount;
+  }
+
+  public Double getCashaccountRoundingDiff() {
+    return cashaccountRoundingDiff;
+  }
+
+  public void setCashaccountRoundingDiff(Double cashaccountRoundingDiff) {
+    this.cashaccountRoundingDiff = cashaccountRoundingDiff;
+  }
+
+  public void setAcceptableRoundingStep(Double acceptableRoundingStep) {
+    this.acceptableRoundingStep = acceptableRoundingStep;
+  }
+
+  public void setRoundingDiffExplicitlyAccepted(boolean roundingDiffExplicitlyAccepted) {
+    this.roundingDiffExplicitlyAccepted = roundingDiffExplicitlyAccepted;
   }
 
   public Integer getConnectedIdTransaction() {
@@ -743,8 +789,26 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     default:
       calcCashaccountAmount = cashaccountAmount;
     }
+    // A rounding difference already recorded on a persisted transaction is added back so the calculated amount ties
+    // out to the booked amount. Sign convention: diff = round(calculatedAmount) - round(bookedAmount), hence
+    // calculatedAmount - diff == bookedAmount.
+    if (cashaccountRoundingDiff != null) {
+      calcCashaccountAmount -= cashaccountRoundingDiff;
+    }
     calcCashaccountAmount = DataHelper.round(calcCashaccountAmount, currencyFraction);
     double roundCashaccountAmount = DataHelper.round(cashaccountAmount, currencyFraction);
+
+    // A not-yet-recorded difference is accepted and stored as the rounding residual so the booked (imported) amount
+    // is kept and the calculated amount ties out to it. Acceptance is either explicit and unbounded (the user's
+    // "Accept difference total" action) or bounded by the template's calcRounding tolerance. Differences that are
+    // neither explicitly accepted nor within the tolerance still fail below.
+    if (roundCashaccountAmount != calcCashaccountAmount && cashaccountRoundingDiff == null
+        && (roundingDiffExplicitlyAccepted || (acceptableRoundingStep != null
+            && Math.abs(calcCashaccountAmount - roundCashaccountAmount) <= acceptableRoundingStep
+                + ROUNDING_STEP_EPSILON))) {
+      cashaccountRoundingDiff = calcCashaccountAmount - roundCashaccountAmount;
+      calcCashaccountAmount = roundCashaccountAmount;
+    }
 
     if (roundCashaccountAmount == calcCashaccountAmount) {
       if (quotation != null && GlobalConstants.AUTO_CORRECT_TO_AMOUNT) {

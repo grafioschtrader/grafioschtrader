@@ -10,6 +10,9 @@ import grafioschtrader.entities.Security;
 
 public class UnitsCounter {
 
+  /** Tolerance for treating a floating-point unit count as zero. */
+  private static final double EPSILON = 1e-8;
+
   /** Per-transaction delta: date and signed unit change (+buy, -sell). */
   public record UnitMutation(LocalDate date, double delta) {}
 
@@ -65,6 +68,77 @@ public class UnitsCounter {
   /** Records a buy/sell mutation delta at the given date. */
   public void recordMutation(LocalDate date, double delta) {
     mutations.add(new UnitMutation(date, delta));
+  }
+
+  /**
+   * Units held going into maturity for a bond redeemed at or after maturity. Returns the cumulative units held
+   * immediately before the first reducing (sell/redeem) mutation dated on or after the given maturity date, or 0.0 if no
+   * reducing mutation occurs on/after that date (i.e. the position was not redeemed at maturity).
+   *
+   * <p>
+   * Bonds do not split, so the running sum of mutations equals the recorded unit timeline; no split-basis
+   * reconciliation is needed here.
+   * </p>
+   *
+   * @param maturityDate the bond's maturity (activeToDate)
+   * @return units held just before the maturity redemption, or 0.0 if there is none
+   */
+  public double getUnitsBeforeRedemptionOnOrAfter(LocalDate maturityDate) {
+    double running = 0.0;
+    for (UnitMutation m : mutations) {
+      if (m.delta() < 0 && !m.date().isBefore(maturityDate)) {
+        return running; // units held immediately before the maturity redemption
+      }
+      running += m.delta();
+    }
+    return 0.0;
+  }
+
+  /**
+   * Determines whether the position was opened (or re-opened) in the given year, i.e. the holding crossed from 0 units
+   * to a positive amount. This is the case when no units were held at the end of the previous year and at least one
+   * buying mutation (positive delta) occurred during the year. A short entry (first mutation negative) does not count
+   * as an opening.
+   *
+   * @param year the calendar year to check
+   * @return true when the holding went from 0 to a positive amount in that year
+   */
+  public boolean wasOpenedInYear(int year) {
+    Map.Entry<LocalDate, Double> prevYearEnd = unitTimeline.floorEntry(LocalDate.of(year - 1, 12, 31));
+    if (prevYearEnd != null && Math.abs(prevYearEnd.getValue()) > EPSILON) {
+      return false;
+    }
+    return mutations.stream().anyMatch(m -> m.delta() > 0 && m.date().getYear() == year);
+  }
+
+  /**
+   * Determines whether the holding was 0 units both at the beginning (end of previous year) and at the end of the
+   * given year — a position opened and fully closed within the year, or a row present only because of a trailing
+   * dividend after a complete sale in an earlier year.
+   *
+   * @param year the calendar year to check
+   * @return true when no units were held at the start and at the end of that year
+   */
+  public boolean wasZeroAtStartAndEndOfYear(int year) {
+    Map.Entry<LocalDate, Double> prevYearEnd = unitTimeline.floorEntry(LocalDate.of(year - 1, 12, 31));
+    boolean zeroAtStart = prevYearEnd == null || Math.abs(prevYearEnd.getValue()) < EPSILON;
+    return zeroAtStart && Math.abs(units) < EPSILON;
+  }
+
+  /**
+   * Date of the maturity redemption: the first reducing (sell/redeem) mutation dated on or after the given maturity
+   * date, or null when the position was not redeemed at/after maturity.
+   *
+   * @param maturityDate the bond's maturity (activeToDate)
+   * @return the redemption date or null
+   */
+  public LocalDate getMaturityRedemptionDate(LocalDate maturityDate) {
+    for (UnitMutation m : mutations) {
+      if (m.delta() < 0 && !m.date().isBefore(maturityDate)) {
+        return m.date();
+      }
+    }
+    return null;
   }
 
   public List<UnitMutation> getMutations() {

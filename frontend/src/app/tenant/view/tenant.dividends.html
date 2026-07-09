@@ -3,6 +3,9 @@
   <div class="datatable">
     <p-table [(selection)]="securityDividendsGrandTotalSelected" [columns]="fields" [multiSortMeta]="multiSortMeta"
              [paginator]="true" [rows]="30" [value]="securityDividendsYearGroup"
+             [(expandedRowKeys)]="expandedYearKeys"
+             [contextMenu]="cm" [(contextMenuSelection)]="securityDividendsGrandTotalSelected"
+             (onContextMenuSelect)="onContextMenuSelect($event)"
              dataKey="year" selectionMode="single" sortMode="multiple"
              stripedRows showGridlines>
       <ng-template #caption>
@@ -75,6 +78,7 @@
               [securityDividendsGrandTotal]="securityDividendsGrandTotal"
               [securityDividendsPositions]="sDYG.securityDividendsPositions"
               [year]="sDYG.year"
+              [expandedRowKeys]="getSecurityExpandedKeys(sDYG.year)"
               [filterTransactionsToYearEnd]="filterTransactionsToYearEnd">
             </tenant-dividends-security-extended>
           </td>
@@ -91,6 +95,7 @@
         </tr>
       </ng-template>
     </p-table>
+    <p-contextMenu #cm [model]="contextMenuItems" appendTo="body"></p-contextMenu>
   </div>
 </div>
 

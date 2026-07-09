@@ -134,7 +134,7 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
   public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
     return getEodSecurityCurrencypairHistory(security.getUrlHistoryExtend(), from, to,
-        FeedConnectorHelper.getGBXLondonDivider(security), true);
+        FeedConnectorHelper.getMinorUnitDivider(security), true);
   }
 
   @Override
@@ -226,7 +226,7 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
   public void updateSecurityLastPrice(final Security security) throws Exception {
     waitForTokenOrGo(bucket);
     var quote = objectMapper.readValue(new URI(getSecurityIntradayDownloadLink(security)).toURL().openStream(), Quote.class);
-    quote.setValues(security, FeedConnectorHelper.getGBXLondonDivider(security), getIntradayDelayedSeconds());
+    quote.setValues(security, FeedConnectorHelper.getMinorUnitDivider(security), getIntradayDelayedSeconds());
   }
 
   @Override

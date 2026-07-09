@@ -6,6 +6,7 @@ import java.time.LocalTime;
 import java.util.EnumSet;
 import java.util.Map;
 
+import grafioschtrader.common.MinorCurrencyUnit;
 import grafioschtrader.types.ImportKnownOtherFlags;
 import grafioschtrader.types.TransactionType;
 import grafioschtrader.validation.ISINValidator;
@@ -107,6 +108,12 @@ public class ImportProperties {
 
   /** Transaction type text that should be marked as tax-exempt. */
   private String ignoreTaxOnDivInt;
+
+  /**
+   * Accepted rounding tolerance configuration carried over from the import template. Keyed by upper-case ISO currency
+   * code with a default sentinel entry; see {@code TemplateConfiguration.getCalcRoundingMap()}. May be null.
+   */
+  private Map<String, Double> calcRoundingMap;
 
   /**
    * Creates transaction properties with the specified configuration.
@@ -360,6 +367,39 @@ public class ImportProperties {
     return per == null ? false : true;
   }
 
+  /**
+   * Normalizes minor-unit currency codes to their ISO 4217 major currency. Some trading platforms document trades on
+   * the London or Johannesburg Stock Exchange in the minor unit (e.g. SaxoTrader uses "GBp" pence where Migros Bank
+   * uses "GBP" pounds). Since GT stores securities and transactions exclusively in the major currency, the security
+   * currency and the price per unit must be converted before the security is matched and the position is validated.
+   * If the document also carried the pence/pounds factor as a pseudo exchange rate, that rate is cleared because no
+   * real currency conversion takes place. Costs and taxes quoted in a minor unit are converted the same way.
+   */
+  public void normalizeMinorCurrencyUnits() {
+    if (MinorCurrencyUnit.isMinorUnit(cin)) {
+      cin = MinorCurrencyUnit.getMajorCurrency(cin);
+      if (quotation != null) {
+        quotation /= MinorCurrencyUnit.MINOR_TO_MAJOR_DIVIDER;
+      }
+      if (cex != null && cin.equals(cac) && (cex == MinorCurrencyUnit.MINOR_TO_MAJOR_DIVIDER
+          || cex == 1 / MinorCurrencyUnit.MINOR_TO_MAJOR_DIVIDER)) {
+        cex = null;
+      }
+    }
+    if (MinorCurrencyUnit.isMinorUnit(cct)) {
+      cct = MinorCurrencyUnit.getMajorCurrency(cct);
+      tc1 = divideByMinorUnit(tc1);
+      tc2 = divideByMinorUnit(tc2);
+      tt1 = divideByMinorUnit(tt1);
+      tt2 = divideByMinorUnit(tt2);
+      reduce = divideByMinorUnit(reduce);
+    }
+  }
+
+  private static Double divideByMinorUnit(Double value) {
+    return value == null ? null : value / MinorCurrencyUnit.MINOR_TO_MAJOR_DIVIDER;
+  }
+
   public boolean maybeEmpty() {
     return datetime == null && ta == null;
   }
@@ -370,6 +410,14 @@ public class ImportProperties {
 
   public EnumSet<ImportKnownOtherFlags> getKnownOtherFlags() {
     return knownOtherFlags;
+  }
+
+  public Map<String, Double> getCalcRoundingMap() {
+    return calcRoundingMap;
+  }
+
+  public void setCalcRoundingMap(Map<String, Double> calcRoundingMap) {
+    this.calcRoundingMap = calcRoundingMap;
   }
 
   @Override

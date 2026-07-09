@@ -14,7 +14,7 @@ import {GlobalparameterService} from '../../lib/services/globalparameter.service
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {SecurityService} from '../../securitycurrency/service/security.service';
-import {ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
+import {PageFirstRowSelectedRow, ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ConfirmationService, FilterService} from 'primeng/api';
 import {TransactionSecurityFieldDefinition} from './transaction.security.field.definition';
@@ -110,6 +110,18 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
   }
 
   /**
+   * Records the current paginator page (keyed by security) on every page change so it survives this component being
+   * destroyed and recreated by a parent reload.
+   *
+   * @param event PrimeNG page event; {@code event.first} is the index of the first row on the new page
+   */
+  override onPage(event: any): void {
+    super.onPage(event);
+    this.pageFirstRowSelectedRow.topPageRow = event.first;
+    this.parentChildRegisterService.saveRowPosition(this.idSecuritycurrency, this.pageFirstRowSelectedRow);
+  }
+
+  /**
    * Retrieves the security object associated with a given transaction.
    *
    * @param transaction The transaction object to get security information from
@@ -145,6 +157,13 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
       this.idPortfolio, false, this.untilDate).subscribe(result => {
       this.securityTransactionSummary = result;
       this.createTranslatedValueStoreAndFilterField(this.securityTransactionSummary.transactionPositionList);
+      // Restore the paginator page/selected-row saved for this security BEFORE assigning the transaction list,
+      // synchronously in the same change-detection cycle as the data — mirrors
+      // TransactionSecurityMarginTreetableComponent.initialize(). A setTimeout-deferred restore
+      // (goToFirsRowPosition, still used by TransactionCashaccountTableComponent, whose instance survives
+      // reloads instead of being recreated) is unreliable here: this instance is freshly constructed and may be
+      // destroyed again by a subsequent cascading reload hop before the deferred callback ever runs.
+      this.pageFirstRowSelectedRow = this.parentChildRegisterService.getRowPosition(this.idSecuritycurrency);
       this.transactionPositionList = this.securityTransactionSummary.transactionPositionList;
       this.currencyColumnConfigMC.forEach(cc => {
         cc.headerSuffix = this.securityTransactionSummary.securityPositionSummary.mainCurrency;

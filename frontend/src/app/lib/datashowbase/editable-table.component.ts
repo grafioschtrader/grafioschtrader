@@ -23,6 +23,7 @@ import {DatePickerModule} from 'primeng/datepicker';
 import {SelectModule} from 'primeng/select';
 import {CheckboxModule} from 'primeng/checkbox';
 import {ButtonModule} from 'primeng/button';
+import {Textarea} from 'primeng/textarea';
 import {ColumnConfig, EditInputType} from './column.config';
 import {DataType} from '../dynamic-form/models/data.type';
 import {Helper} from '../helper/helper';
@@ -104,7 +105,7 @@ export interface ValidationErrorEvent<T> {
   imports: [
     CommonModule, FormsModule, TableModule, ContextMenuModule, TooltipModule,
     InputTextModule, InputNumberModule, DatePickerModule, SelectModule,
-    CheckboxModule, ButtonModule
+    CheckboxModule, ButtonModule, Textarea
   ],
   template: `
     <div #cmDiv (click)="onComponentClick($event)"
@@ -317,6 +318,7 @@ export interface ValidationErrorEvent<T> {
           @case (EditInputType.InputNumber) {
             <p-inputNumber [(ngModel)]="rowData[field.field]"
                           (ngModelChange)="onFieldChange(field, rowData, $event)"
+                          [locale]="numberLocale"
                           [minFractionDigits]="field.minFractionDigits || 0"
                           [maxFractionDigits]="field.cec?.maxFractionDigits || field.maxFractionDigits || 2"
                           [min]="field.cec?.min"
@@ -348,6 +350,18 @@ export interface ValidationErrorEvent<T> {
                        (ngModelChange)="onFieldChange(field, rowData, $event)"
                        [binary]="true">
             </p-checkbox>
+          }
+
+          <!-- Textarea for multi-line string values -->
+          @case (EditInputType.Textarea) {
+            <textarea pTextarea
+                      [class.required-input]="isFieldRequired(field)"
+                      [(ngModel)]="rowData[field.field]"
+                      (ngModelChange)="onFieldChange(field, rowData, $event)"
+                      [maxlength]="field.cec?.maxLength"
+                      [rows]="field.cec?.rows || 3"
+                      [placeholder]="field.cec?.placeholder || ''"
+                      style="width: 100%"></textarea>
           }
 
           <!-- ReadOnly - show value even in edit mode -->
@@ -480,6 +494,13 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
 
   /** Locale configuration for date formatting */
   @Input() baseLocale: BaseLocale = { language: 'en', dateFormat: 'yy-mm-dd' };
+
+  /**
+   * BCP 47 locale (e.g. 'de-CH') for the InputNumber edit control so its grouping/decimal separators match the
+   * user's GT number formatting (GlobalparameterService.getLocale()). Falls back to the runtime default when
+   * not set.
+   */
+  @Input() numberLocale?: string;
 
   /** Callback to determine if a numeric value is negative (for red/green coloring) */
   @Input() negativeValueFn?: (row: T, field: ColumnConfig) => boolean;

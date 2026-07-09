@@ -22,6 +22,11 @@ import {BaseSettings} from '../../lib/base.settings';
 import {CommonModule} from '@angular/common';
 import {TableModule} from 'primeng/table';
 import {TooltipModule} from 'primeng/tooltip';
+import {ContextMenuModule} from 'primeng/contextmenu';
+import {TransactionService} from '../../transaction/service/transaction.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
+import {InfoLevelType} from '../../lib/message/info.leve.type';
+import {ExDateFromTaxDataResult} from '../../entities/ex.date.from.tax.data.result';
 import {
   TenantDividendSecurityAccountSelectionDialogComponent
 } from './tenant-dividend-security-account-selection-dialog.component';
@@ -41,8 +46,9 @@ import {
 @Component({
   templateUrl: '../view/tenant.dividends.html',
   standalone: true,
-  imports: [CommonModule, TranslateModule, TableModule, TooltipModule, TenantDividendSecurityAccountSelectionDialogComponent,
-    TenantDividendsCashaccountExtendedComponent, TenantDividendsSecurityExtendedComponent, TaxStatementExportDialogComponent]
+  imports: [CommonModule, TranslateModule, TableModule, TooltipModule, ContextMenuModule,
+    TenantDividendSecurityAccountSelectionDialogComponent, TenantDividendsCashaccountExtendedComponent,
+    TenantDividendsSecurityExtendedComponent, TaxStatementExportDialogComponent]
 })
 export class TenantDividendsComponent extends TableConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
 
@@ -54,12 +60,28 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
   visibleExportDialog: boolean;
   idsAccounts: IdsAccounts;
   filterTransactionsToYearEnd = false;
+  contextMenuItems: MenuItem[] = [];
+
+  /**
+   * Tracks which year rows are expanded, keyed by the {@code year} dataKey value. Bound two-way on the top table so the
+   * expansion survives a {@code readData()} reload (e.g. after a TAXABLE_INTEREST_TOGGLE) instead of collapsing.
+   */
+  expandedYearKeys: { [year: string]: boolean } = {};
+
+  /**
+   * Per-year expansion state of the nested security table. The security table lives inside a child component that is
+   * recreated on every parent reload, so its expansion map is owned here and passed back into each child by reference.
+   * Outer key is the {@code year}; inner key is {@code security.idSecuritycurrency}.
+   */
+  securityExpandedKeysByYear: { [year: string]: { [id: string]: boolean } } = {};
 
   private columnConfigs: ColumnConfig[] = [];
 
   constructor(private portfolioService: PortfolioService,
               private activatedRoute: ActivatedRoute,
               private activePanelService: ActivePanelService,
+              private transactionService: TransactionService,
+              private messageToastService: MessageToastService,
               filterService: FilterService,
               translateService: TranslateService,
               gps: GlobalparameterService,
@@ -123,6 +145,7 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
     this.readData();
     this.multiSortMeta.push({field: 'year', order: 1});
     this.onComponentClick(null);
+    this.buildContextMenu();
   }
 
   private getAccountSettings(propertyKey: string): any[] {
@@ -148,7 +171,9 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
   }
 
   onComponentClick(event): void {
-    this.activePanelService.activatePanel(this, {showMenu: this.getMenuShowOptions()});
+    if (!event || !event[this.consumedGT]) {
+      this.activePanelService.activatePanel(this, {showMenu: this.getMenuShowOptions()});
+    }
   }
 
   public getHelpContextId(): string {
@@ -176,6 +201,42 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
     );
     TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
+  }
+
+  /**
+   * Rebuilds the year-row right-click context menu. The "set ex-date from tax data" item is disabled when no year is
+   * selected or the selected year has no imported tax data (same {@code availableTaxYears} gate as the export action).
+   */
+  private buildContextMenu(): void {
+    const year = this.securityDividendsGrandTotalSelected?.year;
+    const hasTaxData = year != null && !!this.securityDividendsGrandTotal?.availableTaxYears?.includes(year);
+    const menuItems: MenuItem[] = [{
+      label: 'SET_EX_DATE_FROM_TAX_DATA',
+      command: () => this.handleApplyExDatesFromTaxData(),
+      disabled: !hasTaxData
+    }];
+    TranslateHelper.translateMenuItems(menuItems, this.translateService);
+    this.contextMenuItems = menuItems;
+  }
+
+  onContextMenuSelect(event: any): void {
+    this.securityDividendsGrandTotalSelected = event.data;
+    this.buildContextMenu();
+  }
+
+  handleApplyExDatesFromTaxData(): void {
+    const year = this.securityDividendsGrandTotalSelected?.year;
+    if (year == null) {
+      return;
+    }
+    this.transactionService.applyExDatesFromTaxData(year).subscribe((result: ExDateFromTaxDataResult) => {
+      this.messageToastService.showMessageI18n(InfoLevelType.INFO, 'EX_DATE_FROM_TAX_DATA_RESULT', {
+        assigned: result.exDateAssigned,
+        alreadySet: result.alreadySet,
+        unmatched: result.unmatched
+      });
+      this.readData();
+    });
   }
 
   handleFilterTransactionsToggle(event: any): void {
@@ -218,6 +279,19 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.readData();
     }
+  }
+
+  /**
+   * Returns the security-table expansion map for the given year, lazily creating it on first access. Always returns the
+   * same object reference for a year so the binding stays stable across change detection and PrimeNG can mutate it in
+   * place when the user expands/collapses a security row.
+   *
+   * @param year the year of the dividends year group
+   * @returns the per-year expansion map keyed by {@code security.idSecuritycurrency}
+   */
+  getSecurityExpandedKeys(year: number): { [id: string]: boolean } {
+    const key = String(year);
+    return this.securityExpandedKeysByYear[key] ??= {};
   }
 
   private readData(): void {

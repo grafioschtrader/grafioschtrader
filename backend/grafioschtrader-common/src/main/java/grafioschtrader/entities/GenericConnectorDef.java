@@ -132,7 +132,9 @@ public class GenericConnectorDef extends Auditable implements Serializable {
   private boolean needHistoryGapFiller;
 
   @Column(name = "gbx_divider_enabled")
-  @Schema(description = "Whether to divide prices by 100 for London Stock Exchange GBX-denominated securities")
+  @Schema(description = """
+      Whether to divide prices by 100 for securities on exchanges quoting in a minor currency unit, such as the
+      London Stock Exchange (GBX/GBp pence) or the Johannesburg Stock Exchange (ZAc cents)""")
   @PropertyAlwaysUpdatable
   private boolean gbxDividerEnabled;
 
