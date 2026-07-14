@@ -8,8 +8,11 @@
 # Angular bundles are architecture-independent — build on the host platform only.
 FROM --platform=$BUILDPLATFORM node:22-bookworm AS build
 WORKDIR /app
-COPY frontend/package.json frontend/package-lock.json ./
-RUN npm ci
+# package-lock.json is intentionally not committed (see frontend/.gitignore),
+# so install with `npm install` — matching the project's CI build. Copying only
+# package.json first keeps the dependency layer cached across source changes.
+COPY frontend/package.json ./
+RUN npm install
 COPY frontend/ .
 # The production build needs ~4 GB heap
 ENV NODE_OPTIONS=--max-old-space-size=4096
