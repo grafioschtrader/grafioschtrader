@@ -4,7 +4,7 @@ on:
   release:
     types: [published]
   push:
-    tags: ["v*"]
+    tags: ["v*", "V*"]
   workflow_dispatch:
 
 permissions:

@@ -215,7 +215,30 @@ info "Configuration written to .env (file permissions restricted to your user)."
 echo
 bold "Downloading images and starting Grafioschtrader ..."
 pull_images
-docker compose up -d
+
+# The prebuilt GHCR images may not be published yet (or may be private), in
+# which case the pull above failed with "denied" and 'up' would fail too.
+# Detect any image the stack needs that is neither present locally nor
+# pullable, and offer to build it from source instead of failing cryptically.
+missing=""
+for img in $(docker compose config --images 2>/dev/null | sort -u); do
+  docker image inspect "$img" >/dev/null 2>&1 || missing="${missing} ${img}"
+done
+if [ -n "$missing" ]; then
+  warn "These images are not available locally and could not be downloaded:"
+  for img in $missing; do warn "    ${img}"; done
+  info "The prebuilt images may not be published yet, or their GHCR packages are"
+  info "still private. You can build them locally from source instead (the Angular"
+  info "build needs roughly 4 GB of free RAM and is slow on a Raspberry Pi)."
+  read -r -p "Build the images locally now? [y/N] " b
+  if [ "${b:-N}" = "y" ] || [ "${b:-N}" = "Y" ]; then
+    docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build
+  else
+    fail "Cannot start without the images. Re-run install.sh once they are published/public, or build locally."
+  fi
+else
+  docker compose up -d
+fi
 
 echo
 if [ -n "$DOMAIN" ]; then
