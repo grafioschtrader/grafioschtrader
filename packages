@@ -137,4 +137,6 @@ grafioschtrader.security
 grafiosch.schemagen
 grafiosch.integration.rest
 grafiosch.integration.repository
+grafiosch.integration.config
 grafiosch.integration.entities
+grafiosch.integration.security

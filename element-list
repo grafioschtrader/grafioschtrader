@@ -16,9 +16,11 @@ grafiosch.gtnet.handler.impl
 grafiosch.gtnet.m2m.model
 grafiosch.gtnet.model
 grafiosch.gtnet.model.msg
+grafiosch.integration.config
 grafiosch.integration.entities
 grafiosch.integration.repository
 grafiosch.integration.rest
+grafiosch.integration.security
 grafiosch.m2m
 grafiosch.m2m.client
 grafiosch.repository
