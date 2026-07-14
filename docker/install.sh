@@ -31,6 +31,18 @@ gen_secret() {
   fi
 }
 
+# True if a TCP port already has a listener on this machine. Best-effort: when
+# neither ss nor netstat is available the port is assumed free.
+port_in_use() {
+  if command -v ss >/dev/null 2>&1; then
+    [ -n "$(ss -Htln "sport = :$1" 2>/dev/null)" ]
+  elif command -v netstat >/dev/null 2>&1; then
+    netstat -tln 2>/dev/null | grep -qE "[:.]$1[[:space:]]"
+  else
+    return 1
+  fi
+}
+
 # --------------------------------------------------------------------------
 # Existing .env
 # --------------------------------------------------------------------------
@@ -114,6 +126,41 @@ if [ "$use_duckdns" = "y" ]; then
 fi
 
 # --------------------------------------------------------------------------
+# Host ports
+# --------------------------------------------------------------------------
+# The web container publishes these ports on THIS machine. Defaults are 80/443;
+# they are changed automatically when something else (another web server, a
+# reverse proxy, Home Assistant, ...) already occupies them.
+GT_HTTP_PORT=80
+GT_HTTPS_PORT=443
+if [ -n "$DOMAIN" ]; then
+  if port_in_use 80 || port_in_use 443; then
+    echo
+    warn "Ports 80 and/or 443 are already in use on this machine."
+    warn "Automatic HTTPS for a public domain requires Grafioschtrader to own"
+    warn "both 80 and 443 (Let's Encrypt validates on those ports), so the other"
+    warn "service must be stopped first. Alternatively re-run without a domain to"
+    warn "run Grafioschtrader on different ports (local HTTP, no certificate)."
+    read -r -p "Continue and let Grafioschtrader claim 80/443 anyway? [y/N] " c
+    { [ "${c:-N}" = "y" ] || [ "${c:-N}" = "Y" ]; } \
+      || fail "Aborted. Free ports 80/443, or re-run without a domain for alternative ports."
+  fi
+else
+  if port_in_use "$GT_HTTP_PORT"; then
+    echo
+    warn "Port ${GT_HTTP_PORT} is already in use on this machine."
+    read -r -p "Host HTTP port to publish Grafioschtrader on [8080]: " GT_HTTP_PORT
+    GT_HTTP_PORT="${GT_HTTP_PORT:-8080}"
+  fi
+  # In local mode Caddy serves HTTP only, but compose still needs a free host
+  # port to map container 443 onto — pick an alternative if 443 is taken.
+  if port_in_use "$GT_HTTPS_PORT"; then
+    read -r -p "Host HTTPS port (unused in local mode, must just be free) [8443]: " GT_HTTPS_PORT
+    GT_HTTPS_PORT="${GT_HTTPS_PORT:-8443}"
+  fi
+fi
+
+# --------------------------------------------------------------------------
 # Admin email
 # --------------------------------------------------------------------------
 echo
@@ -192,6 +239,8 @@ ADMIN_EMAIL=${ADMIN_EMAIL}
 GT_ALLOWED_USERS=${GT_ALLOWED_USERS}
 
 GT_SITE_ADDRESS=${SITE_ADDRESS}
+GT_HTTP_PORT=${GT_HTTP_PORT}
+GT_HTTPS_PORT=${GT_HTTPS_PORT}
 
 ${COMPOSE_PROFILES:+COMPOSE_PROFILES=${COMPOSE_PROFILES}}
 DUCKDNS_SUBDOMAIN=${DUCKDNS_SUBDOMAIN}
@@ -248,7 +297,8 @@ if [ -n "$DOMAIN" ]; then
   URL="https://${DOMAIN}/grafioschtrader/"
 else
   host_ip="$(hostname -I 2>/dev/null | awk '{print $1}' || true)"
-  URL="http://${host_ip:-localhost}/grafioschtrader/"
+  port_suffix=""; [ "$GT_HTTP_PORT" != "80" ] && port_suffix=":${GT_HTTP_PORT}"
+  URL="http://${host_ip:-localhost}${port_suffix}/grafioschtrader/"
 fi
 bold "=== Done! ==="
 info "The first start runs all database migrations — this can take 1-3 minutes"

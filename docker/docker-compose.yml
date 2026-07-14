@@ -71,10 +71,13 @@ services:
         # Not service_healthy: Caddy must bind port 80 early so the
         # Let's Encrypt HTTP-01 challenge works even while the backend migrates.
         condition: service_started
+    # Host ports published on THIS machine. Default 80/443; override in .env
+    # (GT_HTTP_PORT / GT_HTTPS_PORT) when those ports are already taken by
+    # another service. Automatic HTTPS via Let's Encrypt only works on 80/443.
     ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
+      - "${GT_HTTP_PORT:-80}:80"
+      - "${GT_HTTPS_PORT:-443}:443"
+      - "${GT_HTTPS_PORT:-443}:443/udp"
     environment:
       GT_SITE_ADDRESS: ${GT_SITE_ADDRESS:-:80}
       GT_ACME_EMAIL: ${ADMIN_EMAIL}

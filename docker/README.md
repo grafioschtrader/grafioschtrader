@@ -72,6 +72,27 @@ for the reused domain.
 Other dynamic DNS providers work too: set up their update client yourself
 (often built into the router) and just use the domain in `install.sh`.
 
+### Running alongside another web server (custom ports)
+
+If ports 80/443 are already taken on the host (an existing nginx/Apache/Caddy,
+Home Assistant, another reverse proxy, …), `install.sh` detects the conflict:
+
+- **With a domain** it stops and asks you to free 80/443 first — automatic
+  Let's Encrypt HTTPS only works on the standard ports.
+- **Without a domain** (local HTTP) it offers to publish Grafioschtrader on
+  different host ports instead (e.g. `8080`). You can also set these directly
+  in `.env`:
+
+  ```properties
+  GT_SITE_ADDRESS=:80        # local HTTP inside the container
+  GT_HTTP_PORT=8080          # published on the host -> http://<host>:8080/grafioschtrader/
+  GT_HTTPS_PORT=8443         # just needs to be free; unused in local mode
+  ```
+
+To keep the other web server terminating TLS on 80/443 and have it reverse-proxy
+to Grafioschtrader, point it at `http://127.0.0.1:${GT_HTTP_PORT}` and leave GT
+in local-HTTP mode.
+
 ## Everyday operations
 
 All commands from the `docker/` directory.
