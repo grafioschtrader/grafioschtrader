@@ -375,6 +375,9 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
 					<mainClass>grafioschtrader.GrafioschtraderApplication</mainClass>
+					<!-- Keep the ~150 MB repackaged fat jar out of the local Maven repository on
+					     "mvn install"; only target/ holds it. No module depends on the fat jar. -->
+					<attach>false</attach>
 				</configuration>
 			</plugin>
 			<plugin>

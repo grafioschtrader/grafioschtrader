@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/lib-e2e-host"
+  },
+  "files": [
+    "src/lib-e2e-host/main.ts"
+  ],
+  "include": [
+    "src/lib-e2e-host/**/*.d.ts"
+  ]
+}

@@ -20,10 +20,12 @@ export default defineConfig({
     {
       name: 'setup',
       testMatch: /auth\.setup\.ts/,
+      testIgnore: /lib\//,
     },
     {
-      name: 'e2e-tests',
+      name: 'grafioschtrader-e2e',
       dependencies: ['setup'],
+      testIgnore: /lib\//,
     },
   ],
 });

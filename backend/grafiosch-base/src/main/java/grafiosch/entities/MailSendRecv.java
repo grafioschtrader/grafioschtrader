@@ -109,14 +109,14 @@ public class MailSendRecv extends BaseID<Integer> {
 
   public MailSendRecv(SendRecvType sendRecv, Integer idUserFrom, Integer idUserTo, String roleNameTo, String subject,
       String message, Integer idReplyToLocal, ReplyToRolePrivateType replyToRolePrivate) {
-    this.sendRecv = sendRecv.getValue();
+    this.sendRecv = sendRecv == null ? 0 : sendRecv.getValue();
     this.idUserFrom = idUserFrom;
     this.idUserTo = idUserTo;
     this.roleNameTo = roleNameTo;
     this.subject = subject;
     this.message = message;
     this.idReplyToLocal = idReplyToLocal;
-    this.replyToRolePrivate = replyToRolePrivate.getValue();
+    this.replyToRolePrivate = replyToRolePrivate == null ? null : replyToRolePrivate.getValue();
   }
 
   public Integer getIdMailSendRecv() {

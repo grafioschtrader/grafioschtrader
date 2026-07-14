@@ -26,6 +26,10 @@ public class MailSendForwardDefaultBase {
   protected static EnumSet<MessageTargetType> standardTargetTypeSet = EnumSet.of(MessageTargetType.EXTERNAL_MAIL,
       MessageTargetType.INTERNAL_MAIL, MessageTargetType.INTERNAL_AND_EXTERNAL_MAIL);
 
+  static {
+    initialize();
+  }
+
   public static void initialize() {
     mailSendForwardDefaultMap.put(MessageComType.USER_ADMIN_ANNOUNCEMENT,
         new MailSendForwardDefaultConfig(MessageTargetType.INTERNAL_AND_EXTERNAL_MAIL, standardTargetTypeSet, false));

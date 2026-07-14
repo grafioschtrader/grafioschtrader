@@ -1,1 +1,9 @@
 backend/grafioschtrader-server/src/test/resources/db/migration/test/V2__testdata.sql filter=lfs diff=lfs merge=lfs -text
+# Shell scripts and Caddyfile must keep LF line endings (executed on Linux)
+docker/**/*.sh text eol=lf
+docker/Caddyfile text eol=lf
+docker/*.Dockerfile text eol=lf
+docker/**/*.properties text eol=lf
+# E2E orchestrator wrappers: .sh must stay LF (sh/bash), .cmd must stay CRLF (cmd.exe)
+/e2eTest.sh text eol=lf
+/e2eTest.cmd text eol=crlf

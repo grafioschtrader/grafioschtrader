@@ -3,7 +3,8 @@ import {
   CorrelationLimit,
   CorrelationResult,
   CorrelationRollingResult,
-  CorrelationSet
+  CorrelationSet,
+  SamplingPeriodType
 } from '../../entities/correlation.set';
 import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {LoginService} from '../../lib/login/service/log-in.service';
@@ -41,7 +42,27 @@ export class CorrelationSetService extends AuthServiceWithLogout<CorrelationSet>
   }
 
   update(correlationSet: CorrelationSet) {
-    return super.updateEntity(correlationSet, correlationSet.idCorrelationSet, AppSettings.CORRELATION_SET_KEY);
+    return super.updateEntity(this.toBackendPayload(correlationSet), correlationSet.idCorrelationSet,
+      AppSettings.CORRELATION_SET_KEY);
+  }
+
+  /**
+   * The sampling-period select is a string field, so its form value is the enum name (e.g.
+   * 'DAILY_RETURNS'). The backend {@code CorrelationSet.samplingPeriod} is a numeric byte and only
+   * deserializes the numeric enum value, so convert the name to its number before sending. The
+   * response still carries the name, so the display/read path is unaffected. A shallow copy is used
+   * so the caller's entity keeps the name it needs for the select.
+   *
+   * @param correlationSet the correlation set as held by the component
+   * @returns a payload whose samplingPeriod is the numeric enum value expected by the backend
+   */
+  private toBackendPayload(correlationSet: CorrelationSet): CorrelationSet {
+    if (typeof correlationSet.samplingPeriod !== 'string') {
+      return correlationSet;
+    }
+    const payload: CorrelationSet = Object.assign(Object.create(Object.getPrototypeOf(correlationSet)), correlationSet);
+    payload.samplingPeriod = SamplingPeriodType[correlationSet.samplingPeriod as keyof typeof SamplingPeriodType];
+    return payload;
   }
 
   public deleteEntity(idCorrelationSet: number): Observable<any> {

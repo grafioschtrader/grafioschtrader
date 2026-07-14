@@ -1,0 +1,16 @@
+.git
+.github
+.idea
+.vscode
+.metadata
+.claude
+RemoteSystemsTempFiles
+doc
+specification
+scripts
+util
+**/node_modules
+**/target
+**/dist
+**/*.log
+docker/.env

@@ -13,7 +13,7 @@ export class CorrelationSet implements BaseID {
   securitycurrencyList: (Security | Currencypair)[];
   dateFrom: Date | string = null;
   dateTo: Date | string = null;
-  adjustCurrency: boolean = null;
+  adjustCurrency: boolean = false;
 
   public getId(): number {
     return this.idCorrelationSet;

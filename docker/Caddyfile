@@ -1,0 +1,30 @@
+# Grafioschtrader Caddy configuration.
+#
+# The site address comes from the environment:
+#   GT_SITE_ADDRESS unset / empty  ->  ":80"  = plain HTTP (access via LAN IP or localhost)
+#   GT_SITE_ADDRESS=myhost.duckdns.org        = automatic HTTPS via Let's Encrypt
+#                                               (ports 80 and 443 must be reachable from the internet)
+{
+	email {$GT_ACME_EMAIL:noreply@example.invalid}
+}
+
+{$GT_SITE_ADDRESS::80} {
+	encode zstd gzip
+
+	# The Angular app lives under /grafioschtrader/ (its build-time base href)
+	redir / /grafioschtrader/ 302
+
+	handle /grafioschtrader* {
+		root * /srv
+		# SPA fallback: deep links are served index.html
+		try_files {path} /grafioschtrader/index.html
+		file_server
+	}
+
+	# REST API, GTNet machine-to-machine and WebSocket/SockJS endpoints.
+	# Caddy handles the WebSocket upgrade and X-Forwarded-* headers automatically.
+	@backend path /api/* /m2m/* /socket/* /ws/*
+	handle @backend {
+		reverse_proxy backend:8080
+	}
+}

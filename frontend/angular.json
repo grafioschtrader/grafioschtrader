@@ -115,6 +115,72 @@
           }
         }
       }
+    },
+    "lib-e2e-host": {
+      "root": "",
+      "sourceRoot": "src/lib-e2e-host",
+      "projectType": "application",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "aot": true,
+            "outputPath": {
+              "base": "dist/lib-e2e-host"
+            },
+            "index": "src/lib-e2e-host/index.html",
+            "browser": "src/lib-e2e-host/main.ts",
+            "tsConfig": "./tsconfig.lib-e2e-host.json",
+            "polyfills": [
+              "zone.js"
+            ],
+            "assets": [
+              "src/assets",
+              {
+                "glob": "**/*",
+                "input": "src/app/lib/assets",
+                "output": "/app/lib/assets"
+              }
+            ],
+            "styles": [
+              "node_modules/bootstrap/dist/css/bootstrap.min.css",
+              "node_modules/normalize.css/normalize.css",
+              "node_modules/primeicons/primeicons.css",
+              "node_modules/font-awesome/css/font-awesome.min.css",
+              "src/assets/theme.css",
+              "src/styles.css",
+              "src/app/lib/styles.css",
+              "src/lib-e2e-host/styles.css"
+            ],
+            "scripts": [
+              "node_modules/moment/min/moment.min.js",
+              "node_modules/deepmerge/dist/umd.js",
+              "node_modules/split.js/dist/split.js",
+              "node_modules/reflect-metadata/Reflect.js"
+            ],
+            "allowedCommonJsDependencies": [
+              "moment",
+              "deepmerge"
+            ]
+          },
+          "configurations": {
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "options": {
+            "port": 4201,
+            "buildTarget": "lib-e2e-host:build"
+          }
+        }
+      }
     }
   },
   "cli": {

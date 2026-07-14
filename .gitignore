@@ -3,6 +3,9 @@
 /doc
 *.bat
 *.ps1
+*.cmd
+# Committed e2e orchestrator wrapper (see scripts/e2e-test.mjs) — must stay tracked
+!/e2eTest.cmd
 /*.sql
 .claude
 nul

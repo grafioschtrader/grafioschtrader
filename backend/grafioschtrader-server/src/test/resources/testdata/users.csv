@@ -4,3 +4,5 @@ hugo.graf@outlook.com|A123abcd|user|de-CH|-60|USD|USER|i
 grafiosch@outlook.com|A123abcd|limit1|de-CH|-60|EUR|LIMITEDIT|i
 hugo.graf@wirtschaftsfilz.ch|A123abcd|limit2|de-CH|-60|CHF|LIMITEDIT|i
 e2euser@test.local|A123abcd|e2euser|en-US|0|CHF|ALLEDIT|e
+e2euser.c@test.local|A123abcd|e2euserc|en-US|0|CHF|LIMITEDIT|ec
+e2euser.r@test.local|A123abcd|e2euserr|en-US|0|CHF|LIMITEDIT|er

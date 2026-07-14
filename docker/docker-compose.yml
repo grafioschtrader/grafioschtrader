@@ -1,0 +1,99 @@
+name: grafioschtrader
+
+services:
+  mariadb:
+    image: mariadb:11.4
+    restart: unless-stopped
+    command: ["--innodb-buffer-pool-size=${DB_INNODB_BUFFER_POOL_SIZE:-512M}"]
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?set DB_ROOT_PASSWORD in .env}
+      MARIADB_DATABASE: ${DB_NAME:-grafioschtrader}
+      MARIADB_USER: ${DB_USER:-grafioschtrader}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+      MARIADB_AUTO_UPGRADE: "1"
+    volumes:
+      - db_data:/var/lib/mysql
+      # First-boot setup: definer account + SET USER grant needed by the
+      # Flyway migrations (they contain DEFINER=grafioschtrader@localhost)
+      - ./mariadb-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 90s
+
+  backend:
+    image: ghcr.io/grafioschtrader/grafioschtrader-backend:${GT_VERSION:-latest}
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/${DB_NAME:-grafioschtrader}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-grafioschtrader}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      GT_JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      GT_MAIN_USER_ADMIN_MAIL: ${ADMIN_EMAIL:?set ADMIN_EMAIL in .env}
+      GT_ALLOWED_USERS: ${GT_ALLOWED_USERS:-20}
+      GT_USE_WEBSOCKET: ${GT_USE_WEBSOCKET:-false}
+      # Secrets are supplied as plain env vars above, which override the ENC(...) values in
+      # application.properties — Jasypt is never used, the value below is a placeholder.
+      JASYPT_ENCRYPTOR_PASSWORD: ${JASYPT_ENCRYPTOR_PASSWORD:-not-used}
+      JAVA_OPTS: ${JAVA_OPTS:--Xms256m -Xmx1792m}
+      # Mail (needed for user registration). Empty values disable mail sending cleanly.
+      SPRING_MAIL_HOST: ${MAIL_HOST:-}
+      SPRING_MAIL_PORT: ${MAIL_PORT:-465}
+      SPRING_MAIL_USERNAME: ${MAIL_USER:-}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-true}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_ENABLE: ${MAIL_SMTP_SSL:-true}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: ${MAIL_SMTP_STARTTLS:-false}
+      # Loads the user-editable config/application-production.properties mounted below.
+      # The directory (not the single file) is mounted so that editors replacing the
+      # file inode don't leave the container reading a stale copy.
+      SPRING_CONFIG_ADDITIONAL_LOCATION: optional:file:/config/
+    volumes:
+      - ./config:/config:ro
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/api/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      # First boot runs all Flyway migrations — slow on a Raspberry Pi
+      start_period: 300s
+
+  web:
+    image: ghcr.io/grafioschtrader/grafioschtrader-web:${GT_VERSION:-latest}
+    restart: unless-stopped
+    depends_on:
+      backend:
+        # Not service_healthy: Caddy must bind port 80 early so the
+        # Let's Encrypt HTTP-01 challenge works even while the backend migrates.
+        condition: service_started
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      GT_SITE_ADDRESS: ${GT_SITE_ADDRESS:-:80}
+      GT_ACME_EMAIL: ${ADMIN_EMAIL}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+
+  # Optional: keeps a DuckDNS subdomain pointed at this host's public IP.
+  # Enable with COMPOSE_PROFILES=duckdns in .env
+  duckdns:
+    image: lscr.io/linuxserver/duckdns:latest
+    profiles: ["duckdns"]
+    restart: unless-stopped
+    environment:
+      SUBDOMAINS: ${DUCKDNS_SUBDOMAIN:-}
+      TOKEN: ${DUCKDNS_TOKEN:-}
+      TZ: Etc/UTC
+
+volumes:
+  db_data:
+  caddy_data:
+  caddy_config:

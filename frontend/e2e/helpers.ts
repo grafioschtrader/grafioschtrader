@@ -89,20 +89,20 @@ export async function loginAs(page: Page, nickname: string): Promise<TestCredent
 }
 
 /**
- * Logs in as any users.csv user by nickname — including integration-test users (e2e='i') that were
- * seeded by ResoureTestSuite and are not registered via the UI by auth.setup.ts. The user row must
- * exist in users.csv and the user must already be active in the target DB.
+ * Reads the credentials of any users.csv row by nickname — regardless of the e2e flag ('i', 'e',
+ * 'ec', 'er'). Used to obtain the email/password of users that are created by a feature under test
+ * (e.g. managed clients / read-only viewers) rather than registered by auth.setup.ts.
  */
-export async function loginAsCsvUser(page: Page, nickname: string): Promise<TestCredentials> {
+export function getCsvUser(nickname: string): TestCredentials {
   const csv = fs.readFileSync(USERS_CSV, 'utf-8');
   const row = csv.split(/\r?\n/)
     .filter(l => l.trim().length > 0)
-    .map(l => l.split('|'))
+    .map(l => parseCsvRow(l))
     .find(cols => cols[2] === nickname);
   if (!row) {
     throw new Error(`User '${nickname}' not found in ${USERS_CSV}`);
   }
-  const creds: TestCredentials = {
+  return {
     email: row[0],
     password: row[1],
     nickname: row[2],
@@ -110,6 +110,78 @@ export async function loginAsCsvUser(page: Page, nickname: string): Promise<Test
     tenantName: `Tenant ${row[2]}`,
     tenantCurrency: row[5],
   };
+}
+
+/**
+ * Logs in as any users.csv user by nickname — including integration-test users (e2e='i') that were
+ * seeded by ResoureTestSuite and are not registered via the UI by auth.setup.ts. The user row must
+ * exist in users.csv and the user must already be active in the target DB.
+ */
+export async function loginAsCsvUser(page: Page, nickname: string): Promise<TestCredentials> {
+  const creds = getCsvUser(nickname);
   await performLogin(page, creds);
   return creds;
+}
+
+const MAILHOG_BASE = 'http://localhost:8025';
+
+export interface MailhogMessage {
+  subject: string;
+  body: string;
+}
+
+/**
+ * Decodes a quoted-printable byte sequence ("=C3=BC" style escapes) into a Buffer. Characters that
+ * are not escapes are passed through as latin-1 bytes, which is correct for MIME content where all
+ * non-ASCII bytes must be escaped anyway.
+ */
+function qpToBuffer(text: string): Buffer {
+  const bytes: number[] = [];
+  for (let i = 0; i < text.length; i++) {
+    if (text.charAt(i) === '=' && /^[0-9A-Fa-f]{2}/.test(text.substring(i + 1, i + 3))) {
+      bytes.push(parseInt(text.substring(i + 1, i + 3), 16));
+      i += 2;
+    } else {
+      bytes.push(text.charCodeAt(i) & 0xff);
+    }
+  }
+  return Buffer.from(bytes);
+}
+
+/** Decodes RFC 2047 encoded words ("=?UTF-8?Q?...?=" / "=?UTF-8?B?...?=") in a mail header. */
+function decodeMimeHeader(value: string): string {
+  return value.replace(/=\?[^?]+\?([BbQq])\?([^?]*)\?=/g, (_match, encoding, text) =>
+    encoding.toUpperCase() === 'B'
+      ? Buffer.from(text, 'base64').toString('utf-8')
+      : qpToBuffer(text.replace(/_/g, ' ')).toString('utf-8'));
+}
+
+/** Decodes a quoted-printable mail body (removes soft line breaks, resolves =XX escapes). */
+function decodeMimeBody(body: string): string {
+  return qpToBuffer(body.replace(/=\r?\n/g, '')).toString('utf-8');
+}
+
+/**
+ * Polls the MailHog API for a message sent to `recipient` whose decoded subject (or body) matches
+ * `subjectRegex`. Mail sending in the backend is asynchronous, hence the polling. Returns null when
+ * no matching message shows up — callers assert on the result.
+ */
+export async function findMailhogMessage(recipient: string, subjectRegex: RegExp,
+    maxAttempts = 10): Promise<MailhogMessage | null> {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const response = await fetch(
+      `${MAILHOG_BASE}/api/v2/search?kind=to&query=${encodeURIComponent(recipient)}`);
+    if (response.ok) {
+      const result = await response.json() as any;
+      for (const item of result.items ?? []) {
+        const subject = decodeMimeHeader(item.Content?.Headers?.Subject?.[0] ?? '');
+        const body = decodeMimeBody(item.Content?.Body ?? '');
+        if (subjectRegex.test(subject) || subjectRegex.test(body)) {
+          return {subject, body};
+        }
+      }
+    }
+    await new Promise(resolve => setTimeout(resolve, 2000));
+  }
+  return null;
 }

@@ -4,17 +4,20 @@
   "license": "Apache-2.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve  --proxy-config proxy.conf.json",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "buildprod": "ng build --configuration production --base-href /grafioschtrader/",
+    "start": "ng serve frontend --proxy-config proxy.conf.json",
+    "build": "ng build frontend",
+    "watch": "ng build frontend --watch --configuration development",
+    "buildprod": "ng build frontend --configuration production --base-href /grafioschtrader/",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "ng lint",
     "e2e": "playwright test",
     "e2e:headed": "playwright test --headed",
     "e2e:setup": "playwright test --project=setup --headed",
-    "e2e:tests": "playwright test --project=e2e-tests --no-deps --headed"
+    "e2e:tests": "playwright test --project=grafioschtrader-e2e --no-deps --headed",
+    "e2e:lib": "playwright test --config=playwright.lib.config.ts",
+    "e2e:lib:headed": "playwright test --config=playwright.lib.config.ts --headed",
+    "start:lib-e2e": "ng serve lib-e2e-host --port 4201 --proxy-config proxy.lib-e2e.conf.json"
   },
   "private": true,
   "dependencies": {

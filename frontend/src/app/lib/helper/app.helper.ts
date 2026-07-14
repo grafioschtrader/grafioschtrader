@@ -457,7 +457,7 @@ export class AppHelper {
       if (dataobject.hasOwnProperty(key) && (dataobject[key] != null
         && dataobject[key] !== '' || allowBooleanNullFields.length > 0 && allowBooleanNullFields.indexOf(key) >= 0)) {
         const val = dataobject[key];
-        params = (dataobject[key] === null) ? params.append(key, '') : params.append(key, '' + val);
+        params = (dataobject[key] == null) ? params.append(key, '') : params.append(key, '' + val);
       }
     }
     return params;

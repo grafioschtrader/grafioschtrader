@@ -3,7 +3,7 @@ import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {ColumnConfig, TranslateValue} from '../../datashowbase/column.config';
-import {Component, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {Textarea} from 'primeng/textarea';
 import {AngularSvgIconModule} from 'angular-svg-icon';
@@ -80,6 +80,7 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
     private dialogService: DialogService,
     private confirmationService: ConfirmationService,
     private messageToastService: MessageToastService,
+    private changeDetectorRef: ChangeDetectorRef,
     translateService: TranslateService,
     gps: GlobalparameterService) {
     super(translateService, gps);
@@ -130,8 +131,11 @@ export class SendRecvTreetableComponent extends TreeTableConfigBase implements O
           this.createParentNode(tn, miws, mailSendRecv);
         }
       });
-      this.sendRecvRootNode = tn;
-      this.createTranslateValuesStoreForTranslation(this.sendRecvRootNode);
+      setTimeout(() => {
+        this.sendRecvRootNode = tn;
+        this.createTranslateValuesStoreForTranslation(this.sendRecvRootNode);
+        this.changeDetectorRef.detectChanges();
+      });
     });
   }
 
