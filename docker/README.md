@@ -17,7 +17,7 @@ git clone --depth 1 https://github.com/grafioschtrader/grafioschtrader.git
 cd grafioschtrader/docker
 
 # 2. Run the interactive installer
-./install.sh
+bash install.sh          # or: chmod +x install.sh && ./install.sh
 
 # 3. Open the printed URL and register with your admin email address
 ```
@@ -57,10 +57,17 @@ renews a free Let's Encrypt certificate automatically. Requirements:
 
 1. Create a free account at [duckdns.org](https://www.duckdns.org) and add a
    subdomain (e.g. `myhost` → `myhost.duckdns.org`). Note your token.
-2. Run `./install.sh`, enter `myhost.duckdns.org` as domain and answer the
+2. Run `bash install.sh`, enter `myhost.duckdns.org` as domain and answer the
    DuckDNS questions — a small updater container then keeps the subdomain
    pointed at your home IP.
 3. Forward ports 80 and 443 on your router to the Pi.
+
+**Already have a DuckDNS domain that's kept updated (router / existing updater)?**
+You don't need a second domain. Enter your existing domain (e.g.
+`gt8p.duckdns.org`) at the Domain prompt, answer **No** to "Run a DuckDNS updater
+here?" (a second updater would fight the first over the same record), and forward
+ports 80 and 443 to this host. Caddy still obtains the Let's Encrypt certificate
+for the reused domain.
 
 Other dynamic DNS providers work too: set up their update client yourself
 (often built into the router) and just use the domain in `install.sh`.

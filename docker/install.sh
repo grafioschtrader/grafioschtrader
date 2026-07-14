@@ -90,10 +90,14 @@ DUCKDNS_TOKEN=""
 use_duckdns="n"
 if [ -n "$DOMAIN" ]; then
   case "$DOMAIN" in
-    *.duckdns.org) read -r -p "Run the DuckDNS updater so ${DOMAIN} always points to this host? [Y/n] " a
-                   [ "${a:-Y}" != "n" ] && [ "${a:-Y}" != "N" ] && use_duckdns="y" ;;
-    *)             read -r -p "Do you use DuckDNS dynamic DNS for this domain? [y/N] " a
-                   [ "${a:-n}" = "y" ] || [ "${a:-n}" = "Y" ] && use_duckdns="y" ;;
+    *.duckdns.org)
+      info "If your router or another service already keeps ${DOMAIN} pointed at"
+      info "your home IP (DDNS client, an existing updater, etc.), answer No —"
+      info "you reuse that domain as-is and no second updater is started."
+      read -r -p "Run a DuckDNS updater here so ${DOMAIN} points to this host? [Y/n] " a
+      [ "${a:-Y}" != "n" ] && [ "${a:-Y}" != "N" ] && use_duckdns="y" ;;
+    *) read -r -p "Do you use DuckDNS dynamic DNS for this domain? [y/N] " a
+       [ "${a:-n}" = "y" ] || [ "${a:-n}" = "Y" ] && use_duckdns="y" ;;
   esac
 fi
 if [ "$use_duckdns" = "y" ]; then
