@@ -37,7 +37,10 @@ gen_secret() {
 # Non-fatal pull: with no internet (or images not yet published) locally
 # present images are still usable.
 pull_images() {
-  docker compose pull || warn "Image download failed — continuing with locally available images."
+  # --ignore-pull-failures so one unavailable image (e.g. the GHCR images before
+  # they are published) does not abort the pull of the others (mariadb etc.).
+  docker compose pull --ignore-pull-failures \
+    || warn "Some images could not be downloaded — continuing with what is available."
 }
 
 # Secrets carried over from an existing .env on reconfiguration. The database
