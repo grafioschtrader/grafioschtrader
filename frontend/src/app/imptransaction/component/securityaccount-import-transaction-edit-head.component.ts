@@ -15,6 +15,7 @@ import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {BaseSettings} from '../../lib/base.settings';
+import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 
 
 @Component({
@@ -38,6 +39,7 @@ export class SecurityaccountImportTransactionEditHeadComponent extends SimpleEnt
 
   constructor(translateService: TranslateService,
     gps: GlobalparameterService,
+    private gpsGT: GlobalparameterGTService,
     messageToastService: MessageToastService,
     importTransactionHeadService: ImportTransactionHeadService) {
     super(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT, 'IMPORT_SET', translateService, gps,
@@ -51,6 +53,8 @@ export class SecurityaccountImportTransactionEditHeadComponent extends SimpleEnt
     this.config = [
       DynamicFieldHelper.createFieldInputString('name', 'IMPORT_TRANSACTION_NAME', 40, true),
       DynamicFieldHelper.createFieldTextareaInputString('note', 'NOTE', BaseSettings.FID_MAX_LETTERS, false),
+      ...(this.gpsGT.getTenantGtImportPlatformId() != null
+        ? [DynamicFieldHelper.createFieldCheckboxHeqF('useGtPlatform')] : []),
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);

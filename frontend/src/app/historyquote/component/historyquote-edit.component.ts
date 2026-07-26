@@ -9,6 +9,7 @@ import {GlobalparameterService} from '../../lib/services/globalparameter.service
 import {HelpIds} from '../../lib/help/help.ids';
 import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
 import {AppSettings} from '../../shared/app.settings';
+import {AppHelper} from '../../lib/helper/app.helper';
 import {DialogModule} from 'primeng/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 import {HistoryquoteEditBase} from './historyquote-edit.base';
@@ -39,7 +40,7 @@ export class HistoryquoteEditComponent extends HistoryquoteEditBase<Historyquote
               gps: GlobalparameterService,
               messageToastService: MessageToastService,
               historyquoteService: HistoryquoteService) {
-    super(HelpIds.HELP_WATCHLIST_HISTORYQUOTES, AppSettings.HISTORYQUOTE_P_KEY.toUpperCase(), translateService, gps,
+    super(HelpIds.HELP_WATCHLIST_HISTORYQUOTES, AppHelper.toUpperCaseWithUnderscore(AppSettings.HISTORYQUOTE_P_KEY), translateService, gps,
       messageToastService, historyquoteService);
   }
 

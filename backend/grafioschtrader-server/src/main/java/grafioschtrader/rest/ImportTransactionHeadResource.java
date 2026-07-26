@@ -52,15 +52,15 @@ public class ImportTransactionHeadResource extends UpdateCreateDeleteWithTenantR
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Upload one or more PDF files, each for a single transaction.", description = "", tags = {
-      RequestGTMappings.IMPORTTRANSACTIONHEAD })
+  @Operation(summary = "Upload one or more PDF files, each for a single transaction.", description = """
+      With useGtPlatform set, the import templates are taken from the tenant's Grafioschtrader import platform instead
+      of the securities account's trading platform mapping.""", tags = { RequestGTMappings.IMPORTTRANSACTIONHEAD })
   @PostMapping(value = "/{idSecuritycashaccount}/uploadpdftransactions", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SuccessFailedDirectImportTransaction> uploadPdfTransactions(
-      @PathVariable() Integer idSecuritycashaccount, @RequestParam("file") MultipartFile[] uploadFiles)
-      throws Exception {
-    return new ResponseEntity<>(
-        importTransactionHeadJpaRepository.uploadPdfFileSecurityAccountTransactions(idSecuritycashaccount, uploadFiles),
-        HttpStatus.OK);
+      @PathVariable() Integer idSecuritycashaccount, @RequestParam("file") MultipartFile[] uploadFiles,
+      @RequestParam(required = false, defaultValue = "false") boolean useGtPlatform) throws Exception {
+    return new ResponseEntity<>(importTransactionHeadJpaRepository
+        .uploadPdfFileSecurityAccountTransactions(idSecuritycashaccount, uploadFiles, useGtPlatform), HttpStatus.OK);
   }
 
   @Operation(summary = "Upload different kind of transaction files with a existing transaction head record.", description = "", tags = {

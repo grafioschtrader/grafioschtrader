@@ -12,6 +12,8 @@ import {SecurityPrepareEdit} from './security.prepare.edit';
 import {HistoryquotePrepareEdit} from './historyquote.prepare.edit';
 import {HistoryquoteLegacyPrepareEdit} from './historyquote.legacy.prepare.edit';
 import {GeneralEntityPrepareEdit} from '../../lib/proposechange/component/general.entity.prepare.edit';
+import {TradingCalendarRuleSet} from '../../entities/trading.calendar.rule.set';
+import {TradingCalendarRuleSetEditComponent} from '../../stockexchange/component/trading-calendar-rule-set-edit.component';
 import {Currencypair} from '../../entities/currencypair';
 import {Security} from '../../entities/security';
 import {TradingPlatformPlan} from '../../entities/tradingplatformplan';
@@ -107,6 +109,13 @@ export function setupProposeChangeEntityHandlers(
     AppSettings.TRADING_PLATFORM_PLAN,
     new GeneralEntityPrepareEdit(TradingPlatformPlan),
     TradingPlatformPlanEditComponent
+  );
+
+  // Register TradingCalendarRuleSet
+  registry.registerEntityHandler(
+    AppSettings.TRADING_CALENDAR_RULE_SET,
+    new GeneralEntityPrepareEdit(TradingCalendarRuleSet),
+    TradingCalendarRuleSetEditComponent
   );
 
   // Register Historyquote

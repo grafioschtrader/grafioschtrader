@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import grafiosch.types.ITaskType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -22,12 +24,51 @@ public class TaskDataChangeFormConstraints {
   public List<ITaskType> canBeInterruptedList = new ArrayList<>();
 
   @Schema(description = """
-      Mapping of entity names to their selectable ID options. When an entity type has predefined options
+      Selectable ID options per task type and entity name. When an entity type has predefined options
       (e.g., IFeedConnector with specific connectors), the frontend can display a dropdown instead of a
-      free-form numeric input. The key is the entity class simple name, the value is a list of
-      id-name pairs where the key is the numeric ID and value is the display name.""",
-      example = "{\"IFeedConnector\": [{\"key\": \"118005765\", \"value\": \"Yahoo Finance\"}]}")
-  public Map<String, List<ValueKeyHtmlSelectOptions>> entityIdOptions = new HashMap<>();
+      free-form numeric input. The outer key is the task type, the inner key is the entity class simple
+      name, and the value is a list of id-name pairs (key = numeric ID, value = display name). Options
+      are task-scoped because the same entity type (e.g. Stockexchange) may need a different subset for
+      different tasks.""",
+      example = "{\"CREATE_STOCK_EXCHANGE_CALENDAR_BY_RULE_SET\": {\"Stockexchange\": [{\"key\": \"5\", \"value\": \"SIX Swiss Exchange\"}]}}")
+  public Map<ITaskType, Map<String, List<ValueKeyHtmlSelectOptions>>> entityIdOptions = new HashMap<>();
+
+  /**
+   * Options that apply to every task allowing the entity. A provider registers them once here; the form
+   * builder copies them into {@link #entityIdOptions} for each task whose allowed entities contain the
+   * entity. Not serialized; it is a staging map composed into {@link #entityIdOptions}.
+   */
+  @JsonIgnore
+  public Map<String, List<ValueKeyHtmlSelectOptions>> sharedEntityIdOptions = new HashMap<>();
+
+  /**
+   * Task-specific option overrides keyed by task type then entity name. Used when the same entity type
+   * needs a different option list per task. Takes precedence over {@link #sharedEntityIdOptions} for the
+   * same entity. Not serialized; it is a staging map composed into {@link #entityIdOptions}.
+   */
+  @JsonIgnore
+  public Map<ITaskType, Map<String, List<ValueKeyHtmlSelectOptions>>> taskEntityIdOptions = new HashMap<>();
+
+  /**
+   * Registers options that apply to every task allowing the given entity.
+   *
+   * @param entity  the entity class simple name
+   * @param options the id-name pairs to offer for that entity
+   */
+  public void putSharedOptions(String entity, List<ValueKeyHtmlSelectOptions> options) {
+    sharedEntityIdOptions.put(entity, options);
+  }
+
+  /**
+   * Registers options for a single task and entity, overriding any shared options for that entity.
+   *
+   * @param taskType the task the options apply to
+   * @param entity   the entity class simple name
+   * @param options  the id-name pairs to offer for that entity within that task
+   */
+  public void putTaskOptions(ITaskType taskType, String entity, List<ValueKeyHtmlSelectOptions> options) {
+    taskEntityIdOptions.computeIfAbsent(taskType, _ -> new HashMap<>()).put(entity, options);
+  }
 
   @Schema(description = """
       Highest task type id_task value that a user is allowed to create. Task types with a value less than or

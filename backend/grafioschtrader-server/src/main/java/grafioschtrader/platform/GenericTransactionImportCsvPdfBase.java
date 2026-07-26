@@ -125,6 +125,7 @@ public abstract class GenericTransactionImportCsvPdfBase {
     case ACCUMULATE:
     case DIVIDEND:
     case REDUCE:
+    case FINANCE_COST:
       importTransactionPosList.add(createSecurityTransaction(importTransactionTemplate, cashaccountList,
           importPropertiesList, fileNameOriginal, securityJpaRepository));
       break;

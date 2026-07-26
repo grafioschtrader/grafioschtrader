@@ -3,14 +3,14 @@ import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {catchError} from 'rxjs/operators';
 
-import {RiskFreeInstrumentOption, RiskFreeRateMapping} from '../../../entities/risk.free.rate.mapping';
-import {AuthServiceWithLogout} from '../../../lib/login/service/base.auth.service.with.logout';
-import {LoginService} from '../../../lib/login/service/log-in.service';
-import {MessageToastService} from '../../../lib/message/message.toast.service';
-import {BaseSettings} from '../../../lib/base.settings';
-import {DeleteService} from '../../../lib/datashowbase/delete.service';
-import {ServiceEntityUpdate} from '../../../lib/edit/service.entity.update';
-import {AppSettings} from '../../app.settings';
+import {RiskFreeInstrumentOption, RiskFreeRateMapping} from '../../entities/risk.free.rate.mapping';
+import {AuthServiceWithLogout} from '../../lib/login/service/base.auth.service.with.logout';
+import {LoginService} from '../../lib/login/service/log-in.service';
+import {MessageToastService} from '../../lib/message/message.toast.service';
+import {BaseSettings} from '../../lib/base.settings';
+import {DeleteService} from '../../lib/datashowbase/delete.service';
+import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
  * CRUD service for {@link RiskFreeRateMapping}. Backed by {@code /api/riskfreeratemapping}. Update/create routes via

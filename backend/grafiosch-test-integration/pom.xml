@@ -5,7 +5,7 @@
     <parent>
       <groupId>grafioschtrader</groupId>
       <artifactId>grafioschtrader</artifactId>
-      <version>0.36.2</version>
+      <version>0.36.3</version>
       <relativePath>../pom.xml</relativePath>
     </parent>
 

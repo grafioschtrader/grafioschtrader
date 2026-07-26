@@ -16,7 +16,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import grafiosch.repository.ProposeUserTaskJpaRepository;
-import grafiosch.rest.RequestMappings;
 import grafiosch.security.SecurityConfig;
 import grafiosch.security.filter.StatelessAuthenticationFilter;
 import grafiosch.security.filter.StatelessLoginFilter;

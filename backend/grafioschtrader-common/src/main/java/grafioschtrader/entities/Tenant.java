@@ -104,6 +104,13 @@ public class Tenant extends TenantBase implements Serializable {
   @Column(name = "tax_export_settings", columnDefinition = "json")
   private TaxStatementExportRequest taxExportSettings;
 
+  @Schema(description = """
+      Reference to the import transaction platform holding the Grafioschtrader authored import templates (receipt
+      PDFs, transaction CSV export). When set, an import session can choose this platform's templates instead of the
+      securities account's trading platform mapping, so GT exports can be re-imported into any account.""")
+  @Column(name = "id_gt_import_platform")
+  private Integer idGtImportPlatform;
+
   @JsonCreator
   public Tenant() {
   }
@@ -207,12 +214,21 @@ public class Tenant extends TenantBase implements Serializable {
     this.taxExportSettings = taxExportSettings;
   }
 
+  public Integer getIdGtImportPlatform() {
+    return idGtImportPlatform;
+  }
+
+  public void setIdGtImportPlatform(Integer idGtImportPlatform) {
+    this.idGtImportPlatform = idGtImportPlatform;
+  }
+
   public void updateThis(Tenant sourceTenant) {
     this.setTenantName(sourceTenant.getTenantName());
     this.setCurrency(sourceTenant.getCurrency());
     this.setExcludeDivTax(sourceTenant.isExcludeDivTax());
     this.setClosedUntil(sourceTenant.getClosedUntil());
     this.setCountry(sourceTenant.getCountry());
+    this.setIdGtImportPlatform(sourceTenant.getIdGtImportPlatform());
   }
 
   @Override

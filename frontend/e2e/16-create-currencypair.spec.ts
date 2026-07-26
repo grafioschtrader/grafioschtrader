@@ -90,7 +90,7 @@ test.describe.serial('Create currencypair watchlist and seed pairs (hugo.graf@gr
       }
 
       // Activate the content area (left-click first, then right-click). Mirrors the pattern used by
-      // spec 01-create-portfolio.spec.ts — PrimeNG context menu requires the panel to be active first.
+      // spec 08-create-portfolio.spec.ts — PrimeNG context menu requires the panel to be active first.
       const contentArea = page.locator('.data-container').first();
       await contentArea.waitFor({state: 'visible', timeout: 10_000});
       await contentArea.click();

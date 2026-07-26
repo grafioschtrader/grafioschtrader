@@ -56,6 +56,13 @@ public class ImportTransactionHead extends TenantBaseID {
   @Size(max = BaseConstants.FID_MAX_LETTERS)
   private String note;
 
+  @Schema(description = """
+      When set, the import templates are taken from the tenant's Grafioschtrader import platform instead of the
+      securities account's trading platform mapping. Used to re-import GT generated documents (receipt PDFs,
+      transaction CSV export). Requires the tenant's GT import platform reference to be configured.""")
+  @Column(name = "use_gt_platform")
+  private boolean useGtPlatform;
+
   public ImportTransactionHead() {
     super();
   }
@@ -109,6 +116,14 @@ public class ImportTransactionHead extends TenantBaseID {
 
   public void setNote(String note) {
     this.note = note;
+  }
+
+  public boolean isUseGtPlatform() {
+    return useGtPlatform;
+  }
+
+  public void setUseGtPlatform(boolean useGtPlatform) {
+    this.useGtPlatform = useGtPlatform;
   }
 
   @Override

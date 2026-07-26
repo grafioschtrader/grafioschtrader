@@ -6,6 +6,7 @@
 
 package grafioschtrader.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,6 +36,32 @@ public interface StockexchangeJpaRepository extends JpaRepository<Stockexchange,
    * @return Optional containing the matching Stockexchange, or empty if not found
    */
   Optional<Stockexchange> findByMic(String mic);
+
+  /**
+   * Finds every stock exchange whose trading calendar is derived from the given index security. A single index may
+   * drive the calendar of more than one trading venue.
+   *
+   * @param idSecuritycurrency the ID of the index security referenced by {@code stockexchange.id_index_upd_calendar}
+   * @return list of stock exchanges linked to that index, empty when the security is not used as a calendar index
+   */
+  List<Stockexchange> findByIdIndexUpdCalendar(Integer idSecuritycurrency);
+
+  /**
+   * Finds every stock exchange whose trading calendar is derived from a rule set. Used by the scheduled incremental
+   * calendar update, which touches all rule based exchanges at once.
+   *
+   * @return list of stock exchanges with a non null {@code id_trading_calendar_rule_set}
+   */
+  List<Stockexchange> findByIdTradingCalendarRuleSetIsNotNull();
+
+  /**
+   * Finds every stock exchange linked to one of the given rule sets. Used when a rule set changes: the affected sets
+   * are the changed one plus every set that extends it, and every exchange using any of them must be rebuilt.
+   *
+   * @param idsTradingCalendarRuleSet the rule set IDs whose exchanges are wanted
+   * @return list of stock exchanges linked to any of the rule sets, empty when none is
+   */
+  List<Stockexchange> findByIdTradingCalendarRuleSetIn(Collection<Integer> idsTradingCalendarRuleSet);
 
   @Query(value = "SELECT DISTINCT s.country_code FROM stockexchange s", nativeQuery = true)
   String[] findDistinctCountryCodes();

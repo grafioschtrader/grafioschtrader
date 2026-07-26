@@ -23,7 +23,7 @@ Favor descriptive `CamelCase` types, `lowerCamelCase` members, and English enum 
 For Angular, apply `gt_typescripte_sytle.xml`, stick to 2-space indents, `kebab-case` file names, and suffix artifacts (`*.service.ts`, `*-component.ts`); run `npm run lint` before committing.
 
 ## Testing Guidelines
-`cd backend && mvn test` runs the JUnit 5 + Spring Boot suites under `src/test/java`; longer integration jobs belong in `grafiosch-test-integration` and should end with `*IT`.
+`cd backend && mvn test` runs the JUnit 6 + Spring Boot suites under `src/test/java`; longer integration jobs belong in `grafiosch-test-integration` and should end with `*IT`.
 Frontend specs live beside components as `*.spec.ts` files and execute with `cd frontend && npm test` (Karma/Jasmine).
 Update deterministic fixtures and sample data under `grafioschtrader-server/src/test/resources` whenever behavior or schemas change.
 

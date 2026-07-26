@@ -83,7 +83,7 @@ public class GlobalConstants extends BaseConstants {
   /**
    * The youngest trading day in the future. The trading calendar can be entered up to this date in the future.
    */
-  public static final String YOUNGEST_TRADING_CALENDAR_DAY = "2028-12-31";
+  public static final String YOUNGEST_TRADING_CALENDAR_DAY = "2030-12-31";
 
   /**
    * Sometimes the EOD of the currency pair is not yet updated, in this case the existing current price can be taken if

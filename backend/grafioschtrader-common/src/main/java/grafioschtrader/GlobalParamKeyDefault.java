@@ -19,6 +19,7 @@ import grafioschtrader.entities.ImportTransactionTemplate;
 import grafioschtrader.entities.RiskFreeRateMapping;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Stockexchange;
+import grafioschtrader.entities.TradingCalendarRuleSet;
 import grafioschtrader.entities.TradingPlatformPlan;
 import grafioschtrader.entities.UDFMetadataSecurity;
 
@@ -182,6 +183,9 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
   public static final String GLOB_KEY_LIMIT_DAY_TRADINGPLATFORMPLAN = GlobalConstants.GT_LIMIT_DAY
       + TradingPlatformPlan.class.getSimpleName();
 
+  public static final String GLOB_KEY_LIMIT_DAY_TRADINGCALENDARRULESET = GlobalConstants.GT_LIMIT_DAY
+      + TradingCalendarRuleSet.class.getSimpleName();
+
   public static final String GLOB_KEY_LIMIT_DAY_UDFMETADATASEUCIRTY = GlobalConstants.GT_LIMIT_DAY
       + UDFMetadataSecurity.class.getSimpleName();
   public static final String GLOB_KEY_LIMIT_DAY_GTNETSECURITYIMPORT = GlobalConstants.GT_LIMIT_DAY
@@ -240,6 +244,7 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_IMPORTTRANSACTIONTEMPLATE, new MaxDefaultDBValue(10));
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_IMPORTTRANSACTIONPLATFORM, new MaxDefaultDBValue(3));
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_TRADINGPLATFORMPLAN, new MaxDefaultDBValue(3));
+    defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_TRADINGCALENDARRULESET, new MaxDefaultDBValue(4));
 
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_UDFMETADATASEUCIRTY, new MaxDefaultDBValue(20));
     defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_GTNETSECURITYIMPORT, new MaxDefaultDBValue(150));

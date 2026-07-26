@@ -218,7 +218,7 @@ public abstract class TemplateConfiguration {
         startRowConfig = i;
       }
       if (startRowConfig > 0 && i > startRowConfig) {
-        String splitEqual[] = templateLines[i].split("=");
+        String splitEqual[] = templateLines[i].split("=", 2);
         switch (splitEqual[0]) {
         case CONF_IGNORE_TAX_ON_DIV_INT:
           ignoreTaxOnDivInt = splitEqual[1];

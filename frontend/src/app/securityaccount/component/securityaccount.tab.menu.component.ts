@@ -9,6 +9,7 @@ import {TabItem} from '../../lib/types/tab.item';
 import {BaseSettings} from '../../lib/base.settings';
 import {TreeNavigationStateService} from '../../lib/maintree/service/tree.navigation.state.service';
 import {Tabs, TabList, Tab} from 'primeng/tabs';
+import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 
 /**
  * Tab menu for security account.
@@ -53,7 +54,8 @@ export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implem
     router: Router,
     activatedRoute: ActivatedRoute,
     translateService: TranslateService,
-    private treeNavState: TreeNavigationStateService
+    private treeNavState: TreeNavigationStateService,
+    private gpsGT: GlobalparameterGTService
   ) {
     super(router, activatedRoute, translateService);
   }
@@ -114,10 +116,13 @@ export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implem
   }
 
   /**
-   * Check if import functionality is disabled
+   * Check if import functionality is disabled. Import is available when the securities account is mapped to an
+   * import platform, or when the tenant has configured a Grafioschtrader import platform (for re-importing GT
+   * exports into accounts without their own platform mapping).
    */
   private isImportDisabled(): boolean {
-    return !this.securityaccount?.tradingPlatformPlan?.importTransactionPlatform;
+    return !this.securityaccount?.tradingPlatformPlan?.importTransactionPlatform
+      && this.gpsGT.getTenantGtImportPlatformId() == null;
   }
 
   /**

@@ -4,6 +4,7 @@ import {MenuItem} from 'primeng/api';
 import {Router} from '@angular/router';
 import {TimeSeriesParam} from '../component/time.series.chart.component';
 import {BaseSettings} from '../../lib/base.settings';
+import {TransactionReceiptService} from '../../transaction/service/transaction.receipt.service';
 
 /**
  * Menu and function to show a history quotes as chart or table. It is shown in additional area.
@@ -16,7 +17,7 @@ export class TimeSeriesQuotesService {
   private optionalParameters: OptionalParameters = {idPortfolio: null, idSecurityaccount: null, noMarketValue: false};
   private timeSeriesParams: TimeSeriesParam[] = [];
 
-  constructor(private router: Router) {
+  constructor(private router: Router, private transactionReceiptService: TransactionReceiptService) {
   }
 
   getMenuItems(idSecuritycurrency: number, currencySecurity: string, addTopSeparator: boolean,
@@ -57,6 +58,17 @@ export class TimeSeriesQuotesService {
         {
           label: 'SEASONALITY',
           command: (e) => this.showEodChartTable(AppSettings.SEASONALITY, true)
+        }
+      );
+    }
+    if (currencySecurity) {
+      // Securities only: currency pairs pass null as currencySecurity and have no security transactions.
+      menuItems.push({separator: true});
+      menuItems.push(
+        {
+          label: 'TRANSACTION_RECEIPTS' + BaseSettings.DIALOG_MENU_SUFFIX,
+          command: (e) => this.transactionReceiptService.openDialog(this.idSecuritycurrency,
+            this.optionalParameters.idPortfolio, this.optionalParameters.idSecurityaccount)
         }
       );
     }

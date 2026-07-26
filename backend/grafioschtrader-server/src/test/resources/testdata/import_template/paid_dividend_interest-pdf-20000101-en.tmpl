@@ -1,0 +1,23 @@
+TRANSACTION RECEIPT Grafioschtrader
+Customer Mustermann
+Securities account Sampledepot
+Cash account Sampleaccount
+{transType|P|N} Reference: GT-00000000
+Date {date|P} Time {time|P}
+Ex-date {exdiv|SL|N|O}
+Sample Security Inc ISIN: {isin|P}
+Instrument currency {cin|SL|N}
+Quantity {units|SL|N}
+Distribution per unit {quotation|SL|N}
+Taxes and duties {tt1|SL|N|O}
+Currency exchange rate {cex|SL|N|O}
+Settlement currency {cac|SL|N}
+Credit CHF {ta|SL|N}
+Thank you for your order.
+[END]
+transType=DIVIDEND|Dividend,Interest
+dateFormat=dd.MM.yyyy
+timeFormat=HH:mm:ss
+overRuleSeparators=All<'|.>
+calcRounding=0.05,JPY=1
+templatePurpose=Grafioschtrader dividend/interest receipt

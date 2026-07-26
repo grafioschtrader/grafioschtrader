@@ -37,7 +37,9 @@ public enum TemplateCategory {
   // CSV Base
   CSV_BASE((byte) 20),
   // CSV Addition
-  CSV_ADDITION((byte) 21);
+  CSV_ADDITION((byte) 21),
+  // Financing costs, for example the daily costs of a short position
+  FINANCE_COST((byte) 22);
 
   private final Byte value;
 

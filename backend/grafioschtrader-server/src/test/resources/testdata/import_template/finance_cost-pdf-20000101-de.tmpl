@@ -1,0 +1,19 @@
+TRANSAKTIONSBELEG Grafioschtrader
+Kunde Mustermann
+Depot Musterdepot
+Konto Musterkonto
+{transType|P|N} Referenz: GT-00000000
+Datum {date|P} Uhrzeit {time|P}
+Musterwertpapier AG ISIN: {isin|P}
+Kommission {tc1|SL|N|O}
+Abgaben und Steuern {tt1|SL|N|O}
+Verrechnungswährung {cac|SL|N}
+Belastung CHF {ta|SL|N}
+Vielen Dank für Ihren Auftrag.
+[END]
+transType=FINANCE_COST|Finanzierungskosten
+dateFormat=dd.MM.yyyy
+timeFormat=HH:mm:ss
+overRuleSeparators=All<'|.>
+calcRounding=0.05,JPY=1
+templatePurpose=Grafioschtrader Finanzierungskosten Beleg

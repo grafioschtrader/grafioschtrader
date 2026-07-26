@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.ContextClosedEvent;
@@ -29,7 +30,13 @@ import grafiosch.types.TaskTypeBase;
  * On shutdown, broadcasts GT_NET_OFFLINE_ALL_C to inform peers the server is going offline (immediate notification
  * is needed since failed pings would take too long to detect).
  *
- * This listener only executes if GTNet is enabled via the {@code gt.use.gtnet} configuration property.
+ * Both handlers only execute when GTNet is enabled and set up, which requires all of: the deployment property
+ * {@code g.use.gtnet} (default true), the global parameter {@code g.gnet.use} in the database, and a configured
+ * {@code g.gnet.my.entry.id}.
+ *
+ * The shutdown broadcast can additionally be suppressed on its own with {@code g.gnet.offline.announce=false}, which
+ * leaves GTNet fully usable during the run. It is worth setting during development because the broadcast contacts every
+ * peer sequentially and blocks the shutdown thread for up to {@code g.gnet.connection.timeout} seconds per peer.
  *
  * @see GNetCoreMessageCode#GT_NET_OFFLINE_ALL_C
  */
@@ -51,6 +58,13 @@ public class GTNetLifecycleListener {
 
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
+
+  /**
+   * Whether the offline announcement is sent on shutdown. Set to false to skip the blocking peer broadcast for a faster
+   * shutdown; GTNet stays fully usable during the run.
+   */
+  @Value("${g.gnet.offline.announce:true}")
+  private boolean offlineAnnounce;
 
   /**
    * Schedules the GTNet server status check task when the application is fully started.
@@ -105,10 +119,16 @@ public class GTNetLifecycleListener {
    * Uses ContextClosedEvent to send the offline announcement before Spring context destruction begins. This gives peers
    * advance notice that the server is going offline.
    *
+   * Skipped entirely when {@code g.gnet.offline.announce} is false, without even querying the global parameters.
+   *
    * @param event the context closed event
    */
   @EventListener(ContextClosedEvent.class)
   public void onContextClosed(ContextClosedEvent event) {
+    if (!offlineAnnounce) {
+      log.info("GTNet offline announcement disabled by g.gnet.offline.announce=false, skipping");
+      return;
+    }
     if (checkGTNetIsUsedAndSetup()) {
       try {
         log.info("Publishing GT_NET_OFFLINE_ALL_C to all peers");

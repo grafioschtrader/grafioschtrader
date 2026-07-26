@@ -85,6 +85,17 @@ export class GlobalparameterGTService extends BaseAuthService<Globalparameters> 
   }
 
   /**
+   * Gets the tenant's Grafioschtrader import platform reference stored at login and refreshed by the tenant edit
+   * dialog. When set, the transaction import entry points offer the "use GT platform" choice.
+   *
+   * @returns The ID of the tenant's Grafioschtrader import platform, or null if not configured
+   */
+  public getTenantGtImportPlatformId(): number | null {
+    const raw = sessionStorage.getItem(GlobalGTSessionNames.TENANT_ID_GT_IMPORT_PLATFORM);
+    return raw ? Number(raw) : null;
+  }
+
+  /**
    * Returns the connector / asset class enforcement mode set by gt.force.connector.match.
    * 0 = off, 1 = server-side only, 2 = server-side + frontend dropdown pre-filter.
    */

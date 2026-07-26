@@ -1,0 +1,23 @@
+TRANSAKTIONSBELEG Grafioschtrader
+Kunde Mustermann
+Depot Musterdepot
+Konto Musterkonto
+{transType|P|N} Referenz: GT-00000000
+Datum {date|P} Uhrzeit {time|P}
+Ex-Datum {exdiv|SL|N|O}
+Musterwertpapier AG ISIN: {isin|P}
+Titelwährung {cin|SL|N}
+Anzahl {units|SL|N}
+Ausschüttung pro Einheit {quotation|SL|N}
+Abgaben und Steuern {tt1|SL|N|O}
+Devisenkurs {cex|SL|N|O}
+Verrechnungswährung {cac|SL|N}
+Gutschrift CHF {ta|SL|N}
+Vielen Dank für Ihren Auftrag.
+[END]
+transType=DIVIDEND|Dividende,Zins
+dateFormat=dd.MM.yyyy
+timeFormat=HH:mm:ss
+overRuleSeparators=All<'|.>
+calcRounding=0.05,JPY=1
+templatePurpose=Grafioschtrader Dividende/Zins Beleg

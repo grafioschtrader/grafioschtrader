@@ -25,6 +25,14 @@ public class BaseFeatureConfig {
   private boolean manageclient;
 
   /**
+   * Master switch for GTNet. When false, GTNet is inert for this run regardless of the database parameter
+   * {@code g.gnet.use} — no peer status check on startup, no offline broadcast on shutdown, no GTNet price/history
+   * retrieval, and the GTNET feature is not reported to the frontend. Intended as a launch argument
+   * ({@code --g.use.gtnet=false}) for development, so the database parameter need not be toggled.
+   */
+  private boolean gtnet = true;
+
+  /**
    * Returns the set of enabled library-level features.
    *
    * @return the enabled {@link FeatureTypeBase} values, possibly empty
@@ -43,5 +51,13 @@ public class BaseFeatureConfig {
 
   public void setManageclient(boolean manageclient) {
     this.manageclient = manageclient;
+  }
+
+  public boolean isGtnet() {
+    return gtnet;
+  }
+
+  public void setGtnet(boolean gtnet) {
+    this.gtnet = gtnet;
   }
 }

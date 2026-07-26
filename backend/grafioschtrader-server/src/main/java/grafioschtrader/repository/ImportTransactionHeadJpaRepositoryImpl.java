@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import grafiosch.BaseConstants;
 import grafiosch.entities.User;
+import grafiosch.exceptions.DataViolationException;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafiosch.repository.BaseRepositoryImpl;
 import grafioschtrader.entities.ImportTransactionHead;
@@ -51,6 +52,12 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
   @Autowired
   private SecurityaccountJpaRepository securityaccountJpaRepository;
 
+  @Autowired
+  private TenantJpaRepository tenantJpaRepository;
+
+  @Autowired
+  private ImportTransactionPlatformJpaRepository importTransactionPlatformJpaRepository;
+
   @Autowired(required = false)
   public List<IPlatformTransactionImport> platformTransactionImportList = new ArrayList<>();
 
@@ -63,21 +70,41 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
       createImportTransactionHead = existingEntity;
       createImportTransactionHead.setName(importTransactionHead.getName());
       createImportTransactionHead.setNote(importTransactionHead.getNote());
+      createImportTransactionHead.setUseGtPlatform(importTransactionHead.isUseGtPlatform());
+    }
+    if (createImportTransactionHead.isUseGtPlatform()) {
+      checkGtPlatformConfigured(createImportTransactionHead.getIdTenant());
     }
     return importTransactionHeadJpaRepository.save(createImportTransactionHead);
+  }
+
+  /**
+   * Ensures the tenant has its Grafioschtrader import platform reference configured; required whenever an import head
+   * carries the use GT platform flag.
+   *
+   * @param idTenant the tenant of the import head
+   * @return the tenant's Grafioschtrader import platform ID
+   */
+  private Integer checkGtPlatformConfigured(Integer idTenant) {
+    Integer idGtImportPlatform = tenantJpaRepository.getReferenceById(idTenant).getIdGtImportPlatform();
+    if (idGtImportPlatform == null) {
+      throw new DataViolationException("use.gt.platform", "gt.imphead.gtplatform.notconfigured", null);
+    }
+    return idGtImportPlatform;
   }
 
   @Override
   @Modifying
   @Transactional
   public SuccessFailedDirectImportTransaction uploadPdfFileSecurityAccountTransactions(Integer idSecuritycashaccount,
-      MultipartFile[] uploadFiles) throws Exception {
+      MultipartFile[] uploadFiles, boolean useGtPlatform) throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     Securityaccount securityaccount = this.securityaccountJpaRepository
         .findByIdSecuritycashAccountAndIdTenant(idSecuritycashaccount, user.getIdTenant());
     if (securityaccount != null) {
       ImportTransactionHead importTransactionHead = new ImportTransactionHead(user.getIdTenant(), securityaccount,
           LocalDateTime.now().toString(), "Computer generated");
+      importTransactionHead.setUseGtPlatform(useGtPlatform);
       importTransactionHead = importTransactionHeadJpaRepository.save(importTransactionHead);
       this.getTemplateReadFilesAndSaveAsImport(importTransactionHead, uploadFiles, null);
 
@@ -143,8 +170,7 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
     SingleMultiTemplateFormatType singleMultiTemplateFormatType = getTemplateFormatTypeOfUpload(uploadFiles);
 
     if (singleMultiTemplateFormatType != null) {
-      ImportTransactionPlatform importTransactionPlatform = importTransactionHead.getSecurityaccount()
-          .getTradingPlatformPlan().getImportTransactionPlatform();
+      ImportTransactionPlatform importTransactionPlatform = resolveImportTransactionPlatform(importTransactionHead);
 
       List<ImportTransactionTemplate> importTransactionTemplateList = importTransactionTemplateJpaRepository
           .findByIdTransactionImportPlatformAndTemplateFormatTypeOrderByTemplatePurpose(
@@ -166,6 +192,28 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
             singleMultiTemplateFormatType, idTransactionImportTemplate);
       }
     }
+  }
+
+  /**
+   * Resolves the import platform whose templates parse the uploaded documents. With the head's use GT platform flag
+   * set, the tenant's Grafioschtrader import platform is used (the GT platform has no platform specific import
+   * implementation, so the generic import applies); otherwise the securities account's trading platform mapping,
+   * which must exist in that case.
+   *
+   * @param importTransactionHead the import head of this upload
+   * @return the platform providing the import templates
+   */
+  private ImportTransactionPlatform resolveImportTransactionPlatform(ImportTransactionHead importTransactionHead) {
+    if (importTransactionHead.isUseGtPlatform()) {
+      Integer idGtImportPlatform = checkGtPlatformConfigured(importTransactionHead.getIdTenant());
+      return importTransactionPlatformJpaRepository.getReferenceById(idGtImportPlatform);
+    }
+    ImportTransactionPlatform importTransactionPlatform = importTransactionHead.getSecurityaccount()
+        .getTradingPlatformPlan().getImportTransactionPlatform();
+    if (importTransactionPlatform == null) {
+      throw new DataViolationException("platform", "gt.imphead.platform.missing", null);
+    }
+    return importTransactionPlatform;
   }
 
   private SingleMultiTemplateFormatType getTemplateFormatTypeOfUpload(MultipartFile[] uploadFiles) {

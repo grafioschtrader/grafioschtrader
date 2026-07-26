@@ -391,7 +391,12 @@ export class GenericConnectorComponent
         {i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF)});
       this.selectedEntity = updated;
       this.readData();
-      this.genericConnectorDefService.reloadConnectors().subscribe();
+      // The reload endpoint is admin-only; calling it as a non-admin creator raises a
+      // SecurityException that counts towards the user's security breach limit and locks the
+      // account after a few saves. Non-activated connectors are not registered anyway.
+      if (this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
+        this.genericConnectorDefService.reloadConnectors().subscribe();
+      }
     });
   }
 

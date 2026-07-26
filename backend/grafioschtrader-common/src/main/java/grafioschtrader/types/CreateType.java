@@ -7,6 +7,8 @@ public enum CreateType {
 
   // Created by a feed connector
   CONNECTOR_CREATED((byte) 0),
+  // Derived from a trading calendar rule set
+  RULE_CREATED((byte) 1),
   // Added or modified by the user
   ADD_MODIFIED_USER((byte) 5);
 

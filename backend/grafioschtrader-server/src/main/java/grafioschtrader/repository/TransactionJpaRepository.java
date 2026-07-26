@@ -238,6 +238,47 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   List<Transaction> findByIdSecurityaccountAndIdSecurity(Integer idSecuritycashAccount, Integer idSecuritycurrency);
 
   /**
+   * Loads the security transactions with the given IDs for the transaction receipt PDF generation. The inner fetch
+   * joins restrict the result to security transactions and eagerly load the security with its asset class and the
+   * cash account, which the receipt generator accesses outside a persistence context. Transactions of other tenants
+   * are silently excluded by the tenant condition.
+   *
+   * @param idTenant       the tenant of the authenticated user
+   * @param idTransactions the IDs of the requested transactions
+   * @return matching transactions ordered by transaction time
+   */
+  @Query(value = "SELECT t FROM Transaction t JOIN FETCH t.security s JOIN FETCH s.assetClass JOIN FETCH t.cashaccount"
+      + " WHERE t.idTenant = ?1 AND t.idTransaction IN ?2 ORDER BY t.transactionTime")
+  List<Transaction> findForReceiptsByIdTenantAndIdTransactionIn(Integer idTenant, List<Integer> idTransactions);
+
+  /**
+   * Loads all transactions of a tenant for the re-importable CSV export. The security with its asset class is left
+   * fetch joined (cash-only transactions have no security; the asset class decides the margin marker) and the cash
+   * account with its portfolio is fetch joined for the per-securities-account file grouping of cash rows. Everything
+   * is loaded eagerly because the CSV generator runs outside a persistence context.
+   *
+   * @param idTenant the tenant of the authenticated user
+   * @return all transactions of the tenant ordered by transaction time
+   */
+  @Query(value = "SELECT t FROM Transaction t LEFT JOIN FETCH t.security s LEFT JOIN FETCH s.assetClass"
+      + " JOIN FETCH t.cashaccount c JOIN FETCH c.portfolio WHERE t.idTenant = ?1 ORDER BY t.transactionTime")
+  List<Transaction> findForCsvExportByIdTenant(Integer idTenant);
+
+  /**
+   * Loads the tenant's WITHDRAWAL/DEPOSIT transactions that are not connected to a counterpart transaction. These are
+   * the candidates of the cash transfer relink step that restores the pairing of transfers whose two sides were
+   * imported through separate CSV files. WITHDRAWAL/DEPOSIT rows use connectedIdTransaction exclusively for transfer
+   * pairing, so the type filter cannot match margin links.
+   *
+   * @param idTenant the tenant of the authenticated user
+   * @return unconnected withdrawal/deposit transactions ordered by transaction time
+   */
+  @Query(value = "SELECT t FROM Transaction t JOIN FETCH t.cashaccount c JOIN FETCH c.portfolio"
+      + " WHERE t.idTenant = ?1 AND t.transactionType IN (0, 1) AND t.connectedIdTransaction IS NULL"
+      + " ORDER BY t.transactionTime")
+  List<Transaction> findUnconnectedTransferCandidates(Integer idTenant);
+
+  /**
    * Returns the transactions of a specific cash account over a definable period of time according to specified
    * transaction types.
    */

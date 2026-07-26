@@ -1,0 +1,138 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Trading calendar rule set",
+  "description": "Holiday rules of a stock exchange. Every rule is resolved to concrete dates per year; weekends are never emitted because the trading calendar handles Saturday and Sunday separately.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "note": {
+      "type": "string",
+      "description": "Free text explaining sources and known limitations of this calendar. Written for the next person editing these rules; it has no effect on the calculated dates."
+    },
+    "authoritativeFrom": {
+      "type": "integer",
+      "minimum": 1900,
+      "maximum": 2100,
+      "description": "First year for which this rule set is backed by an authoritative exchange calendar. Asking for closures of an earlier year is rejected rather than answered with a guess. Omit for no lower bound."
+    },
+    "authoritativeThrough": {
+      "type": "integer",
+      "minimum": 1900,
+      "maximum": 2100,
+      "description": "Last year for which this rule set is backed by an authoritative exchange calendar. Omit for no upper bound."
+    },
+    "rules": {
+      "type": "array",
+      "description": "The recurring closures. A rule set that extends another one lists only its deviations here; the inherited rules are evaluated first.",
+      "items": { "$ref": "#/$defs/rule" }
+    },
+    "additionalClosures": {
+      "type": "array",
+      "description": "Announced or historical full closures that cannot be expressed safely as a recurring rule, for instance a day of national mourning. These dates are added to the calculated closures.",
+      "items": { "$ref": "#/$defs/date" }
+    },
+    "openDates": {
+      "type": "array",
+      "description": "Dates produced by a rule on which the exchange nevertheless held a trading session. These dates are removed from the calculated closures, which is the only way to cancel a single occurrence of a rule.",
+      "items": { "$ref": "#/$defs/date" }
+    }
+  },
+  "$defs": {
+    "date": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "description": "A date as yyyy-MM-dd."
+    },
+    "dayOfWeek": {
+      "type": "string",
+      "enum": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
+      "description": "Weekday name in English and upper case."
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "type"],
+      "description": "One holiday. Which of the optional fields are required depends on the type; a rule missing a field its type needs is rejected when saving.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Descriptive name of the holiday, for instance GoodFriday. Appears in the closure preview to explain why a date was calculated, so make it recognisable."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "FIXED",
+            "NTH_WEEKDAY",
+            "WEEKLY",
+            "EASTER_RELATIVE",
+            "ORTHODOX_EASTER_RELATIVE",
+            "HIJRI",
+            "EXPLICIT_DATES"
+          ],
+          "description": "How the rule is resolved to dates. FIXED: same month and day every year. NTH_WEEKDAY: for instance the third Monday in January. WEEKLY: the same weekday all year. EASTER_RELATIVE / ORTHODOX_EASTER_RELATIVE: an offset in days from Easter Sunday. HIJRI: an Islamic date converted to the Gregorian calendar. EXPLICIT_DATES: a fixed list of dates."
+        },
+        "validFrom": {
+          "type": "integer",
+          "minimum": 1900,
+          "maximum": 2100,
+          "description": "First year in which the closure applies, inclusive. Essential rather than decorative: Juneteenth became a closure at the US exchanges only in 2021. Omit when the rule was always in force."
+        },
+        "validTo": {
+          "type": "integer",
+          "minimum": 1900,
+          "maximum": 2100,
+          "description": "Last year in which the closure applies, inclusive. This is also how an inherited rule is switched off from a given year on. Omit when the rule is still in force."
+        },
+        "halfDay": {
+          "type": "boolean",
+          "description": "True when the exchange only shortens its trading hours instead of closing. Such a day is recorded so the rule set describes the exchange completely, but it is never emitted as a closure -- a half day is a trading day."
+        },
+        "month": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12,
+          "description": "Month 1-12. Required for FIXED, NTH_WEEKDAY and HIJRI."
+        },
+        "day": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 31,
+          "description": "Day of month. Required for FIXED and HIJRI."
+        },
+        "nth": {
+          "type": "integer",
+          "minimum": -1,
+          "maximum": 5,
+          "description": "Occurrence of the weekday within the month, 1 to 5, or -1 for the last one. Required for NTH_WEEKDAY."
+        },
+        "dayOfWeek": {
+          "$ref": "#/$defs/dayOfWeek",
+          "description": "The weekday selected by a NTH_WEEKDAY or WEEKLY rule."
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": -100,
+          "maximum": 100,
+          "description": "Offset in days from Easter Sunday, negative for dates before it: -2 is Good Friday, 1 Easter Monday, 39 Ascension, 50 Whit Monday. Required for the Easter relative types."
+        },
+        "observance": {
+          "type": "string",
+          "enum": ["NONE", "NEAREST_WEEKDAY", "SUNDAY_TO_MONDAY", "NEXT_MONDAY", "NEXT_WEEKDAY"],
+          "description": "How a closure falling on a weekend is transferred. NONE drops it, which is correct wherever holidays are not made up, for instance in Switzerland. Defaults to NONE."
+        },
+        "offsetTolerance": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5,
+          "description": "Days by which the observed Hijri date may deviate from the arithmetic conversion, because the start of an Islamic month depends on the sighting of the moon. A value greater than zero widens the rule to that whole span."
+        },
+        "dates": {
+          "type": "array",
+          "description": "The dates of an EXPLICIT_DATES rule.",
+          "items": { "$ref": "#/$defs/date" }
+        }
+      }
+    }
+  }
+}

@@ -98,12 +98,13 @@ export class GenericConnectorHttpHeaderTableComponent extends TableEditConfigBas
   }
 
   /**
-   * Converts temporary string IDs assigned by EditableTableComponent (e.g. "new_1")
-   * to null so the backend can assign real integer IDs on persist.
+   * Converts temporary IDs assigned by EditableTableComponent.addNewRow() — negative numbers
+   * (or historical "new_1"-style strings) — to null so the backend inserts the row instead of
+   * treating it as a detached entity (StaleObjectStateException).
    */
   private stripTempIds(headers: GenericConnectorHttpHeader[]): GenericConnectorHttpHeader[] {
     return headers.map(h => {
-      if (typeof h.idHttpHeader === 'string') {
+      if (typeof h.idHttpHeader === 'string' || (typeof h.idHttpHeader === 'number' && h.idHttpHeader < 0)) {
         return {...h, idHttpHeader: null};
       }
       return h;

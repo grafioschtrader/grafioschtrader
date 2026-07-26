@@ -38,3 +38,4 @@
 "OTXB"|"Berner kantonalbank otc-x"|"CH"|"false"|"true"|"08:30:00"|"17:00:00"|"Europe/Zurich"|"//www.otc-x.ch"|"d"
 \N|"Risk-Free Rate Sources"|"US"|"false"|"false"|"00:00:00"|"23:59:00"|"UTC"|\N|"d"
 "XBRN"|"BX Swiss"|"CH"|"false"|"true"|"09:00:00"|"17:30:00"|"Europe/Zurich"|"//www.bxswiss.com"|"d"
+"XIDX"|"jakarta stock exchange"|"ID"|"false"|"true"|"09:00:00"|"16:15:00"|"Asia/Jakarta"|"//www.idx.co.id"|"d"

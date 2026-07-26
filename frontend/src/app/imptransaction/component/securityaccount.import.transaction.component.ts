@@ -4,7 +4,8 @@ import {TranslateService} from '@ngx-translate/core';
 import {ActivatedRoute, Params} from '@angular/router';
 import {ConfirmationService, MenuItem} from 'primeng/api';
 import {ContextMenuModule} from 'primeng/contextmenu';
-import {Subscription} from 'rxjs';
+import {forkJoin, Observable, of, Subscription} from 'rxjs';
+import {map} from 'rxjs/operators';
 import {plainToInstance} from 'class-transformer';
 
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
@@ -27,6 +28,7 @@ import {ProcessedAction} from '../../lib/types/processed.action';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {CombineTemplateAndImpTransPos} from '../../securityaccount/component/combine.template.and.imp.trans.pos';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
@@ -125,6 +127,7 @@ export class SecurityaccountImportTransactionComponent
     private importTransactionTemplateService: ImportTransactionTemplateService,
     private treeNavState: TreeNavigationStateService,
     gps: GlobalparameterService,
+    private gpsGT: GlobalparameterGTService,
     confirmationService: ConfirmationService,
     messageToastService: MessageToastService,
     activePanelService: ActivePanelService,
@@ -152,8 +155,7 @@ export class SecurityaccountImportTransactionComponent
       this.securityAccount = this.treeNavState.getEntity<Securityaccount>(
         AppSettings.SECURITYACCOUNT_IMPORT_KEY, id);
       this.callParam = new CallParam(this.securityAccount, null);
-      this.importTransactionTemplateService.getImportTransactionPlatformByTradingPlatformPlan(
-        this.securityAccount.tradingPlatformPlan.idTradingPlatformPlan, true).subscribe(
+      this.loadImportTransactionTemplates().subscribe(
         (importTransactionTemplates: ImportTransactionTemplate[]) => {
           this.importTransactionTemplates = importTransactionTemplates;
           if (params[AppSettings.SUCCESS_FAILED_IMP_TRANS]) {
@@ -166,6 +168,29 @@ export class SecurityaccountImportTransactionComponent
           });
         });
     });
+  }
+
+  /**
+   * Loads the import templates used to label imported and failed positions: the securities account's platform
+   * templates (only when the account is mapped to an import platform) merged with the tenant's Grafioschtrader
+   * import platform templates (only when configured), deduplicated by template id. Loading the account templates
+   * conditionally avoids a backend error for accounts without an import platform.
+   */
+  private loadImportTransactionTemplates(): Observable<ImportTransactionTemplate[]> {
+    const accountTemplates$ = this.securityAccount.tradingPlatformPlan.importTransactionPlatform
+      ? this.importTransactionTemplateService.getImportTransactionPlatformByTradingPlatformPlan(
+        this.securityAccount.tradingPlatformPlan.idTradingPlatformPlan, true)
+      : of<ImportTransactionTemplate[]>([]);
+    const gtPlatformId = this.gpsGT.getTenantGtImportPlatformId();
+    const gtTemplates$ = gtPlatformId != null
+      ? this.importTransactionTemplateService.getImportTransactionPlatformByPlatform(gtPlatformId, true)
+      : of<ImportTransactionTemplate[]>([]);
+    return forkJoin([accountTemplates$, gtTemplates$]).pipe(
+      map(([accountTemplates, gtTemplates]) => {
+        const byId = new Map<number, ImportTransactionTemplate>();
+        [...accountTemplates, ...gtTemplates].forEach(t => byId.set(t.idTransactionImportTemplate, t));
+        return [...byId.values()];
+      }));
   }
 
   readData(): void {
@@ -245,8 +270,10 @@ export class SecurityaccountImportTransactionComponent
   }
 
   handleUploadCSVFile(): void {
-    this.importTransactionTemplateService.getCSVTemplateIdsAsValueKeyHtmlSelectOptions(
-      this.securityAccount.tradingPlatformPlan.importTransactionPlatform.idTransactionImportPlatform).subscribe(vkhso => {
+    const idPlatform = this.selectedEntity.useGtPlatform
+      ? this.gpsGT.getTenantGtImportPlatformId()
+      : this.securityAccount.tradingPlatformPlan.importTransactionPlatform.idTransactionImportPlatform;
+    this.importTransactionTemplateService.getCSVTemplateIdsAsValueKeyHtmlSelectOptions(idPlatform).subscribe(vkhso => {
       const fieldConfig = [DynamicFieldHelper.createFieldSelectString('idTransactionImportTemplate',
         'IMPORT_TRANSACTION_TEMPLATE', true, {disabled: vkhso.length < 2})];
       if (vkhso.length === 1) {

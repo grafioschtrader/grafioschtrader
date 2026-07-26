@@ -14,6 +14,7 @@ import {StockexchangeCallParam} from './stockexchange.call.param';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
 import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {DialogService} from 'primeng/dynamicdialog';
+import {TooltipModule} from 'primeng/tooltip';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 import {TableCrudSupportMenuSecurity} from '../../lib/datashowbase/table.crud.support.menu.security';
@@ -48,12 +49,20 @@ import {TradingCalendarStockexchangeComponent} from './trading-calendar-stockexc
       [expandedRowTemplate]="expandedContent"
       [containerClass]="{'data-container-full': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
       [showContextMenu]="isActivated()"
-      [contextMenuItems]="contextMenuItems"
+      [contextMenuItems]="contextMenuItems" [contextMenuAppendTo]="'body'"
       [ownerHighlightFn]="isNotSingleModeAndOwner.bind(this)"
       [valueGetterFn]="getValueByPath.bind(this)"
       (componentClick)="onComponentClick($event)">
 
       <h4 caption>{{entityNameUpper | translate}}</h4>
+
+      <!-- Country flag cell (templateName: 'icon'); tooltip shows the technical id_stockexchange -->
+      <ng-template #iconCell let-row>
+        <img src="assets/icons/flag_placeholder.png"
+             [class]="'fi fi-' + (row.countryCode ? row.countryCode.toLowerCase() : 'xx')"
+             style="width: 20px"
+             [pTooltip]="row.idStockexchange" tooltipPosition="top"/>
+      </ng-template>
 
     </configurable-table>
 
@@ -77,6 +86,7 @@ import {TradingCalendarStockexchangeComponent} from './trading-calendar-stockexc
     ConfigurableTableComponent,
     StockexchangeEditComponent,
     TradingCalendarStockexchangeComponent,
+    TooltipModule,
     TranslateModule
   ]
 })
@@ -107,6 +117,8 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
     this.addColumnFeqH(DataType.String, 'name', true, false, {
       width: 180,
     });
+    this.addColumn(DataType.String, 'countryFlag', 'COUNTRY_FLAG', true, false,
+      {width: 40, templateName: 'icon', fieldValueFN: this.getDisplayNameForCounty.bind(this)});
     this.addColumnFeqH(DataType.String, 'countryCode', true, false,
       {fieldValueFN: this.getDisplayNameForCounty.bind(this)});
     this.addColumnFeqH(DataType.Boolean, 'secondaryMarket', true, false,
@@ -117,6 +129,8 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
     this.addColumnFeqH(DataType.TimeString, 'timeClose', true, false);
     this.addColumnFeqH(DataType.String, 'timeZone', true, false, {width: 120});
     this.addColumn(DataType.String, 'nameIndexUpdCalendar', 'ID_INDEX_UPD_CALENDAR', true, false, {width: 180});
+    this.addColumn(DataType.String, 'nameTradingCalendarRuleSet', 'ID_TRADING_CALENDAR_RULE_SET', true, false,
+      {width: 180});
     this.addColumnFeqH(DataType.DateString, 'maxCalendarUpdDate', true, false);
     this.addColumnFeqH(DataType.TimeString, 'localTime', true, false);
     this.addColumnFeqH(DataType.DateTimeString, 'lastDirectPriceUpdate', true, false,

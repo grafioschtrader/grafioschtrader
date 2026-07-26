@@ -106,6 +106,15 @@ export class PortfolioTransactionTableComponent extends TransactionTable impleme
   }
 
   /**
+   * Restricts the CSV export action of the base class to the securities accounts of this portfolio.
+   *
+   * @returns The ID of the portfolio shown in this table
+   */
+  protected override getExportIdPortfolio(): number {
+    return this.idPortfolio;
+  }
+
+  /**
    * Loads and processes transaction data for the current portfolio.
    * Combines transaction data with currency pair information to provide complete transaction details.
    * Updates the table display and configures filtering options based on the loaded data.

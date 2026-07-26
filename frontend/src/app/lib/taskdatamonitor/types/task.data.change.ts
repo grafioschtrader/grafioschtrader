@@ -49,8 +49,11 @@ export interface EntityIdOption {
 export class TaskDataChangeFormConstraints {
   taskTypeConfig: { [key: string]: string[] };
   canBeInterruptedList: string[];
-  /** Mapping of entity names to their selectable ID options (e.g., IFeedConnector -> connector list) */
-  entityIdOptions: { [entity: string]: EntityIdOption[] };
+  /**
+   * Task-scoped selectable ID options: task type name -> entity name -> option list
+   * (e.g., CREATE_STOCK_EXCHANGE_CALENDAR_BY_RULE_SET -> Stockexchange -> exchange list).
+   */
+  entityIdOptions: { [taskName: string]: { [entity: string]: EntityIdOption[] } };
   maxUserCreateTask: number;
   maxDaysInFuture: number;
 }

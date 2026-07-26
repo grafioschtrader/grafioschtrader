@@ -79,6 +79,9 @@ export enum TaskTypeExtended {
   /** Processes due standing orders, creating transactions for the previous day */
   STANDING_ORDER_EXECUTION = 52,
 
+  /** Derives the trading calendar of stock exchanges from a trading calendar rule set */
+  CREATE_STOCK_EXCHANGE_CALENDAR_BY_RULE_SET = 53,
+
   // System tasks (80+ band): use oldValueNumber/oldValueString and cannot be created by a user
 
   /** Update task migrated from V_0 */

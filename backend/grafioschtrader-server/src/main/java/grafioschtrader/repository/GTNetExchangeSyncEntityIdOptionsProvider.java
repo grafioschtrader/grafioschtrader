@@ -27,6 +27,6 @@ public class GTNetExchangeSyncEntityIdOptionsProvider implements EntityIdOptions
             String.valueOf(GTNetExchangeSyncTask.FULL_RECREATION_MODE),
             "GTNET_SYNC_MODE_FULL_RECREATION")
     );
-    constraints.entityIdOptions.put(GTNetExchangeSyncTask.SYNC_MODE_ENTITY, syncModeOptions);
+    constraints.putSharedOptions(GTNetExchangeSyncTask.SYNC_MODE_ENTITY, syncModeOptions);
   }
 }

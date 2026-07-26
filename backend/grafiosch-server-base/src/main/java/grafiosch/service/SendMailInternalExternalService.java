@@ -13,14 +13,19 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.NetworkHelper;
 import grafiosch.common.UserAccessHelper;
 import grafiosch.dto.MailSendForwardDefaultBase;
+import grafiosch.entities.GTNet;
 import grafiosch.entities.MailSendRecv;
 import grafiosch.entities.MailSettingForward;
 import grafiosch.entities.Role;
 import grafiosch.entities.User;
+import grafiosch.repository.GTNetJpaRepository;
+import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.repository.MailSendRecvJpaRepository;
 import grafiosch.repository.MailSendRecvReadDelJpaRepository;
 import grafiosch.repository.MailSettingForwardJpaRepository;
@@ -76,6 +81,12 @@ public class SendMailInternalExternalService {
 
   @Autowired
   private RoleJpaRepository roleJpaRepository;
+
+  @Autowired
+  private GlobalparametersJpaRepository globalparametersJpaRepository;
+
+  @Autowired
+  private GTNetJpaRepository gtNetJpaRepository;
 
   @Value("${gt.main.user.admin.mail}")
   private String mainUserAdminMail;
@@ -507,11 +518,33 @@ public class SendMailInternalExternalService {
       String[] usersTo, String localeStr) throws MessagingException {
     if (msgTargetType == MessageTargetType.EXTERNAL_MAIL
         || msgTargetType == MessageTargetType.INTERNAL_AND_EXTERNAL_MAIL) {
+      Locale locale = Locale.forLanguageTag(localeStr);
       String msgAddition = messagesSource.getMessage("gt.external.message.addition", new Object[] { idUserFrom },
-          Locale.forLanguageTag(localeStr));
+          locale);
+      String instanceLine = messagesSource.getMessage("g.external.message.instance",
+          new Object[] { getLocalInstanceIdentifier() }, locale);
       mailExternalService.sendSimpleMessageAsync(usersTo, "GT: " + subject,
-          msgAddition + BaseConstants.RETURN_AND_NEW_LINE + message);
+          msgAddition + BaseConstants.NEW_LINE + instanceLine + BaseConstants.RETURN_AND_NEW_LINE + message);
     }
+  }
+
+  /**
+   * Resolves a human-readable identifier for this GT instance, used to label outgoing external notification emails so
+   * recipients can tell which instance sent a message. Prefers the instance's own GTNet domain
+   * ({@link GTNet#getDomainRemoteName()} of the "my entry" referenced by the {@code g.gnet.my.entry.id} global
+   * parameter) and falls back to the outbound IP address when GTNet is not configured.
+   *
+   * @return the local instance's GTNet domain, or its outbound IP address as a fallback
+   */
+  private String getLocalInstanceIdentifier() {
+    Integer myEntryId = globalparametersJpaRepository.getGTNetMyEntryID();
+    if (myEntryId != null) {
+      String domain = gtNetJpaRepository.findById(myEntryId).map(GTNet::getDomainRemoteName).orElse(null);
+      if (StringUtils.hasText(domain)) {
+        return domain;
+      }
+    }
+    return NetworkHelper.getIpAddressToOutside();
   }
 
   /**

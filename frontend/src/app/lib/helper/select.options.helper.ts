@@ -55,25 +55,33 @@ export class SelectOptionsHelper {
   }
 
   /**
-   * Creates select options from string array with optional case transformation.
-   * Each string serves as both key and value, with optional uppercase transformation for display.
-   * Ideal for simple lists where the stored value matches the display value.
+   * Creates select options from a string array, optionally deriving an UPPER_SNAKE_CASE translation
+   * key for each value. Each string serves as the option key; the option value is either the string
+   * itself or its UPPER_SNAKE_CASE form when {@code deriveNlsKey} is set.
+   *
+   * The key derivation inserts an underscore at every lowerCase→UpperCase boundary before uppercasing
+   * (e.g. {@code TradingCalendarRuleSet → TRADING_CALENDAR_RULE_SET}), so PascalCase entity/class names
+   * map onto the application's existing UPPER_SNAKE NLS keys. It deliberately does NOT split
+   * acronym+word runs the way {@link AppHelper.toUpperCaseWithUnderscore} does — {@code GTNet} stays
+   * {@code GTNET} (matching keys such as {@code GTNET_SECURITY_IMP_HEAD}) rather than becoming
+   * {@code GT_NET}. Single-word names are simply uppercased ({@code Currencypair → CURRENCYPAIR}).
    *
    * @param keysAndValues Array of strings to convert to options
-   * @param uppercaseValue Whether to display values in uppercase (default: false)
-   * @returns Array of ValueKeyHtmlSelectOptions with strings as both key and value
+   * @param deriveNlsKey Whether to derive an UPPER_SNAKE_CASE translation key as the value (default: false)
+   * @returns Array of ValueKeyHtmlSelectOptions with the strings as keys
    *
    * @example
-   * // Create status options
-   * const statusOptions = SelectOptionsHelper.createHtmlOptionsFromStringArray(
-   *   ['active', 'inactive', 'pending'], true
+   * // Derive translation keys from entity class names
+   * const entityOptions = SelectOptionsHelper.createHtmlOptionsFromStringArray(
+   *   ['Security', 'TradingCalendarRuleSet'], true
    * );
-   * // Result: [{key: 'active', value: 'ACTIVE'}, {key: 'inactive', value: 'INACTIVE'}, {key: 'pending', value: 'PENDING'}]
+   * // Result: [{key: 'Security', value: 'SECURITY'},
+   * //          {key: 'TradingCalendarRuleSet', value: 'TRADING_CALENDAR_RULE_SET'}]
    */
-  public static createHtmlOptionsFromStringArray(keysAndValues: string[], uppercaseValue = false): ValueKeyHtmlSelectOptions[] {
+  public static createHtmlOptionsFromStringArray(keysAndValues: string[], deriveNlsKey = false): ValueKeyHtmlSelectOptions[] {
     const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [];
-    keysAndValues.forEach(keyAndValue => valueKeyHtmlSelectOptions.push(
-      new ValueKeyHtmlSelectOptions(keyAndValue, uppercaseValue ? keyAndValue.toUpperCase() : keyAndValue)));
+    keysAndValues.forEach(keyAndValue => valueKeyHtmlSelectOptions.push(new ValueKeyHtmlSelectOptions(keyAndValue,
+      deriveNlsKey ? keyAndValue.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase() : keyAndValue)));
     return valueKeyHtmlSelectOptions;
   }
 
@@ -176,6 +184,19 @@ export class SelectOptionsHelper {
       valueKeyHtmlSelectOptions.push(new ValueKeyHtmlSelectOptions(element[key], element[propertyName]));
     });
     return valueKeyHtmlSelectOptions;
+  }
+
+  /**
+   * Prepends the empty "no selection" option to an existing options array so the bound field can be
+   * cleared. Use for options that arrive without an empty entry (e.g. loaded from a REST endpoint);
+   * for options built here, prefer the `addEmpty` parameter of the create* methods instead.
+   *
+   * @param options existing options to extend (modified in place)
+   * @returns the same array with the empty option at the front
+   */
+  public static prependEmptyOption(options: ValueKeyHtmlSelectOptions[]): ValueKeyHtmlSelectOptions[] {
+    options.unshift(new ValueKeyHtmlSelectOptions('', ''));
+    return options;
   }
 
   /**

@@ -14,6 +14,9 @@ export class Stockexchange extends Auditable implements BaseID {
   noMarketValue: boolean = null;
   idIndexUpdCalendar: number = null;
   nameIndexUpdCalendar: string = null;
+  /** Rule set producing the trading calendar. Mutually exclusive with idIndexUpdCalendar. */
+  idTradingCalendarRuleSet: number = null;
+  nameTradingCalendarRuleSet: string = null;
   lastDirectPriceUpdate: number;
   website: string = null;
   @Exclude()

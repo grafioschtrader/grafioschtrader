@@ -1,0 +1,25 @@
+TRANSAKTIONSBELEG Grafioschtrader
+Kunde Mustermann
+Depot Musterdepot
+Konto Musterkonto
+Börsentransaktion: {transType|P|N} Referenz: GT-00000000
+Datum {date|P} Uhrzeit {time|P}
+Musterwertpapier AG ISIN: {isin|P}
+Titelwährung {cin|SL|N}
+Anzahl {units|SL|N}
+Preis {quotation|SL|N}
+Marchzinsen {ac|SL|N|O}
+Kommission {tc1|SL|N|O}
+Abgaben und Steuern {tt1|SL|N|O}
+Devisenkurs {cex|SL|N|O}
+Verrechnungswährung {cac|SL|N}
+[Zu Ihren Lasten|Zu Ihren Gunsten] CHF {ta|SL|N}
+Vielen Dank für Ihren Auftrag.
+[END]
+transType=ACCUMULATE|Kauf
+transType=REDUCE|Verkauf
+dateFormat=dd.MM.yyyy
+timeFormat=HH:mm:ss
+overRuleSeparators=All<'|.>
+calcRounding=0.05,JPY=1
+templatePurpose=Grafioschtrader Kauf/Verkauf Beleg

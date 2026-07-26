@@ -44,7 +44,8 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
               translateService: TranslateService,
               gps: GlobalparameterService,
               messageToastService: MessageToastService) {
-    super(HelpIds.HELP_BASEDATA_TRADING_PLATFORM_PLAN, AppSettings.TRADING_PLATFORM_PLAN.toUpperCase(), translateService, gps,
+    super(HelpIds.HELP_BASEDATA_TRADING_PLATFORM_PLAN,
+      AppHelper.toUpperCaseWithUnderscore(AppSettings.TRADING_PLATFORM_PLAN), translateService, gps,
       messageToastService, tradingPlatformPlanService);
   }
 

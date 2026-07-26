@@ -24,6 +24,7 @@ import grafiosch.BaseConstants;
 import grafiosch.GlobalParamKeyBaseDefault;
 import grafiosch.common.PropertyStringParser;
 import grafiosch.common.UserAccessHelper;
+import grafiosch.config.BaseFeatureConfig;
 import grafiosch.config.ExposedResourceBundleMessageSource;
 import grafiosch.dto.IPropertiesSelfCheck;
 import grafiosch.dto.InputRule;
@@ -55,6 +56,9 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
 
   @Autowired
   private MessageSource messages;
+
+  @Autowired
+  private BaseFeatureConfig baseFeatureConfig;
 
   @Override
   public int getMaxValueByKey(String key) {
@@ -106,16 +110,19 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
   /**
    * Checks whether GTNet functionality is enabled.
    *
-   * GTNet is enabled when the global parameter 'gt.gtnet.use' has a non-zero property_int value. If the parameter is not
-   * configured in the database, returns the default value (disabled).
+   * Two gates must both pass. First the deployment-level property {@code g.use.gtnet} (default true), which can be set
+   * to false as a launch argument to switch GTNet off for a single run without touching the database. Second the global
+   * parameter 'g.gnet.use', which is enabled when it has a non-zero property_int value; if the parameter is not
+   * configured in the database, the default value (disabled) applies.
    *
    * @return true if GTNet is enabled, false otherwise
    */
    @Override
    public boolean isGTNetEnabled() {
-    return globalparametersJpaRepository.findById(GlobalParamKeyBaseDefault.GLOB_KEY_GTNET_USE)
-        .flatMap(g -> Optional.ofNullable(g.getPropertyInt()))
-        .orElse(GlobalParamKeyBaseDefault.DEFAULT_GTNET_USE) != 0;
+    return baseFeatureConfig.isGtnet()
+        && globalparametersJpaRepository.findById(GlobalParamKeyBaseDefault.GLOB_KEY_GTNET_USE)
+            .flatMap(g -> Optional.ofNullable(g.getPropertyInt()))
+            .orElse(GlobalParamKeyBaseDefault.DEFAULT_GTNET_USE) != 0;
    }
 
   @Override

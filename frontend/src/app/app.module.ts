@@ -22,6 +22,7 @@ import {SecurityaccountService} from './securityaccount/service/securityaccount.
 import {TieredMenuModule} from 'primeng/tieredmenu';
 import {CashaccountService} from './cashaccount/service/cashaccount.service';
 import {TransactionService} from './transaction/service/transaction.service';
+import {TransactionReceiptService} from './transaction/service/transaction.receipt.service';
 import {CurrencypairService} from './securitycurrency/service/currencypair.service';
 import {ReplacePipe} from './shared/pipe/replace.pipe';
 import {LoginService} from './lib/login/service/log-in.service';
@@ -56,6 +57,7 @@ import {TimeSeriesQuotesService} from './historyquote/service/time.series.quotes
 import {CorrelationComponent} from './correlation/component/correlation.component';
 import {TradingPlatformPlanTableComponent} from './tradingplatform/component/trading.platform.plan.table.component';
 import {TradingPlatformPlanService} from './tradingplatform/service/trading.platform.plan.service';
+import {TradingCalendarRuleSetService} from './stockexchange/service/trading.calendar.rule.set.service';
 import {GenericConnectorDefService} from './genericconnector/service/generic.connector.def.service';
 import {GenericConnectorComponent} from './genericconnector/component/generic-connector.component';
 import {TenantDividendsComponent} from './tenant/component/tenant.dividends.component';
@@ -97,7 +99,7 @@ import {
 import {ImportTransactionTemplateComponent} from './imptranstemplate/component/import.transaction.template.component';
 import {ImportTransactionTemplateService} from './imptranstemplate/service/import.transaction.template.service';
 import {ImportTransactionPlatformService} from './imptranstemplate/service/import.transaction.platform.service';
-import {RiskFreeRateMappingService} from './shared/riskfreeratemapping/service/risk.free.rate.mapping.service';
+import {RiskFreeRateMappingService} from './riskfreeratemapping/service/risk.free.rate.mapping.service';
 import {
   ImportTransactionEditTemplateComponent
 } from './imptranstemplate/component/import-transaction-edit-template.component';
@@ -487,7 +489,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     MultipleRequestToOneService, ParentChildRegisterService, PortfolioService, ProductIconService, ProposeChangeEntityService,
     ProposeUserTaskService, SecurityaccountService, SecurityService, SecuritysplitService, StockexchangeService,
     SecurityActionService, StandingOrderService, TaskDataChangeService, TaxDataService, TenantService, TimeSeriesQuotesService, TradingDaysMinusService, TradingDaysPlusService,
-    TradingPlatformPlanService, GenericConnectorDefService, TransactionService, UDFDataService, UDFMetadataGeneralService, UDFMetadataSecurityService,
+    TradingPlatformPlanService, TradingCalendarRuleSetService, GenericConnectorDefService, TransactionService, TransactionReceiptService, UDFDataService, UDFMetadataGeneralService, UDFMetadataSecurityService,
     UDFSpecialTypeDisableUserService, UserAdminService, UserChartShapeService, UserDataService, UserEntityChangeLimitService, UserSettingsService,
     ViewSizeChangedService, WatchlistService, {provide: TASK_EXTENDED_SERVICE, useClass: SecurityService},
     {provide: TASK_TYPE_ENUM, useValue: TaskType},

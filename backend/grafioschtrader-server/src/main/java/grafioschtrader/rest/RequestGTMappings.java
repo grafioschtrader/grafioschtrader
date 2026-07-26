@@ -124,6 +124,9 @@ public interface RequestGTMappings {
   public static final String TRADINGPLATFORMPLAND = "tradingplatformplan";
   public static final String TRADINGPLATFORMPLAND_MAP = RequestMappings.API + TRADINGPLATFORMPLAND;
 
+  public static final String TRADINGCALENDARRULESET = "tradingcalendarruleset";
+  public static final String TRADINGCALENDARRULESET_MAP = RequestMappings.API + TRADINGCALENDARRULESET;
+
   public static final String TAXYEARCORRECTION = "taxyearcorrection";
   public static final String TAXYEARCORRECTION_MAP = RequestMappings.API + TAXYEARCORRECTION;
 

@@ -16,10 +16,17 @@ import {Security} from '../../entities/security';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {TransactionCallParam} from './transaction.call.parm';
-import {ConfirmationService, FilterService} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
+import {DialogService} from 'primeng/dynamicdialog';
 import {HelpIds} from '../../lib/help/help.ids';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
+import {BaseSettings} from '../../lib/base.settings';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
+import {
+  TransactionExportCsvDialogComponent,
+  TransactionExportCsvDialogData
+} from './transaction-export-csv-dialog.component';
 
 /**
  * Abstract base class for displaying transactions in a tabular format with comprehensive filtering, sorting, and
@@ -181,6 +188,44 @@ export abstract class TransactionTable extends TransactionContextMenu {
    * @param transactionCallParam The transaction call parameter object to be configured
    */
   protected override prepareTransactionCallParam(transactionCallParam: TransactionCallParam) {
+  }
+
+  /**
+   * Appends the selection-independent CSV export action to the transaction menu. The export scope follows the level
+   * of the concrete table: the tenant table exports all securities accounts, the portfolio table only the accounts
+   * of its portfolio (see getExportIdPortfolio).
+   *
+   * @param transaction The currently selected transaction, may be null
+   * @returns The menu items of the base class plus the export action
+   */
+  protected override getMenuItemsOnTransaction(transaction: Transaction): MenuItem[] {
+    const menuItems = super.getMenuItemsOnTransaction(transaction);
+    const exportMenuItem: MenuItem = {
+      label: 'EXPORT_TRANSACTIONS_CSV' + BaseSettings.DIALOG_MENU_SUFFIX,
+      command: () => this.openExportCsvDialog()
+    };
+    TranslateHelper.translateMenuItems([exportMenuItem], this.translateService);
+    menuItems.push(exportMenuItem);
+    return menuItems;
+  }
+
+  /**
+   * Portfolio scope of the CSV export. The default (null) exports the whole tenant; the portfolio level table
+   * overrides this with its portfolio ID so only that portfolio's securities accounts are exported.
+   *
+   * @returns The portfolio ID restricting the export, or null for the tenant-wide export
+   */
+  protected getExportIdPortfolio(): number {
+    return null;
+  }
+
+  /** Opens the CSV export dialog with the level-dependent portfolio scope. */
+  private openExportCsvDialog(): void {
+    const data: TransactionExportCsvDialogData = {idPortfolio: this.getExportIdPortfolio()};
+    this.injector.get(DialogService).open(TransactionExportCsvDialogComponent, {
+      header: this.translateService.instant('EXPORT_TRANSACTIONS_CSV'),
+      data, width: '500px', modal: true, closable: true, closeOnEscape: true
+    });
   }
 
 }

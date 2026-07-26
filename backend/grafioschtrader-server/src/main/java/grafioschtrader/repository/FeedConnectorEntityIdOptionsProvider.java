@@ -28,6 +28,6 @@ public class FeedConnectorEntityIdOptionsProvider implements EntityIdOptionsProv
         .map(fc -> new ValueKeyHtmlSelectOptions(String.valueOf(fc.getIdNumber()), fc.getReadableName()))
         .sorted(Comparator.comparing(o -> o.value))
         .collect(Collectors.toList());
-    constraints.entityIdOptions.put(IFeedConnector.class.getSimpleName(), connectorOptions);
+    constraints.putSharedOptions(IFeedConnector.class.getSimpleName(), connectorOptions);
   }
 }

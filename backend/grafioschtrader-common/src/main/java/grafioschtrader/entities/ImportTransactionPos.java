@@ -761,6 +761,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
     case ACCUMULATE:
     case REDUCE:
     case DIVIDEND:
+    case FINANCE_COST:
       //  Security transactions should always have units and quotation at this stage.
       if (units != null && quotation != null) {
         correctQuotationForDividend();
@@ -772,6 +773,15 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
         if (getTransactionType() == TransactionType.ACCUMULATE) {
           calcCashaccountAmount = (calcCashaccountAmount + taxCostC + transactionCostC + accruedInterestC) * -1.0;
           cashaccountAmount = cashaccountAmount != null ? Math.abs(cashaccountAmount) * -1.0 : null;
+        } else if (getTransactionType() == TransactionType.FINANCE_COST) {
+          // Mirrors Transaction.validateSecurityMarginCashaccountAmount: for margin instruments the finance cost
+          // (units = number of days, quotation = daily cost) is the REDUCE formula negated, i.e. a cash outflow.
+          boolean marginInstrument = security != null && security.isMarginInstrument();
+          calcCashaccountAmount -= taxCostC + transactionCostC - (marginInstrument ? 0.0 : accruedInterestC);
+          if (marginInstrument) {
+            calcCashaccountAmount *= -1.0;
+            cashaccountAmount = cashaccountAmount != null ? Math.abs(cashaccountAmount) * -1.0 : null;
+          }
         } else {
           // For reduce and dividend
           calcCashaccountAmount -= taxCostC + transactionCostC - accruedInterestC;

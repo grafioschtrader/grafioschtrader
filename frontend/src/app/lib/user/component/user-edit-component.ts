@@ -43,7 +43,8 @@ export class UserEditComponent extends SimpleEntityEditBase<User> implements OnI
     gps: GlobalparameterService,
     messageToastService: MessageToastService,
     userService: UserAdminService) {
-    super(HelpIds.HELP_USER, BaseSettings.USER.toUpperCase(), translateService, gps, messageToastService, userService);
+    super(HelpIds.HELP_USER, AppHelper.toUpperCaseWithUnderscore(BaseSettings.USER), translateService, gps, messageToastService,
+      userService);
   }
 
   ngOnInit(): void {

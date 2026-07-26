@@ -4,24 +4,24 @@ import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {forkJoin} from 'rxjs';
 
-import {RiskFreeInstrumentOption, RiskFreeRateMapping} from '../../../entities/risk.free.rate.mapping';
+import {RiskFreeInstrumentOption, RiskFreeRateMapping} from '../../entities/risk.free.rate.mapping';
 import {RiskFreeRateMappingService} from '../service/risk.free.rate.mapping.service';
-import {GlobalparameterService} from '../../../lib/services/globalparameter.service';
-import {GlobalparameterGTService} from '../../../gtservice/globalparameter.gt.service';
-import {UserSettingsService} from '../../../lib/services/user.settings.service';
-import {ActivePanelService} from '../../../lib/mainmenubar/service/active.panel.service';
-import {IGlobalMenuAttach} from '../../../lib/mainmenubar/component/iglobal.menu.attach';
-import {MessageToastService} from '../../../lib/message/message.toast.service';
-import {InfoLevelType} from '../../../lib/message/info.leve.type';
-import {DataType} from '../../../lib/dynamic-form/models/data.type';
-import {TableEditConfigBase} from '../../../lib/datashowbase/table.edit.config.base';
-import {EditableTableComponent, RowEditEvent, RowEditSaveEvent} from '../../../lib/datashowbase/editable-table.component';
-import {ValueKeyHtmlSelectOptions} from '../../../lib/dynamic-form/models/value.key.html.select.options';
-import {ColumnConfig} from '../../../lib/datashowbase/column.config';
-import {GlobalSessionNames} from '../../../lib/global.session.names';
-import {BaseSettings} from '../../../lib/base.settings';
-import {AppHelper} from '../../../lib/helper/app.helper';
-import {AppHelpIds} from '../../help/help.ids';
+import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
+import {UserSettingsService} from '../../lib/services/user.settings.service';
+import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
+import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import {MessageToastService} from '../../lib/message/message.toast.service';
+import {InfoLevelType} from '../../lib/message/info.leve.type';
+import {DataType} from '../../lib/dynamic-form/models/data.type';
+import {TableEditConfigBase} from '../../lib/datashowbase/table.edit.config.base';
+import {EditableTableComponent, RowEditEvent, RowEditSaveEvent} from '../../lib/datashowbase/editable-table.component';
+import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
+import {ColumnConfig} from '../../lib/datashowbase/column.config';
+import {GlobalSessionNames} from '../../lib/global.session.names';
+import {BaseSettings} from '../../lib/base.settings';
+import {AppHelper} from '../../lib/helper/app.helper';
+import {AppHelpIds} from '../../shared/help/help.ids';
 
 /**
  * Editable-table admin for the risk-free-rate currency-to-security mapping. Shows 3 columns:

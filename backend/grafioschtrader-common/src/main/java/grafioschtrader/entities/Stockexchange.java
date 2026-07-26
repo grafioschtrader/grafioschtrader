@@ -124,6 +124,14 @@ public class Stockexchange extends Auditable implements Serializable {
   @Column(name = "id_index_upd_calendar")
   private Integer idIndexUpdCalendar;
 
+  @Schema(description = """
+      ID of the trading calendar rule set from which the closures of this exchange are calculated. It is the
+      alternative to deriving them from the quotes of a reference index, so this and idIndexUpdCalendar are mutually
+      exclusive; at most one of the two may be set. The same rule set may be used by any number of exchanges.""")
+  @PropertyAlwaysUpdatable
+  @Column(name = "id_trading_calendar_rule_set")
+  private Integer idTradingCalendarRuleSet;
+
   @Schema(description = "Until this date, the update of the trading calendar was performed via the index. This date is set by the system")
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "max_calendar_upd_date")
@@ -143,6 +151,9 @@ public class Stockexchange extends Auditable implements Serializable {
 
   @Transient
   private String nameIndexUpdCalendar;
+
+  @Transient
+  private String nameTradingCalendarRuleSet;
 
   public Stockexchange() {
   }
@@ -254,8 +265,28 @@ public class Stockexchange extends Auditable implements Serializable {
     this.nameIndexUpdCalendar = nameIndexUpdCalendar;
   }
 
+  public Integer getIdTradingCalendarRuleSet() {
+    return idTradingCalendarRuleSet;
+  }
+
+  public void setIdTradingCalendarRuleSet(Integer idTradingCalendarRuleSet) {
+    this.idTradingCalendarRuleSet = idTradingCalendarRuleSet;
+  }
+
+  public String getNameTradingCalendarRuleSet() {
+    return nameTradingCalendarRuleSet;
+  }
+
+  public void setNameTradingCalendarRuleSet(String nameTradingCalendarRuleSet) {
+    this.nameTradingCalendarRuleSet = nameTradingCalendarRuleSet;
+  }
+
   public LocalDate getMaxCalendarUpdDate() {
     return maxCalendarUpdDate;
+  }
+
+  public void setMaxCalendarUpdDate(LocalDate maxCalendarUpdDate) {
+    this.maxCalendarUpdDate = maxCalendarUpdDate;
   }
 
   public LocalDateTime getLastDirectPriceUpdate() {

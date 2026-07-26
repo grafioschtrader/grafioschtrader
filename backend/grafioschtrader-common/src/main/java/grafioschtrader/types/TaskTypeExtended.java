@@ -57,6 +57,8 @@ public enum TaskTypeExtended implements ITaskType {
   GTNET_SECURITY_IMPORT_POSITIONS((byte) 51),
    /** Processes due standing orders, creating transactions for the previous day */
   STANDING_ORDER_EXECUTION((byte) 52),
+  /** Derives the trading calendar of stock exchanges from a trading calendar rule set */
+  CREATE_STOCK_EXCHANGE_CALENDAR_BY_RULE_SET((byte) 53),
 
   // Task which used oldValueNumber or oldValueString can not created by the admin
   ///////////////////////////////////////////////////////////////////////////////

@@ -58,6 +58,8 @@ import grafioschtrader.entities.StandingOrderFailure;
 import grafioschtrader.entities.StandingOrderSecurity;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.entities.StockexchangeMic;
+import grafioschtrader.entities.TaxYearCorrection;
+import grafioschtrader.entities.TradingCalendarRuleSet;
 import grafioschtrader.entities.TradingDaysMinus;
 import grafioschtrader.entities.TradingDaysPlus;
 import grafioschtrader.entities.TradingPlatformPlan;
@@ -271,6 +273,11 @@ public class MyDataExportDeleteDefinition {
       "UPDATE transaction SET id_security_action_app = NULL WHERE id_tenant = ? AND id_security_action_app IS NOT NULL";
   private static String TRANSACTION_NULL_SECURITY_TRANSFER =
       "UPDATE transaction SET id_security_transfer = NULL WHERE id_tenant = ? AND id_security_transfer IS NOT NULL";
+  // Shared reference data. Base sets (id_extends_rule_set IS NULL) must be inserted before the
+  // deviation sets that extend them, so the self-referencing FK holds on re-import.
+  private static String TRADING_CALENDAR_RULE_SET_SELECT = String.format(
+      "* FROM %s ORDER BY (id_extends_rule_set IS NOT NULL), id_trading_calendar_rule_set",
+      TradingCalendarRuleSet.TABNAME);
 
   /*
    * The order should only be changed carefully. Otherwise, the foreign key relationships can lead to errors.
@@ -287,6 +294,10 @@ public class MyDataExportDeleteDefinition {
       // MIC reference data — must be exported before stockexchange (FK dependency)
       new ExportDefinition(StockexchangeMic.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
       new ExportDefinition(MicProviderMap.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
+      // Trading-calendar rule sets — shared reference data referenced by
+      // stockexchange.id_trading_calendar_rule_set, so it must be exported before Stockexchange.
+      new ExportDefinition(TradingCalendarRuleSet.TABNAME, TENANT_USER.NONE, TRADING_CALENDAR_RULE_SET_SELECT,
+          ExportDefinition.EXPORT_USE | ExportDefinition.CHANGE_USER_ID_FOR_CREATED_BY),
       // Stock exchange is fully exported but data owner must be changed too user
       new ExportDefinition(Stockexchange.TABNAME, TENANT_USER.NONE, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.CHANGE_USER_ID_FOR_CREATED_BY),
@@ -366,6 +377,9 @@ public class MyDataExportDeleteDefinition {
       new ExportDefinition(SecurityActionApplication.TABNAME, TENANT_USER.ID_TENANT, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       new ExportDefinition("tax_security_year_config", TENANT_USER.ID_TENANT, null,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      // Per-tenant ICTax taxable-income overrides — references securitycurrency, so exported after it.
+      new ExportDefinition(TaxYearCorrection.TABNAME, TENANT_USER.ID_TENANT, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       // Break circular FK: NULL out transaction references before deleting
       new ExportDefinition(Transaction.TABNAME, TENANT_USER.ID_TENANT, TRANSACTION_NULL_SECURITY_TRANSFER,

@@ -1,0 +1,1033 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[
+  {
+    "e2e": "e",
+    "shortId": "bxswiss",
+    "readableName": "BX Swiss (Bern)",
+    "descriptionNLS": {
+      "map": {
+        "de": "Geben Sie die ISIN eines an der <a href=\"https://www.bxswiss.com/\" target=\"_blank\">BX Swiss</a> (Berner Börse) gehandelten Wertpapiers ein, z.B. <b>IE00B1FZS574</b>. Kein API-Schlüssel nötig (undokumentierte aber öffentliche Chart-API). Liefert vollständige End-of-Day-OHLC-Historie und 5-Minuten-Intraday-Balken der letzten Woche; ohne Volumen, Dividenden oder Splits.",
+        "en": "Enter the ISIN of a security listed on <a href=\"https://www.bxswiss.com/\" target=\"_blank\">BX Swiss</a> (Bern stock exchange), e.g. <b>IE00B1FZS574</b>. No API key needed (undocumented but public chart API). Provides full end-of-day OHLC history and 5-minute intraday bars over the last week; no volume, dividends or splits."
+      }
+    },
+    "domainUrl": "https://www.bxswiss.com/",
+    "needsApiKey": false,
+    "rateLimitType": "NONE",
+    "rateLimitRequests": null,
+    "rateLimitPeriodSec": null,
+    "rateLimitConcurrent": null,
+    "intradayDelaySeconds": 900,
+    "regexUrlPattern": "^[A-Z]{2}[A-Z0-9]{9}[0-9]$",
+    "supportsSecurity": true,
+    "supportsCurrency": false,
+    "needHistoryGapFiller": true,
+    "gbxDividerEnabled": false,
+    "supportedCategories": "EQUITIES,ETF,FIXED_INCOME,ISSUER_RISK_PRODUCT",
+    "geoRestrictions": "XBRN EQWB",
+    "tokenConfigYaml": null,
+    "httpHeaders": [],
+    "endpoints": [
+      {
+        "feedSupport": "FS_HISTORY",
+        "instrumentType": "SECURITY",
+        "urlTemplate": "quotedataprovider/candlestick/alltime/{ticker}",
+        "httpMethod": "GET",
+        "responseFormat": "JSON",
+        "numberFormat": "PLAIN",
+        "dateFormatType": "UNIX_MILLIS",
+        "dateFormatPattern": null,
+        "jsonDataStructure": "ARRAY_OF_OBJECTS",
+        "jsonDataPath": "ohlcMid",
+        "jsonColumnNamesPath": null,
+        "jsonStatusPath": null,
+        "jsonStatusOkValue": null,
+        "csvDelimiter": null,
+        "csvSkipHeaderLines": 1,
+        "htmlCssSelector": null,
+        "htmlExtractMode": null,
+        "htmlTextCleanup": null,
+        "htmlExtractRegex": null,
+        "htmlSplitDelimiter": null,
+        "tickerBuildStrategy": "URL_EXTEND",
+        "currencyPairSeparator": null,
+        "currencyPairSuffix": null,
+        "tickerUppercase": true,
+        "maxDataPoints": null,
+        "paginationEnabled": false,
+        "endpointOptions": [],
+        "fieldMappings": [
+          {
+            "targetField": "close",
+            "sourceExpression": "4",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": true
+          },
+          {
+            "targetField": "date",
+            "sourceExpression": "0",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": true
+          },
+          {
+            "targetField": "high",
+            "sourceExpression": "2",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "low",
+            "sourceExpression": "3",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "open",
+            "sourceExpression": "1",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          }
+        ]
+      },
+      {
+        "feedSupport": "FS_INTRA",
+        "instrumentType": "SECURITY",
+        "urlTemplate": "quotedataprovider/candlestick/week/{ticker}",
+        "httpMethod": "GET",
+        "responseFormat": "JSON",
+        "numberFormat": "PLAIN",
+        "dateFormatType": "UNIX_MILLIS",
+        "dateFormatPattern": null,
+        "jsonDataStructure": "ARRAY_OF_OBJECTS",
+        "jsonDataPath": "ohlcMid",
+        "jsonColumnNamesPath": null,
+        "jsonStatusPath": null,
+        "jsonStatusOkValue": null,
+        "csvDelimiter": null,
+        "csvSkipHeaderLines": 1,
+        "htmlCssSelector": null,
+        "htmlExtractMode": null,
+        "htmlTextCleanup": null,
+        "htmlExtractRegex": null,
+        "htmlSplitDelimiter": null,
+        "tickerBuildStrategy": "URL_EXTEND",
+        "currencyPairSeparator": null,
+        "currencyPairSuffix": null,
+        "tickerUppercase": true,
+        "maxDataPoints": null,
+        "paginationEnabled": false,
+        "endpointOptions": [
+          "INTRADAY_USE_LAST_BAR"
+        ],
+        "fieldMappings": [
+          {
+            "targetField": "high",
+            "sourceExpression": "2",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "last",
+            "sourceExpression": "4",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": true
+          },
+          {
+            "targetField": "low",
+            "sourceExpression": "3",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "open",
+            "sourceExpression": "1",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "e2e": "e",
+    "shortId": "fuw",
+    "readableName": "Finanz und Wirtschaft",
+    "descriptionNLS": {
+      "map": {
+        "de": "[historical]Geben Sie den FUW-<b>Listing-Key</b> eines auf <a href=\"https://www.fuw.ch/\" target=\"_blank\">Finanz und Wirtschaft</a> aufgeführten Wertpapiers ein. Öffnen Sie die Instrumentenseite auf fuw.ch; ihre URL endet mit <code>valor-VALOR/BC/CURRENCY</code> &ndash; geben Sie diese drei Zahlen mit Bindestrichen verbunden ein, z.B. <b>322646-44-814</b> für Allianz (Xetra). Kein API-Schlüssel nötig. <b>Wichtig:</b> FUW liefert nur eine rollende Historie von rund 10 Jahren (zurück bis etwa heute minus 10 Jahre), unabhängig vom tatsächlichen Auflagedatum des Instruments; ältere End-of-Day-Daten sind über diese Quelle nicht verfügbar.[intra]Gleicher Listing-Key wie für die historischen Daten. Liefert den letzten Kurs zusammen mit Eröffnung, Tageshoch, Tagestief, Volumen und prozentualer Veränderung des Tages.",
+        "en": "[historical]Enter the FUW <b>listing key</b> of a security shown on <a href=\"https://www.fuw.ch/\" target=\"_blank\">Finanz und Wirtschaft</a>. Open the instrument page on fuw.ch; its URL ends with <code>valor-VALOR/BC/CURRENCY</code> &ndash; enter these three numbers joined by hyphens, e.g. <b>322646-44-814</b> for Allianz (Xetra). No API key is required. <b>Important:</b> FUW provides only a rolling history of about the last 10 years (back to roughly today minus 10 years), regardless of when the instrument was actually launched; older end-of-day data is not available from this source.[intra]Same listing key as for historical data. Delivers the last price together with open, daily high, daily low, volume and the percentage change for the day."
+      }
+    },
+    "domainUrl": "https://wp.fuw.ch/wp-json/fuw/v1/",
+    "needsApiKey": false,
+    "rateLimitType": "NONE",
+    "rateLimitRequests": null,
+    "rateLimitPeriodSec": null,
+    "rateLimitConcurrent": null,
+    "intradayDelaySeconds": 900,
+    "regexUrlPattern": "^[0-9]+-[0-9]+-[0-9]+$",
+    "supportsSecurity": true,
+    "supportsCurrency": false,
+    "needHistoryGapFiller": true,
+    "gbxDividerEnabled": false,
+    "supportedCategories": "EQUITIES,NON_INVESTABLE_INDICES,CRYPTOCURRENCY,FIXED_INCOME,ETF,MUTUAL_FUND,ISSUER_RISK_PRODUCT,CFD_DERIVATIVE",
+    "geoRestrictions": null,
+    "tokenConfigYaml": null,
+    "httpHeaders": [],
+    "endpoints": [
+      {
+        "feedSupport": "FS_HISTORY",
+        "instrumentType": "SECURITY",
+        "urlTemplate": "marketdata/chartdata/{ticker}?keyType=LISTING_ID&dataSource=wfg&refCurrency=undefined&timeRange=max",
+        "httpMethod": "GET",
+        "responseFormat": "JSON",
+        "numberFormat": "PLAIN",
+        "dateFormatType": "UNIX_MILLIS",
+        "dateFormatPattern": null,
+        "jsonDataStructure": "ARRAY_OF_OBJECTS",
+        "jsonDataPath": "payload.prices.max",
+        "jsonColumnNamesPath": null,
+        "jsonStatusPath": "status",
+        "jsonStatusOkValue": "Success",
+        "csvDelimiter": null,
+        "csvSkipHeaderLines": 1,
+        "htmlCssSelector": null,
+        "htmlExtractMode": null,
+        "htmlTextCleanup": null,
+        "htmlExtractRegex": null,
+        "htmlSplitDelimiter": null,
+        "tickerBuildStrategy": "URL_EXTEND",
+        "currencyPairSeparator": null,
+        "currencyPairSuffix": null,
+        "tickerUppercase": false,
+        "maxDataPoints": null,
+        "paginationEnabled": false,
+        "endpointOptions": [],
+        "fieldMappings": [
+          {
+            "targetField": "close",
+            "sourceExpression": "4",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": true
+          },
+          {
+            "targetField": "date",
+            "sourceExpression": "0",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": true
+          },
+          {
+            "targetField": "high",
+            "sourceExpression": "2",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "low",
+            "sourceExpression": "3",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "open",
+            "sourceExpression": "1",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "volume",
+            "sourceExpression": "5",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          }
+        ]
+      },
+      {
+        "feedSupport": "FS_INTRA",
+        "instrumentType": "SECURITY",
+        "urlTemplate": "marketdata/quotes/{ticker}?keyType=LISTING_ID&dataSource=wfg&dataheader=true",
+        "httpMethod": "GET",
+        "responseFormat": "JSON",
+        "numberFormat": "PLAIN",
+        "dateFormatType": "UNIX_MILLIS",
+        "dateFormatPattern": null,
+        "jsonDataStructure": "ARRAY_OF_OBJECTS",
+        "jsonDataPath": "Values",
+        "jsonColumnNamesPath": null,
+        "jsonStatusPath": "Status",
+        "jsonStatusOkValue": "Success",
+        "csvDelimiter": null,
+        "csvSkipHeaderLines": 1,
+        "htmlCssSelector": null,
+        "htmlExtractMode": null,
+        "htmlTextCleanup": null,
+        "htmlExtractRegex": null,
+        "htmlSplitDelimiter": null,
+        "tickerBuildStrategy": "URL_EXTEND",
+        "currencyPairSeparator": null,
+        "currencyPairSuffix": null,
+        "tickerUppercase": false,
+        "maxDataPoints": null,
+        "paginationEnabled": false,
+        "endpointOptions": [],
+        "fieldMappings": [
+          {
+            "targetField": "changePercentage",
+            "sourceExpression": "dailyChangeRel",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "high",
+            "sourceExpression": "dailyHighPrice",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "last",
+            "sourceExpression": "currentPrice",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": true
+          },
+          {
+            "targetField": "low",
+            "sourceExpression": "dailyLowPrice",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "open",
+            "sourceExpression": "openPrice",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "prevClose",
+            "sourceExpression": "previousDayClose",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "volume",
+            "sourceExpression": "volume",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "e2e": "e",
+    "shortId": "fxubc_gen",
+    "readableName": "Pacific Exchange Rate (Generic)",
+    "descriptionNLS": null,
+    "domainUrl": "https://fx.sauder.ubc.ca/",
+    "needsApiKey": false,
+    "rateLimitType": "TOKEN_BUCKET",
+    "rateLimitRequests": 1,
+    "rateLimitPeriodSec": 1,
+    "rateLimitConcurrent": null,
+    "intradayDelaySeconds": 900,
+    "regexUrlPattern": null,
+    "supportsSecurity": false,
+    "supportsCurrency": true,
+    "needHistoryGapFiller": false,
+    "gbxDividerEnabled": false,
+    "supportedCategories": null,
+    "geoRestrictions": null,
+    "tokenConfigYaml": null,
+    "httpHeaders": [],
+    "endpoints": [
+      {
+        "feedSupport": "FS_HISTORY",
+        "instrumentType": "CURRENCY",
+        "urlTemplate": "cgi/fxdata?c={fromCurrency}&b={toCurrency}&rd=&fd={fromDay}&fm={fromMonth}&fy={fromYear}&ld={toDay}&lm={toMonth}&ly={toYear}&y=daily&q=price&f=csv&o=",
+        "httpMethod": "GET",
+        "responseFormat": "CSV",
+        "numberFormat": "PLAIN",
+        "dateFormatType": "PATTERN",
+        "dateFormatPattern": "yyyy/MM/dd",
+        "jsonDataStructure": null,
+        "jsonDataPath": null,
+        "jsonColumnNamesPath": null,
+        "jsonStatusPath": null,
+        "jsonStatusOkValue": null,
+        "csvDelimiter": ",",
+        "csvSkipHeaderLines": 1,
+        "htmlCssSelector": null,
+        "htmlExtractMode": null,
+        "htmlTextCleanup": null,
+        "htmlExtractRegex": null,
+        "htmlSplitDelimiter": null,
+        "tickerBuildStrategy": "CURRENCY_PAIR",
+        "currencyPairSeparator": null,
+        "currencyPairSuffix": null,
+        "tickerUppercase": true,
+        "maxDataPoints": 1040,
+        "paginationEnabled": false,
+        "endpointOptions": [
+          "SKIP_WEEKEND_DATA"
+        ],
+        "fieldMappings": [
+          {
+            "targetField": "close",
+            "sourceExpression": "close",
+            "csvColumnIndex": 3,
+            "dividerExpression": null,
+            "required": true
+          },
+          {
+            "targetField": "date",
+            "sourceExpression": "date",
+            "csvColumnIndex": 1,
+            "dividerExpression": null,
+            "required": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "e2e": "e",
+    "shortId": "gettex",
+    "readableName": "Gettex (Munich)",
+    "descriptionNLS": {
+      "map": {
+        "de": "Geben Sie den RIC (Reuters Instrument Code) des Wertpapiers ein. Das RIC-Format ist <b>SYMBOL.GTX</b>, z.B. <b>DEZG.GTX</b>. Den RIC finden Sie auf der <a href=\"https://www.gettex.de/\" target=\"_blank\">Gettex</a>-Webseite über den Netzwerk-Tab der Browser-Entwicklertools. Kein API-Schlüssel nötig; der Connector bezieht Tokens automatisch über den Gettex-SAML-Flow. Intraday-Daten sind um 15 Minuten verzögert.",
+        "en": "Enter the RIC (Reuters Instrument Code) for the security. The RIC format is <b>SYMBOL.GTX</b>, e.g. <b>DEZG.GTX</b>. Find the RIC on the <a href=\"https://www.gettex.de/\" target=\"_blank\">Gettex</a> website via the network tab in your browser's developer tools. No API key needed; the connector acquires tokens automatically via the Gettex SAML flow. Intraday data is delayed by 15 minutes."
+      }
+    },
+    "domainUrl": "https://lseg-widgets.financial.com/",
+    "needsApiKey": false,
+    "rateLimitType": "TOKEN_BUCKET",
+    "rateLimitRequests": 5,
+    "rateLimitPeriodSec": 1,
+    "rateLimitConcurrent": null,
+    "intradayDelaySeconds": 900,
+    "regexUrlPattern": "^[A-Z0-9]+\\.GTX$",
+    "supportsSecurity": true,
+    "supportsCurrency": false,
+    "needHistoryGapFiller": true,
+    "gbxDividerEnabled": false,
+    "supportedCategories": "EQUITIES,FIXED_INCOME,ETF,MUTUAL_FUND,REAL_ESTATE_FUND,ISSUER_RISK_PRODUCT,CFD_DERIVATIVE",
+    "geoRestrictions": "XMUN MUNC MUND",
+    "tokenConfigYaml": "seed:\n  url: \"https://www.gettex.de/\"\n  regex: 'const\\s+samlRequest\\s*=\\s*`([\\s\\S]*?)`'\nlogin:\n  url: \"https://lseg-widgets.financial.com/auth/api/v1/sessions/samllogin?fetchToken=true\"\n  body: 'SAMLResponse={seedValue}'\n  contentType: \"application/x-www-form-urlencoded\"\n  base64EncodeSeed: true\n  jwtPath: \"token\"\n  sessionPath: \"sid\"\nrefresh:\n  url: \"https://lseg-widgets.financial.com/auth/api/v1/tokens\"\n  sidHeader: \"sid\"\nttlSeconds: 240",
+    "httpHeaders": [
+      {
+        "headerName": "jwt",
+        "headerValue": "{apiKey}"
+      }
+    ],
+    "endpoints": [
+      {
+        "feedSupport": "FS_HISTORY",
+        "instrumentType": "SECURITY",
+        "urlTemplate": "rest/api/timeseries/historical?ric={ticker}&fids=_DATE_END,OPEN_PRC,HIGH_1,LOW_1,CLOSE_PRC,ACVOL_1&samples=D&appendRecentData=all&fromDate={fromDate}&toDate={toDate}",
+        "httpMethod": "GET",
+        "responseFormat": "JSON",
+        "numberFormat": "PLAIN",
+        "dateFormatType": "ISO_DATE_TIME",
+        "dateFormatPattern": null,
+        "jsonDataStructure": "ARRAY_OF_OBJECTS",
+        "jsonDataPath": "data",
+        "jsonColumnNamesPath": null,
+        "jsonStatusPath": "status",
+        "jsonStatusOkValue": "OK",
+        "csvDelimiter": null,
+        "csvSkipHeaderLines": 1,
+        "htmlCssSelector": null,
+        "htmlExtractMode": null,
+        "htmlTextCleanup": null,
+        "htmlExtractRegex": null,
+        "htmlSplitDelimiter": null,
+        "tickerBuildStrategy": "URL_EXTEND",
+        "currencyPairSeparator": null,
+        "currencyPairSuffix": null,
+        "tickerUppercase": true,
+        "maxDataPoints": null,
+        "paginationEnabled": false,
+        "endpointOptions": [],
+        "fieldMappings": [
+          {
+            "targetField": "close",
+            "sourceExpression": "CLOSE_PRC",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": true
+          },
+          {
+            "targetField": "date",
+            "sourceExpression": "_DATE_END",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": true
+          },
+          {
+            "targetField": "high",
+            "sourceExpression": "HIGH_1",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "low",
+            "sourceExpression": "LOW_1",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "open",
+            "sourceExpression": "OPEN_PRC",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "volume",
+            "sourceExpression": "ACVOL_1",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          }
+        ]
+      },
+      {
+        "feedSupport": "FS_INTRA",
+        "instrumentType": "SECURITY",
+        "urlTemplate": "rest/api/timeseries/historical?ric={ticker}&fids=_DATE_END,OPEN_PRC,HIGH_1,LOW_1,CLOSE_PRC,ACVOL_1&samples=D&appendRecentData=all&fromDate={fromDate}&toDate={toDate}",
+        "httpMethod": "GET",
+        "responseFormat": "JSON",
+        "numberFormat": "PLAIN",
+        "dateFormatType": "ISO_DATE_TIME",
+        "dateFormatPattern": null,
+        "jsonDataStructure": "ARRAY_OF_OBJECTS",
+        "jsonDataPath": "data",
+        "jsonColumnNamesPath": null,
+        "jsonStatusPath": "status",
+        "jsonStatusOkValue": "OK",
+        "csvDelimiter": null,
+        "csvSkipHeaderLines": 1,
+        "htmlCssSelector": null,
+        "htmlExtractMode": null,
+        "htmlTextCleanup": null,
+        "htmlExtractRegex": null,
+        "htmlSplitDelimiter": null,
+        "tickerBuildStrategy": "URL_EXTEND",
+        "currencyPairSeparator": null,
+        "currencyPairSuffix": null,
+        "tickerUppercase": true,
+        "maxDataPoints": null,
+        "paginationEnabled": false,
+        "endpointOptions": [],
+        "fieldMappings": [
+          {
+            "targetField": "high",
+            "sourceExpression": "HIGH_1",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "last",
+            "sourceExpression": "CLOSE_PRC",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": true
+          },
+          {
+            "targetField": "low",
+            "sourceExpression": "LOW_1",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "open",
+            "sourceExpression": "OPEN_PRC",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "volume",
+            "sourceExpression": "ACVOL_1",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "e2e": "e",
+    "shortId": "otcx",
+    "readableName": "OTC-X (Berner Kantonalbank)",
+    "descriptionNLS": {
+      "map": {
+        "de": "Geben Sie die ISIN des auf <a href=\"https://www.otc-x.ch/\" target=\"_blank\">OTC-X</a> (Berner Kantonalbank) gehandelten Wertpapiers ein, z.B. <b>CH1350861261</b>. Die ISIN finden Sie auf der OTC-X-Webseite. Kein API-Schlüssel nötig (öffentliche API). Hinweis: OTC-Wertpapiere werden nicht täglich gehandelt — der Lückenfüller gleicht fehlende Daten aus. Intraday-Daten sind um 15 Minuten verzögert.",
+        "en": "Enter the ISIN of the security traded on <a href=\"https://www.otc-x.ch/\" target=\"_blank\">OTC-X</a> (Berner Kantonalbank), e.g. <b>CH1350861261</b>. Find the ISIN on the OTC-X website. No API key needed (public API). Note: OTC securities may not trade daily — the gap filler compensates for missing data. Intraday data is delayed by 15 minutes."
+      }
+    },
+    "domainUrl": "https://www.otc-x.ch/api/",
+    "needsApiKey": false,
+    "rateLimitType": "NONE",
+    "rateLimitRequests": null,
+    "rateLimitPeriodSec": null,
+    "rateLimitConcurrent": null,
+    "intradayDelaySeconds": 900,
+    "regexUrlPattern": "^[A-Z]{2}[A-Z0-9]{9}[0-9]$",
+    "supportsSecurity": true,
+    "supportsCurrency": false,
+    "needHistoryGapFiller": true,
+    "gbxDividerEnabled": false,
+    "supportedCategories": "EQUITIES",
+    "geoRestrictions": "OTXB",
+    "tokenConfigYaml": null,
+    "httpHeaders": [],
+    "endpoints": [
+      {
+        "feedSupport": "FS_HISTORY",
+        "instrumentType": "SECURITY",
+        "urlTemplate": "market/securities/{ticker}/chartData?type=PRICE_HISTORY&from={fromDate}&until={toDate}&interval=DAY",
+        "httpMethod": "GET",
+        "responseFormat": "JSON",
+        "numberFormat": "PLAIN",
+        "dateFormatType": "ISO_DATE",
+        "dateFormatPattern": null,
+        "jsonDataStructure": "ARRAY_OF_OBJECTS",
+        "jsonDataPath": "data",
+        "jsonColumnNamesPath": null,
+        "jsonStatusPath": null,
+        "jsonStatusOkValue": null,
+        "csvDelimiter": null,
+        "csvSkipHeaderLines": 1,
+        "htmlCssSelector": null,
+        "htmlExtractMode": null,
+        "htmlTextCleanup": null,
+        "htmlExtractRegex": null,
+        "htmlSplitDelimiter": null,
+        "tickerBuildStrategy": "URL_EXTEND",
+        "currencyPairSeparator": null,
+        "currencyPairSuffix": null,
+        "tickerUppercase": true,
+        "maxDataPoints": 1500,
+        "paginationEnabled": false,
+        "endpointOptions": [
+          "SKIP_WEEKEND_DATA",
+          "REMOVE_DUPLICATE_DATES"
+        ],
+        "fieldMappings": [
+          {
+            "targetField": "close",
+            "sourceExpression": "values.0",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": true
+          },
+          {
+            "targetField": "date",
+            "sourceExpression": "x",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": true
+          }
+        ]
+      },
+      {
+        "feedSupport": "FS_INTRA",
+        "instrumentType": "SECURITY",
+        "urlTemplate": "market/securities/{ticker}",
+        "httpMethod": "GET",
+        "responseFormat": "JSON",
+        "numberFormat": "PLAIN",
+        "dateFormatType": "ISO_DATE_TIME",
+        "dateFormatPattern": null,
+        "jsonDataStructure": "SINGLE_OBJECT",
+        "jsonDataPath": null,
+        "jsonColumnNamesPath": null,
+        "jsonStatusPath": null,
+        "jsonStatusOkValue": null,
+        "csvDelimiter": null,
+        "csvSkipHeaderLines": 1,
+        "htmlCssSelector": null,
+        "htmlExtractMode": null,
+        "htmlTextCleanup": null,
+        "htmlExtractRegex": null,
+        "htmlSplitDelimiter": null,
+        "tickerBuildStrategy": "URL_EXTEND",
+        "currencyPairSeparator": null,
+        "currencyPairSuffix": null,
+        "tickerUppercase": true,
+        "maxDataPoints": null,
+        "paginationEnabled": false,
+        "endpointOptions": [],
+        "fieldMappings": [
+          {
+            "targetField": "high",
+            "sourceExpression": "askPricePoint",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "last",
+            "sourceExpression": "lastPrice",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": true
+          },
+          {
+            "targetField": "low",
+            "sourceExpression": "bidPricePoint",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "e2e": "e",
+    "shortId": "sixgroup",
+    "readableName": "SIX Swiss Exchange",
+    "descriptionNLS": {
+      "map": {
+        "de": "Beschreibung de",
+        "en": "Beschreibung en"
+      }
+    },
+    "domainUrl": "https://www.six-group.com/",
+    "needsApiKey": false,
+    "rateLimitType": "NONE",
+    "rateLimitRequests": null,
+    "rateLimitPeriodSec": null,
+    "rateLimitConcurrent": null,
+    "intradayDelaySeconds": 900,
+    "regexUrlPattern": "^([A-Z]{2})([A-Z0-9]{9})([0-9]{1})[A-Za-z]{3}\\d$",
+    "supportsSecurity": true,
+    "supportsCurrency": false,
+    "needHistoryGapFiller": false,
+    "gbxDividerEnabled": false,
+    "supportedCategories": null,
+    "geoRestrictions": null,
+    "tokenConfigYaml": null,
+    "httpHeaders": [],
+    "endpoints": [
+      {
+        "feedSupport": "FS_HISTORY",
+        "instrumentType": "SECURITY",
+        "urlTemplate": "itf/fqs/delayed/charts.json?netting=1440&columns=Date,Time,Close,Open,Low,High,TotalVolume&fromdate={fromDate}&where=ValorId={ticker}&select=ISIN,ClosingPrice,ClosingPerformance,PreviousClosingPrice,LatestTradeTime,LatestTradeDate",
+        "httpMethod": "GET",
+        "responseFormat": "JSON",
+        "numberFormat": "PLAIN",
+        "dateFormatType": "PATTERN",
+        "dateFormatPattern": "yyyyMMdd",
+        "jsonDataStructure": "PARALLEL_ARRAYS",
+        "jsonDataPath": "valors.0.data",
+        "jsonColumnNamesPath": null,
+        "jsonStatusPath": null,
+        "jsonStatusOkValue": null,
+        "csvDelimiter": null,
+        "csvSkipHeaderLines": null,
+        "htmlCssSelector": null,
+        "htmlExtractMode": null,
+        "htmlTextCleanup": null,
+        "htmlExtractRegex": null,
+        "htmlSplitDelimiter": null,
+        "tickerBuildStrategy": "URL_EXTEND",
+        "currencyPairSeparator": null,
+        "currencyPairSuffix": null,
+        "tickerUppercase": true,
+        "maxDataPoints": null,
+        "paginationEnabled": false,
+        "endpointOptions": [],
+        "fieldMappings": [
+          {
+            "targetField": "close",
+            "sourceExpression": "Close",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "e2e": "e",
+    "shortId": "stockanalysis",
+    "readableName": "Stock Analysis",
+    "descriptionNLS": {
+      "map": {
+        "de": "[historical]Geben Sie den Chart-Pfad des Instruments auf <a href=\"https://stockanalysis.com/\" target=\"_blank\">stockanalysis.com</a> ein. Für US-Aktien und -ETFs verwenden Sie <b>e/SYMBOL</b> (z.B. <b>e/nvda</b>, <b>e/qqq</b>); für nicht-US-Titel <b>a/BÖRSE-SYMBOL</b> (z.B. <b>a/FRA-RHM</b> für Rheinmetall an der Börse Frankfurt). Der Börsencode ist der Slug in der Quote-URL <code>stockanalysis.com/quote/BÖRSE/SYMBOL</code>. Kein API-Schlüssel nötig. Liefert die vollständige splitbereinigte End-of-Day-Historie zurück bis zur Auflage des Instruments.[intra]Geben Sie den Quotes-Pfad ein: US-Aktien <b>s/SYMBOL</b> (z.B. <b>s/nvda</b>), US-ETFs <b>e/SYMBOL</b> (z.B. <b>e/qqq</b>), nicht-US-Titel <b>a/BÖRSE-SYMBOL</b> (z.B. <b>a/FRA-RHM</b>). Liefert den letzten Kurs mit Tageseröffnung, Tageshoch, Tagestief, Volumen, Vortagesschluss und der prozentualen Tagesveränderung. Nicht-US-Kurse sind rund 15 Minuten verzögert.",
+        "en": "[historical]Enter the <a href=\"https://stockanalysis.com/\" target=\"_blank\">stockanalysis.com</a> chart path of the instrument. For US stocks and ETFs use <b>e/SYMBOL</b> (e.g. <b>e/nvda</b>, <b>e/qqq</b>); for non-US listings use <b>a/EXCHANGE-SYMBOL</b> (e.g. <b>a/FRA-RHM</b> for Rheinmetall on Frankfurt). The exchange code is the slug in the quote URL <code>stockanalysis.com/quote/EXCHANGE/SYMBOL</code>. No API key is required. Delivers the full split-adjusted end-of-day history back to the instrument's inception.[intra]Enter the quotes path: US stocks <b>s/SYMBOL</b> (e.g. <b>s/nvda</b>), US ETFs <b>e/SYMBOL</b> (e.g. <b>e/qqq</b>), non-US listings <b>a/EXCHANGE-SYMBOL</b> (e.g. <b>a/FRA-RHM</b>). Delivers the last price with day open, daily high, daily low, volume, previous close and the daily percentage change. Non-US quotes are delayed about 15 minutes."
+      }
+    },
+    "domainUrl": "https://stockanalysis.com/",
+    "needsApiKey": false,
+    "rateLimitType": "NONE",
+    "rateLimitRequests": null,
+    "rateLimitPeriodSec": null,
+    "rateLimitConcurrent": null,
+    "intradayDelaySeconds": 900,
+    "regexUrlPattern": "^[aAeEsS]/[A-Za-z0-9.-]+$",
+    "supportsSecurity": true,
+    "supportsCurrency": false,
+    "needHistoryGapFiller": true,
+    "gbxDividerEnabled": true,
+    "supportedCategories": "EQUITIES,NON_INVESTABLE_INDICES,FIXED_INCOME,ETF,MUTUAL_FUND,ISSUER_RISK_PRODUCT,CFD_DERIVATIVE",
+    "geoRestrictions": null,
+    "tokenConfigYaml": null,
+    "httpHeaders": [],
+    "endpoints": [
+      {
+        "feedSupport": "FS_HISTORY",
+        "instrumentType": "SECURITY",
+        "urlTemplate": "api/charts/{ticker}/MAX/c?chartiq=true",
+        "httpMethod": "GET",
+        "responseFormat": "JSON",
+        "numberFormat": "PLAIN",
+        "dateFormatType": "ISO_DATE",
+        "dateFormatPattern": null,
+        "jsonDataStructure": "ARRAY_OF_OBJECTS",
+        "jsonDataPath": "data",
+        "jsonColumnNamesPath": null,
+        "jsonStatusPath": "status",
+        "jsonStatusOkValue": "200",
+        "csvDelimiter": null,
+        "csvSkipHeaderLines": 1,
+        "htmlCssSelector": null,
+        "htmlExtractMode": null,
+        "htmlTextCleanup": null,
+        "htmlExtractRegex": null,
+        "htmlSplitDelimiter": null,
+        "tickerBuildStrategy": "URL_EXTEND",
+        "currencyPairSeparator": null,
+        "currencyPairSuffix": null,
+        "tickerUppercase": false,
+        "maxDataPoints": null,
+        "paginationEnabled": false,
+        "endpointOptions": [],
+        "fieldMappings": [
+          {
+            "targetField": "close",
+            "sourceExpression": "c",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": true
+          },
+          {
+            "targetField": "date",
+            "sourceExpression": "t",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": true
+          },
+          {
+            "targetField": "high",
+            "sourceExpression": "h",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "low",
+            "sourceExpression": "l",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "open",
+            "sourceExpression": "o",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "volume",
+            "sourceExpression": "v",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          }
+        ]
+      },
+      {
+        "feedSupport": "FS_INTRA",
+        "instrumentType": "SECURITY",
+        "urlTemplate": "api/quotes/{ticker}",
+        "httpMethod": "GET",
+        "responseFormat": "JSON",
+        "numberFormat": "PLAIN",
+        "dateFormatType": "ISO_DATE",
+        "dateFormatPattern": null,
+        "jsonDataStructure": "SINGLE_OBJECT",
+        "jsonDataPath": "data",
+        "jsonColumnNamesPath": null,
+        "jsonStatusPath": "status",
+        "jsonStatusOkValue": "200",
+        "csvDelimiter": null,
+        "csvSkipHeaderLines": 1,
+        "htmlCssSelector": null,
+        "htmlExtractMode": null,
+        "htmlTextCleanup": null,
+        "htmlExtractRegex": null,
+        "htmlSplitDelimiter": null,
+        "tickerBuildStrategy": "URL_EXTEND",
+        "currencyPairSeparator": null,
+        "currencyPairSuffix": null,
+        "tickerUppercase": false,
+        "maxDataPoints": null,
+        "paginationEnabled": false,
+        "endpointOptions": [],
+        "fieldMappings": [
+          {
+            "targetField": "changePercentage",
+            "sourceExpression": "cp",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "high",
+            "sourceExpression": "h",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "last",
+            "sourceExpression": "p",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": true
+          },
+          {
+            "targetField": "low",
+            "sourceExpression": "l",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "open",
+            "sourceExpression": "o",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "prevClose",
+            "sourceExpression": "cl",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "volume",
+            "sourceExpression": "v",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          }
+        ]
+      }
+    ]
+  }
+]

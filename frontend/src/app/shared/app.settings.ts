@@ -42,6 +42,7 @@ export class AppSettings {
   public static readonly TRADING_DAYS_PLUS = 'TradingDaysPlus';
   public static readonly GENERIC_CONNECTOR_DEF = 'GenericConnectorDef';
   public static readonly TRADING_PLATFORM_PLAN = 'TradingPlatformPlan';
+  public static readonly TRADING_CALENDAR_RULE_SET = 'TradingCalendarRuleSet';
 
 
   public static readonly SECURITY_ACTION = 'SecurityAction';
@@ -106,6 +107,10 @@ export class AppSettings {
   public static readonly IMPORT_TRANSACTION_POS_KEY = AppSettings.IMPORT_TRANSACTION_POS.toLowerCase();
   public static readonly GENERIC_CONNECTOR_KEY = 'genericconnector';
   public static readonly TRADING_PLATFORM_PLAN_KEY = AppSettings.TRADING_PLATFORM_PLAN.toLowerCase();
+  public static readonly TRADING_CALENDAR_RULE_SET_KEY = AppSettings.TRADING_CALENDAR_RULE_SET.toLowerCase();
+  /** Child routes of the stock exchange tab menu, which hosts the exchanges and their calendar rule sets. */
+  public static readonly STOCKEXCHANGE_TAB_EXCHANGES_KEY = 'exchanges';
+  public static readonly STOCKEXCHANGE_TAB_RULE_SETS_KEY = 'rulesets';
   public static readonly IMP_TRANS_PLATFORM_KEY = AppSettings.IMPORT_TRANSACTION_PLATFORM.toLowerCase();
   public static readonly IMP_TRANS_TEMPLATE_KEY = AppSettings.IMPORT_TRANSACTION_TEMPLATE.toLowerCase();
   public static readonly RISK_FREE_RATE_MAPPING_KEY = 'riskfreeratemapping';

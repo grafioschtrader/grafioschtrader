@@ -1,0 +1,25 @@
+TRANSACTION RECEIPT Grafioschtrader
+Customer Mustermann
+Securities account Sampledepot
+Cash account Sampleaccount
+Stock exchange transaction: {transType|P|N} Reference: GT-00000000
+Date {date|P} Time {time|P}
+Sample Security Inc ISIN: {isin|P}
+Instrument currency {cin|SL|N}
+Quantity {units|SL|N}
+Price {quotation|SL|N}
+Accrued interest {ac|SL|N|O}
+Commission {tc1|SL|N|O}
+Taxes and duties {tt1|SL|N|O}
+Currency exchange rate {cex|SL|N|O}
+Settlement currency {cac|SL|N}
+[Debited to your account|Credited to your account] CHF {ta|SL|N}
+Thank you for your order.
+[END]
+transType=ACCUMULATE|Buy
+transType=REDUCE|Sell
+dateFormat=dd.MM.yyyy
+timeFormat=HH:mm:ss
+overRuleSeparators=All<'|.>
+calcRounding=0.05,JPY=1
+templatePurpose=Grafioschtrader buy/sell receipt

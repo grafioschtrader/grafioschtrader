@@ -29,8 +29,15 @@
             </p-datepicker>
             <i (click)="onResetToDay($event)" class="pi pi-replay" style="font-size: 1.5em"></i>
           </div>
-          @if (securityAccount?.tradingPlatformPlan?.importTransactionPlatform) {
+          @if (showDropZone) {
             <div class="right-half">
+              @if (gtPlatformConfigured) {
+                <div>
+                  <input type="checkbox" id="useGtPlatformDrop" [checked]="useGtPlatformDrop || !accountHasOwnPlatform"
+                         [disabled]="!accountHasOwnPlatform" (change)="onDropUseGtPlatformToggle($event)">
+                  <label for="useGtPlatformDrop" style="margin-left: 5px;">{{ 'USE_GT_PLATFORM' | translate }}</label>
+                </div>
+              }
               <ngx-file-drop (onFileDrop)="dropped($event)" contentClassName="content-trans"
                              dropZoneClassName="drop-zone-trans"
                              dropZoneLabel="{{'DROP_PDF_HERE' | translate}}">

@@ -60,6 +60,7 @@ export const AppHelpIds: Record<string, string> = {
   // Base data (application-specific extensions)
   HELP_BASEDATA_ASSETCLASS: 'basedata/instrumentbased/assetclass',
   HELP_BASEDATA_STOCKEXCHANGE: 'basedata/instrumentbased/stockexchange',
+  HELP_BASEDATA_TRADING_CALENDAR_RULE: 'basedata/instrumentbased/stockexchange/tradingcalendarruleset/',
   HELP_BASEDATA_TRADING_PLATFORM_PLAN: 'basedata/tradingplatformplan',
   HELP_BASEDATA_GENERIC_CONNECTOR: 'basedata/genericconnector',
   HELP_BASEDATA_GENERIC_CONNECTOR_ENDPOINTS: 'basedata/genericconnector/endpoints',

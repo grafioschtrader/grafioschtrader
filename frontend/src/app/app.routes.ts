@@ -8,6 +8,8 @@ import {SplitLayoutComponent} from './lib/layout/component/split.layout.componen
 import {SecurityaccountEmptyComponent} from './securityaccount/component/securityaccount.empty.component';
 import {AssetclassTableComponent} from './assetclass/component/assetclass.table.component';
 import {StockexchangeTableComponent} from './stockexchange/component/stockexchange.table.component';
+import {StockexchangeTabMenuComponent} from './stockexchange/component/stockexchange-tabmenu.component';
+import {TradingCalendarRuleSetTableComponent} from './stockexchange/component/trading-calendar-rule-set-table.component';
 import {RegisterComponent} from './lib/login/component/register.component';
 import {TenantEditFullPageComponent} from './tenant/component/tenant.edit.full.page.component';
 import {WatchlistTabMenuComponent} from './watchlist/component/watchlist.tab.menu.component';
@@ -40,7 +42,7 @@ import {
   SecurityaccountImportTransactionComponent
 } from './imptransaction/component/securityaccount.import.transaction.component';
 import {ImportTransactionTemplateComponent} from './imptranstemplate/component/import.transaction.template.component';
-import {RiskFreeRateMappingTableComponent} from './shared/riskfreeratemapping/component/risk.free.rate.mapping.table.component';
+import {RiskFreeRateMappingTableComponent} from './riskfreeratemapping/component/risk.free.rate.mapping.table.component';
 import {ProposeChangeTabMenuComponent} from './lib/proposechange/component/propose.change.tab.menu.component';
 import {RequestForYouTableComponent} from './lib/proposechange/component/request.for.you.table.component';
 import {YourProposalTableComponent} from './lib/proposechange/component/your.proposal.table.component';
@@ -264,7 +266,23 @@ const APP_ROUTES: Routes = [
       },
       // Base data
       {path: AppSettings.ASSETCLASS_KEY, component: AssetclassTableComponent, canActivate: [authGuard]},
-      {path: AppSettings.STOCKEXCHANGE_KEY, component: StockexchangeTableComponent, canActivate: [authGuard]},
+      {
+        path: AppSettings.STOCKEXCHANGE_KEY,
+        component: StockexchangeTabMenuComponent,
+        canActivate: [authGuard],
+        children: [
+          {
+            path: AppSettings.STOCKEXCHANGE_TAB_EXCHANGES_KEY,
+            component: StockexchangeTableComponent,
+            canActivate: [authGuard]
+          },
+          {
+            path: AppSettings.STOCKEXCHANGE_TAB_RULE_SETS_KEY,
+            component: TradingCalendarRuleSetTableComponent,
+            canActivate: [authGuard]
+          }
+        ]
+      },
       {
         path: AppSettings.TRADING_PLATFORM_PLAN_KEY,
         component: TradingPlatformPlanTableComponent,

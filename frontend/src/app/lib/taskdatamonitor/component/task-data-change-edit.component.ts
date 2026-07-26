@@ -100,13 +100,16 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
 
   valueChangedOnEntity(): void {
     this.entitySubscribe = this.configObject.entity.formControl.valueChanges.subscribe(entity => {
+      // Options are task-scoped: pick the option map of the currently selected task first.
+      const optionsForTask = this.tdcFormConstraints.entityIdOptions
+        && this.tdcFormConstraints.entityIdOptions[this.configObject.idTask.formControl.value];
       if (!entity || entity.length === 0) {
         // No entity selected: hide both idEntity fields
         this.hideIdEntityFields();
-      } else if (this.tdcFormConstraints.entityIdOptions && this.tdcFormConstraints.entityIdOptions[entity]) {
+      } else if (optionsForTask && optionsForTask[entity]) {
         // Entity with predefined options: show select dropdown, hide number input
         this.configObject.idEntity.valueKeyHtmlOptions = SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(
-          this.translateService, this.tdcFormConstraints.entityIdOptions[entity]
+          this.translateService, optionsForTask[entity]
             .map((opt: EntityIdOption) => new ValueKeyHtmlSelectOptions(opt.key, opt.value)), false);
         this.configObject.idEntity.formControl.setValue(null);
         FormHelper.disableEnableFieldConfigs(false, [this.configObject.idEntity]);
@@ -142,9 +145,11 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
     if (this.callParam) {
       this.form.transferBusinessObjectToForm(this.callParam);
       // For number input case, transferBusinessObjectToForm sets idEntity on the select field.
-      // Move the value to the number input if it's now visible.
+      // Move the value to the number input if it's now visible (no task-scoped options for this entity).
+      const optionsForTask = this.tdcFormConstraints.entityIdOptions
+        && this.tdcFormConstraints.entityIdOptions[this.callParam.idTask as string];
       if (this.callParam.idEntity != null && this.callParam.entity
-        && !(this.tdcFormConstraints.entityIdOptions && this.tdcFormConstraints.entityIdOptions[this.callParam.entity])) {
+        && !(optionsForTask && optionsForTask[this.callParam.entity])) {
         this.configObject.idEntityNum.formControl.setValue(this.callParam.idEntity);
       }
     }

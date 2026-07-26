@@ -26,6 +26,36 @@ import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.test.start.GTforTest;
 import jakarta.annotation.PostConstruct;
 
+/// Main entry point of the GrafioschTrader server.
+///
+/// ## Command line arguments
+///
+/// There is no declared list of supported arguments, because Spring Boot does not work that way. Every
+/// `--key=value` argument passed to [SpringApplication#run(Class,String...)] becomes a property source that takes
+/// precedence over `application.properties` / `application.yaml`, so *any* property read anywhere in the application —
+/// through `@Value`, `@ConfigurationProperties` or the `Environment` — can be overridden on the command line without
+/// being registered anywhere. The same values may equally be passed as JVM system properties (`-Dkey=value`).
+///
+/// The full set of configurable properties is therefore the union of `application.properties`, `application.yaml` and
+/// the profile specific files next to them. The arguments below are the ones most useful when starting the server by
+/// hand; they are listed here for discoverability and are not a closed list.
+///
+/// - `--spring.profiles.active=e2e` — select the profile, which decides the target database. Defaults to `production`
+///   and thus the live database, so always set this explicitly when starting against a test database.
+/// - `--g.use.gtnet=false` — switch GTNet off completely for this run, regardless of the database parameter
+///   `g.gnet.use`. No peer status check on startup, no offline broadcast on shutdown, no GTNet price or history
+///   retrieval, and the feature is hidden in the frontend. Intended for development, so the database parameter does
+///   not have to be toggled.
+/// - `--g.gnet.offline.announce=false` — keep GTNet fully usable but skip the offline broadcast on shutdown. That
+///   broadcast contacts every peer sequentially and blocks for up to `g.gnet.connection.timeout` seconds each, which
+///   noticeably delays shutdown during development.
+/// - `--gt.connector.ajp.enabled` / `--gt.connector.ajp.port` — AJP connector for an Apache2 reverse proxy, enabled by
+///   default on port 9090. See [#servletContainer()].
+/// - `--gt.connector.http.enabled` / `--gt.connector.http.port` — plain HTTP connector for nginx, disabled by default,
+///   port 8080.
+///
+/// Note that the environment variable `JASYPT_ENCRYPTOR_PASSWORD` must be set before startup, because the encrypted
+/// `ENC(...)` properties cannot be decrypted otherwise.
 //Spring ehcache is not working,
 //@EnableCaching
 @EnableScheduling

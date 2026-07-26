@@ -1,7 +1,9 @@
 package grafioschtrader.instrument;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -163,6 +165,37 @@ public class SecurityMarginUnitsCheck {
             targetTransaction.getTransactionTime().toLocalDate(), securitySplitMap).fromToDateFactor);
       }
     }
+  }
+
+  /**
+   * Determines which margin opening positions are still open at a given point in time. An opening position is a margin
+   * transaction without a connected transaction; it counts as open when the units closed by its connected closing
+   * transactions up to the given time are less than the opened units. Finance cost transactions never open or close a
+   * position and are ignored. Security splits are not applied: with a split between opening and closing, a position may
+   * be classified wrongly, which leads at most to a "none/ambiguous" error at the caller, never to a wrong link.
+   *
+   * @param marginTransactions all margin transactions of one security in one security account, e.g. from
+   *                           {@code TransactionJpaRepository.getMarginTransactionMapForSecurityaccountAndSecurity}
+   * @param time               the point in time at which the open state is evaluated
+   * @return the opening transactions still open at the given time, possibly empty
+   */
+  public static List<Transaction> getOpenPositionsAt(final List<Transaction> marginTransactions,
+      final LocalDateTime time) {
+    final List<Transaction> openPositions = new ArrayList<>();
+    for (Transaction openTransaction : marginTransactions) {
+      if (openTransaction.getConnectedIdTransaction() == null
+          && openTransaction.getTransactionType() != TransactionType.FINANCE_COST
+          && !openTransaction.getTransactionTime().isAfter(time)) {
+        double closedUnits = marginTransactions.stream()
+            .filter(t -> openTransaction.getIdTransaction().equals(t.getConnectedIdTransaction())
+                && t.getTransactionType() != TransactionType.FINANCE_COST && !t.getTransactionTime().isAfter(time))
+            .mapToDouble(Transaction::getUnits).sum();
+        if (closedUnits < openTransaction.getUnits()) {
+          openPositions.add(openTransaction);
+        }
+      }
+    }
+    return openPositions;
   }
 
   /**

@@ -11,7 +11,11 @@ import {Currencypair} from '../../entities/currencypair';
 import {combineLatest, Observable} from 'rxjs';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 import {TransactionTable} from '../../transaction/component/transaction.table';
-import {ConfirmationService, FilterService} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
+import {AppHelper} from '../../lib/helper/app.helper';
+import {TranslateHelper} from '../../lib/helper/translate.helper';
+import {InfoLevelType} from '../../lib/message/info.leve.type';
+import {CashTransferRelinkResult} from '../../transaction/service/transaction.service';
 import {CommonModule} from '@angular/common';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {TransactionCashaccountEditSingleComponent} from '../../transaction/component/transaction-cashaccount-editsingle.component';
@@ -81,6 +85,38 @@ export class TenantTransactionTableComponent extends TransactionTable implements
     this.multiSortMeta.push({field: 'transactionTime', order: -1});
     this.prepareTableAndTranslate();
     this.initialize();
+  }
+
+  /**
+   * Appends the tenant-wide maintenance action that reconnects the unlinked sides of cash account transfers, e.g.
+   * after re-importing the CSV export of another GT instance. Only unambiguous one-to-one matches are linked; the
+   * result counts are shown in a toast and the table is reloaded when something was connected.
+   *
+   * @param transaction The currently selected transaction, may be null
+   * @returns The menu items of the base class plus the connect transfers action
+   */
+  protected override getMenuItemsOnTransaction(transaction: Transaction): MenuItem[] {
+    const menuItems = super.getMenuItemsOnTransaction(transaction);
+    const connectMenuItem: MenuItem = {
+      label: 'CONNECT_CASH_TRANSFERS',
+      command: () => this.handleConnectCashTransfers()
+    };
+    TranslateHelper.translateMenuItems([connectMenuItem], this.translateService);
+    menuItems.push(connectMenuItem);
+    return menuItems;
+  }
+
+  /** Asks for confirmation, runs the transfer relink on the backend and reports the result counts. */
+  private handleConnectCashTransfers(): void {
+    AppHelper.confirmationDialog(this.translateService, this.confirmationService, 'MSG_CONNECT_CASH_TRANSFERS',
+      () => this.transactionService.connectCashTransfers().subscribe((result: CashTransferRelinkResult) => {
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'CONNECT_CASH_TRANSFERS_RESULT', {
+          linkedPairs: result.linkedPairs, ambiguous: result.ambiguous, failed: result.failed
+        });
+        if (result.linkedPairs > 0) {
+          this.initialize();
+        }
+      }));
   }
 
   /**

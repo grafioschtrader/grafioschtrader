@@ -11,5 +11,5 @@
 nul
 tmpclaude-*
 
-# Locally exported test-DB seed file (may contain Jasypt ciphertext — never commit)
+# Locally exported connector API keys in PLAINTEXT (see ConnectorApiKeyCsvExportTest) — never commit
 backend/grafioschtrader-server/src/test/resources/local-seed/

@@ -11,6 +11,7 @@ import {ProcessedAction} from '../../lib/types/processed.action';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {TenantService} from '../service/tenant.service';
 import {TenantEditComponent} from './tenant.edit.component';
+import {ImportTransactionPlatformService} from '../../imptranstemplate/service/import.transaction.platform.service';
 
 /**
  * Dialog for change the existing tenant properties. It can also show only the currency, this is used
@@ -35,8 +36,9 @@ export class TenantEditDynamicComponent extends TenantEditComponent implements O
               gps: GlobalparameterService,
               messageToastService: MessageToastService,
               tenantService: TenantService,
-              translateService: TranslateService) {
-    super(gpsGT, gps, messageToastService, tenantService, translateService, false, 6);
+              translateService: TranslateService,
+              importTransactionPlatformService: ImportTransactionPlatformService) {
+    super(gpsGT, gps, messageToastService, tenantService, translateService, importTransactionPlatformService, false, 6);
   }
 
   ngOnInit(): void {

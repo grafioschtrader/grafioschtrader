@@ -14,7 +14,7 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   /* Run e2e test files sequentially (alphabetical order) so
-     99-delete runs after 01-create */
+     99-delete runs after the numbered create specs (04, 06, 08, ...) */
   workers: 1,
   projects: [
     {

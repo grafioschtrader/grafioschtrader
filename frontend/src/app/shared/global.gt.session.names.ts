@@ -32,6 +32,12 @@ export enum GlobalGTSessionNames {
   TENANT_CLOSED_UNTIL = 'tenantClosedUntil',
 
   /**
+   * Reference to the tenant's Grafioschtrader import platform holding the GT authored import templates.
+   * Empty when not configured; when set, the transaction import entry points offer the "use GT platform" choice.
+   */
+  TENANT_ID_GT_IMPORT_PLATFORM = 'tenantIdGtImportPlatform',
+
+  /**
    * Connector / asset class compatibility enforcement mode (gt.force.connector.match): 0/1/2.
    */
   FORCE_CONNECTOR_MATCH = 'forceConnectorMatch',

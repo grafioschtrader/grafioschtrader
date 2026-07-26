@@ -45,4 +45,11 @@ export interface ConfigurationWithLoginGT extends ConfigurationWithLogin {
    * so it can hide incompatible connectors.
    */
   forceConnectorMatch: number;
+
+  /**
+   * Reference to the tenant's Grafioschtrader import platform holding the GT authored import templates
+   * (receipt PDFs, transaction CSV export). Null when the tenant has not configured it; when set, the
+   * transaction import entry points offer the "use GT platform" choice.
+   */
+  tenantIdGtImportPlatform: number | null;
 }

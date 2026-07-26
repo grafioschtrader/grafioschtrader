@@ -14,6 +14,7 @@ import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {StockexchangeCallParam} from './stockexchange.call.param';
 import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
+import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
 import {AssetclassType} from '../../shared/types/assetclass.type';
@@ -30,6 +31,7 @@ import {StockexchangeHelper} from './stockexchange.helper';
 import {BaseSettings} from '../../lib/base.settings';
 import {DialogModule} from 'primeng/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
+import {TradingCalendarRuleSetService} from '../service/trading.calendar.rule.set.service';
 
 /**
  * Edit stockexchnage
@@ -63,12 +65,17 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   private micSubscribe: Subscription;
   private countryCodeSubscribe: Subscription;
 
+  private ruleSetOptions: ValueKeyHtmlSelectOptions[] = [];
+  private ruleSetIdByMic: { [mic: string]: number } = {};
+  private calendarSourceSubscriptions: Subscription[] = [];
+
   constructor(translateService: TranslateService,
     gps: GlobalparameterService,
     messageToastService: MessageToastService,
     stockexchangeService: StockexchangeService,
+    private tradingCalendarRuleSetService: TradingCalendarRuleSetService,
     private securityService: SecurityService) {
-    super(HelpIds.HELP_BASEDATA_STOCKEXCHANGE, AppSettings.STOCKEXCHANGE.toUpperCase(), translateService, gps,
+    super(HelpIds.HELP_BASEDATA_STOCKEXCHANGE, AppHelper.toUpperCaseWithUnderscore(AppSettings.STOCKEXCHANGE), translateService, gps,
       messageToastService, stockexchangeService);
   }
 
@@ -88,6 +95,7 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
       DynamicFieldHelper.createFieldDAInputStringHeqF(DataType.TimeString, 'timeOpen', 8, true),
       DynamicFieldHelper.createFieldDAInputStringHeqF(DataType.TimeString, 'timeClose', 8, true),
       DynamicFieldHelper.createFieldSelectStringHeqF('timeZone', true),
+      DynamicFieldHelper.createFieldSelectNumberHeqF('idTradingCalendarRuleSet', false),
       DynamicFieldHelper.createFieldSelectNumberHeqF('idIndexUpdCalendar', false),
       DynamicFieldHelper.createFieldInputWebUrlHeqF('website',
         this.gps.getFieldSize(AppSettings.FIELD_SIZE_MAX_Stockexchange_Website), false),
@@ -106,7 +114,10 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   }
 
   protected override initialize(): void {
-    const observables: Observable<any>[] = [this.gps.getTimezones()];
+    const observables: Observable<any>[] = [this.gps.getTimezones(),
+      this.tradingCalendarRuleSetService.getRuleSetOptions(),
+      this.tradingCalendarRuleSetService.getRuleSetIdByMic()];
+    const securitiesIndex = observables.length;
     if (this.callParam.stockexchange) {
       observables.push(this.getSecurityObservable(this.callParam.stockexchange.countryCode));
     }
@@ -114,6 +125,9 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
       this.countriesAsKeyValue = StockexchangeHelper.transform(this.callParam.countriesAsHtmlOptions);
       this.configObject.mic.groupItem = this.createMicOptions(true);
       this.configObject.timeZone.valueKeyHtmlOptions = data[0] as ValueKeyHtmlSelectOptions[];
+      this.ruleSetOptions = SelectOptionsHelper.prependEmptyOption(data[1] as ValueKeyHtmlSelectOptions[]);
+      this.ruleSetIdByMic = data[2] as { [mic: string]: number };
+      this.configObject.idTradingCalendarRuleSet.valueKeyHtmlOptions = this.ruleSetOptions;
       this.configObject.countryCode.valueKeyHtmlOptions = this.callParam.countriesAsHtmlOptions;
       this.form.setDefaultValuesAndEnableSubmit();
       AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.gps,
@@ -121,11 +135,13 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
       FormHelper.disableEnableFieldConfigs(this.callParam.hasSecurity, [this.configObject.noMarketValue,
         this.configObject.timeZone]);
       this.disableEnableCountry();
-      if (data.length > 1) {
+      if (data.length > securitiesIndex) {
         this.configObject.idIndexUpdCalendar.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
-          'idSecuritycurrency', 'name', data[1] as Security[], true);
+          'idSecuritycurrency', 'name', data[securitiesIndex] as Security[], true);
       }
       this.valueChangedOnCountryCode();
+      this.watchCalendarSource();
+      this.applyCalendarSourceExclusion();
       if (this.canAssignMic()) {
         this.valueChangedOnOnlyMainStockexchange();
         this.valueChangedOnMic();
@@ -150,7 +166,51 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
       this.configObject.website.formControl.setValue(sm.website);
       this.configObject.timeZone.formControl.setValue(sm.timeZone);
       this.disableEnableCountry();
+      // The MIC drives the defaults of this dialog, so it also decides the calendar source: the rule set written for
+      // that MIC is preselected, and a MIC without one leaves the field empty rather than keeping the rule set of the
+      // MIC chosen before. Setting it disables the index, which applyCalendarSourceExclusion takes care of.
+      this.configObject.idTradingCalendarRuleSet.formControl.setValue(this.ruleSetIdByMic[mic] ?? null);
     });
+  }
+
+  /**
+   * The trading calendar is updated either from the quotes of a reference index or from a rule set. Selecting one of
+   * the two therefore clears and disables the other, mirroring the check the backend enforces on save.
+   */
+  private watchCalendarSource(): void {
+    this.calendarSourceSubscriptions.push(
+      this.configObject.idIndexUpdCalendar.formControl.valueChanges.subscribe(() =>
+        this.applyCalendarSourceExclusion()),
+      this.configObject.idTradingCalendarRuleSet.formControl.valueChanges.subscribe(() =>
+        this.applyCalendarSourceExclusion()));
+  }
+
+  /**
+   * Clears and disables whichever of the two calendar sources was not chosen. The rule set wins if both should ever
+   * carry a value, which the backend prevents but an older record could still show.
+   *
+   * Every change here is made with {@code emitEvent: false}: Angular fires valueChanges on enable() and disable() as
+   * well as on setValue(), so emitting would make the two subscriptions above trigger each other endlessly and freeze
+   * the dialog. Clearing the value matters because a disabled control is still copied to the business object on save.
+   */
+  private applyCalendarSourceExclusion(): void {
+    const ruleSetSelected = !!this.configObject.idTradingCalendarRuleSet.formControl.value;
+    const indexSelected = !ruleSetSelected && !!this.configObject.idIndexUpdCalendar.formControl.value;
+    this.setCalendarSourceState(this.configObject.idIndexUpdCalendar, ruleSetSelected);
+    this.setCalendarSourceState(this.configObject.idTradingCalendarRuleSet, indexSelected);
+  }
+
+  private setCalendarSourceState(fieldConfig: FieldConfig, disable: boolean): void {
+    if (disable) {
+      if (fieldConfig.formControl.value != null) {
+        fieldConfig.formControl.setValue(null, {emitEvent: false});
+      }
+      if (fieldConfig.formControl.enabled) {
+        fieldConfig.formControl.disable({emitEvent: false});
+      }
+    } else if (fieldConfig.formControl.disabled) {
+      fieldConfig.formControl.enable({emitEvent: false});
+    }
   }
 
   private valueChangedOnCountryCode(): void {
@@ -243,6 +303,8 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
     this.onlyMainStockexchangeSubscribe && this.onlyMainStockexchangeSubscribe.unsubscribe();
     this.micSubscribe && this.micSubscribe.unsubscribe();
     this.countryCodeSubscribe && this.countryCodeSubscribe.unsubscribe();
+    this.calendarSourceSubscriptions.forEach(subscription => subscription.unsubscribe());
+    this.calendarSourceSubscriptions = [];
     super.onHide(event);
   }
 

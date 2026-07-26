@@ -224,7 +224,7 @@ npm start
 
 ### Backend Tests
 
-**Framework**: JUnit 5 + Spring Boot Test
+**Framework**: JUnit 6 (Jupiter, version managed by Spring Boot BOM) + Spring Boot Test
 
 **Test locations**:
 - `backend/grafioschtrader-server/src/test/java/grafioschtrader/`
@@ -251,6 +251,34 @@ npm run test:watch  # watch mode
 ```
 
 **Scope**: Utility helpers, validators, and business logic functions that don't require Angular TestBed or DOM access.
+
+### E2E Tests (Playwright)
+
+**Full roundtrip**: `e2eTest.cmd` (Windows) / `./e2eTest.sh` (Linux/macOS) at the repository root runs
+the complete cycle: MailHog check, DROP/CREATE of `grafioschtrader_t`, backend startup with the `e2e`
+profile, backend `ResoureTestSuite`, then the whole Playwright suite. See `scripts/e2e-test.mjs` and
+`frontend/e2e/README.md`.
+
+**IMPORTANT — do NOT run the full roundtrip on every iteration.** The full suite takes very long,
+among other reasons because the freshly started backend downloads price/course data in the background.
+When adding or fixing a **single** Playwright spec:
+
+1. Leave the backend (port 8080, `e2e` profile, database `grafioschtrader_t`) and the frontend dev
+   server (port 4200) running from a previous roundtrip or manual start.
+2. Run only the affected spec: `cd frontend && npx playwright test e2e/NN-my-spec.spec.ts`
+3. Re-run just that spec until it is green.
+
+**Write new specs to be self-cleaning and repeatable**: a spec must clean up (or delete-then-recreate)
+the data it creates in `grafioschtrader_t` — at the start of the run, so leftovers from a previous
+failed run don't break the retry. This way a spec can be executed repeatedly against the same database
+while it is still buggy, without any DB reset in between.
+
+**Fallback when the database is too polluted**: `DROP DATABASE grafioschtrader_t; CREATE DATABASE
+grafioschtrader_t;`, restart the backend on the `e2e` profile (Flyway rebuilds the schema and test
+data), clear `frontend/e2e/.auth/`, then re-run the single spec — still no full roundtrip needed.
+
+Reserve the full `e2eTest.cmd` / `e2eTest.sh` run for final verification before committing, or when
+explicitly asked.
 
 ## Key Architectural Patterns
 

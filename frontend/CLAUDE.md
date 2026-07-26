@@ -467,6 +467,33 @@ export class HistoryquoteEditComponent extends SimpleEntityEditBase<Historyquote
 }
 ```
 
+#### The `i18nRecord` argument (2nd `super()` parameter) — never use `.toUpperCase()`
+
+The 2nd constructor argument is the `i18nRecord` **NLS key**. On save/delete it is passed as an
+`i18n`-prefixed interpolation param to `MSG_RECORD_SAVED` / `MSG_DELETE_RECORD`, and the toast
+component (`lib/message/message.toast.component.ts`) resolves any `i18n*` param **as a translation
+key** via `translateService.get(value)`. So `i18nRecord` must be a real `UPPER_SNAKE_CASE` key.
+
+When you derive it from an `AppSettings.*` / `BaseSettings.*` entity constant, those constants are
+**PascalCase** (e.g. `TRADING_CALENDAR_RULE_SET = 'TradingCalendarRuleSet'`). Always wrap them with
+`AppHelper.toUpperCaseWithUnderscore(...)`, **never** plain `.toUpperCase()`:
+
+```typescript
+// WRONG — .toUpperCase() drops the underscores: 'TradingCalendarRuleSet' → 'TRADINGCALENDARRULESET'
+//         no such NLS key → the toast shows the raw token instead of the translated label.
+super(HelpIds.HELP_BASEDATA_TRADING_CALENDAR_RULE, AppSettings.TRADING_CALENDAR_RULE_SET.toUpperCase(), ...);
+
+// CORRECT — yields the real key 'TRADING_CALENDAR_RULE_SET'
+super(HelpIds.HELP_BASEDATA_TRADING_CALENDAR_RULE,
+  AppHelper.toUpperCaseWithUnderscore(AppSettings.TRADING_CALENDAR_RULE_SET), ...);
+```
+
+`toUpperCaseWithUnderscore` is a **no-op for single-word constants** (`'Cashaccount'` → `CASHACCOUNT`),
+so it is always the correct choice — use it even when the current constant happens to be one word, so
+the code stays correct if the constant later becomes multi-word. A ready `UPPER_SNAKE_CASE` string
+literal (e.g. `'HISTORYQUOTE'` above) is equally fine; the pitfall is only `.toUpperCase()` on a
+PascalCase constant.
+
 ### SimpleDynamicEditBase<T> - Programmatic Dialog
 
 **Use when**: Dialog is opened programmatically via `DialogService.open()`, not template-bound.
@@ -857,6 +884,9 @@ Adding a translation for a component in `src/app/lib/globalsettings/`:
 - Use UPPER_SNAKE_CASE for keys
 - Add tooltip translations with `_TOOLTIP` suffix (e.g., `FIELD_NAME_TOOLTIP`)
 - Both `en.json` and `de.json` must be updated together
+- When deriving a key from a PascalCase/camelCase `AppSettings.*` / `BaseSettings.*` constant (e.g. the
+  `i18nRecord` dialog argument), use `AppHelper.toUpperCaseWithUnderscore(...)`, **never** `.toUpperCase()`
+  — the latter drops the underscores (`TradingCalendarRuleSet` → `TRADINGCALENDARRULESET`) and misses the key
 
 ### Backend-Frontend NLS Key Correspondence
 

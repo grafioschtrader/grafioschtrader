@@ -46,6 +46,7 @@ import grafioschtrader.entities.ImportTransactionPos;
 import grafioschtrader.entities.ImportTransactionTemplate;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Transaction;
+import grafioschtrader.instrument.SecurityMarginUnitsCheck;
 import grafioschtrader.platformimport.CombineTemplateAndImpTransPos;
 import grafioschtrader.types.ImportKnownOtherFlags;
 import grafioschtrader.types.TransactionType;
@@ -335,6 +336,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
         itp.setTransactionTime(adjustIfWeekend(itp.getTransactionTime()));
       case ACCUMULATE:
       case REDUCE:
+      case FINANCE_COST:
         if (itp.getSecurity() != null) {
           // Persist the template's rounding tolerance for this currency while the (transient) template config is
           // still available, so it can be applied when the transaction is created from the reloaded position.
@@ -788,6 +790,9 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
             itp.getTaxableInterest());
         transaction.setAcceptableRoundingStep(roundingStep);
         transaction.setRoundingDiffExplicitlyAccepted(explicitlyAccepted);
+        if (itp.getTransactionType() == TransactionType.FINANCE_COST) {
+          linkFinanceCostToOpenMarginPosition(importTransactionHead, itp, transaction);
+        }
 
         Transaction existingEntity = null;
         if (itp.getIdTransaction() != null) {
@@ -814,6 +819,39 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
       }
       return Optional.empty();
     });
+  }
+
+  /**
+   * Resolves the mandatory link between an imported finance cost and its open margin position. A finance cost on a
+   * margin instrument must reference the opening transaction via connectedIdTransaction, otherwise the transaction
+   * validation treats it as an opening position and fails. Since import documents carry no reference to the opening
+   * transaction, the open position is determined from the existing margin transactions of the security account: the
+   * link is set only when exactly one position is open at the transaction time. With none or several open positions
+   * the import position is failed with a translated error, so the user creates the transaction manually.
+   *
+   * @param importTransactionHead the transaction header providing the target security account
+   * @param itp                   the import position of type FINANCE_COST
+   * @param transaction           the transaction being built, receiving the connected transaction ID
+   * @throws DataViolationException if no or more than one open margin position exists at the transaction time
+   */
+  private void linkFinanceCostToOpenMarginPosition(ImportTransactionHead importTransactionHead,
+      ImportTransactionPos itp, Transaction transaction) {
+    if (itp.getSecurity() != null && itp.getSecurity().isMarginInstrument()) {
+      List<Transaction> marginTransactions = transactionJpaRepository
+          .getMarginTransactionMapForSecurityaccountAndSecurity(
+              importTransactionHead.getSecurityaccount().getIdSecuritycashAccount(),
+              itp.getSecurity().getIdSecuritycurrency());
+      List<Transaction> openPositions = SecurityMarginUnitsCheck.getOpenPositionsAt(marginTransactions,
+          itp.getTransactionTime());
+      if (openPositions.size() == 1) {
+        transaction.setConnectedIdTransaction(openPositions.getFirst().getIdTransaction());
+      } else {
+        throw new DataViolationException("transaction.type",
+            openPositions.isEmpty() ? "gt.import.financecost.no.open.position"
+                : "gt.import.financecost.ambiguous.open.position",
+            new Object[] { itp.getSecurity().getName(), itp.getTransactionTime().toLocalDate() });
+      }
+    }
   }
 
   /**

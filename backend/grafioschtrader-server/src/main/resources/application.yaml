@@ -28,10 +28,22 @@ gt:
 
 # Library-level optional features (g.use.*), independent of the application-specific gt.use.* features above.
 g:
+  gnet:
+    offline:
+      # Set to false to skip the GT_NET_OFFLINE_ALL_C broadcast on shutdown. GTNet stays fully usable
+      # during the run; only the shutdown peer notification is skipped. That notification contacts every
+      # peer sequentially and blocks for up to g.gnet.connection.timeout seconds each, so disabling it
+      # gives a noticeably faster shutdown during development: --g.gnet.offline.announce=false
+      announce: true
   use:
     # manageclient: a user (advisor) can create additional tenants with a read-only client login,
     # switch between the tenants they manage, and return to their own tenant.
     manageclient: true
+    # gtnet: master switch. false disables GTNet entirely for this run, regardless of the database
+    # parameter g.gnet.use - no peer status check on startup, no offline broadcast on shutdown, no
+    # GTNet price/history retrieval and the feature is hidden in the frontend. Start with
+    # --g.use.gtnet=false during development instead of toggling the database parameter.
+    gtnet: true
 
 spring:
   main:

@@ -113,12 +113,13 @@ export class GenericConnectorFieldMappingTableComponent extends TableEditConfigB
   }
 
   /**
-   * Converts temporary string IDs assigned by EditableTableComponent (e.g. "new_1")
-   * to null so the backend can assign real integer IDs on persist.
+   * Converts temporary IDs assigned by EditableTableComponent.addNewRow() — negative numbers
+   * (or historical "new_1"-style strings) — to null so the backend inserts the row instead of
+   * treating it as a detached entity (StaleObjectStateException).
    */
   private stripTempIds(mappings: GenericConnectorFieldMapping[]): GenericConnectorFieldMapping[] {
     return mappings.map(m => {
-      if (typeof m.idFieldMapping === 'string') {
+      if (typeof m.idFieldMapping === 'string' || (typeof m.idFieldMapping === 'number' && m.idFieldMapping < 0)) {
         return {...m, idFieldMapping: null};
       }
       return m;

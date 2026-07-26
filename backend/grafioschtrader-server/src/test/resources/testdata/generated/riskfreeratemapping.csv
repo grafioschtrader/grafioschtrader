@@ -1,0 +1,5 @@
+"CHF"|"CHF Risk-Free Rate (3M Interbank)"|"IR3TIB01CHM156N"|"false"
+"EUR"|"EUR Risk-Free Rate (ESTR)"|"ECBESTRVOLWGTTRMDMNRT"|"false"
+"GBP"|"GBP Risk-Free Rate (SONIA)"|"IUDSOIA"|"false"
+"JPY"|"JPY Risk-Free Rate (Call Rate)"|"IRSTCI01JPM156N"|"false"
+"USD"|"USD 3M Risk-Free Rate (FRED DGS3MO)"|"DGS3MO"|"true"

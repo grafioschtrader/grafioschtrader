@@ -214,6 +214,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     Security rebuilt = getHistorquoteLoad(security).createHistoryQuotesAndSave(securityJpaRepository, security, null,
         null);
     supplementFromShadow(rebuilt);
+    enqueueCalendarUpdateWhenCalendarIndex(security.getIdSecuritycurrency());
     return rebuilt;
   }
 
@@ -300,6 +301,26 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
       return;
     }
     supplementFromShadow(securityJpaRepository.findByIdSecuritycurrency(idSecuritycurrency));
+    enqueueCalendarUpdateWhenCalendarIndex(idSecuritycurrency);
+  }
+
+  /**
+   * Schedules a rebuild of the trading calendar when the reloaded security is the index a stock exchange derives its
+   * trading days from. Called from the two paths which wipe and reload the complete history of a security, that is
+   * {@link #rebuildSecurityCurrencypairHisotry(Security)} and the asynchronous reload through
+   * {@link SecurityServiceAsyncExectuion#asyncLoadHistoryIntraData}. The trading days derived from the discarded price
+   * data would otherwise stay in place until the next weekly calendar run. The daily catch up of the history is
+   * deliberately not covered, because it only appends the most recent days.
+   *
+   * @param idSecuritycurrency the ID of the security whose history was reloaded
+   */
+  private void enqueueCalendarUpdateWhenCalendarIndex(Integer idSecuritycurrency) {
+    if (!stockexchangeJpaRepository.findByIdIndexUpdCalendar(idSecuritycurrency).isEmpty()) {
+      taskDataChangeJpaRepository
+          .save(new TaskDataChange(TaskTypeExtended.CREATE_STOCK_EXCHANGE_CALENDAR_BY_INDEX,
+              TaskDataExecPriority.PRIO_LOW, LocalDateTime.now().plusMinutes(5), idSecuritycurrency,
+              Security.class.getSimpleName()));
+    }
   }
 
   @Override

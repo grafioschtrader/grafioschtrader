@@ -17,6 +17,21 @@ public interface TradingDaysPlusJpaRepository
   List<TradingDaysPlus> findByTradingDateGreaterThanEqual(LocalDate tradingDate);
 
   /**
+   * Returns the last possible trading day, which is the end of the period the rule based calendar generator fills up
+   * to. Null only when {@code trading_days_plus} is empty.
+   *
+   * @return the latest trading day, or null when the table is empty
+   */
+  TradingDaysPlus findTopByOrderByTradingDateDesc();
+
+  /**
+   * Returns the first possible trading day, the start of a full rule based rebuild.
+   *
+   * @return the earliest trading day, or null when the table is empty
+   */
+  TradingDaysPlus findTopByOrderByTradingDateAsc();
+
+  /**
    * Returns possible trading days which includes the fromDate and toDate.
    */
   List<TradingDaysPlus> findByTradingDateBetweenOrderByTradingDate(LocalDate fromDate, LocalDate toDate);

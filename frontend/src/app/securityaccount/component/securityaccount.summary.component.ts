@@ -28,6 +28,7 @@ import {AppHelper} from '../../lib/helper/app.helper';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 import {BaseSettings} from '../../lib/base.settings';
 import {TreeNavigationStateService} from '../../lib/maintree/service/tree.navigation.state.service';
+import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 import {Securityaccount} from '../../entities/securityaccount';
 import {SecurityPositionSummary} from '../../entities/view/security.position.summary';
 import {SecurityTransferCreateComponent} from '../../securityaction/component/security-transfer-create.component';
@@ -58,6 +59,9 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
 
   private routeSubscribe: Subscription;
   private idSecurityaccount: number;
+
+  /** Drop-zone choice: when true (and the tenant GT platform is configured) dropped PDFs use the GT templates. */
+  useGtPlatformDrop = false;
 
   constructor(private ngZone: NgZone,
               protected importTransactionHeadService: ImportTransactionHeadService,
@@ -110,6 +114,28 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
     this.routeSubscribe && this.routeSubscribe.unsubscribe();
   }
 
+  /** True when the securities account is mapped to its own import platform. */
+  get accountHasOwnPlatform(): boolean {
+    return !!this.securityAccount?.tradingPlatformPlan?.importTransactionPlatform;
+  }
+
+  /** True when the tenant has configured a Grafioschtrader import platform. */
+  get gtPlatformConfigured(): boolean {
+    return this.injector.get(GlobalparameterGTService).getTenantGtImportPlatformId() != null;
+  }
+
+  /**
+   * The drop zone is shown when the account has its own import platform or the tenant provides a Grafioschtrader
+   * import platform (so GT receipt PDFs can be dropped even onto accounts without their own platform mapping).
+   */
+  get showDropZone(): boolean {
+    return this.accountHasOwnPlatform || this.gtPlatformConfigured;
+  }
+
+  onDropUseGtPlatformToggle(event: Event): void {
+    this.useGtPlatformDrop = (event.target as HTMLInputElement).checked;
+  }
+
   public dropped(files: NgxFileDropEntry[]): void {
     AppHelper.processDroppedFiles(files, this.messageToastService, 'pdf', this.uploadTransactionFiles.bind(this));
   }
@@ -153,6 +179,9 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
   }
 
   private uploadTransactionFiles(formData: FormData): void {
+    // An account without its own import platform can only import through the GT platform; otherwise honour the choice.
+    const useGtPlatform = !this.accountHasOwnPlatform || (this.gtPlatformConfigured && this.useGtPlatformDrop);
+    formData.append('useGtPlatform', String(useGtPlatform));
     this.importTransactionHeadService.uploadPdfFileSecurityAccountTransactions(this.idSecurityaccount, formData).subscribe(
       (sfdit: SuccessFailedDirectImportTransaction) => {
         const data: any = {};

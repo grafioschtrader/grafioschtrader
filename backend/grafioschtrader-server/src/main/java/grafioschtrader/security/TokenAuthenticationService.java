@@ -10,6 +10,9 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import grafiosch.BaseConstants;
 import grafiosch.dto.ConfigurationWithLogin;
 import grafiosch.repository.GTNetJpaRepository;
 import grafiosch.security.TokenAuthentication;
@@ -95,11 +98,12 @@ public class TokenAuthenticationService extends TokenAuthentication {
       boolean passwordRegexOk, Integer idTenant) {
     Tenant tenant = (idTenant != null) ? tenantJpaRepository.findById(idTenant).orElse(null) : null;
     LocalDate tenantClosedUntil = (tenant != null) ? tenant.getClosedUntil() : null;
+    Integer tenantIdGtImportPlatform = (tenant != null) ? tenant.getIdGtImportPlatform() : null;
     ConfigurationWithLoginGT configurationWithLogin = new ConfigurationWithLoginGT(getAllEntitiyNamesWithTheirKeys(),
         getGlobalConstantsFieldsByFieldPrefix(GlobalConstants.class, "FIELD_SIZE"), uiShowMyProperty,
         mostPrivilegedRole, passwordRegexOk, globalparametersService.getCurrencyPrecision(),
         getGlobalConstantsFieldsByFieldPrefix(GlobalConstants.class, "FID"), featureConfig.getEnabledFeatures(),
-        tenantClosedUntil);
+        tenantClosedUntil, tenantIdGtImportPlatform);
     configurationWithLogin.gtNetLogEnabled = globalparametersService.isGTNetLogEnabled();
     configurationWithLogin.forceConnectorMatch = globalparametersService.getForceConnectorMatch();
     boolean gtNetEnabled = featureConfig.isGtnet();
@@ -144,7 +148,15 @@ public class TokenAuthenticationService extends TokenAuthentication {
      * Individual portfolios can override this with their own closedUntil value, which takes priority.
      * If both portfolio and tenant closedUntil are null, there is no date restriction.</p>
      */
+    @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
     public final LocalDate tenantClosedUntil;
+
+    /**
+     * Reference to the tenant's Grafioschtrader import platform holding the GT authored import templates. The
+     * frontend uses it to offer the "use GT platform" choice at the transaction import entry points; null when the
+     * tenant has not configured it.
+     */
+    public final Integer tenantIdGtImportPlatform;
 
     /**
      * Indicates whether at least one GTNet peer is configured to exchange historical price data.
@@ -184,15 +196,17 @@ public class TokenAuthenticationService extends TokenAuthentication {
      * @param standardPrecision standard precision constants for field formatting
      * @param useFeatures set of enabled features for partial functionality control
      * @param tenantClosedUntil tenant-level date before which transactions are locked
+     * @param tenantIdGtImportPlatform the tenant's Grafioschtrader import platform reference, or null
      */
     public ConfigurationWithLoginGT(List<EntityNameWithKeyName> entityNameWithKeyNameList,
         Map<String, Integer> fieldSize, boolean uiShowMyProperty, String mostPrivilegedRole, boolean passwordRegexOk,
         Map<String, Integer> currencyPrecision, Map<String, Integer> standardPrecision, Set<? extends FeatureType> useFeatures,
-        LocalDate tenantClosedUntil) {
+        LocalDate tenantClosedUntil, Integer tenantIdGtImportPlatform) {
       super(entityNameWithKeyNameList, fieldSize, uiShowMyProperty, mostPrivilegedRole, passwordRegexOk, standardPrecision);
       this.useFeatures = useFeatures;
       this.currencyPrecision = currencyPrecision;
       this.tenantClosedUntil = tenantClosedUntil;
+      this.tenantIdGtImportPlatform = tenantIdGtImportPlatform;
     }
   }
 

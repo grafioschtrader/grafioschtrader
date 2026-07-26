@@ -49,7 +49,7 @@ export class CashaccountEditComponent extends SimpleEntityEditBase<Cashaccount> 
     gps: GlobalparameterService,
     messageToastService: MessageToastService,
     cashaccountSercice: CashaccountService) {
-    super(HelpIds.HELP_PORTFOLIO_ACCOUNT, AppSettings.CASHACCOUNT.toUpperCase(), translateService, gps,
+    super(HelpIds.HELP_PORTFOLIO_ACCOUNT, AppHelper.toUpperCaseWithUnderscore(AppSettings.CASHACCOUNT), translateService, gps,
       messageToastService, cashaccountSercice);
   }
 
