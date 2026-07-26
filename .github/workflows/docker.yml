@@ -72,3 +72,36 @@ jobs:
             org.opencontainers.image.licenses=Apache-2.0
           cache-from: type=gha,scope=${{ matrix.image }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image }}
+
+      # A GHCR package is private when first published, which makes even an
+      # anonymous `docker compose pull` fail with "unauthorized" for every tag —
+      # so a private package silently breaks installation and updates for all
+      # users. These images are meant to be public, so enforce that on every
+      # publish instead of relying on a one-time manual setting.
+      #
+      # The visibility endpoint is not part of the documented Packages REST API
+      # and may reject GITHUB_TOKEN, so a failure must not fail the publish: the
+      # images are already pushed at this point. The warning then names the
+      # manual fallback.
+      - name: Ensure the package is publicly pullable
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pkg="${{ matrix.image }}"
+          owner="${{ steps.meta.outputs.owner }}"
+          if gh api --method PATCH \
+               "/orgs/$owner/packages/container/$pkg/visibility" \
+               -f visibility=public; then
+            echo "::notice::$pkg is public"
+          else
+            echo "::warning::Could not set $pkg public automatically. Do it once by hand:"
+            echo "::warning::https://github.com/orgs/$owner/packages/container/package/$pkg -> Package settings -> Change visibility -> Public"
+          fi
+          # Report what anonymous clients actually see, so the log answers
+          # "can users pull this?" without needing registry knowledge.
+          if curl -sf "https://ghcr.io/token?service=ghcr.io&scope=repository:$owner/$pkg:pull" >/dev/null; then
+            echo "::notice::anonymous pull of $pkg works"
+          else
+            echo "::error::$pkg is still not anonymously pullable — installs and updates will fail with 'unauthorized'"
+          fi
