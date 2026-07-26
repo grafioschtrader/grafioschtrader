@@ -1,15 +1,21 @@
 name: Docker images
 
+# A published release is the single trigger: tagging and publishing a release
+# both happen for every GT release, so reacting to the tag push as well would
+# start a second, concurrent run pushing the identical tags and writing the same
+# build cache scopes. workflow_dispatch remains as the manual escape hatch.
 on:
   release:
     types: [published]
-  push:
-    tags: ["v*", "V*"]
   workflow_dispatch:
 
 permissions:
   contents: read
   packages: write
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -56,5 +62,13 @@ jobs:
           tags: |
             ghcr.io/${{ steps.meta.outputs.owner }}/${{ matrix.image }}:${{ steps.meta.outputs.version }}
             ghcr.io/${{ steps.meta.outputs.owner }}/${{ matrix.image }}:latest
+          # image.source is what makes GHCR link the package to this repository,
+          # which in turn lets the package inherit the repository's access
+          # settings instead of staying an unconnected private package.
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.version=${{ steps.meta.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=Apache-2.0
           cache-from: type=gha,scope=${{ matrix.image }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image }}
