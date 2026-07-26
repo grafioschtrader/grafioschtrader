@@ -47,6 +47,7 @@ grafioschtrader.algo.strategy.model.complex.entry
 grafioschtrader.algo.strategy.model.complex.enums
 grafioschtrader.algo.strategy.model.complex.profit
 grafioschtrader.algo.strategy.model.rebalacing
+grafioschtrader.calendar.rule
 grafioschtrader.common
 grafioschtrader.config
 grafioschtrader.connector
@@ -86,6 +87,7 @@ grafioschtrader.dto
 grafioschtrader.entities
 grafioschtrader.entities.projection
 grafioschtrader.evalex
+grafioschtrader.exportcsv
 grafioschtrader.exportdelete
 grafioschtrader.gtnet
 grafioschtrader.gtnet.handler.impl
@@ -107,6 +109,7 @@ grafioschtrader.platformimport.pdf
 grafioschtrader.priceupdate
 grafioschtrader.priceupdate.historyquote
 grafioschtrader.priceupdate.intraday
+grafioschtrader.receipt
 grafioschtrader.reports
 grafioschtrader.reports.udfalluserfields
 grafioschtrader.reportviews
