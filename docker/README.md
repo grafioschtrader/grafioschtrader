@@ -116,6 +116,15 @@ images — pulling the published ones, or building them from source with
 finished, then reports the resulting schema version. Run it from the `docker/`
 directory; without arguments it updates to the version already set in `.env`.
 
+If the images have to be built instead of pulled, update the source first —
+`update.sh` builds what is checked out next to it and refuses to mislabel an
+older release with a new version number:
+
+```bash
+git -C .. fetch --depth 1 origin master && git -C .. reset --hard FETCH_HEAD
+./update.sh 0.36.3 --build
+```
+
 The same thing by hand:
 
 ```bash

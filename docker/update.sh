@@ -93,7 +93,18 @@ build_locally() {
     || fail "cannot build: this is only the docker/ directory, the source is missing.
        Clone the full repository (git clone https://github.com/grafioschtrader/grafioschtrader.git)
        and run update.sh from its docker/ directory."
-  info "Building from source — this takes a while (the Angular build needs ~4 GB RAM)."
+  # Building uses the source checked out next to this script. That source is
+  # only the requested release if the checkout was updated first — otherwise the
+  # previous release would be rebuilt and mislabelled with the new version.
+  local src
+  src="$(grep -m1 -oP '<version>\K[^<]+' ../backend/pom.xml || true)"
+  if [ "$GT_VERSION" != "latest" ] && [ -n "$src" ] && [ "$src" != "$GT_VERSION" ]; then
+    fail "the source here is version $src, but $GT_VERSION was requested.
+       Update the source first, then run this script again:
+         git -C .. fetch --depth 1 origin master && git -C .. reset --hard FETCH_HEAD"
+  fi
+  info "Building version ${src:-unknown} from source — this takes a while"
+  info "(the Angular build needs ~4 GB RAM; expect 20-40 minutes on a Raspberry Pi)."
   docker compose "${BUILD_FILES[@]}" build
 }
 
