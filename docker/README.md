@@ -107,12 +107,32 @@ docker compose up -d               # start / apply .env changes
 ### Update to a new release
 
 ```bash
+# 1. Back up the database first — migrations cannot be undone
+source .env
+docker compose exec mariadb mariadb-dump -uroot -p"$DB_ROOT_PASSWORD" \
+  --single-transaction grafioschtrader | gzip > gt-backup-$(date +%F)-pre-update.sql.gz
+
+# 2. Only when GT_VERSION pins a version: set the new one in .env
+#    (with GT_VERSION=latest, skip this step)
+sed -i 's/^GT_VERSION=.*/GT_VERSION=0.36.3/' .env
+
+# 3. Fetch the new images and restart
 docker compose pull
 docker compose up -d
+
+# 4. Watch the database migrations complete
+docker compose logs -f backend
 ```
 
-Database migrations run automatically on startup. To pin a version instead of
-tracking the newest one, set `GT_VERSION=0.36.2` in `.env`.
+Database migrations run automatically on startup, so the backend can stay in
+`starting` for a while after a release with many migrations. `GT_VERSION=latest`
+(the installer's default) tracks the newest release; set `GT_VERSION=0.36.3` to
+pin an exact version, which is worth doing if you want an update to be a
+deliberate, reversible step.
+
+To go back, set the previous `GT_VERSION` and run `docker compose up -d` — but
+note that the *database* is not rolled back with it, so an actual downgrade also
+means restoring the dump from step 1 (see [Backup and restore](#backup-and-restore)).
 
 ### Backup and restore
 
@@ -191,6 +211,37 @@ services:
 - **`docker compose ps` shows backend as `starting` for a long time** — normal
   on first boot: all database migrations run once. Follow with
   `docker compose logs -f backend`.
+- **`unauthorized` / `denied` when pulling the images** — the images are pulled
+  anonymously; no `docker login` is involved. Reproduce the raw registry error
+  with a bare pull, because `install.sh` deliberately hides it behind
+  `--ignore-pull-failures` (so one unavailable image doesn't abort the others):
+
+  ```bash
+  docker compose pull                                            # shows the real error
+  docker pull ghcr.io/grafioschtrader/grafioschtrader-backend:latest
+  ```
+
+  Causes, in order of likelihood:
+  1. **The GHCR packages are not public.** Freshly published packages are
+     private by default, and then *every* tag fails, including older ones. Only
+     the project owner can fix this, under
+     *[Organization packages](https://github.com/orgs/grafioschtrader/packages) →
+     package → Package settings → Change visibility → Public*. Check from any
+     machine without Docker:
+     ```bash
+     curl -s "https://ghcr.io/token?service=ghcr.io&scope=repository:grafioschtrader/grafioschtrader-backend:pull"
+     # public -> {"token":"..."} | private -> {"errors":[{"code":"UNAUTHORIZED",...}]}
+     ```
+  2. **A proxy or firewall intercepts `ghcr.io`** — corporate networks in
+     particular. Configure the proxy for the Docker daemon, not just the shell.
+
+  Until the pull works you can build the images from source instead, which is
+  what `install.sh` offers when it detects missing images:
+  ```bash
+  docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build
+  ```
+  Note that these local images are tagged exactly like the published ones, so a
+  later successful `docker compose pull` replaces them.
 - **No HTTPS certificate** — check that the domain resolves to your public IP
   (`nslookup myhost.duckdns.org`) and that ports 80/443 are forwarded. Caddy
   logs the ACME errors: `docker compose logs web`. If your ISP blocks port 80,
