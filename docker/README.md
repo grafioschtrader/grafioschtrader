@@ -107,6 +107,18 @@ docker compose up -d               # start / apply .env changes
 ### Update to a new release
 
 ```bash
+./update.sh 0.36.3     # or: ./update.sh latest
+```
+
+`update.sh` does the whole update: it backs up the database, fetches the new
+images — pulling the published ones, or building them from source with
+`--build` — restarts the stack and waits until the database migrations have
+finished, then reports the resulting schema version. Run it from the `docker/`
+directory; without arguments it updates to the version already set in `.env`.
+
+The same thing by hand:
+
+```bash
 # 1. Back up the database first — migrations cannot be undone
 source .env
 docker compose exec mariadb mariadb-dump -uroot -p"$DB_ROOT_PASSWORD" \
