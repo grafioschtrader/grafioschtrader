@@ -16,7 +16,7 @@ if [ $memorytotal -lt 3700 ]
     tar -xf latest.tar.gz
     cd
    else
-    echo "n n" | ng build --configuration production --base-href /$basehref
+    echo "n n" | ng build frontend --configuration production --base-href /$basehref
    fi
 [ -d "$docroot/$basehref" ] && rm -rf $docroot/${basehref}*
 cp -r $builddir/grafioschtrader/frontend/dist/browser/* $docroot/$basehref
