@@ -1,10 +1,10 @@
 import {expect, Locator, Page} from '@playwright/test';
 
 /**
- * Shared UI helpers for the manage-client feature specs (22-manage-client / 26-share-read-access,
+ * Shared UI helpers for the manage-client feature specs (055-manage-client / 060-share-read-access,
  * issues #200/#201). The advisor/owner user 'alledit' runs a German UI (de-CH) and users created by
  * the feature inherit that locale, while 'e2euser' runs English — therefore every text selector
- * matches both the German and English strings (same convention as 20-correlation-matrix.spec.ts).
+ * matches both the German and English strings (same convention as 050-correlation-matrix.spec.ts).
  */
 // Each menu regex also matches the raw NLS key. The menu bar translates its labels once in the
 // menubar component's ngOnInit and never retries; after switchAndReload's hard window.location

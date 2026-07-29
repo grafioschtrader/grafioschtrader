@@ -22,6 +22,7 @@ import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {WatchlistEditDynamicComponent} from '../component/watchlist.edit.dynamic.component';
+import {WatchlistMoveStatus} from '../model/watchlist.move.status';
 import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
 import {ProcessedAction} from '../../lib/types/processed.action';
 
@@ -35,6 +36,11 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
   private hasSecurityObject: { [key: number]: number } = {};
   private rootNode: TreeNode;
   private tenantLimits: any;
+  /**
+   * Watchlists of the last full refresh. Cached so that a pure content change (an instrument added, removed or moved)
+   * can rebuild the nodes without reloading the watchlist names and the tenant limits again.
+   */
+  private watchlists: Watchlist[];
 
   constructor(
     private watchlistService: WatchlistService,
@@ -87,21 +93,31 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
         // Store tenant limits
         this.tenantLimits = tenantLimits.reduce((ac, tl) => ({...ac, [tl.msgKey]: tl}), {});
 
-        rootNode.children.splice(0);
-        for (const watchlist of watchlists) {
-          const treeNode = {
-            label: watchlist.name,
-            icon: 'pi ' + (watchlist.idWatchlist === this.tenant.idWatchlistPerformance ? 'pi-chart-line' : null),
-            data: new TypeNodeData(
-              TreeNodeType.Watchlist,
-              this.addMainRoute(AppSettings.WATCHLIST_TAB_MENU_KEY),
-              watchlist.idWatchlist,
-              null,
-              JSON.stringify(watchlist)
-            )
-          };
-          rootNode.children.push(treeNode);
-        }
+        this.watchlists = watchlists;
+        this.buildWatchlistNodes(rootNode, watchlists);
+      })
+    );
+  }
+
+  /**
+   * Refreshes the nodes after a watchlist content change. Only the hasSecurity flag of a watchlist can change here;
+   * the watchlist names and the MAX_WATCHLIST limit cannot, because creating, renaming and deleting a watchlist goes
+   * through a full tree refresh instead. Therefore a single request is sufficient and the cached watchlists and tenant
+   * limits are reused. Falls back to the full refresh when nothing has been cached yet.
+   *
+   * @param rootNode The watchlist root node whose children are rebuilt
+   * @param processedActionData The data change event that triggered the refresh
+   * @returns Observable that completes when the refresh is done
+   */
+  override refreshNodesForDataChange(rootNode: TreeNode, processedActionData: ProcessedActionData): Observable<void> {
+    if (!this.watchlists || !this.tenantLimits) {
+      return super.refreshNodesForDataChange(rootNode, processedActionData);
+    }
+    this.rootNode = rootNode;
+    return this.watchlistService.getWatchlistsOfTenantHasSecurity().pipe(
+      map(hasSecurityData => {
+        hasSecurityData.forEach(item => this.hasSecurityObject[item.idWatchlist] = item.hasSecurity);
+        this.buildWatchlistNodes(rootNode, this.watchlists);
       })
     );
   }
@@ -182,36 +198,75 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
     return targetNode.data.treeNodeType === TreeNodeType.Watchlist;
   }
 
+  /**
+   * Moves the dragged instrument into the target watchlist.
+   *
+   * The backend decides whether the move is possible and reports it in the response, so no existence check is done
+   * here. Dropping onto the source watchlist is answered without any request at all. Only the data change event is
+   * fired afterwards; it already refreshes the tree through refreshNodesForDataChange, so an additional full tree
+   * refresh would only repeat those requests and needlessly consume the REST rate limit.
+   */
   override handleDrop(targetNode: TreeNode, dragData: string, sourceLabel?: string): void {
     try {
       const wse: WatchlistSecurityExists = JSON.parse(dragData);
-      this.watchlistService.getAllWatchlistsWithSecurityByIdSecuritycurrency(wse.idSecuritycurrency).subscribe(existWatchlistsIds => {
-        if (existWatchlistsIds.includes(targetNode.data.id)) {
-          // Move not possible
-          this.messageToastService.showMessageI18n(
-            InfoLevelType.ERROR,
-            'MOVE_SECURITY_WATCHLIST_FAILED',
-            {to: targetNode.label}
-          );
-        } else {
-          // Move is possible
-          this.watchlistService.moveSecuritycurrency(wse.idWatchlistSource, targetNode.data.id, wse.idSecuritycurrency).subscribe(success => {
+      if (wse.idWatchlistSource === targetNode.data.id) {
+        this.showMoveFailed(targetNode.label);
+        return;
+      }
+      this.watchlistService.moveSecuritycurrency(wse.idWatchlistSource, targetNode.data.id, wse.idSecuritycurrency)
+        .subscribe(moveStatus => {
+          if (moveStatus === WatchlistMoveStatus.MOVED) {
             this.messageToastService.showMessageI18n(
               InfoLevelType.SUCCESS,
               'MOVE_SECURITY_WATCHLIST',
               {from: sourceLabel, to: targetNode.label}
             );
-            this.callbacks?.refreshTree();
             this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.DELETED, new Watchlist()));
-          });
-        }
-      });
+          } else {
+            this.showMoveFailed(targetNode.label);
+          }
+        });
     } catch (e) {
       console.error('Error handling drop:', e);
     }
   }
 
   // Private helper methods
+
+  /**
+   * Replaces the children of the watchlist root node with one node per watchlist.
+   *
+   * @param rootNode - The watchlist root node whose children are replaced
+   * @param watchlists - Watchlists of the current tenant in display order
+   * @private
+   */
+  private buildWatchlistNodes(rootNode: TreeNode, watchlists: Watchlist[]): void {
+    rootNode.children.splice(0);
+    for (const watchlist of watchlists) {
+      const treeNode = {
+        label: watchlist.name,
+        icon: 'pi ' + (watchlist.idWatchlist === this.tenant.idWatchlistPerformance ? 'pi-chart-line' : null),
+        data: new TypeNodeData(
+          TreeNodeType.Watchlist,
+          this.addMainRoute(AppSettings.WATCHLIST_TAB_MENU_KEY),
+          watchlist.idWatchlist,
+          null,
+          JSON.stringify(watchlist)
+        )
+      };
+      rootNode.children.push(treeNode);
+    }
+  }
+
+  /**
+   * Shows the toast for a move that did not take place, because the target watchlist already contains the instrument.
+   *
+   * @param targetLabel - Name of the watchlist the instrument was dropped on
+   * @private
+   */
+  private showMoveFailed(targetLabel: string): void {
+    this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'MOVE_SECURITY_WATCHLIST_FAILED', {to: targetLabel});
+  }
 
   private handleDeleteWatchlist(treeNode: TreeNode, idWatchlist: number): void {
     AppHelper.confirmationDialog(

@@ -699,7 +699,8 @@ DynamicFieldHelper.createFieldSelectString('status', 'ORDER_STATUS', true)
 
 1. **Check if HeqF-derived key exists**: Convert field name to `UPPER_SNAKE_CASE`
 2. **If key exists with correct meaning**: Use HeqF method directly
-3. **If key doesn't exist**: Create the NLS key in both `en.json` and `de.json`, then use HeqF method
+3. **If key doesn't exist**: Create it in both language files of the owning backend module (see
+   "Translation / i18n — the backend is the only source"), then use the HeqF method
 4. **If key exists but has conflicting meaning**: Use standard method with a different explicit key
 
 ### Available HeqF Methods
@@ -780,7 +781,7 @@ Before writing code, find and read an existing dialog that matches your use case
 
 - [ ] Use `*HeqF` methods by default (create NLS keys if needed)
 - [ ] **Do NOT use `usedLayoutColumns`** in modal dialogs
-- [ ] Add NLS keys to both `en.json` and `de.json` (alphabetically sorted)
+- [ ] Add NLS keys to both `messages.properties` and `messages_de.properties` of the owning backend module
 - [ ] Use `DynamicFieldHelper.createSubmitButton()` for the submit button
 
 ### 4. Template Checklist
@@ -851,46 +852,71 @@ export class MyDialogComponent extends SimpleEditBase implements OnInit {
 - **Types/Models**: `src/app/<module>/types/` or `src/app/entities/`
 - **Shared utilities**: `src/app/lib/` (reusable across modules)
 
-## Translation / i18n File Placement
+## Translation / i18n — the backend is the only source
 
-**IMPORTANT**: Translation files must be placed according to where the component resides.
+**IMPORTANT**: There are **no translation files in the frontend**. `src/assets/i18n/` and
+`src/app/lib/assets/` no longer exist. Every user interface text lives in a backend
+`messages*.properties` file and is delivered by `GET /api/globalparameters/properties/{language}`,
+which `MultiTranslateHttpLoader` loads as ngx-translate's single source (GitHub issue #214).
 
-| Component Location | Translation Files |
-|-------------------|-------------------|
-| `src/app/lib/` (shared library) | `src/app/lib/assets/i18n/en.json` and `de.json` |
-| `src/app/<module>/` (app-specific) | `src/assets/i18n/en.json` and `de.json` |
+### Where a new text goes
+
+Pick the module by the layer of the code that **uses** the key, exactly like the backend rule in
+`backend/CLAUDE.md`:
+
+| Consuming code | Properties file |
+|----------------|-----------------|
+| `src/app/lib/**` (reusable library) | `backend/grafiosch-base/src/main/resources/i18n/messages{,_de}.properties` |
+| `src/app/<module>/**` (application) | `backend/grafioschtrader-common/src/main/resources/message/messages{,_de}.properties` |
+
+Putting a library-consumed text in the application module compiles, passes tests and works in the
+full application — and breaks the standalone `grafiosch` server, which serves the
+`grafiosch-base` bundle alone. `node scripts/nls-tool.mjs check` catches this; run it after adding
+keys used from `src/app/lib`.
+
+### How a key is written
+
+The client key is derived from the stored key by `grafiosch.nls.NlsKeyMapper`:
+
+| Stored key | Client key | Use for |
+|------------|-----------|---------|
+| `READABLE_NAME` | `READABLE_NAME` | the normal case — write the key exactly as the frontend uses it |
+| `readable.name` | `READABLE_NAME` | a field label that the backend **also** resolves server-side (`@Valid`, `DataViolationException`) |
+| `c.required` | `required` | a **client-only** key: dynamic-form validator messages and the `login.*` codes |
+| `GT_FILTER.gtIS` | `{GT_FILTER: {gtIS: ...}}` | the only allow-listed nested namespace |
+| `g.…`, `gt.…`, `UDF_…` | unchanged | configuration parameters and metadata |
+
+So in almost all cases you simply add `MY_KEY=My text` to both language files of the right module.
 
 ### Rules
 
-1. **Match component location**: If a component is in `src/app/lib/`, add translations to `src/app/lib/assets/i18n/*.json`
-2. **Match component location**: If a component is in `src/app/<module>/` (e.g., `src/app/gtnet/`, `src/app/portfolio/`), add translations to `src/assets/i18n/*.json`
-3. **Always update both languages**: Update both `en.json` (English) and `de.json` (German)
-4. **Alphabetical order**: Keys must be sorted alphabetically in the JSON files
+1. **Always update both languages** — the build fails on any key present in only one of the two files.
+2. If the German text is deliberately identical to the English one (a proper noun, an abbreviation),
+   list the key in that module's `nls-en-reuse.txt`; otherwise the build reports it as a forgotten
+   translation.
+3. **UTF-8 without BOM** — the German file is full of umlauts and the guard rejects any invalid byte.
+4. Use ngx-translate `{{name}}` placeholders for client-only texts and `MessageFormat` `{0}` for texts
+   the server resolves; never both on one key, and double every `'` in a `{0}` text.
+5. Keys may contain `A-Z a-z 0-9 _ . |` only — a space silently truncates the key in `.properties`.
 
-### Example
-
-Adding a translation for a component in `src/app/lib/globalsettings/`:
-```json
-// In src/app/lib/assets/i18n/en.json
-"INPUT_RULE": "Validation rule"
-
-// In src/app/lib/assets/i18n/de.json
-"INPUT_RULE": "Validierungsregel"
-```
+`primeng` widget texts are the one exception: they stay on the client in
+`src/app/lib/translator/primeng.translations.ts`, because they contain string arrays and differ in
+size between the languages.
 
 ## Translation Keys
 
-- Keys are sorted alphabetically in the JSON files
 - Use UPPER_SNAKE_CASE for keys
-- Add tooltip translations with `_TOOLTIP` suffix (e.g., `FIELD_NAME_TOOLTIP`)
-- Both `en.json` and `de.json` must be updated together
+- Add tooltip translations with `_TOOLTIP` suffix (e.g., `FIELD_NAME_TOOLTIP`); a missing `_TOOLTIP`
+  key is harmless — `filterOut` suppresses the tooltip when the key does not resolve
 - When deriving a key from a PascalCase/camelCase `AppSettings.*` / `BaseSettings.*` constant (e.g. the
   `i18nRecord` dialog argument), use `AppHelper.toUpperCaseWithUnderscore(...)`, **never** `.toUpperCase()`
   — the latter drops the underscores (`TradingCalendarRuleSet` → `TRADINGCALENDARRULESET`) and misses the key
 
-### Backend-Frontend NLS Key Correspondence
+### If the server is unreachable
 
-Backend `.properties` files use `dot.separated.lowercase` keys (e.g., `reference.date=Reference date`), while frontend `.json` files use `UPPER_SNAKE_CASE` keys (e.g., `"REFERENCE_DATE": "Reference date"`). These are independent translation systems — the backend resolves keys server-side via `MessageSource`, and the frontend resolves keys client-side via `TranslateService`. Not all backend field labels need frontend counterparts; some only appear in server-side error messages sent as pre-translated strings.
+Since the backend is the only source of texts, a failed load means there is nothing to render. The
+application initializer in `app.module.ts` therefore stops the bootstrap and shows the bilingual
+overlay from `nls.bootstrap.failure.ts` instead of painting raw keys everywhere.
 
 ## IGlobalMenuAttach Interface Pattern
 

@@ -85,7 +85,7 @@ public class GTNetHistoricalImportService extends BaseGTNetExchangeService {
    * @return map of peer to coverage response, only containing peers that responded successfully
    */
   public Map<GTNet, HistoryquoteCoverageResponseMsg> queryCoverageFromPeers(List<Security> securities) {
-    if (!globalparametersJpaRepository.isGTNetEnabled() || securities == null || securities.isEmpty()) {
+    if (!globalparametersJpaRepository.isGTNetOperational() || securities == null || securities.isEmpty()) {
       return Collections.emptyMap();
     }
 

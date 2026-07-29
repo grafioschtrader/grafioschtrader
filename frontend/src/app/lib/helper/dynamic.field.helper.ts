@@ -77,6 +77,22 @@ export class DynamicFieldHelper {
   /** Pre-configured error rule for required fields triggered on dirty state */
   public static readonly RULE_REQUIRED_DIRTY = {name: 'required', keyi18n: 'required', rules: [RuleEvent.DIRTY]};
 
+  /**
+   * Error rule for a manually entered date which cannot be interpreted with the date format of the input field.
+   * Without it the date picker would discard such an entry without any notice.
+   */
+  public static readonly RULE_CALENDAR_DATE_INVALID = {
+    name: 'calendarDateInvalid', keyi18n: 'calendarDateInvalid', rules: [RuleEvent.TOUCHED]
+  };
+
+  /**
+   * Error rule for a manually entered date which is a valid date but not offered by the calendar, because it is
+   * outside the permitted period or falls on an excluded day.
+   */
+  public static readonly RULE_CALENDAR_DATE_NOT_SELECTABLE = {
+    name: 'calendarDateNotSelectable', keyi18n: 'calendarDateNotSelectable', rules: [RuleEvent.TOUCHED]
+  };
+
   /** Minimum allowed date for calendar components (January 1, 2000) */
   static readonly minDateCalendar = new Date(2000, 0, 1);
 
@@ -584,7 +600,8 @@ export class DynamicFieldHelper {
     const fieldConfig = this.setFieldBaseAndOptions({dataType, inputType: InputType.Pcalendar},
       fieldName, labelKey,
       required ? [Validators.required] : null,
-      required ? [this.RULE_REQUIRED_TOUCHED] : null, fieldOptions);
+      required ? [this.RULE_REQUIRED_TOUCHED, this.RULE_CALENDAR_DATE_INVALID, this.RULE_CALENDAR_DATE_NOT_SELECTABLE]
+        : [this.RULE_CALENDAR_DATE_INVALID, this.RULE_CALENDAR_DATE_NOT_SELECTABLE], fieldOptions);
     fieldConfig.calendarConfig = Object.assign({}, {minDate: this.minDateCalendar, maxDate: this.maxDateCalendar},
       fieldConfig?.calendarConfig);
     return fieldConfig;

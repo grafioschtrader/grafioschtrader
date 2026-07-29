@@ -54,6 +54,8 @@ fi
 # Copy and execute checkversion.sh
 cp $builddir/grafioschtrader/util/shellscripts/checkversion.sh ~/.
 cp $builddir/grafioschtrader/util/shellscripts/merger.sh ~/.
+cp $builddir/grafioschtrader/util/shellscripts/gt_to_g_rename.sh ~/.
+chmod +x ~/gt_to_g_rename.sh
 cp $builddir/grafioschtrader/util/shellscripts/gtup{front,back}*.sh ~/.
 ~/checkversion.sh
 if [ $? -ne 0 ]; then
@@ -62,6 +64,19 @@ fi
 
 # Merge configuration files if they exist
 cd $builddir
+
+# Rename library-owned deployment properties (gt. -> g., GitHub issue #75) in the
+# saved user configuration before it is merged. merger.sh matches keys exactly, so
+# without this the user value of a renamed key would be replaced by the template
+# default. Stays a no-op as long as the new template still uses the gt.* names.
+~/gt_to_g_rename.sh -s "$GT_PROF_PATH/$GT_PROF" -i "$GT_PROF" -i "$GT_PROF_PROD"
+if [ $? -ne 0 ]; then
+    echo "ERROR: Migration der Konfigurationsschluessel fehlgeschlagen!"
+    echo "Die gesicherte Konfiguration wurde nicht veraendert: $builddir/$GT_PROF"
+    echo "Konflikt beheben und gtupdate.sh erneut starten."
+    exit 1
+fi
+
 if [ -f $GT_PROF ]; then
    mv $GT_PROF_PATH/$GT_PROF ${GT_PROF}.new
    ~/merger.sh -i $GT_PROF -s ${GT_PROF}.new -o $GT_PROF_PATH/$GT_PROF

@@ -72,6 +72,13 @@ public class FeatureConfig {
   /**
    * Checks whether GTNet is enabled by reading from database global parameters.
    *
+   * Deliberately uses {@link grafiosch.repository.GlobalparametersJpaRepositoryCustom#isGTNetEnabled()} and not
+   * {@code isGTNetOperational()}. This flag is sent to the client at login and drives the whole GTNet section of the
+   * admin menu, which contains the setup table where the own GTNet entry is created in the first place. Requiring an
+   * own entry here would be a deadlock: no entry means no menu, and no menu means the entry can never be created.
+   * Background tasks and the price update paths use {@code isGTNetOperational()} instead, so they stay idle until the
+   * setup is complete.
+   *
    * @return true if GTNet is enabled in the database, false otherwise
    */
   public boolean isGtnet() {

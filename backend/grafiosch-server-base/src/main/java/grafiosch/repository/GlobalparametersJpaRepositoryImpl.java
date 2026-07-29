@@ -10,12 +10,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.stream.Collectors;
 
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,7 +22,6 @@ import grafiosch.GlobalParamKeyBaseDefault;
 import grafiosch.common.PropertyStringParser;
 import grafiosch.common.UserAccessHelper;
 import grafiosch.config.BaseFeatureConfig;
-import grafiosch.config.ExposedResourceBundleMessageSource;
 import grafiosch.dto.IPropertiesSelfCheck;
 import grafiosch.dto.InputRule;
 import grafiosch.dto.PasswordRegexProperties;
@@ -125,6 +121,21 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
             .orElse(GlobalParamKeyBaseDefault.DEFAULT_GTNET_USE) != 0;
    }
 
+  /**
+   * Checks whether GTNet is not only enabled but also operable on this instance.
+   *
+   * In addition to {@link #isGTNetEnabled()} the global parameter 'g.gnet.my.entry.id' must name this instance's own
+   * GTNet entry. Without it no message can be sent, addressed or attributed, so every GTNet background task would have
+   * nothing to do. Prefer this over {@link #isGTNetEnabled()} wherever a GTNet background task is queued or executed,
+   * so that no task data change is written for an instance that has not completed its GTNet setup.
+   *
+   * @return true if GTNet is enabled and this instance has its own GTNet entry configured
+   */
+  @Override
+  public boolean isGTNetOperational() {
+    return isGTNetEnabled() && getGTNetMyEntryID() != null;
+  }
+
   @Override
   public int getGTNetConnectionTimeout() {
     return globalparametersJpaRepository.findById(GlobalParamKeyBaseDefault.GLOB_KEY_GTNET_CONNECTION_TIMEOUT)
@@ -172,20 +183,6 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     }
     Collections.sort(valueKeyHtmlSelectOptions);
     return valueKeyHtmlSelectOptions;
-  }
-
-  @Override
-  public String getLanguageProperties(final String language) {
-    Locale locale = Locale.forLanguageTag(language);
-    Properties properties = ((ExposedResourceBundleMessageSource) messages).getMessages(locale);
-    JSONObject jsonObject = new JSONObject();
-    for (Entry<Object, Object> entry : properties.entrySet()) {
-      String key = entry.getKey().toString();
-      boolean hasPrefix = BaseConstants.PREFIXES_PARAM.stream().anyMatch(key::startsWith);
-      jsonObject.put(hasPrefix || key.startsWith("UDF_") ? key : key.toUpperCase().replaceAll("\\.", "_"),
-          entry.getValue());
-    }
-    return jsonObject.toString();
   }
 
   @Override

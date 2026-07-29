@@ -98,10 +98,11 @@ public class GTNetSecurityLookupService {
       return response;
     }
 
-    // Check if GTNet is enabled
-    if (!globalparametersJpaRepository.isGTNetEnabled()) {
+    // Check if GTNet is enabled and set up with an own entry. Without the own entry the lookup below would
+    // fail in getGTNetMyEntryIDOrThrow and report a configuration error with a stack trace.
+    if (!globalparametersJpaRepository.isGTNetOperational()) {
       SecurityGtnetLookupResponse response = new SecurityGtnetLookupResponse(results, 0, 0);
-      response.addError("GTNet is not enabled");
+      response.addError("GTNet is not enabled or has no own entry configured");
       return response;
     }
 
@@ -271,8 +272,8 @@ public class GTNetSecurityLookupService {
     }
 
     // Check if GTNet is enabled
-    if (!globalparametersJpaRepository.isGTNetEnabled()) {
-      log.warn("GTNet is not enabled, batch lookup skipped");
+    if (!globalparametersJpaRepository.isGTNetOperational()) {
+      log.warn("GTNet is not enabled or has no own entry configured, batch lookup skipped");
       return resultsByPosition;
     }
 

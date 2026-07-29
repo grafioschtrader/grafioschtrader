@@ -124,9 +124,12 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
   public SecurityCurrency updateLastpriceIncludeSupplier(List<Security> securities,
       List<Currencypair> currencypairs, List<Currencypair> currenciesNotInList) {
 
-    // Check if GTNet is enabled
-    if (!globalparametersJpaRepository.isGTNetEnabled()) {
-      // GTNet disabled - fall back to connectors only
+    // Check that GTNet is enabled, set up with an own entry, and has a peer to exchange last prices with.
+    // Without a peer nothing can ever be filled, and running the exchange anyway would let step 5b count
+    // every instrument as a failed GTNet request and raise its retry_intra_load.
+    if (!globalparametersJpaRepository.isGTNetOperational()
+        || !gtNetJpaRepository.existsExchangePeerByEntityKind(GTNetExchangeKindType.LAST_PRICE.getValue())) {
+      // GTNet unusable - fall back to connectors only
       currencypairJpaRepository.updateLastPriceByList(currenciesNotInList);
       return new SecurityCurrency(
           securityJpaRepository.updateLastPriceByList(securities),

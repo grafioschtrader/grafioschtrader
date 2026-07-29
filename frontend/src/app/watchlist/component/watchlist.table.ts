@@ -309,7 +309,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
         this.watchlistService.removeSecuritycurrencyFromWatchlistAndDelete(this.idWatchlist, securityCurrency).subscribe(response => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
             'MSG_DELETE_RECORD', {i18nRecord: domainKey});
-          this.getWatchlistWithoutUpdate();
+          // The event below already reloads the rows through watchlistHasModifiedFromOutside().
           this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.DELETED, new Watchlist()));
         });
       });
@@ -565,14 +565,22 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
    */
   protected abstract updateAllPrice(): void;
 
-  /** Sets up subscription to external watchlist modification events. */
+  /**
+   * Sets up subscription to external watchlist modification events.
+   *
+   * An instrument removed or moved away only changes the rows, therefore the cheaper updateAllPrice() is used instead
+   * of the full getWatchlistWithoutUpdate(). This matters for the drag-and-drop of instruments between watchlists,
+   * where every saved request counts against the per-user REST rate limit. The consequence is that the instrument
+   * count of the watchlist limit stays one stale until the view is opened again; the limit itself is enforced by the
+   * backend anyway.
+   */
   protected watchlistHasModifiedFromOutside(): void {
     this.subscriptionWatchlistAdded = this.dataChangedService.dateChanged$.subscribe(processedActionData => {
       if (processedActionData.data instanceof Watchlist && processedActionData.action === ProcessedAction.UPDATED) {
         this.getWatchlistWithoutUpdate();
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'ADDED_SECURITY_TO_WATCHLIST');
       } else if (processedActionData.data instanceof Watchlist && processedActionData.action === ProcessedAction.DELETED) {
-        this.getWatchlistWithoutUpdate();
+        this.updateAllPrice();
       }
     });
   }

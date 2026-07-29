@@ -34,6 +34,7 @@ import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyLists;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyUDFGroup;
 import grafioschtrader.repository.WatchlistJpaRepository;
 import grafioschtrader.search.SecuritycurrencySearch;
+import grafioschtrader.types.WatchlistMoveStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -132,8 +133,11 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
         .body(watchlistJpaRepository.addSecuritycurrenciesToWatchlist(idWatchlist, securitycurrencyLists));
   }
 
+  @Operation(summary = "Moves a single security or currency pair from one watchlist to another", description = "The returned status "
+      + "reports whether the instrument was moved or why nothing was changed, so the client needs no separate check "
+      + "whether the target watchlist already contains the instrument", tags = { Watchlist.TABNAME })
   @PutMapping(value = "{idWatchlistSource}/moveto/{idWatchlistTarget}/securitycurrency/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Boolean> moveSecuritycurrency(@PathVariable final Integer idWatchlistSource,
+  public ResponseEntity<WatchlistMoveStatus> moveSecuritycurrency(@PathVariable final Integer idWatchlistSource,
       @PathVariable final Integer idWatchlistTarget, @PathVariable final Integer idSecuritycurrency) {
     return ResponseEntity.ok()
         .body(watchlistJpaRepository.moveSecuritycurrency(idWatchlistSource, idWatchlistTarget, idSecuritycurrency));

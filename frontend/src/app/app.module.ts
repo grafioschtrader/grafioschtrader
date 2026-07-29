@@ -28,7 +28,8 @@ import {ReplacePipe} from './shared/pipe/replace.pipe';
 import {LoginService} from './lib/login/service/log-in.service';
 import {MessageToastComponent} from './lib/message/message.toast.component';
 import {MessageToastService} from './lib/message/message.toast.service';
-import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
+import {TranslateLoader, TranslateModule, TranslateService} from '@ngx-translate/core';
+import {firstValueFrom} from 'rxjs';
 import {UserSettingsService} from './lib/services/user.settings.service';
 import {UserDataService} from './lib/mainmenubar/service/user.data.service';
 import {provideAnimations} from '@angular/platform-browser/animations';
@@ -149,6 +150,9 @@ import {UserEntityChangeLimitEditComponent} from './lib/user/component/user-enti
 import {ProposeUserTaskService} from './lib/dynamicdialog/service/propose.user.task.service';
 import {ActuatorService} from './lib/services/actuator.service';
 import {MultiTranslateHttpLoader} from './lib/translator/multi.translate.http.loader';
+import {showNlsBootstrapFailure} from './lib/translator/nls.bootstrap.failure';
+import {AppHelper} from './lib/helper/app.helper';
+import {GlobalSessionNames} from './lib/global.session.names';
 import {
   SecurityaccountImportExtendedInfoFilenameComponent
 } from './imptransaction/component/securityaccount-import-extended-info-filename.component';
@@ -300,10 +304,10 @@ import {SecurityActionService} from './securityaction/service/security-action.se
 import {SecurityActionTreetableComponent} from './securityaction/component/security-action-treetable.component';
 
 
+// Single source of user interface texts since issue #214. Marked mandatory: if this request fails there is nothing
+// left to render text with, so the loader must surface the failure instead of merging an empty object.
 const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader(http, [
-  {prefix: './assets/i18n/', suffix: '.json'},
-  {prefix: './app/lib/assets/i18n/', suffix: '.json'},
-  {prefix: '/api/globalparameters/properties/', suffix: ''}
+  {prefix: '/api/globalparameters/properties/', suffix: '', mandatory: true}
 ]);
 
 @NgModule({
@@ -493,6 +497,20 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     UDFSpecialTypeDisableUserService, UserAdminService, UserChartShapeService, UserDataService, UserEntityChangeLimitService, UserSettingsService,
     ViewSizeChangedService, WatchlistService, {provide: TASK_EXTENDED_SERVICE, useClass: SecurityService},
     {provide: TASK_TYPE_ENUM, useValue: TaskType},
+    // Load the user interface texts before anything renders. The backend is their only source since issue #214, so a
+    // failure here must stop the bootstrap: without it every component would paint raw translation keys and look
+    // broken rather than disconnected. The gate belongs in the initializer and not in the TranslateLoader, because
+    // the loader is also used by the lib-e2e-host and by ngx-translate's own reloadLang().
+    provideAppInitializer(() => {
+      const translateService = inject(TranslateService);
+      const language = AppHelper.getNonUserDefinedLanguage(
+        sessionStorage.getItem(GlobalSessionNames.LANGUAGE) ?? translateService.getBrowserLang());
+      return firstValueFrom(translateService.use(language)).catch(() => {
+        showNlsBootstrapFailure();
+        // Never resolves on purpose, so Angular does not continue and render app-root behind the overlay.
+        return new Promise<never>(() => {});
+      });
+    }),
     // Propose Change Entity Handler Registration (Modern Angular approach)
     provideAppInitializer(() => {
       const registry = inject(EntityPrepareRegistry);

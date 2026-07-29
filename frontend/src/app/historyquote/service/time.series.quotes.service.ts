@@ -42,7 +42,7 @@ export class TimeSeriesQuotesService {
     );
     menuItems.push(
       {
-        label: 'ADD_TO LINE_CHART',
+        label: 'ADD_TO_LINE_CHART',
         command: (e) => this.showEodChartTable(AppSettings.TIME_SERIE_QUOTES, false),
         disabled: !isTimeSeriesShown
       }

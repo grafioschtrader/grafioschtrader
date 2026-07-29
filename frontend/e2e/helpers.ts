@@ -1,4 +1,4 @@
-import {Page} from '@playwright/test';
+import {Page, test} from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -38,6 +38,8 @@ export interface TestCredentials {
   password: string;
   nickname?: string;
   role?: string;
+  /** users.csv locale, e.g. 'de-CH' or 'en-US'. Only set by getCsvUser/loginAsCsvUser. */
+  locale?: string;
   tenantName: string;
   tenantCurrency: string;
 }
@@ -59,14 +61,20 @@ export function loadCredentialsByNickname(nickname: string): TestCredentials {
   return JSON.parse(data);
 }
 
+/**
+ * Wrapped in a named test.step so the timing reporter can report the cost of the UI login as one
+ * number over the whole run — every test logs in, so this is one of the larger fixed costs.
+ */
 async function performLogin(page: Page, creds: TestCredentials): Promise<void> {
-  await page.goto('/login');
-  await page.locator('#email').waitFor({state: 'visible', timeout: 15_000});
-  await page.locator('#email').fill(creds.email);
-  await page.locator('#password').fill(creds.password);
-  await page.locator('button[type="submit"]').click();
-  await page.waitForURL(/\/mainview/, {timeout: 15_000});
-  await page.locator('p-tree').waitFor({state: 'visible', timeout: 15_000});
+  await test.step('login', async () => {
+    await page.goto('/login');
+    await page.locator('#email').waitFor({state: 'visible', timeout: 15_000});
+    await page.locator('#email').fill(creds.email);
+    await page.locator('#password').fill(creds.password);
+    await page.locator('button[type="submit"]').click();
+    await page.waitForURL(/\/mainview/, {timeout: 15_000});
+    await page.locator('p-tree').waitFor({state: 'visible', timeout: 15_000});
+  });
 }
 
 /**
@@ -107,6 +115,7 @@ export function getCsvUser(nickname: string): TestCredentials {
     password: row[1],
     nickname: row[2],
     role: row[6],
+    locale: row[3],
     tenantName: `Tenant ${row[2]}`,
     tenantCurrency: row[5],
   };

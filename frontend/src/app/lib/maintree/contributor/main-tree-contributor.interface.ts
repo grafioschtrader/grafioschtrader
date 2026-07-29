@@ -125,6 +125,22 @@ export abstract class MainTreeContributor {
   abstract shouldRefreshOnDataChange(processedActionData: ProcessedActionData): boolean;
 
   /**
+   * Refreshes the nodes of this contributor in response to a data change event, once
+   * {@link shouldRefreshOnDataChange} has accepted the event.
+   *
+   * Override this when a specific event affects only part of the node state, so the refresh can load less than the
+   * full {@link refreshNodes} does. Every request counts against the per-user REST rate limit, which is easily
+   * exhausted by repeated interactions such as drag-and-drop.
+   *
+   * @param rootNode The root node that should be updated with fresh children
+   * @param processedActionData The data change event that triggered the refresh
+   * @returns Observable that completes when refresh is done
+   */
+  refreshNodesForDataChange(rootNode: TreeNode, processedActionData: ProcessedActionData): Observable<void> {
+    return this.refreshNodes(rootNode);
+  }
+
+  /**
    * Returns whether this contributor is enabled/active.
    * Allows conditional features (like Algo) to be toggled on/off.
    *

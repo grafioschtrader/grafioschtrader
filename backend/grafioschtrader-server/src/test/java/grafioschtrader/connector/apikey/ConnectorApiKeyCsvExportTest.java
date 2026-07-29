@@ -30,7 +30,7 @@ import grafioschtrader.test.start.GTforTest;
  *
  * <p>
  * The keys are stored Jasypt-encrypted ({@code PBEWITHHMACSHA512ANDAES_256} with random salt and IV). Playwright spec
- * {@code frontend/e2e/04-connector-api-key.spec.ts} creates them through the admin UI, and the backend re-encrypts
+ * {@code frontend/e2e/005-connector-api-key.spec.ts} creates them through the admin UI, and the backend re-encrypts
  * whatever the dialog submits, so the fixture must contain <b>plaintext</b> keys. Decryption is not reimplemented here:
  * {@link ConnectorApiKey#getApiKey()} decrypts with the entity's own encryptor, keyed by the
  * {@code JASYPT_ENCRYPTOR_PASSWORD} environment variable.

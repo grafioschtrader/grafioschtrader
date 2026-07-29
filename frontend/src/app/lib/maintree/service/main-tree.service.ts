@@ -157,6 +157,7 @@ export class MainTreeService {
 
   /**
    * Refreshes nodes for contributors that should respond to a data change.
+   * Delegates to the contributor's refreshNodesForDataChange, which may load less than a full refresh.
    */
   refreshNodesForDataChange(processedActionData: ProcessedActionData): Observable<void> {
     const refreshObservables: Observable<void>[] = [];
@@ -166,7 +167,7 @@ export class MainTreeService {
         if (index < this.portfolioTrees.length) {
           const rootNode = this.portfolioTrees[index];
           if (rootNode) {
-            const refreshObs = contributor.refreshNodes(rootNode);
+            const refreshObs = contributor.refreshNodesForDataChange(rootNode, processedActionData);
             if (refreshObs) {
               refreshObservables.push(refreshObs);
             }

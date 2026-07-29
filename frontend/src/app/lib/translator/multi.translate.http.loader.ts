@@ -1,13 +1,22 @@
 import {TranslateLoader} from '@ngx-translate/core';
 import {HttpClient} from '@angular/common/http';
 import {forkJoin, Observable, of} from 'rxjs';
-import {catchError, map} from 'rxjs/operators';
+import {catchError, map, retry} from 'rxjs/operators';
 import deepmerge from 'deepmerge';
+import {PRIMENG_TRANSLATIONS} from './primeng.translations';
 
 
 export interface ITranslationResource {
   prefix: string;
   suffix: string;
+  /**
+   * When true, a failed request aborts the whole load instead of contributing an empty object.
+   *
+   * The backend language endpoint is the only source of user interface texts, so swallowing its failure would render
+   * the whole application -- including the login screen -- as raw translation keys, with nothing to indicate that
+   * anything went wrong. Optional sources keep the previous lenient behaviour.
+   */
+  mandatory?: boolean;
 }
 
 export class MultiTranslateHttpLoader implements TranslateLoader {
@@ -20,16 +29,21 @@ export class MultiTranslateHttpLoader implements TranslateLoader {
   public getTranslation(language: string): Observable<any> {
     const requests = this.resources.map(resource => {
       const path = resource.prefix + language + resource.suffix;
-      return this.http.get<Record<string, any>>(path).pipe(
-        catchError(res => {
-          console.error('Could not find translation file:', path);
-          return of({} as Record<string, any>);
-        })
-      );
+      const request = this.http.get<Record<string, any>>(path);
+      return resource.mandatory
+        ? request.pipe(retry({count: 2, delay: 1500}))
+        : request.pipe(
+          catchError(() => {
+            console.error('Could not find translation file:', path);
+            return of({} as Record<string, any>);
+          })
+        );
     });
 
+    // PrimeNG's own widget texts are merged last so they cannot be shadowed; primeng.translations.ts explains why
+    // they are kept on the client instead of being served by the backend.
     return forkJoin(requests).pipe(
-      map((response: Record<string, any>[]) => deepmerge.all(response))
+      map((response: Record<string, any>[]) => deepmerge.all([...response, PRIMENG_TRANSLATIONS[language] ?? {}]))
     );
   }
 }

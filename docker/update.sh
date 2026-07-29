@@ -7,7 +7,8 @@
 #   ./update.sh latest       track the newest release
 #   ./update.sh --build      build the images from source instead of pulling
 #
-# The script backs up the database first, then obtains the new images — by
+# The script backs up the database, .env and config/ first, migrates renamed
+# configuration keys if the release needs it, then obtains the new images — by
 # pulling the published ones, or by building them from source if pulling is not
 # possible — and finally waits until the backend has finished its database
 # migrations. Safe to re-run; nothing is deleted.
@@ -28,7 +29,7 @@ TARGET=""
 for arg in "$@"; do
   case "$arg" in
     --build) FORCE_BUILD=true ;;
-    -h|--help) sed -n '3,13p' "$0" | sed 's/^# \?//'; exit 0 ;;
+    -h|--help) sed -n '3,14p' "$0" | sed 's/^# \?//'; exit 0 ;;
     -*) fail "unknown option: $arg" ;;
     *) TARGET="$arg" ;;
   esac
@@ -82,8 +83,38 @@ gzip -t "$BACKUP" 2>/dev/null || fail "the backup $BACKUP is not readable — ab
   || fail "the backup $BACKUP contains no tables — aborting before any change."
 info "$BACKUP ($(du -h "$BACKUP" | cut -f1))"
 
+# The host-side configuration is not in the dump, and section 4 may rewrite it.
+STAMP="$(date +%F-%H%M)"
+cp .env "gt-env-$STAMP.bak"
+info "gt-env-$STAMP.bak"
+if [ -f config/application-production.properties ]; then
+  cp config/application-production.properties "gt-config-$STAMP.bak"
+  info "gt-config-$STAMP.bak"
+fi
+
 # --------------------------------------------------------------------------
-# 4. New images: pull, or build from source
+# 4. Renamed configuration keys
+# --------------------------------------------------------------------------
+# config/ is mounted from the host and is never touched by an image update, so
+# properties that moved from the gt. to the g. prefix (issue #75) have to be
+# renamed here — the new code would otherwise ignore the old key and silently
+# fall back to its built-in default. The compose file is the marker: it only
+# passes the G_* container variables once the rename has landed.
+MIGRATE=../util/shellscripts/gt_to_g_rename.sh
+if grep -q 'G_JWT_SECRET' docker-compose.yml; then
+  if [ ! -x "$MIGRATE" ]; then
+    warn "gt_to_g_rename.sh was not found next to this installation."
+    warn "Check config/application-production.properties for gt.* keys by hand."
+  elif [ -f config/application-production.properties ]; then
+    bold ""
+    bold "Migrating renamed configuration keys"
+    "$MIGRATE" --force -i config/application-production.properties \
+      || fail "the configuration migration failed — no image was pulled, nothing was changed."
+  fi
+fi
+
+# --------------------------------------------------------------------------
+# 5. New images: pull, or build from source
 # --------------------------------------------------------------------------
 bold ""
 bold "Fetching the new images"
@@ -125,7 +156,7 @@ else
 fi
 
 # --------------------------------------------------------------------------
-# 5. Restart and wait for the migrations
+# 6. Restart and wait for the migrations
 # --------------------------------------------------------------------------
 bold ""
 bold "Restarting"
@@ -145,7 +176,7 @@ while :; do
 done
 
 # --------------------------------------------------------------------------
-# 6. Report
+# 7. Report
 # --------------------------------------------------------------------------
 schema="$(docker compose exec -T mariadb \
   mariadb -uroot -p"$DB_ROOT_PASSWORD" -N -B "$DB_NAME" \

@@ -29,6 +29,7 @@ import grafioschtrader.entities.Watchlist;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyLists;
 import grafioschtrader.search.SecuritycurrencySearch;
 import grafioschtrader.service.GlobalparametersService;
+import grafioschtrader.types.WatchlistMoveStatus;
 
 public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> implements WatchlistJpaRepositoryCustom {
 
@@ -253,17 +254,25 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
   }
 
   @Override
-  public Boolean moveSecuritycurrency(Integer idWatchlistSource, Integer idWatchlistTarget,
+  public WatchlistMoveStatus moveSecuritycurrency(Integer idWatchlistSource, Integer idWatchlistTarget,
       Integer idSecuritycurrency) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
 
     if (watchlistJpaRepository.getWatchlistByTenantAndWatchlistIds(user.getIdTenant(),
-        new Integer[] { idWatchlistSource, idWatchlistTarget }) == 2) {
-      watchlistJpaRepository.moveUpdateSecuritycurrency(idWatchlistSource, idWatchlistTarget, idSecuritycurrency);
-      return true;
-    } else {
+        new Integer[] { idWatchlistSource, idWatchlistTarget }) != 2) {
       throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
+    // An instrument may exist only once per watchlist, therefore both watchlists must be checked before the update.
+    final List<Integer> watchlistsWithInstrument = watchlistJpaRepository
+        .getAllWatchlistsWithSecurityByIdSecuritycurrency(user.getIdTenant(), idSecuritycurrency);
+    if (watchlistsWithInstrument.contains(idWatchlistTarget)) {
+      return WatchlistMoveStatus.ALREADY_IN_TARGET;
+    }
+    if (!watchlistsWithInstrument.contains(idWatchlistSource)) {
+      return WatchlistMoveStatus.NOT_IN_SOURCE;
+    }
+    watchlistJpaRepository.moveUpdateSecuritycurrency(idWatchlistSource, idWatchlistTarget, idSecuritycurrency);
+    return WatchlistMoveStatus.MOVED;
   }
 
   @Override

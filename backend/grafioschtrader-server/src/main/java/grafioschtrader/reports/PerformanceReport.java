@@ -3,6 +3,7 @@ package grafioschtrader.reports;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.map.PassiveExpiringMap;
@@ -125,13 +127,15 @@ public class PerformanceReport {
     PortfolioOrTenantKey portfolioOrTenantKey = new PortfolioOrTenantKey(idTenant, PortfolioTentant.Tenant);
     FirstAndMissingTradingDays firstAndMissingTradingDays = firstAndMissingTradingDaysMap.get(portfolioOrTenantKey);
     if (firstAndMissingTradingDays == null) {
-      final CompletableFuture<LocalDate> firstEverTradingDayCF = CompletableFuture
+      final CompletableFuture<LocalDate> firstEverHoldDayCF = CompletableFuture
           .supplyAsync(() -> holdSecurityaccountSecurityRepository.findByIdTenantMinFromHoldDate(idTenant));
+      final CompletableFuture<LocalDate> zeroBaseDayCF = CompletableFuture
+          .supplyAsync(() -> holdSecurityaccountSecurityRepository.getZeroBaseDateByTenant(idTenant));
       final CompletableFuture<Set<LocalDate>> missingQuoteDaysCF = CompletableFuture
           .supplyAsync(() -> holdSecurityaccountSecurityRepository.getMissingsQuoteDaysByTenant(idTenant));
       final CompletableFuture<Set<LocalDate>> combinedHolidayOfHoldingsCF = CompletableFuture
           .supplyAsync(() -> holdSecurityaccountSecurityRepository.getCombinedHolidayOfHoldingsByTenant(idTenant));
-      return getFirstAndMissingTradingDays(portfolioOrTenantKey, firstEverTradingDayCF, missingQuoteDaysCF,
+      return getFirstAndMissingTradingDays(portfolioOrTenantKey, firstEverHoldDayCF, zeroBaseDayCF, missingQuoteDaysCF,
           combinedHolidayOfHoldingsCF);
     } else {
       return firstAndMissingTradingDays;
@@ -159,14 +163,16 @@ public class PerformanceReport {
       PortfolioOrTenantKey portfolioOrTenantKey = new PortfolioOrTenantKey(idPortfolio, PortfolioTentant.Portfolio);
       FirstAndMissingTradingDays firstAndMissingTradingDays = firstAndMissingTradingDaysMap.get(portfolioOrTenantKey);
       if (firstAndMissingTradingDays == null) {
-        final CompletableFuture<LocalDate> firstEverTradingDayCF = CompletableFuture
+        final CompletableFuture<LocalDate> firstEverHoldDayCF = CompletableFuture
             .supplyAsync(() -> holdSecurityaccountSecurityRepository.findByIdPortfolioMinFromHoldDate(idPortfolio));
+        final CompletableFuture<LocalDate> zeroBaseDayCF = CompletableFuture
+            .supplyAsync(() -> holdSecurityaccountSecurityRepository.getZeroBaseDateByPortfolio(idPortfolio));
         final CompletableFuture<Set<LocalDate>> missingQuoteDaysCF = CompletableFuture
             .supplyAsync(() -> holdSecurityaccountSecurityRepository.getMissingsQuoteDaysByPortfolio(idPortfolio));
         final CompletableFuture<Set<LocalDate>> combinedHolidayOfHoldingsCF = CompletableFuture.supplyAsync(
             () -> holdSecurityaccountSecurityRepository.getCombinedHolidayOfHoldingsByPortfolio(idPortfolio));
-        return getFirstAndMissingTradingDays(portfolioOrTenantKey, firstEverTradingDayCF, missingQuoteDaysCF,
-            combinedHolidayOfHoldingsCF);
+        return getFirstAndMissingTradingDays(portfolioOrTenantKey, firstEverHoldDayCF, zeroBaseDayCF,
+            missingQuoteDaysCF, combinedHolidayOfHoldingsCF);
       } else {
         return firstAndMissingTradingDays;
       }
@@ -184,7 +190,8 @@ public class PerformanceReport {
    * </p>
    * 
    * @param portfolioOrTenantKey cache key for portfolio or tenant-level data
-   * @param firstEverTradingDayCF CompletableFuture providing earliest trading day
+   * @param firstEverHoldDayCF CompletableFuture providing the day the first security position was opened
+   * @param zeroBaseDayCF CompletableFuture providing the last trading day before that first holding
    * @param missingQuoteDaysCF CompletableFuture providing days with missing quotes
    * @param combinedHolidayOfHoldingsCF CompletableFuture providing holidays affecting holdings
    * @return comprehensive trading day metadata
@@ -192,7 +199,7 @@ public class PerformanceReport {
    * @throws ExecutionException if data retrieval operations fail
    */
   private FirstAndMissingTradingDays getFirstAndMissingTradingDays(PortfolioOrTenantKey portfolioOrTenantKey,
-      final CompletableFuture<LocalDate> firstEverTradingDayCF,
+      final CompletableFuture<LocalDate> firstEverHoldDayCF, final CompletableFuture<LocalDate> zeroBaseDayCF,
       final CompletableFuture<Set<LocalDate>> missingQuoteDaysCF,
       final CompletableFuture<Set<LocalDate>> combinedHolidayOfHoldingsCF) throws InterruptedException, ExecutionException {
     int actYear = LocalDate.now().getYear();
@@ -203,7 +210,7 @@ public class PerformanceReport {
     final CompletableFuture<List<TradingDaysPlus>> tradingDaysOfLastYearCF = CompletableFuture.supplyAsync(
         () -> tradingDaysPlusJpaRepository.findByTradingDateBetweenOrderByTradingDateDesc(fromDate, toDate));
     FirstAndMissingTradingDays firstAndMissingTradingDays = combineFirstAndMissingTradingDays(
-        firstEverTradingDayCF.get(), globalHolidaysCF.get(), missingQuoteDaysCF.get(),
+        firstEverHoldDayCF.get(), zeroBaseDayCF.get(), globalHolidaysCF.get(), missingQuoteDaysCF.get(),
         combinedHolidayOfHoldingsCF.get(), tradingDaysOfLastYearCF.get(), actYear - 1);
     firstAndMissingTradingDaysMap.put(portfolioOrTenantKey, firstAndMissingTradingDays);
     return firstAndMissingTradingDays;
@@ -218,7 +225,15 @@ public class PerformanceReport {
    * and holiday schedules.
    * </p>
    * 
-   * @param firstEverTradingDay earliest trading day in holdings history
+   * <p>
+   * The oldest selectable day is the zero base day, that is the last trading day before the first security position was
+   * opened. Only on such a day nothing is invested yet, so that a report starting there begins with amounts of zero.
+   * When there is no such day, because the cash accounts only start on or after the first hold date, the first hold day
+   * is used as before.
+   * </p>
+   *
+   * @param firstEverHoldDay the day the first security position was opened
+   * @param zeroBaseDay the last trading day before the first holding, may be null
    * @param globalHolidays universal holidays affecting all markets
    * @param missingQuoteDays days where historical price quotes are unavailable
    * @param combinedHolidayOfHoldings holidays specific to currently held securities
@@ -226,9 +241,10 @@ public class PerformanceReport {
    * @param lastYear reference year for calculations
    * @return comprehensive trading day metadata
    */
-  private FirstAndMissingTradingDays combineFirstAndMissingTradingDays(LocalDate firstEverTradingDay,
-      Set<LocalDate> globalHolidays, Set<LocalDate> missingQuoteDays, Set<LocalDate> combinedHolidayOfHoldings,
-      List<TradingDaysPlus> tradingDaysOfLastYearReverse, int lastYear) {
+  private FirstAndMissingTradingDays combineFirstAndMissingTradingDays(LocalDate firstEverHoldDay,
+      LocalDate zeroBaseDay, Set<LocalDate> globalHolidays, Set<LocalDate> missingQuoteDays,
+      Set<LocalDate> combinedHolidayOfHoldings, List<TradingDaysPlus> tradingDaysOfLastYearReverse, int lastYear) {
+    LocalDate firstEverTradingDay = zeroBaseDay != null ? zeroBaseDay : firstEverHoldDay;
     LocalDate fromDate = LocalDate.of(lastYear - 1, 12, 31);
     LocalDate toDate = LocalDate.of(lastYear + 1, 1, 1);
     combinedHolidayOfHoldings.addAll(globalHolidays);
@@ -250,7 +266,7 @@ public class PerformanceReport {
     LocalDate leatestPossibleTradingDay = getLatestTradingDayBeforeDate(combinedHolidayOfHoldings, LocalDate.now(),
         firstEverTradingDay);
 
-    return new FirstAndMissingTradingDays(firstEverTradingDay, secondEverTradingDay,
+    return new FirstAndMissingTradingDays(firstEverTradingDay, firstEverHoldDay, secondEverTradingDay,
         lastTradingDayOfLastYearOpt.isEmpty() ? null : lastTradingDayOfLastYearOpt.get().getTradingDate(),
         leatestPossibleTradingDay, latestTradingDay, secondLatestTradingDay, combinedHolidayOfHoldings,
         missingQuoteDays);
@@ -346,8 +362,10 @@ public class PerformanceReport {
     FirstAndMissingTradingDays firstAndMissingTradingDays = this
         .getFirstAndMissingTradingDaysByTenant(user.getIdTenant());
     checkInputParam(firstAndMissingTradingDays, user.getLocaleStr(), dateFrom, dateTo, periodSplit);
-    List<IPeriodHolding> periodHoldings = holdSecurityaccountSecurityRepository
-        .getPeriodHoldingsByTenant(user.getIdTenant(), dateFrom, dateTo);
+    List<IPeriodHolding> periodHoldings = prependZeroBaseHolding(
+        holdSecurityaccountSecurityRepository.getPeriodHoldingsByTenant(user.getIdTenant(), dateFrom, dateTo), dateFrom,
+        firstAndMissingTradingDays, () -> holdSecurityaccountSecurityRepository
+            .getPeriodHoldingZeroBaseByTenant(user.getIdTenant(), dateFrom));
     return getPeriodPerformance(firstAndMissingTradingDays, periodHoldings, periodSplit);
   }
 
@@ -376,9 +394,51 @@ public class PerformanceReport {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     FirstAndMissingTradingDays firstAndMissingTradingDays = this.getFirstAndMissingTradingDaysByPortfolio(idPortfolio);
     checkInputParam(firstAndMissingTradingDays, user.getLocaleStr(), dateFrom, dateTo, periodSplit);
-    List<IPeriodHolding> periodHoldings = holdSecurityaccountSecurityRepository
-        .getPeriodHoldingsByPortfolio(idPortfolio, dateFrom, dateTo);
+    List<IPeriodHolding> periodHoldings = prependZeroBaseHolding(
+        holdSecurityaccountSecurityRepository.getPeriodHoldingsByPortfolio(idPortfolio, dateFrom, dateTo), dateFrom,
+        firstAndMissingTradingDays,
+        () -> holdSecurityaccountSecurityRepository.getPeriodHoldingZeroBaseByPortfolio(idPortfolio, dateFrom));
     return getPeriodPerformance(firstAndMissingTradingDays, periodHoldings, periodSplit);
+  }
+
+  //@formatter:off
+  /**
+   * Puts the zero baseline row in front of the daily holdings when the report starts before the first security position
+   * was opened.
+   *
+   * <p>
+   * The daily holdings query is driven by hold_securityaccount_security and therefore cannot deliver a row for a day on
+   * which nothing was held. Without this baseline the first returned row would be the day of the opening purchase, whose
+   * cost and result are already contained in it. Since the start date of the report is an excluded baseline, that day
+   * would be lost from the analysis and the amounts would not start at zero.
+   * </p>
+   *
+   * <p>
+   * The decision is made on the first hold day rather than on the date of the first returned row. A row may also be
+   * missing because the query drops days on which a quote of a held security is unavailable, and such a day must not be
+   * replaced by a baseline that claims no securities were held.
+   * </p>
+   *
+   * @param periodHoldings   the daily holdings as delivered by the report query
+   * @param dateFrom         the requested start date of the report
+   * @param fmtd             trading day metadata holding the first hold day
+   * @param zeroBaseSupplier supplies the baseline row, only called when one is actually needed
+   * @return the holdings with the baseline row in front, or the unchanged list when no baseline applies or none exists
+   */
+  //@formatter:on
+  private List<IPeriodHolding> prependZeroBaseHolding(List<IPeriodHolding> periodHoldings, LocalDate dateFrom,
+      FirstAndMissingTradingDays fmtd, Supplier<List<IPeriodHolding>> zeroBaseSupplier) {
+    if (fmtd.firstEverHoldDay == null || !dateFrom.isBefore(fmtd.firstEverHoldDay)) {
+      return periodHoldings;
+    }
+    List<IPeriodHolding> zeroBaseHolding = zeroBaseSupplier.get();
+    if (zeroBaseHolding.isEmpty()) {
+      return periodHoldings;
+    }
+    List<IPeriodHolding> combinedHoldings = new ArrayList<>(periodHoldings.size() + zeroBaseHolding.size());
+    combinedHoldings.addAll(zeroBaseHolding);
+    combinedHoldings.addAll(periodHoldings);
+    return combinedHoldings;
   }
 
   /**

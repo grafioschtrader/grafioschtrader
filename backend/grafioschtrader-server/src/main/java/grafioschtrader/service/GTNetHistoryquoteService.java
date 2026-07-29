@@ -138,7 +138,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
    * @return the number of records received and stored
    */
   public int requestHistoryquotesForSecurity(String isin, String currency, LocalDate fromDate, LocalDate toDate) {
-    if (!globalparametersJpaRepository.isGTNetEnabled()) {
+    if (!globalparametersJpaRepository.isGTNetOperational()) {
       return 0;
     }
 
@@ -159,7 +159,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
    * @return the number of records received and stored
    */
   public int requestHistoryquotesForCurrencypair(String fromCurrency, String toCurrency, LocalDate fromDate, LocalDate toDate) {
-    if (!globalparametersJpaRepository.isGTNetEnabled()) {
+    if (!globalparametersJpaRepository.isGTNetOperational()) {
       return 0;
     }
 
@@ -177,7 +177,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
    * @return the number of records received and stored
    */
   public int requestHistoryquotes(HistoryquoteExchangeMsg request) {
-    if (!globalparametersJpaRepository.isGTNetEnabled()) {
+    if (!globalparametersJpaRepository.isGTNetOperational()) {
       return 0;
     }
     return executeHistoryquoteExchange(request);
@@ -198,8 +198,8 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
   public <S extends Securitycurrency<S>> HistoryquoteExchangeResult<S> requestHistoryquotesFromBaseThru(
       List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, LocalDate untilDate) {
 
-    // Check GTNet enabled
-    if (!globalparametersJpaRepository.isGTNetEnabled() || historySecurityCurrencyList.isEmpty()) {
+    // Check GTNet enabled and set up with an own entry
+    if (!globalparametersJpaRepository.isGTNetOperational() || historySecurityCurrencyList.isEmpty()) {
       return HistoryquoteExchangeResult.passthrough(historySecurityCurrencyList);
     }
 
@@ -222,6 +222,12 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
     }
 
     if (exchangeSet.isEmpty()) {
+      return HistoryquoteExchangeResult.passthrough(historySecurityCurrencyList);
+    }
+
+    // No peer is configured to exchange historical prices, so the supplier queries below would return
+    // empty lists. Leave before the supplier detail and success rate lookups are paid for.
+    if (!gtNetJpaRepository.existsExchangePeerByEntityKind(GTNetExchangeKindType.HISTORICAL_PRICES.getValue())) {
       return HistoryquoteExchangeResult.passthrough(historySecurityCurrencyList);
     }
 

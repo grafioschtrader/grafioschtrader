@@ -143,14 +143,8 @@ public class GTNetLifecycleListener {
   }
 
   private boolean checkGTNetIsUsedAndSetup() {
-    if (!globalparametersJpaRepository.isGTNetEnabled()) {
-      log.debug("GTNet is disabled, skipping offline announcement");
-      return false;
-    }
-    // Check if GTNet is configured (has my entry ID)
-    Integer myEntryId = globalparametersJpaRepository.getGTNetMyEntryID();
-    if (myEntryId == null) {
-      log.info("GTNet my entry ID not configured, skipping offline announcement");
+    if (!globalparametersJpaRepository.isGTNetOperational()) {
+      log.debug("GTNet is disabled or has no own entry configured, skipping GTNet lifecycle handling");
       return false;
     }
     return true;

@@ -19,6 +19,7 @@ import {LoginService} from '../../lib/login/service/log-in.service';
 import {TenantLimit} from '../../shared/types/tenant.limit';
 import {AddSearchToListService} from '../component/add-instrument-table.component';
 import {IntraHistoricalWatchlistProblem} from '../model/intra.historical.watchlist.problem';
+import {WatchlistMoveStatus} from '../model/watchlist.move.status';
 import {BaseSettings} from '../../lib/base.settings';
 
 
@@ -45,11 +46,6 @@ export class WatchlistService extends AuthServiceWithLogout<Watchlist> implement
     return <Observable<{ idWatchlist: number, hasSecurity: number }[]>>this.httpClient.get(
       `${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/hassecurity`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
-  }
-
-  getAllWatchlistsWithSecurityByIdSecuritycurrency(idSecuritycurrency: number): Observable<number[]> {
-    return <Observable<number[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}`
-      + `/existssecurity/${idSecuritycurrency}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   getWatchlistWithoutUpdate(idWatchlist: number): Observable<SecuritycurrencyGroup> {
@@ -139,8 +135,19 @@ export class WatchlistService extends AuthServiceWithLogout<Watchlist> implement
       + `${securitycurrency.idSecuritycurrency}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-  moveSecuritycurrency(idWatchlistSource: number, idWatchlistTarget: number, idSecuritycurrency: number): Observable<boolean> {
-    return this.httpClient.put(`${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlistSource}/moveto/`
+  /**
+   * Moves a single instrument from one watchlist to another. The returned status reports whether the instrument was
+   * moved or why nothing was changed, so no additional existence check is required before the call.
+   *
+   * @param idWatchlistSource - Watchlist the instrument currently belongs to
+   * @param idWatchlistTarget - Watchlist the instrument should be moved to
+   * @param idSecuritycurrency - Security or currency pair to move
+   * @returns Observable of the move outcome
+   */
+  moveSecuritycurrency(idWatchlistSource: number, idWatchlistTarget: number,
+                       idSecuritycurrency: number): Observable<WatchlistMoveStatus> {
+    return <Observable<WatchlistMoveStatus>>this.httpClient.put(
+      `${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/${idWatchlistSource}/moveto/`
       + `${idWatchlistTarget}/securitycurrency/${idSecuritycurrency}`, null,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }

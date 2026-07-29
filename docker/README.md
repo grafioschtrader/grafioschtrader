@@ -110,11 +110,22 @@ docker compose up -d               # start / apply .env changes
 ./update.sh 0.36.3     # or: ./update.sh latest
 ```
 
-`update.sh` does the whole update: it backs up the database, fetches the new
-images — pulling the published ones, or building them from source with
+`update.sh` does the whole update: it backs up the database, `.env` and
+`config/`, migrates renamed configuration keys when a release needs it, fetches
+the new images — pulling the published ones, or building them from source with
 `--build` — restarts the stack and waits until the database migrations have
 finished, then reports the resulting schema version. Run it from the `docker/`
 directory; without arguments it updates to the version already set in `.env`.
+
+A release may rename a setting, for example when a key moves from the
+application prefix `gt.` to the library prefix `g.`. Since `config/` lives on
+the host and is never touched by an image update, `update.sh` rewrites the
+affected keys in `config/application-production.properties` itself. It only does
+so once `docker-compose.yml` shows that the installation has been updated to the
+release in question, and it stops before pulling anything if it finds both the
+old and the new spelling of a key — decide which value should win, remove the
+other, and run the update again. The `.bak` copies taken next to the database
+dump hold the state from before the change.
 
 If the images have to be built instead of pulled, update the source first —
 `update.sh` builds what is checked out next to it and refuses to mislabel an

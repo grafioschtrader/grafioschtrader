@@ -28,8 +28,11 @@ const routes: Routes = [
   {path: '', pathMatch: 'full', redirectTo: 'login'},
 ];
 
+// Same single source as the main application. proxy.lib-e2e.conf.json forwards /api to the grafiosch-test-integration
+// host on port 8081, which serves this endpoint from the grafiosch-base bundle alone -- exactly the standalone-library
+// case that LibraryOnlyNlsCompletenessTest guarantees is complete.
 const translateLoader = (http: HttpClient) => new MultiTranslateHttpLoader(http, [
-  {prefix: '/app/lib/assets/i18n/', suffix: '.json'},
+  {prefix: '/api/globalparameters/properties/', suffix: '', mandatory: true},
 ]);
 
 bootstrapApplication(LibE2EAppComponent, {

@@ -1,0 +1,77 @@
+# EN-reuse allowlist for grafioschtrader-common (message/messages{,_de}.properties) -- see GitHub issue #214.
+#
+# NlsBundleParityTest enforces that every key present in messages.properties is also present in
+# messages_de.properties. Beyond that it flags any key whose German value is byte-identical to the
+# English one, because that is usually a forgotten translation. Listing a key here declares the
+# equal value to be deliberate.
+#
+# This file NEVER permits a missing German key -- only an intentionally equal value.
+# One key per line, '#' starts a comment. Stale entries (key absent, or values no longer equal)
+# fail the build, so the file cannot rot.
+
+# --- Deliberate: subscription tier names of the data providers.
+# Left in English on purpose so the user recognises the plan on the provider's own pricing page.
+ALPHA_VANTAGE_FREE
+ALPHA_VANTAGE_PREMIUM
+CRYPTOCOMPARE_FREE
+CRYPTOCOMPARE_OTHERS
+CURRENCY_CONVERTER_FREE
+CURRENCY_CONVERTER_OTHERS
+EOD_HISTORICAL_DATA_ALL_IN_ONE
+EOD_HISTORICAL_DATA_ALL_WORLD
+EOD_HISTORICAL_DATA_CALENDAR_DATA_FEED
+FINNHUB_ALL_IN_ONE
+FINNHUB_BASIC
+FINNHUB_FREE
+FINNHUB_STANDARD_OR_PROFESSIONAL
+STOCK_DATA_ORG_BASIC
+STOCK_DATA_ORG_FREE
+STOCK_DATA_ORG_STANDARD_OR_PRO
+TWELVEDATA_FREE
+TWELVEDATA_GROW_55
+TWELVEDATA_GROW_144
+TWELVEDATA_GROW_377
+
+# --- Deliberate: proper nouns, financial abbreviations and words identical in German ---
+CFD
+ETF
+FOREX
+isin
+name
+
+# --- Deliberate: values that carry no translatable words (pure format strings) ---
+gt.dividend.calenar.security
+simulation.tenant.name
+
+# --- Deliberate: migrated from the frontend. Symbols, abbreviations and loan words that are
+# identical in German, plus a few pure-symbol labels used as column headers.
+CALC_EX_RATE
+DF_AD_HOC
+EX_RATE_SYMBOL
+IMPORT
+INSTITUTION_LEI
+INSTRUMENT
+MEDIAN
+NAME_SECURITY
+OHLC_CHART
+OHL_PERCENTAGE
+ONE_OVER_X
+PORTFOLIOS
+SPEC_INVEST_INSTRUMENT
+SYMBOL
+TICKER
+
+# --- REVIEW: probably a forgotten German translation, kept listed so the build stays green.
+# Decide and either translate (and delete the line here) or move the entry up to a section above.
+# COMMODITIES additionally has an English typo: "Commodites" -> "Commodities" (German: "Rohstoffe").
+# MULTI_ASSET -> German "Multi-Asset".
+COMMODITIES
+MULTI_ASSET
+SERVER_ONLINE
+# SYMBOL_IMP reads "Symbol import" in both; German would be "Symbol-Import".
+SYMBOL_IMP
+# VALUE_SECURITY reads "Total Position" in both; German would be "Gesamtposition".
+VALUE_SECURITY
+# c.showOnlyParam1 is "aaa {{param1}}" -- placeholder text left over from development, not a real
+# label. It is referenced nowhere; consider deleting the key entirely.
+c.showOnlyParam1

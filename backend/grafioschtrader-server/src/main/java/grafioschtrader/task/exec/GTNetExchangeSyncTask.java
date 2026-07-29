@@ -88,6 +88,10 @@ public class GTNetExchangeSyncTask implements ITask {
    */
   @Scheduled(cron = "${gt.gtnet.exchange.sync.cron}", zone = BaseConstants.TIME_ZONE)
   public void scheduledGTNetExchangeSync() {
+    if (!globalparametersJpaRepository.isGTNetOperational()) {
+      log.debug("GTNet is disabled or has no own entry configured, skipping exchange sync");
+      return;
+    }
     taskDataChangeJpaRepository.save(new TaskDataChange(
         getTaskType(),
         TaskDataExecPriority.PRIO_NORMAL,
@@ -100,8 +104,8 @@ public class GTNetExchangeSyncTask implements ITask {
 
   @Override
   public void doWork(TaskDataChange taskDataChange) throws TaskBackgroundException {
-    if (!globalparametersJpaRepository.isGTNetEnabled()) {
-      log.debug("GTNet is disabled, skipping exchange sync");
+    if (!globalparametersJpaRepository.isGTNetOperational()) {
+      log.debug("GTNet is disabled or has no own entry configured, skipping exchange sync");
       return;
     }
 

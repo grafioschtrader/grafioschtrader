@@ -1,0 +1,81 @@
+{
+  "_comment": [
+    "Fixture for the Playwright spec frontend/e2e/047-create-derived-security.spec.ts.",
+    "Hand-authored — must NOT be moved into testdata/generated/, nv.bat wipes that directory.",
+    "The instruments mirror the production database (grafioschtrader): 3962, 3996 and 3739.",
+    "All three are DERIVED securities: they have no price connector, their prices are calculated",
+    "from the linked base instrument 'o' and, when a formula is present, from the additional",
+    "instruments p..s.",
+    "Linked instruments are referenced by NAME / currency code, never by id: the production ids",
+    "do not survive into grafioschtrader_t. The USD/CHF pair for instance is dropped from",
+    "V2__testdata.sql because its production history connector needs an API key; it is recreated",
+    "by spec 035-create-currencypair and therefore gets a different id."
+  ],
+  "loginNickname": "alledit",
+  "watchlistName": "Derived",
+  "instruments": [
+    {
+      "sourceIdSecuritycurrency": 3962,
+      "name": "Gold 100 Gramm in CHF",
+      "baseInstrument": {
+        "type": "SECURITY",
+        "searchName": "Gold Feinunze",
+        "displayName": "Gold Feinunze"
+      },
+      "formulaPrices": "o * 3.2150746569 * p",
+      "additionalInstruments": {
+        "p": {
+          "type": "CURRENCYPAIR",
+          "searchName": "USD",
+          "displayName": "USD/CHF"
+        }
+      },
+      "currency": "CHF",
+      "assetclassSubCategoryDE": "Gold physisch",
+      "stockexchangeName": "Primary exchange Switzerland",
+      "activeFromDate": "2000-02-03",
+      "activeToDate": "2036-01-01",
+      "distributionFrequency": "DF_NONE",
+      "leverageFactor": 1.0,
+      "e2e": "e"
+    },
+    {
+      "sourceIdSecuritycurrency": 3996,
+      "name": "Forex EUR/CHF -> CHF",
+      "baseInstrument": {
+        "type": "CURRENCYPAIR",
+        "searchName": "EUR",
+        "displayName": "EUR/CHF"
+      },
+      "formulaPrices": null,
+      "additionalInstruments": {},
+      "currency": "CHF",
+      "assetclassSubCategoryDE": "Forex",
+      "stockexchangeName": "Primary exchange Switzerland",
+      "activeFromDate": "2000-02-03",
+      "activeToDate": "2036-01-01",
+      "distributionFrequency": "DF_NONE",
+      "leverageFactor": 1.0,
+      "e2e": "e"
+    },
+    {
+      "sourceIdSecuritycurrency": 3739,
+      "name": "Forex USD/CHF -> CHF",
+      "baseInstrument": {
+        "type": "CURRENCYPAIR",
+        "searchName": "USD",
+        "displayName": "USD/CHF"
+      },
+      "formulaPrices": null,
+      "additionalInstruments": {},
+      "currency": "CHF",
+      "assetclassSubCategoryDE": "Forex",
+      "stockexchangeName": "Primary exchange Switzerland",
+      "activeFromDate": "2000-02-03",
+      "activeToDate": "2036-01-01",
+      "distributionFrequency": "DF_NONE",
+      "leverageFactor": 1.0,
+      "e2e": "e"
+    }
+  ]
+}

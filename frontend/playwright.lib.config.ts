@@ -8,6 +8,11 @@ export default defineConfig({
   expect: {
     timeout: 10_000,
   },
+  /* See playwright.config.ts: naming a reporter drops the default 'list', so it is repeated here. */
+  reporter: [
+    ['list'],
+    ['./e2e/reporters/timing.reporter.ts'],
+  ],
   use: {
     baseURL: process.env.LIB_E2E_FRONTEND_URL ?? 'http://localhost:4201',
     headless: true,

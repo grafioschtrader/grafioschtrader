@@ -7,6 +7,12 @@ export default defineConfig({
   expect: {
     timeout: 10_000,
   },
+  /* 'list' is the Playwright default and has to be repeated, because naming any reporter
+     replaces the default. The timing reporter appends the run-time breakdown after it. */
+  reporter: [
+    ['list'],
+    ['./e2e/reporters/timing.reporter.ts'],
+  ],
   use: {
     baseURL: 'http://localhost:4200',
     headless: true,
@@ -14,7 +20,7 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   /* Run e2e test files sequentially (alphabetical order) so
-     99-delete runs after the numbered create specs (04, 06, 08, ...) */
+     888-delete runs after the numbered create specs (005, 010, 015, ...) */
   workers: 1,
   projects: [
     {

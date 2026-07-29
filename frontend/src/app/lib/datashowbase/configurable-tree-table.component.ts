@@ -436,6 +436,12 @@ export class ConfigurableTreeTableComponent {
    * template $implicit variable. We must extract the actual TreeNode (.node) to keep
    * selection consistent with PrimeNG's own left-click handling.
    *
+   * A right-click must select exactly like a left-click, otherwise a host that keeps its own copy of
+   * the selected node (to build a level dependent context menu) still holds the previously
+   * left-clicked node and opens the wrong menu. The nodeSelect event is therefore emitted
+   * unconditionally: PrimeNG toggles an already selected row off on the next click, so the host has
+   * to be told about the right-clicked row even when it is the current selection.
+   *
    * @param rowNode - The serialized tree node from PrimeNG's body template
    */
   onRowContextMenu(rowNode: any): void {
@@ -444,6 +450,7 @@ export class ConfigurableTreeTableComponent {
       this.selection = node;
       this.selectionChange.emit(node);
     }
+    this.nodeSelect.emit({originalEvent: null, node});
   }
 
   /**

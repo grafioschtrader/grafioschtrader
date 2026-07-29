@@ -102,7 +102,40 @@ Each property key must appear **exactly once** within the same `.properties` fil
 
 ### Backend-Frontend Key Correspondence
 
-Backend `dot.separated.lowercase` keys and frontend `UPPER_SNAKE_CASE` keys are **independent systems**. Backend field labels in `DataViolationException` are translated server-side before being sent to the frontend. The comment in `messages.properties` — `# Field names should match with client. On server "abc.def" gets "ABC_DEF" on client` — refers to the convention that the same human-readable text should appear in both systems when the same concept is displayed. However, backend keys are resolved by `MessageSource` and frontend keys by `TranslateService`, so they are not required to have matching counterparts.
+The backend `.properties` files are the **single source of every user interface text** (GitHub issue #214). The frontend has no translation files at all; it loads `GET /api/globalparameters/properties/{language}` as ngx-translate's only source. Adding a key here is therefore how a frontend text is created.
+
+`grafiosch.nls.NlsKeyMapper` translates the stored key into the key the client uses. The rules are ordered:
+
+| # | Stored key | Client key | Meaning |
+|---|-----------|-----------|---------|
+| 1 | `c.required`, `c.webUrl` | `required`, `webUrl` | **Client-only key.** The `c.` prefix is stripped. Use it for dynamic-form validator messages and the `login.failure` / `login.ipaddress.locked` codes — anything the browser resolves and the server never does. |
+| 2 | `g.…`, `gt.…`, `UDF_…` | unchanged | Configuration parameters and metadata keep their dotted form. |
+| 3 | `GT_FILTER.gtIS` | `{GT_FILTER: {gtIS: …}}` | The only allow-listed nested namespace; split on the first dot only. |
+| 4 | `readable.name`, `name`, `MY_KEY` | `READABLE_NAME`, `NAME`, `MY_KEY` | Everything else: upper-case, dots to underscores. Idempotent, so an `UPPER_SNAKE` key passes through unchanged. |
+
+Rule 1 exists because shape alone is not enough: `webUrl` is simultaneously the Bean Validation message of `@WebUrl` (a server-resolved label, client key `WEBURL`) and a dynamic-form validator key with different text (`c.webUrl` → `webUrl`).
+
+The pass-through prefixes and nested namespaces are declared per module in `META-INF/grafiosch/nls-mapping.properties`; `NlsMappingRegistry` unions every copy on the class path. Deliberately not wired to `BaseConstants.PREFIXES_PARAM`, which is filled from a `@PostConstruct` and would give the guards a different mapping than the running server.
+
+**Basename order matters**: `MessageConfig` sets `("classpath:message/messages", "classpath:i18n/messages")`. The first basename wins, so the application can relabel a library text (`id.user.redirect`). Reversing it is a regression that `NlsModulePrecedenceTest` catches.
+
+**Which module owns a key** is decided by the layer of the consuming code, including frontend code: a text used from `src/app/lib/**` must live in `grafiosch-base`, or a standalone grafiosch server renders it as a raw key. `node scripts/nls-tool.mjs check` verifies this.
+
+### Guards
+
+These run with `mvn test` and fail the build rather than letting a broken text reach a user:
+
+| Test | Checks |
+|------|--------|
+| `NlsBundleGuardTest` / `NlsBaseBundleGuardTest` | EN/DE key parity, duplicate keys, legal key characters, UTF-8 without BOM, placeholder dialect, and that an EN-equal German value is listed in the module's `nls-en-reuse.txt` |
+| `NlsMappingCollisionTest` | no two keys map to the same client key, in either language |
+| `NlsModuleOwnershipTest` | no key is defined in both modules unless intended |
+| `NlsModulePrecedenceTest` | the application bundle overrides the library bundle |
+| `NlsKeyMapperTest` | the four mapping rules, including locale-independent upper-casing |
+
+Placeholder dialects must not mix on one key: ngx-translate `{{name}}` for client-resolved texts, `MessageFormat` `{0}` for server-resolved ones — and in the latter every `'` must be doubled.
+
+To edit texts without restarting the server, set `g.nls.cache.seconds` to a small value in a development profile.
 
 ## Configuration Prefix Convention (`g.` vs `gt.`)
 

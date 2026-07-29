@@ -1,0 +1,102 @@
+{
+  "_comment": [
+    "Fixture for the Playwright specs frontend/e2e/015-create-portfolio.spec.ts (create) and",
+    "frontend/e2e/888-delete-portfolio.spec.ts (teardown).",
+    "Hand-authored — must NOT be moved into testdata/generated/, nv.bat wipes that directory.",
+    "",
+    "'delete' is the teardown definition: a portfolio with delete=true is removed completely by 888",
+    "(all cash accounts, all securities accounts, then the portfolio itself). delete=false keeps the",
+    "portfolio in grafioschtrader_t after the suite has run — 888 then generates no test for it.",
+    "",
+    "'loginNickname' refers to users.csv. 'e2euser' is registered through the UI by auth.setup.ts and",
+    "runs an English UI (en-US); 'alledit' is seeded by the backend ResoureTestSuite and runs a German",
+    "UI (de-CH) — therefore the specs match every menu text bilingually.",
+    "",
+    "'tradingPlatformPlan' is matched case-insensitively as a SUBSTRING of the option label in the",
+    "securities account dialog, because the label is language dependent. The plans come from",
+    "testdata/generated/tradingplatformplan.csv, but from two different producers: rows tagged e2e='i'",
+    "are seeded by the backend TradingPlatformPlanResourceTest — that covers 'CornèTrader",
+    "Transaktionsbetrag' / 'CornèTrader Transactions value' — while rows tagged e2e='e' are created",
+    "through the UI by frontend/e2e/012-create-trading-platform-plan.spec.ts, which covers 'Saxo",
+    "Trader' (DE = EN). That spec is numbered 012 so it runs before 015; renumbering it after 015",
+    "makes the SaxoTrader securities account fail with 'no trading platform plan matching Saxo Trader'.",
+    "Note the plan name has no 'r' in 'Cornè' while the portfolio here is named 'CornèrTrader'.",
+    "null means: take the first non-empty option.",
+    "",
+    "'tradingPeriods' are ADDED to the two rows the dialog pre-fills for a new securities account",
+    "(Equities/Direct investment and Equities/ETF), they do not replace them. A null categoryType is",
+    "the empty option of the asset class select and means 'all asset classes'. The enum names are the",
+    "option values and therefore language independent. dateFrom 2000-01-03 is the oldest trading day,",
+    "which the dialog also pre-fills."
+  ],
+  "portfolios": [
+    {
+      "loginNickname": "e2euser",
+      "name": "Test Portfolio",
+      "currency": "CHF",
+      "delete": true,
+      "cashAccounts": [
+        {"name": "CHF Account", "currency": "CHF"},
+        {"name": "USD Account", "currency": "USD"},
+        {"name": "EUR Account", "currency": "EUR"}
+      ],
+      "securityAccounts": [
+        {
+          "name": "Test Securities",
+          "tradingPlatformPlan": null,
+          "lowestTransactionCost": 5,
+          "tradingPeriods": []
+        }
+      ],
+      "e2e": "e"
+    },
+    {
+      "loginNickname": "alledit",
+      "name": "SaxoTrader",
+      "currency": "CHF",
+      "delete": true,
+      "cashAccounts": [
+        {"name": "ST CHF", "currency": "CHF"},
+        {"name": "ST USD", "currency": "USD"},
+        {"name": "ST EUR", "currency": "EUR"}
+      ],
+      "securityAccounts": [
+        {
+          "name": "ST",
+          "tradingPlatformPlan": "Saxo Trader",
+          "lowestTransactionCost": 5,
+          "tradingPeriods": [
+            {"specInvestInstrument": "CFD", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"},
+            {"specInvestInstrument": "FOREX", "categoryType": "CURRENCY_PAIR", "dateFrom": "2000-01-03"},
+            {"specInvestInstrument": "ISSUER_RISK_PRODUCT", "categoryType": null, "dateFrom": "2000-01-03"}
+          ]
+        }
+      ],
+      "e2e": "e"
+    },
+    {
+      "loginNickname": "alledit",
+      "name": "CornèrTrader",
+      "currency": "CHF",
+      "delete": true,
+      "cashAccounts": [
+        {"name": "CT CHF", "currency": "CHF"},
+        {"name": "CT USD", "currency": "USD"},
+        {"name": "CT EUR", "currency": "EUR"}
+      ],
+      "securityAccounts": [
+        {
+          "name": "CT",
+          "tradingPlatformPlan": "CornèTrader",
+          "lowestTransactionCost": 5,
+          "tradingPeriods": [
+            {"specInvestInstrument": "CFD", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"},
+            {"specInvestInstrument": "FOREX", "categoryType": "CURRENCY_PAIR", "dateFrom": "2000-01-03"},
+            {"specInvestInstrument": "ISSUER_RISK_PRODUCT", "categoryType": null, "dateFrom": "2000-01-03"}
+          ]
+        }
+      ],
+      "e2e": "e"
+    }
+  ]
+}

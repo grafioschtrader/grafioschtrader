@@ -557,7 +557,7 @@ CREATE TABLE `verificationtoken` (
 
 /*!40000 ALTER TABLE `globalparameters` DISABLE KEYS */;
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.gnet.connection.timeout',30,NULL,NULL,NULL,NULL,0,'min:5,max:40');
-INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.gnet.my.entry.id',4,NULL,NULL,NULL,NULL,1,NULL);
+INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.gnet.my.entry.id',NULL,NULL,NULL,NULL,NULL,1,NULL);
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.gnet.use',1,NULL,NULL,NULL,NULL,0,NULL);
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.gnet.use.log',1,NULL,NULL,NULL,NULL,0,NULL);
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.jwt.expiration.minutes',1440,NULL,NULL,NULL,NULL,0,NULL);

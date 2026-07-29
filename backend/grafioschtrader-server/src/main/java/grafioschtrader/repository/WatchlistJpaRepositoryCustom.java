@@ -10,6 +10,7 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Watchlist;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyLists;
 import grafioschtrader.search.SecuritycurrencySearch;
+import grafioschtrader.types.WatchlistMoveStatus;
 
 /**
  * Custom repository methods for the {@link Watchlist} entity. Extends {@link BaseRepositoryCustom} to provide base
@@ -130,16 +131,21 @@ public interface WatchlistJpaRepositoryCustom extends BaseRepositoryCustom<Watch
 
   /**
    * Moves a specific security or currency pair from a source watchlist to a target watchlist. The instrument must exist
-   * in the source watchlist and the user must have appropriate permissions for both source and target watchlists.
+   * in the source watchlist and must not yet exist in the target watchlist, since an instrument may occur only once per
+   * watchlist. Both watchlists must belong to the tenant of the calling user.
+   *
+   * Both preconditions are checked here rather than by the client, so that a move costs a single request. The returned
+   * status tells the caller which precondition failed instead of requiring a separate lookup.
    *
    * @param idWatchlistSource  The ID of the source watchlist from which the instrument will be moved.
    * @param idWatchlistTarget  The ID of the target watchlist to which the instrument will be moved.
    * @param idSecuritycurrency The ID of the security or currencypair to move.
-   * @return {@code true} if the instrument was successfully moved, {@code false} otherwise (e.g., if the instrument is
-   *         not in the source watchlist, or if limits on the target watchlist are exceeded).
+   * @return {@link WatchlistMoveStatus#MOVED} when the instrument was moved, otherwise the reason why nothing was
+   *         changed.
    * @throws SecurityException if the user does not have rights to modify either the source or target watchlist.
    */
-  Boolean moveSecuritycurrency(Integer idWatchlistSource, Integer idWatchlistTarget, Integer idSecuritycurrency);
+  WatchlistMoveStatus moveSecuritycurrency(Integer idWatchlistSource, Integer idWatchlistTarget,
+      Integer idSecuritycurrency);
 
   /**
    * Retrieves the raw response string from the configured data provider for an instrument's price data. This method is

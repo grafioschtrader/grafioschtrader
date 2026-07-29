@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.WebRequest;
 
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.common.PropertyChangePassword;
@@ -29,6 +31,8 @@ import grafiosch.dynamic.model.FormDefinitionRegistry;
 import grafiosch.entities.Globalparameters;
 import grafiosch.entities.User;
 import grafiosch.repository.GlobalparametersJpaRepository;
+import grafiosch.service.NlsPayloadService;
+import grafiosch.service.NlsPayloadService.NlsPayload;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -40,6 +44,9 @@ public class GlobalparametersResource {
 
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
+
+  @Autowired
+  private NlsPayloadService nlsPayloadService;
 
   @Operation(summary = "Returns the password requirements.", description = "", tags = { Globalparameters.TABNAME })
   @GetMapping(value = "/passwordrequirements", produces = APPLICATION_JSON_VALUE)
@@ -97,11 +104,21 @@ public class GlobalparametersResource {
     return new ResponseEntity<>(globalparametersJpaRepository.getCountriesForSelectBox(), HttpStatus.OK);
   }
 
-  @Operation(summary = "Some language translations are provided by the backend", description = "Properties names are separated by underscore", tags = {
-      Globalparameters.TABNAME })
+  @Operation(summary = "All user interface texts for one language", description = """
+      Delivers the translated texts as a JSON document. Keys are mapped from their storage form in the
+      messages*.properties files to the form the client addresses them by; see grafiosch.nls.NlsKeyMapper for the rules.
+      The endpoint is reachable without authentication because the login screen already needs its texts.
+      The document changes only when the application is redeployed, so it is served with an ETag and revalidated
+      rather than re-transferred.""", tags = { Globalparameters.TABNAME })
   @GetMapping(value = "/properties/{language}", produces = APPLICATION_JSON_VALUE)
-  public String getLanguageProperties(@PathVariable final String language) {
-    return globalparametersJpaRepository.getLanguageProperties(language);
+  public ResponseEntity<String> getLanguageProperties(@PathVariable final String language, WebRequest request) {
+    NlsPayload payload = nlsPayloadService.getPayload(language);
+    if (request.checkNotModified(payload.etag())) {
+      // checkNotModified() has already written 304 and the ETag header; returning a body here would be ignored.
+      return null;
+    }
+    return ResponseEntity.ok().eTag(payload.etag()).cacheControl(CacheControl.noCache().cachePublic())
+        .body(payload.json());
   }
 
   @Operation(summary = "Returns the locales as key value properties", description = "", tags = {

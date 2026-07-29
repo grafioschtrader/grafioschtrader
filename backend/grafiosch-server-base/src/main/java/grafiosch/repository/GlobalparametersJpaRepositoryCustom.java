@@ -67,16 +67,6 @@ public interface GlobalparametersJpaRepositoryCustom {
   List<ValueKeyHtmlSelectOptions> getCountriesForSelectBox();
 
   /**
-   * Gets language-specific properties as a JSON string.
-   * Retrieves message properties for the specified language and converts keys to uppercase format.
-   * Keys starting with "gt." or "UDF_" preserve original format, others are converted to UPPER_CASE.
-   * 
-   * @param language the language code to retrieve properties for (e.g., "en", "de")
-   * @return JSON string containing localized message properties
-   */
-  String getLanguageProperties(final String language);
-
-  /**
    * Gets the alert notification bitmap configuration.
    * Uses GLOB_KEY_ALERT_MAIL with default fallback to Integer.MAX_VALUE (all alerts enabled).
    * 
@@ -133,6 +123,18 @@ public interface GlobalparametersJpaRepositoryCustom {
    * @return true if GTNet is enabled, false otherwise
    */
    boolean isGTNetEnabled();
+
+  /**
+   * Checks whether GTNet is not only enabled but also operable on this instance.
+   *
+   * In addition to {@link #isGTNetEnabled()} the global parameter 'g.gnet.my.entry.id' must name this instance's own
+   * GTNet entry. Without it no message can be sent, addressed or attributed, so every GTNet background task would have
+   * nothing to do. Prefer this over {@link #isGTNetEnabled()} wherever a GTNet background task is queued or executed,
+   * so that no task data change is written for an instance that has not completed its GTNet setup.
+   *
+   * @return true if GTNet is enabled and this instance has its own GTNet entry configured
+   */
+  boolean isGTNetOperational();
 
   /**
    * Gets the global GTNet connection timeout in seconds.

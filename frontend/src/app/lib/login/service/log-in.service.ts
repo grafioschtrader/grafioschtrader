@@ -25,6 +25,7 @@ export class LoginService extends BaseAuthService<User> {
   constructor(private router: Router,
     public translateService: TranslateService,
     private gps: GlobalparameterService,
+    private primeNGConfig: PrimeNG,
     httpClient: HttpClient,
     messageToastService: MessageToastService,
     @Optional() private afterLoginHandler?: AfterLoginHandler) {
@@ -81,6 +82,13 @@ export class LoginService extends BaseAuthService<User> {
     sessionStorage.setItem(GlobalSessionNames.MOST_PRIVILEGED_ROLE, configurationWithLogin.mostPrivilegedRole);
     sessionStorage.setItem(GlobalSessionNames.TENANT_READ_ONLY, JSON.stringify(configurationWithLogin.tenantReadOnly));
     sessionStorage.setItem(GlobalSessionNames.UDF_CONFIG, JSON.stringify(configurationWithLogin.udfConfig));
+
+    // Switch the user interface to the language of the user that just signed in. Until here the
+    // application runs in the language chosen at bootstrap, where no user is known yet and
+    // AppComponent could only fall back to the browser language. Without this call the user's
+    // configured language would take effect at the next full page load at the earliest, and never
+    // at all when the browser is set to another language.
+    LoginService.setGlobalLang(this.translateService, this.primeNGConfig);
 
     // Call application-specific handler if provided
     if (this.afterLoginHandler) {

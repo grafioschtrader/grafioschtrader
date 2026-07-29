@@ -109,6 +109,11 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
       if (copy.idSecaccountTradingPeriod != null && copy.idSecaccountTradingPeriod < 0) {
         copy.idSecaccountTradingPeriod = null;
       }
+      // The empty option of the asset class select yields '' — the wildcard "all asset classes" is
+      // NULL in the entity, and Jackson cannot coerce '' into the AssetclassType enum.
+      if (!copy.categoryType) {
+        copy.categoryType = null;
+      }
       return copy;
     });
   }

@@ -72,7 +72,7 @@ public class HistoryquoteThruGTNet<S extends Securitycurrency<S>> implements IHi
     //    but is still below gt.history.retry + gt.gtnet.quote.retry, and whose owner has opted in via
     //    gtNetHistoricalRecv. Includes both empty-history and partial-history instruments — without this
     //    step, those entries are dropped from the partial-fill named query and stuck forever.
-    if (globalparametersJpaRepository.isGTNetEnabled()) {
+    if (globalparametersJpaRepository.isGTNetOperational()) {
       catchUp.addAll(gtNetFallbackForExhaustedConnectors());
     }
 
@@ -189,8 +189,8 @@ public class HistoryquoteThruGTNet<S extends Securitycurrency<S>> implements IHi
       List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList, LocalDate currentDate,
       boolean isExchangeSpecificUpdate) {
 
-    if (!globalparametersJpaRepository.isGTNetEnabled() || historySecurityCurrencyList.isEmpty()) {
-      // GTNet disabled - pass through to connector with correct flag
+    if (!globalparametersJpaRepository.isGTNetOperational() || historySecurityCurrencyList.isEmpty()) {
+      // GTNet disabled or without an own entry - pass through to connector with correct flag
       return connectorThru.fillHistoryquoteForSecuritiesCurrencies(historySecurityCurrencyList, currentDate,
           isExchangeSpecificUpdate);
     }

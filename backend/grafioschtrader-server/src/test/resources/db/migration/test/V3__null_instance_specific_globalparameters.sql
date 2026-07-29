@@ -1,0 +1,11 @@
+-- Instance-specific globalparameters values that leak from the dumped development database into the
+-- generated V2__testdata.sql. nv.bat dumps the whole globalparameters table but carries the gt_net
+-- tables as structure only, so 'g.gnet.my.entry.id' points at a GTNet entry that does not exist in
+-- grafioschtrader_t and GTNetServerStatusCheckTask / GTNetFutureMessageDeliveryTask warn on every
+-- boot. NULL is the fresh-install state: getGTNetMyEntryID() returns null and no GTNet task is
+-- queued or executed until an own entry is created through the GTNet setup UI.
+--
+-- nv.bat now writes the same statement into V2__testdata.sql, so from the next regeneration on this
+-- migration is a no-op. It is kept to repair databases that were bootstrapped from an older V2.
+-- Idempotent, repeats harmlessly.
+UPDATE globalparameters SET property_int = NULL WHERE property_name = 'g.gnet.my.entry.id';

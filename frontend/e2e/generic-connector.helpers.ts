@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 /**
- * Shared helpers and typings for 34-create-generic-connector.spec.ts.
+ * Shared helpers and typings for 065-create-generic-connector.spec.ts.
  *
  * The generic connector testdata is a nested JSON file produced from the developer database by
  * scripts/export-generic-connectors.mjs (invoked by backend/nv.bat). Property names match the
@@ -104,38 +104,69 @@ export function loadGenericConnectors(): GenericConnectorDefData[] {
 // so those files are parsed in addition to the frontend i18n JSONs.
 // ---------------------------------------------------------------------------
 
+const MESSAGE_FILES = [
+  '../../backend/grafioschtrader-common/src/main/resources/message/messages.properties',
+  '../../backend/grafioschtrader-common/src/main/resources/message/messages_de.properties',
+  '../../backend/grafiosch-base/src/main/resources/i18n/messages.properties',
+  '../../backend/grafiosch-base/src/main/resources/i18n/messages_de.properties',
+].map(p => path.resolve(__dirname, p));
+
+const MAPPING_DESCRIPTORS = [
+  '../../backend/grafiosch-base/src/main/resources/META-INF/grafiosch/nls-mapping.properties',
+  '../../backend/grafioschtrader-common/src/main/resources/META-INF/grafiosch/nls-mapping.properties',
+].map(p => path.resolve(__dirname, p));
+
+const mappingListCache: { [property: string]: string[] } = {};
+
+/** Reads one comma-separated list from the module NLS descriptors, unioned like NlsMappingRegistry. */
+function mappingList(property: string): string[] {
+  if (!mappingListCache[property]) {
+    const values = new Set<string>();
+    for (const file of MAPPING_DESCRIPTORS) {
+      if (fs.existsSync(file)) {
+        const m = new RegExp(`^${property}\\s*=\\s*(.+)$`, 'm').exec(fs.readFileSync(file, 'utf-8'));
+        m?.[1].split(',').forEach(v => v.trim() && values.add(v.trim()));
+      }
+    }
+    mappingListCache[property] = [...values];
+  }
+  return mappingListCache[property];
+}
+
+/**
+ * Mirrors grafiosch.nls.NlsKeyMapper: the key stored in a properties file is NOT the key the client
+ * resolves. Rule 4 (upper-case, dots to underscores) is what makes the lower-case field label
+ * 'cryptocurrency' serve the frontend enum key CRYPTOCURRENCY — indexing the stored form alone
+ * silently loses every key whose storage shape differs from its client shape.
+ */
+function toClientKey(rawKey: string): string {
+  if (rawKey.startsWith('c.')) {
+    return rawKey.slice(2);
+  }
+  if (mappingList('passthrough.prefixes').some(p => rawKey.startsWith(p))) {
+    return rawKey;
+  }
+  const firstDot = rawKey.indexOf('.');
+  if (firstDot > 0 && mappingList('nested.namespaces').includes(rawKey.slice(0, firstDot))) {
+    return rawKey;
+  }
+  return rawKey.toUpperCase().replace(/\./g, '_');
+}
+
 let i18nCache: { [key: string]: string[] } | null = null;
 
 function loadI18n(): { [key: string]: string[] } {
   if (!i18nCache) {
     const cache: { [key: string]: string[] } = i18nCache = {};
-    const add = (key: string, value: string) => (cache[key] ??= []).push(value);
-    for (const file of [
-      path.resolve(__dirname, '../src/assets/i18n/en.json'),
-      path.resolve(__dirname, '../src/assets/i18n/de.json'),
-      path.resolve(__dirname, '../src/app/lib/assets/i18n/en.json'),
-      path.resolve(__dirname, '../src/app/lib/assets/i18n/de.json'),
-    ]) {
-      if (fs.existsSync(file)) {
-        const json = JSON.parse(fs.readFileSync(file, 'utf-8'));
-        for (const [key, value] of Object.entries(json)) {
-          if (typeof value === 'string') {
-            add(key, value);
-          }
-        }
-      }
-    }
-    for (const file of [
-      path.resolve(__dirname, '../../backend/grafioschtrader-common/src/main/resources/message/messages.properties'),
-      path.resolve(__dirname, '../../backend/grafioschtrader-common/src/main/resources/message/messages_de.properties'),
-      path.resolve(__dirname, '../../backend/grafiosch-base/src/main/resources/i18n/messages.properties'),
-      path.resolve(__dirname, '../../backend/grafiosch-base/src/main/resources/i18n/messages_de.properties'),
-    ]) {
+    // The frontend JSON translation files are gone; the backend properties files below are the only source of texts
+    // (issue #214). Keys are indexed under their CLIENT form, which is what the UI labels are rendered from.
+    for (const file of MESSAGE_FILES) {
       if (fs.existsSync(file)) {
         for (const line of fs.readFileSync(file, 'utf-8').split(/\r?\n/)) {
-          const m = /^([A-Za-z0-9_.]+)\s*=\s*(.+)$/.exec(line);
+          // '|' is a legal and used key character (CREATE|STANDING_ORDER).
+          const m = /^([A-Za-z0-9_.|]+)\s*=\s*(.+)$/.exec(line);
           if (m) {
-            add(m[1], m[2].trim());
+            (cache[toClientKey(m[1])] ??= []).push(m[2].trim());
           }
         }
       }

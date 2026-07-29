@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
@@ -21,8 +22,14 @@ import grafioschtrader.types.TaskTypeExtended;
  * Execute Job PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU when it was not executed the day before or there is no existing
  * {@link grafiosch.entities.TaskDataChange}.
  *
+ * <p>
+ * Can be switched off with {@code gt.startup.price.update.task=false}, which the {@code e2e} profile does: the end to
+ * end suite schedules the price update itself, so that it starts at a defined point of the run and only after the
+ * connector API keys have been created. Enabled whenever the property is absent, so production is unaffected.
+ * </p>
  */
 @Component
+@ConditionalOnProperty(name = "gt.startup.price.update.task", havingValue = "true", matchIfMissing = true)
 public class ExecuteStartupTask implements ApplicationListener<ApplicationReadyEvent> {
 
   @Autowired

@@ -40,7 +40,12 @@ package-lock.json
 /e2e/*.js
 /e2e/*.map
 /e2e/.auth/
-/test-results/
+# Where the timing reporter writes e2e-timing.json (next to the config's rootDir, i.e. the testDir).
+/e2e/test-results/
+/e2e/lib/test-results/
+# Also covers the fallback directories scripts/e2e-test.mjs creates when Windows keeps a handle on
+# the artifact tree: test-results.stale-<ts>/ and test-results-<ts>/.
+/test-results*/
 /playwright-report/
 
 # System Files

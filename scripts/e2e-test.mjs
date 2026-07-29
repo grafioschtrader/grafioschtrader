@@ -28,7 +28,9 @@
  *
  * Test phases are data-driven (see SUITES[...].testPhases): to alternate backend JUnit suites and
  * Playwright runs in the future, simply add more entries — they execute sequentially against the
- * same running backend and database.
+ * same running backend and database. A phase with `clearOutputDir` gets that directory emptied
+ * before it starts (see clearPlaywrightOutputDir); one with `timingJson` contributes a
+ * startup-versus-tests breakdown to the final summary.
  *
  * Prerequisites
  *   - MariaDB on localhost:3306. The suite's own DB user must be allowed to drop/recreate its
@@ -50,7 +52,8 @@
  */
 
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import fsp from 'node:fs/promises';
 import net from 'node:net';
 import path from 'node:path';
 import process from 'node:process';
@@ -68,6 +71,27 @@ const POLL_INTERVAL_MS = 2500;
 const BACKEND_READY_MS = 300_000;
 const FRONTEND_READY_MS = 300_000;
 
+/**
+ * Both Playwright configs leave `outputDir` at its default, so the artifacts of the main and the lib
+ * suite end up in the same directory. See clearPlaywrightOutputDir() for why the runner clears it
+ * instead of leaving that to Playwright.
+ */
+const PLAYWRIGHT_OUTPUT_DIR = path.join(FRONTEND_DIR, 'test-results');
+/** Time the runner is willing to spend on clearing the output directory before it degrades. */
+const OUTPUT_CLEAR_BUDGET_MS = 20_000;
+
+/**
+ * Heap for the forked JVMs of a suite (backend and the surefire fork of the integration tests).
+ * Matches what the deployment scripts hand the server (docker/docker-compose.yml, docker/install.sh,
+ * util/shellscripts/grafioschtrader.sh), so the suite runs on the same heap production gets instead
+ * of HotSpot's ergonomic default, which on a large developer machine is ~16 GB.
+ *
+ * The value contains a space and the children are spawned with `shell: true` on Windows, so every
+ * use must keep the inner double quotes — otherwise cmd.exe splits it and Maven treats `-Xmx2048m`
+ * as a goal.
+ */
+const E2E_JVM_ARGS = '-Xms512m -Xmx2048m';
+
 const SUITES = {
   main: {
     title: 'Grafioschtrader application suite',
@@ -75,16 +99,22 @@ const SUITES = {
     backend: {
       port: 8080,
       // spring-boot:test-run puts src/test/resources on the classpath so Flyway finds db/migration/test
-      args: ['-pl', 'grafioschtrader-server', 'spring-boot:test-run', '-Dspring-boot.run.profiles=e2e'],
+      args: ['-pl', 'grafioschtrader-server', 'spring-boot:test-run', '-Dspring-boot.run.profiles=e2e',
+        `-Dspring-boot.run.jvmArguments="${E2E_JVM_ARGS}"`],
       healthUrl: `${process.env.E2E_BACKEND_URL ?? 'http://localhost:8080'}/api/gtinfo`,
       healthOk: j => j.databaseName === 'grafioschtrader_t',
     },
     frontend: { port: 4200, npmArgs: ['start'] },
     testPhases: [
       { name: 'backend-integration-suite', cwd: BACKEND_DIR,
-        cmd: 'mvn', args: ['test', '-pl', 'grafioschtrader-server', '-Dtest=ResoureTestSuite'] },
+        // argLine is what surefire passes to the JVM it forks for the tests.
+        cmd: 'mvn', args: ['test', '-pl', 'grafioschtrader-server', '-Dtest=ResoureTestSuite',
+          `-DargLine="${E2E_JVM_ARGS}"`] },
       { name: 'frontend-playwright-e2e', cwd: FRONTEND_DIR,
-        cmd: 'npx', args: ['playwright', 'test'] },
+        cmd: 'npx', args: ['playwright', 'test'],
+        clearOutputDir: PLAYWRIGHT_OUTPUT_DIR,
+        // The timing reporter writes next to the config's rootDir, which is the testDir.
+        timingJson: path.join(FRONTEND_DIR, 'e2e', 'test-results', 'e2e-timing.json') },
     ],
   },
   lib: {
@@ -93,14 +123,17 @@ const SUITES = {
     backend: {
       port: 8081,
       // Flyway location filesystem:./grafiosch-test-integration/migration-baseline is relative to backend/
-      args: ['-pl', 'grafiosch-test-integration', 'spring-boot:run', '-Dspring-boot.run.profiles=e2e'],
+      args: ['-pl', 'grafiosch-test-integration', 'spring-boot:run', '-Dspring-boot.run.profiles=e2e',
+        `-Dspring-boot.run.jvmArguments="${E2E_JVM_ARGS}"`],
       healthUrl: `${process.env.LIB_E2E_BACKEND_URL ?? 'http://localhost:8081'}/api/integration-info`,
       healthOk: j => j.databaseName === 'grafiosch_t' && j.activeProfiles?.includes('e2e'),
     },
     frontend: { port: 4201, npmArgs: ['run', 'start:lib-e2e'] },
     testPhases: [
       { name: 'lib-playwright-e2e', cwd: FRONTEND_DIR,
-        cmd: 'npx', args: ['playwright', 'test', '--config=playwright.lib.config.ts'] },
+        cmd: 'npx', args: ['playwright', 'test', '--config=playwright.lib.config.ts'],
+        clearOutputDir: PLAYWRIGHT_OUTPUT_DIR,
+        timingJson: path.join(FRONTEND_DIR, 'e2e', 'lib', 'test-results', 'e2e-timing.json') },
     ],
   },
 };
@@ -330,6 +363,89 @@ function runForeground(cmd, args, cwd) {
   });
 }
 
+/**
+ * Clears the Playwright output directory before handing over to Playwright — and degrades instead of
+ * waiting when Windows refuses.
+ *
+ * The very first thing Playwright does in a run is its "clear output" task: it deletes `outputDir`
+ * with `fs.rm({recursive, force, maxRetries: 10})` and, on EBUSY, retries entry by entry. A single
+ * leftover artifact directory whose handle is still held — by a killed browser, the search indexer,
+ * an AV scanner — turns that into a retry loop of over 13 minutes that prints nothing at all. The run
+ * looks frozen, and the loop is invisible in the timing report because the reporter's clock only
+ * starts at onBegin, long after.
+ *
+ * So the runner does the clearing itself under a hard budget and, if that fails, moves the wedged
+ * tree out of the way; if even the rename is denied, it sends this run's artifacts to a fresh
+ * directory so that Playwright's own clear task finds nothing to do and returns immediately.
+ *
+ * `maxRetries: 0` is deliberate: retries happen in the loop below, where they stay inside the budget,
+ * instead of inside a single `fs.rm` call that could still be running long after we gave up on it.
+ *
+ * @param dir the Playwright `outputDir` to clear
+ * @returns extra CLI arguments for this Playwright invocation — empty unless a fresh outputDir is needed
+ */
+async function clearPlaywrightOutputDir(dir) {
+  if (!existsSync(dir)) {
+    return [];
+  }
+  const deadline = Date.now() + OUTPUT_CLEAR_BUDGET_MS;
+  let lastError;
+  do {
+    try {
+      await fsp.rm(dir, { recursive: true, force: true, maxRetries: 0 });
+      return [];
+    } catch (error) {
+      lastError = error;
+      await sleep(500);
+    }
+  } while (Date.now() < deadline);
+
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const aside = `${path.basename(dir)}.stale-${stamp}`;
+  try {
+    await fsp.rename(dir, path.join(path.dirname(dir), aside));
+    console.warn(`WARNING: could not clear ${dir} (${lastError.message}).\n`
+      + `         Moved it aside as ${aside} — delete it manually or after the next reboot.`);
+    return [];
+  } catch (renameError) {
+    const fresh = `${path.basename(dir)}-${stamp}`;
+    console.warn(`WARNING: ${dir} can neither be deleted nor renamed (${renameError.message}).\n`
+      + '         A process is holding a handle inside it; Resource Monitor > CPU > Associated\n'
+      + '         Handles finds the culprit, otherwise a reboot releases it.\n'
+      + `         This run writes its artifacts to ${fresh} instead. Without this fallback\n`
+      + '         Playwright would spend >13 minutes retrying the deletion before the first test.');
+    // Relative on purpose: it is resolved against the phase cwd and stays free of spaces, which
+    // matters because the children are spawned with shell:true on Windows.
+    return [`--output=${fresh}`];
+  }
+}
+
+/**
+ * Reads the breakdown the timing reporter left behind, so the summary can separate the time
+ * Playwright spent before the first test from the time the tests themselves took. The reporter
+ * cannot report the former — its window opens at onBegin — but the runner knows when it spawned the
+ * process, and the difference is exactly the startup cost.
+ *
+ * @param file path to e2e-timing.json
+ * @param phaseStartMs wall clock at which the Playwright process was spawned
+ * @returns a short summary note, or null when no report of this run exists
+ */
+function readPlaywrightTiming(file, phaseStartMs) {
+  try {
+    const report = JSON.parse(readFileSync(file, 'utf-8'));
+    const startedAt = Date.parse(report.startedAt);
+    const endedAt = Date.parse(report.endedAt);
+    // A report older than this phase is a leftover of a previous run and says nothing about this one.
+    if (!Number.isFinite(startedAt) || !Number.isFinite(endedAt) || startedAt < phaseStartMs) {
+      return null;
+    }
+    return `startup before first test ${formatMs(startedAt - phaseStartMs)}`
+      + `, tests ${formatMs(endedAt - startedAt)}`;
+  } catch {
+    return null;
+  }
+}
+
 async function checkMailhog(suiteKeys) {
   // The main suite helpers are hardcoded to localhost:8025; only a lib-only run honours the override.
   const base = suiteKeys.includes('main')
@@ -403,13 +519,15 @@ async function runSuite(suiteKey) {
         continue;
       }
       banner(`[${suiteKey}] ${phase.name}`);
+      const extraArgs = phase.clearOutputDir ? await clearPlaywrightOutputDir(phase.clearOutputDir) : [];
       const start = Date.now();
-      const code = await runForeground(phase.cmd, phase.args, phase.cwd);
+      const code = await runForeground(phase.cmd, [...phase.args, ...extraArgs], phase.cwd);
       results.push({
         suite: suiteKey,
         name: phase.name,
         status: code === 0 ? 'OK' : 'FAILED',
         ms: Date.now() - start,
+        note: phase.timingJson ? readPlaywrightTiming(phase.timingJson, start) : null,
       });
       phaseFailed = code !== 0;
     }
@@ -433,7 +551,8 @@ function printSummary() {
   banner('summary');
   const nameWidth = Math.max(...results.map(r => `${r.suite}/${r.name}`.length), 10);
   for (const r of results) {
-    console.log(`${`${r.suite}/${r.name}`.padEnd(nameWidth + 2)}${r.status.padEnd(9)}${formatMs(r.ms)}`);
+    const note = r.note ? `  (${r.note})` : '';
+    console.log(`${`${r.suite}/${r.name}`.padEnd(nameWidth + 2)}${r.status.padEnd(9)}${formatMs(r.ms)}${note}`);
   }
 }
 

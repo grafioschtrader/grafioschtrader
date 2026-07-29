@@ -85,6 +85,9 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
   }
 
   ngOnInit(): void {
+    // The template renders the context menu only when contextMenuItems is set. Without building the
+    // menu up front the very first right-click on a freshly opened view would produce no menu at all.
+    this.resetMenu();
     this.readData();
   }
 
@@ -226,26 +229,28 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
 
   private deleteCountry(): void {
     const country: TaxCountry = this.selectedNode.data.entity;
-    this.taxDataService.deleteCountry(country.idTaxCountry).subscribe(() => {
-      this.selectedNode = null;
-      this.readData();
-    });
+    this.taxDataService.deleteCountry(country.idTaxCountry).subscribe(() => this.clearSelectionAndReload());
   }
 
   private deleteYear(): void {
     const year: TaxYear = this.selectedNode.data.entity;
-    this.taxDataService.deleteYear(year.idTaxYear).subscribe(() => {
-      this.selectedNode = null;
-      this.readData();
-    });
+    this.taxDataService.deleteYear(year.idTaxYear).subscribe(() => this.clearSelectionAndReload());
   }
 
   private deleteUpload(): void {
     const upload: TaxUpload = this.selectedNode.data.entity;
-    this.taxDataService.deleteUpload(upload.idTaxUpload).subscribe(() => {
-      this.selectedNode = null;
-      this.readData();
-    });
+    this.taxDataService.deleteUpload(upload.idTaxUpload).subscribe(() => this.clearSelectionAndReload());
+  }
+
+  /**
+   * Drops the selection of the removed node and rebuilds the menu, otherwise the entries of the
+   * deleted node stay active until the next click.
+   */
+  private clearSelectionAndReload(): void {
+    this.selectedNode = null;
+    this.selectedNodes = [];
+    this.resetMenu();
+    this.readData();
   }
 
   private reimportFile(): void {

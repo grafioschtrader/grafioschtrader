@@ -34,7 +34,7 @@ import {TooltipModule} from 'primeng/tooltip';
       <ng-template #header let-fields>
         <tr>
           @for (field of fields; track field) {
-            <th [style.width.px]="field.width">
+            <th [ngClass]="getCellClass(field)" [style.width.px]="field.width">
               {{ field.headerTranslated }}
             </th>
           }
@@ -43,16 +43,17 @@ import {TooltipModule} from 'primeng/tooltip';
       <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
         <tr>
           @for (field of fields; track field; let i = $index) {
-            <td [ngClass]="{'text-end': (field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric),
-            'cell-holiday': getHolidayMissing(rowData, field) === HolidayMissing[HolidayMissing.HM_HOLIDAY],
-            'cell-data-missing': getHolidayMissing(rowData, field) === HolidayMissing[HolidayMissing.HM_HISTORY_DATA_MISSING]}"
+            <td [ngClass]="[getCellClass(field),
+            getHolidayMissing(rowData, field) === HolidayMissing[HolidayMissing.HM_HOLIDAY] ? 'cell-holiday' : '',
+            getHolidayMissing(rowData, field) === HolidayMissing[HolidayMissing.HM_HISTORY_DATA_MISSING] ? 'cell-data-missing' : '']"
                 [style.width.px]="field.width">
               @if (i === 0) {
                 <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
               }
               @switch (field.templateName) {
                 @case ('greenRed') {
-                  <span [style.color]='isValueByPathMinusWithEmptyColor(rowData, field)? "red": "green"'>
+                  <span [pTooltip]="getValueByPath(rowData, field)"
+                        [style.color]='isValueByPathMinusWithEmptyColor(rowData, field)? "red": "green"'>
                                   {{ getValueByPath(rowData, field) }}
                                 </span>
                 }
@@ -68,13 +69,11 @@ import {TooltipModule} from 'primeng/tooltip';
         <tr>
           @for (field of fields; track field) {
             @if (field.visible) {
-              <td class="row-total" [style.width.px]="field.width"
-                  [ngClass]="{'text-end': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
-            || field.dataType===DataType.DateTimeNumeric)}">
+              <td class="row-total" [style.width.px]="field.width" [ngClass]="getCellClass(field)">
                 @switch (field.templateName) {
                   @case ('greenRed') {
-                    <span
-                      [style.color]='isValueByPathMinus(performancePeriod?.sumPeriodColSteps, field)? "red": "green"'>
+                    <span [pTooltip]="getValueColumnTotal(field, 0, performancePeriod?.sumPeriodColSteps, null)"
+                      [style.color]='isFooterValueMinus(field)? "red": "green"'>
                                       {{ getValueColumnTotal(field, 0, performancePeriod?.sumPeriodColSteps, null) }}
                                     </span>
                   }
@@ -97,6 +96,41 @@ import {TooltipModule} from 'primeng/tooltip';
 
     .cell-data-missing {
       background-color: orange !important;
+    }
+
+    /*
+     * PrimeNG renders the tree table with "table-layout: fixed; width: 100%", which hands every column
+     * without an explicit width the same share of the panel. The column totals of the footer are an order
+     * of magnitude larger than the values of a single period, so they no longer fit and the global
+     * "td {text-overflow: ellipsis}" rule silently clipped them. Auto layout lets the widest cell of a
+     * column - usually its total - determine the column width, and the wrapper scrolls horizontally when
+     * the whole table no longer fits instead of truncating single values.
+     */
+    :host ::ng-deep .p-treetable-wrapper {
+      overflow-x: auto;
+    }
+
+    :host ::ng-deep .p-treetable-wrapper > table {
+      table-layout: auto;
+      width: auto;
+      min-width: 100%;
+    }
+
+    /* .fcontainer is a flex container; without min-width the table cannot shrink and overflows the panel */
+    .fcontainer > p-treetable {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    /*
+     * The default cell padding of 16px per side consumes almost half of a numeric column of this dense
+     * table. tabular-nums gives all digits the same advance width so the figures of a column line up.
+     */
+    :host ::ng-deep .p-treetable-thead > tr > th,
+    :host ::ng-deep .p-treetable-tbody > tr > td,
+    :host ::ng-deep .p-treetable-tfoot > tr > td {
+      padding: 2px 6px;
+      font-variant-numeric: tabular-nums;
     }
   `],
   standalone: true,
@@ -132,7 +166,10 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
         columnGroupConfigs: [new ColumnGroupConfig(null, 'GRAND_TOTAL')]
       });
     this.addColumn(DataType.Numeric, 'periodWindow.gainPeriodMC', 'TOTAL', true, false,
-      {fieldValueFN: this.getLastColumn.bind(this), templateName: 'greenRed'});
+      {
+        fieldValueFN: this.getLastColumn.bind(this), templateName: 'greenRed',
+        columnGroupConfigs: [new ColumnGroupConfig(null, null, this.getGrandTotal.bind(this))]
+      });
     this.translateHeadersAndColumns();
   }
 
@@ -180,6 +217,48 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
         field.minFractionDigits);
     }
     return null;
+  }
+
+  /**
+   * Returns the alignment class of a cell. Numeric and date-time values are right aligned, which applies to the
+   * header, the data cells and the footer alike so that a column header sits directly above its figures.
+   *
+   * @param field Column configuration of the rendered cell
+   * @returns 'text-end' for right aligned data types, otherwise an empty string
+   */
+  getCellClass(field: ColumnConfig): string {
+    return (field.dataType === DataType.Numeric || field.dataType === DataType.NumericShowZero
+      || field.dataType === DataType.NumericInteger || field.dataType === DataType.DateTimeNumeric)
+      ? 'text-end' : '';
+  }
+
+  /**
+   * Delivers the grand total of the last column. The column totals of the footer come from sumPeriodColSteps, which
+   * holds one entry per period step (5 for weeks, 12 for months) and therefore no total over all steps. That value is
+   * the gain of the whole evaluated period and is taken from the difference of the first and the last day.
+   *
+   * @param columnConfig Column configuration of the total column, provides the numeric formatting
+   * @param arrIndex Index of the column group configuration, not used here
+   * @param data Total data object handed over by the footer, not used here
+   * @param rowIndex Row index of the total row, not used here
+   * @returns The formatted gain of the whole period or undefined when no data is loaded
+   */
+  getGrandTotal(columnConfig: ColumnConfig, arrIndex: number, data: any, rowIndex: number): string {
+    return AppHelper.getValueByPathWithField(this.gps, this.translateService, this.performancePeriod, columnConfig,
+      'difference.gainMC');
+  }
+
+  /**
+   * Determines the sign of a footer value for its red or green colouring. The last column shows the gain of the whole
+   * period, all other columns a column total of sumPeriodColSteps.
+   *
+   * @param field Column configuration of the footer cell
+   * @returns True when the displayed total is negative
+   */
+  isFooterValueMinus(field: ColumnConfig): boolean {
+    return isNaN(<any>field.field)
+      ? this.performancePeriod?.difference.gainMC < 0
+      : this.isValueByPathMinus(this.performancePeriod?.sumPeriodColSteps, field);
   }
 
   isValueByPathMinusWithEmptyColor(dataobject: PeriodWindowWithField, field: ColumnConfig): boolean {

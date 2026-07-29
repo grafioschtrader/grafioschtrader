@@ -41,9 +41,25 @@ public class FirstAndMissingTradingDays {
   @Schema(description = "Minimum number of months required for yearly period performance analysis")
   public final int minIncludeMonthLimit = GlobalConstants.PERFORMANCE_MIN_INCLUDE_MONTH_LIMIT;
 
-  @Schema(description = "The earliest trading day in the complete holdings history")
+  @Schema(description = """
+      The oldest day that may be selected as start of the analysis. It is the last trading day before the first security
+      position was opened, so that the analysis starts from a state in which nothing was invested yet and the amounts
+      begin at zero. It falls back to the first day of the holdings history when no such day exists, that is when the
+      cash accounts only start on or after the first hold date.""")
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final LocalDate firstEverTradingDay;
+
+  /**
+   * The earliest day of the holdings history, that is the day the first security position was opened.
+   *
+   * <p>
+   * Used internally to decide whether a requested start date lies in front of every holding and therefore needs the
+   * synthetic zero baseline row. Excluded from JSON serialization because the client only selects dates and never needs
+   * this boundary.
+   * </p>
+   */
+  @JsonIgnore
+  public final LocalDate firstEverHoldDay;
 
   @Schema(description = "The second trading day in the holdings history, used for baseline calculations")
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
@@ -91,7 +107,8 @@ public class FirstAndMissingTradingDays {
   /**
    * Constructs a new trading day metadata instance with all required boundaries and calendars.
    *
-   * @param firstEverTradingDay       the earliest trading day in holdings history
+   * @param firstEverTradingDay       the oldest selectable day, normally the zero baseline day before the first holding
+   * @param firstEverHoldDay          the day the first security position was opened
    * @param secondEverTradingDay      the second trading day for baseline calculations
    * @param lastTradingDayOfLastYear  the last valid trading day of previous year
    * @param leatestPossibleTradingDay the most recent date with complete data (holidays only)
@@ -100,11 +117,13 @@ public class FirstAndMissingTradingDays {
    * @param allHolydays               set of all holidays affecting the holdings
    * @param missingQuoteDays          set of days with missing price quotes
    */
-  public FirstAndMissingTradingDays(LocalDate firstEverTradingDay, LocalDate secondEverTradingDay,
-      LocalDate lastTradingDayOfLastYear, LocalDate leatestPossibleTradingDay, LocalDate latestTradingDay,
-      LocalDate secondLatestTradingDay, Set<LocalDate> allHolydays, Set<LocalDate> missingQuoteDays) {
+  public FirstAndMissingTradingDays(LocalDate firstEverTradingDay, LocalDate firstEverHoldDay,
+      LocalDate secondEverTradingDay, LocalDate lastTradingDayOfLastYear, LocalDate leatestPossibleTradingDay,
+      LocalDate latestTradingDay, LocalDate secondLatestTradingDay, Set<LocalDate> allHolydays,
+      Set<LocalDate> missingQuoteDays) {
     super();
     this.firstEverTradingDay = firstEverTradingDay;
+    this.firstEverHoldDay = firstEverHoldDay;
     this.secondEverTradingDay = secondEverTradingDay;
     this.lastTradingDayOfLastYear = lastTradingDayOfLastYear;
     this.leatestPossibleTradingDay = leatestPossibleTradingDay;

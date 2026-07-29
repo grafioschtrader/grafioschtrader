@@ -147,6 +147,88 @@ public interface HoldSecurityaccountSecurityJpaRepository
 
   //@formatter:off
   /**
+   * Determines the zero base date of a tenant, that is the last trading day before the very first security position was
+   * opened. The period performance report treats its start date as an excluded baseline, so only a day on which nothing
+   * was invested yet yields amounts that start at zero. On the first hold date itself the opening purchase is already
+   * included, which would silently move the result of that day into the baseline.
+   *
+   * Named query: HoldSecurityaccountSecurity.getZeroBaseDateByTenant
+   * Parameters in SQL:
+   * - ?1 - the tenant, used both for the first hold date and for the cash account coverage check
+   *
+   * The candidate is taken from trading_days_plus, so it is never a weekend and never a global holiday. It additionally
+   * has to be covered by a hold_cashaccount_balance row, otherwise no baseline row could be produced for it.
+   *
+   * @param idTenant the ID of the tenant
+   * @return the last trading day before the first holding, or null when the tenant has no holdings at all or its cash
+   *         accounts only start on or after the first hold date
+   */
+  //@formatter:on
+  @Query(nativeQuery = true)
+  LocalDate getZeroBaseDateByTenant(Integer idTenant);
+
+  //@formatter:off
+  /**
+   * Determines the zero base date of a single portfolio. Behaves exactly like
+   * {@link #getZeroBaseDateByTenant(Integer)} but scopes both the first hold date and the cash account coverage check
+   * to one portfolio.
+   *
+   * Named query: HoldSecurityaccountSecurity.getZeroBaseDateByPortfolio
+   * Parameters in SQL:
+   * - ?1 - the portfolio, used both for the first hold date and for the cash account coverage check
+   *
+   * @param idPortfolio the ID of the portfolio
+   * @return the last trading day before the first holding of this portfolio, or null when there is none
+   */
+  //@formatter:on
+  @Query(nativeQuery = true)
+  LocalDate getZeroBaseDateByPortfolio(Integer idPortfolio);
+
+  //@formatter:off
+  /**
+   * Produces the single baseline row of a tenant for the zero base date returned by
+   * {@link #getZeroBaseDateByTenant(Integer)}. Since no security was held on that day, the whole securities leg is a
+   * constant zero and the net gain collapses to the cash balance minus the external cash transfers. Cash balances,
+   * dividends, interest and fees are read from hold_cashaccount_balance and converted with the closing rate of that day
+   * exactly like {@link #getPeriodHoldingsByTenant(Integer, LocalDate, LocalDate)} does, so the row can be prepended to
+   * that result without a unit break.
+   *
+   * Named query: HoldSecurityaccountSecurity.getPeriodHoldingZeroBaseByTenant
+   * Parameters in SQL:
+   * - ?1 - the tenant
+   * - ?2 - the zero base date, used as the reported date and as the reference date of all hold periods
+   *
+   * @param idTenant     the ID of the tenant
+   * @param zeroBaseDate the trading day the baseline is calculated for
+   * @return a list with exactly one IPeriodHolding projection, or an empty list when no cash account of the tenant
+   *         covers the given date
+   */
+  //@formatter:on
+  @Query(nativeQuery = true)
+  List<IPeriodHolding> getPeriodHoldingZeroBaseByTenant(Integer idTenant, LocalDate zeroBaseDate);
+
+  //@formatter:off
+  /**
+   * Produces the single baseline row of one portfolio. Behaves exactly like
+   * {@link #getPeriodHoldingZeroBaseByTenant(Integer, LocalDate)} but uses the portfolio currency for the conversion
+   * and the portfolio share of the external cash transfers.
+   *
+   * Named query: HoldSecurityaccountSecurity.getPeriodHoldingZeroBaseByPortfolio
+   * Parameters in SQL:
+   * - ?1 - the portfolio
+   * - ?2 - the zero base date, used as the reported date and as the reference date of all hold periods
+   *
+   * @param idPortfolio  the ID of the portfolio
+   * @param zeroBaseDate the trading day the baseline is calculated for
+   * @return a list with exactly one IPeriodHolding projection, or an empty list when no cash account of the portfolio
+   *         covers the given date
+   */
+  //@formatter:on
+  @Query(nativeQuery = true)
+  List<IPeriodHolding> getPeriodHoldingZeroBaseByPortfolio(Integer idPortfolio, LocalDate zeroBaseDate);
+
+  //@formatter:off
+  /**
    * Retrieves all trading dates and security IDs for which no end-of-day quote exists
    * for securities held by the specified tenant within the given period.
    * <ul>

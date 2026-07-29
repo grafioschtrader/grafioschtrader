@@ -18,7 +18,7 @@ import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
  */
 @Component({
   template: `
-    {{ 'RESET_USER_MISUSED_QUESTiON' | translate }}
+    {{ 'RESET_USER_MISUSED_QUESTION' | translate }}
     <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
                   (submitBt)="submit($event)">
     </dynamic-form>`,

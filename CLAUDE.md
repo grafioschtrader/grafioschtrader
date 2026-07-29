@@ -265,7 +265,7 @@ When adding or fixing a **single** Playwright spec:
 
 1. Leave the backend (port 8080, `e2e` profile, database `grafioschtrader_t`) and the frontend dev
    server (port 4200) running from a previous roundtrip or manual start.
-2. Run only the affected spec: `cd frontend && npx playwright test e2e/NN-my-spec.spec.ts`
+2. Run only the affected spec: `cd frontend && npx playwright test e2e/NNN-my-spec.spec.ts`
 3. Re-run just that spec until it is green.
 
 **Write new specs to be self-cleaning and repeatable**: a spec must clean up (or delete-then-recreate)
@@ -794,11 +794,18 @@ spring.mail.properties.mail.smtp.starttls.enable=true
 
 ### Message Properties Encoding
 
-**IMPORTANT**: The message properties files must be saved with UTF-8 encoding:
+**IMPORTANT**: All four message properties files must be saved with UTF-8 encoding, without a BOM:
+- `backend/grafiosch-base/src/main/resources/i18n/messages.properties` (English)
+- `backend/grafiosch-base/src/main/resources/i18n/messages_de.properties` (German)
 - `backend/grafioschtrader-common/src/main/resources/message/messages.properties` (English)
 - `backend/grafioschtrader-common/src/main/resources/message/messages_de.properties` (German)
 
-The German file contains umlauts (ä, ö, ü, Ä, Ö, Ü, ß) that can get corrupted if saved with wrong encoding. Signs of encoding corruption:
+Since issue #214 these files hold **every** user interface text — around 1900 keys, of which roughly
+half are German — so the exposure to this problem is much larger than it used to be.
+`NlsBundleGuardTest` decodes all four with a strict UTF-8 decoder and fails the build on an invalid
+byte, a `U+FFFD`, or a BOM, so corruption is caught at build time rather than in the UI.
+
+The German files contain umlauts (ä, ö, ü, Ä, Ö, Ü, ß) that can get corrupted if saved with wrong encoding. Signs of encoding corruption:
 - Characters like `�` (U+FFFD replacement character) appearing instead of umlauts
 - Text like "eingeschr�nkt" instead of "eingeschränkt"
 - Text like "W�hrung" instead of "Währung"

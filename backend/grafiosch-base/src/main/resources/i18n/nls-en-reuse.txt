@@ -1,0 +1,41 @@
+# EN-reuse allowlist for grafiosch-base (i18n/messages{,_de}.properties) -- see GitHub issue #214.
+#
+# NlsBundleParityTest enforces that every key present in messages.properties is also present in
+# messages_de.properties. Beyond that it flags any key whose German value is byte-identical to the
+# English one, because that is usually a forgotten translation. Listing a key here declares the
+# equal value to be deliberate.
+#
+# This file NEVER permits a missing German key -- only an intentionally equal value.
+# One key per line, '#' starts a comment. Stale entries (key absent, or values no longer equal)
+# fail the build, so the file cannot rot.
+
+# --- Deliberate: proper nouns and words that are identical in German ---
+gt.net
+ID
+id.task.data.change
+PRIO_NORMAL
+PROG_ZOMBIE
+UDF_URLString
+
+# --- Deliberate: migrated from the frontend, identical in German (abbreviations, loan words) ---
+CHANGED_BY_SYSTEM
+CSV
+DOMAIN_REMOTE_NAME
+GT_NET
+GT_NET_MESSAGE
+GT_NET_PING
+INFO
+SOS_OFFLINE
+SOS_ONLINE
+PDF
+PORTFOLIO
+ROLE_ADMIN
+TOTAL
+US
+WATCHLIST
+
+# --- REVIEW: migrated from the frontend, German wording could be improved.
+# SERVER_STATE reads "Status Server" in both; idiomatic German would be "Serverstatus".
+# VALUE is "Total" in both, which also looks like the wrong text for that key.
+SERVER_STATE
+VALUE
