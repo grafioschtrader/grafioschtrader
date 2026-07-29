@@ -32,13 +32,12 @@ fi
 
 # Update repository
 cd grafioschtrader/
-if ! git remote get-url origin >/dev/null 2>&1; then
-    git remote add origin https://github.com/grafioschtrader/grafioschtrader.git
-fi
+git remote set-url raspi git@gt8p.duckdns.org:/home/git/repos/grafioschtrader.git 2>/dev/null || \
+    git remote add raspi git@gt8p.duckdns.org:/home/git/repos/grafioschtrader.git
 
 rm -fr frontend
-git fetch origin
-git reset --hard origin/master
+git fetch raspi
+git reset --hard raspi/master
 
 # Check if this script was updated
 SCRIPT_PATH="${BASH_SOURCE[0]}"
