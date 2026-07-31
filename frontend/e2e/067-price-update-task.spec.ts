@@ -1,6 +1,6 @@
 import {expect, Locator, Page, test} from '@playwright/test';
 import {loginAsCsvUser} from './helpers';
-import {enumLabelRx, openContextMenu, selectByValue} from './generic-connector.helpers';
+import {enumLabelRx, openContextMenu} from './generic-connector.helpers';
 
 /**
  * Schedules the batch job PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU (id_task = 30) as the admin user,
@@ -26,8 +26,10 @@ import {enumLabelRx, openContextMenu, selectByValue} from './generic-connector.h
 
 const ADMIN = 'admin';
 
-/** Enum name; it is also the option value of select#idTask, which SelectOptionsHelper uses as key. */
+/** Enum name; it is also the option key of the idTask dropdown and what the POST body carries. */
 const PRICE_UPDATE_TASK = 'PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU';
+/** Numeric task type of that enum constant — the visible, language-independent part of the option label. */
+const PRICE_UPDATE_TASK_ID = 30;
 /** Minutes between the scheduling of the job and its earliest execution. */
 const START_DELAY_MINUTES = 10;
 
@@ -67,6 +69,31 @@ async function openTaskDataMonitorView(page: Page): Promise<void> {
   await page.locator('.data-container').first().waitFor({state: 'visible', timeout: 15_000});
   // Let readData() populate the table before the caller counts rows.
   await page.waitForTimeout(800);
+}
+
+/**
+ * Picks a task type in the create dialog. `idTask` is a filterable PrimeNG p-select
+ * (DynamicFieldHelper.createFieldDropdownStringHeqF), not a native <select>, so the value is chosen
+ * from an overlay list instead of through selectOption(). The item text is the translated task
+ * description followed by ' - ' and the task number; that number is its only language-independent
+ * part, so the option is matched on the trailing number.
+ */
+async function selectTaskType(page: Page, dialog: Locator, taskNumber: number): Promise<void> {
+  // config.field becomes the id of the p-select host element (its [attr.id] host binding).
+  const dropdown = dialog.locator('#idTask');
+  await expect(dropdown).toBeVisible({timeout: 10_000});
+  await dropdown.click();
+
+  const overlay = page.locator('.p-select-overlay').first();
+  await overlay.waitFor({state: 'visible', timeout: 10_000});
+  const option = overlay.locator('[role="option"]')
+    .filter({hasText: new RegExp(`-\\s*${taskNumber}\\s*$`)});
+  await expect(option, `task ${taskNumber} is not offered — is it above maxUserCreateTask?`)
+    .toHaveCount(1, {timeout: 10_000});
+  await option.first().click();
+  await overlay.waitFor({state: 'hidden', timeout: 10_000});
+  await expect(dropdown, 'the picked task is not shown in the closed dropdown')
+    .toContainText(new RegExp(`-\\s*${taskNumber}\\s*$`));
 }
 
 /** All data rows of the task table. */
@@ -150,13 +177,9 @@ test.describe.serial('schedule the price update batch job as admin', () => {
 
     const dialog = page.locator('.p-dialog');
     await dialog.waitFor({state: 'visible', timeout: 10_000});
-    await expect(dialog.locator('select#idTask')).toBeEnabled({timeout: 10_000});
 
     // The job is offered because its id (30) stays below TaskDataChangeFormConstraints.maxUserCreateTask.
-    const option = dialog.locator(`select#idTask option[value="${PRICE_UPDATE_TASK}"]`).first();
-    await expect(option, `'${PRICE_UPDATE_TASK}' is not offered — is it above maxUserCreateTask?`)
-      .toHaveCount(1);
-    await selectByValue(dialog, 'idTask', PRICE_UPDATE_TASK);
+    await selectTaskType(page, dialog, PRICE_UPDATE_TASK_ID);
     await page.waitForTimeout(300);
 
     // The task declares no allowed entities, so valueChangedOnIdTask() hides entity and idEntity and
@@ -186,7 +209,7 @@ test.describe.serial('schedule the price update batch job as admin', () => {
     const created = await response.json();
     expect(created.idTask, 'created job is not the price update').toBe(PRICE_UPDATE_TASK);
     expect(created.progressStateType, 'created job is not waiting').toBe('PROG_WAITING');
-    expect(created.taskAsId, 'created job does not carry id_task 30').toBe(30);
+    expect(created.taskAsId, 'created job does not carry id_task 30').toBe(PRICE_UPDATE_TASK_ID);
 
     // The new row must be in the reloaded table, and it must be the only one of its type — the
     // previous test emptied them. Whether BackgroundWorker later picks it up is deliberately not

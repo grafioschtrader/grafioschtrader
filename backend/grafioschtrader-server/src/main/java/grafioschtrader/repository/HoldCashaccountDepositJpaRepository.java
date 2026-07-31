@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafioschtrader.dto.HoldConsistencyDefect;
 import grafioschtrader.entities.HoldCashaccountDeposit;
 import grafioschtrader.entities.HoldCashaccountDeposit.HoldCashaccountDepositKey;
 
@@ -80,6 +81,27 @@ public interface HoldCashaccountDepositJpaRepository extends
    */
   @Query(nativeQuery = true)
   List<HoldCashaccountDeposit> getPrevHoldingRecords();
+
+  //@formatter:off
+  /**
+   * Counts, per tenant and kind, the {@code hold_cashaccount_deposit} rows that disagree with the DEPOSIT and WITHDRAWAL
+   * transactions they are derived from. Read-only; nothing is repaired.
+   * <p>
+   * Only the {@code deposit} column is compared, because it is the one held in the cash account's own currency.
+   * {@code deposit_portfolio_currency} and {@code deposit_tenant_currency} are converted with the exchange rate of the
+   * transaction date and with per-transfer rates, so reproducing them would mean reimplementing
+   * {@code DataBusinessHelper.calcDepositOnTransactionsOfCashaccount} and is deliberately out of scope. Surplus rows,
+   * absent rows, period chaining and the denormalised tenant/portfolio ids are checked.
+   * <p>
+   * Named query: HoldCashaccountDeposit.countConsistencyDefects
+   *
+   * @param tolerance absolute tolerance for the {@code deposit} comparison, see the sibling method on
+   *                  {@code HoldCashaccountBalanceJpaRepository}
+   * @return one row per tenant and defect kind, empty when everything agrees
+   */
+  //@formatter:on
+  @Query(nativeQuery = true)
+  List<HoldConsistencyDefect> countConsistencyDefects(double tolerance);
 
   /**
    * Projection interface representing foreign exchange rates applicable to cash account deposit and withdrawal

@@ -13,7 +13,7 @@ import {SelectOptionsHelper} from '../../helper/select.options.helper';
 import {Subscription} from 'rxjs';
 import {FormHelper} from '../../dynamic-form/components/FormHelper';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import {GroupItem, ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import moment from 'moment';
 import {Validators} from '@angular/forms';
 import {BaseSettings} from '../../base.settings';
@@ -58,7 +58,7 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
       4, this.helpLink.bind(this));
 
     this.config = [
-      DynamicFieldHelper.createFieldSelectStringHeqF('idTask', true),
+      DynamicFieldHelper.createFieldDropdownStringHeqF('idTask', true, {filter: true}),
       DynamicFieldHelper.createFieldSelectStringHeqF('entity', true),
       DynamicFieldHelper.createFieldSelectStringHeqF('idEntity', true),
       DynamicFieldHelper.createFieldInputNumber('idEntityNum', 'ID_ENTITY', true, 10, 0, false),
@@ -77,7 +77,9 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
   valueChangedOnIdTask(): void {
     this.idTaskSubscribe = this.configObject.idTask.formControl.valueChanges.subscribe(idTask => {
       const taskConfig = this.tdcFormConstraints.taskTypeConfig[idTask];
-      if (taskConfig) {
+      // An empty entity in the list is the "no entity" choice, not a selectable one. A configuration that holds
+      // nothing else offers the user no choice at all, so it is treated like a task without entity configuration.
+      if (taskConfig && taskConfig.some((entity: string) => entity !== '')) {
         // Scenario B/C: task has entity configuration - show entity field
         this.configObject.entity.valueKeyHtmlOptions =
           SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(this.translateService,
@@ -139,9 +141,7 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
     // Initially hide entity and idEntity fields until a task is selected
     this.hideField(this.configObject.entity);
     this.hideIdEntityFields();
-    this.configObject.idTask.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
-      this.translateService, this.taskTypeEnum, Object.keys(this.taskTypeEnum).filter(
-        key => this.taskTypeEnum[key] <= this.tdcFormConstraints.maxUserCreateTask).map(key => this.taskTypeEnum[key]));
+    this.configObject.idTask.groupItem = this.createTaskTypeOptions();
     if (this.callParam) {
       this.form.transferBusinessObjectToForm(this.callParam);
       // For number input case, transferBusinessObjectToForm sets idEntity on the select field.
@@ -154,7 +154,27 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
       }
     }
     this.configObject.earliestStartTime.formControl.setValue(moment().add(1, 'm').toDate());
-    this.configObject.idTask.elementRef.nativeElement.focus();
+    this.configObject.idTask.baseInputComponent?.focus();
+  }
+
+  /**
+   * Builds the selectable task types, restricted to those the user may create.
+   *
+   * The label carries the numeric task type as a suffix, because the task monitor table and the server log
+   * identify a job by that number; without it the user cannot relate a listed job to an entry of this list.
+   * The suffixed text is written to both 'value' (shown in the closed control) and 'optionsText' (shown in
+   * the overlay list and searched by the filter box).
+   *
+   * @returns the options of the idTask dropdown, sorted by translated description
+   */
+  private createTaskTypeOptions(): GroupItem[] {
+    return SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, this.taskTypeEnum,
+      Object.keys(this.taskTypeEnum).filter(key => this.taskTypeEnum[key] <= this.tdcFormConstraints.maxUserCreateTask)
+        .map(key => this.taskTypeEnum[key]))
+      .map(option => {
+        const label = `${option.value} - ${this.taskTypeEnum[option.key as string]}`;
+        return new GroupItem(option.key, label, label, null);
+      });
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): TaskDataChange {

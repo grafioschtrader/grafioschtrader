@@ -335,18 +335,38 @@ public class SendMailInternalExternalService {
    * @param subjectKey     the message key for internationalized subject line
    * @param subjectValues  parameters for the subject line message template
    * @param message        the message content
-   * @param messageComType the type of communication for forwarding rules
+   * @param messageComType the type of communication for forwarding rules. Declared as {@link IMessageComType} rather
+   *                       than {@link MessageComType} so that an application module can contribute its own
+   *                       {@code MAIN_ADMIN_*} constants; all of them are resolved through the shared
+   *                       {@code MailEntity.MESSAGE_COM_TYPES_REGISTRY}.
    * @return the ID of the created internal message, or null if admin not found
    * @throws MessagingException if external email delivery fails
    */
   public Integer sendMailToMainAdminInternalOrExternal(Integer idUserFrom, String subjectKey, Object[] subjectValues,
-      String message, MessageComType messageComType) throws MessagingException {
+      String message, IMessageComType messageComType) throws MessagingException {
     Optional<User> userOpt = userJpaRepository.findByEmail(mainUserAdminMail);
     if (userOpt.isPresent()) {
       return sendMailInternAndOrExternal(idUserFrom, userOpt.get().getIdUser(), subjectKey, subjectValues, true,
           message, messageComType, true);
     }
     return null;
+  }
+
+  /**
+   * Locale of the main administrator.
+   *
+   * <p>
+   * {@link #sendMailToMainAdminInternalOrExternal} resolves the subject key in the recipient's language, but the message
+   * body is passed in already rendered. A caller that assembles such a body from message keys needs this locale, or the
+   * administrator receives a translated subject above an English body.
+   * </p>
+   *
+   * @return the main administrator's locale, or {@link Locale#ENGLISH} when no user is registered under
+   *         {@code gt.main.user.admin.mail}
+   */
+  public Locale getMainAdminLocale() {
+    return userJpaRepository.findByEmail(mainUserAdminMail).map(user -> Locale.forLanguageTag(user.getLocaleStr()))
+        .orElse(Locale.ENGLISH);
   }
 
   /**

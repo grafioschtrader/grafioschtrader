@@ -98,6 +98,25 @@ public interface HoldSecurityaccountSecurityJpaRepositoryCustom {
       boolean isAdded);
 
   /**
+   * Rebuilds the holdings series of one security account and security purely from what is stored, without merging an
+   * in-flight transaction.
+   *
+   * <p>
+   * Needed when a transaction is updated in a way that moves it out of a series: after such an update
+   * {@link #adjustSecurityHoldingForSecurityaccountAndSecurity} rebuilds the series the transaction moved <em>to</em>,
+   * while the series it moved <em>away from</em> still contains it and has to be rebuilt from the database.
+   * </p>
+   *
+   * @param securityaccount        the security account whose series is rebuilt
+   * @param idSecuritycurrency     the security whose series is rebuilt
+   * @param idTransactionToExclude id of the transaction that moved out of this series. It has to be named explicitly:
+   *                               the stored data is read on another connection, which does not see the flushed but
+   *                               uncommitted update and would therefore still report the transaction as belonging here.
+   */
+  void rebuildHoldingsForSecurityaccountAndSecurity(Securityaccount securityaccount, Integer idSecuritycurrency,
+      Integer idTransactionToExclude);
+
+  /**
    * Rebuilds holdings for a specific security across all tenants and accounts.
    * 
    * <p>

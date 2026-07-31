@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
-import {Observable, combineLatest} from 'rxjs';
-import {map, tap} from 'rxjs/operators';
+import {Observable, combineLatest, of} from 'rxjs';
+import {catchError, map, tap} from 'rxjs/operators';
 import moment from 'moment';
 import {MenuItem, TreeNode, ConfirmationService} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
@@ -78,11 +78,13 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
     this.rootNode = rootNode;
     const tenantObservable = this.tenantService.getTenantAndPortfolio();
     const portfolioObservable = this.portfolioService.getPortfoliosForTenantOrderByName();
+    // The limits only gate the create menu entries; the backend enforces them anyway. A failure here must therefore
+    // not stop the tree from being rebuilt, otherwise a deleted portfolio or securities account stays visible.
     const tenantLimitsObservable = this.tenantService.getMaxTenantLimitsByMsgKey([
       TenantLimitTypes.MAX_SECURITY_ACCOUNT,
       TenantLimitTypes.MAX_PORTFOLIO,
       TenantLimitTypes.MAX_WATCHLIST
-    ]);
+    ]).pipe(catchError(() => of([] as TenantLimit[])));
 
     return combineLatest({
       tenant: tenantObservable,

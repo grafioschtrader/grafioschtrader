@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
-import {Observable, combineLatest} from 'rxjs';
-import {map, tap} from 'rxjs/operators';
+import {Observable, combineLatest, of} from 'rxjs';
+import {catchError, map, tap} from 'rxjs/operators';
 import {MenuItem, TreeNode, ConfirmationService} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
 import {MainTreeContributor} from '../../lib/maintree/contributor/main-tree-contributor.interface';
@@ -13,7 +13,7 @@ import {GlobalparameterService} from '../../lib/services/globalparameter.service
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Watchlist} from '../../entities/watchlist';
 import {Tenant} from '../../entities/tenant';
-import {TenantLimitTypes} from '../../shared/types/tenant.limit';
+import {TenantLimit, TenantLimitTypes} from '../../shared/types/tenant.limit';
 import {WatchlistSecurityExists} from '../../entities/dnd/watchlist.security.exists';
 import {AppSettings} from '../../shared/app.settings';
 import {AppHelper} from '../../lib/helper/app.helper';
@@ -84,7 +84,10 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
     return combineLatest([
       this.watchlistService.getWatchlistsByIdTenant(),
       this.watchlistService.getWatchlistsOfTenantHasSecurity(),
+      // Only gates the create menu entry, the backend enforces the limit anyway - a failure here must not stop the
+      // watchlist nodes from being rebuilt.
       this.tenantService.getMaxTenantLimitsByMsgKey([TenantLimitTypes.MAX_WATCHLIST])
+        .pipe(catchError(() => of([] as TenantLimit[])))
     ]).pipe(
       map(([watchlists, hasSecurityData, tenantLimits]) => {
         // Update has security mapping

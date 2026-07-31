@@ -852,6 +852,23 @@ export class MyDialogComponent extends SimpleEditBase implements OnInit {
 - **Types/Models**: `src/app/<module>/types/` or `src/app/entities/`
 - **Shared utilities**: `src/app/lib/` (reusable across modules)
 
+### Enums Mirrored From the Backend
+
+Some TypeScript enums are hand-maintained copies of a backend Java enum, because the dropdown options are
+built from the enum object instead of from a REST endpoint. A constant missing from the mirror can never
+be selected and reverse lookups render `undefined` — see `backend/CLAUDE.md` →
+"Enums Mirrored in the Frontend" for the full rule and the current list of pairs.
+
+Every mirror declares its counterpart in its file comment, with a path relative to `backend/`:
+
+```ts
+ * Corresponds to backend: grafioschtrader-common/src/main/java/grafioschtrader/types/TaskTypeExtended.java
+```
+
+`src/enum.mirror.spec.ts` collects every file carrying that marker and fails `npm test` when the two
+sides disagree on a constant name or value. **A new mirror must carry the marker line** — that is all it
+takes to enrol it in the guard.
+
 ## Translation / i18n — the backend is the only source
 
 **IMPORTANT**: There are **no translation files in the frontend**. `src/assets/i18n/` and

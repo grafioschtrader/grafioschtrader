@@ -181,13 +181,6 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
       + " AND (t.idTransaction = :idTransaction OR t.connectedIdTransaction = :idTransaction) ORDER BY t.transactionTime")
   List<Transaction> getMarginForIdTenantAndIdTransactionOrderByTransactionTime(Integer idTenant, Integer idTransaction);
 
-  /**
-   * This native query for removing all transaction exists because deleteAll() is not working. Maybe because of the two
-   * references to
-   */
-  @UpdateQuery(value = "DELETE FROM transaction", nativeQuery = true)
-  void removeAllTransaction();
-
   @UpdateQuery(value = "DELETE FROM transaction WHERE id_tenant = ?1 AND note = 'System-Created' AND transaction_type = 6", nativeQuery = true)
   void removeSystemCreatedDividensFromTenant(Integer idTenant);
 
@@ -215,8 +208,31 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
       WHERE s.idSecuritycurrency = :idSecurity AND (a.specialInvestmentInstrument = 4 OR a.categoryType = 8)""")
   List<Transaction> getMarginTransactionMapForSecurity(Integer idSecurity);
 
-  @UpdateQuery(value = "DELETE FROM Transaction WHERE id_cash_account = ?1", nativeQuery = true)
-  void deleteByCashaccount_IdSecuritycashAccount(Integer idCashaccount);
+  /**
+   * All external cash transfers (WITHDRAWAL = 0, DEPOSIT = 1) of one cash account, oldest first. Used to replay
+   * {@link grafioschtrader.entities.HoldCashaccountDeposit} for an account from scratch.
+   *
+   * @param idCashaccount the cash account
+   * @return the deposits and withdrawals ordered by transaction time
+   */
+  @Query(value = """
+      SELECT t FROM Transaction t WHERE t.cashaccount.idSecuritycashAccount = ?1 AND t.transactionType <= 1
+      ORDER BY t.transactionTime""")
+  List<Transaction> findDepositWithdrawalByCashaccount(Integer idCashaccount);
+
+  /**
+   * The external cash transfers (WITHDRAWAL = 0, DEPOSIT = 1) of one cash account booked strictly after the given date,
+   * oldest first. Used to replay {@link grafioschtrader.entities.HoldCashaccountDeposit} from a surviving hold row on
+   * without re-reading the account's whole history.
+   *
+   * @param idCashaccount the cash account
+   * @param afterDate     exclusive lower bound on {@code tt_date}
+   * @return the deposits and withdrawals ordered by transaction time
+   */
+  @Query(value = """
+      SELECT t FROM Transaction t WHERE t.cashaccount.idSecuritycashAccount = ?1 AND t.transactionType <= 1
+      AND t.transactionDate > ?2 ORDER BY t.transactionTime""")
+  List<Transaction> findDepositWithdrawalByCashaccountAfterDate(Integer idCashaccount, LocalDate afterDate);
 
   @Query(value = "SELECT t FROM Portfolio p JOIN p.securitycashaccountList a JOIN a.securityTransactionList t JOIN Fetch t.security s"
       + " JOIN Fetch t.cashaccount WHERE p.idTenant=?1 AND s.idSecuritycurrency=?2 ORDER BY t.transactionTime")

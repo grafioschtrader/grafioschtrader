@@ -1,6 +1,7 @@
 package grafioschtrader.repository;
 
 import grafioschtrader.entities.Transaction;
+import grafioschtrader.repository.helper.TransactionPreImage;
 
 /**
  * Custom repository interface for managing cash account balance holdings and time-frame calculations.
@@ -56,13 +57,13 @@ public interface HoldCashaccountBalanceJpaRepositoryCustom {
 
   /**
    * Adjusts cash account balance holdings incrementally based on a single transaction change.
-   * 
+   *
    * <p>
    * This method provides efficient incremental updates when a transaction is added, modified, or removed. It identifies
    * the affected time period and recalculates only the necessary holding records from that point forward, preserving
    * earlier holdings that remain valid.
    * </p>
-   * 
+   *
    * <p>
    * <strong>Incremental Processing:</strong>
    * </p>
@@ -70,13 +71,22 @@ public interface HoldCashaccountBalanceJpaRepositoryCustom {
    * The method determines the impact date from the transaction and:
    * </p>
    * <ul>
-   * <li>Preserves holdings before the transaction date</li>
-   * <li>Removes and recalculates holdings from the transaction date onward</li>
+   * <li>Preserves holdings before the impact date</li>
+   * <li>Removes and recalculates holdings from the impact date onward</li>
    * <li>Applies currency conversion using current exchange rates</li>
    * <li>Updates related portfolio and tenant currency calculations</li>
    * </ul>
-   * 
-   * @param transaction the transaction that triggered the balance adjustment
+   *
+   * <p>
+   * <strong>Why the pre-image matters:</strong> the stored rows are cumulative running totals, so the impact date is the
+   * <em>earlier</em> of the transaction's former and current date. Recalculating only from the new date would leave
+   * every row in between carrying the old amount forever. Likewise, a transaction moved to another cash account leaves
+   * the former account untouched unless that account is recalculated too.
+   * </p>
+   *
+   * @param transaction the transaction that triggered the balance adjustment, already persisted or already deleted
+   * @param preImage    where the transaction was booked before the update, or {@code null} for a create or a delete
+   *                    (see {@link grafioschtrader.repository.helper.TransactionPreImage})
    */
-  void adjustCashaccountBalanceByIdCashaccountAndFromDate(Transaction transaction);
+  void adjustCashaccountBalance(Transaction transaction, TransactionPreImage preImage);
 }

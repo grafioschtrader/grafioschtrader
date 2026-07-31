@@ -34,7 +34,8 @@ import {TooltipModule} from 'primeng/tooltip';
       <ng-template #header let-fields>
         <tr>
           @for (field of fields; track field) {
-            <th [ngClass]="getCellClass(field)" [style.width.px]="field.width">
+            <th [ngClass]="getCellClass(field)"
+                [style.width.px]="field.width" [style.min-width.px]="field.width">
               {{ field.headerTranslated }}
             </th>
           }
@@ -46,7 +47,7 @@ import {TooltipModule} from 'primeng/tooltip';
             <td [ngClass]="[getCellClass(field),
             getHolidayMissing(rowData, field) === HolidayMissing[HolidayMissing.HM_HOLIDAY] ? 'cell-holiday' : '',
             getHolidayMissing(rowData, field) === HolidayMissing[HolidayMissing.HM_HISTORY_DATA_MISSING] ? 'cell-data-missing' : '']"
-                [style.width.px]="field.width">
+                [style.width.px]="field.width" [style.min-width.px]="field.width">
               @if (i === 0) {
                 <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
               }
@@ -69,7 +70,8 @@ import {TooltipModule} from 'primeng/tooltip';
         <tr>
           @for (field of fields; track field) {
             @if (field.visible) {
-              <td class="row-total" [style.width.px]="field.width" [ngClass]="getCellClass(field)">
+              <td class="row-total" [ngClass]="getCellClass(field)"
+                  [style.width.px]="field.width" [style.min-width.px]="field.width">
                 @switch (field.templateName) {
                   @case ('greenRed') {
                     <span [pTooltip]="getValueColumnTotal(field, 0, performancePeriod?.sumPeriodColSteps, null)"
@@ -105,6 +107,13 @@ import {TooltipModule} from 'primeng/tooltip';
      * "td {text-overflow: ellipsis}" rule silently clipped them. Auto layout lets the widest cell of a
      * column - usually its total - determine the column width, and the wrapper scrolls horizontally when
      * the whole table no longer fits instead of truncating single values.
+     *
+     * Auto layout has one consequence for the column widths: a "width" on a cell is only a preference.
+     * The natural content of this table is far narrower than the panel, so the browser spreads the
+     * surplus of "min-width: 100%" over all columns and overrides that preference. The template
+     * therefore applies ColumnConfig.width as "min-width" as well, which auto layout does honour
+     * exactly. A width below the min-content of the cell - about 113px for the toggler plus the nowrap
+     * date range of a week - cannot be reached at all and is silently ignored.
      */
     :host ::ng-deep .p-treetable-wrapper {
       overflow-x: auto;
@@ -123,13 +132,16 @@ import {TooltipModule} from 'primeng/tooltip';
     }
 
     /*
-     * The default cell padding of 16px per side consumes almost half of a numeric column of this dense
-     * table. tabular-nums gives all digits the same advance width so the figures of a column line up.
+     * tabular-nums gives all digits the same advance width so the figures of a column line up.
+     *
+     * The cell padding of this table is deliberately not set here: PrimeNG applies it from the treetable
+     * design tokens of MyPreset in app.component.ts, and a rule of this component would tie with the
+     * theme rule on specificity and lose, because the theme sheet is injected after the component style.
+     * Such a rule only appears to work after a hot reload, when the injection order happens to flip.
      */
     :host ::ng-deep .p-treetable-thead > tr > th,
     :host ::ng-deep .p-treetable-tbody > tr > td,
     :host ::ng-deep .p-treetable-tfoot > tr > td {
-      padding: 2px 6px;
       font-variant-numeric: tabular-nums;
     }
   `],
@@ -161,7 +173,7 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
       this.translatedTexts = translatedTexts);
     this.addColumnFeqH(DataType.String, 'period', true, false,
       {
-        width: 200,
+        width: 120,
         fieldValueFN: this.getFirstColumnLabel.bind(this),
         columnGroupConfigs: [new ColumnGroupConfig(null, 'GRAND_TOTAL')]
       });

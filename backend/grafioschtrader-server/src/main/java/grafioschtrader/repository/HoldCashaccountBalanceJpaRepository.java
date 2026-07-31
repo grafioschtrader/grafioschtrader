@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import grafioschtrader.dto.HoldConsistencyDefect;
 import grafioschtrader.entities.HoldCashaccountBalance;
 import grafioschtrader.entities.HoldCashaccountBalance.HoldCashaccountBalanceKey;
 
@@ -72,11 +73,14 @@ public interface HoldCashaccountBalanceJpaRepository extends
    * <ul>
    *   <li>withdrawals and deposits (transaction_type ≤ WITHDRAWAL/DEPOSIT)</li>
    *   <li>interest (transaction_type = INTEREST_CASHACCOUNT)</li>
-   *   <li>fees (transaction_type = FEE)</li>
+   *   <li>fees (transaction_type = FEE or FINANCE_COST)</li>
    *   <li>net buys/sells (transaction_type BETWEEN ACCUMULATE and REDUCE)</li>
    *   <li>dividends (transaction_type = DIVIDEND)</li>
    *   <li>total net change</li>
    * </ul>
+   * The five categories together add up to the total; FINANCE_COST is grouped with FEE because it is
+   * a cost on a finance instrument, and because leaving it out of every category made the breakdown
+   * shown by the performance report silently disagree with the balance.
    * Results are grouped by cash account and date, ordered by account and date.
    *
    * @param idTenant the tenant ID whose cash account transactions are aggregated
@@ -114,6 +118,34 @@ public interface HoldCashaccountBalanceJpaRepository extends
    */
   @Query(nativeQuery = true)
   HoldCashaccountBalance getCashaccountBalanceMaxFromDateByCashaccount(Integer idCashaccount);
+
+  //@formatter:off
+  /**
+   * Counts, per tenant and kind, the {@code hold_cashaccount_balance} rows that disagree with the transactions they are
+   * derived from. Read-only; nothing is repaired.
+   * <p>
+   * The expected content is reproduced entirely from the {@code transaction} table with a window function: every column
+   * is a running total in the cash account's own currency, so neither exchange rates nor historical quotes are involved
+   * and the comparison is exact. Checked are surplus rows, absent rows, all six value columns, the chaining of
+   * {@code to_hold_date} to the next {@code from_hold_date}, and the denormalised tenant/portfolio ids.
+   * <p>
+   * {@code balance} is the one column the writer rounds, to the account currency's precision
+   * ({@code HoldCashaccountBalanceJpaRepositoryImpl} via {@code getPrecisionForCurrency}), so it gets its own tolerance
+   * of one currency unit, decoded from the {@code gt.currency.precision} globalparameter inside the query and defaulting
+   * to two digits. Comparing the stored value against the <em>unrounded</em> running sum with that tolerance is
+   * deliberate: rounding the expected sum in SQL instead makes every balance that lands exactly on half a currency unit
+   * flip, because MariaDB's decimal window aggregate and the writer's double accumulation round it in opposite
+   * directions. The remaining five columns are stored unrounded and keep the caller's tolerance.
+   * <p>
+   * Named query: HoldCashaccountBalance.countConsistencyDefects
+   *
+   * @param tolerance absolute tolerance for the five unrounded category columns, e.g. 0.005; the {@code balance}
+   *                  comparison ignores it and uses the currency's own unit instead
+   * @return one row per tenant and defect kind, empty when everything agrees
+   */
+  //@formatter:on
+  @Query(nativeQuery = true)
+  List<HoldConsistencyDefect> countConsistencyDefects(double tolerance);
 
   //@formatter:off
   /**
@@ -185,7 +217,8 @@ public interface HoldCashaccountBalanceJpaRepository extends
     Double getInterestCashaccount();
 
     /**
-     * The total fees charged to the cash account on this date.
+     * The total fees charged to the cash account on this date, including FINANCE_COST on finance
+     * instruments.
      *
      * @return the fee amount
      */

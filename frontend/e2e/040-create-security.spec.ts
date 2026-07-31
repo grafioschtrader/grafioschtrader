@@ -1,7 +1,8 @@
-import {test, expect} from '@playwright/test';
+import {test, expect, Locator, Page} from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 import {loginAsCsvUser, parseCsvRow} from './helpers';
+import {toShortDate} from './portfolio.helpers';
 
 /**
  * Shape of one row in generated/securities.csv — column order mirrors
@@ -66,6 +67,43 @@ function nonNull(v: string): string {
   return v === '\\N' || v === undefined ? '' : v;
 }
 
+/**
+ * Writes an ISO date into a p-datepicker of the dialog. Two things make a plain fill() useless here:
+ * the picker ignores input events that were not preceded by a keydown (PrimeNG's isKeydown guard),
+ * so the reactive form never sees the value, and it parses only the two-digit-year short format of
+ * the logged-in user (de-CH 'dd.mm.y'). An ISO string therefore ends up as an unparsable text, the
+ * control turns invalid ("the entered date cannot be interpreted") and Save stays disabled forever.
+ * Same trap as in 047-create-derived-security and 010-import-template-group.
+ *
+ * The existing content is cleared first — the dialog prefills both date fields with defaults.
+ */
+/**
+ * Locates the watchlist cell that holds exactly this security name. A substring match is wrong here:
+ * 'IBEX 35' is contained in 'Lyxor ETF IBEX 35 (DR) (EUR)', so the index would silently count as
+ * already present and never be created, while the closing assertion would confirm the ETF's row.
+ */
+function nameCell(page: Page, name: string): Locator {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return page.locator('td', {hasText: new RegExp(`^\\s*${escaped}\\s*$`)});
+}
+
+async function typeDate(scope: Locator, fieldId: string, isoDate: string, locale: string): Promise<void> {
+  if (!nonNull(isoDate)) {
+    return;
+  }
+  const input = scope.locator(`#${fieldId} input, input#${fieldId}`).first();
+  if (await input.count() === 0) {
+    return;
+  }
+  const shortDate = toShortDate(isoDate, locale);
+  await input.click();
+  await input.press('Control+a');
+  await input.press('Backspace');
+  await input.pressSequentially(shortDate, {delay: 20});
+  await input.blur();
+  await expect(input, `${fieldId} did not keep the typed date`).toHaveValue(shortDate);
+}
+
 test.describe.serial('Create Spain watchlist and seed Spanish securities', () => {
 
   test('creates "Spain" watchlist if missing', async ({page}) => {
@@ -103,7 +141,7 @@ test.describe.serial('Create Spain watchlist and seed Spanish securities', () =>
 
   for (const row of loadE2ERows()) {
     test(`adds Spanish security ${row.name} (${row.isin || row.tickerSymbol || 'no-id'})`, async ({page}) => {
-      await loginAsCsvUser(page, LOGIN_NICKNAME);
+      const creds = await loginAsCsvUser(page, LOGIN_NICKNAME);
 
       const watchlistNode = page.getByRole('treeitem', {name: WATCHLIST_NAME, exact: true}).first();
       await watchlistNode.waitFor({state: 'visible', timeout: 10_000});
@@ -113,7 +151,7 @@ test.describe.serial('Create Spain watchlist and seed Spanish securities', () =>
       await page.waitForTimeout(1500);
 
       // Skip if this security is already in the table (idempotent).
-      if (await page.locator('td', {hasText: row.name}).count() > 0) {
+      if (await nameCell(page, row.name).count() > 0) {
         return;
       }
 
@@ -214,19 +252,9 @@ test.describe.serial('Create Spain watchlist and seed Spanish securities', () =>
         }
       }
 
-      // Dates — PrimeNG p-calendar exposes an inner <input>.
-      const fromDateInput = dialog.locator('#activeFromDate input, input#activeFromDate').first();
-      if (await fromDateInput.count() > 0 && nonNull(row.activeFromDate)) {
-        await fromDateInput.fill(row.activeFromDate);
-        await fromDateInput.dispatchEvent('input');
-        await fromDateInput.blur();
-      }
-      const toDateInput = dialog.locator('#activeToDate input, input#activeToDate').first();
-      if (await toDateInput.count() > 0 && nonNull(row.activeToDate)) {
-        await toDateInput.fill(row.activeToDate);
-        await toDateInput.dispatchEvent('input');
-        await toDateInput.blur();
-      }
+      // Dates — PrimeNG p-calendar exposes an inner <input> that has to be typed key by key.
+      await typeDate(dialog, 'activeFromDate', row.activeFromDate, creds.locale);
+      await typeDate(dialog, 'activeToDate', row.activeToDate, creds.locale);
 
       // --- Connectors ---
       if (nonNull(row.idConnectorHistory)) {
@@ -264,7 +292,7 @@ test.describe.serial('Create Spain watchlist and seed Spanish securities', () =>
       await dialog.getByRole('button', {name: /^(Save|Speichern)$/}).first().click();
       await dialog.waitFor({state: 'hidden', timeout: 15_000});
 
-      await expect(page.locator('td', {hasText: row.name}).first())
+      await expect(nameCell(page, row.name).first())
         .toBeVisible({timeout: 10_000});
     });
   }

@@ -82,6 +82,9 @@ export enum TaskTypeExtended {
   /** Derives the trading calendar of stock exchanges from a trading calendar rule set */
   CREATE_STOCK_EXCHANGE_CALENDAR_BY_RULE_SET = 53,
 
+  /** Compares the hold tables against the transactions they are derived from and reports drift to the main admin */
+  HOLD_TABLE_CONSISTENCY_CHECK = 54,
+
   // System tasks (80+ band): use oldValueNumber/oldValueString and cannot be created by a user
 
   /** Update task migrated from V_0 */

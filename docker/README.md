@@ -107,7 +107,7 @@ docker compose up -d               # start / apply .env changes
 ### Update to a new release
 
 ```bash
-./update.sh 0.36.3     # or: ./update.sh latest
+./update.sh 0.36.3.1     # or: ./update.sh latest
 ```
 
 `update.sh` does the whole update: it backs up the database, `.env` and
@@ -133,7 +133,7 @@ older release with a new version number:
 
 ```bash
 git -C .. fetch --depth 1 origin master && git -C .. reset --hard FETCH_HEAD
-./update.sh 0.36.3 --build
+./update.sh 0.36.3.1 --build
 ```
 
 The same thing by hand:
@@ -146,7 +146,7 @@ docker compose exec mariadb mariadb-dump -uroot -p"$DB_ROOT_PASSWORD" \
 
 # 2. Only when GT_VERSION pins a version: set the new one in .env
 #    (with GT_VERSION=latest, skip this step)
-sed -i 's/^GT_VERSION=.*/GT_VERSION=0.36.3/' .env
+sed -i 's/^GT_VERSION=.*/GT_VERSION=0.36.3.1/' .env
 
 # 3. Fetch the new images and restart
 docker compose pull
@@ -158,7 +158,7 @@ docker compose logs -f backend
 
 Database migrations run automatically on startup, so the backend can stay in
 `starting` for a while after a release with many migrations. `GT_VERSION=latest`
-(the installer's default) tracks the newest release; set `GT_VERSION=0.36.3` to
+(the installer's default) tracks the newest release; set `GT_VERSION=0.36.3.1` to
 pin an exact version, which is worth doing if you want an update to be a
 deliberate, reversible step.
 

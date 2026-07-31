@@ -59,6 +59,8 @@ public enum TaskTypeExtended implements ITaskType {
   STANDING_ORDER_EXECUTION((byte) 52),
   /** Derives the trading calendar of stock exchanges from a trading calendar rule set */
   CREATE_STOCK_EXCHANGE_CALENDAR_BY_RULE_SET((byte) 53),
+  /** Compares the hold tables against the transactions they are derived from and reports drift to the main admin */
+  HOLD_TABLE_CONSISTENCY_CHECK((byte) 54),
 
   // Task which used oldValueNumber or oldValueString can not created by the admin
   ///////////////////////////////////////////////////////////////////////////////

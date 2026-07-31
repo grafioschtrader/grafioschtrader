@@ -1,6 +1,6 @@
 import {Injectable, Inject, Optional} from '@angular/core';
 import {Observable, combineLatest, of} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {catchError, map} from 'rxjs/operators';
 import {MenuItem, TreeNode} from 'primeng/api';
 import {MAIN_TREE_CONTRIBUTOR, MainTreeContributor, MainTreeCallbacks} from '../contributor/main-tree-contributor.interface';
 import {ProcessedActionData} from '../../types/processed.action.data';
@@ -140,7 +140,7 @@ export class MainTreeService {
         if (rootNode) {
           const refreshObs = contributor.refreshNodes(rootNode);
           if (refreshObs) {
-            refreshObservables.push(refreshObs);
+            refreshObservables.push(this.isolateFailure(refreshObs, contributor));
           }
         }
       }
@@ -169,7 +169,7 @@ export class MainTreeService {
           if (rootNode) {
             const refreshObs = contributor.refreshNodesForDataChange(rootNode, processedActionData);
             if (refreshObs) {
-              refreshObservables.push(refreshObs);
+              refreshObservables.push(this.isolateFailure(refreshObs, contributor));
             }
           }
         }
@@ -183,6 +183,22 @@ export class MainTreeService {
     return combineLatest(refreshObservables).pipe(
       map(() => void 0)
     );
+  }
+
+  /**
+   * Keeps one failing contributor from cancelling the refresh of all the others. The refreshes run in a combineLatest,
+   * so without this an error in a single contributor - typically a failed REST call - aborts the whole stream and the
+   * caller never gets to redraw the tree. The tree then still shows entities that were already deleted on the server.
+   *
+   * @param refresh the contributor's refresh observable
+   * @param contributor the contributor it belongs to, used only for the diagnostic message
+   * @returns an observable that completes instead of erroring
+   */
+  private isolateFailure(refresh: Observable<void>, contributor: MainTreeContributor): Observable<void> {
+    return refresh.pipe(catchError(error => {
+      console.error(`Main tree refresh failed for ${contributor.constructor.name}:`, error);
+      return of(void 0);
+    }));
   }
 
   /**

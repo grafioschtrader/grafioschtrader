@@ -43,38 +43,42 @@ public class HoldCashaccountBalance extends HoldBase {
   private Integer idCurrencypairPortoflio;
 
   /**
-   * Net amount of withdrawals (negative) and deposits (positive) during the period.
+   * Running net amount of withdrawals (negative) and deposits (positive), accumulated from the cash account's first
+   * transaction up to and including this period. Like all value columns of this entity it is a cumulative total, not a
+   * per-period delta, and it is expressed in the cash account's own currency.
    */
   @Column(name = "withdrawl_deposit")
   private Double withdrawlDeposit;
 
   /**
-   * Total interest credited to the cash account during the period.
+   * Running total of interest credited to the cash account, accumulated up to and including this period.
    */
   @Column(name = "interest_cashaccount")
   private Double interestCashaccount;
 
   /**
-   * Total fees debited from the cash account during the period.
+   * Running total of fees debited from the cash account, accumulated up to and including this period. This includes
+   * FINANCE_COST on finance instruments, so that the five category columns add up to {@link #balance}.
    */
   @Column(name = "fee")
   private Double fee;
 
   /**
-   * Net effect of security buy (accumulate) or sell (reduce) transactions, converted to cash and varying daily with
-   * exchange rates.
+   * Running net cash effect of security buy (accumulate) and sell (reduce) transactions, accumulated up to and
+   * including this period.
    */
   @Column(name = "accumulate_reduce")
   private Double accumulateReduce;
 
   /**
-   * Total dividends credited to the cash account during the period.
+   * Running total of dividends credited to the cash account, accumulated up to and including this period.
    */
   @Column(name = "dividend")
   private Double dividend;
 
   /**
-   * End-of-period cash balance after applying all transactions and conversions.
+   * End-of-period cash balance in the cash account's own currency, rounded to that currency's precision. Equals the sum
+   * of the five category columns above.
    */
   @Column(name = "balance")
   private double balance;

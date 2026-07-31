@@ -3,6 +3,7 @@ With GT version 0.36.1 we have switched to **Java 25** from **Java 21**. Please 
 
 ## Preface
 - **Unless otherwise described, GT will only get a new version if the new features require an update of the database. It is the goal that the master branch always contains the most reliable and feature rich source code.** 
+- **A release number has the form `major.minor.patch[.revision]`. When only the last digit, the revision, changes, as in `0.36.3` to `0.36.3.1`, the release contains no Flyway database migration and only carries source changes. Every other release does update the database.**
 - For importing transactions we refer to the [gt-import-transaction-template](//github.com/grafioschtrader/gt-import-transaction-template) and [gt-pdf-transform](//github.com/grafioschtrader/gt-pdf-transform) projects.
 
 # Grafioschtrader (GT)

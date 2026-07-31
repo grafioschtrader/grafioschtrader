@@ -70,6 +70,12 @@ const MyPreset = definePreset(Aura, {
         paddingY: "0rem",
       }
     },
+    select: {
+      root: {
+        paddingX: "0rem",
+        paddingY: "0rem",
+      }
+    },
     tabs: {
       tab: {
         borderWidth: "1px 1px 1px 1px"
@@ -100,6 +106,11 @@ const MyPreset = definePreset(Aura, {
         padding: "0rem 0rem",
         gap: "0rem"
        },
+      footerCell: {
+        // Aura defaults to 0.75rem 1rem here. Without this the total row of a tree table is twice as
+        // high as a data row and its right aligned figures sit 16px further left than the values above.
+        padding: "0rem 0rem",
+      },
       nodeToggleButton: {
         size: "1rem"
       }

@@ -53,9 +53,10 @@ export abstract class BaseAuthService<T> extends BaseService {
         transformedError = this.getMessageFromClass(error.error);
 
         if (transformedError.isEmtpy()) {
-          // Message which comes translated from the server
-          const err = body?.error?.message || JSON.stringify(body);
-          transformedError.msg = `${error.status} - ${error.statusText || ''} ${err}`;
+          // Message which comes translated from the server. A body-less failure - for example a 500 written by the
+          // dev server proxy when it could not reach the backend - leaves nothing but status and status text.
+          const err = body?.error?.message || (body == null ? '' : JSON.stringify(body));
+          transformedError.msg = `${error.status} - ${error.statusText || ''} ${err}`.trimEnd();
         }
       }
     } else {
@@ -74,8 +75,19 @@ export abstract class BaseAuthService<T> extends BaseService {
   }
 
 
+  /**
+   * Maps the error body of a failed request to a TransformedError. The body may be missing entirely - an error
+   * response without a payload, such as the body-less 500 the dev server proxy writes when the backend connection
+   * breaks - in which case an empty TransformedError is returned and the caller falls back to status and status text.
+   *
+   * @param errorWrapper the parsed error body, may be null
+   * @returns the transformed error, empty when the body carries no known error class
+   */
   protected getMessageFromClass(errorWrapper: ErrorWrapper): TransformedError {
     let transformedError = new TransformedError('');
+    if (errorWrapper == null) {
+      return transformedError;
+    }
 
     if (BaseAuthService.classNameClassMap[errorWrapper.className] != null) {
       BaseAuthService.classNameClassMap[errorWrapper.className];

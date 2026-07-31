@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import grafiosch.common.UpdateQuery;
+import grafioschtrader.dto.HoldConsistencyDefect;
 import grafioschtrader.entities.HoldSecurityaccountSecurity;
 import grafioschtrader.entities.HoldSecurityaccountSecurityKey;
 import grafioschtrader.reportviews.performance.IPeriodHolding;
@@ -43,6 +44,43 @@ public interface HoldSecurityaccountSecurityJpaRepository
 
   void deleteByHsskIdSecuritycashAccountAndHsskIdSecuritycurrency(Integer idSecuritycashAccount,
       Integer idSecuritycurrency);
+
+  //@formatter:off
+  /**
+   * Counts, per tenant and kind, the {@code hold_securityaccount_security} rows that disagree with the ACCUMULATE and
+   * REDUCE transactions and the splits they are derived from. Read-only; nothing is repaired.
+   * <p>
+   * Checked are: periods starting on a date that is neither a transaction nor a split ({@code ORPHAN_DATE}), every row's
+   * {@code holdings} against the split-adjusted signed unit sum as of that row's own {@code from_hold_date}
+   * ({@code ROW_HOLDINGS}), period chaining and the denormalised tenant/portfolio ids. The complete expected row set is
+   * <em>not</em> predicted: a row is only written while the position is non-zero and same-day margin transactions
+   * collapse into one, so an absent row cannot be distinguished from a legitimately closed position in SQL.
+   * {@code margin_real_holdings}, {@code margin_average_price} and {@code split_price_factor} are out of scope because
+   * they come from the {@code holdSecuritySplit*} stored procedures.
+   * <p>
+   * {@code ROW_HOLDINGS} is evaluated per row rather than on the newest row alone, because the newest row is not the
+   * final state: when a position is sold off completely the writer emits no zero-holdings row, it only closes the last
+   * one with a {@code to_hold_date}. Comparing that row against the final unit sum would report every closed position
+   * as a defect. Evaluating each row as of its own start date is correct by construction and covers every row instead
+   * of one per position.
+   * <p>
+   * For the same reason {@code PERIOD_CHAIN} does not require a gapless chain ending in an open period. A closed
+   * position legitimately leaves a closed last row, and a position that is repurchased later legitimately leaves a gap
+   * between {@code to_hold_date} and the next {@code from_hold_date}. Only genuine breakages are reported: a row that
+   * has a successor while being still open, and a period that overlaps its successor.
+   * <p>
+   * The split adjustment multiplies each transaction by the product of {@code to_factor / from_factor} of every split
+   * between it and the row date, computed as {@code EXP(SUM(LOG(...)))}; the factors are ratios of positive integers,
+   * so the tolerance is applied relative to the expected holdings to absorb the floating point error.
+   * <p>
+   * Named query: HoldSecurityaccountSecurity.countConsistencyDefects
+   *
+   * @param tolerance relative tolerance for the holdings comparison, e.g. 0.000001
+   * @return one row per tenant and defect kind, empty when everything agrees
+   */
+  //@formatter:on
+  @Query(nativeQuery = true)
+  List<HoldConsistencyDefect> countConsistencyDefects(double tolerance);
 
   @Query("""
       SELECT MIN(hss.hssk.fromHoldDate) AS firstTradingDate

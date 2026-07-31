@@ -44,6 +44,7 @@ import grafioschtrader.instrument.SecurityGeneralUnitsCheck;
 import grafioschtrader.instrument.SecurityMarginUnitsCheck;
 import grafioschtrader.reportviews.currencypair.CurrencypairWithTransaction;
 import grafioschtrader.reportviews.transaction.CashaccountTransactionPosition;
+import grafioschtrader.repository.helper.TransactionPreImage;
 import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.tax.swiss.ictax.IctaxExDateMatcher;
 import grafioschtrader.types.TransactionType;
@@ -145,16 +146,22 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
     cashAccountTransfer.validateWithdrawalCashaccountAmount(withdrawalCurrencyFraction);
     cashAccountTransfer.makeAbsToatalAmount();
+    // Snapshot both sides before anything is saved: a transfer whose date or accounts moved has to recalculate the
+    // holdings of where it used to be, and merge overwrites the existing instances in place.
+    final TransactionPreImage withdrawalPreImage = TransactionPreImage
+        .of(cashAccountTransferExisting.getWithdrawalTransaction());
+    final TransactionPreImage depositPreImage = TransactionPreImage
+        .of(cashAccountTransferExisting.getDepositTransaction());
     CashAccountTransfer newCashAccountTransfer = new CashAccountTransfer(
         processAndSaveTransaction(cashAccountTransfer.getWithdrawalTransaction(),
-            cashAccountTransferExisting.getWithdrawalTransaction(), null, true, true),
+            cashAccountTransferExisting.getWithdrawalTransaction(), withdrawalPreImage, null, true, true),
         processAndSaveTransaction(cashAccountTransfer.getDepositTransaction(),
-            cashAccountTransferExisting.getDepositTransaction(), null, true, true));
+            cashAccountTransferExisting.getDepositTransaction(), depositPreImage, null, true, true));
     newCashAccountTransfer.connectTransactions();
     CashAccountTransfer cat = new CashAccountTransfer(
         this.transactionJpaRepository.saveAll(newCashAccountTransfer.getTransactionAsList()));
     holdCashaccountDepositJpaRepository.adjustCashaccountDepositOrWithdrawal(cat.getDepositTransaction(),
-        cat.getWithdrawalTransaction());
+        depositPreImage, cat.getWithdrawalTransaction(), withdrawalPreImage);
     return cat;
   }
 
@@ -239,9 +246,12 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
   private Transaction saveOnly(final Transaction transaction, Transaction existingEntity,
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
+    // Must happen before checkTransactionSecurityAndCashaccountBeforSave and the save: existingEntity is the managed
+    // instance that merge writes the new values into, so the old coordinates are only readable now.
+    final TransactionPreImage preImage = TransactionPreImage.of(existingEntity);
     Securityaccount securityaccount = checkTransactionSecurityAndCashaccountBeforSave(transaction);
     checkCurrencypair(transaction);
-    return processAndSaveTransaction(transaction, existingEntity, securityaccount, true, false);
+    return processAndSaveTransaction(transaction, existingEntity, preImage, securityaccount, true, false);
   }
 
   @Override
@@ -530,6 +540,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
    * 
    * @param transaction           the transaction to process
    * @param existingEntity        existing entity if updating, null if creating
+   * @param preImage              snapshot of the existing entity's account and date, taken before the save, or null
    * @param securityaccount       the security account associated with the transaction
    * @param adjustHoldings        whether to adjust account holdings after saving
    * @param isCashAccountTransfer whether this is part of a cash account transfer
@@ -537,7 +548,8 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
    * @throws DataViolationException if validation fails
    */
   private Transaction processAndSaveTransaction(final Transaction transaction, Transaction existingEntity,
-      Securityaccount securityaccount, boolean adjustHoldings, boolean isCashAccountTransfer) {
+      TransactionPreImage preImage, Securityaccount securityaccount, boolean adjustHoldings,
+      boolean isCashAccountTransfer) {
     Transaction newTransaction = null;
 
     if (transaction.getTransactionType() == TransactionType.WITHDRAWAL && transaction.getCashaccountAmount() > 0.0) {
@@ -555,9 +567,9 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
       List<Transaction> existingTransactions = checkTradingDayAndUnitsIntegrity(transaction);
       transaction.validateCashaccountAmount(getOpenPositionMarginPosition(transaction), currencyFraction);
       checkOverdraftAllowed(transaction, existingEntity);
-      newTransaction = saveSecurityTransaction(transaction, existingEntity, securityaccount, adjustHoldings);
+      newTransaction = saveSecurityTransaction(transaction, preImage, securityaccount, adjustHoldings);
       if (newTransaction.isMarginOpenPosition() && !existingTransactions.isEmpty()) {
-        adjustMarginClosePosition(newTransaction, existingTransactions, currencyFraction);
+        adjustMarginClosePosition(newTransaction, existingTransactions, currencyFraction, adjustHoldings);
       }
       break;
 
@@ -570,7 +582,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
       transaction.clearAccountTransaction();
       transaction.validateCashaccountAmount(null, currencyFraction);
       checkOverdraftAllowed(transaction, existingEntity);
-      newTransaction = saveTransactionAndCorrectCashaccountBalance(transaction, existingEntity, adjustHoldings,
+      newTransaction = saveTransactionAndCorrectCashaccountBalance(transaction, preImage, adjustHoldings,
           isCashAccountTransfer);
       break;
     default:
@@ -582,18 +594,30 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   /**
    * Adjusts margin close position amounts when the opening margin transaction changes. Recalculates cash account
    * amounts for all connected closing transactions.
-   * 
+   *
+   * <p>
+   * Each close transaction's cash effect changes here, so its cash account balance holdings have to be recalculated too.
+   * The open position's own recalculation does not cover them: a close may sit in a different cash account, and even in
+   * the same account the replay is seeded from the open position's date, which says nothing about a close that changed
+   * amount without changing date.
+   * </p>
+   *
    * @param openPositionMarginTransaction the opening margin transaction
    * @param existingTransactions          list of existing closing transactions to adjust
    * @param currencyFraction              currency precision for amount calculations
+   * @param adjustHoldings                whether the hold tables should be recalculated
    */
   private void adjustMarginClosePosition(Transaction openPositionMarginTransaction,
-      List<Transaction> existingTransactions, Integer currencyFraction) {
+      List<Transaction> existingTransactions, Integer currencyFraction, boolean adjustHoldings) {
     for (Transaction closeTransaction : existingTransactions) {
       closeTransaction.setCashaccountAmount(
           closeTransaction.recalculateCloseMarginPos(openPositionMarginTransaction.getQuotation()));
       closeTransaction.validateCashaccountAmount(openPositionMarginTransaction, currencyFraction);
-      transactionJpaRepository.save(closeTransaction);
+      Transaction savedCloseTransaction = transactionJpaRepository.save(closeTransaction);
+      if (adjustHoldings) {
+        transactionJpaRepository.flush();
+        holdCashaccountBalanceJpaRepository.adjustCashaccountBalance(savedCloseTransaction, null);
+      }
     }
   }
 
@@ -641,15 +665,15 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     return transactions;
   }
 
-  private Transaction saveSecurityTransaction(Transaction transaction, Transaction existingEntity,
+  private Transaction saveSecurityTransaction(Transaction transaction, TransactionPreImage preImage,
       Securityaccount securityaccount, boolean adjustHoldings) {
     if (transaction.getTransactionType() == TransactionType.DIVIDEND && transaction.isTaxableInterest() == null) {
       transaction.setTaxableInterest(false);
     }
-    Transaction transactioinNew = saveTransactionAndCorrectCashaccountBalance(transaction, existingEntity,
-        adjustHoldings, false);
+    Transaction transactioinNew = saveTransactionAndCorrectCashaccountBalance(transaction, preImage, adjustHoldings,
+        false);
     if (adjustHoldings) {
-      adjustSecurityaccountHoldings(transactioinNew, securityaccount, true);
+      adjustSecurityaccountHoldings(transactioinNew, preImage, securityaccount, true);
     }
     return transactioinNew;
   }
@@ -691,32 +715,64 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
   /**
    * Adjusts security account holdings for ACCUMULATE and REDUCE transactions.
-   * 
+   *
+   * <p>
+   * When an update moved the transaction to another security account or to another security, the series it moved away
+   * from still contains it and is rebuilt from the database as well. Without that second rebuild the old series keeps
+   * counting units the account no longer holds.
+   * </p>
+   *
    * @param transaction     the transaction that affects holdings
+   * @param preImage        snapshot of the transaction's former security account and security, or null
    * @param securityaccount the security account (retrieved if null)
    * @param isAdded         whether the transaction is being added (true) or removed (false)
    */
-  private void adjustSecurityaccountHoldings(Transaction transaction, Securityaccount securityaccount,
-      boolean isAdded) {
-    if (transaction.getTransactionType() == TransactionType.ACCUMULATE
-        || transaction.getTransactionType() == TransactionType.REDUCE) {
-      holdSecurityaccountSecurityRepository.adjustSecurityHoldingForSecurityaccountAndSecurity(
-          securityaccount == null
-              ? securityaccountJpaRepository.findByIdSecuritycashAccountAndIdTenant(transaction.getIdSecurityaccount(),
-                  transaction.getIdTenant())
-              : securityaccount,
-          transaction, isAdded);
+  private void adjustSecurityaccountHoldings(Transaction transaction, TransactionPreImage preImage,
+      Securityaccount securityaccount, boolean isAdded) {
+    if (transaction.getTransactionType() != TransactionType.ACCUMULATE
+        && transaction.getTransactionType() != TransactionType.REDUCE) {
+      return;
     }
+    Securityaccount targetSecurityaccount = securityaccount == null
+        ? securityaccountJpaRepository.findByIdSecuritycashAccountAndIdTenant(transaction.getIdSecurityaccount(),
+            transaction.getIdTenant())
+        : securityaccount;
+    if (preImage != null && preImage.securityPositionChanged(transaction.getIdSecurityaccount(),
+        transaction.getSecurity() == null ? null : transaction.getSecurity().getIdSecuritycurrency())) {
+      // Only the security may have changed, in which case the account is unchanged and can be reused.
+      Securityaccount formerSecurityaccount = preImage.idSecurityaccount()
+          .equals(transaction.getIdSecurityaccount()) ? targetSecurityaccount
+              : securityaccountJpaRepository.findByIdSecuritycashAccountAndIdTenant(preImage.idSecurityaccount(),
+                  transaction.getIdTenant());
+      if (formerSecurityaccount != null) {
+        holdSecurityaccountSecurityRepository.rebuildHoldingsForSecurityaccountAndSecurity(formerSecurityaccount,
+            preImage.idSecuritycurrency(), transaction.getIdTransaction());
+      }
+    }
+    holdSecurityaccountSecurityRepository.adjustSecurityHoldingForSecurityaccountAndSecurity(targetSecurityaccount,
+        transaction, isAdded);
   }
 
-  private Transaction saveTransactionAndCorrectCashaccountBalance(Transaction transaction, Transaction existingEntity,
-      boolean adjustHoldings, boolean isCashAccountTransfer) {
+  /**
+   * Persists the transaction and brings the cash-account hold tables back in line with it.
+   *
+   * @param transaction           the transaction to save
+   * @param preImage              snapshot of the transaction's former cash account and date, or null on a create
+   * @param adjustHoldings        whether the hold tables should be recalculated
+   * @param isCashAccountTransfer true when the caller adjusts the deposit holdings itself for both transfer sides
+   * @return the saved transaction
+   */
+  private Transaction saveTransactionAndCorrectCashaccountBalance(Transaction transaction,
+      TransactionPreImage preImage, boolean adjustHoldings, boolean isCashAccountTransfer) {
     transaction = transactionJpaRepository.save(transaction);
     if (adjustHoldings) {
-      holdCashaccountBalanceJpaRepository.adjustCashaccountBalanceByIdCashaccountAndFromDate(transaction);
+      // The recalculation reads the transaction back with native queries and groups by tt_date, which @PreUpdate only
+      // derives at flush time. Without this the replay of an update would aggregate the pre-update row.
+      transactionJpaRepository.flush();
+      holdCashaccountBalanceJpaRepository.adjustCashaccountBalance(transaction, preImage);
       if (!isCashAccountTransfer && (transaction.getTransactionType() == TransactionType.DEPOSIT
           || transaction.getTransactionType() == TransactionType.WITHDRAWAL)) {
-        holdCashaccountDepositJpaRepository.adjustCashaccountDepositOrWithdrawal(transaction, null);
+        holdCashaccountDepositJpaRepository.adjustCashaccountDepositOrWithdrawal(transaction, preImage, null, null);
       }
     }
     return transaction;
@@ -748,7 +804,9 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
         removeTransaction(transaction);
         if (transaction.getTransactionType() == TransactionType.DEPOSIT
             || transaction.getTransactionType() == TransactionType.WITHDRAWAL) {
-          holdCashaccountDepositJpaRepository.adjustCashaccountDepositOrWithdrawal(transaction, connectedTransaction);
+          // A delete needs no pre-image: the transaction never moved, it is simply gone from its own account and date.
+          holdCashaccountDepositJpaRepository.adjustCashaccountDepositOrWithdrawal(transaction, null,
+              connectedTransaction, null);
         }
       }
     }
@@ -766,7 +824,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
     checkUnitsIntegrity(OperationType.DELETE, transactions, transaction, transaction.getSecurity());
     removeTransaction(transaction);
-    adjustSecurityaccountHoldings(transaction, null, false);
+    adjustSecurityaccountHoldings(transaction, null, null, false);
   }
 
   /**
@@ -803,7 +861,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     importTransactionPosJpaRepository.setTrasactionIdToNullWhenExists(transaction.getIdTransaction());
     transactionJpaRepository.delete(transaction);
     transactionJpaRepository.flush();
-    holdCashaccountBalanceJpaRepository.adjustCashaccountBalanceByIdCashaccountAndFromDate(transaction);
+    holdCashaccountBalanceJpaRepository.adjustCashaccountBalance(transaction, null);
   }
 
   ///////////////////////////////////////////////////////////////////////////////

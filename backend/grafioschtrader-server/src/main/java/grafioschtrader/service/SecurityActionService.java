@@ -411,6 +411,13 @@ public class SecurityActionService {
   /**
    * Reverses a security transfer by finding all transactions via idSecurityTransfer FK, clearing connected
    * references, deleting all transactions, and then deleting the SecurityTransfer record.
+   *
+   * <p>
+   * The four transactions have to be removed with raw JPA rather than through
+   * {@code TransactionJpaRepositoryImpl.deleteSingleDoubleTransaction}, because the connected-transaction cycle between
+   * the withdrawal and the deposit side has to be broken first. That bypasses the incremental holdings maintenance, so a
+   * rebuild is scheduled for the tenant — the same compensation {@link #reverseSecurityAction(Integer)} applies.
+   * </p>
    */
   @Transactional
   public void reverseTransfer(Integer idSecurityTransfer) {
@@ -450,6 +457,12 @@ public class SecurityActionService {
     transactionJpaRepository.deleteAll(transferTransactions);
 
     securityTransferJpaRepository.delete(transfer);
+
+    // The raw deleteAll above left hold_securityaccount_security, hold_cashaccount_balance and
+    // hold_cashaccount_deposit still counting the removed transactions.
+    taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT,
+        TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(1), idTenant,
+        Tenant.class.getSimpleName()));
   }
 
   /**

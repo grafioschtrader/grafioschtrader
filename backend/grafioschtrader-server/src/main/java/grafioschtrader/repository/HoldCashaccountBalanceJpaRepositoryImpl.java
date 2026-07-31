@@ -18,6 +18,7 @@ import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.FromToCurrency;
 import grafioschtrader.repository.HoldCashaccountBalanceJpaRepository.CashaccountBalanceChangeTransaction;
 import grafioschtrader.repository.helper.HoldingsHelper;
+import grafioschtrader.repository.helper.TransactionPreImage;
 import grafioschtrader.service.GlobalparametersService;
 
 /**
@@ -125,14 +126,37 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
   }
 
   @Override
-  public void adjustCashaccountBalanceByIdCashaccountAndFromDate(Transaction transaction) {
-    List<HoldCashaccountBalance> holdCashaccountBalanceList = new ArrayList<>();
+  @Transactional
+  @Modifying
+  public void adjustCashaccountBalance(Transaction transaction, TransactionPreImage preImage) {
+    Tenant tenant = tenantJpaRepository.getReferenceById(transaction.getIdTenant());
     Integer idCashaccount = transaction.getCashaccount().getIdSecuritycashAccount();
     LocalDate transactionDate = transaction.getTransactionTime().toLocalDate();
 
-    Tenant tenant = tenantJpaRepository.getReferenceById(transaction.getIdTenant());
+    if (preImage == null) {
+      replayFrom(tenant, idCashaccount, transactionDate);
+    } else if (preImage.cashaccountChanged(idCashaccount)) {
+      // The transaction left its former account: that account has to be replayed from the date it used to sit on,
+      // and the new account from the date it now sits on.
+      replayFrom(tenant, preImage.idCashaccount(), preImage.transactionDate());
+      replayFrom(tenant, idCashaccount, transactionDate);
+    } else {
+      replayFrom(tenant, idCashaccount, preImage.earliestAffectedDate(transactionDate));
+    }
+  }
+
+  /**
+   * Deletes the hold rows of one cash account from {@code fromDate} on and rebuilds them by replaying the account's
+   * transactions, seeded with the running totals of the youngest row that survived the delete.
+   *
+   * @param tenant        the owning tenant, used for the base currency and the tenant id of the new rows
+   * @param idCashaccount the cash account to replay
+   * @param fromDate      the first date to recalculate, inclusive
+   */
+  private void replayFrom(Tenant tenant, Integer idCashaccount, LocalDate fromDate) {
+    List<HoldCashaccountBalance> holdCashaccountBalanceList = new ArrayList<>();
     holdCashaccountBalanceJpaRepository.removeByIdTenantAndIdEmIdSecuritycashAccountAndIdEmFromHoldDateGreaterThanEqual(
-        transaction.getIdTenant(), idCashaccount, transactionDate);
+        tenant.getIdTenant(), idCashaccount, fromDate);
 
     HoldCashaccountBalance youngestValidBalance = holdCashaccountBalanceJpaRepository
         .getCashaccountBalanceMaxFromDateByCashaccount(idCashaccount);
@@ -142,9 +166,9 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
     }
 
     Map<FromToCurrency, Currencypair> currencypairFromToCurrencyMap = HoldingsHelper
-        .getUsedCurrencypiarsByIdTenant(transaction.getIdTenant(), currencypairJpaRepository);
+        .getUsedCurrencypiarsByIdTenant(tenant.getIdTenant(), currencypairJpaRepository);
     List<CashaccountBalanceChangeTransaction> cashaccountBalanceChangeTransactionList = holdCashaccountBalanceJpaRepository
-        .getCashaccountBalanceByCashaccountAndDate(idCashaccount, transactionDate);
+        .getCashaccountBalanceByCashaccountAndDate(idCashaccount, fromDate);
     CashaccountSum cashaccountSum = new CashaccountSum(youngestValidBalance);
     cashaccountBalanceChangeTransactionList.forEach(cbct -> {
       if (!holdCashaccountBalanceList.isEmpty()) {

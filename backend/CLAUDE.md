@@ -295,6 +295,44 @@ Each enum used in this pattern must provide:
 2. A `getValue()` method returning the `byte`/`Byte`
 3. A static lookup method (e.g., `getByValue(byte)`) for the getter conversion
 
+## Enums Mirrored in the Frontend — Update Both Sides in One Change
+
+**IMPORTANT**: A few backend enums have a hand-maintained TypeScript mirror, because the frontend builds
+its dropdown options from the enum object rather than from a REST endpoint. Adding, removing, renaming or
+renumbering a constant **must** happen on both sides in the same change.
+
+Forgetting the mirror is silent: the value can never be produced by the form (the option key is the
+constant name), it cannot be filtered for, and a reverse lookup such as `TaskType[54]` renders
+`undefined` in tables. Nothing fails to compile and no request errors — the entry is simply absent from
+the dropdown.
+
+### Current pairs
+
+| Backend enum | Frontend mirror |
+|--------------|-----------------|
+| `grafiosch-base/.../grafiosch/types/TaskTypeBase.java` | `frontend/src/app/lib/taskdatamonitor/types/task.type.base.ts` |
+| `grafioschtrader-common/.../grafioschtrader/types/TaskTypeExtended.java` | `frontend/src/app/shared/types/task.type.extended.ts` |
+
+### Checklist when adding a task type (or any mirrored constant)
+
+1. Add the constant to the Java enum, respecting the value bands (library 1–29, application 30–79,
+   non-user-creatable system tasks 80+ — see GitHub issue #205).
+2. Add the **same name with the same numeric value** to the TypeScript mirror.
+3. Add the `UPPER_SNAKE_CASE` NLS key — identical to the constant name — to `messages.properties` **and**
+   `messages_de.properties` of the module that owns the enum (see the placement table above).
+
+### The guard
+
+Each mirror declares its counterpart in its file comment:
+
+```ts
+ * Corresponds to backend: grafioschtrader-common/src/main/java/grafioschtrader/types/TaskTypeExtended.java
+```
+
+`frontend/src/enum.mirror.spec.ts` finds every file carrying that marker, parses both enums and fails
+`npm test` on any missing, extra or renumbered constant. The path is relative to `backend/`. **When you
+create a new mirrored enum, add the marker line** — that is the only thing needed to enrol it.
+
 ## LocalDate Serialization — @JsonFormat Required
 
 **CRITICAL**: The global Jackson setting `WRITE_DATES_AS_TIMESTAMPS: true` (in `application.yaml`) causes `java.time.LocalDate` to serialize as a JSON array `[2024, 1, 15]` instead of a string `"2024-01-15"`. The frontend's `moment()` cannot parse this array format, resulting in **"Invalid date"** in the UI.
@@ -484,6 +522,31 @@ These methods enforce critical business rules that `JpaRepository.save()` bypass
 - **Cash account amount validation** — recalculates and verifies the cash account impact
 
 The only exception is `applySecurityAction()` (ISIN changes), which intentionally bypasses closedUntil via direct `save()` because ISIN changes are system-level operations that must succeed regardless of user-defined closed periods.
+
+### If you must bypass it, schedule a rebuild
+
+The `hold_*` tables are only maintained by `TransactionJpaRepositoryImpl`. Nothing else reconciles them: `REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT` is **not** on a cron — `ExecuteStartupTask` only enqueues it when the `task_data_change` table is empty, i.e. on a fresh database restored from an export. A bypassing write therefore corrupts the hold tables permanently unless it compensates.
+
+Any code path that writes the `transaction` table without going through `saveOnlyAttributes` / `saveOnlyAttributesFormImport` / `updateCreateCashaccountTransfer` / `deleteSingleDoubleTransaction` **must** enqueue a rebuild for the affected tenant:
+
+```java
+taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT,
+    TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(1), idTenant,
+    Tenant.class.getSimpleName()));
+```
+
+Schedule it, do not call the rebuild inline: it has to run after the current transaction has committed so that it sees the rows that were just written.
+
+Sanctioned bypasses and why they are safe:
+
+| Path | Why it bypasses | Compensation |
+|------|-----------------|--------------|
+| `SecurityActionService.applySecurityAction` / `reverseSecurityAction` | bulk reassign + system SELL/BUY pair, must ignore closedUntil | schedules the rebuild |
+| `SecurityActionService.reverseTransfer` | must break the `connected_id_transaction` cycle before deleting | schedules the rebuild |
+| `TransferDividendToTransactionTest` (unofficial task) | bulk generation from the dividend table | schedules the rebuild |
+| `TransactionJpaRepositoryImpl.updateTaxableInterest` / `applyExDatesFromTaxData` | only `taxable_interest` / `ex_date` change | none needed — neither column feeds a hold table |
+
+`scripts/check-hold-tables.mjs` verifies the three hold tables against the `transaction` table read-only and is the way to confirm a new bypass did not desynchronise anything.
 
 ## Common Annotations for Native Queries
 

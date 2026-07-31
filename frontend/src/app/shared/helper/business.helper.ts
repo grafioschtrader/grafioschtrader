@@ -182,9 +182,13 @@ export class BusinessHelper {
    * Validates whether a tenant limit has been exceeded and displays a warning message
    * if the limit is reached. Returns false if the actual usage equals or exceeds the limit.
    *
-   * @param tenantLimit Object containing limit configuration with actual usage and maximum limit
+   * A missing limit is treated as "not exceeded": the limits are loaded separately from the entity they guard, and
+   * when that load failed the check must not block the dialog. The backend rejects an actual violation in any case.
+   *
+   * @param tenantLimit Object containing limit configuration with actual usage and maximum limit, may be missing when
+   *                    the limits could not be loaded
    * @param messageToastService Service for displaying user notifications and messages
-   * @returns True if limit check passes (usage below limit), false if limit exceeded
+   * @returns True if limit check passes (usage below limit or limit unknown), false if limit exceeded
    *
    * @example
    * ```typescript
@@ -203,7 +207,7 @@ export class BusinessHelper {
    * ```
    */
   public static isLimitCheckOk(tenantLimit: TenantLimit, messageToastService: MessageToastService): boolean {
-    if (tenantLimit.actual >= tenantLimit.limit) {
+    if (tenantLimit && tenantLimit.actual >= tenantLimit.limit) {
       messageToastService.showMessageI18n(InfoLevelType.WARNING, 'MAX_LIMIT', {
         limit: tenantLimit.limit, i18nEntity: tenantLimit.className.toUpperCase() + 'S'
       });

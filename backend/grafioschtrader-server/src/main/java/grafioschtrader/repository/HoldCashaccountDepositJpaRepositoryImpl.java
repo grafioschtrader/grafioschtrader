@@ -22,6 +22,7 @@ import grafioschtrader.reportviews.FromToCurrency;
 import grafioschtrader.reportviews.FromToCurrencyWithDate;
 import grafioschtrader.repository.HoldCashaccountDepositJpaRepository.CashaccountForeignExChangeRate;
 import grafioschtrader.repository.helper.HoldingsHelper;
+import grafioschtrader.repository.helper.TransactionPreImage;
 import grafioschtrader.types.TransactionType;
 
 /**
@@ -107,13 +108,14 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
   }
 
   @Override
-  public void adjustCashaccountDepositOrWithdrawal(Transaction transaction1, Transaction transaction2) {
+  public void adjustCashaccountDepositOrWithdrawal(Transaction transaction1, TransactionPreImage preImage1,
+      Transaction transaction2, TransactionPreImage preImage2) {
     HoldDepositForTenant holdDepositForTenant = new HoldDepositForTenant();
     holdDepositForTenant.setTenant(transaction1.getIdTenant(), tenantJpaRepository);
     holdDepositForTenant.loadDataForTenant(holdCashaccountDepositJpaRepository, currencypairJpaRepository);
-    adjustCashaccountDepositOrWithdrawal(transaction1, holdDepositForTenant);
+    adjustCashaccountDepositOrWithdrawal(transaction1, preImage1, holdDepositForTenant);
     if (transaction2 != null) {
-      adjustCashaccountDepositOrWithdrawal(transaction2, holdDepositForTenant);
+      adjustCashaccountDepositOrWithdrawal(transaction2, preImage2, holdDepositForTenant);
     }
   }
 
@@ -176,46 +178,78 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
 
   /**
    * Adjusts deposit holdings incrementally for a single transaction change.
-   * 
+   *
    * <p>
-   * This method provides efficient incremental updates by:
+   * A transaction that moved to another cash account, or backwards in time, invalidates rows the new coordinates alone
+   * cannot reach, so the former account and the former date are replayed as well. Both series are cumulative running
+   * totals, which is why the replay always has to start at the earlier of the two dates.
    * </p>
-   * <ul>
-   * <li>Finding the most recent valid holding before the transaction date</li>
-   * <li>Removing holdings from the transaction date onward</li>
-   * <li>Recalculating affected holdings using the existing baseline</li>
-   * <li>Maintaining proper time-frame continuity</li>
-   * </ul>
-   * 
+   *
    * @param transaction          the transaction causing the adjustment
+   * @param preImage             where the transaction was booked before the update, or {@code null} for a create or a
+   *                             delete
    * @param holdDepositForTenant context object with exchange rate data and accumulators
    */
-  private void adjustCashaccountDepositOrWithdrawal(Transaction transaction,
+  private void adjustCashaccountDepositOrWithdrawal(Transaction transaction, TransactionPreImage preImage,
       HoldDepositForTenant holdDepositForTenant) {
+    Integer idCashaccount = transaction.getCashaccount().getIdSecuritycashAccount();
+    LocalDate transactionDate = transaction.getTransactionDate();
 
-    HoldCashaccountDeposit youngestBeforeDate = holdCashaccountDepositJpaRepository.getLastBeforeDateByCashaccount(
-        transaction.getCashaccount().getIdSecuritycashAccount(), transaction.getTransactionDate());
+    if (preImage == null) {
+      replayDepositFrom(idCashaccount, transactionDate, holdDepositForTenant);
+    } else if (preImage.cashaccountChanged(idCashaccount)) {
+      replayDepositFrom(preImage.idCashaccount(), preImage.transactionDate(), holdDepositForTenant);
+      replayDepositFrom(idCashaccount, transactionDate, holdDepositForTenant);
+    } else {
+      replayDepositFrom(idCashaccount, preImage.earliestAffectedDate(transactionDate), holdDepositForTenant);
+    }
+  }
 
-    List<Transaction> caTransactions = transaction.getCashaccount().getTransactionList().stream()
-        .filter(t -> (youngestBeforeDate == null
-            || t.getTransactionDate().isAfter(youngestBeforeDate.getHoldCashaccountKey().getFromHoldDate()))
-            && (t.getTransactionType() == TransactionType.DEPOSIT
-                || t.getTransactionType() == TransactionType.WITHDRAWAL))
-        .sorted().collect(Collectors.toList());
-    Portfolio portfolio = transaction.getCashaccount().getPortfolio();
+  /**
+   * Deletes the deposit hold rows of one cash account after the youngest row that is still valid at {@code fromDate} and
+   * rebuilds them by replaying the account's deposits and withdrawals.
+   *
+   * <p>
+   * The transactions are read from the database rather than from {@code cashaccount.getTransactionList()}: that
+   * collection may already have been initialised earlier in the same persistence context and would then still contain a
+   * transaction that has just been deleted, or miss one that has just been inserted.
+   * </p>
+   *
+   * @param idCashaccount        the cash account to replay
+   * @param fromDate             the first date whose rows are no longer trusted
+   * @param holdDepositForTenant context object with exchange rate data and accumulators
+   */
+  private void replayDepositFrom(Integer idCashaccount, LocalDate fromDate,
+      HoldDepositForTenant holdDepositForTenant) {
+    HoldCashaccountDeposit youngestBeforeDate = holdCashaccountDepositJpaRepository
+        .getLastBeforeDateByCashaccount(idCashaccount, fromDate);
 
+    List<Transaction> caTransactions;
     if (youngestBeforeDate != null) {
       holdCashaccountDepositJpaRepository
-          .deleteByHoldCashaccountKey_IdSecuritycashAccountAndHoldCashaccountKey_fromHoldDateAfter(
-              transaction.getCashaccount().getIdSecuritycashAccount(), youngestBeforeDate.getFromHoldDate());
+          .deleteByHoldCashaccountKey_IdSecuritycashAccountAndHoldCashaccountKey_fromHoldDateAfter(idCashaccount,
+              youngestBeforeDate.getFromHoldDate());
+      // The seed becomes the open period again; without this it would keep the end date of a period that no longer
+      // exists and every report would stop reading the account there.
+      youngestBeforeDate.setToHoldDate(null);
       holdDepositForTenant.setAmounts(youngestBeforeDate);
+      caTransactions = transactionJpaRepository.findDepositWithdrawalByCashaccountAfterDate(idCashaccount,
+          youngestBeforeDate.getFromHoldDate());
     } else {
-      holdCashaccountDepositJpaRepository
-          .deleteByHoldCashaccountKey_IdSecuritycashAccount(transaction.getCashaccount().getIdSecuritycashAccount());
+      holdCashaccountDepositJpaRepository.deleteByHoldCashaccountKey_IdSecuritycashAccount(idCashaccount);
+      holdDepositForTenant.resetAmounts();
+      caTransactions = transactionJpaRepository.findDepositWithdrawalByCashaccount(idCashaccount);
     }
+
+    if (caTransactions.isEmpty()) {
+      if (youngestBeforeDate != null) {
+        holdCashaccountDepositJpaRepository.save(youngestBeforeDate);
+      }
+      return;
+    }
+    Portfolio portfolio = caTransactions.getFirst().getCashaccount().getPortfolio();
     holdCashaccountDepositJpaRepository.saveAll(this.calcDepositOnTransactionsOfCashaccount(caTransactions,
         portfolio.getIdPortfolio(), portfolio.getCurrency(), holdDepositForTenant, youngestBeforeDate));
-
   }
 
   /**

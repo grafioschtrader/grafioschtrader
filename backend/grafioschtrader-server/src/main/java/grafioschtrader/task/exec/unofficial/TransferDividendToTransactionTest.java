@@ -10,17 +10,19 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.entities.TaskDataChange;
+import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.task.ITask;
 import grafiosch.types.ITaskType;
 import grafiosch.types.Language;
+import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.repository.DividendJpaRepository;
 import grafioschtrader.repository.DividendJpaRepository.DivdendForHoldings;
-import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
 import grafioschtrader.repository.PortfolioJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
@@ -43,7 +45,7 @@ public class TransferDividendToTransactionTest implements ITask {
   private PortfolioJpaRepository portfolioJpaRepository;
 
   @Autowired
-  private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityJpaRepository;
+  private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
 
   @Override
   public ITaskType getTaskType() {
@@ -62,8 +64,6 @@ public class TransferDividendToTransactionTest implements ITask {
         .collect(Collectors.groupingBy(DivdendForHoldings::getIdPortfolio,
             Collectors.groupingBy(DivdendForHoldings::getIdSecurityaccount, Collectors.toList())));
 
-    holdSecurityaccountSecurityJpaRepository.createSecurityHoldingsEntireByTenant(idTenant);
-
     for (Integer idPortfolio : dividendMap.keySet()) {
       Portfolio portfolio = portfolioJpaRepository.getReferenceById(idPortfolio);
       Map<Integer, List<DivdendForHoldings>> securityaccountsMap = dividendMap.get(idPortfolio);
@@ -73,6 +73,13 @@ public class TransferDividendToTransactionTest implements ITask {
       }
     }
 
+    // Both the raw delete above and the raw saves in createTransactionsByDividend bypass the incremental holdings
+    // maintenance of TransactionJpaRepositoryImpl, and DIVIDEND transactions move hold_cashaccount_balance. Rebuild all
+    // three hold tables for the tenant, scheduled so that it runs after this transaction has committed and therefore
+    // sees the new transactions.
+    taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT,
+        TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(1), idTenant,
+        Tenant.class.getSimpleName()));
   }
 
   private void createTransactionsByDividend(Integer idTenant, Portfolio portfolio, Integer idSecurityaccount,
