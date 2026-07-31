@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Absolute path of this script, resolved before the first "cd" below.
+# ${BASH_SOURCE[0]} is relative when the script is started as ./gtupdate.sh, while the
+# self-update further down runs after two directory changes. Resolving it late made the
+# self-update write its copy into the build directory instead of the home directory and
+# then re-execute that stray copy - and where the stray copy could not be overwritten,
+# the restart repeated forever.
+SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+
 # Load environment variables
 . ~/gtvar.sh
 if [ $? -ne 0 ]; then
@@ -41,14 +49,26 @@ git fetch origin
 git reset --hard origin/master
 
 # Check if this script was updated
-SCRIPT_PATH="${BASH_SOURCE[0]}"
 UPDATED_SCRIPT="$builddir/grafioschtrader/util/shellscripts/$(basename "$SCRIPT_PATH")"
 
 if [ -f "$UPDATED_SCRIPT" ] && ! cmp -s "$SCRIPT_PATH" "$UPDATED_SCRIPT"; then
+  # One restart is enough. If the script still differs afterwards, the copy did not take
+  # effect and restarting again would loop, stopping the service and deleting frontend/
+  # on every pass.
+  if [ -n "${GT_SCRIPT_UPDATED:-}" ]; then
+    echo "ERROR: $SCRIPT_PATH weicht nach dem Neustart immer noch von $UPDATED_SCRIPT ab."
+    echo "Datei von Hand pruefen und ersetzen:"
+    ls -l "$SCRIPT_PATH"
+    exit 1
+  fi
   echo "The script itself has been updated. Restarting..."
-  cp "$UPDATED_SCRIPT" "$SCRIPT_PATH"
+  if ! cp "$UPDATED_SCRIPT" "$SCRIPT_PATH"; then
+    echo "ERROR: $SCRIPT_PATH konnte nicht aktualisiert werden - Abbruch statt Neustart."
+    ls -l "$SCRIPT_PATH"
+    exit 1
+  fi
   chmod +x "$SCRIPT_PATH"
-  exec "$SCRIPT_PATH"
+  GT_SCRIPT_UPDATED=1 exec "$SCRIPT_PATH"
 fi
 
 # Copy and execute checkversion.sh
