@@ -23,6 +23,7 @@ grafiosch.integration.rest
 grafiosch.integration.security
 grafiosch.m2m
 grafiosch.m2m.client
+grafiosch.nls
 grafiosch.repository
 grafiosch.rest
 grafiosch.rest.helper
