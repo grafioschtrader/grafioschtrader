@@ -313,16 +313,20 @@ function depositSql(tenantFilter, tol) {
  * position legitimately leaves a closed last row, and a repurchase legitimately leaves a gap between
  * to_hold_date and the next from_hold_date. Only a row that has a successor while still being open,
  * and a period overlapping its successor, are real breakages.
+ *
+ * Every date comparison uses tt_date, never the date part of transaction_time, and matches how the
+ * rebuild keys the periods. transaction_time is a TIMESTAMP column rendered in the session time zone
+ * and shifts when the database is served from a host in another zone; tt_date is frozen on write.
  */
 function securitySql(tenantFilter, tol) {
   return `WITH tx AS (
     SELECT t.id_tenant AS tn, t.id_security_account AS sa, t.id_securitycurrency AS sec,
-           t.transaction_time AS ts, t.tt_date AS d,
+           t.tt_date AS d,
            SUM(IF(t.transaction_type = 4, 1, -1) * t.units) AS f
     FROM transaction t
     WHERE t.transaction_type BETWEEN 4 AND 5 AND t.id_security_account IS NOT NULL
       ${tenantFilter ? `AND t.id_tenant = ${tenantFilter}` : ''}
-    GROUP BY t.id_tenant, t.id_security_account, t.id_securitycurrency, t.transaction_time, t.tt_date
+    GROUP BY t.id_tenant, t.id_security_account, t.id_securitycurrency, t.tt_date
   ), boundary AS (
     SELECT DISTINCT sa, sec, d FROM tx
     UNION
@@ -330,15 +334,16 @@ function securitySql(tenantFilter, tol) {
     FROM tx JOIN securitysplit ss ON ss.id_securitycurrency = tx.sec
   ), row_holdings AS (
     SELECT h.id_securitycash_account AS sa, h.id_securitycurrency AS sec, h.holdings, h.from_hold_date,
+           h.to_hold_date,
            (SELECT SUM(tx.f * IFNULL(
                      (SELECT EXP(SUM(LOG(ss.to_factor / ss.from_factor)))
                         FROM securitysplit ss
                        WHERE ss.id_securitycurrency = tx.sec
-                         AND CAST(ss.split_date AS DATETIME) > tx.ts
+                         AND ss.split_date > tx.d
                          AND ss.split_date <= h.from_hold_date), 1))
               FROM tx
              WHERE tx.sa = h.id_securitycash_account AND tx.sec = h.id_securitycurrency
-               AND tx.ts < DATE_ADD(h.from_hold_date, INTERVAL 1 DAY)) AS units
+               AND tx.d <= h.from_hold_date) AS units
     FROM hold_securityaccount_security h
   ), sec_acct AS (
     SELECT sac.id_securitycash_account AS sa, sc.id_portfolio AS pf, p.id_tenant AS tn
@@ -355,12 +360,21 @@ function securitySql(tenantFilter, tol) {
                         AND b.sec = h.id_securitycurrency AND b.d = h.from_hold_date
    WHERE b.sa IS NULL
   UNION ALL
+  SELECT JSON_OBJECT('tenant', x.tn, 'account', h.id_securitycash_account,
+                     'security', h.id_securitycurrency, 'date', h.from_hold_date,
+                     'defect', 'INVERTED_PERIOD',
+                     'expected', CONCAT('>= ', h.from_hold_date), 'actual', h.to_hold_date)
+    FROM hold_securityaccount_security h
+    JOIN sec_acct x ON x.sa = h.id_securitycash_account
+   WHERE h.to_hold_date IS NOT NULL AND h.to_hold_date < h.from_hold_date
+  UNION ALL
   SELECT JSON_OBJECT('tenant', x.tn, 'account', rh.sa, 'security', rh.sec, 'date', rh.from_hold_date,
                      'defect', 'ROW_HOLDINGS', 'expected', ROUND(IFNULL(rh.units, 0), 4),
                      'actual', ROUND(rh.holdings, 4))
     FROM row_holdings rh
     JOIN sec_acct x ON x.sa = rh.sa
-   WHERE ABS(rh.holdings - IFNULL(rh.units, 0)) > ${tol} * GREATEST(1, ABS(IFNULL(rh.units, 0)))
+   WHERE NOT (rh.to_hold_date IS NOT NULL AND rh.to_hold_date < rh.from_hold_date)
+     AND ABS(rh.holdings - IFNULL(rh.units, 0)) > ${tol} * GREATEST(1, ABS(IFNULL(rh.units, 0)))
   UNION ALL
   SELECT JSON_OBJECT('tenant', x.tn, 'account', h.id_securitycash_account,
                      'security', h.id_securitycurrency, 'date', h.from_hold_date,

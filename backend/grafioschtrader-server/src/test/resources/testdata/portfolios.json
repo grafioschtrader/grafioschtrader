@@ -15,12 +15,12 @@
     "'tradingPlatformPlan' is matched case-insensitively as a SUBSTRING of the option label in the",
     "securities account dialog, because the label is language dependent. The plans come from",
     "testdata/generated/tradingplatformplan.csv, but from two different producers: rows tagged e2e='i'",
-    "are seeded by the backend TradingPlatformPlanResourceTest — that covers 'CornèTrader",
-    "Transaktionsbetrag' / 'CornèTrader Transactions value' — while rows tagged e2e='e' are created",
+    "are seeded by the backend TradingPlatformPlanResourceTest — that covers 'CornèrTrader",
+    "Transaktionsbetrag' / 'CornèrTrader Transactions value' — while rows tagged e2e='e' are created",
     "through the UI by frontend/e2e/012-create-trading-platform-plan.spec.ts, which covers 'Saxo",
     "Trader' (DE = EN). That spec is numbered 012 so it runs before 015; renumbering it after 015",
     "makes the SaxoTrader securities account fail with 'no trading platform plan matching Saxo Trader'.",
-    "Note the plan name has no 'r' in 'Cornè' while the portfolio here is named 'CornèrTrader'.",
+    "The plan and the portfolio below are both spelled 'CornèrTrader' (Cornèr Bank AG).",
     "null means: take the first non-empty option.",
     "",
     "'tradingPeriods' are ADDED to the two rows the dialog pre-fills for a new securities account",
@@ -87,7 +87,7 @@
       "securityAccounts": [
         {
           "name": "CT",
-          "tradingPlatformPlan": "CornèTrader",
+          "tradingPlatformPlan": "CornèrTrader",
           "lowestTransactionCost": 5,
           "tradingPeriods": [
             {"specInvestInstrument": "CFD", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"},

@@ -12,7 +12,7 @@ import {TooltipModule} from 'primeng/tooltip';
 
 @Component({
     selector: 'instrument-year-performance-table',
-    templateUrl: '../view/instrument.statistic.table.html',
+    templateUrl: './view/instrument.statistic.table.html',
     standalone: true,
     imports: [CommonModule, TranslateModule, TableModule, TooltipModule]
 })

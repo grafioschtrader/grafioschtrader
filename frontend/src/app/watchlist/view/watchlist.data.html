@@ -87,14 +87,10 @@
     }
 
     @if (watchlistType === WatchListType.PRICE_FEED) {
-      <securitycurrency-extended-info
-        [dividendUrl]="row.dividendUrl"
-        [splitUrl]="row.splitUrl"
-        [historicalUrl]="row.historicalUrl"
-        [intradayUrl]="row.intradayUrl"
-        [feedConnectorsKV]="feedConnectorsKV"
-        [securitycurrency]="row.securitycurrency">
-      </securitycurrency-extended-info>
+      <watchlist-price-feed-expanded
+        [position]="row"
+        [feedConnectorsKV]="feedConnectorsKV">
+      </watchlist-price-feed-expanded>
     }
 
     @if (watchlistType === WatchListType.DIVIDEND_SPLIT_FEED) {

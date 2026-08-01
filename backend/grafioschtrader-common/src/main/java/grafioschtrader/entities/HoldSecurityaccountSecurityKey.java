@@ -117,6 +117,16 @@ public class HoldSecurityaccountSecurityKey implements Serializable {
     return idSecuritycurrency;
   }
 
+  /**
+   * The first day of the holding period. Always the business date {@code tt_date} of the transaction or the date of the
+   * split that opened the period.
+   *
+   * @return the start date of this holding period
+   */
+  public LocalDate getFromHoldDate() {
+    return fromHoldDate;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {

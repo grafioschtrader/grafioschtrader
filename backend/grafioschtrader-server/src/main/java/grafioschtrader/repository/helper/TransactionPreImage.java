@@ -42,7 +42,7 @@ public record TransactionPreImage(Integer idCashaccount, LocalDate transactionDa
       return null;
     }
     return new TransactionPreImage(existingEntity.getCashaccount().getIdSecuritycashAccount(),
-        existingEntity.getTransactionTime().toLocalDate(), existingEntity.getIdSecurityaccount(),
+        existingEntity.getTransactionDate(), existingEntity.getIdSecurityaccount(),
         existingEntity.getSecurity() == null ? null : existingEntity.getSecurity().getIdSecuritycurrency());
   }
 

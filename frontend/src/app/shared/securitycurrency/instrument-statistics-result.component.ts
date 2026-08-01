@@ -1,6 +1,9 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, inject, Input, OnInit} from '@angular/core';
 import {InstrumentStatisticsResult} from '../../entities/view/instrument.statistics.result';
-import {SecurityService} from '../service/security.service';
+import {SecurityService} from '../../securitycurrency/service/security.service';
+import {
+  InstrumentStatisticsCacheService
+} from '../../securitycurrency/service/instrument.statistics.cache.service';
 import {TranslateModule} from '@ngx-translate/core';
 import {InstrumentYearPerformanceTableComponent} from './instrument-year-performance-table.component';
 import {InstrumentAnnualisedReturnComponent} from './instrument.annualised.return.component';
@@ -13,7 +16,9 @@ import {InstrumentStatisticsSummaryComponent} from './instrument-statistics-summ
   selector: 'instrument-statistics-result',
   template: `
     <div>
-      <h4>{{"RETURN_STATISTICAL_DATA" | translate}}</h4>
+      @if (showTitle) {
+        <h4>{{"RETURN_STATISTICAL_DATA" | translate}}</h4>
+      }
       <div class="fcontainer">
         @if (isr) {
           <instrument-year-performance-table [values]="isr.annualisedPerformance.lastYears" class="tabletree"
@@ -55,15 +60,29 @@ export class InstrumentStatisticsResultComponent implements OnInit {
   @Input() idSecuritycurrency: number;
   @Input() dateFrom: Date | string;
   @Input() dateTo: Date | string;
+  /**
+   * Whether the heading is rendered. A caller which already labels this block, for example the accordion panel of an
+   * expanded watchlist row, sets this to false to avoid showing the same title twice.
+   */
+  @Input() showTitle = true;
   isr: InstrumentStatisticsResult;
+
+  /**
+   * Optional cache of a surrounding view. When a component up the injector chain provides it — the watchlist does so
+   * for as long as the user stays in the watchlist area — the statistics are requested from the server only once.
+   * Without such a provider, for example in the correlation matrix, every instance loads its own data.
+   */
+  private readonly statisticsCache = inject(InstrumentStatisticsCacheService, {optional: true});
 
   constructor(private securityService: SecurityService) {
   }
 
   ngOnInit(): void {
-    this.securityService.getSecurityStatisticsReturnResult(this.idSecuritycurrency, this.dateFrom, this.dateTo).subscribe(
-      (isr: InstrumentStatisticsResult) => {
-        this.isr = isr;
-      });
+    const statistics = this.statisticsCache
+      ? this.statisticsCache.getStatistics(this.idSecuritycurrency, this.dateFrom, this.dateTo)
+      : this.securityService.getSecurityStatisticsReturnResult(this.idSecuritycurrency, this.dateFrom, this.dateTo);
+    statistics.subscribe((isr: InstrumentStatisticsResult) => {
+      this.isr = isr;
+    });
   }
 }

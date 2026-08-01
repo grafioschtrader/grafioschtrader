@@ -322,7 +322,7 @@ CREATE TABLE `cashaccount` (
   `borrowing_rate` double DEFAULT NULL,
   PRIMARY KEY (`id_securitycash_account`),
   CONSTRAINT `FK_CashAccount_SecurityCashAccount` FOREIGN KEY (`id_securitycash_account`) REFERENCES `securitycashaccount` (`id_securitycash_account`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=83098 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=83170 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -376,7 +376,7 @@ CREATE TABLE `correlation_set` (
   `adjust_currency` tinyint(4) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id_correlation_set`),
   UNIQUE KEY `Unique_idTenant_name` (`id_tenant`,`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=8489 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8499 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -416,7 +416,7 @@ CREATE TABLE `dividend` (
   PRIMARY KEY (`id_dividend`),
   KEY `FK_Dividend_Security` (`id_securitycurrency`),
   CONSTRAINT `FK_Dividend_Security` FOREIGN KEY (`id_securitycurrency`) REFERENCES `security` (`id_securitycurrency`)
-) ENGINE=InnoDB AUTO_INCREMENT=1110870 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1111037 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -706,7 +706,7 @@ CREATE TABLE `gt_net_exchange_log` (
   PRIMARY KEY (`id_gt_net_exchange_log`),
   KEY `FK_GtNetExchangeLog_GtNet` (`id_gt_net`),
   CONSTRAINT `FK_GtNetExchangeLog_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=8333 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8459 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -828,7 +828,7 @@ CREATE TABLE `gt_net_message` (
   KEY `FK_GtNetMessage_GtNetMessage` (`reply_to`),
   CONSTRAINT `FK_GtNetMessage_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE,
   CONSTRAINT `FK_GtNetMessage_GtNetMessage` FOREIGN KEY (`reply_to`) REFERENCES `gt_net_message` (`id_gt_net_message`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=6039 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6080 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -968,7 +968,7 @@ CREATE TABLE `gt_net_supplier_detail` (
   KEY `FK_GtNetSupplierDetail` (`id_gt_net`),
   CONSTRAINT `FK_GtNetSupplierDetail_GTNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE,
   CONSTRAINT `FK_GtNetSupplierDetail_SecurityCurrency` FOREIGN KEY (`id_entity`) REFERENCES `securitycurrency` (`id_securitycurrency`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=139245 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=141419 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1027,7 +1027,7 @@ CREATE TABLE `historyquote` (
   UNIQUE KEY `IHistoryQuote_id_Date` (`id_securitycurrency`,`date`),
   KEY `FK_HistoryQuote_SecurityCurrency` (`id_securitycurrency`) USING BTREE,
   CONSTRAINT `FK_HistoryQuote_SecurityCurrency` FOREIGN KEY (`id_securitycurrency`) REFERENCES `securitycurrency` (`id_securitycurrency`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=9571422 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9572018 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1543,7 +1543,7 @@ CREATE TABLE `portfolio` (
   UNIQUE KEY `idtenant_name` (`id_tenant`,`name`) USING BTREE,
   KEY `FK_Portfolio_Tentant` (`id_tenant`),
   CONSTRAINT `FK_Portfolio_Tentant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`)
-) ENGINE=InnoDB AUTO_INCREMENT=20815 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=20833 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1907,7 +1907,7 @@ CREATE TABLE `securityaccount_trading_period` (
   PRIMARY KEY (`id_secaccount_trading_period`),
   KEY `idx_stp_secaccount` (`id_securitycash_account`),
   CONSTRAINT `fk_stp_securitycash_account` FOREIGN KEY (`id_securitycash_account`) REFERENCES `securitycashaccount` (`id_securitycash_account`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7026 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7082 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1929,7 +1929,7 @@ CREATE TABLE `securitycashaccount` (
   UNIQUE KEY `idPortfolio_dType_name` (`id_portfolio`,`dtype`,`name`) USING BTREE,
   KEY `FK_SecurityAccount_Portfolio` (`id_portfolio`),
   CONSTRAINT `FK_SecurityAccount_Portfolio` FOREIGN KEY (`id_portfolio`) REFERENCES `portfolio` (`id_portfolio`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=83098 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=83170 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2167,7 +2167,7 @@ CREATE TABLE `task_data_change` (
   `failed_message_code` varchar(40) DEFAULT NULL,
   `failed_stack_trace` varchar(4096) DEFAULT NULL,
   PRIMARY KEY (`id_task_data_change`)
-) ENGINE=InnoDB AUTO_INCREMENT=21891 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21925 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2446,7 +2446,7 @@ CREATE TABLE `transaction` (
   CONSTRAINT `c_currency_ex_rate` CHECK (`currency_ex_rate` is not null and `currency_ex_rate` > 0 and `id_currency_pair` is not null or `currency_ex_rate` is null and `id_currency_pair` is null),
   CONSTRAINT `s_units` CHECK (`units` is not null and `units` <> 0 and `id_securitycurrency` is not null or `id_securitycurrency` is null and `units` is null),
   CONSTRAINT `s_quotation` CHECK (`quotation` is not null and (`quotation` > 0 or `quotation` <> 0 and `transaction_type` between 6 and 7) and `id_securitycurrency` is not null or `quotation` is null and `id_securitycurrency` is null)
-) ENGINE=InnoDB AUTO_INCREMENT=1274753 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1275819 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2486,7 +2486,7 @@ CREATE TABLE `udf_metadata` (
   PRIMARY KEY (`id_udf_metadata`),
   KEY `I_UDF_Metadata_IdUser` (`id_user`),
   CONSTRAINT `FK_udfMetadata_user` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`)
-) ENGINE=InnoDB AUTO_INCREMENT=5747 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5759 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2679,7 +2679,7 @@ CREATE TABLE `watchlist` (
   UNIQUE KEY `idtenant_name` (`id_tenant`,`name`) USING BTREE,
   KEY `FK_Watchlist_Tentant` (`id_tenant`),
   CONSTRAINT `FK_Watchlist_Tentant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`)
-) ENGINE=InnoDB AUTO_INCREMENT=59825 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=59879 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2795,36 +2795,36 @@ DELIMITER ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+/*!50003 SET sql_mode              = 'IGNORE_SPACE,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `holdSecuritySplitMarginTransaction` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
 /*!50003 SET @saved_col_connection = @@collation_connection */ ;
 /*!50003 SET character_set_client  = utf8mb4 */ ;
 /*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_unicode_ci */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
 DELIMITER ;;
 CREATE DEFINER=`grafioschtrader`@`localhost` PROCEDURE `holdSecuritySplitMarginTransaction`(IN `idSecurity` INT)
     NO SQL
 BEGIN
 DROP TEMPORARY TABLE IF EXISTS holdSecurityMarginSplit;
-CREATE TEMPORARY TABLE holdSecurityMarginSplit (tsDate TIMESTAMP NOT NULL)
-SELECT t.id_tenant as idTenant, p.id_portfolio AS idPortfolio, t.id_security_account AS idSecurityaccount, t.transaction_time AS tsDate, IF(t.transaction_type = 4, 1, -1) * t.units *
+CREATE TEMPORARY TABLE holdSecurityMarginSplit (tsDate DATETIME NOT NULL)
+SELECT t.id_tenant as idTenant, p.id_portfolio AS idPortfolio, t.id_security_account AS idSecurityaccount, TIMESTAMP(t.tt_date, TIME(t.transaction_time)) AS tsDate, IF(t.transaction_type = 4, 1, -1) * t.units *
 t.asset_investment_value_2 as factorUnits, te.currency AS tenantCurrency, p.currency AS porfolioCurrency,
 t.id_transaction AS idTransactionMargin
 FROM transaction t JOIN security s ON s.id_securitycurrency = t.id_securitycurrency JOIN tenant te ON te.id_tenant = t.id_tenant
 JOIN securitycashaccount sca ON sca.id_securitycash_account = t.id_security_account  JOIN portfolio p ON p.id_portfolio = sca.id_portfolio
-WHERE t.transaction_type >= 4 AND t.transaction_type <= 5 
+WHERE t.transaction_type >= 4 AND t.transaction_type <= 5
 AND  t.id_securitycurrency = idSecurity
-UNION 
+UNION
 SELECT t.id_tenant as idTenant, null AS idPortfolio, t.id_security_account AS idSecurityaccount, ss.split_date AS tsDate, ss.to_factor / ss.from_factor as factorUnits, null AS tenantCurrency, null AS porfolioCurrency, null AS idTransactionMargin
-FROM security s JOIN securitysplit ss ON s.id_securitycurrency = ss.id_securitycurrency JOIN transaction t ON t.id_securitycurrency = s.id_securitycurrency 
-WHERE t.transaction_type >= 4 AND t.transaction_type <= 5 
+FROM security s JOIN securitysplit ss ON s.id_securitycurrency = ss.id_securitycurrency JOIN transaction t ON t.id_securitycurrency = s.id_securitycurrency
+WHERE t.transaction_type >= 4 AND t.transaction_type <= 5
 AND t.id_securitycurrency = idSecurity
 GROUP BY t.id_tenant, t.id_security_account, ss.split_date;
 
 SELECT t1.* FROM holdSecurityMarginSplit t1 JOIN (
-SELECT t2.idTenant, t2.idSecurityaccount, MAX(IF(t2.idPortfolio IS NULL, t2.tsDate, NULL)) AS maxSplitDate, MIN(IF(t2.idPortfolio IS NULL, NULL, t2.tsDate)) AS minTransDate FROM holdSecurityMarginSplit t2 
+SELECT t2.idTenant, t2.idSecurityaccount, MAX(IF(t2.idPortfolio IS NULL, t2.tsDate, NULL)) AS maxSplitDate, MIN(IF(t2.idPortfolio IS NULL, NULL, t2.tsDate)) AS minTransDate FROM holdSecurityMarginSplit t2
 GROUP BY t2.idTenant, t2.idSecurityaccount) AS t3 ON t1.idTenant = t3.idTenant
 AND t1.idSecurityaccount = t3.idSecurityaccount AND t3.maxSplitDate >= t3.minTransDate AND (t1.tsDate >= t3.minTransDate AND t1.idPortfolio IS NULL || t1.idPortfolio IS NOT NULL)
 ORDER BY t1.idTenant, t1.idSecurityaccount, t1.tsDate;
@@ -2835,35 +2835,35 @@ DELIMITER ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+/*!50003 SET sql_mode              = 'IGNORE_SPACE,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `holdSecuritySplitTransaction` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
 /*!50003 SET @saved_col_connection = @@collation_connection */ ;
 /*!50003 SET character_set_client  = utf8mb4 */ ;
 /*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_unicode_ci */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
 DELIMITER ;;
 CREATE DEFINER=`grafioschtrader`@`localhost` PROCEDURE `holdSecuritySplitTransaction`(IN `idSecurity` INT)
     READS SQL DATA
 BEGIN
 DROP TEMPORARY TABLE IF EXISTS holdSecuritySplit;
-CREATE TEMPORARY TABLE holdSecuritySplit (tsDate TIMESTAMP NOT NULL)
-SELECT t.id_tenant as idTenant, p.id_portfolio AS idPortfolio, t.id_security_account AS idSecurityaccount, t.transaction_time AS tsDate, SUM(IF(t.transaction_type = 4, 1, -1) * t.units) as factorUnits, te.currency AS tenantCurrency, p.currency AS porfolioCurrency, CAST(NULL AS int) AS idTransactionMargin
+CREATE TEMPORARY TABLE holdSecuritySplit (tsDate DATETIME NOT NULL)
+SELECT t.id_tenant as idTenant, p.id_portfolio AS idPortfolio, t.id_security_account AS idSecurityaccount, TIMESTAMP(t.tt_date, TIME(t.transaction_time)) AS tsDate, SUM(IF(t.transaction_type = 4, 1, -1) * t.units) as factorUnits, te.currency AS tenantCurrency, p.currency AS porfolioCurrency, CAST(NULL AS int) AS idTransactionMargin
 FROM transaction t JOIN security s ON s.id_securitycurrency = t.id_securitycurrency JOIN tenant te ON te.id_tenant = t.id_tenant
 JOIN securitycashaccount sca ON sca.id_securitycash_account = t.id_security_account  JOIN portfolio p ON p.id_portfolio = sca.id_portfolio
-WHERE t.transaction_type >= 4 AND t.transaction_type <= 5 
+WHERE t.transaction_type >= 4 AND t.transaction_type <= 5
 AND  t.id_securitycurrency = idSecurity
 GROUP BY idTenant, idSecurityaccount, tsDate
-UNION 
+UNION
 SELECT t.id_tenant as idTenant, null AS idPortfolio, t.id_security_account AS idSecurityaccount, ss.split_date AS tsDate, ss.to_factor / ss.from_factor as factorUnits, null AS tenantCurrency, null AS porfolioCurrency, CAST(NULL AS int) AS idTransactionMargin
-FROM security s JOIN securitysplit ss ON s.id_securitycurrency = ss.id_securitycurrency JOIN transaction t ON t.id_securitycurrency = s.id_securitycurrency 
-WHERE t.transaction_type >= 4 AND t.transaction_type <= 5 
+FROM security s JOIN securitysplit ss ON s.id_securitycurrency = ss.id_securitycurrency JOIN transaction t ON t.id_securitycurrency = s.id_securitycurrency
+WHERE t.transaction_type >= 4 AND t.transaction_type <= 5
 AND t.id_securitycurrency = idSecurity
 GROUP BY t.id_tenant, t.id_security_account, ss.split_date;
 
 SELECT t1.* FROM holdSecuritySplit t1 JOIN (
-SELECT t2.idTenant, t2.idSecurityaccount, MAX(IF(t2.idPortfolio IS NULL, t2.tsDate, NULL)) AS maxSplitDate, MIN(IF(t2.idPortfolio IS NULL, NULL, t2.tsDate)) AS minTransDate FROM holdSecuritySplit t2 
+SELECT t2.idTenant, t2.idSecurityaccount, MAX(IF(t2.idPortfolio IS NULL, t2.tsDate, NULL)) AS maxSplitDate, MIN(IF(t2.idPortfolio IS NULL, NULL, t2.tsDate)) AS minTransDate FROM holdSecuritySplit t2
 GROUP BY t2.idTenant, t2.idSecurityaccount) AS t3 ON t1.idTenant = t3.idTenant
 AND t1.idSecurityaccount = t3.idSecurityaccount AND t3.maxSplitDate >= t3.minTransDate AND (t1.tsDate >= t3.minTransDate AND t1.idPortfolio IS NULL || t1.idPortfolio IS NOT NULL)
 ORDER BY t1.idTenant, t1.idSecurityaccount, t1.tsDate;
@@ -2988,4 +2988,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-07-31  9:36:42
+-- Dump completed on 2026-08-01 11:27:46

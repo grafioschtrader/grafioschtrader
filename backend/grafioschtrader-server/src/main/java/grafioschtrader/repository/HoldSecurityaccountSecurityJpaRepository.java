@@ -69,6 +69,15 @@ public interface HoldSecurityaccountSecurityJpaRepository
    * between {@code to_hold_date} and the next {@code from_hold_date}. Only genuine breakages are reported: a row that
    * has a successor while being still open, and a period that overlaps its successor.
    * <p>
+   * {@code INVERTED_PERIOD} reports a row whose {@code to_hold_date} lies before its {@code from_hold_date}. Such a row
+   * is invisible to every {@code from <= date AND date <= to} query while still carrying holdings, so it is reported on
+   * its own and excluded from {@code ROW_HOLDINGS}, where the per-row comparison would be meaningless.
+   * <p>
+   * Every date comparison is made on {@code tt_date}, never on the date part of {@code transaction_time}, and matches
+   * how the rebuild keys the periods. {@code transaction_time} is a TIMESTAMP column and is rendered in the time zone
+   * of the database session, so it shifts when the database is served from a host in another zone, while {@code tt_date}
+   * is frozen when the row is written.
+   * <p>
    * The split adjustment multiplies each transaction by the product of {@code to_factor / from_factor} of every split
    * between it and the row date, computed as {@code EXP(SUM(LOG(...)))}; the factors are ratios of positive integers,
    * so the tolerance is applied relative to the expected holdings to absorb the floating point error.
@@ -399,7 +408,8 @@ public interface HoldSecurityaccountSecurityJpaRepository
    * <ul>
    *   <li><strong>Tenant and portfolio IDs</strong> (getIdTenant, getIdPortfolio)</li>
    *   <li><strong>Security-account ID</strong> (getIdSecurityaccount)</li>
-   *   <li><strong>Event timestamp</strong> (getTsDate) – transaction time or split date</li>
+   *   <li><strong>Event timestamp</strong> (getTsDate) – tt_date combined with the time of day of the transaction, or
+   *       the split date</li>
    *   <li><strong>Computed factor units</strong> (getFactorUnits) – total units for buys/sells or split ratio</li>
    *   <li><strong>Tenant and portfolio currency codes</strong> (getTenantCurrency, getPorfolioCurrency)</li>
    *   <li><strong>Margin-transaction ID</strong> (getIdTransactionMargin) – always null, since margin trades are omitted</li>
@@ -423,7 +433,8 @@ public interface HoldSecurityaccountSecurityJpaRepository
    * <ul>
    *   <li><strong>Tenant and portfolio identifiers</strong> (getIdTenant, getIdPortfolio)</li>
    *   <li><strong>Security account identifier</strong> (getIdSecurityaccount)</li>
-   *   <li><strong>Event timestamp</strong> (getTsDate) – transaction time or split date</li>
+   *   <li><strong>Event timestamp</strong> (getTsDate) – tt_date combined with the time of day of the transaction, or
+   *       the split date</li>
    *   <li><strong>Computed factor units</strong> (getFactorUnits) – ±(units × value) for margin trades or split ratio for splits</li>
    *   <li><strong>Tenant and portfolio currency codes</strong> (getTenantCurrency, getPorfolioCurrency)</li>
    *   <li><strong>Margin transaction ID</strong> (getIdTransactionMargin), present only for margin trades</li>
@@ -470,7 +481,12 @@ public interface HoldSecurityaccountSecurityJpaRepository
 
       /**
        * The timestamp of the event.
-       * <p>For transactions, this corresponds to transaction_time; for splits, split_date.
+       * <p>For splits this is split_date at midnight. For transactions it is
+       * {@code TIMESTAMP(tt_date, TIME(transaction_time))}: the <b>date</b> part comes from the business date
+       * {@code tt_date} and is what the holding periods are keyed on, the <b>time</b> part only orders several events
+       * of the same day so that a split is applied before the transactions of that day. The date part of
+       * {@code transaction_time} must not be used — it is a TIMESTAMP column and therefore moves when the database is
+       * served in another time zone.
        *
        * @return the event date and time as LocalDateTime
        */
@@ -624,8 +640,10 @@ public interface HoldSecurityaccountSecurityJpaRepository
     /**
      * The timestamp of the event.
      * <p>
-     * For margin transactions, this corresponds to the transaction time;
-     * for split events, the split execution date/time.
+     * For split events the split date at midnight. For margin transactions
+     * {@code TIMESTAMP(tt_date, TIME(transaction_time))} — the date part comes from the business date {@code tt_date},
+     * the time part only orders several events of the same day. See
+     * {@link ITransactionSecuritySplit#getTsDate()} for why the date part of {@code transaction_time} must not be used.
      *
      * @return event date and time as LocalDateTime
      */

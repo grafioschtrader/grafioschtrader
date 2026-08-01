@@ -37,7 +37,7 @@ import {FormsModule} from '@angular/forms';
 import {TranslateModule} from '@ngx-translate/core';
 import {TableModule} from 'primeng/table';
 import {CorrelationAddInstrumentComponent} from './correlation-add-instrument.component';
-import {InstrumentStatisticsResultComponent} from '../../securitycurrency/component/instrument-statistics-result.component';
+import {InstrumentStatisticsResultComponent} from '../../shared/securitycurrency/instrument-statistics-result.component';
 import {GlobalSessionNames} from '../../lib/global.session.names';
 
 /**

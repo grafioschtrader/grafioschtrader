@@ -287,7 +287,7 @@ import {SecurityEditComponent} from './shared/securitycurrency/security-edit.com
 import {SecurityUDFEditComponent} from './securitycurrency/component/security-udf-edit.component';
 import {CurrencypairEditComponent} from './shared/securitycurrency/currencypair-edit.component';
 import {CorrelationAddInstrumentComponent} from './correlation/component/correlation-add-instrument.component';
-import {InstrumentStatisticsResultComponent} from './securitycurrency/component/instrument-statistics-result.component';
+import {InstrumentStatisticsResultComponent} from './shared/securitycurrency/instrument-statistics-result.component';
 import {CorrelationSetEditComponent} from './correlation/component/correlation-set-edit.component';
 import {WatchlistEditDynamicComponent} from './watchlist/component/watchlist.edit.dynamic.component';
 import {
@@ -296,10 +296,10 @@ import {
 import {
   SecuritycurrencySearchAndSetTableComponent
 } from './securitycurrency/component/securitycurrency-search-and-set-table.component';
-import {InstrumentAnnualisedReturnComponent} from './securitycurrency/component/instrument.annualised.return.component';
+import {InstrumentAnnualisedReturnComponent} from './shared/securitycurrency/instrument.annualised.return.component';
 import {
   InstrumentYearPerformanceTableComponent
-} from './securitycurrency/component/instrument-year-performance-table.component';
+} from './shared/securitycurrency/instrument-year-performance-table.component';
 import {SecurityActionService} from './securityaction/service/security-action.service';
 import {SecurityActionTreetableComponent} from './securityaction/component/security-action-treetable.component';
 

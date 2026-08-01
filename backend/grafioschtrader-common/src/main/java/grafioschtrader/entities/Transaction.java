@@ -420,8 +420,22 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     return transactionTime;
   }
 
+  /**
+   * The business date of this transaction. It is the authoritative date for everything that is derived from a
+   * transaction — in particular the period boundaries of the {@code hold_*} tables — because it is frozen when the
+   * entity is written and, unlike {@code transactionTime}, never re-derived. {@code transactionTime} is stored in a
+   * {@code TIMESTAMP} column and is therefore rendered in the database session's time zone, so moving the database to
+   * a host in another zone silently shifts it.
+   *
+   * <p>
+   * Falls back to the date part of {@code transactionTime} while the entity has not been persisted yet, because
+   * {@code transactionDate} is only filled by {@link #onPrePersist()} / {@link #onPreUpdate()}.
+   *
+   * @return the transaction date, or null when neither date nor time is set
+   */
   public LocalDate getTransactionDate() {
-    return transactionDate;
+    return transactionDate != null ? transactionDate
+        : (transactionTime == null ? null : transactionTime.toLocalDate());
   }
 
   @JsonIgnore

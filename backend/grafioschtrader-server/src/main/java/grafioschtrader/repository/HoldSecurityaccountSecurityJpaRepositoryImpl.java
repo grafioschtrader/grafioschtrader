@@ -1,6 +1,7 @@
 package grafioschtrader.repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -268,7 +269,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
         && hstbs.getIdSecurityaccount().equals(hstbsNext.getIdSecurityaccount())) {
       Transaction marginTransaction = marginTransactionMap.get(hstbs.getIdTransactionMargin());
       Transaction marginTransactionNext = marginTransactionMap.get(hstbsNext.getIdTransactionMargin());
-      return marginTransaction.getTransactionTime().toLocalDate().equals(marginTransactionNext.getTransactionTime().toLocalDate());
+      return marginTransaction.getTransactionDate().equals(marginTransactionNext.getTransactionDate());
     }
     return false;
   }
@@ -425,8 +426,25 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
   }
 
   /**
+   * Builds the event timestamp of a transaction the same way the native queries do with
+   * {@code TIMESTAMP(t.tt_date, TIME(t.transaction_time))}.
+   *
+   * <p>
+   * The <b>date</b> part is taken from {@code tt_date}, because that is the business date the holding periods are keyed
+   * on and the only date that does not move when the database is served in a different time zone — see
+   * {@link Transaction#getTransactionDate()}. The <b>time</b> part is kept solely to order several events of the same
+   * day, splits (midnight) before transactions.
+   *
+   * @param transaction the transaction whose event timestamp is needed
+   * @return tt_date combined with the time of day of transaction_time
+   */
+  private static LocalDateTime eventTime(Transaction transaction) {
+    return LocalDateTime.of(transaction.getTransactionDate(), transaction.getTransactionTime().toLocalTime());
+  }
+
+  /**
    * Checks if the next margin transaction in the list occurs on the same date as the current one.
-   * 
+   *
    * @param marginTransaction            current margin transaction
    * @param tss                          current transaction/split record
    * @param transactionSecuritySplitList full list of transactions for comparison
@@ -443,7 +461,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
         // Must be a margin
         Transaction marginTransactionNext = marginTransactionMap.get(tssNext.getIdTransactionMargin());
         return marginTransactionNext != null
-            && marginTransaction.getTransactionTime().toLocalDate().equals(marginTransactionNext.getTransactionTime().toLocalDate());
+            && marginTransaction.getTransactionDate().equals(marginTransactionNext.getTransactionDate());
       }
     }
     return false;
@@ -579,7 +597,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
     TransactionSecuritySplit tssNew = null;
     if (transaction != null) {
       tssNew = new TransactionSecuritySplit(transaction.getIdTransaction(), security.getIdSecuritycurrency(),
-          transaction.getTransactionTime(),
+          eventTime(transaction),
           (transaction.getTransactionType() == TransactionType.ACCUMULATE ? 1 : -1) * transaction.getUnits(), null,
           security.getCurrency());
 
@@ -788,7 +806,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
           // Close full or partly margin position
           Transaction openTransaction = marginTransactionMap.get(marginTransaction.getConnectedIdTransaction());
           SplitFactorAfterBefore splitFactorAfterBefore = Securitysplit.calcSplitFatorForFromDateAndToDate(
-              tss.getIdSecuritycurrency(), openTransaction.getTransactionTime().toLocalDate(), marginTransaction.getTransactionTime().toLocalDate(),
+              tss.getIdSecuritycurrency(), openTransaction.getTransactionDate(), marginTransaction.getTransactionDate(),
               css.securitysplitMap);
           if (units - openTransaction.getUnitsMultiplyValuePerPoint() * buySellFactor != 0d) {
             openMarginSum += openTransaction.getSeucritiesNetPrice() / openTransaction.getUnitsMultiplyValuePerPoint()
@@ -842,19 +860,31 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
 
     /**
      * Sets the end date on the most recent holding record.
-     * 
+     *
      * <p>
      * This method maintains time-frame continuity by setting end dates on previous holdings when new transactions
      * create position changes.
      * </p>
-     * 
+     *
+     * <p>
+     * When the closing event falls on the same day the record was opened — an intraday round trip, for example a buy
+     * and a sell of the same security on one day — the computed end date is {@code fromHoldDate - 1} and the period
+     * would be inverted. Such a position was held at no end of day, so the record is dropped instead of closed. An
+     * inverted period would otherwise never be matched by a {@code from <= date AND date <= to} query while still
+     * carrying a non-zero holdings value.
+     * </p>
+     *
      * @param toHoldDate the end date to set on the last holding
      */
     private void setToHoldDateOnLastTransSplit(LocalDate toHoldDate) {
       if (units != 0) {
         HoldSecurityaccountSecurity lastHoldSecurity = this.getLastTransSplit();
         if (lastHoldSecurity != null && lastHoldSecurity.getToHoldDate() == null) {
-          lastHoldSecurity.setToHoldDate(toHoldDate);
+          if (toHoldDate.isBefore(lastHoldSecurity.getHssk().getFromHoldDate())) {
+            toSaveHoldForSecurityList.removeLast();
+          } else {
+            lastHoldSecurity.setToHoldDate(toHoldDate);
+          }
         }
       }
     }

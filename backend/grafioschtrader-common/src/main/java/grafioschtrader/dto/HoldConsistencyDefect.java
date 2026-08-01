@@ -24,8 +24,9 @@ public interface HoldConsistencyDefect {
    * that no transaction justifies, {@code VALUES} a stored amount differs beyond the rounding tolerance,
    * {@code PERIOD_CHAIN} the from/to dates of consecutive periods do not join up or more than one period is open,
    * {@code TENANT_PORTFOLIO} the denormalised tenant or portfolio id is wrong, {@code ORPHAN_DATE} a holdings period
-   * starts on a date that is neither a transaction nor a split, {@code FINAL_HOLDINGS} the newest holdings row does not
-   * match the split-adjusted unit sum.
+   * starts on a date that is neither a transaction nor a split, {@code ROW_HOLDINGS} a holdings row does not match the
+   * split-adjusted unit sum as of its own start date, {@code INVERTED_PERIOD} a holdings period ends before it begins
+   * and can therefore never be matched by a date range.
    *
    * @return the defect kind
    */

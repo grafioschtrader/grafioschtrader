@@ -13,6 +13,8 @@ import {AppSettings} from '../../shared/app.settings';
 import {BaseSettings} from '../../lib/base.settings';
 import {TreeNavigationStateService} from '../../lib/maintree/service/tree.navigation.state.service';
 import {TabItem} from '../../lib/types/tab.item';
+import {InstrumentStatisticsCacheService} from '../../securitycurrency/service/instrument.statistics.cache.service';
+import {WatchlistExpandedPanelStateService} from '../service/watchlist.expanded.panel.state.service';
 
 /**
  * Watchlist Tab Menu Component extending BaseTabMenuComponent.
@@ -36,7 +38,11 @@ import {TabItem} from '../../lib/types/tab.item';
     </div>
   `,
   standalone: true,
-  imports: [TranslateModule, RouterModule, Tabs, TabList, Tab]
+  imports: [TranslateModule, RouterModule, Tabs, TabList, Tab],
+  // Both services are scoped to this component on purpose: the cached instrument statistics and the remembered
+  // accordion panels of an expanded row survive watchlist and tab changes, but are discarded when the user leaves
+  // the watchlist area.
+  providers: [InstrumentStatisticsCacheService, WatchlistExpandedPanelStateService]
 })
 export class WatchlistTabMenuComponent extends BaseTabMenuComponent implements OnInit, OnDestroy {
 

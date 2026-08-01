@@ -123,9 +123,8 @@ subtree — a user with two portfolios has two identically labelled "Securities 
 folders.
 
 `tradingPlatformPlan` holds a case-insensitive **substring** of the option label, because the plan
-names are translated: `Saxo Trader` (identical in DE and EN) and `CornèTrader` (from `CornèTrader
-Transaktionsbetrag` / `CornèTrader Transactions value` — note the plan name has no `r` in `Cornè`,
-unlike the portfolio). The plans themselves are created by the backend
+names are translated: `Saxo Trader` (identical in DE and EN) and `CornèrTrader` (from `CornèrTrader
+Transaktionsbetrag` / `CornèrTrader Transactions value`). The plans themselves are created by the backend
 `TradingPlatformPlanResourceTest` from the `e2e='i'` rows of `generated/tradingplatformplan.csv`, so
 they exist before Playwright starts. `null` takes the first non-empty option.
 

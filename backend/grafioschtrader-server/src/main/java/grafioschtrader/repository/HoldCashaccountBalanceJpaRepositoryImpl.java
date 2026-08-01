@@ -131,7 +131,9 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
   public void adjustCashaccountBalance(Transaction transaction, TransactionPreImage preImage) {
     Tenant tenant = tenantJpaRepository.getReferenceById(transaction.getIdTenant());
     Integer idCashaccount = transaction.getCashaccount().getIdSecuritycashAccount();
-    LocalDate transactionDate = transaction.getTransactionTime().toLocalDate();
+    // tt_date, not the date part of transaction_time: the full rebuild groups by tt_date, so the incremental replay
+    // has to start on the same date or the two paths disagree whenever the two dates differ.
+    LocalDate transactionDate = transaction.getTransactionDate();
 
     if (preImage == null) {
       replayFrom(tenant, idCashaccount, transactionDate);

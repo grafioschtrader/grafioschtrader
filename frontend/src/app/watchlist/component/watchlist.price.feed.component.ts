@@ -38,7 +38,7 @@ import {TooltipModule} from 'primeng/tooltip';
 import {TransactionSecurityTableComponent} from '../../transaction/component/transaction-security-table.component';
 import {TransactionSecurityMarginTreetableComponent} from '../../transaction/component/transaction-security-margin-treetable.component';
 import {SecuritycurrencyUdfComponent} from './securitycurrency-udf.component';
-import {SecuritycurrencyExtendedInfoComponent} from './securitycurrency-extended-info.component';
+import {WatchlistPriceFeedExpandedComponent} from './watchlist-price-feed-expanded.component';
 import {WatchlistDividendTableComponent} from './watchlist-dividend-table.component';
 import {WatchlistSecuritysplitTableComponent} from './watchlist-securitysplit-table.component';
 import {WatchlistAddInstrumentComponent} from './watchlist-add-instrument.component';
@@ -82,7 +82,7 @@ import {UDFGeneralEditComponent} from '../../lib/udfmeta/components/udf-general-
     TransactionSecurityTableComponent,
     TransactionSecurityMarginTreetableComponent,
     SecuritycurrencyUdfComponent,
-    SecuritycurrencyExtendedInfoComponent,
+    WatchlistPriceFeedExpandedComponent,
     WatchlistDividendTableComponent,
     WatchlistSecuritysplitTableComponent,
     WatchlistAddInstrumentComponent,
