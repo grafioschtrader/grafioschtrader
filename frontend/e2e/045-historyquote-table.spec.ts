@@ -5,9 +5,10 @@ import {expectToast} from './manage-client.helpers';
 /**
  * End-of-day price views of a security that is seeded WITH its price history.
  *
- * The spec creates the watchlist 'Switzerland', adds 'Nestlé AG' (CH0038863350) to it through the
- * search dialog, opens its historical prices (HistoryquoteTableComponent), deletes the most recent
- * quote and recreates it with exactly the same values through the create dialog
+ * The spec uses the watchlist 'Switzerland' created by 032-create-watchlist and adds 'Nestlé AG'
+ * (CH0038863350) through the search dialog. It opens the historical prices
+ * (HistoryquoteTableComponent), deletes the most recent quote, and recreates it with the same values
+ * through the create dialog
  * (HistoryquoteEditComponent).
  *
  * Why this instrument: nv.bat dumps the CH/US securities that have a future active_to_date and no
@@ -26,7 +27,7 @@ import {expectToast} from './manage-client.helpers';
  * matches DE + EN and dates are written in the de-CH short format (dd.mm.yy) both in the table cells
  * and in the date picker.
  *
- * Repeatability: watchlist and instrument are only created when missing, and delete-then-recreate is
+ * Repeatability: the instrument is only added when missing, and delete-then-recreate is
  * idempotent — a rerun finds the same date as the newest quote and repeats the cycle (the recreated
  * row carries createType ADD_MODIFIED_USER instead of CONNECTOR_CREATED, which does not change the
  * flow). Because the values are written back unchanged, the shared Nestlé series stays intact for
@@ -62,8 +63,6 @@ const COL_DATE = 0;
 const COL_CLOSE = 7;
 
 const RX = {
-  createWatchlistItem: /(Create|Erstellen)\s*Watchlist/i,
-  watchlistRoot: /Watchlist\s*-\s*(Correlation\s*matrix|Korrelationsmatrix)/i,
   addExistingItem: /(Bestehendes\s+Instrument\s+hinzuf.gen|Add\s+existing\s+instrument)/i,
   addButton: /^(Hinzuf.gen|Add)$/,
   closeButton: /^(Beenden|Close)$/,
@@ -143,36 +142,9 @@ function waitForQuotes(page: Page): Promise<QuotesPayload> {
  * explicit \s* around the anchors.
  */
 function rowByDate(page: Page, deChDate: string): Locator {
-  const cellText = new RegExp(`^\\s*${deChDate.replace(/\./g, '\\.')}\\s*$`);
+  const cellText = new RegExp(`^\\s*${deChDate.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`);
   return page.locator('historyquote-table tbody tr')
     .filter({has: page.locator('td:nth-child(1)', {hasText: cellText})});
-}
-
-/** Creates the watchlist through the tree context menu when it does not exist yet. */
-async function ensureWatchlist(page: Page): Promise<void> {
-  if (await page.getByRole('treeitem', {name: WATCHLIST_NAME, exact: true}).count() > 0) {
-    return;
-  }
-  const watchlistRoot = page.locator('.p-tree-node-content', {hasText: RX.watchlistRoot}).first();
-  await watchlistRoot.waitFor({state: 'visible', timeout: 15_000});
-  await watchlistRoot.click({button: 'right'});
-
-  const menu = page.locator('[role="menu"]:visible');
-  await menu.waitFor({state: 'visible', timeout: 5_000});
-  await menu.getByText(RX.createWatchlistItem).first().click();
-
-  const dialog = page.locator('.p-dialog');
-  await dialog.waitFor({state: 'visible', timeout: 10_000});
-  const nameInput = dialog.locator('#name');
-  await nameInput.click();
-  await nameInput.fill(WATCHLIST_NAME);
-  await nameInput.dispatchEvent('input');
-  await nameInput.blur();
-  await dialog.locator('button[type="submit"]').click();
-  await dialog.waitFor({state: 'hidden', timeout: 10_000});
-
-  await expect(page.getByRole('treeitem', {name: WATCHLIST_NAME, exact: true}).first())
-    .toBeVisible({timeout: 10_000});
 }
 
 /** Selects the watchlist in the left tree and waits for its table to render. */
@@ -302,10 +274,8 @@ test.describe.serial('historical prices of Nestlé — show, delete newest, recr
   // The EOD table is rendered in the mainbottom outlet below the watchlist.
   test.use({viewport: {width: 1600, height: 1200}});
 
-  test(`creates the ${WATCHLIST_NAME} watchlist and adds ${SECURITY_NAME} by ISIN`, async ({page}) => {
+  test(`adds ${SECURITY_NAME} to the ${WATCHLIST_NAME} watchlist by ISIN`, async ({page}) => {
     await loginAsCsvUser(page, LOGIN_NICKNAME);
-
-    await ensureWatchlist(page);
     await openWatchlist(page);
 
     // Let the watchlist table render before the skip-if-present check. The search endpoint excludes

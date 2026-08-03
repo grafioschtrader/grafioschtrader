@@ -1341,6 +1341,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
         autorange: true,
         range: [this.minValueOfY, this.maxValueOfY],
         ticksuffix: this.usePercentage ? '%' : '',
+        fixedrange: false,
         type: 'linear'
       },
       newshape: {

@@ -24,6 +24,7 @@ function loadE2EUsers(): CsvUser[] {
   const csv = fs.readFileSync(USERS_CSV, 'utf-8');
   return csv.split(/\r?\n/)
     .filter(l => l.trim().length > 0)
+    .slice(1)
     .map(line => {
       const [email, password, nickname, localeStr, timezoneOffset, currency, role, e2e] = parseCsvRow(line);
       return {email, password, nickname, localeStr, timezoneOffset, currency, role, e2e};

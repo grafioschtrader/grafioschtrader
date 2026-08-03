@@ -62,8 +62,6 @@ const FIXTURE = loadFixture();
 
 // The login user is de-CH, so every label matcher has to accept the German and the English text.
 const RX = {
-  watchlistRoot: /Watchlist\s*-\s*(Correlation\s*matrix|Korrelationsmatrix)/i,
-  createWatchlistItem: /(Create|Erstellen)\s*Watchlist/i,
   // CREATE_AND_ADD_SECURITY_DERIVED. Deliberately different words than CREATE_AND_ADD_SECURITY
   // ("Create and add security" / "Hinzufügen neues Wertpapier"), which sits right above it.
   createDerivedItem: /(Add\s*new\s*derived\s*security|Hinzuf.*abgeleitetes\s*Instrument)/i,
@@ -208,33 +206,6 @@ async function pickInstrument(page: Page, dlg: Locator, fieldId: string, ref: In
   await expect(dlg.locator(`input#${fieldId}`)).toHaveValue(ref.displayName, {timeout: 10_000});
 }
 
-/** Creates the watchlist through the tree context menu when it does not exist yet. */
-async function ensureWatchlist(page: Page, watchlistName: string): Promise<void> {
-  if (await page.getByRole('treeitem', {name: watchlistName, exact: true}).count() > 0) {
-    return;
-  }
-  const watchlistRoot = page.locator('.p-tree-node-content', {hasText: RX.watchlistRoot}).first();
-  await watchlistRoot.waitFor({state: 'visible', timeout: 15_000});
-  await watchlistRoot.click({button: 'right'});
-
-  const menu = page.locator('[role="menu"]:visible');
-  await menu.waitFor({state: 'visible', timeout: 5_000});
-  await menu.getByText(RX.createWatchlistItem).first().click();
-
-  const dialog = page.locator('.p-dialog');
-  await dialog.waitFor({state: 'visible', timeout: 10_000});
-  const nameInput = dialog.locator('#name');
-  await nameInput.click();
-  await nameInput.fill(watchlistName);
-  await nameInput.dispatchEvent('input');
-  await nameInput.blur();
-  await dialog.locator('button[type="submit"]').click();
-  await dialog.waitFor({state: 'hidden', timeout: 10_000});
-
-  await expect(page.getByRole('treeitem', {name: watchlistName, exact: true}).first())
-    .toBeVisible({timeout: 10_000});
-}
-
 /** Opens the watchlist and waits for its table to be rendered. */
 async function openWatchlist(page: Page, watchlistName: string): Promise<void> {
   const node = page.getByRole('treeitem', {name: watchlistName, exact: true}).first();
@@ -250,11 +221,6 @@ test.describe.serial('derived instruments — watchlist and calculated securitie
   // and the assign button. At the default 720px height it overflows the viewport and the assign
   // button cannot be scrolled into view, because a centered p-dialog does not scroll the body.
   test.use({viewport: {width: 1600, height: 1400}});
-
-  test(`creates the "${FIXTURE.watchlistName}" watchlist if missing`, async ({page}) => {
-    await loginAsCsvUser(page, FIXTURE.loginNickname);
-    await ensureWatchlist(page, FIXTURE.watchlistName);
-  });
 
   for (const row of FIXTURE.instruments) {
     test(`adds derived instrument ${row.name}`, async ({page}) => {

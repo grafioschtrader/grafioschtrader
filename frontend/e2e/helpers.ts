@@ -105,6 +105,7 @@ export function getCsvUser(nickname: string): TestCredentials {
   const csv = fs.readFileSync(USERS_CSV, 'utf-8');
   const row = csv.split(/\r?\n/)
     .filter(l => l.trim().length > 0)
+    .slice(1)
     .map(l => parseCsvRow(l))
     .find(cols => cols[2] === nickname);
   if (!row) {

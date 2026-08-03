@@ -125,7 +125,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
       DynamicFieldHelper.createFieldSelectNumber('idSecurityaccount', AppSettings.SECURITYACCOUNT.toUpperCase(), false,
         {invisible: true}),
 
-      DynamicFieldHelper.createFieldInputNumberHeqF('taxCost' , true,
+      DynamicFieldHelper.createFieldInputNumberHeqF('taxCost' , false,
         AppSettings.FID_STANDARD_INTEGER_DIGITS, this.gps.getStandardFractionDigits(), false, {invisible: true}),
 
       {formGroupName: 'calcGroup', fieldConfig: calcGroupConfig},
@@ -393,6 +393,8 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    */
   private setAmountValidator(allowNegative: boolean, validator: ValidatorFn, validatorKey: string) {
     this.configObject.cashaccountAmount.inputNumberSettings.allowNegative = allowNegative;
+    this.configObject.cashaccountAmount.min = allowNegative
+      ? this.configObject.cashaccountAmount.max * -1 : this.minAmount;
     this.configObject.cashaccountAmount.validation = [Validators.required, validator];
     this.configObject.cashaccountAmount.formControl.setValidators(this.configObject.cashaccountAmount.validation);
     this.configObject.cashaccountAmount.errors = [this.errorRequired,

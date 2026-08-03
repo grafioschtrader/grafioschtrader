@@ -12,6 +12,13 @@
     "runs an English UI (en-US); 'alledit' is seeded by the backend ResoureTestSuite and runs a German",
     "UI (de-CH) — therefore the specs match every menu text bilingually.",
     "",
+    "'transactions' are consumed by 090-bank-account-transactions.spec.ts. 'single' creates one",
+    "cash-account transaction; 'transfer' creates the connected withdrawal/deposit pair. Dates are",
+    "ISO calendar dates and the test supplies a deterministic noon time. Account names are resolved",
+    "inside their portfolio; a transfer names its destination portfolio explicitly. A standalone",
+    "foreign-currency transaction may carry valuationExchangeRate: the exact source-database close",
+    "is inserted only when the test database lacks a quote for that date.",
+    "",
     "'tradingPlatformPlan' is matched case-insensitively as a SUBSTRING of the option label in the",
     "securities account dialog, because the label is language dependent. The plans come from",
     "testdata/generated/tradingplatformplan.csv, but from two different producers: rows tagged e2e='i'",
@@ -54,7 +61,7 @@
       "loginNickname": "alledit",
       "name": "SaxoTrader",
       "currency": "CHF",
-      "delete": true,
+      "delete": false,
       "cashAccounts": [
         {"name": "ST CHF", "currency": "CHF"},
         {"name": "ST USD", "currency": "USD"},
@@ -72,17 +79,35 @@
           ]
         }
       ],
+      "transactions": [
+        {
+          "kind": "single",
+          "transactionType": "DEPOSIT",
+          "date": "2009-01-05",
+          "cashAccount": "ST CHF",
+          "amount": 400000
+        },
+        {
+          "kind": "single",
+          "transactionType": "DEPOSIT",
+          "date": "2010-01-20",
+          "cashAccount": "ST USD",
+          "amount": 100000,
+          "valuationExchangeRate": {"toCurrency": "CHF", "close": 1.04359996}
+        }
+      ],
       "e2e": "e"
     },
     {
       "loginNickname": "alledit",
       "name": "CornèrTrader",
       "currency": "CHF",
-      "delete": true,
+      "delete": false,
       "cashAccounts": [
         {"name": "CT CHF", "currency": "CHF"},
         {"name": "CT USD", "currency": "USD"},
-        {"name": "CT EUR", "currency": "EUR"}
+        {"name": "CT EUR", "currency": "EUR"},
+        {"name": "CT BTC", "currency": "BTC"}
       ],
       "securityAccounts": [
         {
@@ -94,6 +119,80 @@
             {"specInvestInstrument": "FOREX", "categoryType": "CURRENCY_PAIR", "dateFrom": "2000-01-03"},
             {"specInvestInstrument": "ISSUER_RISK_PRODUCT", "categoryType": null, "dateFrom": "2000-01-03"}
           ]
+        }
+      ],
+      "transactions": [
+        {
+          "kind": "single",
+          "transactionType": "DEPOSIT",
+          "date": "2008-01-03",
+          "cashAccount": "CT CHF",
+          "amount": 500000
+        },
+        {
+          "kind": "transfer",
+          "date": "2008-02-04",
+          "debitCashAccount": "CT CHF",
+          "creditPortfolio": "CornèrTrader",
+          "creditCashAccount": "CT EUR",
+          "creditAmount": 100000,
+          "exchangeRate": 0.62000001,
+          "expectedDebitAmount": 161290.32
+        },
+        {
+          "kind": "transfer",
+          "date": "2008-03-04",
+          "debitCashAccount": "CT CHF",
+          "creditPortfolio": "CornèrTrader",
+          "creditCashAccount": "CT USD",
+          "creditAmount": 100000,
+          "exchangeRate": 0.96500003,
+          "expectedDebitAmount": 103626.94
+        },
+        {
+          "kind": "transfer",
+          "date": "2016-02-18",
+          "debitCashAccount": "CT CHF",
+          "creditPortfolio": "CornèrTrader",
+          "creditCashAccount": "CT BTC",
+          "creditAmount": 10,
+          "exchangeRate": 0.00238095,
+          "expectedDebitAmount": 4200
+        },
+        {
+          "kind": "transfer",
+          "date": "2010-03-18",
+          "debitCashAccount": "CT EUR",
+          "creditPortfolio": "SaxoTrader",
+          "creditCashAccount": "ST EUR",
+          "creditAmount": 50000,
+          "expectedDebitAmount": 50000
+        },
+        {
+          "kind": "single",
+          "transactionType": "WITHDRAWAL",
+          "date": "2025-12-31",
+          "cashAccount": "CT USD",
+          "amount": 10000,
+          "valuationExchangeRate": {"toCurrency": "CHF", "close": 0.79170001}
+        },
+        {
+          "kind": "single",
+          "transactionType": "FEE",
+          "date": "2025-12-31",
+          "cashAccount": "CT CHF",
+          "securityAccount": "CT",
+          "amount": 120.22,
+          "note": "Jährliche Depotkosten"
+        },
+        {
+          "kind": "single",
+          "transactionType": "INTEREST_CASHACCOUNT",
+          "date": "2025-12-31",
+          "cashAccount": "CT USD",
+          "amount": 125.28,
+          "taxCost": 0,
+          "valuationExchangeRate": {"toCurrency": "CHF", "close": 0.79170001}
         }
       ],
       "e2e": "e"

@@ -27,6 +27,23 @@ between its neighbours (e.g. `042` between `040` and `045`), without renaming an
 close the gaps, and do not repeat the number in the `test.describe` title — Playwright already prints
 the filename next to it, and a copy in the title only drifts.
 
+## Watchlist specs (032-* create / 844-* teardown)
+
+`032-create-watchlist.spec.ts` creates every Playwright-owned watchlist before the currency-pair and
+security workflows run. `844-delete-watchlist.spec.ts` removes the watchlists whose fixture row has
+`delete=true`; it runs before the portfolio teardown in `888`. Both read the hand-authored, pipe-delimited
+fixture `backend/grafioschtrader-server/src/test/resources/testdata/watchlists.csv` with columns
+`loginNickname|name|main|delete|e2e`. Rows tagged `e` belong to Playwright; `i` is reserved for the backend
+integration tests. A `main=true` row is selected for performance calculations and therefore becomes the
+tenant's `id_watchlist_performance`. An existing watchlist is accepted by 032 and an already missing cleanup
+row is accepted by 844, so both specs can be rerun against the same database.
+
+The five `alledit` watchlists (`Main List`, `currencypair`, `Spain`, `Switzerland`, and `Derived`) are retained;
+`Main List` is the tenant's performance watchlist, while later workflows populate and reuse the other lists.
+The empty `limit2` watchlists (`Main List` and `Currency Pair`) are marked for deletion and exercise the teardown
+path; its `Main List` is also selected for performance calculations. Specs 035, 040, 045, and 047 consume their
+watchlists but do not create them.
+
 ## Connector API key spec (005-*)
 
 `005-connector-api-key.spec.ts` creates the connector API keys as the admin user, through the
@@ -139,10 +156,32 @@ counterpart. Its date picker arrives pre-filled with the oldest trading day (`20
 helper only types when the fixture asks for a different date, and then key by key, because PrimeNG
 ignores values injected with `fill()`.
 
+## Bank-account transaction spec (090-*)
+
+`090-bank-account-transactions.spec.ts` recreates the bank-account-only transactions of `alledit`
+through the single-account and account-transfer dialogs. Its input is the optional `transactions`
+array below each portfolio in `testdata/portfolios.json`. A `single` entry names its cash account and
+transaction type; a `transfer` entry names the debit account and the destination portfolio/account,
+because the destination may belong to another portfolio. Exchange rates and expected rounded debit
+amounts are stored only for cross-currency transfers.
+
+The fixture contains ten logical operations: six standalone transactions and four transfers, which
+persist as fourteen rows. The spec reconciles the fixture with the tenant's existing transactions,
+creates missing operations through the UI, and verifies the persisted standalone rows and both sides
+of every transfer. Exact matches are retained because deleting the first deposit from a non-borrowing
+account is correctly rejected as a temporary overdraft. A transfer is persisted atomically, so this
+reconciliation also recovers a run that stopped after any standalone operation. Unrelated transactions
+are untouched, and the spec can be rerun independently against an already populated
+`grafioschtrader_t` without a full `e2eTest` database reset.
+
+With the backend and frontend from an earlier run still active, execute only this spec with
+`npx playwright test e2e/090-bank-account-transactions.spec.ts --project=grafioschtrader-e2e --no-deps`.
+The `--no-deps` flag avoids rerunning the create-only user-registration setup against the populated database.
+
 ## History quote spec (045-*)
 
 `045-historyquote-table.spec.ts` covers the end-of-day price views of `Nestlé AG` (CH0038863350): it
-creates the `Switzerland` watchlist, adds the instrument through the "Add existing instrument"
+uses the `Switzerland` watchlist created by 032 and adds the instrument through the "Add existing instrument"
 search dialog by ISIN, then deletes the most recent quote and recreates it with exactly the same
 values through the create dialog.
 
@@ -176,13 +215,13 @@ the shared Nestlé series also stays intact for `050-correlation-matrix.spec.ts`
 a run aborted *between* the delete and the recreate leaves that one connector row missing; the next
 run then targets the row before it.
 
-Watchlist and instrument are created only when missing, so the spec can be re-run against the same
-`grafioschtrader_t` without a reset.
+The instrument is added only when missing, so the spec can be re-run against the same `grafioschtrader_t`
+without a reset.
 
 ## Derived instrument spec (047-*)
 
-`047-create-derived-security.spec.ts` creates the watchlist `Derived` as user `alledit` and adds
-three **derived instruments** through the watchlist context menu entry "Add new derived security".
+`047-create-derived-security.spec.ts` uses the `Derived` watchlist created by 032 for user `alledit` and
+adds three **derived instruments** through the watchlist context menu entry "Add new derived security".
 A derived instrument has no price connector: its prices are calculated from the base instrument
 (formula variable `o`, stored in `security.id_link_securitycurrency`) and, when a pricing formula is
 present, from further instruments bound to the variables `p`..`s` in `security_derived_link`. This is
@@ -191,9 +230,8 @@ those two tables.
 
 Its fixture is `backend/grafioschtrader-server/src/test/resources/testdata/derived-securities.json`.
 It is hand-authored, so it belongs in `testdata/` and **not** in `testdata/generated/`, which `nv.bat`
-empties on every run. JSON rather than CSV because the linked instruments form a nested structure and
-because the login nickname and the watchlist name then live in the fixture instead of being duplicated
-as constants in the spec. The three instruments mirror the production database:
+empties on every run. JSON rather than CSV because the linked instruments form a nested structure. The
+three instruments mirror the production database:
 
 | name | base (`o`) | formula | additional |
 |---|---|---|---|

@@ -348,7 +348,7 @@ test.describe.serial('generic connectors — create as alledit, activate as admi
     // Let the navigation tree finish rendering before probing for the watchlist node.
     await page.waitForTimeout(1500);
     const watchlistNode = page.getByRole('treeitem', {name: 'Spain', exact: true}).first();
-    test.skip(await watchlistNode.count() === 0, 'Spain watchlist not present (spec 040-create-security not run)');
+    test.skip(await watchlistNode.count() === 0, 'Spain watchlist not present (spec 032-create-watchlist not run)');
     await watchlistNode.click();
     await page.waitForTimeout(1500);
 

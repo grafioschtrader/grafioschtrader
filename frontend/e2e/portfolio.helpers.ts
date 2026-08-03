@@ -40,6 +40,48 @@ export interface SecurityAccountData {
   tradingPeriods: TradingPeriodData[];
 }
 
+export type CashTransactionType = 'DEPOSIT' | 'INTEREST_CASHACCOUNT' | 'WITHDRAWAL' | 'FEE';
+
+export interface ValuationExchangeRateData {
+  /** Tenant main currency into which the cash-account amount is valued. */
+  toCurrency: string;
+  /** Exact-date close copied from the source database, used only when that quote is missing. */
+  close: number;
+}
+
+export interface SingleCashTransactionData {
+  kind: 'single';
+  transactionType: CashTransactionType;
+  /** ISO calendar date; the e2e test uses a deterministic local noon time. */
+  date: string;
+  cashAccount: string;
+  /** Value entered in the form. The backend negates positive withdrawals and fees before persisting them. */
+  amount: number;
+  securityAccount?: string;
+  taxCost?: number;
+  note?: string;
+  /** Required for a foreign-currency standalone booking when the test database has no historical rate. */
+  valuationExchangeRate?: ValuationExchangeRateData;
+}
+
+export interface CashTransferData {
+  kind: 'transfer';
+  /** ISO calendar date; the e2e test uses a deterministic local noon time. */
+  date: string;
+  debitCashAccount: string;
+  creditPortfolio: string;
+  creditCashAccount: string;
+  creditAmount: number;
+  /** Omitted for a same-currency transfer, whose disabled form field is set to one. */
+  exchangeRate?: number;
+  /** Rounded amount displayed and persisted on the debit account. */
+  expectedDebitAmount: number;
+  transactionCost?: number;
+  note?: string;
+}
+
+export type BankAccountTransactionData = SingleCashTransactionData | CashTransferData;
+
 export interface PortfolioFixture {
   /** users.csv nickname the portfolio belongs to. */
   loginNickname: string;
@@ -49,6 +91,7 @@ export interface PortfolioFixture {
   delete?: boolean;
   cashAccounts: CashAccountData[];
   securityAccounts: SecurityAccountData[];
+  transactions?: BankAccountTransactionData[];
   e2e: string;
 }
 

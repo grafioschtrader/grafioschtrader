@@ -104,41 +104,7 @@ async function typeDate(scope: Locator, fieldId: string, isoDate: string, locale
   await expect(input, `${fieldId} did not keep the typed date`).toHaveValue(shortDate);
 }
 
-test.describe.serial('Create Spain watchlist and seed Spanish securities', () => {
-
-  test('creates "Spain" watchlist if missing', async ({page}) => {
-    await loginAsCsvUser(page, LOGIN_NICKNAME);
-
-    const existing = page.getByRole('treeitem', {name: WATCHLIST_NAME, exact: true});
-    if (await existing.count() > 0) {
-      await expect(existing.first()).toBeVisible();
-      return;
-    }
-
-    const watchlistRoot = page.locator('.p-tree-node-content', {
-      hasText: /Watchlist\s*-\s*(Correlation\s*matrix|Korrelationsmatrix)/i
-    }).first();
-    await watchlistRoot.waitFor({state: 'visible', timeout: 15_000});
-    await watchlistRoot.click({button: 'right'});
-
-    const menu = page.locator('[role="menu"]:visible');
-    await menu.waitFor({state: 'visible', timeout: 5_000});
-    await menu.getByText(/(Create|Erstellen)\s*Watchlist/i).first().click();
-
-    const dialog = page.locator('.p-dialog');
-    await dialog.waitFor({state: 'visible', timeout: 10_000});
-    const nameInput = dialog.locator('#name');
-    await nameInput.click();
-    await nameInput.fill(WATCHLIST_NAME);
-    await nameInput.dispatchEvent('input');
-    await nameInput.blur();
-    await dialog.locator('button[type="submit"]').click();
-    await dialog.waitFor({state: 'hidden', timeout: 10_000});
-
-    await expect(page.getByRole('treeitem', {name: WATCHLIST_NAME, exact: true}).first())
-      .toBeVisible({timeout: 10_000});
-  });
-
+test.describe.serial('Seed Spanish securities in the Spain watchlist', () => {
   for (const row of loadE2ERows()) {
     test(`adds Spanish security ${row.name} (${row.isin || row.tickerSymbol || 'no-id'})`, async ({page}) => {
       const creds = await loginAsCsvUser(page, LOGIN_NICKNAME);

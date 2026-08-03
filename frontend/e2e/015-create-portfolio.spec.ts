@@ -109,6 +109,15 @@ for (const p of PORTFOLIOS) {
       for (const account of p.cashAccounts) {
         await expect(page.locator('td', {hasText: account.name}).first()).toBeVisible({timeout: 5_000});
       }
+
+      // Dynamically hidden columns must be omitted from the header as well as the body and footer. Otherwise all
+      // values following the hidden column are displayed below the preceding header.
+      const summaryTable = page.locator('.datatable p-table').first();
+      const headerCellCount = await summaryTable.locator('thead tr').first().locator('th').count();
+      const accountRow = summaryTable.locator('tbody tr').filter({hasText: p.cashAccounts[0].name}).first();
+      await expect(accountRow).toBeVisible();
+      expect(await accountRow.locator(':scope > td').count()).toBe(headerCellCount);
+      expect(await summaryTable.locator('tfoot tr').first().locator('td').count()).toBe(headerCellCount);
     });
   });
 }

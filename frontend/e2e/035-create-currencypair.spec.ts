@@ -20,6 +20,7 @@ function loadE2ERows(): CurrencypairRow[] {
   const csv = fs.readFileSync(CSV_PATH, 'utf-8');
   return csv.split(/\r?\n/)
     .filter(l => l.trim().length > 0)
+    .slice(1)
     .map(line => {
       const [fromCurrency, toCurrency, idConnectorHistory, idConnectorIntra, e2e] = parseCsvRow(line);
       return {fromCurrency, toCurrency, idConnectorHistory, idConnectorIntra, e2e};
@@ -27,47 +28,7 @@ function loadE2ERows(): CurrencypairRow[] {
     .filter(r => r.e2e === 'e');
 }
 
-test.describe.serial('Create currencypair watchlist and seed pairs (hugo.graf@grafiosch.com)', () => {
-
-  test('creates "currencypair" watchlist if missing', async ({page}) => {
-    await loginAsCsvUser(page, LOGIN_NICKNAME);
-
-    // If the watchlist is already in the tree, we're done — the spec is idempotent. Use the treeitem's
-    // aria-label for an exact match (the rendered `.p-tree-node-content` contains extra whitespace and
-    // nested toggler/icon elements that break a `^...$` regex on innerText).
-    const existing = page.getByRole('treeitem', {name: WATCHLIST_NAME, exact: true});
-    if (await existing.count() > 0) {
-      await expect(existing.first()).toBeVisible();
-      return;
-    }
-
-    // The watchlist root node is labelled via 'WATCHLIST_CORRELATION_MATRIX' (en: "Watchlist - Correlation matrix",
-    // de: "Watchlist - Korrelationsmatrix"). Right-click it to open the "Create Watchlist..." menu.
-    const watchlistRoot = page.locator('.p-tree-node-content', {
-      hasText: /Watchlist\s*-\s*(Correlation\s*matrix|Korrelationsmatrix)/i
-    }).first();
-    await watchlistRoot.waitFor({state: 'visible', timeout: 15_000});
-    await watchlistRoot.click({button: 'right'});
-
-    // Menu label is 'CREATE|WATCHLIST...' → "Create Watchlist..." (EN) / "Erstellen Watchlist..." (DE).
-    const menu = page.locator('[role="menu"]:visible');
-    await menu.waitFor({state: 'visible', timeout: 5_000});
-    await menu.getByText(/(Create|Erstellen)\s*Watchlist/i).first().click();
-
-    const dialog = page.locator('.p-dialog');
-    await dialog.waitFor({state: 'visible', timeout: 10_000});
-    const nameInput = dialog.locator('#name');
-    await nameInput.click();
-    await nameInput.fill(WATCHLIST_NAME);
-    await nameInput.dispatchEvent('input');
-    await nameInput.blur();
-    await dialog.locator('button[type="submit"]').click();
-    await dialog.waitFor({state: 'hidden', timeout: 10_000});
-
-    await expect(page.getByRole('treeitem', {name: WATCHLIST_NAME, exact: true}).first())
-      .toBeVisible({timeout: 10_000});
-  });
-
+test.describe.serial('Seed currency pairs in the currencypair watchlist', () => {
   for (const row of loadE2ERows()) {
     test(`creates currency pair ${row.fromCurrency}/${row.toCurrency} if missing`, async ({page}) => {
       await loginAsCsvUser(page, LOGIN_NICKNAME);

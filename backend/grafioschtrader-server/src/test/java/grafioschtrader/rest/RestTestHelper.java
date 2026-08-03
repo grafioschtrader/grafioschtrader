@@ -72,8 +72,13 @@ public class RestTestHelper {
     try (InputStream is = RestTestHelper.class.getResourceAsStream(USERS_CSV);
         BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
       String line;
+      boolean header = true;
       while ((line = br.readLine()) != null) {
         if (line.isBlank()) {
+          continue;
+        }
+        if (header) {
+          header = false;
           continue;
         }
         List<String> cols = parseCsvRow(line);

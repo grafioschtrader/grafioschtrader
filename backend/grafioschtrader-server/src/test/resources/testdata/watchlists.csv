@@ -1,0 +1,8 @@
+loginNickname|name|main|delete|e2e
+alledit|Main List|true|false|e
+alledit|currencypair|false|false|e
+alledit|Spain|false|false|e
+alledit|Switzerland|false|false|e
+alledit|Derived|false|false|e
+limit2|Main List|true|true|e
+limit2|Currency Pair|false|true|e

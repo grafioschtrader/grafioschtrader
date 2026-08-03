@@ -10,6 +10,8 @@
 .claude
 nul
 tmpclaude-*
+__pycache__/
+*.pyc
 
 # Locally exported connector API keys in PLAINTEXT (see ConnectorApiKeyCsvExportTest) — never commit
 backend/grafioschtrader-server/src/test/resources/local-seed/
