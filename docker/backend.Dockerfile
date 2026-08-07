@@ -9,8 +9,13 @@
 FROM --platform=$BUILDPLATFORM maven:3.9-eclipse-temurin-25 AS build
 WORKDIR /build
 COPY backend/ .
+# -DskipTests, not -Dmaven.test.skip=true: grafiosch-server-base publishes its test sources as a
+# test-jar and grafioschtrader-server depends on it in test scope. maven.test.skip suppresses that
+# artifact while Maven still resolves the test classpath, so the reactor fails with
+# "Could not find artifact grafiosch-server-base:jar:tests". skipTests compiles the tests without
+# running them, which produces the test-jar and keeps the image build free of a database.
 RUN --mount=type=cache,target=/root/.m2 \
-    mvn -B clean install -Dmaven.test.skip=true
+    mvn -B clean install -DskipTests
 
 FROM eclipse-temurin:25-jre-noble
 # curl is needed for the docker-compose healthcheck (the JRE image ships neither curl nor wget)
