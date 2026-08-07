@@ -39,11 +39,17 @@ import grafioschtrader.types.HistoryquoteCreateType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import jakarta.transaction.Transactional;
 
 /**
  * Update or load historical prices thru the connector for securities or currency pair.
  *
+ * <p>
+ * <strong>Transactions:</strong> this class is instantiated with {@code new} from the {@code @PostConstruct} of the
+ * owning repository implementation, so it is not a Spring bean and {@code @Transactional} on its methods would have no
+ * effect. The transaction boundary is owned by the calling repository fragment method, and it must stay narrow: the
+ * methods below contact external data providers over HTTP before saving, so a transaction spanning many instruments
+ * would hold their {@code securitycurrency} row locks for the whole run.
+ * </p>
  *
  * @param <S>
  */
@@ -70,7 +76,6 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   }
 
   @Override
-  @Transactional
   public S createHistoryQuotesAndSave(final ISecuritycurrencyService<S> securitycurrencyService, S securitycurrency,
       final LocalDate fromDate, final LocalDate toDate) {
     short restryHistoryLoad = securitycurrency.getRetryHistoryLoad();
@@ -127,7 +132,6 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
    * @param toDate                  the end date of the data range (null for full load)
    * @return the saved security/currency with updated historyquotes
    */
-  @Transactional
   public S savePrefetchedHistoryQuotes(final ISecuritycurrencyService<S> securitycurrencyService, S securitycurrency,
       final List<Historyquote> historyquotes, final LocalDate fromDate, final LocalDate toDate) {
     return savePrefetchedHistoryQuotesInternal(securitycurrencyService, securitycurrency, historyquotes, fromDate,
@@ -141,7 +145,6 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
    *
    * @param connectorRetryCap the connector retry cap; counter is set to {@code min(currentValue, connectorRetryCap)}
    */
-  @Transactional
   public S savePrefetchedHistoryQuotesAsFallback(final ISecuritycurrencyService<S> securitycurrencyService,
       S securitycurrency, final List<Historyquote> historyquotes, final LocalDate fromDate, final LocalDate toDate,
       short connectorRetryCap) {

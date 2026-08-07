@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg height="100%" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"
+     version="1.1" viewBox="0 0 16 16" width="100%"
+     xml:space="preserve"
+     xmlns="http://www.w3.org/2000/svg">
+    <!--
+       Two coins joined by a diagonal, reading as a percent sign, for an instrument which pays out interest or
+       dividends. Deliberately without an arrow or a green/red tone, both of which would suggest a price movement
+       in a table whose remaining columns are about prices.
+    -->
+    <circle cx="8" cy="8" r="7.1" style="fill:rgb(214,158,46);"/>
+    <g style="fill:none;stroke:rgb(255,255,255);stroke-width:1.5px;stroke-linecap:round;">
+        <path d="M11.2,4.8L4.8,11.2"/>
+        <circle cx="5.5" cy="5.5" r="1.4"/>
+        <circle cx="10.5" cy="10.5" r="1.4"/>
+    </g>
+</svg>

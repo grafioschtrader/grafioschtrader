@@ -17,6 +17,8 @@ const FIXTURE_PATH = path.resolve(__dirname,
 export interface CashAccountData {
   name: string;
   currency: string;
+  /** Integration fixtures may assign the cash account to a securities account by name. */
+  connectSecurityAccount?: string;
 }
 
 export interface TradingPeriodData {
@@ -82,6 +84,46 @@ export interface CashTransferData {
 
 export type BankAccountTransactionData = SingleCashTransactionData | CashTransferData;
 
+export interface StandingOrderScheduleData {
+  repeatUnit: 'DAYS' | 'MONTHS' | 'YEARS';
+  repeatInterval: number;
+  periodDayPosition: 'SPECIFIC_DAY' | 'FIRST_DAY' | 'LAST_DAY';
+  dayOfExecution?: number;
+  monthOfExecution?: number;
+  weekendAdjust: 'BEFORE' | 'AFTER';
+  validFrom: string;
+  validTo: string;
+  note?: string;
+  transactionCost?: number;
+}
+
+export interface CashStandingOrderData extends StandingOrderScheduleData {
+  kind: 'cash';
+  transactionType: 'WITHDRAWAL' | 'DEPOSIT' | 'INTEREST_CASHACCOUNT' | 'FEE';
+  cashAccount: string;
+  cashaccountAmount: number;
+  amountCurrency?: string;
+  cashaccountAmountFormula?: string;
+}
+
+export interface SecurityStandingOrderData extends StandingOrderScheduleData {
+  kind: 'security';
+  transactionType: 'ACCUMULATE' | 'REDUCE';
+  securityAccount: string;
+  cashAccount: string;
+  securityName: string;
+  securityIsin: string;
+  units?: number;
+  investAmount?: number;
+  amountIncludesCosts: boolean;
+  fractionalUnits: boolean;
+  taxCost?: number;
+  taxCostFormula?: string;
+  transactionCostFormula?: string;
+}
+
+export type StandingOrderData = CashStandingOrderData | SecurityStandingOrderData;
+
 export interface PortfolioFixture {
   /** users.csv nickname the portfolio belongs to. */
   loginNickname: string;
@@ -92,6 +134,7 @@ export interface PortfolioFixture {
   cashAccounts: CashAccountData[];
   securityAccounts: SecurityAccountData[];
   transactions?: BankAccountTransactionData[];
+  standingOrders?: StandingOrderData[];
   e2e: string;
 }
 

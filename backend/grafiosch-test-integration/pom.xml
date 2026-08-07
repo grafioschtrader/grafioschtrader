@@ -5,11 +5,15 @@
     <parent>
       <groupId>grafioschtrader</groupId>
       <artifactId>grafioschtrader</artifactId>
-      <version>0.36.4</version>
+      <version>0.36.5</version>
       <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>grafiosch-test-integration</artifactId>
+    <!-- name and description are filtered into application.properties and served by /api/actuator/info,
+         which the login and registration screens of the frontend library read. -->
+    <name>Grafiosch</name>
+    <description>Standalone reference application of the reusable Grafiosch libraries</description>
     <packaging>jar</packaging>
 
    
@@ -67,6 +71,46 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+		<!-- Shared integration test fixture (grafiosch.test.rest): users.csv reader, JWT acquisition and
+		     the registration flow that UserResourceTest builds on. Test scoped dependencies are not
+		     transitive, so the five artifacts it needs are declared again below. Requires the reactor to
+		     be built with -DskipTests; -Dmaven.test.skip=true would install an empty test jar. -->
+		<dependency>
+			<groupId>grafioschtrader</groupId>
+			<artifactId>grafiosch-server-base</artifactId>
+			<version>${project.version}</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-resttestclient</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.icegreen</groupId>
+			<artifactId>greenmail-junit5</artifactId>
+			<version>2.1.11</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- ResourceTestSuite is a JUnit Platform @Suite -->
+		<dependency>
+			<groupId>org.junit.platform</groupId>
+			<artifactId>junit-platform-suite-api</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.platform</groupId>
+			<artifactId>junit-platform-suite-engine</artifactId>
+			<scope>test</scope>
+		</dependency>
     </dependencies>
     <build>
 		<plugins>
@@ -75,6 +119,10 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
 					<mainClass>grafiosch.GrafioschApplication</mainClass>
+					<!-- The e2e profile resolves spring.flyway.locations=filesystem:./migration-baseline against
+					     the working directory. Pinning it here keeps that path valid regardless of where mvn was
+					     started and of whether the plugin forks. -->
+					<workingDirectory>${project.basedir}</workingDirectory>
 				</configuration>
 			</plugin>
         </plugins>

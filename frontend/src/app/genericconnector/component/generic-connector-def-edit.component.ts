@@ -10,6 +10,7 @@ import {RateLimitType} from '../../shared/types/rate.limit.type';
 import {AssetclassCategory} from '../../shared/types/assetclass.category';
 import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
+import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
@@ -101,8 +102,13 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
     this.configObject.supportedCategories.valueKeyHtmlOptions =
       SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, AssetclassCategory);
 
-    this.configObject.rateLimitType.formControl.valueChanges.subscribe(value =>
-      this.updateRateLimitTypeDependencies(value));
+    // FormControl.disable() emits valueChanges as well. Ignoring it keeps applyFieldLocks() from clearing the rate
+    // limit fields it has just locked, because disableAndClearField() would set them to null.
+    this.configObject.rateLimitType.formControl.valueChanges.subscribe(value => {
+      if (this.configObject.rateLimitType.formControl.enabled) {
+        this.updateRateLimitTypeDependencies(value);
+      }
+    });
     this.updateRateLimitTypeDependencies(this.callParam?.rateLimitType != null
       ? RateLimitType[this.callParam.rateLimitType] : null);
 
@@ -124,13 +130,36 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
         this.form.transferBusinessObjectToForm(this.callParam);
         this.loadSupportedCategories();
         this.loadGeoRestrictions();
-        if (this.callParam.instrumentCount > 0) {
-          this.configObject.shortId.formControl.disable();
-        }
       }
+      // Last, so that the rate limit dependencies above cannot re-enable a locked field.
+      this.applyFieldLocks();
       this.configObject.shortId.elementRef.nativeElement.focus();
       this.tokenConfigYamlValue = this.callParam?.tokenConfigYaml || '';
     });
+  }
+
+  /**
+   * Mirrors the server-side write rules on the form, so a field the backend will refuse or ignore cannot be edited in
+   * the first place. Two rules apply on an existing connector:
+   * <ul>
+   *   <li>shortId and domainUrl are immutable - shortId is persisted as gt.datafeed.&lt;shortId&gt; on every instrument
+   *       that uses the connector, and domainUrl is the base of the already stored URL extensions.</li>
+   *   <li>Every field annotated with @LockedWhenUsed on GenericConnectorDef is frozen once an endpoint has delivered
+   *       data successfully, matching GenericConnectorDefJpaRepositoryImpl.validateUsageBasedPermissions().</li>
+   * </ul>
+   * Disabled controls are still transferred to the business object, so the submitted entity keeps its original values.
+   */
+  private applyFieldLocks(): void {
+    if (!this.callParam?.idGenericConnector) {
+      return;
+    }
+    FormHelper.disableEnableFieldConfigs(true, [this.configObject.shortId, this.configObject.domainUrl]);
+    if (this.callParam.endpoints?.some(endpoint => endpoint.everUsedSuccessfully)) {
+      FormHelper.disableEnableFieldConfigs(true, [this.configObject.readableName, this.configObject.needsApiKey,
+        this.configObject.rateLimitType, this.configObject.rateLimitRequests, this.configObject.rateLimitPeriodSec,
+        this.configObject.rateLimitConcurrent, this.configObject.regexUrlPattern,
+        this.configObject.supportsSecurity, this.configObject.supportsCurrency]);
+    }
   }
 
   private enableField(fieldName: string, required: boolean): void {

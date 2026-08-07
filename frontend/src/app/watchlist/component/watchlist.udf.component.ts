@@ -23,6 +23,7 @@ import {GlobalSessionNames} from '../../lib/global.session.names';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {SvgIconRegistryService} from 'angular-svg-icon';
 import {ColumnConfig, OptionalParams} from '../../lib/datashowbase/column.config';
+import {FilterType} from '../../lib/datashowbase/filter.type';
 import {WatchlistHelper} from './watchlist.helper';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
@@ -244,6 +245,12 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
           if (fd.max > 25) {
             optionalParam.width = 200;
           }
+          optionalParam.filterType = FilterType.likeDataType;
+          break;
+        case DataType.Numeric:
+        case DataType.NumericInteger:
+        case DataType.NumericShowZero:
+          optionalParam.filterType = FilterType.likeDataType;
       }
       const cc: ColumnConfig = this.addColumn(DataType[fd.dataType] === DataType.DateTimeNumeric ? DataType.DateTimeString
           : DataType[fd.dataType], WatchlistHelper.SECURITYCURRENCY + '.' + fd.fieldName, fd.description, true,

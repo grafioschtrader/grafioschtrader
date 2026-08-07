@@ -1,10 +1,19 @@
 import {expect, Locator, Page} from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
-import {parseCsvRow} from './helpers';
 
 const FIXTURE_PATH = path.resolve(__dirname,
-  '../../backend/grafioschtrader-server/src/test/resources/testdata/watchlists.csv');
+  '../../backend/grafioschtrader-server/src/test/resources/testdata/watchlists.json');
+
+export interface WatchlistSecurityFixture {
+  isin: string;
+  currency: string;
+}
+
+export interface WatchlistCurrencyPairFixture {
+  fromCurrency: string;
+  toCurrency: string;
+}
 
 export interface WatchlistFixture {
   /** users.csv nickname of the tenant that owns the watchlist. */
@@ -14,25 +23,24 @@ export interface WatchlistFixture {
   main: boolean;
   /** true when 844-delete-watchlist.spec.ts removes the watchlist after the application tests. */
   delete: boolean;
-  /** 'e' for Playwright, 'i' for the future backend integration test. */
+  securities: WatchlistSecurityFixture[];
+  currencyPairs: WatchlistCurrencyPairFixture[];
+  /** 'e' for Playwright, 'i' for the backend REST integration test. */
   e2e: string;
 }
 
-/** Loads the Playwright-owned watchlists from the shared pipe-delimited fixture. */
+interface WatchlistFixtureFile {
+  watchlists: WatchlistFixture[];
+}
+
+/** Loads the Playwright-owned watchlists from the shared JSON fixture. */
 export function loadE2EWatchlists(): WatchlistFixture[] {
   if (!fs.existsSync(FIXTURE_PATH)) {
     console.warn(`Fixture ${FIXTURE_PATH} not found - skipping the watchlist e2e specs.`);
     return [];
   }
-  return fs.readFileSync(FIXTURE_PATH, 'utf-8')
-    .split(/\r?\n/)
-    .filter(line => line.trim().length > 0)
-    .slice(1)
-    .map(line => {
-      const [loginNickname, name, mainValue, deleteValue, e2e] = parseCsvRow(line);
-      return {loginNickname, name, main: mainValue === 'true', delete: deleteValue === 'true', e2e};
-    })
-    .filter(row => row.e2e === 'e');
+  const fixture = JSON.parse(fs.readFileSync(FIXTURE_PATH, 'utf-8')) as WatchlistFixtureFile;
+  return fixture.watchlists.filter(row => row.e2e === 'e');
 }
 
 /** Creates a watchlist through the navigation tree, or accepts the existing exact-name node. */

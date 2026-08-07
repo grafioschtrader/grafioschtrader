@@ -13,6 +13,10 @@
     [(selection)]="singleMultiSelection"
     [multiSortMeta]="multiSortMeta"
     [customSortFn]="customSort.bind(this)"
+    [hasFilter]="hasFilter && showFilterRow"
+    [customMatchModeOptions]="customMatchModeOptions"
+    [baseLocale]="baseLocale"
+    [formLocale]="formLocale"
     [scrollHeight]="'flex'"
     [scrollable]="true"
     [stripedRows]="true"
@@ -28,6 +32,7 @@
     [negativeValueFn]="isValueByPathMinus.bind(this)"
     [valueGetterFn]="getValueByPath.bind(this)"
     (componentClick)="onComponentClick($event)"
+    (filterChange)="onFilterChanged($event)"
     (colResize)="onColResize($event)"
     [contextMenuAppendTo]="'body'">
 
@@ -49,6 +54,19 @@
           [svgStyle]="{ 'width.px':14, 'height.px':14 }">
         </svg-icon>
       </span>
+    </ng-template>
+
+    <!-- Icon cell without drag-and-drop. The tooltip spells out what the icon means, the cell value itself is only the
+         short yes or no the column sorts and filters on. -->
+    <ng-template #svgIconCell let-row let-field="field" let-value="value">
+      @if (getDistributionIcon(row); as iconName) {
+        <svg-icon
+          [name]="iconName"
+          [pTooltip]="'DISTRIBUTION_HEADER_TOOLTIP' | translate"
+          tooltipPosition="top"
+          [svgStyle]="{ 'width.px':14, 'height.px':14 }">
+        </svg-icon>
+      }
     </ng-template>
 
     <!-- Custom link icon cell template -->

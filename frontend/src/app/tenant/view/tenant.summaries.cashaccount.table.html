@@ -1,6 +1,11 @@
 <div (click)="onComponentClick($event)" [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
      class="data-container">
   <div class="datatable">
+    @if (missingCurrenciesText) {
+      <div class="alert alert-warning">
+        {{ 'MISSING_EXCHANGE_RATE_WARNING' | translate: {currencies: missingCurrenciesText} }}
+      </div>
+    }
     <p-table [columns]="fields" [value]="accountPositionSummaryAll" selectionMode="single" sortMode="none"
              stripedRows showGridlines>
       <ng-template #caption>

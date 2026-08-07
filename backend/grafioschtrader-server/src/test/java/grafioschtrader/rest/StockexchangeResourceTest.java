@@ -18,16 +18,12 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
 import grafiosch.entities.ProposeChangeField;
 import grafiosch.error.SecurityBreachError;
 import grafioschtrader.entities.Stockexchange;
-import grafioschtrader.test.start.GTforTest;
 
 @TestMethodOrder(OrderAnnotation.class)
-@SpringBootTest(classes = GTforTest.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 @TestInstance(Lifecycle.PER_CLASS)
 class StockexchangeResourceTest extends BaseIntegrationTest {
 

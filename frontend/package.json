@@ -1,6 +1,6 @@
 {
   "name": "grafioschtrader-client",
-  "version": "0.36.4",
+  "version": "0.36.5",
   "license": "Apache-2.0",
   "scripts": {
     "ng": "ng",
@@ -17,7 +17,7 @@
     "e2e:tests": "playwright test --project=grafioschtrader-e2e --no-deps --headed",
     "e2e:lib": "playwright test --config=playwright.lib.config.ts",
     "e2e:lib:headed": "playwright test --config=playwright.lib.config.ts --headed",
-    "start:lib-e2e": "ng serve lib-e2e-host --port 4201 --proxy-config proxy.lib-e2e.conf.json"
+    "start:grafiosch": "ng serve grafiosch-host --port 4201 --proxy-config proxy.grafiosch-host.conf.json"
   },
   "private": true,
   "dependencies": {

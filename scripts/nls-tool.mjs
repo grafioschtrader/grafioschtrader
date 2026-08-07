@@ -164,8 +164,10 @@ function layerTexts() {
   const app = [];
   for (const file of sourceFiles()) {
     const normalized = normalize(file);
-    if (normalized.includes('src/app/lib/')) lib.push(file);
-    else if (!normalized.includes('src/lib-e2e-host/')) app.push(file);
+    // The standalone Grafiosch host counts as library layer, not as an exception: it runs against a server that
+    // serves the grafiosch-base bundle alone, so every key it references has to live there too.
+    if (normalized.includes('src/app/lib/') || normalized.includes('src/grafiosch-host/')) lib.push(file);
+    else app.push(file);
   }
   const join = files => files.map(file => stripComments(fs.readFileSync(file, 'utf8'))).join('\n');
   return { lib: join(lib), app: join(app), libCount: lib.length, appCount: app.length };
@@ -437,8 +439,10 @@ function commandMove(options) {
   }
   console.log(`Moved ${keys.length} keys into ${BUNDLES[module].label}.`);
   console.log('Now regenerate the inventory and re-run the guards:');
+  // -DskipTests, not -Dmaven.test.skip=true: the latter skips test compilation, so grafiosch-server-base would
+  // install an empty tests jar and the following test run could not compile grafioschtrader-server's test sources.
   console.log('  cd backend && mvn -q -pl grafiosch-base,grafiosch-server-base,grafioschtrader-common install '
-    + '-Dmaven.test.skip=true && mvn -q -pl grafioschtrader-server test -Dtest="Nls*"');
+    + '-DskipTests && mvn -q -pl grafioschtrader-server test -Dtest="Nls*"');
   return 0;
 }
 

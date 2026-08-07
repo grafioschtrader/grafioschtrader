@@ -46,7 +46,8 @@ import grafioschtrader.types.TransactionType;
 /**
  * Round-trip guarantee for the transaction CSV export: every CSV produced by {@link TransactionCsvExportGenerator}
  * must be parseable by the CSV transaction import using the Grafioschtrader import templates in
- * <code>src/test/resources/testdata/import_template</code>, and the parsed values must equal the source transaction.
+ * <code>src/test/resources/testdata/import_template/grafioschtrader</code>, and the parsed values must equal the source
+ * transaction.
  * Runs without a Spring context or database; any drift between the generator labels ({@link GtCsvExportDefs}) and the
  * template files makes these tests fail. The parse path is the real one: header validation via
  * {@code isValidTemplateForForm}, line filtering via the template's ignore rule and field conversion through
@@ -54,7 +55,7 @@ import grafioschtrader.types.TransactionType;
  */
 class TransactionCsvExportRoundTripTest {
 
-  private static final String TEMPLATE_DIR = "/testdata/import_template/";
+  private static final String TEMPLATE_DIR = "/testdata/import_template/grafioschtrader/";
   private static final String[] TEMPLATE_FILES = { "csv_base-csv-20000101-de.tmpl", "csv_base-csv-20000101-en.tmpl" };
   private static final List<Locale> LOCALES = List.of(Locale.GERMAN, Locale.ENGLISH);
   private static final int COLUMN_COUNT = 16;

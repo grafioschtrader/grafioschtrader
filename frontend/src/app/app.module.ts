@@ -15,6 +15,7 @@ import {TaskType} from './shared/types/task.type';
 import {PortfolioService} from './portfolio/service/portfolio.service';
 import {TreeModule} from 'primeng/tree';
 import {WatchlistService} from './watchlist/service/watchlist.service';
+import {WatchlistFilterSortStateService} from './watchlist/service/watchlist.filter.sort.state.service';
 import {ContextMenuModule} from 'primeng/contextmenu';
 import {SecurityaccountSummariesComponent} from './securityaccount/component/securityaccount.summaries.component';
 import {SecurityaccountSummaryComponent} from './securityaccount/component/securityaccount.summary.component';
@@ -495,7 +496,8 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     SecurityActionService, StandingOrderService, TaskDataChangeService, TaxDataService, TenantService, TimeSeriesQuotesService, TradingDaysMinusService, TradingDaysPlusService,
     TradingPlatformPlanService, TradingCalendarRuleSetService, GenericConnectorDefService, TransactionService, TransactionReceiptService, UDFDataService, UDFMetadataGeneralService, UDFMetadataSecurityService,
     UDFSpecialTypeDisableUserService, UserAdminService, UserChartShapeService, UserDataService, UserEntityChangeLimitService, UserSettingsService,
-    ViewSizeChangedService, WatchlistService, {provide: TASK_EXTENDED_SERVICE, useClass: SecurityService},
+    ViewSizeChangedService, WatchlistService, WatchlistFilterSortStateService,
+    {provide: TASK_EXTENDED_SERVICE, useClass: SecurityService},
     {provide: TASK_TYPE_ENUM, useValue: TaskType},
     // Load the user interface texts before anything renders. The backend is their only source since issue #214, so a
     // failure here must stop the bootstrap: without it every component would paint raw translation keys and look

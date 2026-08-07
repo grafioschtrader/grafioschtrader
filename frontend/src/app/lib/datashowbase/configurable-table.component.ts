@@ -17,8 +17,8 @@ import {TooltipModule} from 'primeng/tooltip';
 import {SharedModule, SelectItem} from 'primeng/api';
 import {MenuItem, SortEvent} from 'primeng/api';
 import {DatePickerModule} from 'primeng/datepicker';
-import {SelectModule} from 'primeng/select';
-import {ColumnConfig} from './column.config';
+import {MultiSelectModule} from 'primeng/multiselect';
+import {ColumnConfig, getFilterKey} from './column.config';
 import {DataType} from '../dynamic-form/models/data.type';
 import {Helper} from '../helper/helper';
 import {FilterType} from './filter.type';
@@ -85,7 +85,7 @@ interface HeaderGroupItem {
 @Component({
   selector: 'configurable-table',
   standalone: true,
-  imports: [CommonModule, FormsModule, TableModule, ContextMenuModule, TooltipModule, SharedModule, DatePickerModule, SelectModule],
+  imports: [CommonModule, FormsModule, TableModule, ContextMenuModule, TooltipModule, SharedModule, DatePickerModule, MultiSelectModule],
   template: `
     <div #cmDiv (click)="onComponentClick($event)"
          [ngClass]="containerClass"
@@ -116,6 +116,7 @@ interface HeaderGroupItem {
         (onRowCollapse)="onRowCollapse($event)"
         (onRowSelect)="rowSelect.emit($event)"
         (onRowUnselect)="rowUnselect.emit($event)"
+        (onFilter)="filterChange.emit($event)"
         (onColResize)="colResize.emit($event)">
 
         <!-- Caption slot with content projection -->
@@ -208,12 +209,18 @@ interface HeaderGroupItem {
               <!-- Filter cells -->
               @for (field of columns; track field.field) {
                 @if (field.visible) {
-                  <th style="overflow:visible;">
+                  <!-- The width has to be constrained like on the header and the body cell, otherwise a filter control
+                       widens its column to fit the longest option label and the column's width is without effect. -->
+                  <th style="overflow:visible;"
+                      [style.max-width.px]="field.width"
+                      [ngStyle]="field.width ? {'flex-basis': '0 0 ' + field.width + 'px'} : {}">
                     @switch (field.filterType) {
                       @case (FilterType.likeDataType) {
                         @switch (field.dataType) {
-                          @case (field.dataType === DataType.DateString || field.dataType === DataType.DateNumeric ? field.dataType : '') {
+                          @case (field.dataType === DataType.DateString || field.dataType === DataType.DateNumeric
+                            || field.dataType === DataType.DateTimeString ? field.dataType : '') {
                             <p-columnFilter [field]="field.field" display="menu" [showOperator]="true"
+                                            appendTo="body"
                                             [matchModeOptions]="customMatchModeOptions" [matchMode]="'gtNoFilter'">
                               <ng-template pTemplate="filter" let-value let-filter="filterCallback">
                                 <p-datepicker #cal [ngModel]="value" [dateFormat]="baseLocale.dateFormat"
@@ -226,27 +233,34 @@ interface HeaderGroupItem {
                           }
                           @case (DataType.Numeric) {
                             <p-columnFilter type="numeric" [field]="field.field"
-                                            [locale]="formLocale"
+                                            [locale]="formLocale" appendTo="body"
                                             minFractionDigits="2" display="menu"></p-columnFilter>
                           }
                           @case (DataType.NumericShowZero) {
                             <p-columnFilter type="numeric" [field]="field.field"
-                                            [locale]="formLocale"
+                                            [locale]="formLocale" appendTo="body"
                                             minFractionDigits="0" display="menu"></p-columnFilter>
                           }
                           @case (DataType.NumericInteger) {
                             <p-columnFilter type="numeric" [field]="field.field"
-                                            [locale]="formLocale"
+                                            [locale]="formLocale" appendTo="body"
                                             minFractionDigits="0" display="menu"></p-columnFilter>
                           }
                           @case (DataType.String) {
-                            <p-columnFilter type="text" [field]="field.fieldTranslated || field.field" display="menu"></p-columnFilter>
+                            <p-columnFilter type="text" appendTo="body" [field]="filterKey(field)"
+                                            display="menu"></p-columnFilter>
                           }
                         }
                       }
                       @case (FilterType.withOptions) {
-                        <p-select [options]="field.filterValues" [style]="{'width':'100%'}"
-                                  (onChange)="table.filter($event.value, field.field, 'equals')"></p-select>
+                        <!-- Several values can be selected, they are combined with OR. An empty selection is handed
+                             over as null, so that the table drops the filter instead of keeping an empty one. -->
+                        <p-multiSelect [options]="field.filterValues" [style]="{'width':'100%'}" appendTo="body"
+                                       [ngModel]="getSelectFilterValue(field)" [ngModelOptions]="{standalone: true}"
+                                       [maxSelectedLabels]="1" [showClear]="true"
+                                       [filter]="field.filterValues?.length > 10"
+                                       (onChange)="table.filter($event.value?.length ? $event.value : null,
+                                         filterKey(field), 'in')"></p-multiSelect>
                       }
                     }
                   </th>
@@ -308,6 +322,13 @@ interface HeaderGroupItem {
                   } @else if (field.templateName === 'icon') {
                     @if (iconTemplate) {
                       <ng-container *ngTemplateOutlet="iconTemplate; context: {$implicit: rowData, field: field, value: getValue(rowData, field)}">
+                      </ng-container>
+                    } @else {
+                      <span>{{ getValue(rowData, field) }}</span>
+                    }
+                  } @else if (field.templateName === 'svgIcon') {
+                    @if (svgIconTemplate) {
+                      <ng-container *ngTemplateOutlet="svgIconTemplate; context: {$implicit: rowData, field: field, value: getValue(rowData, field)}">
                       </ng-container>
                     } @else {
                       <span>{{ getValue(rowData, field) }}</span>
@@ -496,6 +517,12 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
    * Locale string for numeric filter formatting (e.g., 'en-US', 'de-DE').
    */
   @Input() formLocale = 'en-US';
+
+  /**
+   * Emits whenever the applied column filters change. The event is PrimeNG's filter event, its `filters` property is
+   * the complete filter map of the table. Lets a parent persist and later restore what the user filtered for.
+   */
+  @Output() filterChange = new EventEmitter<any>();
 
   /**
    * Reference to the PrimeNG table component for programmatic filter access.
@@ -690,6 +717,13 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
   @ContentChild('iconCell') iconTemplate?: TemplateRef<any>;
 
   /**
+   * Custom template for rendering a second kind of icon cell (templateName='svgIcon'), for a column whose icon is
+   * derived from the row while the column value itself stays the plain, sortable and filterable one.
+   * Receives row, field, and value as context.
+   */
+  @ContentChild('svgIconCell') svgIconTemplate?: TemplateRef<any>;
+
+  /**
    * Custom template for rendering link icon cells (templateName='linkIcon').
    * Receives row and field as context.
    */
@@ -819,6 +853,40 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
   onSort(event: SortEvent): void {
     if (this.customSortFn) {
       this.customSortFn(event);
+    }
+  }
+
+  /**
+   * Returns the values the dropdown filter of a column is currently filtering for. The multi select of a
+   * {@link FilterType.withOptions} column writes into the table but has no value of its own, so without this the
+   * dropdown would show nothing after a filter was applied programmatically.
+   *
+   * @param field - Column configuration of the dropdown filter
+   * @returns The selected filter values, or null when the column is not filtered
+   */
+  getSelectFilterValue(field: ColumnConfig): any {
+    // PrimeNG removes the entry instead of blanking it, so a missing key means "not filtered".
+    return this.table?.filters?.[getFilterKey(field)]?.['value'] ?? null;
+  }
+
+  /**
+   * Returns the property the table filters a column on.
+   *
+   * @param field - Column configuration of the filter
+   * @returns The property name to hand to PrimeNG
+   */
+  filterKey(field: ColumnConfig): string {
+    return getFilterKey(field);
+  }
+
+  /**
+   * Removes all active column filters and restores the unfiltered row set. Required when the filter row is hidden
+   * again, otherwise filters entered before would keep hiding rows without any visible control to reset them.
+   */
+  clearFilters(): void {
+    if (this.table) {
+      this.table.filters = {};
+      this.table._filter();
     }
   }
 

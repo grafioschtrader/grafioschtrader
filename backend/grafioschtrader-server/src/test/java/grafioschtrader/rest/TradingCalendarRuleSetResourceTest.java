@@ -23,8 +23,6 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,7 +30,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import grafiosch.entities.ProposeChangeField;
 import grafiosch.error.SecurityBreachError;
 import grafioschtrader.entities.TradingCalendarRuleSet;
-import grafioschtrader.test.start.GTforTest;
 
 /**
  * Creates the trading calendar rule sets tagged {@code e2e='i'} in the generated JSON fixture through the REST API. The
@@ -41,7 +38,6 @@ import grafioschtrader.test.start.GTforTest;
  * The fixture is JSON rather than CSV because {@code rule_yaml} is multi-line YAML that a pipe-delimited CSV cannot hold.
  */
 @TestMethodOrder(OrderAnnotation.class)
-@SpringBootTest(classes = GTforTest.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 @TestInstance(Lifecycle.PER_CLASS)
 class TradingCalendarRuleSetResourceTest extends BaseIntegrationTest {
 

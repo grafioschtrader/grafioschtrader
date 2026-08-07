@@ -105,20 +105,42 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
     }
   }
 
+  /**
+   * Deliberately not annotated with {@code @Transactional}: the connector branch already commits per instrument on
+   * ForkJoinPool threads and the GTNet branch saves per instrument, so a caller-thread transaction would only keep the
+   * {@code securitycurrency} row locks of every processed instrument open until the last data provider call returned.
+   */
   @Override
-  @Transactional
-  @Modifying
   public List<Currencypair> catchAllUpCurrencypairHistoryquote() {
     return historyquoteThruConnector.catchAllUpSecuritycurrencyHistoryquote(null);
   }
 
+  /**
+   * Deliberately not annotated with {@code @Transactional}. Each currency pair is processed in its own transaction via
+   * {@link #fillEmptyDaysInHistoryquoteForCurrencypair(Integer)} on the repository proxy, because the gap filling
+   * contacts the data provider over HTTP. A single surrounding transaction would hold the row lock of every
+   * already-processed pair until the whole run committed, which made concurrent intraday price updates fail with a lock
+   * wait timeout. A failure on one pair must not abort the remaining ones.
+   */
   @Override
-  @Transactional
-  @Modifying
   public void allCurrenciesFillEmptyDaysInHistoryquote() {
-    final List<Currencypair> currencypairs = currencypairJpaRepository.findAll();
-    final int maxFillDays = globalparametersService.getMaxFillDaysCurrency();
-    currencypairs.forEach(currencypair -> currencyFillEmptyDaysInHistoryquote(currencypair, maxFillDays));
+    for (Integer idSecuritycurrency : currencypairJpaRepository.findAllIdSecuritycurrency()) {
+      try {
+        currencypairJpaRepository.fillEmptyDaysInHistoryquoteForCurrencypair(idSecuritycurrency);
+      } catch (Exception ex) {
+        log.error("Fill empty days in historyquote failed for currencypair id={}", idSecuritycurrency, ex);
+      }
+    }
+  }
+
+  @Override
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  @Modifying
+  public void fillEmptyDaysInHistoryquoteForCurrencypair(Integer idSecuritycurrency) {
+    Currencypair currencypair = currencypairJpaRepository.findByIdSecuritycurrency(idSecuritycurrency);
+    if (currencypair != null) {
+      currencyFillEmptyDaysInHistoryquote(currencypair, globalparametersService.getMaxFillDaysCurrency());
+    }
   }
 
   @Override

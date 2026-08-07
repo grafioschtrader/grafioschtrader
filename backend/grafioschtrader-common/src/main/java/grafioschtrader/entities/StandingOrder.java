@@ -123,11 +123,26 @@ public abstract class StandingOrder extends TenantBaseID implements Serializable
   @PropertyAlwaysUpdatable
   private byte periodDayPosition;
 
-  @Schema(description = "Weekend adjustment: 0=shift BEFORE (Friday), 1=shift AFTER (Monday)")
+  @Schema(description = """
+      Direction in which a scheduled date that is not a trading day is shifted: 0=BEFORE (backward),
+      1=AFTER (forward). Applies to weekends and, for security standing orders, to stock exchange
+      holidays as well.""")
   @Column(name = "weekend_adjust")
   @NotNull
   @PropertyAlwaysUpdatable
   private byte weekendAdjust;
+
+  @Schema(description = """
+      How far the price or exchange rate may deviate from the execution date. 0 requires the quote to exist exactly
+      on that day. The magnitude is the window in days on both sides, the sign decides which side is tried first: a
+      negative value prefers the past. The admissible range is capped by the global parameter
+      gt.standing.order.quote.tolerance.""")
+  @Column(name = "quote_tolerance_days")
+  @NotNull
+  @Min(-3)
+  @Max(3)
+  @PropertyAlwaysUpdatable
+  private byte quoteToleranceDays;
 
   @Schema(description = "Start date of the standing order's active period (inclusive)")
   @Column(name = "valid_from")
@@ -274,6 +289,14 @@ public abstract class StandingOrder extends TenantBaseID implements Serializable
     if (weekendAdjust != null) {
       this.weekendAdjust = weekendAdjust.getValue();
     }
+  }
+
+  public byte getQuoteToleranceDays() {
+    return quoteToleranceDays;
+  }
+
+  public void setQuoteToleranceDays(byte quoteToleranceDays) {
+    this.quoteToleranceDays = quoteToleranceDays;
   }
 
   public LocalDate getValidFrom() {

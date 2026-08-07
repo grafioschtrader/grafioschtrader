@@ -21,9 +21,11 @@ import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
 import grafioschtrader.entities.StandingOrder;
 import grafioschtrader.entities.StandingOrderFailure;
 import grafioschtrader.entities.Transaction;
+import grafioschtrader.dto.QuoteToleranceRange;
 import grafioschtrader.repository.StandingOrderFailureJpaRepository;
 import grafioschtrader.repository.StandingOrderJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
+import grafioschtrader.service.GlobalparametersService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -44,6 +46,9 @@ public class StandingOrderResource extends UpdateCreateDeleteWithTenantResource<
 
   @Autowired
   private StandingOrderFailureJpaRepository standingOrderFailureJpaRepository;
+
+  @Autowired
+  private GlobalparametersService globalparametersService;
 
   public StandingOrderResource() {
     super(StandingOrder.class);
@@ -76,6 +81,15 @@ public class StandingOrderResource extends UpdateCreateDeleteWithTenantResource<
     }
 
     return new ResponseEntity<>(orders, HttpStatus.OK);
+  }
+
+  @Operation(summary = "Returns the admissible range for the quote tolerance of a standing order",
+      description = "The bounds come from the global parameter gt.standing.order.quote.tolerance and are what the "
+          + "edit dialog must offer; the server rejects anything outside them on save.",
+      tags = {RequestGTMappings.STANDINGORDER})
+  @GetMapping(value = "/quotetolerancerange", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<QuoteToleranceRange> getQuoteToleranceRange() {
+    return new ResponseEntity<>(globalparametersService.getStandingOrderQuoteToleranceRange(), HttpStatus.OK);
   }
 
   @Operation(summary = "Returns execution failures for a specific standing order",

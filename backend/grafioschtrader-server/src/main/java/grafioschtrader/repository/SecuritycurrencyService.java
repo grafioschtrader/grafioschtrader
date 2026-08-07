@@ -16,6 +16,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.SerializationUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -54,6 +56,8 @@ import jakarta.transaction.Transactional;
 public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U extends SecuritycurrencyPositionSummary<S>>
     extends BaseRepositoryImpl<S>
     implements IHistoryquoteEntityAccess<S>, IIntradayEntityAccess<S>, ISecuritycurrencyService<S> {
+
+  private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   @Autowired
   protected SecurityServiceAsyncExectuion<S, U> securityServiceAsyncExectuion;
@@ -187,7 +191,12 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
           date = historyquote.getDate();
         }
         if (price == null) {
+          // The substitute keeps the downstream calculation from failing, but it is not a price. Marking it as such is
+          // what allows a report to leave the position out of its totals instead of valuing it at zero or at one.
           price = (securityPositionSummary.closePrice != null) ? securityPositionSummary.closePrice : 0.0;
+          securityPositionSummary.priceMissing = true;
+          log.warn("No price for instrument {} on {}",
+              securityPositionSummary.securitycurrency.getIdSecuritycurrency(), untilDate);
         }
         price = (securityPositionSummary instanceof SecurityPositionSummary)
             ? price * ((SecurityPositionSummary) securityPositionSummary).closePriceFactor

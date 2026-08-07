@@ -1,10 +1,8 @@
 package grafioschtrader.repository;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -136,27 +134,17 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
   }
 
   @Override
-  public void adjustSecurityHoldingForSecurityaccountAndSecurity(Securityaccount securityaccount,
-      Transaction transaction, boolean isAdded) {
+  public void rebuildHoldingsForSecurityaccountAndSecurity(Securityaccount securityaccount,
+      Integer idSecuritycurrency) {
     long startTime = System.currentTimeMillis();
-    Tenant tenant = tenantJpaRepository.getReferenceById(securityaccount.getIdTenant());
-    loadForSecurityHoldingsBySecurityaccountAndSecurity(securityaccount, transaction.getSecurity(), transaction,
-        transaction.getIdTransaction(), tenant.getCurrency(), securityaccount.getPortfolio().getCurrency(),
-        loadCurrencypairSecuritySplit(securityaccount.getIdTenant()), isAdded);
-    log.debug("End - HoldSecurityaccountSecurity: {}", System.currentTimeMillis() - startTime);
-  }
-
-  @Override
-  public void rebuildHoldingsForSecurityaccountAndSecurity(Securityaccount securityaccount, Integer idSecuritycurrency,
-      Integer idTransactionToExclude) {
     Optional<Security> securityOpt = securityJpaRepository.findById(idSecuritycurrency);
     if (securityOpt.isEmpty()) {
       return;
     }
     Tenant tenant = tenantJpaRepository.getReferenceById(securityaccount.getIdTenant());
-    loadForSecurityHoldingsBySecurityaccountAndSecurity(securityaccount, securityOpt.get(), null,
-        idTransactionToExclude, tenant.getCurrency(), securityaccount.getPortfolio().getCurrency(),
-        loadCurrencypairSecuritySplit(securityaccount.getIdTenant()), false);
+    loadForSecurityHoldingsBySecurityaccountAndSecurity(securityaccount, securityOpt.get(), tenant.getCurrency(),
+        securityaccount.getPortfolio().getCurrency(), loadCurrencypairSecuritySplit(securityaccount.getIdTenant()));
+    log.debug("End - HoldSecurityaccountSecurity: {}", System.currentTimeMillis() - startTime);
   }
 
   @Override
@@ -333,10 +321,11 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
    * Create holdings for a security account of a portfolio and tenant.
    * 
    * <p>
-   * This method uses concurrent processing to load transaction and margin data simultaneously, then delegates to
-   * holdings creation with the loaded data.
+   * Every query runs on the calling thread and therefore on the connection of the current database transaction, so it
+   * sees rows that were written but not yet committed. See
+   * {@link #loadForSecurityHoldingsBySecurityaccountAndSecurity} for why that matters.
    * </p>
-   * 
+   *
    * @param idTenant              the tenant identifier
    * @param idPortfolio           the portfolio identifier
    * @param idSecuritycashAccount the security account identifier
@@ -349,21 +338,11 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
 
     holdSecurityaccountSecurityRepository.removeAllByIdSecuritycashAccount(idSecuritycashAccount);
 
-    final CompletableFuture<List<ITransactionSecuritySplit>> transSplitCF = CompletableFuture
-        .supplyAsync(() -> holdSecurityaccountSecurityRepository
-            .getBuySellTransWithSecuritySplitByIdSecurityaccount(idSecuritycashAccount));
-
-    final CompletableFuture<Map<Integer, Transaction>> marginTransactionCF = CompletableFuture
-        .supplyAsync(() -> getMarginTransactionByIdSecurityaccount(idSecuritycashAccount));
-
-    try {
-      this.createSecurityHoldingsBySecurityaccount(idTenant, idPortfolio, idSecuritycashAccount, tenantCurrency,
-          portfolioCurrency, css, transSplitCF.get(), marginTransactionCF.get());
-    } catch (InterruptedException | ExecutionException ex) {
-      log.error(ex.getMessage(), ex);
-      throw new RuntimeException(ex);
-    }
-
+    createSecurityHoldingsBySecurityaccount(idTenant, idPortfolio, idSecuritycashAccount, tenantCurrency,
+        portfolioCurrency, css,
+        holdSecurityaccountSecurityRepository.getBuySellTransWithSecuritySplitByIdSecurityaccount(
+            idSecuritycashAccount),
+        getMarginTransactionByIdSecurityaccount(idSecuritycashAccount));
   }
 
   /**
@@ -426,23 +405,6 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
   }
 
   /**
-   * Builds the event timestamp of a transaction the same way the native queries do with
-   * {@code TIMESTAMP(t.tt_date, TIME(t.transaction_time))}.
-   *
-   * <p>
-   * The <b>date</b> part is taken from {@code tt_date}, because that is the business date the holding periods are keyed
-   * on and the only date that does not move when the database is served in a different time zone — see
-   * {@link Transaction#getTransactionDate()}. The <b>time</b> part is kept solely to order several events of the same
-   * day, splits (midnight) before transactions.
-   *
-   * @param transaction the transaction whose event timestamp is needed
-   * @return tt_date combined with the time of day of transaction_time
-   */
-  private static LocalDateTime eventTime(Transaction transaction) {
-    return LocalDateTime.of(transaction.getTransactionDate(), transaction.getTransactionTime().toLocalTime());
-  }
-
-  /**
    * Checks if the next margin transaction in the list occurs on the same date as the current one.
    *
    * @param marginTransaction            current margin transaction
@@ -479,145 +441,85 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
   }
 
   /**
-   * Handles incremental holdings adjustment for a specific security account and security.
-   * 
+   * Rebuilds the holdings series of one security in one security account by dropping it and recreating it from the
+   * stored transactions and splits.
+   *
    * <p>
-   * This method provides efficient incremental updates by removing existing holdings for the security and recreating
-   * them with updated transaction data. It uses concurrent processing for data loading optimization.
-   * </p>
-   * 
-   * <p>
-   * The transaction and split data are loaded on a separate thread and therefore on a separate connection, which cannot
-   * see the flushed but uncommitted state of the current transaction. That is why the in-flight transaction is always
-   * removed from the loaded list by id and, when it belongs in this series, re-added from the in-memory entity.
+   * Every query runs on the calling thread and therefore on the connection of the current database transaction. That is
+   * a correctness requirement, not an optimisation: the caller has already saved (or deleted) the triggering
+   * transaction and flushed it, and a rebuild that read on another connection would see none of the writes of the
+   * running database transaction. A batch that books several transactions in a single commit — the catch-up loop of
+   * {@code StandingOrderExecutionService.processSingleStandingOrder}, for example — would then leave a series
+   * describing only its last booking.
    * </p>
    *
-   * @param securityaccount        the security account containing the affected security
-   * @param security               the security whose series is rebuilt
-   * @param transaction            the transaction that triggered the adjustment, or {@code null} to rebuild purely from
-   *                               what is stored
-   * @param idTransactionToExclude id of the transaction that must not be counted from the loaded data, because it is
-   *                               either being modified, deleted, or moved out of this series
-   * @param tenantCurrency         the tenant's base currency
-   * @param portfolioCurrency      the portfolio's base currency
-   * @param css                    currency and split context for calculations
-   * @param isAdded                true if the transaction was added, false if removed
+   * @param securityaccount   the security account containing the affected security
+   * @param security          the security whose series is rebuilt
+   * @param tenantCurrency    the tenant's base currency
+   * @param portfolioCurrency the portfolio's base currency
+   * @param css               currency and split context for calculations
    */
   private void loadForSecurityHoldingsBySecurityaccountAndSecurity(Securityaccount securityaccount, Security security,
-      Transaction transaction, Integer idTransactionToExclude, String tenantCurrency, String portfolioCurrency,
-      CurrencypairSecuritySplit css, boolean isAdded) {
-    CompletableFuture<Map<Integer, Transaction>> marginTransactionCF = null;
+      String tenantCurrency, String portfolioCurrency, CurrencypairSecuritySplit css) {
     holdSecurityaccountSecurityRepository.deleteByHsskIdSecuritycashAccountAndHsskIdSecuritycurrency(
         securityaccount.getIdSecuritycashAccount(), security.getIdSecuritycurrency());
-    final CompletableFuture<List<ITransactionSecuritySplit>> transSplitCF = getMarginNormalTransactions(securityaccount,
-        security);
-    if (security.isMarginInstrument()) {
-      marginTransactionCF = CompletableFuture.supplyAsync(() -> getMarginTransactionByIdSecurityaccountAndSecurity(
-          securityaccount.getIdSecuritycashAccount(), security.getIdSecuritycurrency()));
-    }
-    try {
-      createSecurityHoldingsForSecurityaccountAndSecurity(securityaccount, security, transaction,
-          idTransactionToExclude, tenantCurrency, portfolioCurrency, css, transSplitCF.get(),
-          (marginTransactionCF == null) ? null : marginTransactionCF.get(), isAdded);
-    } catch (InterruptedException | ExecutionException ex) {
-      log.error(ex.getMessage(), ex);
-      throw new RuntimeException(ex);
-    }
+    Map<Integer, Transaction> marginTransactionMap = security.isMarginInstrument()
+        ? getMarginTransactionByIdSecurityaccountAndSecurity(securityaccount.getIdSecuritycashAccount(),
+            security.getIdSecuritycurrency())
+        : null;
+    createSecurityHoldingsForSecurityaccountAndSecurity(securityaccount, tenantCurrency, portfolioCurrency, css,
+        getMarginNormalTransactions(securityaccount, security), marginTransactionMap);
   }
 
   /**
-   * Loads transaction data concurrently based on whether the security is a margin instrument.
+   * Loads the transactions and splits of one security in one security account, choosing the margin or the regular
+   * query.
    *
    * @param securityaccount the security account
    * @param security        the security to load transactions and splits for
-   * @return CompletableFuture with transaction and split data
+   * @return the transaction and split data, oldest first
    */
-  private CompletableFuture<List<ITransactionSecuritySplit>> getMarginNormalTransactions(
-      Securityaccount securityaccount, Security security) {
+  private List<ITransactionSecuritySplit> getMarginNormalTransactions(Securityaccount securityaccount,
+      Security security) {
     if (security.isMarginInstrument()) {
-      return CompletableFuture.supplyAsync(() -> holdSecurityaccountSecurityRepository
+      return holdSecurityaccountSecurityRepository
           .getBuySellTransWithSecuritySplitByIdSecurityaccountAndSecurityMargin(
-              securityaccount.getIdSecuritycashAccount(), security.getIdSecuritycurrency()));
+              securityaccount.getIdSecuritycashAccount(), security.getIdSecuritycurrency());
     } else {
-      return CompletableFuture.supplyAsync(
-          () -> holdSecurityaccountSecurityRepository.getBuySellTransWithSecuritySplitByIdSecurityaccountAndSecurity(
-              securityaccount.getIdSecuritycashAccount(), security.getIdSecuritycurrency()));
+      return holdSecurityaccountSecurityRepository.getBuySellTransWithSecuritySplitByIdSecurityaccountAndSecurity(
+          securityaccount.getIdSecuritycashAccount(), security.getIdSecuritycurrency());
     }
   }
 
   /**
    * Creates security holdings for a specific security account and security combination.
-   * 
+   *
    * <p>
-   * This method handles both new transaction additions and modifications by:
+   * The loaded list already reflects the write that triggered the rebuild, so nothing has to be injected or excluded
+   * here — see {@link #loadForSecurityHoldingsBySecurityaccountAndSecurity}. It could not be done reliably either: the
+   * regular query aggregates with {@code SUM(...) GROUP BY tt_date} and reports an arbitrary transaction id of the
+   * group, so identifying a single transaction in the result is not possible.
    * </p>
-   * <ul>
-   * <li>Merging existing transactions with the new/modified transaction</li>
-   * <li>Sorting transactions chronologically</li>
-   * <li>Processing margin transactions with proper grouping</li>
-   * <li>Creating holdings with accurate position calculations</li>
-   * </ul>
-   * 
-   * @param securityaccount               the security account
-   * @param security                      the security whose series is built
-   * @param transaction                   the transaction being added or modified, or {@code null} to build purely from
-   *                                      {@code iTransactionSecuritySplitList}
-   * @param idTransactionToExclude        id of the transaction that must not be counted from the loaded data
-   * @param tenantCurrency                the tenant's base currency
-   * @param portfolioCurrency             the portfolio's base currency
-   * @param css                           currency and split context
-   * @param iTransactionSecuritySplitList existing transactions and splits
-   * @param marginTransactionMap          margin transaction lookup map
-   * @param isAdded                       true if transaction is being added, false if removed
+   *
+   * @param securityaccount              the security account
+   * @param tenantCurrency               the tenant's base currency
+   * @param portfolioCurrency            the portfolio's base currency
+   * @param css                          currency and split context
+   * @param transactionSecuritySplitList the stored transactions and splits, oldest first
+   * @param marginTransactionMap         margin transaction lookup map, null for a regular security
    */
-  private void createSecurityHoldingsForSecurityaccountAndSecurity(Securityaccount securityaccount, Security security,
-      Transaction transaction, Integer idTransactionToExclude, String tenantCurrency, String portfolioCurrency,
-      CurrencypairSecuritySplit css, List<ITransactionSecuritySplit> iTransactionSecuritySplitList,
-      Map<Integer, Transaction> marginTransactionMap, boolean isAdded) {
+  private void createSecurityHoldingsForSecurityaccountAndSecurity(Securityaccount securityaccount,
+      String tenantCurrency, String portfolioCurrency, CurrencypairSecuritySplit css,
+      List<ITransactionSecuritySplit> transactionSecuritySplitList,
+      Map<Integer, Transaction> marginTransactionMap) {
 
     HoldPositionTimeFrameSecurity holdPositionTimeFrameSecurity = new HoldPositionTimeFrameSecurity(
         currencypairJpaRepository, tenantCurrency, portfolioCurrency, css, marginTransactionMap);
-
-    Comparator<ITransactionSecuritySplit> transactionTimeComparator = (ITransactionSecuritySplit tss1,
-        ITransactionSecuritySplit tss2) -> tss1.getTsDate().compareTo(tss2.getTsDate());
-
-    List<ITransactionSecuritySplit> transactionSecuritySplitList = new ArrayList<>();
-
-    // Add existing transactions
-    iTransactionSecuritySplitList.forEach(itss -> transactionSecuritySplitList
-        .add(new TransactionSecuritySplit(itss.getIdTransaction(), itss.getIdSecuritycurrency(), itss.getTsDate(),
-            itss.getFactorUnits(), itss.getIdTransactionMargin(), itss.getCurrency())));
-
-    // The loaded list comes from another connection and may still show the transaction as it was before this database
-    // transaction started, so drop it by id in every case.
-    if (idTransactionToExclude != null) {
-      transactionSecuritySplitList.removeIf(t -> idTransactionToExclude.equals(t.getIdTransaction()));
-    }
-
-    TransactionSecuritySplit tssNew = null;
-    if (transaction != null) {
-      tssNew = new TransactionSecuritySplit(transaction.getIdTransaction(), security.getIdSecuritycurrency(),
-          eventTime(transaction),
-          (transaction.getTransactionType() == TransactionType.ACCUMULATE ? 1 : -1) * transaction.getUnits(), null,
-          security.getCurrency());
-
-      // Insert new or modified transaction
-      if (isAdded) {
-        transactionSecuritySplitList.add(tssNew);
-      }
-      if (security.isMarginInstrument()) {
-        marginTransactionMap.put(transaction.getIdTransaction(), transaction);
-      }
-    }
-    Collections.sort(transactionSecuritySplitList, transactionTimeComparator);
 
     for (int i = 0; i < transactionSecuritySplitList.size(); i++) {
       ITransactionSecuritySplit tss = transactionSecuritySplitList.get(i);
       Transaction marginTransaction = tss.getIdTransactionMargin() == null ? null
           : marginTransactionMap.get(tss.getIdTransactionMargin());
-      if (tssNew == tss && security.isMarginInstrument()) {
-        marginTransaction = transaction;
-      }
 
       boolean isNextMarginSameDate = marginTransaction != null
           ? isNextMarginAndSameDate(marginTransaction, tss, transactionSecuritySplitList, i, marginTransactionMap)
@@ -948,8 +850,15 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
             dateSecurityQuoteMissing.getIdSecuritycurrency());
         missingQuotesWithSecurities.addMissingIdSecurity(dateSecurityQuoteMissing.getIdSecuritycurrency());
       });
-      missingQuotesWithSecurities
-          .setSecurties(this.securityJpaRepository.findByIdSecuritycurrencyInOrderByName(idsSecuritycurrency));
+      // The query reports securities and currency pairs in one result, because a day is equally unusable when the
+      // exchange rate into the reporting currency is missing. Both kinds are resolved from the same set of ids, which
+      // is possible because a securitycurrency id identifies exactly one of the two.
+      List<Security> securities = this.securityJpaRepository.findByIdSecuritycurrencyInOrderByName(idsSecuritycurrency);
+      missingQuotesWithSecurities.setSecurties(securities);
+      Set<Integer> idsCurrencypair = new HashSet<>(idsSecuritycurrency);
+      securities.forEach(security -> idsCurrencypair.remove(security.getIdSecuritycurrency()));
+      missingQuotesWithSecurities.setCurrencypairs(
+          idsCurrencypair.isEmpty() ? Collections.emptyList() : this.currencypairJpaRepository.findAllById(idsCurrencypair));
     }
 
     return missingQuotesWithSecurities;

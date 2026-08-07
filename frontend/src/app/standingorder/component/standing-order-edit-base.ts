@@ -1,4 +1,5 @@
 import {Directive, Input} from '@angular/core';
+import {Validators} from '@angular/forms';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
@@ -18,6 +19,8 @@ import {RepeatUnit} from '../../shared/types/repeat.unit';
 import {PeriodDayPosition} from '../../shared/types/period.day.position';
 import {WeekendAdjustType} from '../../shared/types/weekend.adjust.type';
 import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
+import {RuleEvent} from '../../lib/dynamic-form/error/error.message.rules';
+import {range as rangeValidator} from '../../lib/validator/validator';
 import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
 import {AppSettings} from '../../shared/app.settings';
 
@@ -33,6 +36,12 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
   static readonly FS_TRANSACTION = 'TRANSACTION_DATA';
   /** Fieldset name for the scheduling/execution-related fields group. */
   static readonly FS_SCHEDULE = 'EXECUTION_SCHEDULE';
+
+  /** Technical bounds of StandingOrder.quoteToleranceDays; the administrator may narrow them further. */
+  static readonly QUOTE_TOLERANCE_TECHNICAL_MIN = -3;
+  static readonly QUOTE_TOLERANCE_TECHNICAL_MAX = 3;
+  /** Preset for a new standing order, matching the database default: search up to three days into the past. */
+  static readonly QUOTE_TOLERANCE_DEFAULT = -3;
 
   @Input() callParam: StandingOrderCallParam;
 
@@ -55,7 +64,10 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
    * Creates the shared scheduling field configs used by both cashaccount and security edit dialogs.
    * All fields belong to the EXECUTION_SCHEDULE fieldset group.
    * Includes: repeatUnit, repeatInterval, periodDayPosition, dayOfExecution, monthOfExecution,
-   * weekendAdjust, validFrom, validTo, note, and submit button.
+   * weekendAdjust, quoteToleranceDays, validFrom, validTo, note, and submit button.
+   *
+   * quoteToleranceDays starts with the technical bounds of the entity; initialize() narrows them to what the
+   * administrator allows, because the form is built synchronously while that range arrives asynchronously.
    */
   protected static createSchedulingFields(): FieldConfig[] {
     const fs = StandingOrderEditBase.FS_SCHEDULE;
@@ -66,6 +78,9 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
       DynamicFieldHelper.createFieldInputNumberHeqF('dayOfExecution', false, 2, 0, false, {fieldsetName: fs}),
       DynamicFieldHelper.createFieldSelectNumberHeqF('monthOfExecution', false, {fieldsetName: fs}),
       DynamicFieldHelper.createFieldSelectStringHeqF('weekendAdjust', true, {fieldsetName: fs}),
+      DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'quoteToleranceDays', true,
+        StandingOrderEditBase.QUOTE_TOLERANCE_TECHNICAL_MIN, StandingOrderEditBase.QUOTE_TOLERANCE_TECHNICAL_MAX,
+        {fieldsetName: fs, defaultValue: StandingOrderEditBase.QUOTE_TOLERANCE_DEFAULT}),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'validFrom', true, {fieldsetName: fs}),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'validTo', true, {fieldsetName: fs}),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', 500, false, {fieldsetName: fs}),
@@ -91,7 +106,24 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
     this.setupRepeatUnitListener();
     this.setupPeriodDayPositionListener();
     this.setupCashaccountPrecisionListener();
+    this.applyQuoteToleranceRange();
     this.loadCashaccountsFromPortfolios();
+  }
+
+  /**
+   * Narrows the quote tolerance input to the range an administrator permits. The field is created with the entity's
+   * technical bounds so the form can be built synchronously; once the configured range arrives the validator is
+   * replaced, which keeps the dialog from offering a value the server would reject on save.
+   */
+  private applyQuoteToleranceRange(): void {
+    (<StandingOrderService>this.serviceEntityUpdate).getQuoteToleranceRange().subscribe(range => {
+      const fieldConfig = this.configObject.quoteToleranceDays;
+      fieldConfig.min = range.min;
+      fieldConfig.max = range.max;
+      DynamicFieldHelper.resetValidator(fieldConfig, [Validators.required, rangeValidator([range.min, range.max])],
+        [DynamicFieldHelper.RULE_REQUIRED_TOUCHED,
+          {name: 'range', keyi18n: 'range', param1: range.min, param2: range.max, rules: [RuleEvent.DIRTY]}]);
+    });
   }
 
   /**

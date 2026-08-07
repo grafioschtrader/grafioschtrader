@@ -1,4 +1,5 @@
 import {FilterType} from './filter.type';
+import {DataType} from '../dynamic-form/models/data.type';
 import {ValueLabelHtmlSelectOptions} from './value.label.html.select.options';
 import {BaseFieldDefinition, PropertyEditShare} from '../dynamic-form/models/base.field.definition';
 import {ValidationErrorRule} from '../dynamic-form/models/base.field.fieldgroup.config';
@@ -60,6 +61,15 @@ export interface ColumnConfig extends BaseFieldDefinition {
 
   /** Predefined filter options for dropdown-style filtering */
   filterValues?: ValueLabelHtmlSelectOptions[];
+
+  /**
+   * Name of the property PrimeNG filters on when it differs from {@link BaseFieldDefinition.field}.
+   * Set automatically by {@link TableTreetableTotalBase.createFilterField} for columns whose displayed value is
+   * produced by {@link fieldValueFN}: PrimeNG matches against the raw data value, which for those columns is not what
+   * the user sees (for example a connector id instead of its readable name). The shadow property carries the displayed
+   * value and its name contains no dot, because PrimeNG resolves a dotted field name by walking the object graph.
+   */
+  filterField?: string;
 
   /**
    * Specifies how field values should be translated. Controls whether values are translated as-is,
@@ -417,3 +427,30 @@ export enum TranslateValue {
 
 }
 
+
+/**
+ * Returns the property a table filters a column on, which is not always the field of the column itself.
+ *
+ * <p>
+ * A text filter uses the shadow property of a column whose displayed value is translated or produced by a
+ * fieldValueFN, because the user filters for what is shown and not for the raw value. A dropdown filter also uses the
+ * shadow property of a fieldValueFN column, but not the translated one: its options carry the untranslated value.
+ * Numeric and date filters always work on the raw value.
+ * </p>
+ *
+ * <p>
+ * Whoever reads or writes the filters of a table has to use this key, otherwise the filter is registered under a name
+ * the table does not evaluate.
+ * </p>
+ *
+ * @param columnConfig - Column whose filter key is needed
+ * @returns The property name the table filters this column on
+ */
+export function getFilterKey(columnConfig: ColumnConfig): string {
+  if (columnConfig.filterType === FilterType.withOptions) {
+    return columnConfig.filterField || columnConfig.field;
+  }
+  return columnConfig.dataType === DataType.String
+    ? columnConfig.filterField || columnConfig.fieldTranslated || columnConfig.field
+    : columnConfig.field;
+}

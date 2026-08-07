@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.36.4</version>
+		<version>0.36.5</version>
 	</parent>
 
 	<artifactId>grafiosch-server-base</artifactId>
@@ -25,6 +25,30 @@
 					<release>${java.version}</release>
 				</configuration>
 			</plugin>
+			<!-- Publishes src/test/java as grafiosch-server-base-<version>-tests.jar. It holds the
+			     application independent integration test fixture (grafiosch.test.rest): the users.csv
+			     reader, the JWT acquisition and the shared registration flow. Both grafioschtrader-server
+			     and grafiosch-test-integration consume it with <type>test-jar</type><scope>test</scope>.
+
+			     Because of this artifact the project must be built with -DskipTests and NOT with
+			     -Dmaven.test.skip=true: the latter skips test compilation, which would install an empty
+			     test jar and break the test compilation of both consumers. skipIfEmpty keeps pure
+			     production builds (backloop.bat, gtupbackend.sh, docker) from attaching such an empty jar. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>test-jar</id>
+						<goals>
+							<goal>test-jar</goal>
+						</goals>
+						<configuration>
+							<skipIfEmpty>true</skipIfEmpty>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
   		</plugins>
 	</build>
 	
@@ -36,7 +60,7 @@
 		 <dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafiosch-base</artifactId>
-	        <version>0.36.4</version>	
+	        <version>0.36.5</version>	
 		</dependency>
 
         <dependency>
@@ -72,7 +96,27 @@
 			<artifactId>junit-platform-launcher</artifactId>
 			<scope>test</scope>
 		</dependency>
-        
+
+		<!-- Needed by the shared fixture in grafiosch.test.rest, which is published as a test-jar.
+		     Test scoped dependencies are not transitive, so every consumer of that test-jar has to
+		     declare these three again. -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-resttestclient</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.icegreen</groupId>
+			<artifactId>greenmail-junit5</artifactId>
+			<version>2.1.11</version>
+			<scope>test</scope>
+		</dependency>
+
         <dependency>
 			<groupId>com.bucket4j</groupId>
 			<artifactId>bucket4j_jdk17-core</artifactId>
@@ -135,7 +179,6 @@
 		<dependency>
 			<groupId>com.ezylang</groupId>
 			<artifactId>EvalEx</artifactId>
-			<version>3.6.2</version>
 		</dependency>
 
 		<dependency>

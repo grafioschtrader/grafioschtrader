@@ -644,22 +644,45 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   /**
    * Determines the exchange rate to apply when converting from the cash account currency to the specified main
    * currency. Handles various currency scenarios including security and cash account currency differences.
-   * 
+   *
    * @param mc                         the main currency to convert to
    * @param dateTransactionCurrencyMap currency mapping context for rate lookups
    * @return exchange rate from cash account currency to main currency
+   * @throws grafiosch.exceptions.DataViolationException if no rate is available for the required date
    */
   public double getExchangeRateOnCurrency(String mc, DateTransactionCurrencypairMap dateTransactionCurrencyMap) {
-    double exchangeRateToMC = 1.0;
+    return lookupExchangeRateOnCurrency(mc, dateTransactionCurrencyMap, true);
+  }
+
+  /**
+   * Same as {@link #getExchangeRateOnCurrency(String, DateTransactionCurrencypairMap)}, but reports an unavailable
+   * rate as null instead of aborting.
+   *
+   * <p>
+   * A report that shows several currencies side by side uses this to keep going when one of them cannot be converted,
+   * so a single instrument without price data no longer takes down the whole result.
+   * </p>
+   *
+   * @param mc                         the main currency to convert to
+   * @param dateTransactionCurrencyMap currency mapping context for rate lookups
+   * @return exchange rate from cash account currency to main currency, or null when none is available
+   */
+  @JsonIgnore
+  public Double getExchangeRateOnCurrencyOrNull(String mc, DateTransactionCurrencypairMap dateTransactionCurrencyMap) {
+    return lookupExchangeRateOnCurrency(mc, dateTransactionCurrencyMap, false);
+  }
+
+  private Double lookupExchangeRateOnCurrency(String mc, DateTransactionCurrencypairMap dateTransactionCurrencyMap,
+      boolean required) {
     if (!getCashaccount().getCurrency().equals(mc)
         && (getSecurity() == null || !getSecurity().getCurrency().equals(mc))) {
 
-      exchangeRateToMC = dateTransactionCurrencyMap.getPriceByDateAndFromCurrency(
+      return dateTransactionCurrencyMap.getPriceByDateAndFromCurrency(
           dateTransactionCurrencyMap.isUseUntilDateForFeeAndInterest() ? dateTransactionCurrencyMap.getUntilDate()
               : getTransactionDateAsLocalDate(),
-          getCashaccount().getCurrency(), true);
+          getCashaccount().getCurrency(), required);
     }
-    return exchangeRateToMC;
+    return 1.0;
   }
 
   public void clearCurrencypairExRate() {

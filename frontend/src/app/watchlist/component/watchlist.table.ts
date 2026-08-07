@@ -1,11 +1,11 @@
 import {Security} from '../../entities/security';
-import {ChangeDetectorRef, Directive, Injector, OnDestroy, ViewChild} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Directive, Injector, OnDestroy, ViewChild} from '@angular/core';
 import {ActivatedRoute, Params, Router} from '@angular/router';
 import {WatchlistService} from '../service/watchlist.service';
 import {SecuritycurrencyGroup} from '../../entities/view/securitycurrency.group';
 import {SecuritycurrencyPosition} from '../../entities/view/securitycurrency.position';
 import {DialogService} from 'primeng/dynamicdialog';
-import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem, SortEvent, SortMeta} from 'primeng/api';
 import {TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
@@ -33,7 +33,7 @@ import {TenantLimit} from '../../shared/types/tenant.limit';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
-import {ColumnConfig} from '../../lib/datashowbase/column.config';
+import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {WatchlistSecurityExists} from '../../entities/dnd/watchlist.security.exists';
 import {MailSendParam} from '../../lib/dynamicdialog/component/mail.send.dynamic.component';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
@@ -47,6 +47,13 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
 import {DynamicDialogs} from '../../lib/dynamicdialog/component/dynamic.dialogs';
 import {BaseSettings} from '../../lib/base.settings';
 import {TreeNavigationStateService} from '../../lib/maintree/service/tree.navigation.state.service';
+import {FilterType} from '../../lib/datashowbase/filter.type';
+import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
+import {WatchlistFilterSortStateService} from '../service/watchlist.filter.sort.state.service';
+import {
+  WatchlistFilterSortSettingsDialogComponent,
+  WatchlistFilterSortSettingsData
+} from './watchlist-filter-sort-settings-dialog.component';
 
 /**
  * Abstract base class for watchlist table components that provides comprehensive functionality for displaying
@@ -54,7 +61,7 @@ import {TreeNavigationStateService} from '../../lib/maintree/service/tree.naviga
  * transaction dialogs, drag-and-drop, and various editing capabilities.
  */
 @Directive()
-export abstract class WatchlistTable extends TableConfigBase implements OnDestroy, IGlobalMenuAttach {
+export abstract class WatchlistTable extends TableConfigBase implements AfterViewInit, OnDestroy, IGlobalMenuAttach {
 
   /**
    * Key-value mapping of feed connector IDs to human-readable names.
@@ -126,6 +133,15 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   /** Constant for security currency name field path. */
   readonly SECURITYCURRENCY_NAME = WatchlistHelper.SECURITYCURRENCY + '.name';
 
+  /** NLS key for the distribution column value of an instrument which pays out interest or dividends. */
+  private static readonly DISTRIBUTION_YES = 'DISTRIBUTION_YES';
+
+  /** NLS key for the distribution column value of an instrument which never pays out. */
+  private static readonly DISTRIBUTION_NO = 'DISTRIBUTION_NO';
+
+  /** The two translated distribution column values, resolved once in {@link addBaseColumns}. */
+  private distributionTexts: { [key: string]: string } = {};
+
   /** Context menu items for the table. */
   contextMenuItems: MenuItem[] = [];
 
@@ -147,6 +163,9 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   /** Reference to the context menu component. */
   @ViewChild('contextMenu') protected contextMenu: any;
 
+  /** Reference to the table component, used to apply and to reset the stored filters. */
+  @ViewChild(ConfigurableTableComponent) protected configurableTable: ConfigurableTableComponent;
+
   /** Parameters for UDF general dialogs. */
   uDFGeneralCallParam: UDFGeneralCallParam;
 
@@ -158,6 +177,15 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
 
   /** Subscription to watchlist modification events. */
   private subscriptionWatchlistAdded: Subscription;
+
+  /** Holds the filters and the sort order beyond the lifetime of this component, resolved in {@link init}. */
+  private filterSortState: WatchlistFilterSortStateService;
+
+  /** Subscription to changes made in the filter and sort settings dialog. */
+  private subscriptionFilterSortChanged: Subscription;
+
+  /** True as soon as the stored filters were handed to the table, guards against capturing an empty start state. */
+  private storedFiltersApplied = false;
 
   /** Cache for UDF availability by security currency ID. */
   private lazyMapHasUDF: { [idSecuritycurrency: number]: boolean } = {};
@@ -211,7 +239,103 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     if (selectMultiMode === WatchlistTable.MULTIPLE) {
       this.singleMultiSelection = [];
     }
+    this.filterRowToggleable = true;
     this.multiSortMeta.push({field: 'securitycurrency.name', order: 1});
+  }
+
+  /**
+   * Shows or hides the filter row. A watchlist can be long, so the filter row is off by default and the user turns it
+   * on through the show menu. Hiding it suspends the filters, all instruments become visible again, because otherwise
+   * rows would stay hidden without any visible control to reset them. The filters themselves are kept and are back as
+   * soon as the row is shown again; they are only removed through the settings dialog.
+   */
+  override toggleFilterRow(): void {
+    super.toggleFilterRow();
+    this.applyStoredFilters();
+  }
+
+  /**
+   * Hands the stored filters to the table, or removes them from it while the filter row is hidden. Can be called as
+   * often as needed; it does nothing until the table exists.
+   */
+  protected applyStoredFilters(): void {
+    const table = this.configurableTable?.table;
+    if (!table || !this.idWatchlist) {
+      return;
+    }
+    if (this.showFilterRow) {
+      const effective = this.filterSortState.getEffectiveFilters(this.idWatchlist, this.fields);
+      Object.keys(table.filters).filter(key => !effective[key]).forEach(key => {
+        const meta = table.filters[key];
+        if (Array.isArray(meta)) {
+          // The filter menu of a column creates its constraint objects only once, therefore they are emptied and not
+          // removed. Otherwise the menu of a column whose filter was removed in the dialog would stay unusable.
+          meta.forEach(constraint => constraint.value = null);
+        } else {
+          delete table.filters[key];
+        }
+      });
+      Object.keys(effective).forEach(key => table.filters[key] = effective[key]);
+      table._filter();
+      this.storedFiltersApplied = true;
+    } else {
+      this.storedFiltersApplied = false;
+      this.configurableTable.clearFilters();
+    }
+  }
+
+  /**
+   * Hands the stored sort order to the table. Assigning a new array is required, PrimeNG only re-sorts when the bound
+   * reference changes. Without a stored sort order the instruments are sorted by name, as before.
+   */
+  protected applyStoredSorts(): void {
+    const sorts = this.filterSortState.getEffectiveSorts(this.idWatchlist, this.fields);
+    this.multiSortMeta = sorts.length > 0 ? sorts : [{field: this.SECURITYCURRENCY_NAME, order: 1}];
+  }
+
+  /**
+   * Takes over the filters the user has entered. Nothing is taken over while the filter row is hidden, because the
+   * table is deliberately unfiltered then and that state must not be mistaken for the user having cleared everything.
+   *
+   * @param event - Filter event of the table, its filters property holds the complete filter map
+   */
+  onFilterChanged(event: any): void {
+    if (this.showFilterRow && this.storedFiltersApplied && this.idWatchlist) {
+      this.filterSortState.captureFilters(this.idWatchlist, this.fields, event?.filters);
+    }
+  }
+
+  /**
+   * Sorts the table and remembers by what. The sort order the table falls back to when nothing is stored is not
+   * remembered, otherwise every watchlist would end up with a stored sort by name which the user never asked for.
+   *
+   * @param event - Sort event of the table
+   */
+  override customSort(event: SortEvent): void {
+    super.customSort(event);
+    if (this.idWatchlist && !this.isFallbackSort(event.multiSortMeta)) {
+      this.filterSortState.captureSorts(this.idWatchlist, this.fields, event.multiSortMeta);
+    }
+  }
+
+  /**
+   * Checks whether a sort order is only the fallback of a table without a stored sort order.
+   *
+   * @param sortMeta - Sort order to check
+   * @returns True when it is the fallback sort by name and nothing is stored for this table
+   */
+  private isFallbackSort(sortMeta: SortMeta[]): boolean {
+    return sortMeta?.length === 1 && sortMeta[0].field === this.SECURITYCURRENCY_NAME && sortMeta[0].order === 1
+      && this.filterSortState.getEffectiveSorts(this.idWatchlist, this.fields).length === 0;
+  }
+
+  /** Opens the dialog for the scope of filtering and sorting and for removing what is set. */
+  protected openFilterSortSettingsDialog(): void {
+    const data: WatchlistFilterSortSettingsData = {idWatchlist: this.idWatchlist};
+    this.injector.get(DialogService).open(WatchlistFilterSortSettingsDialogComponent, {
+      header: this.translateService.instant('FILTER_SORT_SETTINGS'),
+      width: '620px', modal: true, draggable: true, closable: true, closeOnEscape: true, data
+    });
   }
 
 
@@ -221,7 +345,6 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
    * @param {SecuritycurrencyGroup} data - Security currency group containing separate lists of security and currency positions
    */
   createSecurityPositionList(data: SecuritycurrencyGroup) {
-    this.createTranslatedValueStoreAndFilterField(data.securityPositionList);
     this.securitycurrencyGroup = data;
     this.securityPositionList = data.securityPositionList;
     this.securitycurrencyGroup.currencypairPositionList.forEach((sp: SecuritycurrencyPosition<Currencypair>) => {
@@ -231,6 +354,13 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       sp.securitycurrency = currencypairWatchlist;
       this.securityPositionList.push(sp);
     });
+    // Must run on the complete list, the currency pairs are appended to the same array above and would otherwise miss
+    // their translated and filter fields.
+    this.createTranslatedValueStoreAndFilterField(this.securityPositionList);
+    this.prepareFilter(this.securityPositionList);
+    // Only now do the columns know the field the table filters on, so only now can the stored filters be applied. It
+    // happens before the new data reaches the table, which then filters and sorts it in one go.
+    this.applyStoredFilters();
     this.translateFormulaToUserLanguage();
   }
 
@@ -250,11 +380,55 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
       currencypair?.isCryptocurrency);
   }
 
+  /**
+   * Gets the icon marking an instrument which pays out interest or dividends. Called from the cell template instead of
+   * being the column value, because the column value is the sortable and filterable text of
+   * {@link getDistributionText}.
+   *
+   * @param {SecuritycurrencyPosition<Security | Currencypair>} securitycurrencyPosition - Position containing the instrument to get icon for
+   * @returns {string} Icon name for a distributing security, otherwise null which leaves the cell empty
+   */
+  getDistributionIcon(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): string {
+    return securitycurrencyPosition.securitycurrency instanceof CurrencypairWatchlist ? null
+      : this.productIconService.getDistributionIcon(<Security>securitycurrencyPosition.securitycurrency);
+  }
+
+  /**
+   * Produces the value of the distribution column, the translated answer to whether the instrument pays out interest
+   * or dividends. It is deliberately not the distribution frequency: the column exists to tell a distributing
+   * instrument from an accumulating one, so its sort order and its dropdown filter offer these two answers and nothing
+   * else. The text is deliberately a short yes or no: it is what the dropdown filter of the column lists, and a long
+   * option label would widen the column to fit it. What the column means is spelled out by the tooltip of the header
+   * and of the icon. A currency pair yields null, it has no distribution at all and thus also contributes no filter
+   * entry.
+   *
+   * The column is bound to the path 'securitycurrency.distribution', which does not exist on the instrument. Like the
+   * instrument icon column it takes its value solely from this function, and an own path keeps it apart from the
+   * distribution frequency column of the dividend and split feed view, which must keep sorting by frequency.
+   *
+   * @param {SecuritycurrencyPosition<Security | Currencypair>} securitycurrencyPosition - Position containing the instrument
+   * @param {ColumnConfig} field - Column configuration object (not used in this implementation)
+   * @param {any} valueField - Raw distribution frequency of the row (not used in this implementation)
+   * @returns {string} Translated distribution or no distribution, null for a currency pair
+   */
+  getDistributionText(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>, field: ColumnConfig,
+    valueField: any): string {
+    return securitycurrencyPosition.securitycurrency instanceof CurrencypairWatchlist ? null
+      : this.distributionTexts[this.getDistributionIcon(securitycurrencyPosition) ? WatchlistTable.DISTRIBUTION_YES
+        : WatchlistTable.DISTRIBUTION_NO];
+  }
+
+  /** Applies the stored filters as soon as the table exists, the data may already have arrived before that. */
+  ngAfterViewInit(): void {
+    this.applyStoredFilters();
+  }
+
   /** Cleans up subscriptions and saves table configuration on component destruction. */
   ngOnDestroy(): void {
     this.writeTableDefinition(this.storeKey);
     this.activePanelService.destroyPanel(this);
     this.subscriptionWatchlistAdded.unsubscribe();
+    this.subscriptionFilterSortChanged?.unsubscribe();
     this.routeSubscribe.unsubscribe();
   }
 
@@ -543,15 +717,45 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
     return this.isNotSingleModeAndOwner(row.securitycurrency, field);
   }
 
-  /** Adds the base columns common to all watchlist table types. */
+  /**
+   * Adds the base columns common to all watchlist table types. Besides the identification of the instrument this also
+   * includes its asset class classification, which is relevant in every watchlist type and not only in the performance
+   * view. Because the columns exist in all of them, a filter or sort on one of them can also be shared over the
+   * watchlist types.
+   *
+   * The same reasoning applies to the distribution column: whether an instrument pays out interest or dividends at all
+   * is of interest in every watchlist type, not only in the dividend and split feed view. It answers that question
+   * only, the frequency itself is not part of it, so its value is the translated yes or no of
+   * {@link getDistributionText} on which sorting and the two entry dropdown filter operate, while the cell itself
+   * shows nothing but the icon of {@link getDistributionIcon}. The exact frequency stays available in the dividend and
+   * split feed view, which keeps its own distribution frequency column.
+   */
   protected addBaseColumns(): void {
     this.addColumn(DataType.String, this.SECURITYCURRENCY_NAME, 'NAME', true, false,
-      {width: 200, frozenColumn: false, templateName: BaseSettings.OWNER_TEMPLATE});
+      {width: 200, frozenColumn: false, templateName: BaseSettings.OWNER_TEMPLATE, filterType: FilterType.likeDataType});
     this.addColumn(DataType.String, 'securitycurrency', AppSettings.INSTRUMENT_HEADER, true, false,
       {fieldValueFN: this.getInstrumentIcon.bind(this), templateName: 'icon', width: 20});
-    this.addColumnFeqH(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.isin', true, true, {width: 90});
-    this.addColumnFeqH(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.tickerSymbol', true, true);
-    this.addColumnFeqH(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.currency', true, true);
+    this.translateService.get([WatchlistTable.DISTRIBUTION_YES, WatchlistTable.DISTRIBUTION_NO]).subscribe(
+      texts => this.distributionTexts = texts);
+    this.addColumn(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.distribution',
+      AppSettings.DISTRIBUTION_HEADER, true, true,
+      {fieldValueFN: this.getDistributionText.bind(this), filterType: FilterType.withOptions,
+        templateName: 'svgIcon', width: 60});
+    this.addColumnFeqH(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.isin', true, true,
+      {width: 90, filterType: FilterType.likeDataType});
+    this.addColumnFeqH(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.tickerSymbol', true, true,
+      {filterType: FilterType.likeDataType});
+    this.addColumnFeqH(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.currency', true, true,
+      {filterType: FilterType.withOptions, width: 40});
+    this.addColumn(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.assetClass.categoryType',
+      AppHelper.toUpperCaseWithUnderscore(AppSettings.ASSETCLASS), true, true,
+      {translateValues: TranslateValue.NORMAL, width: 60, filterType: FilterType.withOptions});
+    this.addColumn(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.assetClass.specialInvestmentInstrument',
+      'FINANCIAL_INSTRUMENT', true, true,
+      {translateValues: TranslateValue.NORMAL, width: 60, filterType: FilterType.withOptions});
+    this.addColumn(DataType.String,
+      WatchlistHelper.SECURITYCURRENCY + '.assetClass.subCategoryNLS.map.' + this.gps.getUserLang(),
+      'SUB_ASSETCLASS', true, true, {width: 80, filterType: FilterType.withOptions});
   }
 
   /**
@@ -588,6 +792,11 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
   /** Initializes the component with route subscriptions and panel registration. */
   protected init(): void {
     this.idTenant = this.gps.getIdTenant();
+    this.filterSortState = this.injector.get(WatchlistFilterSortStateService);
+    this.subscriptionFilterSortChanged = this.filterSortState.changed$.subscribe(() => {
+      this.applyStoredSorts();
+      this.applyStoredFilters();
+    });
     this.activePanelService.registerPanel(this);
     this.loading = true;
     this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
@@ -601,6 +810,7 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
         this.readTableDefinition(this.storeKey);
       }
       this.idWatchlist = +params['id'];
+      this.applyStoredSorts();
       this.activePanelService.activatePanel(this, {
         showMenu: this.getShowMenu(this.selectedSecuritycurrencyPosition),
         editMenu: this.getEditMenu(this.selectedSecuritycurrencyPosition)
@@ -619,7 +829,12 @@ export abstract class WatchlistTable extends TableConfigBase implements OnDestro
    */
   protected getShowMenu(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): MenuItem[] {
     const menuItems = [...this.getShowContextMenuItems(securitycurrencyPosition, false), {separator: true},
-      ...this.getMenuShowOptions()];
+      ...(this.getMenuShowOptions() ?? []),
+      {
+        label: 'FILTER_SORT_SETTINGS' + BaseSettings.DIALOG_MENU_SUFFIX,
+        icon: 'fa fa-sliders',
+        command: () => this.openFilterSortSettingsDialog()
+      }];
     TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }

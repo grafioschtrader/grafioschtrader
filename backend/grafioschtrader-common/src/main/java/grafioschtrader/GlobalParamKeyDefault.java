@@ -79,7 +79,16 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
   /** Default maximum number of history-quote periods a user may record per instrument. */
   public static final int DEFAULT_MAX_INSTRUMENT_HISTORYQUOTE_PERIODS = 20;
 
+  /**
+   * Default bounds, written as {@code min:max}, for the per-standing-order quote tolerance. The tolerance says how far
+   * the price or exchange rate may deviate from the execution date; the default leaves both directions open, while
+   * {@code 0:3} would forbid reaching into the past and {@code 0:0} would enforce exact dates.
+   */
+  public static final String DEFAULT_STANDING_ORDER_QUOTE_TOLERANCE = "-3:3";
+
   public static final String GLOB_KEY_CURRENCY_PRECISION = GlobalConstants.GT_PREFIX + "currency.precision";
+  public static final String GLOB_KEY_STANDING_ORDER_QUOTE_TOLERANCE = GlobalConstants.GT_PREFIX
+      + "standing.order.quote.tolerance";
   /** Connector settings */
   public static final String GLOB_KEY_CRYPTOCURRENCY_HISTORY_CONNECTOR = GlobalConstants.GT_PREFIX
       + "cryptocurrency.history.connector";

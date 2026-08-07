@@ -1,8 +1,10 @@
 package grafioschtrader.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -65,6 +67,44 @@ class StandingOrderDateComputeTest {
       LocalDate sun = LocalDate.of(2026, 2, 15);
       assertEquals(LocalDate.of(2026, 2, 16),
           StandingOrderExecutionService.adjustForWeekend(sun, WeekendAdjustType.AFTER));
+    }
+  }
+
+  // ---- toleranceCandidates ----
+
+  @Nested
+  @DisplayName("toleranceCandidates")
+  class ToleranceCandidatesTests {
+
+    private static final LocalDate DATE = LocalDate.of(2026, 1, 15);
+
+    @Test
+    @DisplayName("Tolerance 0 offers only the execution date")
+    void exactDateOnly() {
+      assertEquals(List.of(DATE), StandingOrderExecutionService.toleranceCandidates(DATE, (byte) 0));
+    }
+
+    @Test
+    @DisplayName("Negative tolerance offers the past before the future")
+    void negativePrefersPast() {
+      assertEquals(List.of(DATE, DATE.minusDays(1), DATE.plusDays(1)),
+          StandingOrderExecutionService.toleranceCandidates(DATE, (byte) -1));
+    }
+
+    @Test
+    @DisplayName("Positive tolerance offers the future before the past")
+    void positivePrefersFuture() {
+      assertEquals(List.of(DATE, DATE.plusDays(1), DATE.minusDays(1), DATE.plusDays(2), DATE.minusDays(2)),
+          StandingOrderExecutionService.toleranceCandidates(DATE, (byte) 2));
+    }
+
+    @Test
+    @DisplayName("Full window keeps the closest date first at every distance")
+    void fullWindowOrderedByDistance() {
+      assertEquals(
+          List.of(DATE, DATE.minusDays(1), DATE.plusDays(1), DATE.minusDays(2), DATE.plusDays(2), DATE.minusDays(3),
+              DATE.plusDays(3)),
+          StandingOrderExecutionService.toleranceCandidates(DATE, (byte) -3));
     }
   }
 
@@ -186,6 +226,42 @@ class StandingOrderDateComputeTest {
     void formulaWithUnits() {
       // 2 per unit: u * 2 where u = 10 -> 20
       assertEquals(20.0, StandingOrderExecutionService.evaluateCost(null, "u * 2", 10, 100, 1000));
+    }
+  }
+
+  // ---- evaluateCashAmountFormula ----
+
+  @Nested
+  @DisplayName("evaluateCashAmountFormula")
+  class EvaluateCashAmountFormulaTests {
+
+    @Test
+    @DisplayName("Exchange rate plus bank spread approximates the real bank charge")
+    void rateWithSpread() throws Exception {
+      // CHF 3.00 account fee debited from a USD account on 2026-07-10: CHF->USD close 1.2366 plus a 1.9% spread.
+      // The bank booked 3.79 USD; a constant spread on the mid-market rate cannot match that exactly, because the
+      // bank's own spread varies. One cent off is the expected residual, not a defect.
+      assertEquals(3.78, Math.round(StandingOrderExecutionService.evaluateCashAmountFormula("a * r * 1.019", 3.0,
+          1.2366) * 100.0) / 100.0);
+    }
+
+    @Test
+    @DisplayName("Formula without exchange rate uses the base amount only")
+    void withoutRate() throws Exception {
+      assertEquals(3.15, StandingOrderExecutionService.evaluateCashAmountFormula("a * 1.05", 3.0, null));
+    }
+
+    @Test
+    @DisplayName("Invalid formula throws instead of returning 0")
+    void invalidFormulaThrows() {
+      assertThrows(Exception.class,
+          () -> StandingOrderExecutionService.evaluateCashAmountFormula("INVALID(((", 3.0, 1.2366));
+    }
+
+    @Test
+    @DisplayName("Formula using r without an exchange rate throws")
+    void unboundRateThrows() {
+      assertThrows(Exception.class, () -> StandingOrderExecutionService.evaluateCashAmountFormula("a * r", 3.0, null));
     }
   }
 

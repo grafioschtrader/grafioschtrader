@@ -46,6 +46,19 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   /** Array of sort metadata for multi-column sorting */
   multiSortMeta: SortMeta[] = [];
 
+  /**
+   * Whether the filter row is currently displayed. Only meaningful for tables that set
+   * {@link filterRowToggleable}; the view must combine it with hasFilter, for example
+   * [hasFilter]="hasFilter &amp;&amp; showFilterRow".
+   */
+  showFilterRow = false;
+
+  /**
+   * Opt-in for the show menu entry that turns the filter row on and off. Tables that display their filter row
+   * permanently leave this false, so their menu and behaviour stay unchanged.
+   */
+  protected filterRowToggleable = false;
+
   /** Backup array for restoring column visibility states */
   private visibleRestore: boolean[] = [];
 
@@ -123,6 +136,9 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
     if (this.rowsPerPage) {
       this.usersettingsService.saveSingleValue(key + '.rows', this.rowsPerPage);
     }
+    if (this.filterRowToggleable) {
+      this.usersettingsService.saveSingleValue(key + '.filterrow', this.showFilterRow);
+    }
   }
 
   /**
@@ -144,6 +160,9 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
     const storedRows = this.usersettingsService.readSingleValue(key + '.rows');
     if (storedRows != null && storedRows > 0) {
       this.rowsPerPage = storedRows;
+    }
+    if (this.filterRowToggleable) {
+      this.showFilterRow = this.usersettingsService.readSingleValue(key + '.filterrow') === true;
     }
   }
 
@@ -384,13 +403,39 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   }
 
   /**
+   * Creates a single menu item that shows or hides the filter row. Returned only for tables that opted in with
+   * {@link filterRowToggleable} and that actually define filter columns.
+   *
+   * @returns Array containing the filter row toggle menu item, or empty array
+   */
+  getFilterRowShow(): MenuItem[] {
+    if (this.hasFilter && this.filterRowToggleable) {
+      return [{
+        label: 'ON_OFF_FILTER',
+        icon: 'fa fa-filter',
+        command: () => this.toggleFilterRow()
+      }];
+    }
+    return [];
+  }
+
+  /**
+   * Shows or hides the filter row. Subclasses override this to additionally reset the filters of their table when the
+   * row is hidden, see WatchlistTable.
+   */
+  toggleFilterRow(): void {
+    this.showFilterRow = !this.showFilterRow;
+  }
+
+  /**
    * Gets menu options for column show/hide functionality.
-   * Returns the column visibility dialog menu item if toggleable columns exist.
+   * Returns the column visibility dialog menu item if toggleable columns exist and, for tables which allow it, the
+   * menu item for showing and hiding the filter row.
    *
    * @returns Array of menu items with column options, or null if no options available
    */
   getMenuShowOptions(): MenuItem[] {
-    const items = this.getColumnsShow();
+    const items = [...this.getColumnsShow(), ...this.getFilterRowShow()];
     return items.length > 0 ? items : null;
   }
 

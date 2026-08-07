@@ -1,0 +1,8 @@
+/*
+ * The host adds nothing of its own: layout, tree, tables and dialogs are styled by src/app/lib/styles.css, which the
+ * build includes right before this file, and the split layout sizes itself against the viewport through .fullheight.
+ *
+ * In particular do not set a height on html/body here. The main application does not either, and combined with
+ * .fullheight (100vh - 36px) it makes a scrollbar appear and disappear, which shifts the layout continuously - a
+ * dialog then never becomes "stable" and every Playwright click on it times out.
+ */

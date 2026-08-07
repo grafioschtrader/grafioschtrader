@@ -3,9 +3,6 @@ package grafioschtrader.priceupdate.intraday;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.transaction.annotation.Transactional;
-
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.ThreadHelper;
 import grafioschtrader.entities.Securitycurrency;
@@ -25,10 +22,16 @@ import grafioschtrader.service.GlobalparametersService;
  * <li><strong>Batch Processing</strong>: Efficient handling of multiple securities with single-threaded and parallel execution modes</li>
  * <li><strong>Configuration Integration</strong>: Automatic retrieval of global parameters for retry limits and timeouts</li>
  * <li><strong>Threading Control</strong>: Flexible execution using either sequential processing or ForkJoinPool for parallelism</li>
- * <li><strong>Transaction Management</strong>: Proper transaction boundaries for batch update operations</li>
  * <li><strong>Performance Optimization</strong>: Intelligent thread pool sizing based on system core multipliers</li>
  * </ul></p>
- * 
+ *
+ * <p><strong>Transactions:</strong> concrete subclasses are instantiated with {@code new} from the {@code @PostConstruct}
+ * of the owning repository implementation, so they are not Spring beans and {@code @Transactional} on their methods
+ * would have no effect. Every write therefore commits on its own through the injected Spring Data repository proxy,
+ * which is intentional: the price update contacts external data providers, and a transaction spanning a whole batch
+ * would hold the {@code securitycurrency} row locks of all processed instruments until the last provider call
+ * returned.</p>
+ *
  * <p>Concrete implementations must provide the entity-specific update logic by implementing the abstract
  * {@code updateLastPriceSecurityCurrency} method, while this base class handles the orchestration of
  * batch operations and threading coordination.</p>
@@ -56,16 +59,13 @@ public abstract class BaseIntradayThru<S extends Securitycurrency<S>> extends Ba
    * to the full parameter version. It provides a simplified interface for batch updates when custom
    * retry configuration is not required.</p>
    * 
-   * <p>The method is transactional and modifying, ensuring proper database transaction management
-   * for the batch update operations.</p>
-   * 
+   * <p>Each entity is saved in its own transaction; see the class comment on why no transaction spans the batch.</p>
+   *
    * @param securtycurrencies list of securities or currency pairs to update
    * @param singleThread true to force single-threaded execution, false for parallel processing
    * @return list of updated securities with new intraday prices and retry state
    */
   @Override
-  @Transactional
-  @Modifying
   public List<S> updateLastPriceOfSecuritycurrency(final List<S> securtycurrencies, boolean singleThread) {
     final short maxIntraRetry = globalparametersService.getMaxIntraRetry();
     return updateLastPriceOfSecuritycurrency(securtycurrencies, maxIntraRetry, singleThread);

@@ -26,7 +26,7 @@ import {fillText, openContextMenu, selectByValue} from './generic-connector.help
  * Numbered 005 so it runs before every other spec (workers: 1, alphabetical order): every later spec
  * benefits from configured connectors. The full price update is no longer queued at backend startup
  * either — the `e2e` profile switches `ExecuteStartupTask` off with
- * `gt.startup.price.update.task=false`, and `067-price-update-task.spec.ts` schedules it once these
+ * `gt.startup.price.update.task=false`, and `067-schedule-batch-jobs.spec.ts` schedules it once these
  * keys exist.
  *
  * The admin user runs a German UI (locale de-CH in users.csv), so every text selector matches DE, EN

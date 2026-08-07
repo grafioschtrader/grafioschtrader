@@ -6,6 +6,8 @@ import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
+import grafiosch.config.AuditorAwareImpl;
+
 @Configuration
 @EnableJpaRepositories(basePackages = { "grafiosch.repository", "grafioschtrader.repository" })
 @EnableJpaAuditing(auditorAwareRef = "auditorAware")

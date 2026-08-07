@@ -7,7 +7,7 @@ import {DeleteService} from '../../lib/datashowbase/delete.service';
 import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {LoginService} from '../../lib/login/service/log-in.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
-import {StandingOrder, StandingOrderFailure} from '../../entities/standing.order';
+import {QuoteToleranceRange, StandingOrder, StandingOrderFailure} from '../../entities/standing.order';
 import {Transaction} from '../../entities/transaction';
 import {AppSettings} from '../../shared/app.settings';
 import {BaseSettings} from '../../lib/base.settings';
@@ -39,6 +39,16 @@ export class StandingOrderService extends AuthServiceWithLogout<StandingOrder> i
   getFailures(idStandingOrder: number): Observable<StandingOrderFailure[]> {
     return <Observable<StandingOrderFailure[]>>
       this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.STANDING_ORDER_KEY}/${idStandingOrder}/failures`,
+        this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /**
+   * Loads the range an administrator permits for the quote tolerance of a standing order. The edit dialog uses it to
+   * narrow its input, the server enforces the same bounds on save.
+   */
+  getQuoteToleranceRange(): Observable<QuoteToleranceRange> {
+    return <Observable<QuoteToleranceRange>>
+      this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.STANDING_ORDER_KEY}/quotetolerancerange`,
         this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 

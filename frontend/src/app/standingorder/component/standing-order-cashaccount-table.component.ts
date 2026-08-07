@@ -92,6 +92,9 @@ export class StandingOrderCashaccountTableComponent extends StandingOrderTableBa
   protected override addSubtypeColumns(): void {
     this.addColumn(DataType.String, 'cashaccount.name', 'CASHACCOUNT', true, false);
     this.addColumnFeqH(DataType.Numeric, 'cashaccountAmount', true, false);
+    // Only relevant for orders billed in a foreign currency, so hidden until the user enables them.
+    this.addColumnFeqH(DataType.String, 'amountCurrency', false, true);
+    this.addColumnFeqH(DataType.String, 'cashaccountAmountFormula', false, true);
     this.addColumnFeqH(DataType.Numeric, 'transactionCost', true, false);
   }
 
@@ -100,6 +103,7 @@ export class StandingOrderCashaccountTableComponent extends StandingOrderTableBa
   }
 
   protected override getAllowedTransactionTypes(): TransactionType[] {
-    return [TransactionType.WITHDRAWAL, TransactionType.DEPOSIT];
+    return [TransactionType.WITHDRAWAL, TransactionType.DEPOSIT, TransactionType.INTEREST_CASHACCOUNT,
+      TransactionType.FEE];
   }
 }

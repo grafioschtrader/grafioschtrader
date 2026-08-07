@@ -5,16 +5,24 @@ This directory is the complete Flyway migration set for the **portable e2e host*
 
 ```properties
 # grafiosch-test-integration/src/main/resources/application-e2e.properties
-spring.flyway.locations=filesystem:./grafiosch-test-integration/migration-baseline
+spring.flyway.locations=filesystem:./migration-baseline
+spring.flyway.fail-on-missing-locations=true
 spring.datasource.url=jdbc:mariadb://localhost:3306/grafiosch_t
 spring.flyway.baseline-on-migrate=false
 spring.flyway.validate-on-migrate=false
 ```
 
+The path is relative to the **JVM working directory**, which `spring-boot:run` sets to the module basedir
+(`backend/grafiosch-test-integration`) — the module pom pins it with `<workingDirectory>` so the location
+stays valid no matter from where `mvn` is started:
+
 ```bash
-# run from backend/ — the relative Flyway path above resolves from there
 mvn -pl grafiosch-test-integration spring-boot:run -Dspring-boot.run.profiles=e2e
 ```
+
+`fail-on-missing-locations=true` is what makes a wrong path fail loudly. With Flyway's default (`false`) a
+location that does not resolve applies **zero** migrations, writes an empty `flyway_schema_history` and
+lets startup continue until the first query hits a table that was never created.
 
 Living **outside `src/main/resources`** is deliberate: the baseline must not land on the classpath of an
 application that builds on these libraries (GrafLandlord, Grafioschtrader), because Flyway must see exactly one

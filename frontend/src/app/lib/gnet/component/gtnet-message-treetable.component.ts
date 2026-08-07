@@ -18,7 +18,7 @@ import {TreeTable, TreeTableModule} from 'primeng/treetable';
 import {ContextMenuModule} from 'primeng/contextmenu';
 import {TooltipModule} from 'primeng/tooltip';
 import {DatePickerModule} from 'primeng/datepicker';
-import {SelectModule} from 'primeng/select';
+import {MultiSelectModule} from 'primeng/multiselect';
 import {InputTextModule} from 'primeng/inputtext';
 import {CheckboxModule} from 'primeng/checkbox';
 import {GTNetMessageEditComponent} from './gtnet-message-edit.component';
@@ -43,7 +43,7 @@ import {FilterType} from '../../datashowbase/filter.type';
     ContextMenuModule,
     TooltipModule,
     DatePickerModule,
-    SelectModule,
+    MultiSelectModule,
     InputTextModule,
     CheckboxModule,
     TranslateModule,
@@ -92,9 +92,11 @@ import {FilterType} from '../../datashowbase/filter.type';
                         }
                       }
                       @case (FilterType.withOptions) {
-                        <p-select [options]="field.filterValues" [style]="{'width':'100%'}"
-                          (onChange)="tt.filter($event.value, field.field, 'equals')">
-                        </p-select>
+                        <!-- Several values can be selected, they are combined with OR. -->
+                        <p-multiSelect [options]="field.filterValues" [style]="{'width':'100%'}" appendTo="body"
+                          [maxSelectedLabels]="1" [showClear]="true" [filter]="field.filterValues?.length > 10"
+                          (onChange)="tt.filter($event.value?.length ? $event.value : null, field.field, 'in')">
+                        </p-multiSelect>
                       }
                     }
                   </th>

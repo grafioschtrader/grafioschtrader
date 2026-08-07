@@ -4,7 +4,6 @@ import java.util.concurrent.ExecutionException;
 
 import grafioschtrader.dto.MissingQuotesWithSecurities;
 import grafioschtrader.entities.Securityaccount;
-import grafioschtrader.entities.Transaction;
 
 /**
  * Custom repository interface for managing security holdings and time-frame calculations.
@@ -69,52 +68,25 @@ public interface HoldSecurityaccountSecurityJpaRepositoryCustom {
   void createSecurityHoldingsEntireByTenant(Integer idTenant);
 
   /**
-   * Adjust security holding for a single transaction.
-   * 
-   * <p>
-   * This method provides efficient incremental updates when a securities transaction is added, modified, or removed. It
-   * identifies the affected time period and recalculates only the necessary holding records from that point forward,
-   * preserving earlier holdings that remain valid.
-   * </p>
-   * 
-   * <p>
-   * <strong>Incremental Processing:</strong>
-   * </p>
-   * <p>
-   * The method determines the impact date from the transaction and:
-   * </p>
-   * <ul>
-   * <li>Preserves holdings before the transaction date</li>
-   * <li>Removes and recalculates holdings from the transaction date onward</li>
-   * <li>Updates quantity, cost basis, and valuation calculations</li>
-   * <li>Maintains proper time-frame continuity</li>
-   * </ul>
-   * 
-   * @param securityaccount the security account containing the affected security
-   * @param transaction     the transaction that triggered the holding adjustment
-   * @param isAdded         true if the transaction was added, false if removed or modified
-   */
-  void adjustSecurityHoldingForSecurityaccountAndSecurity(Securityaccount securityaccount, Transaction transaction,
-      boolean isAdded);
-
-  /**
-   * Rebuilds the holdings series of one security account and security purely from what is stored, without merging an
-   * in-flight transaction.
+   * Rebuilds the holdings series of one security in one security account from what is stored.
    *
    * <p>
-   * Needed when a transaction is updated in a way that moves it out of a series: after such an update
-   * {@link #adjustSecurityHoldingForSecurityaccountAndSecurity} rebuilds the series the transaction moved <em>to</em>,
-   * while the series it moved <em>away from</em> still contains it and has to be rebuilt from the database.
+   * This is the incremental counterpart of the tenant-wide rebuild: it is called after every create, update and delete
+   * of an ACCUMULATE or REDUCE transaction, and it touches only the affected series. A transaction that was moved to
+   * another security account or another security needs two calls — one for the series it moved <em>to</em> and one for
+   * the series it moved <em>away from</em>.
    * </p>
    *
-   * @param securityaccount        the security account whose series is rebuilt
-   * @param idSecuritycurrency     the security whose series is rebuilt
-   * @param idTransactionToExclude id of the transaction that moved out of this series. It has to be named explicitly:
-   *                               the stored data is read on another connection, which does not see the flushed but
-   *                               uncommitted update and would therefore still report the transaction as belonging here.
+   * <p>
+   * <strong>Call it only after the triggering write has been flushed.</strong> The series is dropped and recreated
+   * purely from the database, on the connection of the current database transaction, so the flushed state is what
+   * decides the result. Nothing is merged in from memory.
+   * </p>
+   *
+   * @param securityaccount    the security account whose series is rebuilt
+   * @param idSecuritycurrency the security whose series is rebuilt
    */
-  void rebuildHoldingsForSecurityaccountAndSecurity(Securityaccount securityaccount, Integer idSecuritycurrency,
-      Integer idTransactionToExclude);
+  void rebuildHoldingsForSecurityaccountAndSecurity(Securityaccount securityaccount, Integer idSecuritycurrency);
 
   /**
    * Rebuilds holdings for a specific security across all tenants and accounts.

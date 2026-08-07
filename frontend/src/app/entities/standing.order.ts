@@ -18,6 +18,7 @@ export class StandingOrder {
   monthOfExecution?: number = null;
   periodDayPosition?: string = null;
   weekendAdjust?: string = null;
+  quoteToleranceDays?: number = null;
   validFrom?: Date = null;
   validTo?: Date = null;
   lastExecutionDate?: Date = null;
@@ -29,10 +30,17 @@ export class StandingOrder {
 }
 
 /**
- * Standing order for cash-account transactions (WITHDRAWAL=0 or DEPOSIT=1).
+ * Standing order for cash-account transactions (WITHDRAWAL=0, DEPOSIT=1, INTEREST_CASHACCOUNT=2 or FEE=3).
+ *
+ * The amount may be denominated in a foreign currency. In that case the exchange rate of the execution date is
+ * applied, optionally through the EvalEx formula in cashaccountAmountFormula. idCurrencypair is derived from
+ * amountCurrency by the backend and is read-only for the client.
  */
 export class StandingOrderCashaccount extends StandingOrder {
   cashaccountAmount?: number = null;
+  amountCurrency?: string = null;
+  idCurrencypair?: number = null;
+  cashaccountAmountFormula?: string = null;
 }
 
 /**
@@ -61,4 +69,13 @@ export class StandingOrderFailure {
   businessError?: string;
   unexpectedError?: string;
   createdAt?: string;
+}
+
+/**
+ * Inclusive bounds an administrator permits for quoteToleranceDays, derived from the global parameter
+ * gt.standing.order.quote.tolerance. A negative bound allows searching the past first, a positive one the future.
+ */
+export interface QuoteToleranceRange {
+  min: number;
+  max: number;
 }

@@ -27,6 +27,13 @@ public abstract class SecuritycurrencyPositionSummary<T extends Securitycurrency
   @Schema(description = "Latest available price for the financial instrument, may be real-time or historical")
   public Double closePrice = null;
 
+  @Schema(description = """
+      True when neither a price nor an exchange rate could be determined for the reporting date. The numeric fields of
+      this summary then carry a substitute value which must not be aggregated into a total. Without this flag a
+      substitute is indistinguishable from a genuine rate, which is how an unpriced position used to be silently
+      valued at a rate of one.""")
+  public boolean priceMissing;
+
   @Schema(description = "Timestamp when the close price was determined, indicating data freshness and validity")
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public LocalDate closeDate;

@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.CannotAcquireLockException;
 
 import com.ezylang.evalex.Expression;
 
@@ -107,7 +108,13 @@ public class IntradayThruCalculation<S extends Securitycurrency<S>> extends Base
       } catch (final Exception e) {
         log.error("Last price calculuate failed on security={}", security.toString(), e);
       }
-      security = securityJpaRepository.save(security);
+      try {
+        security = securityJpaRepository.save(security);
+      } catch (final CannotAcquireLockException ex) {
+        // The calculated last price is non critical and is refreshed within minutes. Letting the exception escape would
+        // abort the whole derived instrument batch because of a single contended row.
+        log.warn("Calculated intraday price save skipped, row is locked: security={}", security);
+      }
     }
     return security;
   }

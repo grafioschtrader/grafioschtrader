@@ -3,6 +3,11 @@
      [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}" class="data-container">
 
   <div class="datatable">
+    @if (missingCurrenciesText) {
+      <div class="alert alert-warning">
+        {{ 'MISSING_EXCHANGE_RATE_WARNING' | translate: {currencies: missingCurrenciesText} }}
+      </div>
+    }
     <p-table (onRowCollapse)="onRowCollapse($event)" (onRowExpand)="onRowExpand($event)" [(selection)]="selectedAccountPositionSummary"
              [columns]="fields" [multiSortMeta]="multiSortMeta"
              [value]="accountPositionGroupSummary?.accountPositionSummaryList" dataKey="cashaccount.idSecuritycashAccount"

@@ -283,12 +283,15 @@ public interface HoldSecurityaccountSecurityJpaRepository
    *   <li>Filters to securities actively held by the tenant in their security accounts.</li>
    *   <li>Excludes exchanges with no market value and securities outside their active date range.</li>
    *   <li>Identifies missing quotes where no historyquote record exists for that date.</li>
+   *   <li>Reports the currency pairs of the holdings and cash balances in the same way, since a day without an
+   *       exchange rate into the tenant currency is just as unusable as one without a security quote.</li>
    * </ul>
    *
    * @param idTenant the tenant ID to scope held securities
    * @param dateFrom the start date of the period (inclusive)
    * @param dateTo   the end date of the period (inclusive)
-   * @return a list of DateSecurityQuoteMissing projections containing tradingDate and idSecuritycurrency
+   * @return a list of DateSecurityQuoteMissing projections containing tradingDate and idSecuritycurrency, where the
+   *         id addresses either a security or a currency pair
    */
   //@formatter:on
   @Query(nativeQuery = true)
@@ -323,10 +326,12 @@ public interface HoldSecurityaccountSecurityJpaRepository
    * - Scans official trading days for each held security’s exchange, excluding shifted days.<br>
    * - Joins to tenant’s held securities and filters by active hold periods.<br>
    * - Excludes exchanges flagged as having no market value and securities outside their active date range.<br>
-   * - Selects dates where no Historyquote record exists for the security on that trading day.
+   * - Selects dates where no Historyquote record exists for the security on that trading day.<br>
+   * - Adds the days on which a currency pair used to convert a holding or a cash balance into the tenant currency has
+   *   no rate, because such a day cannot be valued either and would otherwise be converted at a rate of one.
    *
    * @param idTenant the ID of the tenant whose held securities are checked
-   * @return a set of trading dates with missing quotes across all held securities
+   * @return a set of trading dates with missing quotes across all held securities and their currency pairs
    */
   //@formatter:on
   @Query(nativeQuery = true)
@@ -340,14 +345,53 @@ public interface HoldSecurityaccountSecurityJpaRepository
    * - Scans official trading days for each security’s exchange, excluding shifted days.<br>
    * - Joins to the portfolio’s held securities and filters by active hold periods.<br>
    * - Excludes exchanges without market value and securities outside their active date range.<br>
-   * - Selects dates where no Historyquote record exists for a held security on that trading day.
+   * - Selects dates where no Historyquote record exists for a held security on that trading day.<br>
+   * - Adds the days on which a currency pair used to convert a holding or a cash balance into the portfolio currency
+   *   has no rate, because such a day cannot be valued either.
    *
    * @param idPortfolio the ID of the portfolio whose held securities are checked
-   * @return a set of trading dates with missing quotes across all securities in the portfolio
+   * @return a set of trading dates with missing quotes across all securities in the portfolio and their currency pairs
    */
   //@formatter:on
   @Query(nativeQuery = true)
   Set<LocalDate> getMissingsQuoteDaysByPortfolio(Integer idPortfolio);
+
+  //@formatter:off
+  /**
+   * Returns the currency pairs referenced by the holdings of a tenant that carry no historical price at all.
+   * <p>
+   * Such a pair makes every single day of the affected hold period unusable, so the period performance report finds no
+   * valid trading day left and has to tell the user which currency cannot be converted instead of returning nothing.
+   * It is the difference between a gap in the price history, which only invalidates individual days, and a currency
+   * pair that was never delivered by any connector.
+   *
+   * Named query: HoldSecurityaccountSecurity.getCurrencypairsWithoutAnyQuoteByTenant
+   * Parameters in SQL:
+   * - ?1 - the tenant, applied to both hold_securityaccount_security and hold_cashaccount_balance
+   *
+   * @param idTenant the ID of the tenant whose holdings are checked
+   * @return the readable names of the affected currency pairs in the form FROM/TO, sorted alphabetically, empty when
+   *         every referenced currency pair has at least one price
+   */
+  //@formatter:on
+  @Query(nativeQuery = true)
+  List<String> getCurrencypairsWithoutAnyQuoteByTenant(Integer idTenant);
+
+  //@formatter:off
+  /**
+   * Behaves exactly like {@link #getCurrencypairsWithoutAnyQuoteByTenant(Integer)} but scopes the check to one
+   * portfolio and therefore to the currency pairs into the portfolio currency.
+   *
+   * Named query: HoldSecurityaccountSecurity.getCurrencypairsWithoutAnyQuoteByPortfolio
+   * Parameters in SQL:
+   * - ?1 - the portfolio, applied to both hold_securityaccount_security and hold_cashaccount_balance
+   *
+   * @param idPortfolio the ID of the portfolio whose holdings are checked
+   * @return the readable names of the affected currency pairs in the form FROM/TO, sorted alphabetically
+   */
+  //@formatter:on
+  @Query(nativeQuery = true)
+  List<String> getCurrencypairsWithoutAnyQuoteByPortfolio(Integer idPortfolio);
 
   //@formatter:off
   /**

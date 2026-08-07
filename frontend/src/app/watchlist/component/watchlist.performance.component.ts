@@ -24,7 +24,7 @@ import {combineLatest, Observable} from 'rxjs';
 import {TenantLimit} from '../../shared/types/tenant.limit';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
-import {TranslateValue} from '../../lib/datashowbase/column.config';
+import {FilterType} from '../../lib/datashowbase/filter.type';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
@@ -122,14 +122,6 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.timeFrames.push(new TimeFrame('YEAR_3', moment(date).diff(moment(date).subtract(3, 'years'), 'days')));
     this.choosenTimeFrame = this.restoreTimeFrame();
     this.addBaseColumns();
-    this.addColumn(DataType.String, 'securitycurrency.assetClass.categoryType', AppSettings.ASSETCLASS.toUpperCase(), true, true,
-      {translateValues: TranslateValue.NORMAL, width: 60});
-    this.addColumn(DataType.String, 'securitycurrency.assetClass.specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT', false, true,
-      {translateValues: TranslateValue.NORMAL, width: 60});
-
-    this.addColumn(DataType.String, 'securitycurrency.assetClass.subCategoryNLS.map.' + this.gps.getUserLang(),
-      'SUB_ASSETCLASS', true, true, {width: 80});
-
     this.addColumnFeqH(DataType.NumericRaw, 'securitycurrency.leverageFactor', true, true, {
       templateName: 'greenRed', fieldValueFN: BusinessHelper.getDisplayLeverageFactor.bind(this)
     });
@@ -138,25 +130,25 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.addColumn(DataType.Numeric, 'securitycurrency.sLast', 'LAST', true, true,
       {maxFractionDigits: gps.getMaxFractionDigits()});
     this.addColumn(DataType.Numeric, 'securitycurrency.sChangePercentage', 'DAILY_CHANGE', true, true, {
-      headerSuffix: '%', templateName: 'greenRed'
+      headerSuffix: '%', templateName: 'greenRed', filterType: FilterType.likeDataType
     });
     this.addColumn(DataType.Numeric, 'ytdChangePercentage', 'YTD', true, true, {
       headerSuffix: '%',
-      templateName: 'greenRed'
+      templateName: 'greenRed', filterType: FilterType.likeDataType
     });
     this.addColumn(DataType.Numeric, 'timeFrameChangePercentage', 'TIME_FRAME', true, true, {
-      headerSuffix: '%', templateName: 'greenRed'
+      headerSuffix: '%', templateName: 'greenRed', filterType: FilterType.likeDataType
     });
     this.addColumn(DataType.Numeric, 'timeFrameAnnualChangePercentage', 'TIME_FRAME_ANNUAL', true, true, {
-      headerSuffix: '%', templateName: 'greenRed'
+      headerSuffix: '%', templateName: 'greenRed', filterType: FilterType.likeDataType
     });
     this.addColumn(DataType.Numeric, 'units', 'HOLDING', true, true,
-      {templateName: 'greenRed'});
+      {templateName: 'greenRed', filterType: FilterType.likeDataType});
 
     this.addColumnFeqH(DataType.Numeric, 'positionGainLossPercentage', true, true, {
-      headerSuffix: '%', templateName: 'greenRed'
+      headerSuffix: '%', templateName: 'greenRed', filterType: FilterType.likeDataType
     });
-    this.addColumnFeqH(DataType.Numeric, 'valueSecurity', true, true);
+    this.addColumnFeqH(DataType.Numeric, 'valueSecurity', true, true, {filterType: FilterType.likeDataType});
     this.addColumn(DataType.Numeric, 'securitycurrency.sPrevClose', 'DAY_BEFORE_CLOSE',
       true, true, {maxFractionDigits: gps.getMaxFractionDigits()});
     this.addColumn(DataType.Numeric, 'securitycurrency.sHigh', 'HIGH', true, true,

@@ -14,11 +14,12 @@ import grafioschtrader.types.TransactionType;
  * <b>These labels are a wire format, not UI text.</b> The exported CSV files must be re-importable through the CSV
  * transaction import. The import maps the CSV column headers against the Grafioschtrader import templates
  * <code>csv_base-csv-20000101-de|en.tmpl</code> in
- * <code>grafioschtrader-server/src/test/resources/testdata/import_template</code>. Those templates bind the
- * transaction properties to exactly these header texts and type words. For this reason the labels are deliberately
- * <b>not</b> placed in <code>messages.properties</code>: a harmless looking translation edit there would silently
- * break the column mapping. Any change to a label here requires the same change in the corresponding template files;
- * the round-trip test <code>TransactionCsvExportRoundTripTest</code> fails when generator and templates drift apart.
+ * <code>grafioschtrader-server/src/test/resources/testdata/import_template/grafioschtrader</code>. Those templates
+ * bind the transaction properties to exactly these header texts and type words. For this reason the labels are
+ * deliberately <b>not</b> placed in <code>messages.properties</code>: a harmless looking translation edit there would
+ * silently break the column mapping. Any change to a label here requires the same change in the corresponding template
+ * files; the round-trip test <code>TransactionCsvExportRoundTripTest</code> fails when generator and templates drift
+ * apart.
  * </p>
  *
  * <p>

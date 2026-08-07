@@ -31,10 +31,10 @@ the filename next to it, and a copy in the title only drifts.
 
 `032-create-watchlist.spec.ts` creates every Playwright-owned watchlist before the currency-pair and
 security workflows run. `844-delete-watchlist.spec.ts` removes the watchlists whose fixture row has
-`delete=true`; it runs before the portfolio teardown in `888`. Both read the hand-authored, pipe-delimited
-fixture `backend/grafioschtrader-server/src/test/resources/testdata/watchlists.csv` with columns
-`loginNickname|name|main|delete|e2e`. Rows tagged `e` belong to Playwright; `i` is reserved for the backend
-integration tests. A `main=true` row is selected for performance calculations and therefore becomes the
+`delete=true`; it runs before the portfolio teardown in `888`. Both read the hand-authored JSON fixture
+`backend/grafioschtrader-server/src/test/resources/testdata/watchlists.json`. Rows tagged `e` belong to
+Playwright; `i` is reserved for the backend integration tests. Each row can list securities by ISIN/currency
+and currency pairs by from/to currency. A `main=true` row is selected for performance calculations and becomes the
 tenant's `id_watchlist_performance`. An existing watchlist is accepted by 032 and an already missing cleanup
 row is accepted by 844, so both specs can be rerun against the same database.
 
@@ -65,12 +65,15 @@ tests then skip in turn via `assumeTrue(isActivated())`. The spec deletes every 
 creating, because the create dialog only offers providers that are not configured yet; that also
 makes it re-runnable against a polluted database. It carries the lowest number in the suite (`005`) so
 the keys exist before every other spec — and, since the startup price update was removed from the
-`e2e` profile, before `067-price-update-task.spec.ts` schedules that update.
+`e2e` profile, before `067-schedule-batch-jobs.spec.ts` schedules that update.
 
-## Price update spec (067-*)
+## Batch-job scheduling spec (067-*)
 
-`067-price-update-task.spec.ts` schedules the batch job `PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU`
-(`id_task = 30`) as the admin user, through the create dialog of the batch processing monitor.
+`067-schedule-batch-jobs.spec.ts` schedules the batch jobs tagged `e2e='e'` in the hand-maintained,
+headered `backend/grafioschtrader-server/src/test/resources/testdata/taskdatachange.csv`. It uses the
+admin user's create dialog in the batch processing monitor rather than writing directly to the
+database. The fixture currently contains `PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU` (`id_task = 30`)
+and `CREATE_STOCK_EXCHANGE_CALENDAR_BY_RULE_SET` (`id_task = 53`).
 
 The job used to be queued by `ExecuteStartupTask` when the backend came up, for `now + 5 min` with
 `PRIO_HIGH`. That is the wrong moment for a test run: the roundtrip boots the backend, then runs
@@ -81,13 +84,18 @@ were waiting for `id_task = 30`. `application-e2e.properties` therefore sets
 `gt.startup.price.update.task=false`; the `@ConditionalOnProperty` on `ExecuteStartupTask` defaults
 to enabled, so production is untouched.
 
-`067` runs after everything the update works on has been created — API keys (005), currency pairs
-(035), instruments (040, 047), generic connectors (065) — and schedules the job for `now + 10 min`,
-late enough that the remaining specs create their data first. `BackgroundWorker` polls every 15
-seconds and picks it up on its own; the spec does not wait for the execution, because a full price
-update takes far longer than the whole suite. Leftover waiting jobs of the same type are deleted at
-the start, so the spec is re-runnable; a job that is already running is skipped, because
-`hasRightsForDeleteEntity()` removes the delete entry for `PROG_RUNNING`.
+`067` runs after everything the jobs work on has been created — API keys (005), currency pairs (035),
+instruments (040, 047), generic connectors (065) and rule sets (from the backend fixture). The CSV
+schedules task 30 for `now + 10 min` and task 53 one minute later. `BackgroundWorker` is single-threaded
+and polls every 15 seconds, so the rule-set calendar rebuild runs only after the price update. Task 53
+leaves the optional entity empty, which requests a full rebuild of every rule-based exchange.
+
+The spec preserves CSV row order, validates that task 53 follows task 30 with a later delay, and does
+not wait for execution because a full price update takes far longer than the whole suite. At the start
+it deletes every non-running row for all fixture task types through the UI, so it can be rerun against
+the same `grafioschtrader_t`; a job already in `PROG_RUNNING` is skipped because
+`hasRightsForDeleteEntity()` removes its delete entry. Run only this spec against existing services
+with `npx playwright test e2e/067-schedule-batch-jobs.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
 Note that specs create further `task_data_change` rows indirectly through backend save hooks — for
 example `SECURITY_LOAD_HISTORICAL_INTRA_PRICE_DATA` when `040` saves an instrument with a history
@@ -177,6 +185,21 @@ are untouched, and the spec can be rerun independently against an already popula
 With the backend and frontend from an earlier run still active, execute only this spec with
 `npx playwright test e2e/090-bank-account-transactions.spec.ts --project=grafioschtrader-e2e --no-deps`.
 The `--no-deps` flag avoids rerunning the create-only user-registration setup against the populated database.
+
+## Standing-order spec (095-*)
+
+`095-standing-orders.spec.ts` recreates the two standing orders of `alledit` from the optional
+`standingOrders` array below the CornèrTrader portfolio in `testdata/portfolios.json`. It creates a foreign-currency
+cash fee for `CT USD` and an amount-based accumulation order for the iShares Core SPI ETF in security account `CT`.
+The ETF is selected through the instrument search by ISIN; account and security IDs remain database-independent.
+
+At the start, the spec deletes only existing orders matching those fixture identities through the standing-order REST
+endpoint. This recovers both successful and partial prior runs while leaving unrelated orders untouched. Fresh e2e
+orders have no generated transactions and are therefore deletable. Historical source orders that already generated
+transactions must be detached and deleted once in `grafioschtrader_t` before the first isolated run.
+
+With the backend and frontend still active, execute only this spec with
+`npx playwright test e2e/095-standing-orders.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
 ## History quote spec (045-*)
 
@@ -302,11 +325,14 @@ them.
 Start the services in separate terminals:
 
 ```bash
-# backend/
+# backend/ — the standalone Grafiosch server on port 8081
 mvn -pl grafiosch-test-integration spring-boot:run -Dspring-boot.run.profiles=e2e
 
-# frontend/
-npm run start:lib-e2e
+# backend/ — register the users.csv users tagged e2e='i' (the browser suite logs in as them)
+mvn test -pl grafiosch-test-integration -Dtest=ResourceTestSuite
+
+# frontend/ — the standalone Grafiosch frontend on port 4201
+npm run start:grafiosch
 
 # frontend/ (after MailHog/Mailpit is listening on SMTP 1025 and HTTP 8025)
 npm run e2e:lib
@@ -316,4 +342,36 @@ The suite fails before opening a browser unless `/api/integration-info` reports 
 `grafiosch_t`. Override endpoints with `LIB_E2E_BACKEND_URL`, `LIB_E2E_FRONTEND_URL`, and `LIB_E2E_MAIL_API_URL`.
 
 Keep application workflows such as portfolio management and sharing in the default suite, even when a workflow also
-asserts that an email was sent. Put a test in `e2e/lib/` only when it can run using the generic backend and lib host.
+asserts that an email was sent. Put a test in `e2e/lib/` only when it can run using the standalone backend and host.
+
+### The library owns the helpers
+
+`e2e/lib/helpers.ts` holds the flows both suites share — the pipe-CSV parser, the credential files, `login` /
+`loginAs` / `loginAsCsvUser`, the MailHog decoding and the whole browser registration including the token from the
+verification mail. `e2e/helpers.ts` is a thin wrapper that only configures the three things that differ (which
+`users.csv`, which `.auth` directory, which post-login URL) and re-exports everything under the old names, so no
+application spec had to change.
+
+**The dependency only points that way.** `e2e/lib` must never import from `e2e/`, otherwise it cannot move with
+`src/app/lib` when the library is extracted. The one screen the library cannot supply is the tenant page — `TenantBase`
+is extended per application — so `registerAndSetupTenant` takes it as a callback, filled by `setupGtTenant` here and by
+`setupGrafioschTenant` in `e2e/lib/auth.setup.ts`.
+
+### Users of the library suite
+
+Same `e2e` column convention as this suite, against
+`backend/grafiosch-test-integration/src/test/resources/testdata/users.csv`: rows tagged `i` are registered at REST
+level by the backend `ResourceTestSuite`, rows tagged `e` through the browser by `e2e/lib/auth.setup.ts`. Nothing seeds
+users with JDBC any more, so **the backend suite has to run before the browser suite** — `e2eTest.cmd --lib` does that
+for you. Specs address users by nickname, never by id.
+
+The numbering convention above applies here as well; `e2e/lib` starts at `010-mail.spec.ts`.
+
+The setup is **re-runnable**: a user that can already sign in is left alone, and one without a tenant only gets the
+tenant step, so the suite can be executed repeatedly against a populated `grafiosch_t`. Note that the login probe it
+uses must send `timezoneOffset` — `StatelessLoginFilter` answers 403 without it, which looks exactly like a wrong
+password.
+
+`playwright.lib.config.ts` raises the viewport to 1280x1024. The library's dialogs are `position: fixed`, so a control
+below the fold can never be scrolled into view and every click on it fails as "element is not stable" — in Playwright's
+720px default the send button of the mail dialog sits at y=751.

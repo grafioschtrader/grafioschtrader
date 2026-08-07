@@ -53,6 +53,12 @@ public class AccountPositionGrandSummary {
   @Schema(description = "Number of decimal places for monetary precision in the main currency")
   private int precisionMC;
 
+  @Schema(description = """
+      Currencies that could not be converted into the main currency because no exchange rate was available, collected
+      over all groups. While this list is not empty every grand total above is incomplete, because the affected cash
+      accounts are reported with their own balance but deliberately left out of the sums.""")
+  public List<MissingExchangeRate> missingExchangeRates = new ArrayList<>();
+
   public List<AccountPositionGroupSummary> accountPositionGroupSummaryList = new ArrayList<>();
 
   public AccountPositionGrandSummary(String mainCurrency, int precisionMC) {
@@ -74,7 +80,8 @@ public class AccountPositionGrandSummary {
       grandAccountFeesMC += accountPositionGroupSummary.groupAccountFeesMC;
       grandAccountInterestMC += accountPositionGroupSummary.groupAccountInterestMC;
       grandExcludedDivTaxMC += accountPositionGroupSummary.groupExcludedDivTaxMC;
-
+      accountPositionGroupSummary.missingExchangeRates.stream().filter(mer -> !missingExchangeRates.contains(mer))
+          .forEach(missingExchangeRates::add);
     }
   }
 

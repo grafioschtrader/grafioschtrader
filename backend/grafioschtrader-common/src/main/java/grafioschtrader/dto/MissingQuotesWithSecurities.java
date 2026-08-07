@@ -9,6 +9,7 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import grafiosch.BaseConstants;
+import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -50,14 +51,22 @@ public class MissingQuotesWithSecurities {
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public final LocalDate firstEverTradingDay;
 
-  @Schema(description = "Map of trading dates to security IDs missing quotes on those dates")
+  @Schema(description = """
+      Map of trading dates to the instrument IDs missing quotes on those dates. The IDs address both securities and
+      currency pairs, since securitycurrency IDs are unique across the two.""")
   public final Map<LocalDate, List<Integer>> dateSecurityMissingMap = new HashMap<>();
 
-  @Schema(description = "Map of security IDs to their total count of missing quote days")
+  @Schema(description = "Map of instrument IDs to their total count of missing quote days, securities and currency pairs alike")
   public final Map<Integer, Integer> countIdSecurityMissingsMap = new HashMap<>();
 
   @Schema(description = "Securities that have missing historical quotes in the analyzed period")
   public List<Security> securties;
+
+  @Schema(description = """
+      Currency pairs that have missing historical exchange rates in the analyzed period. A held position can only be
+      converted into the currency of the tenant or portfolio when its currency pair carries a rate for the day, so
+      such a gap invalidates a reporting day exactly like a missing security quote does.""")
+  public List<Currencypair> currencypairs;
 
   public MissingQuotesWithSecurities(Integer year, LocalDate firstEverTradingDay) {
     this.year = year;
@@ -99,6 +108,14 @@ public class MissingQuotesWithSecurities {
 
   public void setSecurties(List<Security> securties) {
     this.securties = securties;
+  }
+
+  public void setCurrencypairs(List<Currencypair> currencypairs) {
+    this.currencypairs = currencypairs;
+  }
+
+  public List<Currencypair> getCurrencypairs() {
+    return currencypairs;
   }
 
   public LocalDate getFirstEverTradingDay() {

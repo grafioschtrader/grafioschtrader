@@ -40,6 +40,8 @@ package-lock.json
 /e2e/*.js
 /e2e/*.map
 /e2e/.auth/
+# Credentials the library suite's auth setup writes for the users it registered.
+/e2e/lib/.auth/
 # Where the timing reporter writes e2e-timing.json (next to the config's rootDir, i.e. the testDir).
 /e2e/test-results/
 /e2e/lib/test-results/

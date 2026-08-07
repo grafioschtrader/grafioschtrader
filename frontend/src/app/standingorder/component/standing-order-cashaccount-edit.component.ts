@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
@@ -41,6 +42,7 @@ export class StandingOrderCashaccountEditComponent extends StandingOrderEditBase
     portfolioService: PortfolioService,
     translateService: TranslateService,
     gps: GlobalparameterService,
+    private gpsGT: GlobalparameterGTService,
     messageToastService: MessageToastService,
     standingOrderService: StandingOrderService
   ) {
@@ -57,6 +59,9 @@ export class StandingOrderCashaccountEditComponent extends StandingOrderEditBase
       DynamicFieldHelper.createFieldInputNumberHeqF('cashaccountAmount', true,
         AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_MAX_DIGITS - AppSettings.FID_STANDARD_INTEGER_DIGITS, false,
         {fieldsetName: fs}),
+      DynamicFieldHelper.createFieldSelectStringHeqF('amountCurrency', false, {fieldsetName: fs}),
+      DynamicFieldHelper.createFieldInputStringHeqF('cashaccountAmountFormula', 200, false,
+        {fieldsetName: fs, labelHelpText: 'CASHACCOUNT_AMOUNT_FORMULA_TOOLTIP'}),
       DynamicFieldHelper.createFieldInputNumberHeqF('transactionCost', false,
         AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_MAX_DIGITS - AppSettings.FID_STANDARD_INTEGER_DIGITS, false,
         {fieldsetName: fs}),
@@ -67,7 +72,15 @@ export class StandingOrderCashaccountEditComponent extends StandingOrderEditBase
 
   protected override initializeTransactionTypeOptions(): void {
     this.configObject.transactionType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
-      this.translateService, TransactionType, [TransactionType.WITHDRAWAL, TransactionType.DEPOSIT]);
+      this.translateService, TransactionType, [TransactionType.WITHDRAWAL, TransactionType.DEPOSIT,
+        TransactionType.INTEREST_CASHACCOUNT, TransactionType.FEE]);
+  }
+
+  protected override initialize(): void {
+    super.initialize();
+    // Options only — assigning them from the async response must not touch form values, because
+    // setExistingValues() may already have run inside the portfolio subscription.
+    this.gpsGT.getCurrencies().subscribe(data => this.configObject.amountCurrency.valueKeyHtmlOptions = data);
   }
 
   protected override getCashaccountPrecisionFields(): FieldConfig[] {

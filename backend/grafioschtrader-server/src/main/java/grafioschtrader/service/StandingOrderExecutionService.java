@@ -6,8 +6,10 @@ import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -22,12 +24,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.ezylang.evalex.Expression;
 import com.ezylang.evalex.data.EvaluationValue;
 
+import grafiosch.common.DataHelper;
 import grafiosch.exceptions.DataViolation;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.repository.UserJpaRepository;
 import grafioschtrader.GlobalParamKeyDefault;
-import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
+import grafioschtrader.common.DataBusinessHelper;
+import grafioschtrader.common.DateBusinessHelper;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.StandingOrder;
 import grafioschtrader.entities.StandingOrderCashaccount;
@@ -39,6 +43,7 @@ import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.StandingOrderFailureJpaRepository;
 import grafioschtrader.repository.StandingOrderJpaRepository;
 import grafioschtrader.repository.TradingDaysMinusJpaRepository;
+import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
 import grafioschtrader.types.PeriodDayPosition;
 import grafioschtrader.types.RepeatUnit;
@@ -76,10 +81,16 @@ public class StandingOrderExecutionService {
   private TradingDaysMinusJpaRepository tradingDaysMinusJpaRepository;
 
   @Autowired
+  private TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
+
+  @Autowired
   private MessageSource messageSource;
 
   @Autowired
   private UserJpaRepository userJpaRepository;
+
+  @Autowired
+  private GlobalparametersService globalparametersService;
 
   @Autowired
   @Lazy
@@ -138,25 +149,22 @@ public class StandingOrderExecutionService {
       if (tenantTransactionCount >= maxTransaction) {
         // Transaction limit reached: stop without advancing nextExecutionDate so this standing order resumes
         // automatically once the tenant deletes transactions. Already-created catch-up transactions are kept.
-        Locale locale = userJpaRepository.findByIdTenant(so.getIdTenant()).map(user -> user.createAndGetJavaLocale())
-            .orElse(Locale.ENGLISH);
         String msg = messageSource.getMessage("gt.transaction.limit.exceeded", new Object[] { maxTransaction },
-            "gt.transaction.limit.exceeded", locale);
+            "gt.transaction.limit.exceeded", getTenantLocale(so.getIdTenant()));
         failures.add(new StandingOrderFailure(so.getIdStandingOrder(), scheduledDate, msg, null));
         log.warn("Standing order {} skipped on {}: transaction limit {} reached", so.getIdStandingOrder(),
             scheduledDate, maxTransaction);
         break;
       }
       LocalDate effectiveDate = adjustForWeekend(scheduledDate, so.getWeekendAdjust());
-      if (so instanceof StandingOrderSecurity sos) {
-        effectiveDate = adjustForTradingDay(effectiveDate, sos, processingDate);
-      }
 
       try {
         Transaction transaction = null;
         if (so instanceof StandingOrderCashaccount soc) {
           transaction = buildCashTransaction(soc, effectiveDate);
         } else if (so instanceof StandingOrderSecurity sos) {
+          // Inside the try, so that "no trading day found" is recorded as a business error rather than a stack trace.
+          effectiveDate = adjustForTradingDay(effectiveDate, sos, processingDate);
           transaction = buildSecurityTransaction(sos, effectiveDate);
         }
 
@@ -196,7 +204,15 @@ public class StandingOrderExecutionService {
   }
 
   /**
-   * Builds a cash transaction (DEPOSIT or WITHDRAWAL) from a standing order.
+   * Builds a cash transaction (WITHDRAWAL, DEPOSIT, INTEREST_CASHACCOUNT or FEE) from a standing order.
+   *
+   * <p>
+   * When the standing order carries a foreign amount currency, the exchange rate of the effective date is applied,
+   * either through the EvalEx formula or, without one, as a plain conversion. Note that the transaction is
+   * deliberately left without a currency pair and exchange rate: those describe a conversion between two accounts,
+   * whereas here the foreign currency is only the basis on which the bank calculates the amount. For FEE and
+   * INTEREST_CASHACCOUNT {@code Transaction.clearAccountTransaction()} would drop the pair anyway.
+   * </p>
    *
    * @param soc           the cash-account standing order
    * @param effectiveDate the adjusted execution date
@@ -205,14 +221,98 @@ public class StandingOrderExecutionService {
   private Transaction buildCashTransaction(StandingOrderCashaccount soc, LocalDate effectiveDate) {
     Transaction tx = new Transaction();
     tx.setCashaccount(soc.getCashaccount());
-    tx.setCashaccountAmount(soc.getCashaccountAmount());
+    tx.setCashaccountAmount(computeCashaccountAmount(soc, effectiveDate));
     tx.setTransactionType(soc.getTransactionType());
     tx.setTransactionTime(effectiveDate.atStartOfDay());
     tx.setIdTenant(soc.getIdTenant());
     tx.setNote(soc.getNote());
     tx.setIdStandingOrder(soc.getIdStandingOrder());
+    // Kept for WITHDRAWAL/DEPOSIT; clearAccountTransaction() discards it again for FEE and INTEREST_CASHACCOUNT.
     tx.setTransactionCost(soc.getTransactionCost());
     return tx;
+  }
+
+  /**
+   * Computes the amount to book for a cash standing order. Without an amount currency the stored amount is used
+   * unchanged, which is the behaviour of standing orders that do not involve a foreign currency.
+   *
+   * @param soc           the cash-account standing order
+   * @param effectiveDate the adjusted execution date, used to look up the exchange rate
+   * @return the amount in the currency of the cash account, rounded to that currency's precision
+   * @throws StandingOrderBusinessException if no exchange rate is available or the formula cannot be evaluated
+   */
+  private double computeCashaccountAmount(StandingOrderCashaccount soc, LocalDate effectiveDate) {
+    double a = soc.getCashaccountAmount();
+    String formula = soc.getCashaccountAmountFormula();
+    Double r = null;
+
+    if (soc.getIdCurrencypair() != null) {
+      // Booking an unconverted amount would silently charge the wrong sum, so skip and report the failure instead.
+      r = findCloseWithinTolerance(soc.getIdCurrencypair(), effectiveDate, soc.getQuoteToleranceDays())
+          .orElseThrow(() -> new StandingOrderBusinessException(
+              messageSource.getMessage("standing.order.exec.no.exchange.rate",
+                  new Object[] { soc.getAmountCurrency(), effectiveDate }, "standing.order.exec.no.exchange.rate",
+                  getTenantLocale(soc.getIdTenant()))));
+    }
+
+    double amount;
+    if (formula != null && !formula.isBlank()) {
+      amount = evaluateCashAmount(formula, a, r, soc);
+    } else if (r != null) {
+      amount = DataBusinessHelper.divideMultiplyExchangeRate(a, r, soc.getAmountCurrency(),
+          soc.getCashaccount().getCurrency());
+    } else {
+      amount = a;
+    }
+    return DataHelper.round(amount,
+        globalparametersService.getPrecisionForCurrency(soc.getCashaccount().getCurrency()));
+  }
+
+  /**
+   * Evaluates the amount formula and turns a failure into a translated business error. Unlike {@link #evaluateCost}
+   * this does not fall back to 0.0: a broken amount formula would silently book a zero-value transaction every period,
+   * so the execution is aborted and recorded as a failure instead.
+   *
+   * @param formula the EvalEx amount formula
+   * @param a       the base amount as entered on the standing order
+   * @param r       the exchange rate, or null when the standing order has no amount currency
+   * @param soc     the standing order, used to resolve the tenant's locale for the error message
+   * @return the evaluated amount
+   * @throws StandingOrderBusinessException if the formula cannot be parsed or evaluated
+   */
+  private double evaluateCashAmount(String formula, double a, Double r, StandingOrderCashaccount soc) {
+    try {
+      return evaluateCashAmountFormula(formula, a, r);
+    } catch (Exception e) {
+      throw new StandingOrderBusinessException(messageSource.getMessage("standing.order.exec.amount.formula.error",
+          new Object[] { formula, e.getMessage() }, "standing.order.exec.amount.formula.error",
+          getTenantLocale(soc.getIdTenant())));
+    }
+  }
+
+  /**
+   * Evaluates an EvalEx amount formula with the variables {@code a} (base amount) and {@code r} (exchange rate).
+   * Package-visible and free of Spring dependencies so it can be unit tested.
+   *
+   * @param formula the EvalEx amount formula
+   * @param a       the base amount
+   * @param r       the exchange rate, or null when the standing order has no amount currency; the variable is then
+   *                left unbound, so a formula using {@code r} fails instead of silently assuming a rate
+   * @return the evaluated amount
+   * @throws Exception if the formula cannot be parsed or evaluated
+   */
+  static double evaluateCashAmountFormula(String formula, double a, Double r) throws Exception {
+    Expression expression = new Expression(formula);
+    expression.with("a", BigDecimal.valueOf(a));
+    if (r != null) {
+      expression.with("r", BigDecimal.valueOf(r));
+    }
+    return expression.evaluate().getNumberValue().doubleValue();
+  }
+
+  /** Resolves the locale of the tenant's user, falling back to English when no user is found. */
+  private Locale getTenantLocale(Integer idTenant) {
+    return userJpaRepository.findByIdTenant(idTenant).map(user -> user.createAndGetJavaLocale()).orElse(Locale.ENGLISH);
   }
 
   /**
@@ -228,13 +328,11 @@ public class StandingOrderExecutionService {
     Integer idSecurity = sos.getSecurity().getIdSecuritycurrency();
 
     // 1. Price lookup
-    Optional<Historyquote> hqOpt = historyquoteJpaRepository.findByIdSecuritycurrencyAndDate(idSecurity, effectiveDate);
-    if (hqOpt.isEmpty()) {
-      throw new StandingOrderBusinessException(
-          "No price found for security " + idSecurity + " on " + effectiveDate + "; standing order "
-              + sos.getIdStandingOrder() + " skipped");
-    }
-    double quotation = hqOpt.get().getClose();
+    double quotation = findCloseWithinTolerance(idSecurity, effectiveDate, sos.getQuoteToleranceDays())
+        .orElseThrow(() -> new StandingOrderBusinessException(
+            messageSource.getMessage("standing.order.exec.no.price",
+                new Object[] { idSecurity, effectiveDate, sos.getIdStandingOrder() },
+                "standing.order.exec.no.price", getTenantLocale(sos.getIdTenant()))));
 
     // 2. Determine units and costs
     double units;
@@ -270,8 +368,9 @@ public class StandingOrderExecutionService {
       }
 
       if (units <= 0) {
-        throw new StandingOrderBusinessException(
-            "Calculated units <= 0 for standing order " + sos.getIdStandingOrder() + "; execution skipped");
+        throw new StandingOrderBusinessException(messageSource.getMessage("standing.order.exec.zero.units",
+            new Object[] { sos.getIdStandingOrder() }, "standing.order.exec.zero.units",
+            getTenantLocale(sos.getIdTenant())));
       }
 
       // Re-evaluate costs with actual units
@@ -281,14 +380,15 @@ public class StandingOrderExecutionService {
           amount);
     }
 
-    // 3. Exchange rate lookup
+    // 3. Exchange rate lookup. A missing rate must not pass silently: the security and the cash account are then in
+    // different currencies and an unconverted amount would be booked.
     Double currencyExRate = null;
     if (sos.getIdCurrencypair() != null) {
-      ISecuritycurrencyIdDateClose exRateResult = historyquoteJpaRepository
-          .getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(sos.getIdCurrencypair(), effectiveDate, false);
-      if (exRateResult != null) {
-        currencyExRate = exRateResult.getClose();
-      }
+      currencyExRate = findCloseWithinTolerance(sos.getIdCurrencypair(), effectiveDate, sos.getQuoteToleranceDays())
+          .orElseThrow(() -> new StandingOrderBusinessException(
+              messageSource.getMessage("standing.order.exec.no.exchange.rate",
+                  new Object[] { sos.getSecurity().getCurrency(), effectiveDate },
+                  "standing.order.exec.no.exchange.rate", getTenantLocale(sos.getIdTenant()))));
     }
 
     // 4. Compute cashaccountAmount: ACCUMULATE = -(u*q + tax + txCost), REDUCE = +(u*q - tax - txCost)
@@ -302,8 +402,8 @@ public class StandingOrderExecutionService {
 
     // Apply exchange rate conversion if applicable
     if (currencyExRate != null) {
-      cashaccountAmount = grafioschtrader.common.DataBusinessHelper.divideMultiplyExchangeRate(cashaccountAmount,
-          currencyExRate, sos.getSecurity().getCurrency(), sos.getCashaccount().getCurrency());
+      cashaccountAmount = DataBusinessHelper.divideMultiplyExchangeRate(cashaccountAmount, currencyExRate,
+          sos.getSecurity().getCurrency(), sos.getCashaccount().getCurrency());
     }
 
     // 5. Build transaction
@@ -317,7 +417,54 @@ public class StandingOrderExecutionService {
     return tx;
   }
 
+  /**
+   * Looks up the close of an instrument for the execution date, widened by the standing order's tolerance. The whole
+   * window is read in a single query and then probed in the priority order of {@link #toleranceCandidates}, so a
+   * tolerance of 3 costs one round trip rather than seven.
+   *
+   * <p>
+   * The transaction keeps the execution date in every case; only the quote may originate from a neighbouring day. This
+   * replaces an unbounded "certain or older day" search that could reach back arbitrarily far for an exchange rate.
+   * </p>
+   *
+   * @param idSecuritycurrency the security or currency pair whose close is wanted
+   * @param effectiveDate      the execution date
+   * @param tolerance          the standing order's tolerance in days; 0 demands the exact date
+   * @return the close of the first matching candidate, or empty when the window holds no quote at all
+   */
+  private Optional<Double> findCloseWithinTolerance(Integer idSecuritycurrency, LocalDate effectiveDate,
+      byte tolerance) {
+    int window = Math.abs(tolerance);
+    List<Historyquote> quotes = historyquoteJpaRepository.findByIdSecuritycurrencyAndDateBetweenOrderByDate(
+        idSecuritycurrency, effectiveDate.minusDays(window), effectiveDate.plusDays(window));
+    Map<LocalDate, Double> closeByDate = new HashMap<>();
+    quotes.forEach(hq -> closeByDate.put(hq.getDate(), hq.getClose()));
+
+    return toleranceCandidates(effectiveDate, tolerance).stream().map(closeByDate::get).filter(close -> close != null)
+        .findFirst();
+  }
+
   // ---- Static helpers (package-visible for unit testing) ----
+
+  /**
+   * Builds the candidate quote dates for a tolerance, in the order in which they should be tried. The magnitude of the
+   * tolerance is the window in days on both sides of the execution date, its sign decides which side is offered first:
+   * a negative tolerance prefers the past, a positive one the future. A tolerance of 0 yields the execution date alone.
+   *
+   * @param date      the execution date, always the first candidate
+   * @param tolerance the tolerance in days, between -3 and 3
+   * @return the candidate dates, closest first and within each distance the preferred direction first
+   */
+  static List<LocalDate> toleranceCandidates(LocalDate date, byte tolerance) {
+    List<LocalDate> candidates = new ArrayList<>();
+    candidates.add(date);
+    int preferred = tolerance < 0 ? -1 : 1;
+    for (int distance = 1; distance <= Math.abs(tolerance); distance++) {
+      candidates.add(date.plusDays((long) preferred * distance));
+      candidates.add(date.minusDays((long) preferred * distance));
+    }
+    return candidates;
+  }
 
   /**
    * Adjusts a date that falls on Saturday or Sunday according to the specified weekend adjustment policy.
@@ -337,24 +484,28 @@ public class StandingOrderExecutionService {
   }
 
   /**
-   * Shifts the effective date away from stock exchange holidays using the {@code trading_days_minus} calendar. Each
-   * iteration moves the date by one day in the direction indicated by {@link WeekendAdjustType} and re-applies weekend
-   * adjustment. Only applies when the effective date is not in the future (calendar data must exist).
+   * Shifts the effective date onto the nearest trading day of the security's stock exchange. Each iteration moves the
+   * date by one day in the direction indicated by {@link WeekendAdjustType} and re-applies weekend adjustment. The
+   * adjustment is skipped outside the period the trading calendar covers, because there the answer would be wrong
+   * rather than merely unknown.
    *
    * @param effectiveDate  the weekend-adjusted execution date
    * @param sos            the security standing order (provides access to the stock exchange)
    * @param processingDate the current processing date — dates after this are not adjusted
-   * @return the nearest trading day, or the original date if it is already a trading day or in the future
+   * @return the nearest trading day, or the original date if it is already a trading day or outside the calendar
+   * @throws StandingOrderBusinessException if no trading day is found within
+   *                                        {@link #MAX_TRADING_DAY_ADJUSTMENT_ITERATIONS} steps
    */
   private LocalDate adjustForTradingDay(LocalDate effectiveDate, StandingOrderSecurity sos, LocalDate processingDate) {
-    if (effectiveDate.isAfter(processingDate)) {
+    if (effectiveDate.isAfter(processingDate) || effectiveDate.isBefore(DateBusinessHelper
+        .getOldestTradingDayAsLocalDate())) {
       return effectiveDate;
     }
     Integer idStockexchange = sos.getSecurity().getStockexchange().getIdStockexchange();
     WeekendAdjustType weekendAdjust = sos.getWeekendAdjust();
 
     for (int i = 0; i < MAX_TRADING_DAY_ADJUSTMENT_ITERATIONS; i++) {
-      if (!tradingDaysMinusJpaRepository.existsById(new TradingDaysMinusKey(idStockexchange, effectiveDate))) {
+      if (isTradingDay(idStockexchange, effectiveDate)) {
         return effectiveDate;
       }
       effectiveDate = (weekendAdjust == WeekendAdjustType.BEFORE)
@@ -362,10 +513,25 @@ public class StandingOrderExecutionService {
           : effectiveDate.plusDays(1);
       effectiveDate = adjustForWeekend(effectiveDate, weekendAdjust);
     }
-    throw new StandingOrderBusinessException(
-        "Could not find a trading day within " + MAX_TRADING_DAY_ADJUSTMENT_ITERATIONS
-            + " iterations for security " + sos.getSecurity().getIdSecuritycurrency()
-            + " on exchange " + idStockexchange + "; standing order " + sos.getIdStandingOrder() + " skipped");
+    throw new StandingOrderBusinessException(messageSource.getMessage("standing.order.exec.no.trading.day",
+        new Object[] { MAX_TRADING_DAY_ADJUSTMENT_ITERATIONS, sos.getSecurity().getIdSecuritycurrency(),
+            idStockexchange, sos.getIdStandingOrder() },
+        "standing.order.exec.no.trading.day", getTenantLocale(sos.getIdTenant())));
+  }
+
+  /**
+   * Answers whether the exchange trades on the given date. A date qualifies only when the global calendar
+   * {@code trading_days_plus} contains it — weekends and worldwide holidays such as 1 January are missing there — and
+   * the exchange has no additional closure for it in {@code trading_days_minus}. Checking only the latter would treat
+   * every global holiday as a trading day, because a foreign key forbids such a date from appearing in the delta table.
+   *
+   * @param idStockexchange the stock exchange whose closures apply
+   * @param date            the date to test
+   * @return true when the exchange trades on that date
+   */
+  private boolean isTradingDay(Integer idStockexchange, LocalDate date) {
+    return tradingDaysPlusJpaRepository.existsById(date)
+        && !tradingDaysMinusJpaRepository.existsById(new TradingDaysMinusKey(idStockexchange, date));
   }
 
   /**
@@ -460,9 +626,7 @@ public class StandingOrderExecutionService {
    * @return translated violation messages joined with "; "
    */
   private String translateDataViolation(DataViolationException dvex, Integer idTenant) {
-    Locale locale = userJpaRepository.findByIdTenant(idTenant)
-        .map(user -> user.createAndGetJavaLocale())
-        .orElse(Locale.ENGLISH);
+    Locale locale = getTenantLocale(idTenant);
 
     return dvex.getDataViolation().stream().map(dv -> {
       String field = dv.isTranslateFieldName()

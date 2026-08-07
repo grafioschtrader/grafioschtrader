@@ -48,6 +48,21 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
   void currencieyFillEmptyDaysInHistoryquote(Currencypair currencypair) throws Exception;
 
   /**
+   * Fills the gaps of a single currency pair in its own transaction.
+   *
+   * <p>
+   * This is the unit of work behind {@link #allCurrenciesFillEmptyDaysInHistoryquote()}. It must be invoked through the
+   * repository proxy, because the gap filling contacts the data provider over HTTP and writes the
+   * {@code securitycurrency} row. Sharing one transaction across all currency pairs would hold the row locks of every
+   * already-processed pair until the last provider call returned, which blocks the intraday price update of those rows
+   * until {@code innodb_lock_wait_timeout} expires.
+   * </p>
+   *
+   * @param idSecuritycurrency the ID of the {@link Currencypair} to process; unknown IDs are ignored
+   */
+  void fillEmptyDaysInHistoryquoteForCurrencypair(Integer idSecuritycurrency);
+
+  /**
    * Fills any missing historical end-of-day price data for a currency pair identified by its ID.
    *
    * @param idSecuritycurrency The ID of the {@link Currencypair}.

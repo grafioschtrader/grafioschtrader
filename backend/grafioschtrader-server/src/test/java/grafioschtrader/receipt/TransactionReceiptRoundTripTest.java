@@ -38,13 +38,13 @@ import grafioschtrader.types.TransactionType;
 /**
  * Round-trip guarantee for the transaction receipt feature: every receipt PDF produced by
  * {@link TransactionReceiptPdfGenerator} must be parseable by the PDF transaction import using the Grafioschtrader
- * import templates in <code>src/test/resources/testdata/import_template</code>, and the parsed values must equal the
- * source transaction. Runs without a Spring context or database; any drift between the generator labels
+ * import templates in <code>src/test/resources/testdata/import_template/grafioschtrader</code>, and the parsed values
+ * must equal the source transaction. Runs without a Spring context or database; any drift between the generator labels
  * ({@link GtReceiptDefs}) and the template files makes these tests fail.
  */
 class TransactionReceiptRoundTripTest {
 
-  private static final String TEMPLATE_DIR = "/testdata/import_template/";
+  private static final String TEMPLATE_DIR = "/testdata/import_template/grafioschtrader/";
   private static final String[] TEMPLATE_FILES = { "buy_sell_instrument-pdf-20000101-de.tmpl",
       "buy_sell_instrument-pdf-20000101-en.tmpl", "paid_dividend_interest-pdf-20000101-de.tmpl",
       "paid_dividend_interest-pdf-20000101-en.tmpl", "finance_cost-pdf-20000101-de.tmpl",

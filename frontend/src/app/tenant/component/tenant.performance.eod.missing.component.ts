@@ -121,7 +121,11 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
       (mqws: MissingQuotesWithSecurities) => {
         this.clearDaySelection(this.selectedDayByUser);
         this.missingQuotesWithSecurities = mqws;
-        this.securities = this.missingQuotesWithSecurities.securities;
+        // Securities and currency pairs share one table, because a day without an exchange rate is as unusable for the
+        // performance report as a day without a security quote. The pair carries no 'currency' of its own, so the
+        // quote currency stands in for it and keeps the price chart of the context menu working.
+        this.securities = [...(mqws.securities ?? []),
+          ...(mqws.currencypairs ?? []).map(cp => ({...cp, currency: cp.toCurrency} as unknown as Security))];
         this.allMissingDays = [];
         Object.keys(mqws.dateSecurityMissingMap).forEach(e => {
           this.allMissingDays.push(new Date(e));

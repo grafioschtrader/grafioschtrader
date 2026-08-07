@@ -9,13 +9,13 @@ When a task spans both areas, read all three files. Treat these files as reposit
 
 ## Project Structure & Module Organization
 Backend sources sit in `backend/`, a Maven multi-module workspace: `grafioschtrader-server` hosts the Spring Boot application, `grafioschtrader-common` keeps shared domain code, `grafiosch-server-base` and `grafiosch-base` provide reusable libraries, while `grafiosch-test-integration` contains end-to-end suites.
-Angular client code lives in `frontend/src/` with environment config in `proxy.conf.json`; builds land in `frontend/dist/`. Documentation rests in `doc/`, helper scripts stay at the repo root, and `gt-code-style/` stores IDE formatter profiles.
+Angular client code lives in `frontend/src/` with environment config in `proxy.conf.json`; builds land in `frontend/dist/`. Finalized concept specifications rest in `specification/`, working material and requirement drafts in `doc/`; helper scripts stay at the repo root and in `scripts/`, and `gt-code-style/` stores IDE formatter profiles. Contributor documentation is in `CONTRIBUTING.md` and the [wiki](https://github.com/grafioschtrader/grafioschtrader/wiki).
 
 ## Build, Test, and Development Commands
-- `cd backend && mvn clean install -Dmaven.test.skip=true` resolves module dependencies after updates.
+- `cd backend && mvn clean install -DskipTests` resolves module dependencies after updates. Use `-DskipTests`, not `-Dmaven.test.skip=true`, whenever a later `mvn test -pl <module>` follows: `grafiosch-server-base` publishes its tests as a test-jar and skipping test compilation installs an empty one.
 - `cd backend && mvn package` emits the runnable JAR; export `JASYPT_ENCRYPTOR_PASSWORD` before launching `java -jar grafioschtrader-server/target/...jar`.
 - `cd backend/grafioschtrader-server && mvn jasypt:encrypt -Djasypt.encryptor.password=***` re-encrypts secrets after editing `application.properties`.
-- `cd frontend && npm install` (Node 20+ per README) followed by `npm start` runs the proxy-enabled dev server; `npm run buildprod` creates deployment bundles.
+- `cd frontend && npm install` (Node `^20.19.0`, `^22.12.0` or `^24.0.0`) followed by `npm start` runs the proxy-enabled dev server; `npm run buildprod` creates deployment bundles.
 
 ## Coding Style & Naming Conventions
 Use the Eclipse formatter profiles under `gt-code-style/backend` (4-space indent, braces on new lines) and group packages by domain such as `grafioschtrader.entities`.
@@ -23,8 +23,9 @@ Favor descriptive `CamelCase` types, `lowerCamelCase` members, and English enum 
 For Angular, apply `gt_typescripte_sytle.xml`, stick to 2-space indents, `kebab-case` file names, and suffix artifacts (`*.service.ts`, `*-component.ts`); run `npm run lint` before committing.
 
 ## Testing Guidelines
-`cd backend && mvn test` runs the JUnit 6 + Spring Boot suites under `src/test/java`; longer integration jobs belong in `grafiosch-test-integration` and should end with `*IT`.
-Frontend specs live beside components as `*.spec.ts` files and execute with `cd frontend && npm test` (Karma/Jasmine).
+`cd backend && mvn test` runs the JUnit 6 + Spring Boot suites under `src/test/java`. REST integration tests are ordered suites named `ResoureTestSuite` / `ResourceTestSuite` built from `*ResourceTest` classes; those covering the reusable `grafiosch-*` libraries alone belong in `grafiosch-test-integration`.
+Every Spring-context test MUST declare `@ActiveProfiles` — without one the bootstrap migration drops all tables of the productive database.
+Frontend specs live beside the sources as `*.spec.ts` and execute with `cd frontend && npm test` (Vitest, pure-function tests only — no TestBed, no DOM). Browser behavior is covered by the Playwright suite in `frontend/e2e/`.
 Update deterministic fixtures and sample data under `grafioschtrader-server/src/test/resources` whenever behavior or schemas change.
 
 ## Commit & Pull Request Guidelines

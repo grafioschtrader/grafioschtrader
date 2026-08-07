@@ -21,6 +21,7 @@ import grafiosch.entities.User;
 import grafiosch.repository.GlobalparametersJpaRepository;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.GlobalParamKeyDefault;
+import grafioschtrader.dto.QuoteToleranceRange;
 
 /**
  * Service for managing and retrieving global configuration parameters used throughout the GrafioschTrader application.
@@ -65,8 +66,45 @@ public class GlobalparametersService {
   }
 
   /**
+   * Retrieves the bounds an administrator allows for the per-standing-order quote tolerance.
+   *
+   * The global parameter is stored as {@code min:max} (for example {@code -3:3}). A negative bound permits a tolerance
+   * that reaches into the past first, a positive one into the future first; {@code 0:0} forces every standing order to
+   * find its quote exactly on the execution date. A malformed value falls back to the default rather than blocking
+   * every save, because the pattern input rule already guards the admin dialog.
+   *
+   * @return the inclusive lower and upper bound for {@code StandingOrder.quoteToleranceDays}
+   * @see GlobalParamKeyDefault#DEFAULT_STANDING_ORDER_QUOTE_TOLERANCE
+   * @see GlobalParamKeyDefault#GLOB_KEY_STANDING_ORDER_QUOTE_TOLERANCE
+   */
+  public QuoteToleranceRange getStandingOrderQuoteToleranceRange() {
+    String range = globalparametersJpaRepository
+        .findById(GlobalParamKeyDefault.GLOB_KEY_STANDING_ORDER_QUOTE_TOLERANCE)
+        .map(Globalparameters::getPropertyString)
+        .orElse(GlobalParamKeyDefault.DEFAULT_STANDING_ORDER_QUOTE_TOLERANCE);
+    return parseQuoteToleranceRange(range)
+        .orElseGet(() -> parseQuoteToleranceRange(GlobalParamKeyDefault.DEFAULT_STANDING_ORDER_QUOTE_TOLERANCE)
+            .orElseThrow());
+  }
+
+  /** Parses a {@code min:max} tolerance range, returning empty when it is malformed or the bounds are inverted. */
+  private static Optional<QuoteToleranceRange> parseQuoteToleranceRange(String range) {
+    String[] bounds = range == null ? new String[0] : range.split(":");
+    if (bounds.length != 2) {
+      return Optional.empty();
+    }
+    try {
+      byte min = Byte.parseByte(bounds[0].trim());
+      byte max = Byte.parseByte(bounds[1].trim());
+      return min <= max ? Optional.of(new QuoteToleranceRange(min, max)) : Optional.empty();
+    } catch (NumberFormatException e) {
+      return Optional.empty();
+    }
+  }
+
+  /**
    * Gets the decimal precision for a specific currency.
-   * 
+   *
    * Looks up the precision for the given currency in the currency precision map. If no specific precision is configured
    * for the currency, returns the standard fraction digits default.
    * 

@@ -41,7 +41,10 @@ export const PRIMENG_TRANSLATIONS: Record<string, {primeng: Record<string, strin
       choose: "Choose",
       upload: "Upload",
       cancel: "Cancel",
-      weekHeader: "Wk"
+      weekHeader: "Wk",
+      selectionMessage: "{0} items selected",
+      emptyMessage: "No available options",
+      emptyFilterMessage: "No results found"
     }
   },
   de: {
@@ -129,6 +132,7 @@ export const PRIMENG_TRANSLATIONS: Record<string, {primeng: Record<string, strin
       ],
       today: "Heute",
       weekHeader: "Wk",
+      selectionMessage: "{0} Elemente ausgewählt",
       emptyMessage: "Keine Resultat gefunden",
       emptyFilterMessage: "Keine Resultat gefunden"
     }

@@ -1,4 +1,5 @@
 import {AccountPositionGroupSummary} from './account.position.group.summary';
+import {MissingExchangeRate} from './missing.exchange.rate';
 
 export class AccountPositionGrandSummary {
   mainCurrency: string;
@@ -12,6 +13,9 @@ export class AccountPositionGrandSummary {
   grandAccountFeesMC: number;
   grandAccountInterestMC: number;
   grandExcludedDivTaxMC: number;
+
+  /** While this is not empty every grand total above excludes the listed currencies and is therefore incomplete. */
+  missingExchangeRates: MissingExchangeRate[];
 
   accountPositionGroupSummaryList: AccountPositionGroupSummary[];
 }

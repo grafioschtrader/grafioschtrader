@@ -186,12 +186,18 @@ this.createTranslatedValueStore(this.entityList);
 
 ### Dropdown Selection Filters (FilterType.withOptions)
 
+A `FilterType.withOptions` column renders a **`<p-multiSelect>`** over the values that occur in the
+column and filters with PrimeNG's built-in `in` match mode: the selected values are combined with
+**OR**, an empty selection removes the filter. AND is deliberately not offered — every such column
+holds one value per row, so an AND across two selected values could never match anything. Selecting a
+single entry behaves exactly like the former single-select.
+
 **CRITICAL**: Columns using `FilterType.withOptions` require **three method calls** after data loads. Missing any step results in an empty or broken dropdown.
 
 | Step | Method | Purpose |
 |------|--------|---------|
 | 1 | `createTranslatedValueStoreAndFilterField(data)` | Builds `translatedValueMap` on columns with `translateValues`, creates `field$` properties |
-| 2 | `prepareFilter(data)` | Populates `field.filterValues` (the `ValueLabelHtmlSelectOptions[]`) that the `<p-select>` dropdown reads |
+| 2 | `prepareFilter(data)` | Populates `field.filterValues` (the `ValueLabelHtmlSelectOptions[]`) that the `<p-multiSelect>` reads |
 
 Without `prepareFilter(data)`, the dropdown renders but has **no options**.
 
@@ -211,7 +217,7 @@ this.addColumnFeqH(DataType.String, 'securityName', true, false,
   {filterType: FilterType.likeDataType});
 ```
 
-**How `prepareFilter` works internally**: For translated columns, it reads `field.translatedValueMap` (built by `createTranslatedValueStore`) and creates sorted dropdown options with translated labels. For plain string columns, it extracts unique values from the data. In both cases it populates `field.filterValues` which the template's `<p-select>` binds to.
+**How `prepareFilter` works internally**: For translated columns, it reads `field.translatedValueMap` (built by `createTranslatedValueStore`) and creates sorted dropdown options with translated labels — the option *value* stays the raw key, so the filter compares against the raw data. For plain string columns, it extracts unique values from the data. In both cases it populates `field.filterValues` which the template's `<p-multiSelect>` binds to. The list carries no empty "no filter" entry; the multi-select is reset with its clear icon.
 
 In components using `OnChanges` with `@Input()` data, note that `ngOnChanges` is called **before** `ngOnInit`. Use a flag to ensure proper ordering:
 
@@ -844,6 +850,35 @@ export class MyDialogComponent extends SimpleEditBase implements OnInit {
   }
 }
 ```
+
+## The standalone Grafiosch host (`src/grafiosch-host`)
+
+Angular project `grafiosch-host` (`npm run start:grafiosch`, port 4201) is a second application built from
+`src/app/lib` alone, talking to the `grafiosch-test-integration` backend on port 8081. It is what proves the library
+layer really is free of Grafioschtrader — and it is where you see, concretely, what a consuming application has to
+supply itself:
+
+| Extension point | Host implementation |
+|---|---|
+| `DIALOG_HANDLER` | `grafiosch-dialog.handler.ts` |
+| `AfterLoginHandler` | `grafiosch-after-login.handler.ts` |
+| `MAIN_TREE_CONTRIBUTOR` (multi) | `grafiosch-main-tree.contributor.ts` — at least one, or `/mainview` shows an empty tree |
+| `TASK_TYPE_ENUM` / `TASK_EXTENDED_SERVICE` | the library `TaskTypeBase`; no extended task types here |
+| The tenant page | `grafiosch-tenant-edit.component.ts` — `TenantBase` is extended per application |
+| Route table, `ToastrModule.forRoot`, `provideZoneChangeDetection()`, the NLS app initializer | `main.ts` |
+
+Two traps worth knowing:
+
+- **`provideZoneChangeDetection()` is required.** Angular 21 bootstraps zoneless, and the library components assume
+  zone change detection: `RegisterComponent` assigns `applicationInfo` in an HTTP callback and expects the `@if`
+  around `<dynamic-form>` to have rendered by the time `preparePasswordFields()` reaches `formControl`.
+- **The library services are not `providedIn: 'root'`.** Every host lists the ones its routes reach, including those
+  only the shell needs (`ManageClientService` and `UserDataService` for the menu bar, `DataChangedService` and
+  `TreeNavigationStateService` for the main tree). A missing entry surfaces late, as NG0201 while rendering
+  `/mainview`.
+
+Texts used from `src/grafiosch-host/**` count as library layer for `node scripts/nls-tool.mjs check`, exactly like
+`src/app/lib/**`: this host is served by a backend that ships the `grafiosch-base` bundle alone.
 
 ## File Organization
 

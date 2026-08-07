@@ -193,6 +193,7 @@ export class AppSettings {
   public static readonly IMPORT_TRANSACTION_POS_TABLE_SETTINGS_STORE = 'u_importtransactionpos_2';
   public static readonly HISTORYQUOTE_TABLE_SETTINGS_STORE = 'u_historyquote_01';
   public static readonly FEE_MODEL_COMPARISON_TABLE_SETTINGS_STORE = 'u_fee_model_comparison_1';
+  public static readonly WATCHLIST_FILTER_SORT_STORE = 'u_watchlist_filter_sort_1';
 
   // Save others in local storage
   public static readonly TA_INDICATORS_STORE = 'ta_indicator_';
@@ -216,6 +217,12 @@ export class AppSettings {
 
 
   public static readonly INSTRUMENT_HEADER = 'I';
+
+  /**
+   * Header key of the narrow distribution icon column. A single letter cannot be used as the key itself, as the
+   * instrument column does with 'I', because 'D' is already taken by a period unit in the library bundle.
+   */
+  public static readonly DISTRIBUTION_HEADER = 'DISTRIBUTION_HEADER';
 
   public static FID_MAX_CURRENCY_EX_RATE_PRECISION = 20;
   public static FID_MAX_CURRENCY_EX_RATE_FRACTION = 10;

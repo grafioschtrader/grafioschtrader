@@ -31,7 +31,7 @@ import grafioschtrader.types.TransactionType;
  * <li>No rotated text and no text inside images; decorative shading is drawn as vector rectangles which are invisible
  * to the stripper.</li>
  * <li>The line sequence and the label words come from {@link GtReceiptDefs} and mirror the import template files in
- * <code>src/test/resources/testdata/import_template</code> exactly.</li>
+ * <code>src/test/resources/testdata/import_template/grafioschtrader</code> exactly.</li>
  * </ul>
  *
  * <p>

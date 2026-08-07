@@ -1,0 +1,85 @@
+{
+  "_comment": [
+    "Shared watchlist fixture for backend REST integration tests and frontend Playwright tests.",
+    "Rows tagged e2e='i' are created by WatchlistResourceTest; e2e='e' belongs to Playwright.",
+    "Securities use ISIN plus currency as stable lookup keys. Currency pairs use their from/to codes.",
+    "IDs are deliberately omitted because both test layers resolve or create records through REST or the UI."
+  ],
+  "watchlists": [
+    {
+      "loginNickname": "admin",
+      "name": "Hauptliste",
+      "main": true,
+      "delete": false,
+      "securities": [
+        {"isin": "US74347B4251", "currency": "USD"},
+        {"isin": "US74349Y7537", "currency": "USD"}
+      ],
+      "currencyPairs": [],
+      "e2e": "i"
+    },
+    {
+      "loginNickname": "alledit",
+      "name": "Main List",
+      "main": true,
+      "delete": false,
+      "securities": [],
+      "currencyPairs": [],
+      "e2e": "e"
+    },
+    {
+      "loginNickname": "alledit",
+      "name": "currencypair",
+      "main": false,
+      "delete": false,
+      "securities": [],
+      "currencyPairs": [],
+      "e2e": "e"
+    },
+    {
+      "loginNickname": "alledit",
+      "name": "Spain",
+      "main": false,
+      "delete": false,
+      "securities": [],
+      "currencyPairs": [],
+      "e2e": "e"
+    },
+    {
+      "loginNickname": "alledit",
+      "name": "Switzerland",
+      "main": false,
+      "delete": false,
+      "securities": [],
+      "currencyPairs": [],
+      "e2e": "e"
+    },
+    {
+      "loginNickname": "alledit",
+      "name": "Derived",
+      "main": false,
+      "delete": false,
+      "securities": [],
+      "currencyPairs": [],
+      "e2e": "e"
+    },
+    {
+      "loginNickname": "limit2",
+      "name": "Main List",
+      "main": true,
+      "delete": true,
+      "securities": [],
+      "currencyPairs": [],
+      "e2e": "e"
+    },
+    {
+      "loginNickname": "limit2",
+      "name": "Currency Pair",
+      "main": false,
+      "delete": true,
+      "securities": [],
+      "currencyPairs": [],
+      "e2e": "e"
+    }
+  ]
+}

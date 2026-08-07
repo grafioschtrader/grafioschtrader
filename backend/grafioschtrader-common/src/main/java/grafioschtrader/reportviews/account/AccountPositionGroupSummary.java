@@ -58,6 +58,12 @@ public class AccountPositionGroupSummary {
   @Schema(description = "Individual cash account position summaries that comprise this group total")
   public List<CashaccountPositionSummary> accountPositionSummaryList = new ArrayList<>();
 
+  @Schema(description = """
+      Currencies of this group that could not be converted into the main currency because no exchange rate was
+      available. The corresponding cash accounts are still listed with their own balance, but they contribute nothing
+      to any of the group totals above, so those totals are incomplete whenever this list is not empty.""")
+  public List<MissingExchangeRate> missingExchangeRates = new ArrayList<>();
+
   /**
    * Currency precision configuration map that defines the number of decimal places for each currency code. Used to
    * ensure proper rounding of monetary values according to the standard precision requirements of each currency.
@@ -83,9 +89,16 @@ public class AccountPositionGroupSummary {
   }
 
   /**
-   * Calculates and aggregates totals from all individual account position summaries within this group. Applies current
-   * exchange rates for foreign currency conversions and updates all group totals.
-   * 
+   * Calculates and aggregates totals from all individual account position summaries within this group. Applies the
+   * exchange rate of the reporting date for foreign currency conversions and updates all group totals.
+   *
+   * <p>
+   * An exchange rate of one is applied only to an account that is already denominated in the main currency. An account
+   * in a foreign currency whose rate could not be determined is recorded in {@link #missingExchangeRates} and skipped:
+   * it keeps its own balance for display but contributes to none of the group totals. Converting it at a substitute
+   * rate would silently produce a result that is wrong by orders of magnitude.
+   * </p>
+   *
    * @param dateTransactionCurrencypairMap currency exchange rate context for FX calculations
    */
   public void calcTotals(final DateTransactionCurrencypairMap dateTransactionCurrencypairMap) {
@@ -95,14 +108,39 @@ public class AccountPositionGroupSummary {
         precisionMC = accountPositionSummary.precisionMC;
       }
 
+      // For a reporting date in the past only the rate of that very day is acceptable. Falling back to the latest
+      // known rate would value a historical position with today's rate, which is why a failed lookup marks the
+      // account even when a newer rate happens to be at hand.
       if (accountPositionSummary.securitycurrency != null
           && !dateTransactionCurrencypairMap.isUntilDateEqualNowOrAfterOrInActualWeekend()) {
-        accountPositionSummary.closePrice = dateTransactionCurrencypairMap.getExactDateAndFromCurrency(
+        Double exactClosePrice = dateTransactionCurrencypairMap.getExactDateAndFromCurrency(
             dateTransactionCurrencypairMap.getUntilDate(), accountPositionSummary.securitycurrency.getFromCurrency());
+        if (exactClosePrice == null) {
+          accountPositionSummary.priceMissing = true;
+        } else {
+          accountPositionSummary.closePrice = exactClosePrice;
+        }
       }
 
-      double currencyExchangeRate = (accountPositionSummary.securitycurrency != null
-          && accountPositionSummary.closePrice != null) ? accountPositionSummary.closePrice : 1.0;
+      // A foreign currency without a currency pair at all never reaches the pricing step, so it arrives here with a
+      // null closePrice; it is as unconvertible as a pair that carries no quote for the date. The flag is never
+      // cleared: one unavailable rate, be it of the reporting date or of a transaction date, is enough to make the
+      // main currency amounts of this account wrong.
+      if (accountPositionSummary.securitycurrency != null && accountPositionSummary.closePrice == null) {
+        accountPositionSummary.priceMissing = true;
+      }
+
+      if (accountPositionSummary.priceMissing) {
+        accountPositionSummary.closePrice = null;
+        missingExchangeRates.add(new MissingExchangeRate(accountPositionSummary.getCashaccount().getCurrency(),
+            dateTransactionCurrencypairMap.getMainCurrency(), dateTransactionCurrencypairMap.getUntilDate(),
+            accountPositionSummary.securitycurrency == null ? null
+                : accountPositionSummary.securitycurrency.getIdSecuritycurrency()));
+        continue;
+      }
+
+      double currencyExchangeRate = accountPositionSummary.securitycurrency != null
+          ? accountPositionSummary.closePrice : 1.0;
 
       accountPositionSummary.calcTotals(currencyExchangeRate);
       groupAccountFeesMC += accountPositionSummary.accountFeesMC;

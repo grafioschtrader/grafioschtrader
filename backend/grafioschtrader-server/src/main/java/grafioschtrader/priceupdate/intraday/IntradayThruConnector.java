@@ -1,10 +1,11 @@
 package grafioschtrader.priceupdate.intraday;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.dao.CannotAcquireLockException;
 
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
@@ -14,6 +15,7 @@ import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.repository.GenericConnectorEndpointJpaRepository;
+import grafioschtrader.repository.SecurityCurrencypairJpaRepository;
 import grafioschtrader.service.GlobalparametersService;
 
 /**
@@ -36,7 +38,7 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   private final List<IFeedConnector> feedConnectorbeans;
-  private final JpaRepository<S, Integer> jpaRepository;
+  private final SecurityCurrencypairJpaRepository<S> jpaRepository;
   private final IIntradayEntityAccess<S> intraEntityAccess;
   private final GenericConnectorEndpointJpaRepository genericConnectorEndpointJpaRepository;
 
@@ -49,8 +51,9 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
    * @param intraEntityAccess       interface for executing entity-specific intraday updates
    * @param genericConnectorEndpointJpaRepository repository for marking generic endpoints as used (may be null)
    */
-  public IntradayThruConnector(JpaRepository<S, Integer> jpaRepository, GlobalparametersService globalparametersService,
-      List<IFeedConnector> feedConnectorbeans, IIntradayEntityAccess<S> intraEntityAccess,
+  public IntradayThruConnector(SecurityCurrencypairJpaRepository<S> jpaRepository,
+      GlobalparametersService globalparametersService, List<IFeedConnector> feedConnectorbeans,
+      IIntradayEntityAccess<S> intraEntityAccess,
       GenericConnectorEndpointJpaRepository genericConnectorEndpointJpaRepository) {
     super(globalparametersService);
     this.jpaRepository = jpaRepository;
@@ -67,7 +70,8 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
 
     if (feedConnector != null && (securitycurrency.getRetryIntraLoad() < maxIntraRetry || maxIntraRetry == -1)
         && securitycurrency.isActiveForIntradayUpdate(java.time.LocalDate.now())
-        && allowDelayedIntradayUpdate(securitycurrency, feedConnector, scIntradayUpdateTimeout)) {
+        && allowDelayedIntradayUpdate(securitycurrency, feedConnector, scIntradayUpdateTimeout)
+        && claimIntradayUpdate(securitycurrency, feedConnector, scIntradayUpdateTimeout)) {
       try {
         intraEntityAccess.updateIntraSecurityCurrency(securitycurrency, feedConnector);
         securitycurrency.setRetryIntraLoad((short) 0);
@@ -78,11 +82,43 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
       }
       try {
         securitycurrency = jpaRepository.save(securitycurrency);
+      } catch (final CannotAcquireLockException ex) {
+        // The last price is non critical and is refreshed within minutes, so a lost lock race is not worth a stack
+        // trace. Losing it means another writer is updating the very same row right now.
+        log.warn("Intraday price save skipped, row is locked: securitycurrency={}", securitycurrency);
       } catch (final Exception ex) {
         log.error("Save failed for securitycurrency={}", securitycurrency, ex);
       }
     }
     return securitycurrency;
+  }
+
+  /**
+   * Claims the intraday update of this instrument against concurrent writers.
+   *
+   * <p>
+   * {@link #allowDelayedIntradayUpdate} decides purely on the in-memory entity, so two concurrent requests for the same
+   * instrument both pass it and both write the row. This claim resolves that race in the database: only the caller
+   * whose conditional UPDATE affected a row proceeds to contact the data provider and save. It runs after the in-memory
+   * pre-filter, so the extra statement is only issued when an update actually looks due.
+   * </p>
+   *
+   * @param securitycurrency        the instrument to claim
+   * @param feedConnector           the connector supplying the provider specific delay
+   * @param scIntradayUpdateTimeout minimum interval between two updates in seconds
+   * @return true if this caller won the claim and should perform the update
+   */
+  private boolean claimIntradayUpdate(final S securitycurrency, final IFeedConnector feedConnector,
+      final int scIntradayUpdateTimeout) {
+    if (securitycurrency.getIdSecuritycurrency() == null) {
+      // A not yet persisted instrument has no row that a second writer could contend for, so there is nothing to claim.
+      // This happens while a newly created security or currency pair is initially filled.
+      return true;
+    }
+    final LocalDateTime now = LocalDateTime.now();
+    final LocalDateTime threshold = now
+        .minusSeconds((long) scIntradayUpdateTimeout + feedConnector.getIntradayDelayedSeconds());
+    return jpaRepository.claimIntradayUpdate(securitycurrency.getIdSecuritycurrency(), now, threshold) > 0;
   }
 
   @Override

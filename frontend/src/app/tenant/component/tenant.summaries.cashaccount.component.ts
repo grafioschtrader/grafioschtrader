@@ -210,6 +210,18 @@ export class TenantSummariesCashaccountComponent extends TableConfigBase impleme
     return HelpIds.HELP_PORTFOLIOS_PORTFOLIOS;
   }
 
+  /**
+   * Lists the currency pairs that could not be converted, for the warning shown above the table. It is only these
+   * accounts that are missing from the totals, so naming them tells the user exactly what the shown sums leave out.
+   *
+   * @returns the affected pairs as a readable enumeration, for example 'BTC/CHF', or null when nothing is missing
+   */
+  get missingCurrenciesText(): string {
+    const missingExchangeRates = this.accountPositionGrandSummary?.missingExchangeRates;
+    return missingExchangeRates?.length
+      ? missingExchangeRates.map(mer => `${mer.fromCurrency}/${mer.toCurrency}`).join(', ') : null;
+  }
+
   onComponentClick(event): void {
     this.activePanelService.activatePanel(this, {showMenu: this.getMenuShowOptions()});
   }

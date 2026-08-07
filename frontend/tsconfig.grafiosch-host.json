@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/grafiosch-host"
+  },
+  "files": [
+    "src/grafiosch-host/main.ts"
+  ],
+  "include": [
+    "src/grafiosch-host/**/*.d.ts"
+  ]
+}

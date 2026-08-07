@@ -74,33 +74,38 @@ public class GenericConnectorDef extends Auditable implements Serializable {
   @LockedWhenUsed
   private String domainUrl;
 
+  // The following fields pair @PropertyAlwaysUpdatable with @LockedWhenUsed on purpose: they stay changeable while the
+  // connector is being set up and are frozen as soon as one of its endpoints has delivered data successfully.
+  // @PropertySelectiveUpdatableOrWhenNull would instead freeze them at creation time - for a primitive it never sees a
+  // null target value, and it is dropped completely once the connector is activated - so the lock would be unreachable.
+
   @Column(name = "needs_api_key")
   @Schema(description = "Whether this connector requires an API key from the connector_apikey table")
-  @PropertySelectiveUpdatableOrWhenNull
+  @PropertyAlwaysUpdatable
   @LockedWhenUsed
   private boolean needsApiKey;
 
   @Column(name = "rate_limit_type")
   @Schema(description = "Rate limiting strategy: NONE, TOKEN_BUCKET, or SEMAPHORE")
-  @PropertySelectiveUpdatableOrWhenNull
+  @PropertyAlwaysUpdatable
   @LockedWhenUsed
   private byte rateLimitType;
 
   @Column(name = "rate_limit_requests")
   @Schema(description = "Maximum requests per period for TOKEN_BUCKET rate limiting")
-  @PropertySelectiveUpdatableOrWhenNull
+  @PropertyAlwaysUpdatable
   @LockedWhenUsed
   private Short rateLimitRequests;
 
   @Column(name = "rate_limit_period_sec")
   @Schema(description = "Period in seconds for TOKEN_BUCKET rate limiting")
-  @PropertySelectiveUpdatableOrWhenNull
+  @PropertyAlwaysUpdatable
   @LockedWhenUsed
   private Short rateLimitPeriodSec;
 
   @Column(name = "rate_limit_concurrent")
   @Schema(description = "Maximum concurrent requests for SEMAPHORE rate limiting")
-  @PropertySelectiveUpdatableOrWhenNull
+  @PropertyAlwaysUpdatable
   @LockedWhenUsed
   private Short rateLimitConcurrent;
 
@@ -117,12 +122,12 @@ public class GenericConnectorDef extends Auditable implements Serializable {
   private String regexUrlPattern;
 
   @Column(name = "supports_security")
-  @PropertySelectiveUpdatableOrWhenNull
+  @PropertyAlwaysUpdatable
   @LockedWhenUsed
   private boolean supportsSecurity = true;
 
   @Column(name = "supports_currency")
-  @PropertySelectiveUpdatableOrWhenNull
+  @PropertyAlwaysUpdatable
   @LockedWhenUsed
   private boolean supportsCurrency;
 

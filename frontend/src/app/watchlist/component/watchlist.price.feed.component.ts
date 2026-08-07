@@ -12,6 +12,7 @@ import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {AppSettings} from '../../shared/app.settings';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
+import {FilterType} from '../../lib/datashowbase/filter.type';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 import {SecuritycurrencyGroup} from '../../entities/view/securitycurrency.group';
 import {SecuritycurrencyPosition} from '../../entities/view/securitycurrency.position';
@@ -161,13 +162,17 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
     const date = new Date();
     this.addBaseColumns();
     this.addColumn(DataType.String, 'securitycurrency.idConnectorIntra', 'INTRA_DATA_PROVIDER', true, true,
-      {fieldValueFN: this.getFeedConnectorReadableName.bind(this)});
-    this.addColumn(DataType.NumericInteger, 'securitycurrency.' + this.f_retryIntraLoad, 'RETRY_INTRA_LOAD', true, true);
+      {fieldValueFN: this.getFeedConnectorReadableName.bind(this), filterType: FilterType.withOptions});
+    this.addColumn(DataType.NumericInteger, 'securitycurrency.' + this.f_retryIntraLoad, 'RETRY_INTRA_LOAD', true, true,
+      {filterType: FilterType.likeDataType});
     this.addColumn(DataType.String, 'securitycurrency.idConnectorHistory', 'HISTORY_DATA_PROVIDER', true, true,
-      {fieldValueFN: this.getFeedConnectorReadableName.bind(this)});
-    this.addColumn(DataType.DateString, 'youngestHistoryDate', 'YOUNGEST_EOD', true, true);
-    this.addColumn(DataType.NumericInteger, 'securitycurrency.' + this.f_retryHistoryLoad, 'RETRY_HISTORY_LOAD', true, true);
-    this.addColumn(DataType.DateTimeString, 'securitycurrency.fullLoadTimestamp', 'FULL_LOAD_DATE', true, true);
+      {fieldValueFN: this.getFeedConnectorReadableName.bind(this), filterType: FilterType.withOptions});
+    this.addColumn(DataType.DateString, 'youngestHistoryDate', 'YOUNGEST_EOD', true, true,
+      {filterType: FilterType.likeDataType});
+    this.addColumn(DataType.NumericInteger, 'securitycurrency.' + this.f_retryHistoryLoad, 'RETRY_HISTORY_LOAD', true, true,
+      {filterType: FilterType.likeDataType});
+    this.addColumn(DataType.DateTimeString, 'securitycurrency.fullLoadTimestamp', 'FULL_LOAD_DATE', true, true,
+      {filterType: FilterType.likeDataType});
     this.prepareTableAndTranslate();
     this.watchlistHasModifiedFromOutside();
   }

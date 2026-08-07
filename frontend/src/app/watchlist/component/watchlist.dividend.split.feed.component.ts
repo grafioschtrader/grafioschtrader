@@ -21,6 +21,7 @@ import {SecuritycurrencyGroup} from '../../entities/view/securitycurrency.group'
 import {TenantLimit} from '../../shared/types/tenant.limit';
 import {SecurityCurrencyHelper} from '../../securitycurrency/service/security.currency.helper';
 import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
+import {FilterType} from '../../lib/datashowbase/filter.type';
 import {HelpIds} from '../../lib/help/help.ids';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
@@ -140,15 +141,17 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
       filterService, translateService, gpsGT, gps, usersettingsService, WatchlistTable.MULTIPLE, injector);
     this.addBaseColumns();
     this.addColumnFeqH(DataType.String, 'securitycurrency.distributionFrequency', true,
-      true, {translateValues: TranslateValue.NORMAL});
+      true, {translateValues: TranslateValue.NORMAL, filterType: FilterType.withOptions});
     this.addColumnFeqH(DataType.String, 'securitycurrency.idConnectorDividend', true,
-      true, {fieldValueFN: this.getFeedConnectorReadableName.bind(this)});
+      true, {fieldValueFN: this.getFeedConnectorReadableName.bind(this), filterType: FilterType.withOptions});
     this.addColumnFeqH(DataType.NumericInteger, 'securitycurrency.retryDividendLoad', true,
-      true);
-    this.addColumnFeqH(DataType.DateNumeric, 'securitycurrency.dividendEarliestNextCheck', true, true);
+      true, {filterType: FilterType.likeDataType});
+    this.addColumnFeqH(DataType.DateNumeric, 'securitycurrency.dividendEarliestNextCheck', true, true,
+      {filterType: FilterType.likeDataType});
     this.addColumnFeqH(DataType.String, 'securitycurrency.idConnectorSplit', true,
-      true, {fieldValueFN: this.getFeedConnectorReadableName.bind(this)});
-    this.addColumnFeqH(DataType.NumericInteger, 'securitycurrency.retrySplitLoad', true, true);
+      true, {fieldValueFN: this.getFeedConnectorReadableName.bind(this), filterType: FilterType.withOptions});
+    this.addColumnFeqH(DataType.NumericInteger, 'securitycurrency.retrySplitLoad', true, true,
+      {filterType: FilterType.likeDataType});
     this.prepareTableAndTranslate();
     this.watchlistHasModifiedFromOutside();
   }

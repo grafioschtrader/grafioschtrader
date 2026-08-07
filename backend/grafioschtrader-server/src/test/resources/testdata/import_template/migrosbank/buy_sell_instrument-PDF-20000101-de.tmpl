@@ -1,0 +1,17 @@
+IHR {transType|P|N} VOM {datetime|P|Nc}: SWX USD
+{units|P|PL}  UNITS -A USD- CAPITALISATION
+VALOR {sf1|P|N}
+ZU {cin|P|PL} {quotation|SL|N|PL}
+BRUTTO                                        USD         24,750.00
+STEUERN, MARKTGEBUEHREN, FREMDE SPESEN ETC.   USD  {tc2|SL|N|O}
+BRUTTO                                        USD         24,752.49
+KURS      {cex|P|O}                           CHF         31,151.00
+COURTAGE                                      {cac|P|SL}  {tc1|SL|N}
+EIDG. UMSATZABGABE + SWX/EBK-GEBUEHR          CHF         {tt1|SL|N}
+B E R N                                         VALUTA 27.02.2007   CHF        {ta|SL|N}
+[END]
+templatePurpose=Kauf und Verkauf Wertpapier
+transType=ACCUMULATE|Kauf
+transType=ACCUMULATE|KAUF
+transType=REDUCE|Verkauf
+dateFormat=dd.MM.yyyy

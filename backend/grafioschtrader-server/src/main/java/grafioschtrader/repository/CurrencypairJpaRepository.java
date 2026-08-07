@@ -20,6 +20,14 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
     JpaSpecificationExecutor<Currencypair>, CurrencypairJpaRepositoryCustom, UpdateCreateJpaRepository<Currencypair> {
 
   /**
+   * Returns the IDs of all currency pairs. Used by batch jobs that process one currency pair per transaction, so that
+   * neither the entities nor their lazily loaded history quotes are kept in a persistence context spanning the whole
+   * run.
+   */
+  @Query("SELECT c.idSecuritycurrency FROM Currencypair c")
+  List<Integer> findAllIdSecuritycurrency();
+
+  /**
    * Returns IDs of currency pairs configured to receive intraday prices via GTNet.
    */
   @Query("SELECT c.idSecuritycurrency FROM Currencypair c WHERE c.gtNetLastpriceRecv = true")

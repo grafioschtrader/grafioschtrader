@@ -284,9 +284,12 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
   }
 
   /**
-   * Generates filter options for dropdown filters based on data content.
+   * Generates filter options for the multi select filters based on data content.
    * Creates sorted lists of unique values for columns with withOptions filter type.
    * Supports both translated and non-translated value filtering.
+   *
+   * The list holds no empty entry for "no filter": the multi select is reset with its clear icon or by removing every
+   * selected value, an empty entry would only be a selectable value that filters for the empty string.
    *
    * @param data - Array of data objects to extract filter values from
    */
@@ -294,7 +297,6 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
     this.fields.forEach(field => {
       if (field.filterType && field.filterType === FilterType.withOptions) {
         const valueLabelHtmlSelectOptions: ValueLabelHtmlSelectOptions[] = [];
-        valueLabelHtmlSelectOptions.push(new ValueLabelHtmlSelectOptions('', ' '));
         if (field.translateValues && field.translatedValueMap) {
           Object.keys(field.translatedValueMap).sort((a, b) => field.translatedValueMap[a] < field.translatedValueMap[b]
             ? -1 : field.translatedValueMap[a] > field.translatedValueMap[b] ? 1 : 0)
@@ -318,6 +320,9 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    * Creates additional filter fields for date columns. Adds formatted date strings with '$' suffix to enable date
    * filtering on DateNumeric columns using formatted display values.
    *
+   * Columns whose displayed value is produced by a fieldValueFN get a shadow property as well, see
+   * {@link createFilterFieldForValueFN}.
+   *
    * @param data - Array of data objects to process
    */
   createFilterField(data: any[]): void {
@@ -325,6 +330,27 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
     columnConfigs.forEach(cc => {
       const fieldName = cc.field + BaseSettings.FIELD_SUFFIX;
       data.forEach(item => item[fieldName] = this.getValueByPath(item, cc));
+    });
+    this.createFilterFieldForValueFN(data);
+  }
+
+  /**
+   * Materializes the displayed value of columns that transform their value with a fieldValueFN into a shadow property,
+   * and points {@link ColumnConfig.filterField} at it. Without this, filtering such a column would match against the
+   * raw data value while the user sees, and filters for, the transformed one.
+   *
+   * The shadow property is written flat on the row with all dots of the field path replaced, because PrimeNG resolves
+   * a dotted field name by walking the object graph instead of reading a property of that literal name. Columns with
+   * translated values are excluded, they already carry their own '$' field through the translated value store.
+   *
+   * @param data - Array of data objects to process
+   */
+  private createFilterFieldForValueFN(data: any[]): void {
+    const columnConfigs = this.fields.filter(columnConfig => columnConfig.filterType && columnConfig.fieldValueFN
+      && !columnConfig.translateValues);
+    columnConfigs.forEach(cc => {
+      cc.filterField = cc.field.replace(/\./g, '_') + BaseSettings.FIELD_SUFFIX;
+      data.forEach(item => item[cc.filterField] = this.getValueByPath(item, cc));
     });
   }
 

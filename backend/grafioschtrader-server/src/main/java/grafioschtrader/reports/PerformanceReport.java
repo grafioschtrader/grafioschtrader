@@ -361,7 +361,8 @@ public class PerformanceReport {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     FirstAndMissingTradingDays firstAndMissingTradingDays = this
         .getFirstAndMissingTradingDaysByTenant(user.getIdTenant());
-    checkInputParam(firstAndMissingTradingDays, user.getLocaleStr(), dateFrom, dateTo, periodSplit);
+    checkInputParam(firstAndMissingTradingDays, user.getLocaleStr(), dateFrom, dateTo, periodSplit,
+        () -> holdSecurityaccountSecurityRepository.getCurrencypairsWithoutAnyQuoteByTenant(user.getIdTenant()));
     List<IPeriodHolding> periodHoldings = prependZeroBaseHolding(
         holdSecurityaccountSecurityRepository.getPeriodHoldingsByTenant(user.getIdTenant(), dateFrom, dateTo), dateFrom,
         firstAndMissingTradingDays, () -> holdSecurityaccountSecurityRepository
@@ -393,7 +394,8 @@ public class PerformanceReport {
       WeekYear periodSplit) throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     FirstAndMissingTradingDays firstAndMissingTradingDays = this.getFirstAndMissingTradingDaysByPortfolio(idPortfolio);
-    checkInputParam(firstAndMissingTradingDays, user.getLocaleStr(), dateFrom, dateTo, periodSplit);
+    checkInputParam(firstAndMissingTradingDays, user.getLocaleStr(), dateFrom, dateTo, periodSplit,
+        () -> holdSecurityaccountSecurityRepository.getCurrencypairsWithoutAnyQuoteByPortfolio(idPortfolio));
     List<IPeriodHolding> periodHoldings = prependZeroBaseHolding(
         holdSecurityaccountSecurityRepository.getPeriodHoldingsByPortfolio(idPortfolio, dateFrom, dateTo), dateFrom,
         firstAndMissingTradingDays,
@@ -490,11 +492,14 @@ public class PerformanceReport {
    * @param dateFrom requested start date
    * @param dateTo requested end date
    * @param periodSplit requested aggregation level
+   * @param deadCurrencypairsSupplier supplies the currency pairs without any price at all, only consulted when not a
+   *                                  single valid trading day is left
    * @throws DataViolationException if any validation rule is violated
    */
   private void checkInputParam(FirstAndMissingTradingDays firstAndMissingTradingDays, String localeStr,
-      LocalDate dateFrom, LocalDate dateTo, WeekYear periodSplit) {
+      LocalDate dateFrom, LocalDate dateTo, WeekYear periodSplit, Supplier<List<String>> deadCurrencypairsSupplier) {
 
+    checkNoTradingDayLeft(firstAndMissingTradingDays, localeStr, deadCurrencypairsSupplier);
     checkInputDateNotHolidayOrMissingQuotes(localeStr, dateFrom, DATE_FROM_FIELD_MSG, firstAndMissingTradingDays);
     checkInputDateNotHolidayOrMissingQuotes(localeStr, dateTo, DATE_TO_FIELD_MSG, firstAndMissingTradingDays);
     if (dateFrom.isBefore(firstAndMissingTradingDays.firstEverTradingDay)) {
@@ -514,9 +519,40 @@ public class PerformanceReport {
     }
   }
 
+  //@formatter:off
+  /**
+   * Rejects the request when the holdings contain a currency pair that has no price data whatsoever.
+   *
+   * <p>
+   * Every day of such a hold period counts as a day with missing quotes, so the backward scan for the latest usable
+   * trading day runs all the way to the start of the history and finds nothing. Without this check the subsequent
+   * boundary comparisons would dereference that null. The message names the offending currency pairs, because the
+   * generic "not a valid trading day" would leave the user without any clue what to fix.
+   * </p>
+   *
+   * @param firstAndMissingTradingDays trading day metadata for validation
+   * @param localeStr                  user's locale for error message formatting
+   * @param deadCurrencypairsSupplier  supplies the currency pairs without any price, queried only in this error case
+   * @throws DataViolationException if no usable trading day is left
+   */
+  //@formatter:on
+  private void checkNoTradingDayLeft(FirstAndMissingTradingDays firstAndMissingTradingDays, String localeStr,
+      Supplier<List<String>> deadCurrencypairsSupplier) {
+    if (firstAndMissingTradingDays.latestTradingDay != null) {
+      return;
+    }
+    List<String> deadCurrencypairs = deadCurrencypairsSupplier.get();
+    if (deadCurrencypairs.isEmpty()) {
+      throw new DataViolationException(DATE_TO_FIELD_MSG, "gt.not.valid.trading.day",
+          firstAndMissingTradingDays.firstEverTradingDay, localeStr);
+    }
+    throw new DataViolationException("currencypair", "gt.missing.currencypair.all",
+        String.join(", ", deadCurrencypairs), localeStr);
+  }
+
   /**
    * Validates that a specific date is a valid trading day.
-   * 
+   *
    * <p>
    * A valid trading day must be a weekday (not Saturday or Sunday), not a holiday,
    * and not a day with missing quote data.

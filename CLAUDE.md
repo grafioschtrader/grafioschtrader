@@ -22,9 +22,9 @@ Additional Claude Code guidance files exist in subdirectories:
 
 ### Backend (Maven)
 ```bash
-# Build all modules (skip tests for speed)
+# Build all modules (skip running tests, but still compile them)
 cd backend
-mvn clean install -Dmaven.test.skip=true
+mvn clean install -DskipTests
 
 # Build executable JAR
 mvn package -Dmaven.test.skip=true
@@ -34,6 +34,17 @@ mvn test
 
 # Run tests for specific module
 mvn test -pl grafioschtrader-server
+
+# IMPORTANT: use -DskipTests, not -Dmaven.test.skip=true, whenever a later "mvn test -pl <module>"
+# follows. grafiosch-server-base publishes its src/test/java as a test-jar (the shared integration
+# test fixture in grafiosch.test.rest); -Dmaven.test.skip=true skips test compilation and installs
+# an empty one, after which the test sources of grafioschtrader-server and grafiosch-test-integration
+# no longer compile. Pure production builds may keep -Dmaven.test.skip=true.
+
+# In Eclipse, run "Maven > Update Project" on grafioschtrader-server and grafiosch-test-integration
+# after the test-jar dependency was added. Otherwise the Eclipse builder writes class files holding
+# "Unresolved compilation problems" into target/test-classes and Maven runs those, which surfaces as
+# NoClassDefFoundError: UserRegister during test discovery. "mvn clean test" recompiles and clears it.
 
 # Test specific class
 mvn test -Dtest=YahooSplitCalendarTest
@@ -85,13 +96,16 @@ Maven multi-module project with dependency hierarchy:
    - Algorithm trading components
    - Transaction import/export
    - WebSocket handlers
-5. **grafiosch-test-integration** - Integration tests with RestAssured
+5. **grafiosch-test-integration** - Standalone Spring Boot application built on the two `grafiosch-*` modules alone.
+   It is both the reference consumer (showing which classes an application has to extend) and the host under test for
+   the reusable-library suites: `src/test/java/grafiosch/rest/` holds its `ResourceTestSuite`, and the frontend project
+   `grafiosch-host` talks to it on port 8081.
 
 **Main entry point**: `backend/grafioschtrader-server/src/main/java/grafioschtrader/GrafioschtraderApplication.java`
 
 ### Frontend Module Structure
 
-Angular 20 application organized by functional modules:
+Angular 21 application organized by functional modules:
 
 - **portfolio** - Portfolio management and holdings
 - **transaction** - Transaction recording and import
@@ -227,15 +241,28 @@ npm start
 **Framework**: JUnit 6 (Jupiter, version managed by Spring Boot BOM) + Spring Boot Test
 
 **Test locations**:
-- `backend/grafioschtrader-server/src/test/java/grafioschtrader/`
-- `backend/grafiosch-test-integration/src/main/` (integration tests)
+- `backend/grafiosch-base/src/test/java/grafiosch/` — unit tests of the library core (NLS guards, validators)
+- `backend/grafiosch-server-base/src/test/java/grafiosch/test/rest/` — the **shared integration test fixture**,
+  published as a test-jar and consumed by both applications (see below)
+- `backend/grafiosch-test-integration/src/test/java/grafiosch/rest/` — `ResourceTestSuite` of the reusable libraries
+- `backend/grafioschtrader-server/src/test/java/grafioschtrader/` — `ResoureTestSuite` plus connector, NLS and unit tests
 
-**Test configuration**: Annotate test classes with `@ActiveProfiles("test")` to use separate test database and disabled async features.
+**Test configuration**: Annotate test classes with `@ActiveProfiles("test")` to use separate test database and disabled
+async features. Both applications wrap that plus `@SpringBootTest` into one composed annotation
+(`GTIntegrationTestContext` / `GrafioschIntegrationTestContext`).
+
+**HTTP client**: Spring's `RestTestClient` (`spring-boot-resttestclient`), not RestAssured.
+
+**Shared registration/login fixture**: `grafiosch-server-base` owns `RestTestHelperBase` (reads
+`testdata/users.csv`, acquires a JWT per user), `BaseIntegrationTestSupport` (GreenMail SMTP on 3025,
+`authenticatedClient(nickname)`) and `AbstractUserResourceTest` (register → verify token → promote role → create
+tenant). Each application supplies only its own `users.csv`, a thin `RestTestHelper`/`BaseIntegrationTest` subclass
+and the tenant step, because `TenantBase` is extended per application.
 
 **Test types**:
 - Unit tests for connectors (Yahoo, AlphaVantage, etc.)
 - Calendar tests (dividend/split)
-- Integration tests with RestAssured
+- REST integration tests against a live MariaDB test database
 
 ### Frontend Tests
 

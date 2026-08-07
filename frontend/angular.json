@@ -114,9 +114,9 @@
         }
       }
     },
-    "lib-e2e-host": {
+    "grafiosch-host": {
       "root": "",
-      "sourceRoot": "src/lib-e2e-host",
+      "sourceRoot": "src/grafiosch-host",
       "projectType": "application",
       "architect": {
         "build": {
@@ -124,11 +124,11 @@
           "options": {
             "aot": true,
             "outputPath": {
-              "base": "dist/lib-e2e-host"
+              "base": "dist/grafiosch-host"
             },
-            "index": "src/lib-e2e-host/index.html",
-            "browser": "src/lib-e2e-host/main.ts",
-            "tsConfig": "./tsconfig.lib-e2e-host.json",
+            "index": "src/grafiosch-host/index.html",
+            "browser": "src/grafiosch-host/main.ts",
+            "tsConfig": "./tsconfig.grafiosch-host.json",
             "polyfills": [
               "zone.js"
             ],
@@ -143,7 +143,7 @@
               "src/assets/theme.css",
               "src/styles.css",
               "src/app/lib/styles.css",
-              "src/lib-e2e-host/styles.css"
+              "src/grafiosch-host/styles.css"
             ],
             "scripts": [
               "node_modules/moment/min/moment.min.js",
@@ -170,7 +170,7 @@
           "builder": "@angular/build:dev-server",
           "options": {
             "port": 4201,
-            "buildTarget": "lib-e2e-host:build"
+            "buildTarget": "grafiosch-host:build"
           }
         }
       }

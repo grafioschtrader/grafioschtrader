@@ -673,7 +673,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     Transaction transactioinNew = saveTransactionAndCorrectCashaccountBalance(transaction, preImage, adjustHoldings,
         false);
     if (adjustHoldings) {
-      adjustSecurityaccountHoldings(transactioinNew, preImage, securityaccount, true);
+      adjustSecurityaccountHoldings(transactioinNew, preImage, securityaccount);
     }
     return transactioinNew;
   }
@@ -722,13 +722,12 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
    * counting units the account no longer holds.
    * </p>
    *
-   * @param transaction     the transaction that affects holdings
+   * @param transaction     the transaction that affects holdings, already saved or deleted and flushed
    * @param preImage        snapshot of the transaction's former security account and security, or null
    * @param securityaccount the security account (retrieved if null)
-   * @param isAdded         whether the transaction is being added (true) or removed (false)
    */
   private void adjustSecurityaccountHoldings(Transaction transaction, TransactionPreImage preImage,
-      Securityaccount securityaccount, boolean isAdded) {
+      Securityaccount securityaccount) {
     if (transaction.getTransactionType() != TransactionType.ACCUMULATE
         && transaction.getTransactionType() != TransactionType.REDUCE) {
       return;
@@ -746,11 +745,11 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
                   transaction.getIdTenant());
       if (formerSecurityaccount != null) {
         holdSecurityaccountSecurityRepository.rebuildHoldingsForSecurityaccountAndSecurity(formerSecurityaccount,
-            preImage.idSecuritycurrency(), transaction.getIdTransaction());
+            preImage.idSecuritycurrency());
       }
     }
-    holdSecurityaccountSecurityRepository.adjustSecurityHoldingForSecurityaccountAndSecurity(targetSecurityaccount,
-        transaction, isAdded);
+    holdSecurityaccountSecurityRepository.rebuildHoldingsForSecurityaccountAndSecurity(targetSecurityaccount,
+        transaction.getSecurity().getIdSecuritycurrency());
   }
 
   /**
@@ -824,7 +823,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
     checkUnitsIntegrity(OperationType.DELETE, transactions, transaction, transaction.getSecurity());
     removeTransaction(transaction);
-    adjustSecurityaccountHoldings(transaction, null, null, false);
+    adjustSecurityaccountHoldings(transaction, null, null);
   }
 
   /**

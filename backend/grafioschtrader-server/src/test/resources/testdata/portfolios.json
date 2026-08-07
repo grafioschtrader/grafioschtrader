@@ -12,12 +12,19 @@
     "runs an English UI (en-US); 'alledit' is seeded by the backend ResoureTestSuite and runs a German",
     "UI (de-CH) — therefore the specs match every menu text bilingually.",
     "",
-    "'transactions' are consumed by 090-bank-account-transactions.spec.ts. 'single' creates one",
-    "cash-account transaction; 'transfer' creates the connected withdrawal/deposit pair. Dates are",
+    "'transactions' are consumed by 090-bank-account-transactions.spec.ts and, for rows tagged e2e='i',",
+    "by TransactionResourceTest. 'single' creates one cash-account transaction; 'transfer' creates the",
+    "connected withdrawal/deposit pair. Dates are",
     "ISO calendar dates and the test supplies a deterministic noon time. Account names are resolved",
     "inside their portfolio; a transfer names its destination portfolio explicitly. A standalone",
     "foreign-currency transaction may carry valuationExchangeRate: the exact source-database close",
     "is inserted only when the test database lacks a quote for that date.",
+    "",
+    "'standingOrders' are consumed by 095-standing-orders.spec.ts. The test removes matching",
+    "fixture orders left by an earlier run and recreates them through the cash/security dialogs.",
+    "Account and security names are resolved within the owning portfolio; securityIsin is used for",
+    "the instrument search. IDs, currency-pair IDs and calculated execution dates are deliberately",
+    "not stored because the backend derives them.",
     "",
     "'tradingPlatformPlan' is matched case-insensitively as a SUBSTRING of the option label in the",
     "securities account dialog, because the label is language dependent. The plans come from",
@@ -34,9 +41,75 @@
     "(Equities/Direct investment and Equities/ETF), they do not replace them. A null categoryType is",
     "the empty option of the asset class select and means 'all asset classes'. The enum names are the",
     "option values and therefore language independent. dateFrom 2000-01-03 is the oldest trading day,",
-    "which the dialog also pre-fills."
+    "which the dialog also pre-fills.",
+    "",
+    "Rows tagged e2e='i' are created by PortfolioResourceTest through REST. For those rows,",
+    "'connectSecurityAccount' names the securities account assigned to a cash account; the test",
+    "resolves the generated account ID after creating the securities accounts."
   ],
   "portfolios": [
+    {
+      "loginNickname": "admin",
+      "name": "Migros Bank",
+      "currency": "CHF",
+      "delete": false,
+      "cashAccounts": [
+        {"name": "Migros CHF", "currency": "CHF"},
+        {"name": "Migros EUR", "currency": "EUR"},
+        {"name": "Migros USD", "currency": "USD"},
+        {"name": "Migros-V CHF", "currency": "CHF", "connectSecurityAccount": "MB-Vorsorge"}
+      ],
+      "securityAccounts": [
+        {
+          "name": "MB-Normal",
+          "tradingPlatformPlan": "Migros Bank Standard",
+          "lowestTransactionCost": 40,
+          "tradingPeriods": [
+            {"specInvestInstrument": "DIRECT_INVESTMENT", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"},
+            {"specInvestInstrument": "ETF", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"},
+            {"specInvestInstrument": "DIRECT_INVESTMENT", "categoryType": "FIXED_INCOME", "dateFrom": "2000-01-03"},
+            {"specInvestInstrument": "ETF", "categoryType": null, "dateFrom": "2000-01-03"}
+          ]
+        },
+        {
+          "name": "MB-Vorsorge",
+          "tradingPlatformPlan": "Migros Bank Vorsorge",
+          "lowestTransactionCost": 0.01,
+          "tradingPeriods": [
+            {"specInvestInstrument": "DIRECT_INVESTMENT", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"},
+            {"specInvestInstrument": "ETF", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"},
+            {"specInvestInstrument": "MUTUAL_FUND", "categoryType": "MULTI_ASSET", "dateFrom": "2000-01-03"}
+          ]
+        }
+      ],
+      "transactions": [
+        {
+          "kind": "single",
+          "transactionType": "DEPOSIT",
+          "date": "2006-05-15",
+          "cashAccount": "Migros CHF",
+          "amount": 100000
+        },
+        {
+          "kind": "transfer",
+          "date": "2006-05-31",
+          "debitCashAccount": "Migros CHF",
+          "creditPortfolio": "Migros Bank",
+          "creditCashAccount": "Migros USD",
+          "creditAmount": 30000,
+          "exchangeRate": 0.82050003,
+          "expectedDebitAmount": 36563.07
+        },
+        {
+          "kind": "single",
+          "transactionType": "DEPOSIT",
+          "date": "2008-08-15",
+          "cashAccount": "Migros-V CHF",
+          "amount": 6365
+        }
+      ],
+      "e2e": "i"
+    },
     {
       "loginNickname": "e2euser",
       "name": "Test Portfolio",
@@ -193,6 +266,43 @@
           "amount": 125.28,
           "taxCost": 0,
           "valuationExchangeRate": {"toCurrency": "CHF", "close": 0.79170001}
+        }
+      ],
+      "standingOrders": [
+        {
+          "kind": "cash",
+          "transactionType": "FEE",
+          "cashAccount": "CT USD",
+          "cashaccountAmount": 3,
+          "amountCurrency": "CHF",
+          "cashaccountAmountFormula": "a * r * 1.019",
+          "repeatUnit": "MONTHS",
+          "repeatInterval": 1,
+          "periodDayPosition": "SPECIFIC_DAY",
+          "dayOfExecution": 10,
+          "weekendAdjust": "AFTER",
+          "validFrom": "2010-01-01",
+          "validTo": "2029-01-01"
+        },
+        {
+          "kind": "security",
+          "transactionType": "ACCUMULATE",
+          "securityAccount": "CT",
+          "cashAccount": "CT CHF",
+          "securityName": "iShares Core SPI (CH) ETF",
+          "securityIsin": "CH0237935652",
+          "investAmount": 2000,
+          "amountIncludesCosts": true,
+          "fractionalUnits": false,
+          "taxCostFormula": "u*q*0.00075",
+          "transactionCostFormula": "u*q*0.0008",
+          "repeatUnit": "YEARS",
+          "repeatInterval": 1,
+          "periodDayPosition": "FIRST_DAY",
+          "monthOfExecution": 1,
+          "weekendAdjust": "AFTER",
+          "validFrom": "2015-01-01",
+          "validTo": "2029-02-01"
         }
       ],
       "e2e": "e"

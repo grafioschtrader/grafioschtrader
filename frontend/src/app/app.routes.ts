@@ -71,7 +71,7 @@ import {GTNetExchangeTabMenuComponent} from './gtnet/component/gtnet-exchange-ta
 import {GTNetExchangeSecuritiesComponent} from './gtnet/component/gtnet-exchange-securities.component';
 import {GTNetExchangeCurrencypairsComponent} from './gtnet/component/gtnet-exchange-currencypairs.component';
 import {SendRecvTreetableComponent} from './lib/mail/component/send.recv.treetable.component';
-import {adminGuard, authGuard} from './shared/service/guards.definition';
+import {adminGuard, authGuard} from './lib/services/guards.definition';
 import {SendRecvForwardTabMenuComponent} from './lib/mail/component/send.recv.forward.tab.menu.component';
 import {UDFMetadataSecurityTableComponent} from './udfmetasecurity/components/udf.metadata.security.table.component';
 import {WatchlistUdfComponent} from './watchlist/component/watchlist.udf.component';

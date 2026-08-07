@@ -19,8 +19,9 @@
  *                5. Ensure the frontend dev server on port 4200 (reused if already running,
  *                   otherwise started via `npm start`), then run the Playwright e2e suite.
  *   --lib      Reusable-library suite: recreate `grafiosch_t`, start grafiosch-test-integration
- *              on port 8081 (profile `e2e`), ensure the lib host on port 4201
- *              (`npm run start:lib-e2e`), run `playwright test --config=playwright.lib.config.ts`.
+ *              on port 8081 (profile `e2e`), run the backend integration suite `ResourceTestSuite`
+ *              (registers the users.csv users), ensure the grafiosch host on port 4201
+ *              (`npm run start:grafiosch`), run `playwright test --config=playwright.lib.config.ts`.
  *   --all      Main suite first, then (after teardown) the lib suite.
  *
  * The backend (and any dev server this script started itself) is stopped again at the end,
@@ -122,14 +123,22 @@ const SUITES = {
     db: { name: 'grafiosch_t', user: 'grafiosch_t', password: 'grafiosch_t' },
     backend: {
       port: 8081,
-      // Flyway location filesystem:./grafiosch-test-integration/migration-baseline is relative to backend/
+      // Flyway location filesystem:./migration-baseline resolves against the module basedir, which the
+      // module pom pins as the working directory of spring-boot:run — independent of this cwd.
       args: ['-pl', 'grafiosch-test-integration', 'spring-boot:run', '-Dspring-boot.run.profiles=e2e',
         `-Dspring-boot.run.jvmArguments="${E2E_JVM_ARGS}"`],
       healthUrl: `${process.env.LIB_E2E_BACKEND_URL ?? 'http://localhost:8081'}/api/integration-info`,
       healthOk: j => j.databaseName === 'grafiosch_t' && j.activeProfiles?.includes('e2e'),
     },
-    frontend: { port: 4201, npmArgs: ['run', 'start:lib-e2e'] },
+    frontend: { port: 4201, npmArgs: ['run', 'start:grafiosch'] },
     testPhases: [
+      // Creates the e2e='i' users of grafiosch-test-integration/src/test/resources/testdata/users.csv through the
+      // real registration endpoints. Since the JDBC seeder IntegrationE2EDataInitializer was removed there is no
+      // other source of users, so the Playwright phase below would have nobody to log in as without this.
+      { name: 'backend-integration-suite', cwd: BACKEND_DIR,
+        // argLine is what surefire passes to the JVM it forks for the tests.
+        cmd: 'mvn', args: ['test', '-pl', 'grafiosch-test-integration', '-Dtest=ResourceTestSuite',
+          `-DargLine="${E2E_JVM_ARGS}"`] },
       { name: 'lib-playwright-e2e', cwd: FRONTEND_DIR,
         cmd: 'npx', args: ['playwright', 'test', '--config=playwright.lib.config.ts'],
         clearOutputDir: PLAYWRIGHT_OUTPUT_DIR,

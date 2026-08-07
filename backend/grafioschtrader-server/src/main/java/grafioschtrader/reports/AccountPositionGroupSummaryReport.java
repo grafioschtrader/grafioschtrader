@@ -26,6 +26,7 @@ import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.instrument.SecurityCalcService;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
+import grafioschtrader.reportviews.FromToCurrencyWithDate;
 import grafioschtrader.reportviews.account.AccountPositionGrandSummary;
 import grafioschtrader.reportviews.account.AccountPositionGroupSummary;
 import grafioschtrader.reportviews.account.CashaccountPositionSummary;
@@ -284,10 +285,17 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
           .get(transaction.getCashaccount());
 
       accountPositionSummary.cashBalance += transaction.getCashaccountAmount();
-      if (transaction.getTransactionType() == TransactionType.FEE) {
-        accountPositionSummary.accountFeesMC += transaction.getFeeMC(dateCurrencyMap);
-      } else if (transaction.getTransactionType() == TransactionType.INTEREST_CASHACCOUNT) {
-        accountPositionSummary.accountInterestMC += transaction.getInterestMC(dateCurrencyMap);
+      if (transaction.getTransactionType() == TransactionType.FEE
+          || transaction.getTransactionType() == TransactionType.INTEREST_CASHACCOUNT) {
+        // Probing the rate first keeps a fee on an unconvertible cash account from aborting the report. The amount is
+        // still taken from the entity, so the sign conventions of fee and interest stay in one place.
+        if (transaction.getExchangeRateOnCurrencyOrNull(mainCurrency, dateCurrencyMap) == null) {
+          accountPositionSummary.priceMissing = true;
+        } else if (transaction.getTransactionType() == TransactionType.FEE) {
+          accountPositionSummary.accountFeesMC += transaction.getFeeMC(dateCurrencyMap);
+        } else {
+          accountPositionSummary.accountInterestMC += transaction.getInterestMC(dateCurrencyMap);
+        }
       } else if (mainCurrency.equals(transaction.getCashaccount().getCurrency())
           && (transaction.getTransactionType() == TransactionType.DEPOSIT
               || transaction.getTransactionType() == TransactionType.WITHDRAWAL)) {
@@ -300,16 +308,54 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 
       if (transaction.getTransactionType() == TransactionType.DEPOSIT
           || transaction.getTransactionType() == TransactionType.WITHDRAWAL) {
-        CashaccountTransfer ct = DataBusinessHelper.calcDepositOnTransactionsOfCashaccount(transaction,
-            dateCurrencyMap.getFromToCurrencyWithDateMap(), mainCurrency, exchangeRateConnectedTransactionMap,
-            dateCurrencyMap.getCurrencypairFromToCurrencyMap());
+        if (isCashTransferConvertible(transaction, mainCurrency, dateCurrencyMap)) {
+          CashaccountTransfer ct = DataBusinessHelper.calcDepositOnTransactionsOfCashaccount(transaction,
+              dateCurrencyMap.getFromToCurrencyWithDateMap(), mainCurrency, exchangeRateConnectedTransactionMap,
+              dateCurrencyMap.getCurrencypairFromToCurrencyMap());
 
-        accountPositionSummary.cashTransferMC += ct.amountMC;
-        accountPositionSummary.cashAccountTransactionFeeMC += ct.cashAccountTransactionFeeMC;
+          accountPositionSummary.cashTransferMC += ct.amountMC;
+          accountPositionSummary.cashAccountTransactionFeeMC += ct.cashAccountTransactionFeeMC;
+        } else {
+          accountPositionSummary.priceMissing = true;
+        }
       }
 
       processNoMainCurrencyTransaction(acps, accountPositionSummary, mainCurrency, dateCurrencyMap, transaction);
     }
+  }
+
+  //@formatter:off
+  /**
+   * Answers whether {@link DataBusinessHelper#calcDepositOnTransactionsOfCashaccount} can convert this deposit or
+   * withdrawal into the main currency.
+   *
+   * <p>
+   * The helper needs a looked-up rate in exactly one shape: a transaction without its own currency pair on a cash
+   * account that is not denominated in the main currency. In that shape it reads the rate of the transaction date and
+   * otherwise falls back to the last price of the currency pair, and it dereferences both without a check. For a
+   * currency pair that never received any price data, that combination is a null pointer rather than a wrong number.
+   * All other shapes derive the rate from the transaction itself and always succeed, so they pass unchanged.
+   * </p>
+   *
+   * @param transaction     the deposit or withdrawal about to be converted
+   * @param mainCurrency    the currency of the tenant or portfolio
+   * @param dateCurrencyMap currency exchange rate context, queried with the same keys the helper uses
+   * @return true when the helper will find a rate, false when the account has to be treated as unconvertible
+   */
+  //@formatter:on
+  private boolean isCashTransferConvertible(final Transaction transaction, final String mainCurrency,
+      final DateTransactionCurrencypairMap dateCurrencyMap) {
+    if (transaction.getIdCurrencypair() != null
+        || mainCurrency.equals(transaction.getCashaccount().getCurrency())) {
+      return true;
+    }
+    if (dateCurrencyMap.getFromToCurrencyWithDateMap().containsKey(new FromToCurrencyWithDate(
+        transaction.getCashaccount().getCurrency(), mainCurrency, transaction.getTransactionDate()))) {
+      return true;
+    }
+    final Currencypair currencypair = dateCurrencyMap
+        .getCurrencypairByFromCurrency(transaction.getCashaccount().getCurrency());
+    return currencypair != null && currencypair.getSLast() != null;
   }
 
   /**
@@ -397,15 +443,16 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
             || transaction.getTransactionType() == TransactionType.WITHDRAWAL)) {
       // it is a deposit or withdrawal on foreign cash account without currency
       // exchange
-      final Double exchangeRate = dateCurrencyMap.getPriceByDateAndFromCurrency(transaction.getTransactionDateAsLocalDate(),
-          accountPositionSummary.securitycurrency.getFromCurrency(), true);
+      final Double exchangeRate = getTransactionExchangeRate(accountPositionSummary, dateCurrencyMap, transaction);
 
       accountPositionSummary.balanceCurrencyTransaction += transaction.getCashaccountAmount();
-      accountPositionSummary.balanceCurrencyTransactionMC += transaction.getCashaccountAmount() * exchangeRate;
-      if (transaction.getTransactionType() == TransactionType.DEPOSIT
-          || transaction.getTransactionType() == TransactionType.WITHDRAWAL) {
-        accountPositionSummary.externalCashTransferMC += (transaction.getCashaccountAmount()
-            + (transaction.getTransactionCost() != null ? transaction.getTransactionCost() : 0.0)) * exchangeRate;
+      if (exchangeRate != null) {
+        accountPositionSummary.balanceCurrencyTransactionMC += transaction.getCashaccountAmount() * exchangeRate;
+        if (transaction.getTransactionType() == TransactionType.DEPOSIT
+            || transaction.getTransactionType() == TransactionType.WITHDRAWAL) {
+          accountPositionSummary.externalCashTransferMC += (transaction.getCashaccountAmount()
+              + (transaction.getTransactionCost() != null ? transaction.getTransactionCost() : 0.0)) * exchangeRate;
+        }
       }
 
     }
@@ -436,39 +483,78 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
       Double exchangeRate = acps.exchangeRateConnectedTransactionMap.get(transaction.getIdTransaction());
       if (exchangeRate == null) {
         // different currency, for example USD/GBP when USD nor GBP is main currency
-        exchangeRate = dateCurrencyMap.getPriceByDateAndFromCurrency(transaction.getTransactionDateAsLocalDate(),
-            accountPositionSummary.securitycurrency.getFromCurrency(), true);
+        exchangeRate = getTransactionExchangeRate(accountPositionSummary, dateCurrencyMap, transaction);
 
-        double normalizedExchangeRate = currencypair.getFromCurrency()
-            .equals(accountPositionSummary.getCashaccount().getCurrency())
-                ? exchangeRate / transaction.getCurrencyExRateNotNull()
-                : exchangeRate * transaction.getCurrencyExRateNotNull();
+        if (exchangeRate != null) {
+          double normalizedExchangeRate = currencypair.getFromCurrency()
+              .equals(accountPositionSummary.getCashaccount().getCurrency())
+                  ? exchangeRate / transaction.getCurrencyExRateNotNull()
+                  : exchangeRate * transaction.getCurrencyExRateNotNull();
 
-        acps.exchangeRateConnectedTransactionMap.put(transaction.getConnectedIdTransaction(), normalizedExchangeRate);
+          acps.exchangeRateConnectedTransactionMap.put(transaction.getConnectedIdTransaction(), normalizedExchangeRate);
+        }
       } else {
         // Same currency
         acps.exchangeRateConnectedTransactionMap.remove(transaction.getIdTransaction());
       }
 
       accountPositionSummary.balanceCurrencyTransaction += transaction.getCashaccountAmount();
-      accountPositionSummary.balanceCurrencyTransactionMC += transaction.getCashaccountAmount() * exchangeRate;
+      if (exchangeRate != null) {
+        accountPositionSummary.balanceCurrencyTransactionMC += transaction.getCashaccountAmount() * exchangeRate;
+      }
     } else {
-      final Double exchangeRate = dateCurrencyMap.getPriceByDateAndFromCurrency(transaction.getTransactionDateAsLocalDate(),
-          accountPositionSummary.securitycurrency.getFromCurrency(), true);
+      final Double exchangeRate = getTransactionExchangeRate(accountPositionSummary, dateCurrencyMap, transaction);
       // Security transaction between two foreign currencies where the main currency is not involved (e.g. a USD
       // security paid from a GBP cash account while the tenant currency is CHF). The transaction's own exchange rate
       // only converts between the two foreign currencies, so the main-currency amounts are derived from a separately
       // looked-up rate, and the security-currency counter-side is booked into a pseudo cash account since no real
       // account in that currency participates in the transaction.
       accountPositionSummary.balanceCurrencyTransaction += transaction.getCashaccountAmount();
-      accountPositionSummary.balanceCurrencyTransactionMC += transaction.getCashaccountAmount() * exchangeRate;
       final CashaccountPositionSummary securityACPS = getOrCreatePseudoAccountPositionGroupSummary(acps,
           accountPositionSummary.getCashaccount().getPortfolio(), transaction.getSecurity().getCurrency(),
           dateCurrencyMap);
 
       securityACPS.balanceCurrencyTransaction -= transaction.getCashaccountAmount() / transaction.getCurrencyExRate();
-      securityACPS.balanceCurrencyTransactionMC -= transaction.getCashaccountAmount() * exchangeRate;
+      if (exchangeRate != null) {
+        accountPositionSummary.balanceCurrencyTransactionMC += transaction.getCashaccountAmount() * exchangeRate;
+        securityACPS.balanceCurrencyTransactionMC -= transaction.getCashaccountAmount() * exchangeRate;
+      } else {
+        // The counter side is just as unconvertible as the account side, otherwise its total would silently keep a
+        // main currency amount for which the matching booking is missing.
+        securityACPS.priceMissing = true;
+      }
     }
+  }
+
+  /**
+   * Determines the exchange rate of a transaction date from the cash account currency into the main currency, without
+   * aborting the whole report when it cannot be found.
+   *
+   * <p>
+   * A missing rate used to raise a {@link grafiosch.exceptions.DataViolationException}, which made a single
+   * unconvertible account, for instance a crypto currency whose currency pair carries no price data at all, take down
+   * the position summary of every portfolio of the tenant. The account is now marked instead, so the report is
+   * delivered for all other currencies and the client can point out which part of it is incomplete.
+   * </p>
+   *
+   * @param accountPositionSummary the position of the cash account the transaction was booked on, marked when the rate
+   *                               is unavailable
+   * @param dateCurrencyMap        currency exchange rate context
+   * @param transaction            the transaction whose booking date determines the rate
+   * @return the exchange rate into the main currency, or null when none is available
+   */
+  private Double getTransactionExchangeRate(final CashaccountPositionSummary accountPositionSummary,
+      final DateTransactionCurrencypairMap dateCurrencyMap, final Transaction transaction) {
+    if (accountPositionSummary.securitycurrency == null) {
+      accountPositionSummary.priceMissing = true;
+      return null;
+    }
+    final Double exchangeRate = dateCurrencyMap.getPriceByDateAndFromCurrency(
+        transaction.getTransactionDateAsLocalDate(), accountPositionSummary.securitycurrency.getFromCurrency(), false);
+    if (exchangeRate == null) {
+      accountPositionSummary.priceMissing = true;
+    }
+    return exchangeRate;
   }
 
   /**
@@ -668,6 +754,9 @@ class AccessCashaccountPositionSummary {
     if (!dateCurrencyMap.getMainCurrency().equals(cashaccount.getCurrency())) {
       accountPositionSummary.securitycurrency = dateCurrencyMap
           .getCurrencypairByFromCurrency(cashaccount.getCurrency());
+      // Without a currency pair the account is filtered out of AccountGroupMap.getAllForeignCurrency() and therefore
+      // never priced at all. Flagging it here is the only chance to notice that its balance is unconvertible.
+      accountPositionSummary.priceMissing = accountPositionSummary.securitycurrency == null;
     }
     accountPositionSummary.cashBalance = 0.0;
     accountPositionSummary.externalCashTransferMC = 0.0;

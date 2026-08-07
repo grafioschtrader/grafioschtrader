@@ -161,8 +161,8 @@
     "readableName": "Finanz und Wirtschaft",
     "descriptionNLS": {
       "map": {
-        "de": "[historical]Geben Sie den FUW-<b>Listing-Key</b> eines auf <a href=\"https://www.fuw.ch/\" target=\"_blank\">Finanz und Wirtschaft</a> aufgef�hrten Wertpapiers ein. �ffnen Sie die Instrumentenseite auf fuw.ch; ihre URL endet mit <code>valor-VALOR/BC/CURRENCY</code> &ndash; geben Sie diese drei Zahlen mit Bindestrichen verbunden ein, z.B. <b>322646-44-814</b> f�r Allianz (Xetra). Kein API-Schl�ssel n�tig. <b>Wichtig:</b> FUW liefert nur eine rollende Historie von rund 10 Jahren (zur�ck bis etwa heute minus 10 Jahre), unabh�ngig vom tats�chlichen Auflagedatum des Instruments; �ltere End-of-Day-Daten sind �ber diese Quelle nicht verf�gbar.[intra]Gleicher Listing-Key wie f�r die historischen Daten. Liefert den letzten Kurs zusammen mit Er�ffnung, Tageshoch, Tagestief, Volumen und prozentualer Ver�nderung des Tages.",
-        "en": "[historical]Enter the FUW <b>listing key</b> of a security shown on <a href=\"https://www.fuw.ch/\" target=\"_blank\">Finanz und Wirtschaft</a>. Open the instrument page on fuw.ch; its URL ends with <code>valor-VALOR/BC/CURRENCY</code> &ndash; enter these three numbers joined by hyphens, e.g. <b>322646-44-814</b> for Allianz (Xetra). No API key is required. <b>Important:</b> FUW provides only a rolling history of about the last 10 years (back to roughly today minus 10 years), regardless of when the instrument was actually launched; older end-of-day data is not available from this source.[intra]Same listing key as for historical data. Delivers the last price together with open, daily high, daily low, volume and the percentage change for the day."
+        "de": "[historical]Geben Sie den FUW-<b>Listing-Key</b> eines auf <a href=\"https://www.fuw.ch/\" target=\"_blank\">Finanz und Wirtschaft</a> aufgef�hrten Instruments ein. �ffnen Sie dessen Seite auf fuw.ch; die URL endet mit <code>valor-VALOR/BC/CURRENCY</code> &ndash; geben Sie diese drei Zahlen mit Bindestrichen verbunden ein, z.B. <b>322646-44-814</b> f�r Allianz (Xetra). W�hrungspaare und Kryptow�hrungen sind unter <code>/boerse/waehrungen/</code> aufgef�hrt und verwenden dieselbe Schreibweise, z.B. <b>897789-178-1</b> f�r EUR/CHF oder <b>999999915312-9910014-1</b> f�r BTC/CHF. Kein API-Schl�ssel n�tig. <b>Wichtig:</b> FUW liefert nur eine rollende Historie von rund 10 Jahren (zur�ck bis etwa heute minus 10 Jahre), unabh�ngig vom tats�chlichen Auflagedatum des Instruments; �ltere End-of-Day-Daten sind �ber diese Quelle nicht verf�gbar.[intra]Gleicher Listing-Key wie f�r die historischen Daten. Liefert den letzten Kurs zusammen mit Er�ffnung, Tageshoch, Tagestief, Volumen und prozentualer Ver�nderung des Tages. W�hrungspaare werden ohne Volumen geliefert.",
+        "en": "[historical]Enter the FUW <b>listing key</b> of an instrument shown on <a href=\"https://www.fuw.ch/\" target=\"_blank\">Finanz und Wirtschaft</a>. Open its page on fuw.ch; the URL ends with <code>valor-VALOR/BC/CURRENCY</code> &ndash; enter these three numbers joined by hyphens, e.g. <b>322646-44-814</b> for Allianz (Xetra). Currency pairs and cryptocurrencies are listed under <code>/boerse/waehrungen/</code> and use the same notation, e.g. <b>897789-178-1</b> for EUR/CHF or <b>999999915312-9910014-1</b> for BTC/CHF. No API key is required. <b>Important:</b> FUW provides only a rolling history of about the last 10 years (back to roughly today minus 10 years), regardless of when the instrument was actually launched; older end-of-day data is not available from this source.[intra]Same listing key as for historical data. Delivers the last price together with open, daily high, daily low, volume and the percentage change for the day. Currency pairs are delivered without a volume."
       }
     },
     "domainUrl": "https://wp.fuw.ch/wp-json/fuw/v1/",
@@ -174,14 +174,87 @@
     "intradayDelaySeconds": 900,
     "regexUrlPattern": "^[0-9]+-[0-9]+-[0-9]+$",
     "supportsSecurity": true,
-    "supportsCurrency": false,
+    "supportsCurrency": true,
     "needHistoryGapFiller": true,
     "gbxDividerEnabled": false,
-    "supportedCategories": "EQUITIES,NON_INVESTABLE_INDICES,CRYPTOCURRENCY,FIXED_INCOME,ETF,MUTUAL_FUND,ISSUER_RISK_PRODUCT,CFD_DERIVATIVE",
+    "supportedCategories": "CURRENCY_PAIR,EQUITIES,NON_INVESTABLE_INDICES,CRYPTOCURRENCY,FIXED_INCOME,ETF,MUTUAL_FUND,ISSUER_RISK_PRODUCT,CFD_DERIVATIVE",
     "geoRestrictions": null,
     "tokenConfigYaml": null,
     "httpHeaders": [],
     "endpoints": [
+      {
+        "feedSupport": "FS_HISTORY",
+        "instrumentType": "CURRENCY",
+        "urlTemplate": "marketdata/chartdata/{ticker}?keyType=LISTING_ID&dataSource=wfg&refCurrency=undefined&timeRange=max",
+        "httpMethod": "GET",
+        "responseFormat": "JSON",
+        "numberFormat": "PLAIN",
+        "dateFormatType": "UNIX_MILLIS",
+        "dateFormatPattern": null,
+        "jsonDataStructure": "ARRAY_OF_OBJECTS",
+        "jsonDataPath": "payload.prices.max",
+        "jsonColumnNamesPath": null,
+        "jsonStatusPath": "status",
+        "jsonStatusOkValue": "Success",
+        "csvDelimiter": null,
+        "csvSkipHeaderLines": 1,
+        "htmlCssSelector": null,
+        "htmlExtractMode": null,
+        "htmlTextCleanup": null,
+        "htmlExtractRegex": null,
+        "htmlSplitDelimiter": null,
+        "tickerBuildStrategy": "URL_EXTEND",
+        "currencyPairSeparator": null,
+        "currencyPairSuffix": null,
+        "tickerUppercase": false,
+        "maxDataPoints": null,
+        "paginationEnabled": false,
+        "endpointOptions": [],
+        "fieldMappings": [
+          {
+            "targetField": "close",
+            "sourceExpression": "4",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": true
+          },
+          {
+            "targetField": "date",
+            "sourceExpression": "0",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": true
+          },
+          {
+            "targetField": "high",
+            "sourceExpression": "2",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "low",
+            "sourceExpression": "3",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "open",
+            "sourceExpression": "1",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "volume",
+            "sourceExpression": "5",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          }
+        ]
+      },
       {
         "feedSupport": "FS_HISTORY",
         "instrumentType": "SECURITY",
@@ -249,6 +322,86 @@
           {
             "targetField": "volume",
             "sourceExpression": "5",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          }
+        ]
+      },
+      {
+        "feedSupport": "FS_INTRA",
+        "instrumentType": "CURRENCY",
+        "urlTemplate": "marketdata/quotes/{ticker}?keyType=LISTING_ID&dataSource=wfg&dataheader=true",
+        "httpMethod": "GET",
+        "responseFormat": "JSON",
+        "numberFormat": "PLAIN",
+        "dateFormatType": "UNIX_MILLIS",
+        "dateFormatPattern": null,
+        "jsonDataStructure": "ARRAY_OF_OBJECTS",
+        "jsonDataPath": "Values",
+        "jsonColumnNamesPath": null,
+        "jsonStatusPath": "Status",
+        "jsonStatusOkValue": "Success",
+        "csvDelimiter": null,
+        "csvSkipHeaderLines": 1,
+        "htmlCssSelector": null,
+        "htmlExtractMode": null,
+        "htmlTextCleanup": null,
+        "htmlExtractRegex": null,
+        "htmlSplitDelimiter": null,
+        "tickerBuildStrategy": "URL_EXTEND",
+        "currencyPairSeparator": null,
+        "currencyPairSuffix": null,
+        "tickerUppercase": false,
+        "maxDataPoints": null,
+        "paginationEnabled": false,
+        "endpointOptions": [],
+        "fieldMappings": [
+          {
+            "targetField": "changePercentage",
+            "sourceExpression": "dailyChangeRel",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "high",
+            "sourceExpression": "dailyHighPrice",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "last",
+            "sourceExpression": "currentPrice",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": true
+          },
+          {
+            "targetField": "low",
+            "sourceExpression": "dailyLowPrice",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "open",
+            "sourceExpression": "openPrice",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "prevClose",
+            "sourceExpression": "previousDayClose",
+            "csvColumnIndex": null,
+            "dividerExpression": null,
+            "required": false
+          },
+          {
+            "targetField": "volume",
+            "sourceExpression": "volume",
             "csvColumnIndex": null,
             "dividerExpression": null,
             "required": false
