@@ -59,6 +59,7 @@ grafioschtrader.connector.calendar.yahoo
 grafioschtrader.connector.instrument
 grafioschtrader.connector.instrument.alphavantage
 grafioschtrader.connector.instrument.boursorama
+grafioschtrader.connector.instrument.coinmarketcap
 grafioschtrader.connector.instrument.comdirect
 grafioschtrader.connector.instrument.consorsbank
 grafioschtrader.connector.instrument.cryptocompare
