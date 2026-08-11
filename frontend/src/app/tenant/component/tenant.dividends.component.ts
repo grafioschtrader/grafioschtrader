@@ -108,6 +108,11 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
     return this.securityDividendsGrandTotal ? this.securityDividendsGrandTotal.numberOfCashAccounts : 0;
   }
 
+  /** True for Swiss tenants; gates the ICTax columns and the eCH-0196 tax statement export. */
+  private get isSwissTenant(): boolean {
+    return this.securityDividendsGrandTotal?.tenantCountry === 'CH';
+  }
+
   ngOnInit(): void {
     // use string to avoid number format
     this.addColumn(DataType.String, 'year', 'YEAR', true, false);
@@ -188,7 +193,7 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
     const menuItems: MenuItem[] = [
       {label: 'DIV_INCLUDE_SECURITYACCOUNT', command: (event) => this.showPortfolioSelectionDialog()},
     ];
-    if (this.securityDividendsGrandTotal?.availableTaxYears?.length > 0) {
+    if (this.isSwissTenant && this.securityDividendsGrandTotal?.availableTaxYears?.length > 0) {
       menuItems.push({label: 'EXPORT_TAX_STATEMENT', command: (event) => this.showExportDialog()});
     }
     menuItems.push(
@@ -308,7 +313,7 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
       const ictaxFields = ['yearIctaxTotalTaxValueChf', 'yearIctaxTotalPaymentValueChf'];
       ictaxFields.forEach(fieldName => {
         const col = this.fields.find(f => f.field === fieldName);
-        if (col) { col.visible = data.tenantCountry === 'CH'; }
+        if (col) { col.visible = this.isSwissTenant; }
       });
       this.prepareTableAndTranslate();
     });

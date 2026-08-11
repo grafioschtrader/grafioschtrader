@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 /**
- * Shared helpers and typings for 065-create-generic-connector.spec.ts.
+ * Shared helpers and typings for 095-create-generic-connector.spec.ts.
  *
  * The generic connector testdata is a nested JSON file produced from the developer database by
  * scripts/export-generic-connectors.mjs (invoked by backend/nv.bat). Property names match the
@@ -11,7 +11,7 @@ import * as path from 'path';
  * /api/genericconnector or deserialized by a JUnit test with Jackson.
  *
  * The creating user 'alledit' and the activating user 'admin' run a German UI (locale de-CH in
- * users.csv) while other e2e users run English — every text selector therefore matches both
+ * users.json) while other e2e users run English — every text selector therefore matches both
  * languages plus the raw NLS key (same convention as manage-client.helpers.ts).
  */
 

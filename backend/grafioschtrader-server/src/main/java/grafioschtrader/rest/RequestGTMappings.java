@@ -137,6 +137,9 @@ public interface RequestGTMappings {
   public static final String UDFMETADATASECURITY = "udfmetadatasecurity";
   public static final String UDF_METADATA_SECURITY_MAP = RequestMappings.API + UDFMETADATASECURITY;
 
+  public static final String USER_CHART_SHAPE = "userchartshape";
+  public static final String USER_CHART_SHAPE_MAP = RequestMappings.API + USER_CHART_SHAPE;
+
   public static final String TENANT_MAP = RequestMappings.API + TenantBase.TABNAME;
 
   // Used for path part

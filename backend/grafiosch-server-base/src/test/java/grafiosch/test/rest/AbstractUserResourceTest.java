@@ -20,8 +20,8 @@ import jakarta.transaction.Transactional;
 
 /**
  * The registration and login flow that every application built on {@code grafiosch-server-base} shares: create the
- * users of {@code testdata/users.csv}, verify their mail tokens, promote them to the role their CSV row asks for and
- * finally create a tenant for each of them.
+ * users of {@code testdata/users.json}, verify their mail tokens, promote them to the role their JSON object asks for
+ * and finally create a tenant for each of them.
  *
  * <p>
  * Only the last step is application specific, because the tenant entity is: {@code TenantBase} is extended per
@@ -85,7 +85,7 @@ public abstract class AbstractUserResourceTest extends BaseIntegrationTestSuppor
   @Order(3)
   @Test
   @Transactional
-  @DisplayName("Adjust user rights (driven by users.csv role column; ADMIN and LIMITEDIT need no promotion)")
+  @DisplayName("Adjust user rights (driven by users.json role; ADMIN and LIMITEDIT need no promotion)")
   void adjustUserRights() {
     RestTestHelperBase.inizializeUserTokens(restTestClient, jwtTokenHandler);
     for (UserRegister u : RestTestHelperBase.users) {

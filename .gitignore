@@ -7,7 +7,12 @@
 # Committed e2e orchestrator wrapper (see scripts/e2e-test.mjs) — must stay tracked
 !/e2eTest.cmd
 /*.sql
-.claude
+# Claude Code local config stays out; the committed skill stubs under .claude/skills/ stay in.
+# Must be ".claude/*" and not ".claude" — git does not descend into an ignored directory,
+# so a negation inside one would never apply.
+.claude/*
+!.claude/skills/
+.claude/settings.local.json
 nul
 tmpclaude-*
 __pycache__/

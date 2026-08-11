@@ -12,7 +12,7 @@ import grafiosch.test.rest.AbstractUserResourceTest;
 import grafiosch.test.rest.UserRegister;
 
 /**
- * Creates the {@code e2e='i'} users of {@code testdata/users.csv} and their tenants. It is the first class of
+ * Creates the {@code e2e='i'} users of {@code testdata/users.json} and their tenants. It is the first class of
  * {@link ResourceTestSuite} because every following resource test authenticates as one of these users, and it is what
  * replaced the former {@code IntegrationE2EDataInitializer}: users are no longer inserted with JDBC but registered
  * through the real endpoints, so the registration, mail-verification and role-promotion flow of

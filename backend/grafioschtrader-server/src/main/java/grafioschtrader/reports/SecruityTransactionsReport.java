@@ -379,6 +379,12 @@ public class SecruityTransactionsReport {
             }
           }, untilDate);
     }
+    if (dateCurrencyMap != null) {
+      // The share of the currency result each transaction carries depends on the reporting date rate, so it can only
+      // be filled in once the walk and the hypothetical close are done.
+      securityTransactionSummary.applyReportRate(
+          ReportHelper.getReportExchangeRate(security.getCurrency(), dateCurrencyMap, tradingDaysPlusJpaRepository));
+    }
     if (secruityTransactionsReportOptions.contains(SecruityTransactionsReportOptions.CLEAR_TRANSACTION_SECURITY)) {
       securityTransactionSummary.setSecurityInTransactionToNull();
     }

@@ -23,6 +23,7 @@ import grafiosch.dto.ConfigurationWithLogin.EntityNameWithKeyName;
 import grafiosch.dto.ConfigurationWithLogin.FeatureType;
 import grafiosch.entities.User;
 import grafiosch.repository.GlobalparametersJpaRepository;
+import grafiosch.types.FeatureTypeBase;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.SingularAttribute;
@@ -152,7 +153,17 @@ public abstract class TokenAuthentication {
         mergedFeatures.addAll(configuration.useFeatures);
       }
       mergedFeatures.addAll(baseFeatureConfig.getEnabledFeatures());
+      // GTNet is library functionality end to end, so the flag is raised here rather than in an application's feature
+      // configuration. Deliberately isGTNetEnabled() and not isGTNetOperational(): this drives the whole GTNet section
+      // of the admin menu, which contains the setup table where the own GTNet entry is created in the first place.
+      // Requiring an own entry would be a deadlock — no entry means no menu, and no menu means no entry can be created.
+      // The GTNet feature is not evaluated in BaseFeatureConfig because that bean is itself injected into
+      // GlobalparametersJpaRepositoryImpl.isGTNetEnabled() and reading the repository from there would close a cycle.
+      if (globalparametersJpaRepository.isGTNetEnabled()) {
+        mergedFeatures.add(FeatureTypeBase.GTNET);
+      }
       configuration.useFeatures = mergedFeatures;
+      configuration.gtNetLogEnabled = globalparametersJpaRepository.isGTNetLogEnabled();
       jacksonObjectMapper.writeValue(out, configuration);
     } catch (Exception e) {
       log.error("Failed to write login response for user {}",

@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
@@ -60,7 +58,6 @@ import grafioschtrader.repository.TradingDaysPlusJpaRepository;
  */
 public class SecurityCashaccountGroupByCurrencyBaseReport {
 
-  private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   protected TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
 
@@ -159,40 +156,16 @@ public class SecurityCashaccountGroupByCurrencyBaseReport {
   }
 
   /**
-   * Determines the appropriate exchange rate for converting a currency to the main currency. Handles various scenarios
-   * including historical dates, current dates, and missing rate fallbacks.
-   * 
+   * Determines the appropriate exchange rate for converting a currency to the main currency.
+   *
    * @param currency        the source currency to convert from
    * @param dateCurrencyMap currency and date context containing rate information
    * @return exchange rate from the source currency to main currency
    * @throws DataViolationException if required exchange rate is missing on a trading day
+   * @see ReportHelper#getReportExchangeRate(String, DateTransactionCurrencypairMap, TradingDaysPlusJpaRepository)
    */
   private Double getCurrencyExChangeRate(String currency, final DateTransactionCurrencypairMap dateCurrencyMap) {
-    Double currencyExchangeRate = null;
-    if (currency.equals(dateCurrencyMap.getMainCurrency())) {
-      currencyExchangeRate = 1.0;
-    } else {
-      if (dateCurrencyMap.isUntilDateEqualNowOrAfterOrInActualWeekend()) {
-        currencyExchangeRate = dateCurrencyMap.getCurrencypairByFromCurrency(currency).getSLast();
-      } else {
-        currencyExchangeRate = dateCurrencyMap.getExactDateAndFromCurrency(dateCurrencyMap.getUntilDate(), currency);
-        if (currencyExchangeRate == null) {
-          // Not found a EOD price for this date
-          boolean hasTradingDaysBetweenUntilDateAndYesterday = tradingDaysPlusJpaRepository
-              .hasTradingDayBetweenUntilYesterday(dateCurrencyMap.getUntilDate());
-
-          if (hasTradingDaysBetweenUntilDateAndYesterday) {
-            log.warn("Currencypair {}/{} for Date {} ist not updated!", currency, dateCurrencyMap.getMainCurrency(),
-                dateCurrencyMap.getUntilDate());
-            throw new DataViolationException("currencypair", "gt.missing.currencypair.day",
-                new Object[] { dateCurrencyMap.getUntilDate(), currency, dateCurrencyMap.getMainCurrency() });
-          } else {
-            currencyExchangeRate = dateCurrencyMap.getCurrencypairByFromCurrency(currency).getSLast();
-          }
-        }
-      }
-    }
-    return currencyExchangeRate;
+    return ReportHelper.getReportExchangeRate(currency, dateCurrencyMap, tradingDaysPlusJpaRepository);
   }
 
 }

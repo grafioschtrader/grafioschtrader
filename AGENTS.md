@@ -7,6 +7,14 @@ For work that touches `frontend/`, also read and follow `frontend/CLAUDE.md`.
 When a task spans both areas, read all three files. Treat these files as repository instructions together with this
 `AGENTS.md`; if instructions conflict, this `AGENTS.md` takes precedence.
 
+## Agent Skills
+Reusable procedures live in `.agents/skills/<name>/SKILL.md` — the repo-scope location OpenAI Codex reads. Claude Code
+reads only `.claude/skills/`, so each skill additionally has a stub there that points back at the canonical file; the
+`description:` line is the only duplicated content. **Always edit `.agents/skills/`, never the stub, and never delete a
+stub** — Claude Code would lose the skill. Both files are UTF-8 without BOM. Details in `.agents/skills/README.md`.
+Currently available: `e2e-test` (mandatory reading before touching the Playwright suite), `create-github-issue`,
+`update-user-manual`.
+
 ## Project Structure & Module Organization
 Backend sources sit in `backend/`, a Maven multi-module workspace: `grafioschtrader-server` hosts the Spring Boot application, `grafioschtrader-common` keeps shared domain code, `grafiosch-server-base` and `grafiosch-base` provide reusable libraries, while `grafiosch-test-integration` contains end-to-end suites.
 Angular client code lives in `frontend/src/` with environment config in `proxy.conf.json`; builds land in `frontend/dist/`. Finalized concept specifications rest in `specification/`, working material and requirement drafts in `doc/`; helper scripts stay at the repo root and in `scripts/`, and `gt-code-style/` stores IDE formatter profiles. Contributor documentation is in `CONTRIBUTING.md` and the [wiki](https://github.com/grafioschtrader/grafioschtrader/wiki).
@@ -26,6 +34,7 @@ For Angular, apply `gt_typescripte_sytle.xml`, stick to 2-space indents, `kebab-
 `cd backend && mvn test` runs the JUnit 6 + Spring Boot suites under `src/test/java`. REST integration tests are ordered suites named `ResoureTestSuite` / `ResourceTestSuite` built from `*ResourceTest` classes; those covering the reusable `grafiosch-*` libraries alone belong in `grafiosch-test-integration`.
 Every Spring-context test MUST declare `@ActiveProfiles` — without one the bootstrap migration drops all tables of the productive database.
 Frontend specs live beside the sources as `*.spec.ts` and execute with `cd frontend && npm test` (Vitest, pure-function tests only — no TestBed, no DOM). Browser behavior is covered by the Playwright suite in `frontend/e2e/`.
+The full E2E roundtrip `e2eTest.cmd` / `./e2eTest.sh` may be started **only when the user explicitly asks for it** — never on your own initiative, not after a failing spec and not before a commit. Iterate instead against already-running services (backend port 8080, profile `e2e`, database `grafioschtrader_t`; frontend port 4200) with `cd frontend && npx playwright test e2e/NNN-my-spec.spec.ts --project=grafioschtrader-e2e --no-deps`. When a spec fails, delete the records it created directly and indirectly in `grafioschtrader_t`, fix the spec, run it again — repeat as needed; drop/recreate the database only if it becomes untangleable. Full procedure: root `CLAUDE.md` → "E2E Tests (Playwright)" and the `e2e-test` skill in `.agents/skills/e2e-test/`.
 Update deterministic fixtures and sample data under `grafioschtrader-server/src/test/resources` whenever behavior or schemas change.
 
 ## Commit & Pull Request Guidelines

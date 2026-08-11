@@ -1,5 +1,5 @@
 import {test} from '@playwright/test';
-import {loginAsCsvUser} from './helpers';
+import {loginAsFixtureUser} from './helpers';
 import {
   appearsWithin,
   confirmDelete,
@@ -11,13 +11,13 @@ import {
 } from './portfolio.helpers';
 
 /**
- * Teardown for 015-create-portfolio.spec.ts. Which portfolios are removed is defined by the
+ * Teardown for 025-create-portfolio.spec.ts. Which portfolios are removed is defined by the
  * "delete" flag in testdata/portfolios.json: a portfolio with delete=true is torn down completely
  * (its cash accounts, its securities accounts, then the portfolio itself), one with delete=false
  * generates no test at all and stays in the database.
  *
  * The portfolios are processed in reverse fixture order so the last one created is removed first.
- * Every delete step tolerates an already missing row or node, so a partially failed 015 does not
+ * Every delete step tolerates an already missing row or node, so a partially failed 025 does not
  * turn this spec red as well.
  */
 const PORTFOLIOS = loadPortfolios().filter(p => p.delete).reverse();
@@ -26,7 +26,7 @@ for (const p of PORTFOLIOS) {
   test.describe.serial(`Delete portfolio ${p.name} of '${p.loginNickname}' (cleanup)`, () => {
 
     test(`deletes ${p.cashAccounts.length} cash accounts of ${p.name}`, async ({page}) => {
-      await loginAsCsvUser(page, p.loginNickname);
+      await loginAsFixtureUser(page, p.loginNickname);
 
       const node = portfolioNode(page, p);
       if (!await appearsWithin(node)) {
@@ -56,7 +56,7 @@ for (const p of PORTFOLIOS) {
 
     for (const sa of p.securityAccounts) {
       test(`deletes the securities account ${sa.name} of ${p.name}`, async ({page}) => {
-        await loginAsCsvUser(page, p.loginNickname);
+        await loginAsFixtureUser(page, p.loginNickname);
 
         const node = portfolioNode(page, p);
         if (!await appearsWithin(node)) {
@@ -82,7 +82,7 @@ for (const p of PORTFOLIOS) {
     }
 
     test(`deletes the portfolio ${p.name}`, async ({page}) => {
-      await loginAsCsvUser(page, p.loginNickname);
+      await loginAsFixtureUser(page, p.loginNickname);
 
       const node = portfolioNode(page, p);
       if (!await appearsWithin(node)) {

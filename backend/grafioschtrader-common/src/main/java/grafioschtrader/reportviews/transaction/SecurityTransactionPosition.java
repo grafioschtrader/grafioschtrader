@@ -1,5 +1,7 @@
 package grafioschtrader.reportviews.transaction;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
 import grafioschtrader.entities.Transaction;
@@ -33,8 +35,19 @@ public class SecurityTransactionPosition {
   @Schema(description = "Exchange rate used for currency conversion")
   public Double transactionExchangeRate;
 
-  @Schema(description = "Currency-specific gain or loss in main currency")
-  public Double transactionCurrencyGainLossMC;
+  @Schema(description = """
+      Share of the position's currency result attributable to this transaction: its flow in the security currency
+      multiplied by the difference between the reporting date rate and the rate of its own date. Null until
+      SecurityTransactionSummary.applyReportRate has run, and null for a security denominated in the main currency,
+      which has no currency result.""")
+  public Double transactionGainLossCurrencyMC;
+
+  /**
+   * Signed flow of this transaction in the security currency, positive when money went into the position. Only needed
+   * to finish {@link #transactionGainLossCurrencyMC} once the reporting rate is known, never serialised.
+   */
+  @JsonIgnore
+  public Double flowSC;
 
   @Schema(description = "Split-adjusted quotation for historical chart display")
   public Double quotationSplitCorrection;
@@ -66,7 +79,7 @@ public class SecurityTransactionPosition {
             BaseConstants.FID_STANDARD_FRACTION_DIGITS);
     transactionExchangeRate = securityPositionSummary.transactionExchangeRate;
     transactionGainLossMC = securityPositionSummary.transactionGainLossMC;
-    transactionCurrencyGainLossMC = securityPositionSummary.transactionCurrencyGainLossMC;
+    flowSC = securityPositionSummary.transactionFlowSC;
     precisionMC = securityPositionSummary.precisionMC;
     holdingsSplitAdjusted = transaction.getTransactionType() == TransactionType.HYPOTHETICAL_SELL
         || transaction.getTransactionType() == TransactionType.HYPOTHETICAL_BUY ? 0.0 : securityPositionSummary.units;
@@ -76,8 +89,20 @@ public class SecurityTransactionPosition {
     this.transaction.setSecuritycurrency(null);
   }
 
-  public Double getTransactionCurrencyGainLossMC() {
-    return transactionCurrencyGainLossMC == null ? null : DataHelper.round(transactionCurrencyGainLossMC, precisionMC);
+  public Double getTransactionGainLossCurrencyMC() {
+    return transactionGainLossCurrencyMC == null ? null
+        : DataHelper.round(transactionGainLossCurrencyMC, precisionMC);
+  }
+
+  /**
+   * Finishes the per-transaction currency result now that the reporting date rate is known.
+   *
+   * @param reportExchangeRate rate from the security currency into the main currency at the reporting date
+   */
+  void applyReportRate(final double reportExchangeRate) {
+    transactionGainLossCurrencyMC = flowSC == null ? null
+        : flowSC * (reportExchangeRate - (transactionExchangeRate == null ? reportExchangeRate
+            : transactionExchangeRate));
   }
 
   public Double getTransactionGainLossMC() {

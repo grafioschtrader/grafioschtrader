@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import grafiosch.entities.TaxUpload;
+import grafioschtrader.entities.TaxUpload;
 
 public interface TaxUploadJpaRepository extends JpaRepository<TaxUpload, Integer> {
 

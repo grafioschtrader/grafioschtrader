@@ -7,6 +7,7 @@ export class SecurityPositionGrandSummary {
 
 
   grandGainLossSecurityMC: number;
+  grandGainLossCurrencyMC: number;
   grandTaxCostMC: number;
   grandTransactionCostMC: number;
   securityPositionGroupSummaryList: SecurityPositionGroupSummary[];

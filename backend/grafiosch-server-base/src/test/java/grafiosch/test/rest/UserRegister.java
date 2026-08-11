@@ -3,7 +3,7 @@ package grafiosch.test.rest;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
- * One row of the {@code testdata/users.csv} fixture, and at the same time the JSON body posted to both
+ * One object of the {@code testdata/users.json} fixture, and at the same time the JSON body posted to both
  * {@code POST /api/user} (registration) and {@code POST /api/login}. Only the five serialized fields are part of those
  * request bodies; everything else is filled in by the test run and therefore excluded from serialization.
  *
@@ -53,7 +53,7 @@ public class UserRegister {
   public String e2e;
 
   /**
-   * Creates a fixture user from one parsed CSV row.
+   * Creates a fixture user from one JSON object.
    *
    * @param email          login name and verification mail recipient
    * @param password       plain text password

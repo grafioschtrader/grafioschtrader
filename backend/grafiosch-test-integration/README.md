@@ -21,7 +21,7 @@ mvn test -pl grafiosch-test-integration -Dtest=ResourceTestSuite
 ```
 
 Almost everything is inherited from the shared fixture in `grafiosch-server-base`
-(`grafiosch.test.rest`, published as a test-jar): the `users.csv` reader, the JWT acquisition and the whole
+(`grafiosch.test.rest`, published as a test-jar): the `users.json` reader, the JWT acquisition and the whole
 registration flow. Only `UserResourceTest.createTenantForUser` is local, because the tenant entity is.
 
 > Build the reactor with `-DskipTests`, **not** `-Dmaven.test.skip=true` — the latter skips test compilation and
@@ -34,15 +34,18 @@ registration flow. Only `UserResourceTest.createTenantForUser` is local, because
 
 ## Test users
 
-`src/test/resources/testdata/users.csv` is the single source, in the same pipe-separated format as the
-Grafioschtrader fixture. The `e2e` column decides who creates the row:
+`src/test/resources/testdata/users.json` is the single source, using the same JSON object shape as the
+Grafioschtrader fixture. The `e2e` property decides which suite creates each user:
 
 - `i` — registered by `ResourceTestSuite` through `POST /api/user`, the mail token, the role promotion and the tenant.
 - `e` — registered through the browser by `frontend/e2e/lib/auth.setup.ts`.
 
-`admin@test.local` must stay the first row: `application.properties` names it in `gt.main.user.admin.mail`, and
+Registration values remain at the top level. Optional `nicknameLangEdit` and `passwordEdit` objects contain the target
+values exercised later by the correspondingly named Playwright components, keeping those test inputs in this fixture.
+
+`admin@test.local` must stay the first object: `application.properties` names it in `gt.main.user.admin.mail`, and
 `UserServiceImpl.createUser` grants `ROLE_ADMIN` to exactly that address. Every other user starts as `LIMITEDIT` and is
-promoted according to its `role` column.
+promoted according to its `role` property.
 
 There is no longer any JDBC seeding of users — the former `IntegrationE2EDataInitializer` was removed, so a freshly
 created `grafiosch_t` has roles and global parameters from the migrations but no users until one of the two suites has
@@ -72,10 +75,55 @@ GRANT ALL PRIVILEGES ON grafiosch_t.* TO 'grafiosch_t'@'localhost';
 mvn -pl grafiosch-test-integration spring-boot:run -Dspring-boot.run.profiles=e2e
 ```
 
-The profile migrates only `grafiosch_t` from `migration-baseline/`; users come from `users.csv` as described above and
+The profile migrates only `grafiosch_t` from `migration-baseline/`; users come from `users.json` as described above and
 all use password `A123abcd`. `GET /api/integration-info` is public so Playwright can reject the wrong profile or
 database before modifying data.
 
 To use it interactively, start the backend as above and the frontend with `npm run start:grafiosch` (port 4201), then
 register a user at `http://localhost:4201/register` and pick the verification link up from MailHog on
 `http://localhost:8025`.
+
+## The two databases, and how to pick one
+
+Same arrangement as Grafioschtrader, where a bare `GrafioschtraderApplication` uses `grafioschtrader` and
+`--spring.profiles.active=e2e` uses `grafioschtrader_t`:
+
+| Start | Database | Purpose |
+|---|---|---|
+| no profile | `grafiosch` | developer database — free to experiment in, no test suite touches it |
+| `e2e` | `grafiosch_t` | the database the JUnit and Playwright suites own; they wipe and recreate it |
+
+Both listen on **8081** (`proxy.grafiosch-host.conf.json` targets it, and 8080 would collide with a running
+Grafioschtrader backend), and both are built by Flyway from the same `migration-baseline/`. The only thing
+`application-e2e.properties` overrides is the datasource; everything else lives in `application.properties`.
+
+The `grafiosch` database needs the same one-time setup as `grafiosch_t`:
+
+```sql
+CREATE DATABASE IF NOT EXISTS grafiosch CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS 'grafiosch'@'localhost' IDENTIFIED BY 'grafiosch';
+GRANT ALL PRIVILEGES ON grafiosch.* TO 'grafiosch'@'localhost';
+```
+
+Then start it without any profile — from Maven, or by running `GrafioschApplication` from the IDE:
+
+```bash
+mvn -pl grafiosch-test-integration spring-boot:run
+```
+
+**Running it from the IDE**: pass the profile as the program argument `--spring.profiles.active=e2e` (or the
+VM argument `-Dspring.profiles.active=e2e`) when you want `grafiosch_t`, and leave the working directory at
+the module directory `backend/grafiosch-test-integration` — Eclipse's project default is correct.
+`spring.flyway.locations=filesystem:./migration-baseline` is resolved against it;
+`spring.flyway.fail-on-missing-locations=true` makes a wrong working directory fail loudly instead of
+applying zero migrations.
+
+Verify which one you hit before writing anything: `GET http://localhost:8081/api/integration-info` returns
+`{"activeProfiles":[],"databaseName":"grafiosch"}` or `{"activeProfiles":["e2e"],"databaseName":"grafiosch_t"}`.
+
+A fresh `grafiosch` has roles and global parameters from the migrations but no users. Register
+`admin@test.local` through the UI — `gt.main.user.admin.mail` names that address, and `UserServiceImpl` grants
+it `ROLE_ADMIN`.
+
+> The `schemagen` profile runs Hibernate with `ddl-auto=create` and therefore points at its own throwaway
+> database `grafiosch_schemagen`. Never let it share a database with the two above.

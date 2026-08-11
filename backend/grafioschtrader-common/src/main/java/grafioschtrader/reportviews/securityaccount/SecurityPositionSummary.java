@@ -67,8 +67,12 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   @Schema(description = "Account value in main currency")
   public double accountValueSecurityMC;
 
-  @Schema(description = "Currency exchange gains/losses in main currency")
-  public double currencyGainLossMC;
+  @Schema(description = """
+      Gain or loss in the main currency caused purely by exchange rate movement, measured over the whole position:
+      the net amount still invested in the security currency valued at the reporting date rate, less the same flows
+      valued at the rates that applied when they happened. Purchases, sales, dividends and accrued interest all
+      count. Together with gainLossSecurityMC it adds up to the complete main currency result of the position.""")
+  public double gainLossCurrencyMC;
 
   /////////////////////////////////////////////////////////////
   // The following members are only for internal use
@@ -81,9 +85,22 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   @JsonIgnore
   public double adjustedCostBase;
 
-  /** Adjusted cost basis in main currency for internal calculations */
+  /**
+   * Net amount still invested in the security currency: purchase costs less sale proceeds, dividends and accrued
+   * interest. Counterpart of {@code balanceCurrencyTransaction} on the cash account side, and the first half of the
+   * currency attribution computed in {@link #calcMainCurrency(double)}.
+   */
   @JsonIgnore
-  public double adjustedCostBaseMC;
+  public double netInvestedSC;
+
+  /**
+   * The same flows as {@link #netInvestedSC}, each valued at the exchange rate that applied on its own transaction
+   * date. The difference between the two, once the first is revalued at the reporting date rate, is the currency
+   * result. Flows of a security already denominated in the main currency are left out of both, which is the same as
+   * booking them at a rate of one.
+   */
+  @JsonIgnore
+  public double netInvestedMC;
 
   /** Excluded dividend tax in security currency (when excludeDivTaxcost is enabled) */
   @JsonIgnore
@@ -92,10 +109,6 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   /** Excluded dividend tax converted to main currency */
   @JsonIgnore
   public double excludedDivTaxMC;
-
-  /** Security currency balance for internal tracking */
-  @JsonIgnore
-  public double balanceSecurityCurrency;
 
   /**
    * Flag indicating whether open positions need recalculation, typically used in watchlist scenarios where position
@@ -129,9 +142,13 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   @JsonIgnore
   private Map<Integer, TransactionsMarginOpenUnits> transactionsMarginOpenUnitsMap;
 
-  /** How match was gain/loss on main currency on this transaction */
+  /**
+   * Signed flow of this transaction in the security currency, positive when money went into the position. Kept so the
+   * per-transaction currency result can be finished once the reporting date rate is known, which is not the case yet
+   * while the transactions are being walked.
+   */
   @JsonIgnore
-  public Double transactionCurrencyGainLossMC;
+  public Double transactionFlowSC;
 
   @JsonIgnore
   public int precision;
@@ -212,8 +229,8 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
     return DataHelper.round(securityRiskMC, precisionMC);
   }
 
-  public double getCurrencyGainLossMC() {
-    return DataHelper.round(currencyGainLossMC, precisionMC);
+  public double getGainLossCurrencyMC() {
+    return DataHelper.round(gainLossCurrencyMC, precisionMC);
   }
 
   /**
@@ -258,10 +275,19 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   /**
    * Converts security currency values to main currency using the specified exchange rate.
    *
+   * <p>
+   * Everything here is valued at the one reporting date rate, which is what makes {@link #gainLossSecurityMC} and
+   * {@link #gainLossCurrencyMC} add up to the actual main currency result of the position: the first carries the
+   * performance measured in the security currency, the second the drift of the invested money against the rates it
+   * was originally booked at. The cash account side computes its own currency result the same way, so the two
+   * reports measure with the same ruler.
+   * </p>
+   *
    * @param currencyExchangeRate exchange rate from security currency to main currency
    */
   public void calcMainCurrency(double currencyExchangeRate) {
     gainLossSecurityMC = gainLossSecurity * currencyExchangeRate;
+    gainLossCurrencyMC = netInvestedSC * currencyExchangeRate - netInvestedMC;
     valueSecurityMC = valueSecurity * currencyExchangeRate;
     if (securitycurrency.isMarginInstrument()) {
       accountValueSecurityMC = accountValueSecurity * currencyExchangeRate;
@@ -328,11 +354,12 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
         + ", transactionCostMC=" + transactionCostMC + ", taxCost=" + taxCost + ", taxCostMC=" + taxCostMC
         + ", gainLossSecurity=" + gainLossSecurity + ", gainLossSecurityMC=" + gainLossSecurityMC + ", valueSecurity="
         + valueSecurity + ", valueSecurityMC=" + valueSecurityMC + ", openUnitsTimeValuePerPoint="
-        + openUnitsTimeValuePerPoint + ", adjustedCostBaseMC=" + adjustedCostBaseMC + ", balanceSecurityCurrency="
-        + balanceSecurityCurrency + ", transactionGainLoss=" + transactionGainLoss + ", transactionGainLossPercentage="
-        + transactionGainLossPercentage + ", transactionGainLossMC=" + transactionGainLossMC
-        + ", transactionExchangeRate=" + transactionExchangeRate + ", transactionsMarginOpenUnitsMap="
-        + transactionsMarginOpenUnitsMap + ", transactionCurrencyGainLossMC=" + transactionCurrencyGainLossMC + "]";
+        + openUnitsTimeValuePerPoint + ", netInvestedSC=" + netInvestedSC + ", netInvestedMC=" + netInvestedMC
+        + ", gainLossCurrencyMC=" + gainLossCurrencyMC + ", transactionGainLoss=" + transactionGainLoss
+        + ", transactionGainLossPercentage=" + transactionGainLossPercentage + ", transactionGainLossMC="
+        + transactionGainLossMC + ", transactionExchangeRate=" + transactionExchangeRate
+        + ", transactionsMarginOpenUnitsMap=" + transactionsMarginOpenUnitsMap + ", transactionFlowSC="
+        + transactionFlowSC + "]";
   }
 
   

@@ -89,6 +89,7 @@ export class AppSettings {
   public static readonly SECURITY_ACTION_KEY = 'securityaction';
   public static readonly TAX_DATA_KEY = 'taxdata';
   public static readonly TAX_YEAR_CORRECTION_KEY = 'taxyearcorrection';
+  public static readonly USER_CHART_SHAPE_KEY = 'userchartshape';
 
   public static readonly GT_NET_TAB_MENU_KEY = 'gtnettabmenu';
   public static readonly GT_NET_CONFIG_ENTITY = 'GTNetConfigEntity';

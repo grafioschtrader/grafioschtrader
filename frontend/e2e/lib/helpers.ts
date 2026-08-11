@@ -7,7 +7,7 @@ import * as path from 'path';
  *
  * The library owns them, not the Grafioschtrader suite, so they move with `src/app/lib` when the library is
  * extracted: the application suite imports from here, never the other way round. Everything that differs between two
- * applications — where users.csv lives, where the credential files go, which URL a successful login lands on — is
+ * applications — where users.json lives, where the credential files go, which URL a successful login lands on — is
  * passed in through {@link SuiteConfig}; the flows themselves are identical because they only drive library
  * components.
  */
@@ -15,8 +15,7 @@ import * as path from 'path';
 /**
  * Splits one pipe-separated CSV line into fields, respecting double-quoted sections so that a `|`
  * inside quotes is preserved. Used by every E2E spec that consumes the generated/manually-authored
- * testdata CSVs (users.csv, tradingplatformplan.csv, currencypair.csv, …). The Java counterpart
- * `RestTestHelperBase.parseCsvRow` implements exactly the same rules.
+ * testdata CSVs (tradingplatformplan.csv, currencypair.csv, …).
  */
 export function parseCsvRow(line: string): string[] {
   const out: string[] = [];
@@ -44,27 +43,39 @@ export interface TestCredentials {
   password: string;
   nickname?: string;
   role?: string;
-  /** users.csv locale, e.g. 'de-CH' or 'en-US'. Only set by getCsvUser/loginAsCsvUser. */
+  /** users.json locale, e.g. 'de-CH' or 'en-US'. Only set by getUser/loginAsFixtureUser. */
   locale?: string;
   tenantName: string;
   tenantCurrency: string;
 }
 
-/** One row of users.csv, before it is reduced to credentials. */
-export interface CsvUser extends TestCredentials {
+export interface NicknameLangEditTarget {
+  localeStr: string;
+  /** Checkbox target as stored by the database: 0 = false, 1 = true. */
+  uiShowMyProperty: 0 | 1;
+}
+
+export interface PasswordEditTarget {
+  passwordNew: string;
+}
+
+/** One object of users.json, before it is reduced to credentials. */
+export interface UserFixture extends TestCredentials {
   nickname: string;
   localeStr: string;
-  timezoneOffset: string;
+  timezoneOffset: number;
   currency: string;
   role: string;
   /** Consumer tag: 'i' for the JUnit resource suite, 'e' and its variants for the browser suite. */
   e2e: string;
+  nicknameLangEdit?: NicknameLangEditTarget;
+  passwordEdit?: PasswordEditTarget;
 }
 
 /** What a concrete application has to tell the shared helpers about itself. */
 export interface SuiteConfig {
-  /** Absolute path of the users.csv that belongs to this application's backend module. */
-  usersCsv: string;
+  /** Absolute path of the users.json that belongs to this application's backend module. */
+  usersJson: string;
   /** Directory the credential files of registered users are written to. */
   authDir: string;
   /** Base URL of the MailHog/Mailpit HTTP API. */
@@ -117,17 +128,17 @@ export interface SuiteHelpers {
   config: SuiteConfig;
   loadCredentials(): TestCredentials;
   loadCredentialsByNickname(nickname: string): TestCredentials;
-  saveCredentials(user: CsvUser, isPrimary: boolean): void;
-  loadCsvUsers(): CsvUser[];
-  loadE2EUsers(): CsvUser[];
-  getCsvUser(nickname: string): TestCredentials;
+  saveCredentials(user: UserFixture, isPrimary: boolean): void;
+  loadUsers(): UserFixture[];
+  loadE2EUsers(): UserFixture[];
+  getUser(nickname: string): UserFixture;
   login(page: Page): Promise<TestCredentials>;
   loginAs(page: Page, nickname: string): Promise<TestCredentials>;
-  loginAsCsvUser(page: Page, nickname: string): Promise<TestCredentials>;
+  loginAsFixtureUser(page: Page, nickname: string): Promise<TestCredentials>;
   findMailhogMessage(recipient: string, subjectRegex: RegExp, maxAttempts?: number): Promise<MailhogMessage | null>;
   clearMailhog(): Promise<void>;
   getVerificationToken(recipientEmail: string, maxAttempts?: number): Promise<string>;
-  registerAndSetupTenant(page: Page, user: CsvUser, tenantSetup: TenantSetup): Promise<void>;
+  registerAndSetupTenant(page: Page, user: UserFixture, tenantSetup: TenantSetup): Promise<void>;
 }
 
 /**
@@ -135,27 +146,26 @@ export interface SuiteHelpers {
  * `TenantBase` is extended per application, so Grafioschtrader asks for a currency where the standalone host asks for
  * nothing but the name.
  */
-export type TenantSetup = (page: Page, user: CsvUser) => Promise<void>;
+export type TenantSetup = (page: Page, user: UserFixture) => Promise<void>;
 
 export function createSuiteHelpers(config: SuiteConfig): SuiteHelpers {
   const legacyCredentialsFile = path.join(config.authDir, 'credentials.json');
 
-  function loadCsvUsers(): CsvUser[] {
-    const csv = fs.readFileSync(config.usersCsv, 'utf-8');
-    return csv.split(/\r?\n/)
-      .filter(l => l.trim().length > 0)
-      .slice(1)
-      .map(line => {
-        const [email, password, nickname, localeStr, timezoneOffset, currency, role, e2e] = parseCsvRow(line);
-        return {
-          email, password, nickname, localeStr, timezoneOffset, currency, role, e2e,
-          tenantName: `Tenant ${nickname}`, tenantCurrency: currency, locale: localeStr,
-        };
-      });
+  function loadUsers(): UserFixture[] {
+    const users = JSON.parse(fs.readFileSync(config.usersJson, 'utf-8')) as UserFixture[];
+    if (!Array.isArray(users) || users.length === 0) {
+      throw new Error(`Expected a non-empty user array in ${config.usersJson}`);
+    }
+    return users.map(user => ({
+      ...user,
+      tenantName: `Tenant ${user.nickname}`,
+      tenantCurrency: user.currency,
+      locale: user.localeStr,
+    }));
   }
 
-  function loadE2EUsers(): CsvUser[] {
-    return loadCsvUsers().filter(u => u.e2e === 'e');
+  function loadE2EUsers(): UserFixture[] {
+    return loadUsers().filter(u => u.e2e === 'e');
   }
 
   function loadCredentials(): TestCredentials {
@@ -166,7 +176,7 @@ export function createSuiteHelpers(config: SuiteConfig): SuiteHelpers {
     return JSON.parse(fs.readFileSync(path.join(config.authDir, `credentials.${nickname}.json`), 'utf-8'));
   }
 
-  function saveCredentials(user: CsvUser, isPrimary: boolean): void {
+  function saveCredentials(user: UserFixture, isPrimary: boolean): void {
     if (!fs.existsSync(config.authDir)) {
       fs.mkdirSync(config.authDir, {recursive: true});
     }
@@ -184,12 +194,12 @@ export function createSuiteHelpers(config: SuiteConfig): SuiteHelpers {
     }
   }
 
-  function getCsvUser(nickname: string): TestCredentials {
-    const row = loadCsvUsers().find(u => u.nickname === nickname);
-    if (!row) {
-      throw new Error(`User '${nickname}' not found in ${config.usersCsv}`);
+  function getUser(nickname: string): UserFixture {
+    const user = loadUsers().find(u => u.nickname === nickname);
+    if (!user) {
+      throw new Error(`User '${nickname}' not found in ${config.usersJson}`);
     }
-    return row;
+    return user;
   }
 
   /**
@@ -206,6 +216,32 @@ export function createSuiteHelpers(config: SuiteConfig): SuiteHelpers {
       await page.waitForURL(config.afterLoginUrl, {timeout: 15_000});
       await page.locator('p-tree').waitFor({state: 'visible', timeout: 15_000});
     });
+  }
+
+  /**
+   * Returns the fixture password currently accepted by the backend, including a password-edit target from a prior run.
+   */
+  async function findAcceptedPassword(page: Page, user: UserFixture): Promise<string | null> {
+    const candidates = [user.passwordEdit?.passwordNew, user.password]
+      .filter((password, index, all): password is string => !!password && all.indexOf(password) === index);
+    for (const password of candidates) {
+      const response = await page.request.post('/api/login', {
+        data: {email: user.email, password, timezoneOffset: Number(user.timezoneOffset)},
+        failOnStatusCode: false,
+      });
+      if (response.ok()) {
+        return password;
+      }
+    }
+    return null;
+  }
+
+  async function credentialsWithAcceptedPassword(page: Page, user: UserFixture): Promise<TestCredentials> {
+    const password = await findAcceptedPassword(page, user);
+    if (!password) {
+      throw new Error(`Neither the original nor target password is accepted for ${user.email}`);
+    }
+    return {...user, password};
   }
 
   async function findMailhogMessage(recipient: string, subjectRegex: RegExp,
@@ -259,9 +295,10 @@ export function createSuiteHelpers(config: SuiteConfig): SuiteHelpers {
    * step. That makes the setup re-runnable against a database that still holds the users of an earlier run — the same
    * property every spec in this repository is expected to have — instead of failing on "email already used".
    */
-  async function registerAndSetupTenant(page: Page, user: CsvUser, tenantSetup: TenantSetup): Promise<void> {
-    if (await isRegistered(page, user)) {
-      await completeFirstLogin(page, user, tenantSetup);
+  async function registerAndSetupTenant(page: Page, user: UserFixture, tenantSetup: TenantSetup): Promise<void> {
+    const acceptedPassword = await findAcceptedPassword(page, user);
+    if (acceptedPassword) {
+      await completeFirstLogin(page, {...user, password: acceptedPassword}, tenantSetup);
       return;
     }
     await page.goto('/register');
@@ -289,24 +326,10 @@ export function createSuiteHelpers(config: SuiteConfig): SuiteHelpers {
   }
 
   /**
-   * True when the credentials of this fixture row are already accepted by the backend.
-   *
-   * `timezoneOffset` is not optional: StatelessLoginFilter deserializes the body into its login DTO and answers 403
-   * when the field is missing, which would look exactly like a wrong password.
-   */
-  async function isRegistered(page: Page, user: CsvUser): Promise<boolean> {
-    const response = await page.request.post('/api/login', {
-      data: {email: user.email, password: user.password, timezoneOffset: Number(user.timezoneOffset)},
-      failOnStatusCode: false,
-    });
-    return response.ok();
-  }
-
-  /**
    * Signs in and, if the user has no tenant yet, walks the tenant page. The application routes a tenant-less user to
    * /tenant and signs them out again after the tenant was created, so both outcomes end at a defined place.
    */
-  async function completeFirstLogin(page: Page, user: CsvUser, tenantSetup: TenantSetup): Promise<void> {
+  async function completeFirstLogin(page: Page, user: UserFixture, tenantSetup: TenantSetup): Promise<void> {
     await page.goto('/login');
     await page.locator('#email').waitFor({state: 'visible', timeout: 15_000});
     await page.locator('#email').fill(user.email);
@@ -326,9 +349,9 @@ export function createSuiteHelpers(config: SuiteConfig): SuiteHelpers {
     loadCredentials,
     loadCredentialsByNickname,
     saveCredentials,
-    loadCsvUsers,
+    loadUsers,
     loadE2EUsers,
-    getCsvUser,
+    getUser,
     login: async (page: Page) => {
       const creds = loadCredentials();
       await performLogin(page, creds);
@@ -339,8 +362,8 @@ export function createSuiteHelpers(config: SuiteConfig): SuiteHelpers {
       await performLogin(page, creds);
       return creds;
     },
-    loginAsCsvUser: async (page: Page, nickname: string) => {
-      const creds = getCsvUser(nickname);
+    loginAsFixtureUser: async (page: Page, nickname: string) => {
+      const creds = await credentialsWithAcceptedPassword(page, getUser(nickname));
       await performLogin(page, creds);
       return creds;
     },
@@ -353,13 +376,14 @@ export function createSuiteHelpers(config: SuiteConfig): SuiteHelpers {
 
 /** Helpers of the portable library suite: the grafiosch-test-integration backend and the grafiosch-host frontend. */
 export const libHelpers = createSuiteHelpers({
-  usersCsv: path.resolve(__dirname, '../../../backend/grafiosch-test-integration/src/test/resources/testdata/users.csv'),
+  usersJson: path.resolve(__dirname,
+    '../../../backend/grafiosch-test-integration/src/test/resources/testdata/users.json'),
   authDir: path.join(__dirname, '.auth'),
   mailApiBase: process.env.LIB_E2E_MAIL_API_URL ?? 'http://localhost:8025',
   afterLoginUrl: /\/mainview/,
 });
 
 export const {
-  clearMailhog, findMailhogMessage, getCsvUser, loadCredentials, loadCredentialsByNickname, loadCsvUsers,
-  loadE2EUsers, login, loginAs, loginAsCsvUser, registerAndSetupTenant, saveCredentials,
+  clearMailhog, findMailhogMessage, getUser, loadCredentials, loadCredentialsByNickname, loadUsers,
+  loadE2EUsers, login, loginAs, loginAsFixtureUser, registerAndSetupTenant, saveCredentials,
 } = libHelpers;

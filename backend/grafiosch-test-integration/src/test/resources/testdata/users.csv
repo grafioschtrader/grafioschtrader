@@ -1,6 +1,0 @@
-email|password|nickname|localeStr|timezoneOffset|currency|role|e2e
-admin@test.local|A123abcd|admin|en-US|0|CHF|ADMIN|i
-alledit@test.local|A123abcd|alledit|en-US|0|CHF|ALLEDIT|i
-user@test.local|A123abcd|user|en-US|0|USD|USER|i
-limited@test.local|A123abcd|limited|en-US|0|EUR|LIMITEDIT|i
-libe2e@test.local|A123abcd|libe2e|en-US|0|CHF|ALLEDIT|e

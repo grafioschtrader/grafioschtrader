@@ -1,37 +1,37 @@
 import {Injectable} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
-import {MenuItem, TreeNode} from 'primeng/api';
+import {TreeNode} from 'primeng/api';
 import {Observable, of} from 'rxjs';
 
 import {BaseSettings} from '../app/lib/base.settings';
 import {AuditHelper} from '../app/lib/helper/audit.helper';
 import {LibDataMainTreeContributor} from '../app/lib/maintree/contributor/lib-data-main-tree.contributor';
-import {MainTreeContributor} from '../app/lib/maintree/contributor/main-tree-contributor.interface';
 import {LibTreeNodeType} from '../app/lib/maintree/types/lib.tree.node.type';
 import {TypeNodeData} from '../app/lib/maintree/types/type.node.data';
-import {ProcessedActionData} from '../app/lib/types/processed.action.data';
 import {GlobalparameterService} from '../app/lib/services/globalparameter.service';
 import {GrafioschSettings} from './grafiosch.settings';
+import {GrafioschTreeContributorBase} from './grafiosch-tree-contributor.base';
 
 /**
- * The single navigation tree of this host, built from the nodes the library already offers through
- * {@link LibDataMainTreeContributor}. It is the counterpart of Grafioschtrader's {@code AdminDataMainTreeContributor},
- * reduced to what a standalone Grafiosch server can actually serve.
+ * The administrative root of this host, built from the nodes the library already offers through
+ * {@link LibDataMainTreeContributor}. It is the counterpart of Grafioschtrader's
+ * {@code AdminDataMainTreeContributor}, reduced to what a standalone Grafiosch server can actually serve — the trading
+ * calendar, the history quality and the tax data of that tree belong to the application.
  *
- * <p>An application supplies at least one contributor, otherwise {@code /mainview} renders an empty tree. Nothing here
- * refreshes on data changes: every node is static navigation.</p>
+ * <p>The base data root comes from {@link GrafioschBaseDataMainTreeContributor}; an application supplies at least one
+ * contributor, otherwise {@code /mainview} renders an empty tree.</p>
  */
 @Injectable()
-export class GrafioschMainTreeContributor extends MainTreeContributor {
+export class GrafioschMainTreeContributor extends GrafioschTreeContributorBase {
 
   private rootNode: TreeNode;
 
-  constructor(private translateService: TranslateService, private gps: GlobalparameterService) {
-    super();
+  constructor(translateService: TranslateService, private gps: GlobalparameterService) {
+    super(translateService);
   }
 
   getTreeOrder(): number {
-    return 1;
+    return 2;
   }
 
   getRootNodes(): Observable<TreeNode[]> {
@@ -46,27 +46,15 @@ export class GrafioschMainTreeContributor extends MainTreeContributor {
     return of([this.rootNode]);
   }
 
-  refreshNodes(rootNode: TreeNode): Observable<void> {
-    return of(void 0);
-  }
-
-  getContextMenuItems(treeNode: TreeNode, parentNodeData: any, selectedNodeData: any): MenuItem[] | null {
-    return null;
-  }
-
-  shouldRefreshOnDataChange(processedActionData: ProcessedActionData): boolean {
-    return false;
-  }
-
   private addChildren(): void {
     this.rootNode.children = [
       this.navigationNode('MAIL_TO_FROM', GrafioschSettings.USER_MESSAGE_KEY + '/' + BaseSettings.MAIL_SEND_RECV_KEY),
-      this.navigationNode('PROPOSE_CHANGE_ENTITY', GrafioschSettings.PROPOSE_CHANGE_TAB_MENU_KEY + '/'
-        + BaseSettings.PROPOSE_CHANGE_REQUEST_FOR_YOU_KEY),
-      LibDataMainTreeContributor.createUdfMetadataGeneralNode(LibTreeNodeType.NO_MENU),
-      LibDataMainTreeContributor.createGlobalSettingsNode(),
-      LibDataMainTreeContributor.createTaskDataMonitorNode()
+      LibDataMainTreeContributor.createGlobalSettingsNode()
     ];
+
+    this.addGTNetToTree();
+
+    this.rootNode.children.push(LibDataMainTreeContributor.createTaskDataMonitorNode());
 
     if (AuditHelper.hasAdminRole(this.gps)) {
       this.rootNode.children.push(LibDataMainTreeContributor.createConnectorApiKeyNode());
@@ -74,23 +62,34 @@ export class GrafioschMainTreeContributor extends MainTreeContributor {
     }
   }
 
-  private navigationNode(label: string, route: string): TreeNode {
-    return {
-      label,
-      data: new TypeNodeData(LibTreeNodeType.NO_MENU, this.addMainRoute(route), null, null, null)
+  /**
+   * Adds the GTNet branch, the largest area of the library this host reaches. The whole peer-to-peer implementation is
+   * library code — the Angular components in {@code src/app/lib/gnet} and the {@code GTNet*Resource} classes of
+   * {@code grafiosch-server-base} — so a standalone Grafiosch server offers it in full.
+   *
+   * <p>The exchange log is shown but not selectable while {@code g.gnet.use.log} is off, so the branch does not change
+   * shape when logging is switched on. The parent node targets the setup table, which is where this instance's own
+   * GTNet entry is created in the first place — the feature flag therefore must not depend on that entry existing.</p>
+   */
+  private addGTNetToTree(): void {
+    if (!this.gps.useGtnet()) {
+      return;
+    }
+    const logEnabled = this.gps.isGtNetLogEnabled();
+    const gtNetNode: TreeNode = {
+      label: 'GT_NET_NET_AND_MESSAGE',
+      expanded: true,
+      children: [
+        this.navigationNode('GT_NET_MESSAGE_ANSWER', BaseSettings.GT_NET_MESSAGE_ANSWER_KEY),
+        {
+          ...this.navigationNode('GT_NET_EXCHANGE_LOG', BaseSettings.GT_NET_EXCHANGE_LOG_KEY),
+          styleClass: logEnabled ? '' : 'p-disabled',
+          selectable: logEnabled
+        }
+      ],
+      data: new TypeNodeData(LibTreeNodeType.NO_MENU,
+        this.addMainRoute(GrafioschSettings.GT_NET_TAB_MENU_KEY), null, null, null)
     };
-  }
-
-  private translateNodes(treeNodes: TreeNode[]): void {
-    treeNodes.forEach(treeNode => {
-      this.translateService.get(treeNode.label).subscribe(translated => treeNode.label = translated);
-      if (treeNode.children) {
-        this.translateNodes(treeNode.children);
-      }
-    });
-  }
-
-  private addMainRoute(suffix: string): string {
-    return BaseSettings.MAINVIEW_KEY + '/' + suffix;
+    this.rootNode.children.push(gtNetNode);
   }
 }

@@ -70,4 +70,9 @@ configuration impact, and attaches screenshots when a layout changes.
 ## Testing
 
 How to run and write the backend, Vitest and Playwright suites:
-**[Testing](https://github.com/grafioschtrader/grafioschtrader/wiki/Testing)**.
+**[Testing](https://github.com/grafioschtrader/grafioschtrader/wiki/Testing)**. It covers what both test stacks
+share — including how to turn data entered through the user interface into a fixture and a test, and how to
+place a new test in the existing execution order. The stack-specific commands, ports and databases are on
+[Testing-Grafioschtrader](https://github.com/grafioschtrader/grafioschtrader/wiki/Testing-Grafioschtrader)
+(`grafioschtrader_t`) and
+[Testing-Grafiosch](https://github.com/grafioschtrader/grafioschtrader/wiki/Testing-Grafiosch) (`grafiosch_t`).

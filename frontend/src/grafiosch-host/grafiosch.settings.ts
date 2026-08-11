@@ -14,6 +14,9 @@ export class GrafioschSettings {
   /** Tab menu combining the two propose-change views. */
   public static readonly PROPOSE_CHANGE_TAB_MENU_KEY = 'proposeChangeTabMenu';
 
+  /** Tab menu combining the GTNet setup table and the administrative messages. */
+  public static readonly GT_NET_TAB_MENU_KEY = 'gtnettabmenu';
+
   /** ngx-translate falls back to this language when a key is missing in the active one. */
   public static readonly DEFAULT_LANGUAGE = 'en';
 

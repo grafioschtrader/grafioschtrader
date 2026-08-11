@@ -1,0 +1,45 @@
+{
+  "_comment": [
+    "Security transaction groups shared by backend integration tests and frontend Playwright tests.",
+    "A group identifier selects the complete ordered scenario for one test.",
+    "Users, watchlists, portfolios, accounts, and securities are referenced by natural key; database IDs are omitted.",
+    "Rows tagged e2e='e' belong to Playwright; e2e='i' is reserved for backend integration tests."
+  ],
+  "transactionGroups": [
+    {
+      "identifier": "Forex1",
+      "loginNickname": "limit2",
+      "watchlistName": "Hauptliste",
+      "portfolioName": "CornèrTrader",
+      "securityAccountName": "CT",
+      "cashAccountName": "CT CHF",
+      "securityName": "Forex USD/CHF -> CHF",
+      "transactions": [
+        {
+          "transactionType": "ACCUMULATE",
+          "date": "2026-01-26",
+          "units": 100000,
+          "quotation": 0.77578,
+          "expectedCashaccountAmount": 0
+        },
+        {
+          "transactionType": "FINANCE_COST",
+          "date": "2026-03-27",
+          "units": 60,
+          "quotation": -6.67,
+          "expectedCashaccountAmount": 400.2
+        },
+        {
+          "transactionType": "REDUCE",
+          "date": "2026-03-27",
+          "units": 100000,
+          "quotation": 0.7988,
+          "taxCost": 0,
+          "transactionCost": 2.4,
+          "expectedCashaccountAmount": 2299.6
+        }
+      ],
+      "e2e": "e"
+    }
+  ]
+}

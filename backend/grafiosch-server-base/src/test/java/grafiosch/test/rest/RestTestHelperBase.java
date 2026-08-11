@@ -6,15 +6,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 import java.beans.PropertyDescriptor;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.io.UncheckedIOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,18 +25,21 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.client.EntityExchangeResult;
 import org.springframework.test.web.servlet.client.RestTestClient;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import grafiosch.entities.ProposeChangeField;
 import grafiosch.security.JwtTokenHandler;
 
 /**
- * Application independent part of the integration test fixture: it loads the users from the {@code testdata/users.csv}
+ * Application independent part of the integration test fixture: it loads users from {@code testdata/users.json}
  * of the module under test, acquires a JWT for each of them and offers the small reflection helpers the resource tests
  * share.
  *
  * <p>
- * The CSV is looked up as the fixed classpath resource {@value #USERS_CSV}, so every application supplies its own copy
- * below its own {@code src/test/resources}. This artifact intentionally ships no {@code users.csv} of its own, because
- * such a file would shadow the consumer's copy on the test class path.
+ * The JSON is looked up as the fixed classpath resource {@value #USERS_JSON}, so every application supplies its own
+ * copy below its own {@code src/test/resources}. This artifact intentionally ships no {@code users.json} of its own,
+ * because such a file would shadow the consumer's copy on the test class path.
  *
  * <p>
  * Applications extend this class only to add their own constants and domain helpers. The static members are inherited,
@@ -48,89 +48,54 @@ import grafiosch.security.JwtTokenHandler;
 public class RestTestHelperBase {
 
   /** Classpath location of the fixture, identical in every consuming module. */
-  private static final String USERS_CSV = "/testdata/users.csv";
-
-  /** Column separator of the fixture files; a {@code |} inside double quotes is not a separator. */
-  private static final char CSV_DELIMITER = '|';
+  private static final String USERS_JSON = "/testdata/users.json";
 
   public static final Random random = new Random();
 
-  /** Every row from users.csv, including both integration ('i') and browser ('e') tagged users. */
-  public static final UserRegister[] allCsvUsers;
+  /** Every object from users.json, including both integration ('i') and browser ('e') tagged users. */
+  public static final UserRegister[] allUsers;
 
-  /** Integration-test subset of {@link #allCsvUsers} (rows where e2e = 'i'). Used by every backend test. */
+  /** Integration-test subset of {@link #allUsers} (objects where e2e = 'i'). Used by every backend test. */
   public static UserRegister[] users;
 
-  /** Nicknames of all users in {@link #users}, in CSV order. */
+  /** Nicknames of all users in {@link #users}, in fixture order. */
   public static final String[] ALL_USERS;
 
-  /** Nicknames of integration-test users whose role is LIMITEDIT. Driven by the CSV. */
+  /** Nicknames of integration-test users whose role is LIMITEDIT. Driven by the JSON fixture. */
   public static final String[] LIMIT_USERS;
 
   static {
-    allCsvUsers = loadUsersFromCsv();
-    users = Arrays.stream(allCsvUsers).filter(u -> "i".equals(u.e2e)).toArray(UserRegister[]::new);
+    allUsers = loadUsersFromJson();
+    users = Arrays.stream(allUsers).filter(u -> "i".equals(u.e2e)).toArray(UserRegister[]::new);
     ALL_USERS = Arrays.stream(users).map(u -> u.nickname).toArray(String[]::new);
     LIMIT_USERS = Arrays.stream(users).filter(u -> "LIMITEDIT".equals(u.role)).map(u -> u.nickname)
         .toArray(String[]::new);
   }
 
-  private static UserRegister[] loadUsersFromCsv() {
-    List<UserRegister> rows = new ArrayList<>();
-    try (InputStream is = RestTestHelperBase.class.getResourceAsStream(USERS_CSV)) {
+  private static UserRegister[] loadUsersFromJson() {
+    List<UserRegister> loadedUsers = new ArrayList<>();
+    try (InputStream is = RestTestHelperBase.class.getResourceAsStream(USERS_JSON)) {
       if (is == null) {
-        throw new IllegalStateException("Missing test fixture " + USERS_CSV + " on the test class path. Every module "
-            + "using RestTestHelperBase must provide its own src/test/resources" + USERS_CSV);
+        throw new IllegalStateException("Missing test fixture " + USERS_JSON + " on the test class path. Every module "
+            + "using RestTestHelperBase must provide its own src/test/resources" + USERS_JSON);
       }
-      try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
-        String line;
-        boolean header = true;
-        while ((line = br.readLine()) != null) {
-          if (line.isBlank()) {
-            continue;
-          }
-          if (header) {
-            header = false;
-            continue;
-          }
-          List<String> cols = parseCsvRow(line);
-          // email, password, nickname, localeStr, timezoneOffset, currency, role, e2e
-          rows.add(new UserRegister(cols.get(0), cols.get(1), cols.get(2), cols.get(3), Integer.valueOf(cols.get(4)),
-              cols.get(5), cols.get(6), cols.get(7)));
-        }
+      JsonNode root = new ObjectMapper().readTree(is);
+      if (!root.isArray()) {
+        throw new IllegalStateException("Expected a JSON array in " + USERS_JSON);
+      }
+      for (JsonNode user : root) {
+        loadedUsers.add(new UserRegister(user.required("email").asText(), user.required("password").asText(),
+            user.required("nickname").asText(), user.required("localeStr").asText(),
+            user.required("timezoneOffset").asInt(), user.required("currency").asText(),
+            user.required("role").asText(), user.required("e2e").asText()));
+      }
+      if (loadedUsers.isEmpty()) {
+        throw new IllegalStateException("No users found in " + USERS_JSON);
       }
     } catch (IOException e) {
-      throw new UncheckedIOException("Unable to load " + USERS_CSV, e);
+      throw new UncheckedIOException("Unable to load " + USERS_JSON, e);
     }
-    return rows.toArray(new UserRegister[0]);
-  }
-
-  /**
-   * Splits one fixture line into its fields, honouring double quotes so a delimiter inside a quoted section is kept.
-   * The TypeScript counterpart in the browser suite implements exactly the same rules.
-   *
-   * @param line one non-empty, non-header line of a pipe separated fixture file
-   * @return the field values in column order, quotes removed
-   */
-  public static List<String> parseCsvRow(String line) {
-    List<String> out = new ArrayList<>();
-    StringBuilder cur = new StringBuilder();
-    boolean inQuotes = false;
-    for (int i = 0; i < line.length(); i++) {
-      char c = line.charAt(i);
-      if (c == '"') {
-        inQuotes = !inQuotes;
-        continue;
-      }
-      if (c == CSV_DELIMITER && !inQuotes) {
-        out.add(cur.toString());
-        cur.setLength(0);
-      } else {
-        cur.append(c);
-      }
-    }
-    out.add(cur.toString());
-    return out;
+    return loadedUsers.toArray(new UserRegister[0]);
   }
 
   /**
@@ -157,8 +122,8 @@ public class RestTestHelperBase {
   /**
    * Looks a fixture user up by its nickname.
    *
-   * @param nickname the nickname as written in users.csv
-   * @return the matching row of {@link #users}
+   * @param nickname the nickname as written in users.json
+   * @return the matching object of {@link #users}
    * @throws java.util.NoSuchElementException when no integration-test user carries that nickname
    */
   public static UserRegister getUserByNickname(String nickname) {

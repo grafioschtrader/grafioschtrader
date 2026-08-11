@@ -20,7 +20,7 @@
  *                   otherwise started via `npm start`), then run the Playwright e2e suite.
  *   --lib      Reusable-library suite: recreate `grafiosch_t`, start grafiosch-test-integration
  *              on port 8081 (profile `e2e`), run the backend integration suite `ResourceTestSuite`
- *              (registers the users.csv users), ensure the grafiosch host on port 4201
+ *              (registers the users.json users), ensure the grafiosch host on port 4201
  *              (`npm run start:grafiosch`), run `playwright test --config=playwright.lib.config.ts`.
  *   --all      Main suite first, then (after teardown) the lib suite.
  *
@@ -132,7 +132,7 @@ const SUITES = {
     },
     frontend: { port: 4201, npmArgs: ['run', 'start:grafiosch'] },
     testPhases: [
-      // Creates the e2e='i' users of grafiosch-test-integration/src/test/resources/testdata/users.csv through the
+      // Creates the e2e='i' users of grafiosch-test-integration/src/test/resources/testdata/users.json through the
       // real registration endpoints. Since the JDBC seeder IntegrationE2EDataInitializer was removed there is no
       // other source of users, so the Playwright phase below would have nobody to log in as without this.
       { name: 'backend-integration-suite', cwd: BACKEND_DIR,

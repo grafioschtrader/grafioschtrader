@@ -304,7 +304,7 @@ public abstract class SecurityBaseCalc {
     securityPositionSummary.transactionGainLoss = null;
     securityPositionSummary.transactionGainLossPercentage = null;
     securityPositionSummary.transactionGainLossMC = null;
-    securityPositionSummary.transactionCurrencyGainLossMC = null;
+    securityPositionSummary.transactionFlowSC = null;
     securityPositionSummary.transactionExchangeRate = ctp.exchangeRate;
 
     ctp.unitsSplited = transaction.getUnits() * splitFactorAfterBefore.fromToDateFactor;

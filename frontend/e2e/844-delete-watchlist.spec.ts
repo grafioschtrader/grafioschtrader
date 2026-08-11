@@ -1,12 +1,12 @@
 import {expect, test} from '@playwright/test';
-import {loginAsCsvUser} from './helpers';
+import {loginAsFixtureUser} from './helpers';
 import {loadE2EWatchlists} from './watchlist.helpers';
 
 const WATCHLISTS_TO_DELETE = loadE2EWatchlists().filter(watchlist => watchlist.delete);
 
 for (const watchlist of WATCHLISTS_TO_DELETE) {
   test(`deletes watchlist ${watchlist.name} of '${watchlist.loginNickname}'`, async ({page}) => {
-    await loginAsCsvUser(page, watchlist.loginNickname);
+    await loginAsFixtureUser(page, watchlist.loginNickname);
 
     const node = page.getByRole('treeitem', {name: watchlist.name, exact: true}).first();
     const exists = await node.waitFor({state: 'visible', timeout: 5_000})

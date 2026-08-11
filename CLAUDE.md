@@ -254,9 +254,9 @@ async features. Both applications wrap that plus `@SpringBootTest` into one comp
 **HTTP client**: Spring's `RestTestClient` (`spring-boot-resttestclient`), not RestAssured.
 
 **Shared registration/login fixture**: `grafiosch-server-base` owns `RestTestHelperBase` (reads
-`testdata/users.csv`, acquires a JWT per user), `BaseIntegrationTestSupport` (GreenMail SMTP on 3025,
+`testdata/users.json`, acquires a JWT per user), `BaseIntegrationTestSupport` (GreenMail SMTP on 3025,
 `authenticatedClient(nickname)`) and `AbstractUserResourceTest` (register → verify token → promote role → create
-tenant). Each application supplies only its own `users.csv`, a thin `RestTestHelper`/`BaseIntegrationTest` subclass
+tenant). Each application supplies only its own `users.json`, a thin `RestTestHelper`/`BaseIntegrationTest` subclass
 and the tenant step, because `TenantBase` is extended per application.
 
 **Test types**:
@@ -286,14 +286,30 @@ the complete cycle: MailHog check, DROP/CREATE of `grafioschtrader_t`, backend s
 profile, backend `ResoureTestSuite`, then the whole Playwright suite. See `scripts/e2e-test.mjs` and
 `frontend/e2e/README.md`.
 
-**IMPORTANT — do NOT run the full roundtrip on every iteration.** The full suite takes very long,
+**The full procedure is packaged as the `e2e-test` skill** (`.agents/skills/e2e-test/SKILL.md`) —
+invoke it whenever a Playwright spec is written, changed, debugged or executed. The rules below are
+its summary.
+
+**IMPORTANT — run `e2eTest.cmd` / `e2eTest.sh` ONLY when the user explicitly asks for it.** Never
+start the full roundtrip on your own initiative — not because a spec failed, not to verify, not
+before a commit. If you think a roundtrip is warranted, say so and ask. The same applies to the
+backend `ResoureTestSuite`: do not re-run it between spec iterations. The full suite takes very long,
 among other reasons because the freshly started backend downloads price/course data in the background.
+
 When adding or fixing a **single** Playwright spec:
 
 1. Leave the backend (port 8080, `e2e` profile, database `grafioschtrader_t`) and the frontend dev
    server (port 4200) running from a previous roundtrip or manual start.
-2. Run only the affected spec: `cd frontend && npx playwright test e2e/NNN-my-spec.spec.ts`
+2. Run only the affected spec:
+   `cd frontend && npx playwright test e2e/NNN-my-spec.spec.ts --project=grafioschtrader-e2e --no-deps`
 3. Re-run just that spec until it is green.
+
+**When a single spec fails, clean up after that spec — not the whole database.** Delete the records
+it created directly *and* indirectly in `grafioschtrader_t` (mind the indirect rows: instrument and
+currency-pair saves enqueue `task_data_change`, transactions write `hold_*`, a transfer persists two
+sides), then correct the spec and run it again. Repeat as often as needed. Prefer deleting the same
+way the spec created the data — through the UI or the REST endpoint — over raw SQL; credentials for
+the test database are not in the repository (untracked `backend/nv.bat`).
 
 **Write new specs to be self-cleaning and repeatable**: a spec must clean up (or delete-then-recreate)
 the data it creates in `grafioschtrader_t` — at the start of the run, so leftovers from a previous
@@ -304,8 +320,79 @@ while it is still buggy, without any DB reset in between.
 grafioschtrader_t;`, restart the backend on the `e2e` profile (Flyway rebuilds the schema and test
 data), clear `frontend/e2e/.auth/`, then re-run the single spec — still no full roundtrip needed.
 
-Reserve the full `e2eTest.cmd` / `e2eTest.sh` run for final verification before committing, or when
-explicitly asked.
+**Escalation ladder** — go down one rung only when the one above genuinely does not work:
+
+| | Action | When |
+|---|---|---|
+| 1 | Re-run the spec (it self-cleans) | Default |
+| 2 | Delete that spec's records via UI / REST / SQL, re-run the spec | Spec left a half-created graph |
+| 3 | Drop and recreate `grafioschtrader_t`, restart on `e2e`, clear `frontend/e2e/.auth/`, re-run the spec | Database too polluted to untangle |
+| 4 | Full `e2eTest.cmd` / `e2eTest.sh` roundtrip | **Only on explicit user request** |
+
+### Launching a UI against either test database
+
+Both stacks can run **at the same time** — no port and no database is shared. Always verify the target
+through the public info endpoint before touching data.
+
+| | Application stack | Library stack |
+|---|---|---|
+| Backend | `cd backend && mvn -pl grafioschtrader-server spring-boot:test-run -Dspring-boot.run.profiles=e2e` | `cd backend && mvn -pl grafiosch-test-integration spring-boot:run -Dspring-boot.run.profiles=e2e` |
+| Port / DB | 8080 / `grafioschtrader_t` | 8081 / `grafiosch_t` |
+| Frontend | `cd frontend && npm start` (4200) | `cd frontend && npm run start:grafiosch` (4201) |
+| Verify | `GET /api/gtinfo` → `databaseName: grafioschtrader_t` | `GET /api/integration-info` → profile `e2e`, database `grafiosch_t` |
+
+One trap and one thing to know:
+
+- **GT must use `spring-boot:test-run`, not `spring-boot:run`** — only `test-run` puts `src/test/resources`
+  on the classpath, so Flyway can find `db/migration/test`. This one is silent: without it Flyway finds no
+  `db/migration/test` and the schema is never built.
+- **Both modules have a working profile-less start**, which targets the *developer* database rather than
+  the test one: GT → `grafioschtrader` (real data — see the warning below), `grafiosch-test-integration`
+  → `grafiosch`, still on port 8081 and migrated from the same `migration-baseline/`. Omitting the flag
+  therefore no longer fails, it silently uses the other database — which is exactly why the info endpoint
+  must be checked before touching data.
+
+**Never start GT without a profile unless you mean it**: its default is `production` against the real
+`grafioschtrader` database.
+
+A fresh `grafiosch_t` has **no users** — there is no JDBC seeder. Users come from
+`grafiosch-test-integration/src/test/resources/testdata/users.json` (password `A123abcd`) and are created
+either by `mvn test -pl grafiosch-test-integration -Dtest=ResourceTestSuite` or by browser registration.
+
+### Extending tests from UI-entered data
+
+The normal way a test is born: run the roundtrip → enter or import the scenario **through the UI** →
+export what was created into a fixture → write the test that replays it. Wiki:
+[Extending the tests from UI-entered data](https://github.com/grafioschtrader/grafioschtrader/wiki/Testing#extending-the-tests-from-ui-entered-data).
+
+**Where the fixture goes.** `backend/grafioschtrader-server/src/test/resources/testdata/`, next to
+`portfolios.json` / `watchlists.json` / `derived-securities.json`. **Never** `testdata/generated/` — that
+directory is wiped and rebuilt from the **production** database, so data entered into `grafioschtrader_t`
+would vanish at the next regeneration.
+
+**How to export.** Copy an existing pattern; there is no generic tool. A read-only Node script under
+`scripts/` taking `--user/--password/--database/--out` and resolving the client via `GT_MYSQL_BIN` →
+`mariadb` → `mysql` (`scripts/export-generic-connectors.mjs`, `scripts/check-hold-tables.mjs`), or a
+double-opt-in Java test when decryption or entity logic is needed (`ConnectorApiKeyCsvExportTest`).
+
+**Fixture conventions:**
+- Pipe-delimited CSV for flat rows; JSON when the record is nested or a field is multi-line (`ruleYaml`).
+- **Natural keys, never ids** — ISIN + currency, MIC, nickname, account name. Ids differ between databases.
+- Last field is the `e2e` routing tag: `d` = already in the Flyway test data, `i` = created by the JUnit
+  suite, `e` = created by a Playwright spec. One file can feed both suites.
+
+**Test ordering is mandatory to consider — many tests consume data created by earlier ones:**
+- **JUnit**: `ResoureTestSuite` pins the order via `@SelectClasses`. Insert a new class where its
+  prerequisites already exist. Such a class *fails standalone* — that is expected; run it via the suite.
+- **Playwright**: `workers: 1`, so lexicographic filename order **is** the execution order. Three-digit
+  prefix in steps of five; pick the number by prerequisites, before the teardown specs `844` / `888`.
+  Deleting shared data is only safe in that teardown range.
+- **Across suites**: the JUnit suite seeds the baseline the Playwright specs assume. Run it to completion
+  first.
+
+Worked example of one fixture with both consumers: `trading_calendar_rule_set.json`, read by
+`TradingCalendarRuleSetResourceTest` (filters `e2e == "i"`, throws when missing) and by
+`105-create-trading-calendar-rule-set.spec.ts` (filters `e2e === 'e'`, warns and yields `[]` when missing).
 
 ## Key Architectural Patterns
 
@@ -338,7 +425,7 @@ explicitly asked.
 
 ### Adding a New Backend Feature
 
-1. Create entity in `grafiosch-base` module
+1. Create entity in `grafioschtrader-common/src/main/java/grafioschtrader/entities/` — see the module rule below
 2. Create repository interface in `grafioschtrader-server`
 3. Create service in `grafioschtrader-common`
 4. Create REST controller in `grafioschtrader-server/src/main/java/grafioschtrader/rest/`
@@ -349,6 +436,23 @@ explicitly asked.
    mvn clean install -DskipTests
    mvn test -pl grafioschtrader-server -Dtest=YourNewTest
    ```
+
+#### Which module owns a new entity
+
+**An entity belongs to the layer of the code that consumes it** — the same rule that already governs NLS
+keys and `g.` / `gt.` configuration prefixes (see `backend/CLAUDE.md`). Application and finance domain
+(anything referring to securities, currencies, transactions, portfolios, tax, charts of an instrument)
+goes in `grafioschtrader-common/.../grafioschtrader/entities/`. `grafiosch-base` takes an entity **only**
+when `grafiosch-base` / `grafiosch-server-base` themselves use it — users, tenants, roles, propose-change,
+mail, tasks, UDF.
+
+Getting this wrong is not cosmetic: `scripts/export-grafiosch-baseline.mjs` derives the table list of the
+portable baseline from the `grafiosch-base` entity sources (`TABNAME*` constants plus the `@Table` /
+`@CollectionTable` / `@JoinTable` names), so a misplaced entity ships its table into `grafiosch`,
+`grafiosch_t` and every downstream library database, where nothing can ever use it, and its field labels
+resolve as raw NLS keys because the texts live in the application bundle. Moving the entity back is enough
+to correct it — the next regeneration stops dumping the table and reports it as dropped, so no `DROP
+TABLE` migration is needed.
 
 ### Adding Frontend Component
 

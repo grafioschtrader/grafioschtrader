@@ -344,10 +344,44 @@ public class SecurityMarginCalc extends SecurityBaseCalc {
     } else {
       securityPositionSummary.transactionGainLossMC = securityPositionSummary.transactionGainLoss;
     }
+    bookMarginFlowToCurrencyPosition(ctp, securityPositionSummary, transaction);
     if (transaction.getIdTransaction() < 0) {
       // Hypothetical transaction
       securityPositionSummary.accountValueSecurityMC = securityPositionSummary.transactionGainLossMC;
     }
+  }
+
+  /**
+   * Books the cash effect of a margin transaction into the currency attribution counters.
+   *
+   * <p>
+   * A margin position has no cost base in the average cost sense, so the flow that carries currency exposure is the
+   * cash effect itself, which is what {@code transactionGainLoss} already holds in every one of the three branches
+   * above. The sign is inverted because these counters measure money invested, whereas
+   * {@code transactionGainLoss} measures money gained. Converting it with {@code ctp.exchangeRate} is the same premise
+   * the line above already relies on for {@code transactionGainLossMC}.
+   * </p>
+   *
+   * <p>
+   * Before this, margin instruments reported a currency result of exactly zero, indistinguishable from a position that
+   * genuinely had none. Unlike the general case, margin is not covered by the additivity proof in
+   * {@code specification/Currency_Gain_Loss_Attribution.md} — see its note on margin.
+   * </p>
+   *
+   * @param ctp                     calculation context holding the transaction date exchange rate
+   * @param securityPositionSummary the position whose counters are updated
+   * @param transaction             the transaction being processed, hypothetical ones are skipped
+   */
+  private void bookMarginFlowToCurrencyPosition(final CalcTransactionPos ctp,
+      final SecurityPositionSummary securityPositionSummary, final Transaction transaction) {
+    if (ctp.exchangeRate == null || transaction.getIdTransaction() < 0
+        || transaction.getSecurity().getCurrency().equals(securityPositionSummary.mainCurrency)) {
+      // See the note in SecurityGeneralCalc.addFlowToCurrencyPosition: no exposure, no per-transaction share.
+      return;
+    }
+    securityPositionSummary.transactionFlowSC = -securityPositionSummary.transactionGainLoss;
+    securityPositionSummary.netInvestedSC -= securityPositionSummary.transactionGainLoss;
+    securityPositionSummary.netInvestedMC -= securityPositionSummary.transactionGainLoss * ctp.exchangeRate;
   }
 
 }

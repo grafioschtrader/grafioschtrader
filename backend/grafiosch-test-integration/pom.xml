@@ -5,7 +5,7 @@
     <parent>
       <groupId>grafioschtrader</groupId>
       <artifactId>grafioschtrader</artifactId>
-      <version>0.36.5</version>
+      <version>0.36.6</version>
       <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -72,7 +72,7 @@
             <scope>test</scope>
         </dependency>
 
-		<!-- Shared integration test fixture (grafiosch.test.rest): users.csv reader, JWT acquisition and
+		<!-- Shared integration test fixture (grafiosch.test.rest): users.json reader, JWT acquisition and
 		     the registration flow that UserResourceTest builds on. Test scoped dependencies are not
 		     transitive, so the five artifacts it needs are declared again below. Requires the reactor to
 		     be built with -DskipTests; -Dmaven.test.skip=true would install an empty test jar. -->

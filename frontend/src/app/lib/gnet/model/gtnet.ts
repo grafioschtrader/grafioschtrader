@@ -2,8 +2,8 @@ import {BaseID} from '../../entities/base.id';
 import {MessageComType} from '../../mail/model/mail.send.recv';
 import {BaseParam} from '../../entities/base.param';
 
-// Re-export from shared for backward compatibility with non-migrated components
-export {GTNetExchangeKindType} from '../../../shared/gtnet/model/gtnet-exchange-kind.type';
+// Re-exported for the components that import the kind type together with the GTNet models.
+export {GTNetExchangeKindType} from './gtnet-exchange-kind.type';
 
 /**
  * Metadata about an exchange kind type, provided by the backend.

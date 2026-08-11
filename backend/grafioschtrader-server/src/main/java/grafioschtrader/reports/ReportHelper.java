@@ -11,12 +11,15 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import grafiosch.entities.User;
+import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
@@ -25,6 +28,7 @@ import grafioschtrader.entities.projection.CurrencyCount;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
+import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 import grafioschtrader.types.SamplingPeriodType;
 
 /**
@@ -41,6 +45,8 @@ import grafioschtrader.types.SamplingPeriodType;
  */
 public abstract class ReportHelper {
   private final static String WHERE_WORD = " WHERE ";
+
+  private final static Logger log = LoggerFactory.getLogger(ReportHelper.class);
 
   /**
    * Loads tenant-specific historical exchange rate data for the specified until date if not already cached. Uses the
@@ -108,6 +114,51 @@ public abstract class ReportHelper {
         dateCurrencyMap.getUntilDate());
     dateCurrencyMap.putToDateFromCurrencyMap(currencyList);
     dateCurrencyMap.untilDateDataIsLoaded();
+  }
+
+  /**
+   * Determines the single exchange rate at which a reporting date values everything denominated in the given currency.
+   *
+   * <p>
+   * This used to exist in two copies that disagreed with each other:
+   * {@code SecurityCashaccountGroupByCurrencyBaseReport} tolerated a reporting date falling in the current weekend,
+   * {@code SecurityGroupByBaseReport} did not, so the same position could be valued at two different rates depending
+   * on which report asked. The transaction list needs the same rate as a third caller, which is why the selection
+   * lives here now. The weekend-tolerant rule is the one kept, because a Saturday reporting date has no end-of-day
+   * quote to find and falling back to the latest rate is the only sensible answer.
+   * </p>
+   *
+   * <p>
+   * A missing rate is only an error when the date was a trading day. Otherwise the latest known rate is used, which is
+   * the same leniency the callers applied before.
+   * </p>
+   *
+   * @param currency                    the currency to convert from
+   * @param dateCurrencyMap             currency context carrying the main currency and the reporting date
+   * @param tradingDaysPlusJpaRepository used to tell a missing quote apart from a non-trading day
+   * @return the rate into the main currency, 1.0 when the currency already is the main currency
+   * @throws DataViolationException when the reporting date was a trading day and no rate exists for it
+   */
+  public static Double getReportExchangeRate(final String currency,
+      final DateTransactionCurrencypairMap dateCurrencyMap,
+      final TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository) {
+    if (currency.equals(dateCurrencyMap.getMainCurrency())) {
+      return 1.0;
+    }
+    if (dateCurrencyMap.isUntilDateEqualNowOrAfterOrInActualWeekend()) {
+      return dateCurrencyMap.getCurrencypairByFromCurrency(currency).getSLast();
+    }
+    final Double exactRate = dateCurrencyMap.getExactDateAndFromCurrency(dateCurrencyMap.getUntilDate(), currency);
+    if (exactRate != null) {
+      return exactRate;
+    }
+    if (tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(dateCurrencyMap.getUntilDate())) {
+      log.warn("Currencypair {}/{} for Date {} ist not updated!", currency, dateCurrencyMap.getMainCurrency(),
+          dateCurrencyMap.getUntilDate());
+      throw new DataViolationException("currencypair", "gt.missing.currencypair.day",
+          new Object[] { dateCurrencyMap.getUntilDate(), currency, dateCurrencyMap.getMainCurrency() });
+    }
+    return dateCurrencyMap.getCurrencypairByFromCurrency(currency).getSLast();
   }
 
   /**

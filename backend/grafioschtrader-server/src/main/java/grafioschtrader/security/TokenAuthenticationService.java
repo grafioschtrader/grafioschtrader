@@ -104,7 +104,7 @@ public class TokenAuthenticationService extends TokenAuthentication {
         mostPrivilegedRole, passwordRegexOk, globalparametersService.getCurrencyPrecision(),
         getGlobalConstantsFieldsByFieldPrefix(GlobalConstants.class, "FID"), featureConfig.getEnabledFeatures(),
         tenantClosedUntil, tenantIdGtImportPlatform);
-    configurationWithLogin.gtNetLogEnabled = globalparametersService.isGTNetLogEnabled();
+    // gtNetLogEnabled is set by TokenAuthentication.addJwtTokenToHeader, together with the GTNET feature flag.
     configurationWithLogin.forceConnectorMatch = globalparametersService.getForceConnectorMatch();
     boolean gtNetEnabled = featureConfig.isGtnet();
     configurationWithLogin.gtNetHasHistoricalExchangePeer = gtNetEnabled && gtNetJpaRepository

@@ -387,9 +387,11 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
 
   @Override
   public void calculatePositionClose(final CashaccountPositionSummary cashaccountPositionSummary, final Double price) {
+    // precisionMC rather than a hard-coded 2, which was wrong for a main currency with a different number of decimals,
+    // JPY at none and the crypto currencies at more. Every other main currency amount already rounds this way.
     cashaccountPositionSummary.gainLossCurrencyMC = DataHelper
         .round(cashaccountPositionSummary.balanceCurrencyTransaction * price
-            - cashaccountPositionSummary.balanceCurrencyTransactionMC, 2);
+            - cashaccountPositionSummary.balanceCurrencyTransactionMC, cashaccountPositionSummary.precisionMC);
   }
 
   @Override

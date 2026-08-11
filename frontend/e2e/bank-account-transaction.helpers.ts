@@ -1,4 +1,5 @@
 import {expect, Locator, Page, test} from '@playwright/test';
+import {getUser} from './helpers';
 import {
   BankAccountTransactionData,
   CashTransferData,
@@ -62,7 +63,8 @@ export async function ensureBankTransactionExchangeRates(page: Page,
       }
 
       const transaction = fixture.transaction;
-      const account = findCashAccount(fixture.portfolio.name, transaction.cashAccount).account;
+      const account = findCashAccount(fixture.portfolio.loginNickname,
+        fixture.portfolio.name, transaction.cashAccount).account;
       const rate = transaction.valuationExchangeRate;
       const key = `${account.currency}/${rate.toCurrency}/${transaction.date}`;
       if (processed.has(key)) {
@@ -133,7 +135,8 @@ export async function createBankTransfer(page: Page, fixture: BankTransactionFix
   const dialog = page.locator('.p-dialog:visible');
   await setTransactionDate(dialog, transaction.date, fixture.portfolio.loginNickname);
 
-  const destination = findCashAccount(transaction.creditPortfolio, transaction.creditCashAccount);
+  const destination = findCashAccount(fixture.portfolio.loginNickname,
+    transaction.creditPortfolio, transaction.creditCashAccount);
   const exchangeRateLookup = transaction.exchangeRate === undefined ? null : page.waitForResponse(response =>
     response.request().method() === 'GET'
       && /\/api\/currencypair\/[A-Z]{3}\/[A-Z]{3}\/\d{8}$/.test(new URL(response.url()).pathname),
@@ -182,7 +185,9 @@ export async function expectBankTransactions(page: Page, fixtures: BankTransacti
       }
     }
 
-    expect(matchedIds.size).toBe(14);
+    const expectedRows = fixtures.reduce((total, fixture) =>
+      total + (fixture.transaction.kind === 'transfer' ? 2 : 1), 0);
+    expect(matchedIds.size).toBe(expectedRows);
     expectAccountBalances(transactions.filter(transaction => matchedIds.has(transaction.idTransaction)), fixtures);
   });
 }
@@ -219,7 +224,7 @@ async function openTransactionDialog(page: Page, portfolio: PortfolioFixture, ca
 }
 
 async function setTransactionDate(dialog: Locator, isoDate: string, loginNickname: string): Promise<void> {
-  const locale = loginNickname === 'alledit' ? 'de-CH' : 'en-US';
+  const locale = getUser(loginNickname).localeStr;
   const input = dialog.locator('#transactionTime input');
   await input.waitFor({state: 'visible', timeout: 10_000});
   const value = `${toShortDate(isoDate, locale)} 12:00`;
@@ -264,9 +269,10 @@ async function submitTransaction(page: Page, dialog: Locator, endpoint: string):
   await dialog.waitFor({state: 'hidden', timeout: 10_000});
 }
 
-function findCashAccount(portfolioName: string, accountName: string) {
-  const portfolio = loadPortfolios().find(item => item.name === portfolioName);
-  expect(portfolio, `portfolio '${portfolioName}' in portfolios.json`).toBeDefined();
+function findCashAccount(loginNickname: string, portfolioName: string, accountName: string) {
+  const portfolio = loadPortfolios().find(item =>
+    item.loginNickname === loginNickname && item.name === portfolioName);
+  expect(portfolio, `portfolio '${portfolioName}' of '${loginNickname}' in portfolios.json`).toBeDefined();
   const account = portfolio.cashAccounts.find(item => item.name === accountName);
   expect(account, `cash account '${accountName}' in portfolio '${portfolioName}'`).toBeDefined();
   return {portfolio, account};

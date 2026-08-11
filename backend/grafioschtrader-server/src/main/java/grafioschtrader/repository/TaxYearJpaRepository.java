@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import grafiosch.entities.TaxYear;
+import grafioschtrader.entities.TaxYear;
 
 public interface TaxYearJpaRepository extends JpaRepository<TaxYear, Integer> {
 

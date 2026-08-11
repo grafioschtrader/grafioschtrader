@@ -27,22 +27,76 @@ between its neighbours (e.g. `042` between `040` and `045`), without renaming an
 close the gaps, and do not repeat the number in the `test.describe` title — Playwright already prints
 the filename next to it, and a copy in the title only drifts.
 
-## Watchlist specs (032-* create / 844-* teardown)
+Pick the number by **prerequisites**, not by where there happens to be a gap: the spec has to run after
+whatever creates the data it needs and before the teardown specs `844` and `888`. Deleting data that
+other specs share is only safe in that teardown range; everything else cleans up only what it owns.
 
-`032-create-watchlist.spec.ts` creates every Playwright-owned watchlist before the currency-pair and
+## Adding a spec from UI-entered data
+
+Most specs start as data typed or imported through the running application rather than as a
+hand-written fixture. The full workflow — bring `grafioschtrader_t` into a usable state, enter the data
+through the UI, export it read-only into a fixture, place the new test in the execution order, then
+write the test that replays it — is documented in the wiki under
+[Extending the tests from UI-entered data](https://github.com/grafioschtrader/grafioschtrader/wiki/Testing#extending-the-tests-from-ui-entered-data).
+
+Three rules from it are worth repeating here, because getting them wrong is silent:
+
+- A fixture exported this way belongs in `backend/grafioschtrader-server/src/test/resources/testdata/`,
+  **never** in `testdata/generated/` — that directory is wiped and rebuilt from the *production*
+  database, so anything hand-authored there disappears.
+- Reference rows by natural key (ISIN + currency, MIC, nickname, account name), never by id. Ids differ
+  between databases.
+- Carry the `e2e` routing tag as the last field and filter on `'e'` in the spec, so the same file can
+  also feed a JUnit test filtering on `'i'`. `105-create-trading-calendar-rule-set.spec.ts` and
+  `TradingCalendarRuleSetResourceTest` are the worked example of one file with both consumers.
+
+## Watchlist specs (040-* create / 844-* teardown)
+
+`040-create-watchlist.spec.ts` creates every Playwright-owned watchlist before the currency-pair and
 security workflows run. `844-delete-watchlist.spec.ts` removes the watchlists whose fixture row has
 `delete=true`; it runs before the portfolio teardown in `888`. Both read the hand-authored JSON fixture
 `backend/grafioschtrader-server/src/test/resources/testdata/watchlists.json`. Rows tagged `e` belong to
-Playwright; `i` is reserved for the backend integration tests. Each row can list securities by ISIN/currency
-and currency pairs by from/to currency. A `main=true` row is selected for performance calculations and becomes the
-tenant's `id_watchlist_performance`. An existing watchlist is accepted by 032 and an already missing cleanup
-row is accepted by 844, so both specs can be rerun against the same database.
+Playwright; `i` is reserved for the backend integration tests. Each row can list securities by ISIN/currency or exact
+name/currency and currency pairs by from/to currency. A `main=true` row is selected for performance calculations and
+becomes the tenant's `id_watchlist_performance`. An existing watchlist is accepted by 040 and an already missing
+cleanup row is accepted by 844, so both specs can be rerun against the same database.
 
-The five `alledit` watchlists (`Main List`, `currencypair`, `Spain`, `Switzerland`, and `Derived`) are retained;
-`Main List` is the tenant's performance watchlist, while later workflows populate and reuse the other lists.
-The empty `limit2` watchlists (`Main List` and `Currency Pair`) are marked for deletion and exercise the teardown
-path; its `Main List` is also selected for performance calculations. Specs 035, 040, 045, and 047 consume their
-watchlists but do not create them.
+The five `alledit` watchlists (`Hauptliste`, `currencypair`, `Spain`, `Switzerland`, and `Derived`) are retained;
+`Hauptliste` is the tenant's performance watchlist, while later workflows populate and reuse the other lists. The
+retained `limit2` watchlist `Hauptliste` is also selected for performance calculations. After 065 creates the shared
+derived securities, `070-add-forex-to-performance-watchlist.spec.ts` searches for Name=`Forex` and adds the two exact
+fixture results to that list. The add flow retains existing rows and adds only missing instruments, so it is safe to
+rerun. Specs 045, 050, 060, and 065 consume their `alledit` watchlists but do not create them.
+
+## Global trading calendar spec (055-*)
+
+`055-create-global-trading-calendar.spec.ts` creates the candidate trading days for 2000–2030 before any dated
+security transaction is submitted. The fresh E2E schema deliberately leaves `trading_days_plus` empty, and backend
+transaction validation rejects every date that is absent from that table, so this spec must run before 075.
+
+The spec is rerunnable: it accepts an already complete calendar unchanged, and if an earlier attempt left only a
+partial calendar, it removes those partial rows through the REST resource before recreating all years through the UI.
+
+## Security transaction spec (075-*)
+
+`075-create-security-transactions.spec.ts` recreates the ordered security transaction groups tagged `e2e='e'` in
+`backend/grafioschtrader-server/src/test/resources/testdata/transaction_securities.json`. A group identifier selects
+one complete scenario and keeps its user, watchlist, portfolio, account, and security natural keys together; IDs are
+resolved through the UI and REST representation.
+
+The first group, `Forex1`, belongs to `limit2` and uses the `Forex USD/CHF -> CHF` derived security on `Hauptliste`.
+It creates an opening margin purchase, a connected finance-cost transaction, and the connected closing sale. The
+finance-cost quotation is deliberately negative (`-6.67`), which the current transaction calculation persists as a
+positive CHF 400.20 cash-account amount. The spec runs after 065 creates the derived security and 070 adds it to the
+watchlist.
+
+At startup the spec deletes only rows matching the group's security, cash account, transaction type, and date, with
+the connected rows removed before their opening transaction. It then recreates all rows through the watchlist and
+margin-transaction dialogs and verifies their values and parent-child links through REST, making an isolated rerun
+safe after either a completed or partially failed run.
+
+With the backend and frontend from an earlier run still active, execute only this spec with
+`npx playwright test e2e/075-create-security-transactions.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
 ## Connector API key spec (005-*)
 
@@ -65,11 +119,11 @@ tests then skip in turn via `assumeTrue(isActivated())`. The spec deletes every 
 creating, because the create dialog only offers providers that are not configured yet; that also
 makes it re-runnable against a polluted database. It carries the lowest number in the suite (`005`) so
 the keys exist before every other spec — and, since the startup price update was removed from the
-`e2e` profile, before `067-schedule-batch-jobs.spec.ts` schedules that update.
+`e2e` profile, before `100-schedule-batch-jobs.spec.ts` schedules that update.
 
-## Batch-job scheduling spec (067-*)
+## Batch-job scheduling spec (100-*)
 
-`067-schedule-batch-jobs.spec.ts` schedules the batch jobs tagged `e2e='e'` in the hand-maintained,
+`100-schedule-batch-jobs.spec.ts` schedules the batch jobs tagged `e2e='e'` in the hand-maintained,
 headered `backend/grafioschtrader-server/src/test/resources/testdata/taskdatachange.csv`. It uses the
 admin user's create dialog in the batch processing monitor rather than writing directly to the
 database. The fixture currently contains `PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU` (`id_task = 30`)
@@ -84,8 +138,8 @@ were waiting for `id_task = 30`. `application-e2e.properties` therefore sets
 `gt.startup.price.update.task=false`; the `@ConditionalOnProperty` on `ExecuteStartupTask` defaults
 to enabled, so production is untouched.
 
-`067` runs after everything the jobs work on has been created — API keys (005), currency pairs (035),
-instruments (040, 047), generic connectors (065) and rule sets (from the backend fixture). The CSV
+`100` runs after everything the jobs work on has been created — API keys (005), currency pairs (045),
+instruments (050, 065), generic connectors (095) and rule sets (from the backend fixture). The CSV
 schedules task 30 for `now + 10 min` and task 53 one minute later. `BackgroundWorker` is single-threaded
 and polls every 15 seconds, so the rule-set calendar rebuild runs only after the price update. Task 53
 leaves the optional entity empty, which requests a full rebuild of every rule-based exchange.
@@ -95,16 +149,16 @@ not wait for execution because a full price update takes far longer than the who
 it deletes every non-running row for all fixture task types through the UI, so it can be rerun against
 the same `grafioschtrader_t`; a job already in `PROG_RUNNING` is skipped because
 `hasRightsForDeleteEntity()` removes its delete entry. Run only this spec against existing services
-with `npx playwright test e2e/067-schedule-batch-jobs.spec.ts --project=grafioschtrader-e2e --no-deps`.
+with `npx playwright test e2e/100-schedule-batch-jobs.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
 Note that specs create further `task_data_change` rows indirectly through backend save hooks — for
-example `SECURITY_LOAD_HISTORICAL_INTRA_PRICE_DATA` when `040` saves an instrument with a history
-connector, or `LOAD_EMPTY_CURRENCYPAIR_HISTORYQUOTES` for a new currency pair in `035`. Those are
+example `SECURITY_LOAD_HISTORICAL_INTRA_PRICE_DATA` when `050` saves an instrument with a history
+connector, or `LOAD_EMPTY_CURRENCYPAIR_HISTORYQUOTES` for a new currency pair in `045`. Those are
 caused by the tests themselves and are left as they are.
 
-## Generic connector spec (065-*)
+## Generic connector spec (095-*)
 
-`065-create-generic-connector.spec.ts` creates the generic feed connectors as user `alledit` and
+`095-create-generic-connector.spec.ts` creates the generic feed connectors as user `alledit` and
 activates them as the admin user. Its testdata is the nested JSON file
 `backend/grafioschtrader-server/src/test/resources/testdata/generic-connectors.json`,
 exported from the developer database by `scripts/export-generic-connectors.mjs` (invoked by
@@ -122,9 +176,22 @@ edit dialog (not the drag-and-drop upload zone). The `.tmpl` filenames encode th
 parses — and each file body ends with a `templatePurpose=` line that provides the purpose field.
 The file content itself is pasted verbatim into the `templateAsTxt` textarea.
 
-## Portfolio specs (015-* create / 888-* teardown)
+## Tenant edit spec (020-*)
 
-`015-create-portfolio.spec.ts` creates portfolios with their cash accounts, securities accounts and
+`020-edit-tenant.spec.ts` exercises Grafioschtrader's `TenantEditComponent` through the dynamic tenant dialog. It
+reads the optional `tenantEdit` target from the `limit2` object in
+`backend/grafioschtrader-server/src/test/resources/testdata/users.json`, saves the tenant name, dividend-tax exclusion,
+country and Grafioschtrader import platform, then logs in again and verifies that every value persisted. The country
+and import platform are fixture natural keys: the test selects Switzerland as ISO code `CH` while accepting its
+English/German label, and resolves the platform's generated database id from the option named `Grafioschtrader`.
+
+The spec runs after `010-import-template-group.spec.ts`, which creates that import platform, and before the portfolio
+workflow. Updating to the same fixture state is safe, so `020` can be rerun against an already populated
+`grafioschtrader_t` without cleanup.
+
+## Portfolio specs (025-* create / 888-* teardown)
+
+`025-create-portfolio.spec.ts` creates portfolios with their cash accounts, securities accounts and
 trading periods; `888-delete-portfolio.spec.ts` removes them again at the end of the run. Both read
 the same hand-authored fixture
 `backend/grafioschtrader-server/src/test/resources/testdata/portfolios.json` — it belongs in
@@ -136,16 +203,16 @@ constant in two specs.
 The `delete` flag per portfolio is the teardown definition: `true` makes `888` remove the portfolio
 completely (cash accounts → securities accounts → portfolio), `false` generates no test at all there
 and keeps the portfolio in `grafioschtrader_t`. `888` processes the portfolios in reverse fixture
-order and tolerates an already missing row or node, so a partially failed `015` does not turn the
-teardown red as well. `015` is create-only and therefore expects the fixture portfolios not to exist
+order and tolerates an already missing row or node, so a partially failed `025` does not turn the
+teardown red as well. `025` is create-only and therefore expects the fixture portfolios not to exist
 yet — after a half-failed run, either run `888` first or remove the leftovers by hand.
 
-The fixture spans two users with different locales: `e2euser` (en-US, registered by `auth.setup.ts`)
-owns `Test Portfolio`, and `alledit` (de-CH, seeded by `ResoureTestSuite`) owns `SaxoTrader` and
-`CornèrTrader`. Both specs therefore match every menu text bilingually through the `RX` block in
-`portfolio.helpers.ts`, and they scope the tree navigation to the portfolio's own `<p-treenode>`
-subtree — a user with two portfolios has two identically labelled "Securities accounts"/"Depots"
-folders.
+The fixture spans three users with different locales: `e2euser` (en-US, registered by `auth.setup.ts`)
+owns `Test Portfolio`; `alledit` and `limit2` (de-CH, seeded by `ResoureTestSuite`) own the remaining
+portfolios. Both `alledit` and `limit2` have a `CornèrTrader`, so all fixture resolution includes the
+login nickname as well as the portfolio and account names. The specs match every menu text bilingually
+through the `RX` block in `portfolio.helpers.ts` and scope tree navigation to the owning portfolio's
+`<p-treenode>` subtree.
 
 `tradingPlatformPlan` holds a case-insensitive **substring** of the option label, because the plan
 names are translated: `Saxo Trader` (identical in DE and EN) and `CornèrTrader` (from `CornèrTrader
@@ -164,31 +231,31 @@ counterpart. Its date picker arrives pre-filled with the oldest trading day (`20
 helper only types when the fixture asks for a different date, and then key by key, because PrimeNG
 ignores values injected with `fill()`.
 
-## Bank-account transaction spec (090-*)
+## Bank-account transaction spec (120-*)
 
-`090-bank-account-transactions.spec.ts` recreates the bank-account-only transactions of `alledit`
+`120-bank-account-transactions.spec.ts` recreates the bank-account-only transactions of every fixture user
 through the single-account and account-transfer dialogs. Its input is the optional `transactions`
 array below each portfolio in `testdata/portfolios.json`. A `single` entry names its cash account and
 transaction type; a `transfer` entry names the debit account and the destination portfolio/account,
 because the destination may belong to another portfolio. Exchange rates and expected rounded debit
 amounts are stored only for cross-currency transfers.
 
-The fixture contains ten logical operations: six standalone transactions and four transfers, which
-persist as fourteen rows. The spec reconciles the fixture with the tenant's existing transactions,
-creates missing operations through the UI, and verifies the persisted standalone rows and both sides
-of every transfer. Exact matches are retained because deleting the first deposit from a non-borrowing
-account is correctly rejected as a temporary overdraft. A transfer is persisted atomically, so this
-reconciliation also recovers a run that stopped after any standalone operation. Unrelated transactions
-are untouched, and the spec can be rerun independently against an already populated
+The fixture contains ten `alledit` operations (fourteen persisted rows) and one `limit2` deposit. The spec groups them
+by nickname, logs into each tenant, resolves duplicate portfolio names within that owner, and derives the expected row
+count from the operations. It creates missing operations through the UI and verifies standalone rows and both sides
+of every transfer. Exact matches are retained because deleting the first deposit from a non-borrowing account is
+correctly rejected as a temporary overdraft. A transfer is persisted atomically, so reconciliation also recovers a
+run that stopped after any standalone operation. Unrelated transactions are untouched, and the spec can be rerun
+independently against an already populated
 `grafioschtrader_t` without a full `e2eTest` database reset.
 
 With the backend and frontend from an earlier run still active, execute only this spec with
-`npx playwright test e2e/090-bank-account-transactions.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/120-bank-account-transactions.spec.ts --project=grafioschtrader-e2e --no-deps`.
 The `--no-deps` flag avoids rerunning the create-only user-registration setup against the populated database.
 
-## Standing-order spec (095-*)
+## Standing-order spec (125-*)
 
-`095-standing-orders.spec.ts` recreates the two standing orders of `alledit` from the optional
+`125-standing-orders.spec.ts` recreates the two standing orders of `alledit` from the optional
 `standingOrders` array below the CornèrTrader portfolio in `testdata/portfolios.json`. It creates a foreign-currency
 cash fee for `CT USD` and an amount-based accumulation order for the iShares Core SPI ETF in security account `CT`.
 The ETF is selected through the instrument search by ISIN; account and security IDs remain database-independent.
@@ -199,12 +266,12 @@ orders have no generated transactions and are therefore deletable. Historical so
 transactions must be detached and deleted once in `grafioschtrader_t` before the first isolated run.
 
 With the backend and frontend still active, execute only this spec with
-`npx playwright test e2e/095-standing-orders.spec.ts --project=grafioschtrader-e2e --no-deps`.
+`npx playwright test e2e/125-standing-orders.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
-## History quote spec (045-*)
+## History quote spec (060-*)
 
-`045-historyquote-table.spec.ts` covers the end-of-day price views of `Nestlé AG` (CH0038863350): it
-uses the `Switzerland` watchlist created by 032 and adds the instrument through the "Add existing instrument"
+`060-historyquote-table.spec.ts` covers the end-of-day price views of `Nestlé AG` (CH0038863350): it
+uses the `Switzerland` watchlist created by 040 and adds the instrument through the "Add existing instrument"
 search dialog by ISIN, then deletes the most recent quote and recreates it with exactly the same
 values through the create dialog.
 
@@ -216,7 +283,7 @@ quotes from 2000 onwards). The data is therefore present as soon as Flyway has r
 A security created through the UI from `generated/securities.csv` would not work here: saving it
 only enqueues a background price import, and there is no guarantee that `BackgroundWorker` has run
 it by the time this spec looks at the table — it can be many minutes before the first quote appears,
-and from `067` on the full price update competes for the same worker. Earlier revisions of this spec
+and from `100` on the full price update competes for the same worker. Earlier revisions of this spec
 used `Banco Santander` from the `Spain` watchlist and consequently skipped almost every run.
 
 Nestlé is shared data (`id_tenant_private` NULL, created by the system user), so `alledit` is not
@@ -234,16 +301,16 @@ with `fill()`.
 Delete-then-recreate makes the spec repeatable: a rerun targets the same date again. The recreated
 row comes back with create type `ADD_MODIFIED_USER` instead of `CONNECTOR_CREATED`, so its icon in
 the `T` column changes — harmless for the flow. Because the OHLCV values are written back unchanged,
-the shared Nestlé series also stays intact for `050-correlation-matrix.spec.ts`, which uses it. Only
+the shared Nestlé series also stays intact for `080-correlation-matrix.spec.ts`, which uses it. Only
 a run aborted *between* the delete and the recreate leaves that one connector row missing; the next
 run then targets the row before it.
 
 The instrument is added only when missing, so the spec can be re-run against the same `grafioschtrader_t`
 without a reset.
 
-## Derived instrument spec (047-*)
+## Derived instrument spec (065-*)
 
-`047-create-derived-security.spec.ts` uses the `Derived` watchlist created by 032 for user `alledit` and
+`065-create-derived-security.spec.ts` uses the `Derived` watchlist created by 040 for user `alledit` and
 adds three **derived instruments** through the watchlist context menu entry "Add new derived security".
 A derived instrument has no price connector: its prices are calculated from the base instrument
 (formula variable `o`, stored in `security.id_link_securitycurrency`) and, when a pricing formula is
@@ -265,8 +332,8 @@ three instruments mirror the production database:
 Linked instruments are referenced **by name, never by id**. `Gold Feinunze` and the pair `EUR/CHF` are
 seeded by `V2__testdata.sql`, but `USD/CHF` is not: `nv.bat` drops every currency pair whose connector
 needs an API key, and the production USD/CHF pair uses one. That pair is recreated by
-`035-create-currencypair.spec.ts` from `currencypair.csv` and therefore gets a different id — which is
-also why this spec has to run after `035`.
+`045-create-currencypair.spec.ts` from `currencypair.csv` and therefore gets a different id — which is
+also why this spec has to run after `045`.
 
 Two ordering traps are worth knowing when changing the spec. Assigning a *security* as base instrument
 calls `transferBusinessObjectToForm()` and overwrites name, currency, asset class, stock exchange and
@@ -291,9 +358,9 @@ already present in the watchlist are skipped, so the spec is re-runnable against
 `grafioschtrader_t` without a reset — necessary because derived instruments are shared data and
 `security` has no unique index on the name.
 
-## Tax data spec (085-*)
+## Tax data spec (115-*)
 
-`085-taxdata.spec.ts` covers the tax data administration view (Administrative data -> Tax data) as the
+`115-taxdata.spec.ts` covers the tax data administration view (Administrative data -> Tax data) as the
 admin user, in three tests that mirror the lifecycle: create the tax country `Switzerland` and the
 tax year `2025` and upload both Kursliste files, delete the uploads, the year and the country again,
 then recreate everything. Only the admin sees the context menu at all (`AuditHelper.hasAdminRole`)
@@ -328,7 +395,7 @@ Start the services in separate terminals:
 # backend/ — the standalone Grafiosch server on port 8081
 mvn -pl grafiosch-test-integration spring-boot:run -Dspring-boot.run.profiles=e2e
 
-# backend/ — register the users.csv users tagged e2e='i' (the browser suite logs in as them)
+# backend/ — register the users.json users tagged e2e='i' (the browser suite logs in as them)
 mvn test -pl grafiosch-test-integration -Dtest=ResourceTestSuite
 
 # frontend/ — the standalone Grafiosch frontend on port 4201
@@ -346,11 +413,11 @@ asserts that an email was sent. Put a test in `e2e/lib/` only when it can run us
 
 ### The library owns the helpers
 
-`e2e/lib/helpers.ts` holds the flows both suites share — the pipe-CSV parser, the credential files, `login` /
-`loginAs` / `loginAsCsvUser`, the MailHog decoding and the whole browser registration including the token from the
-verification mail. `e2e/helpers.ts` is a thin wrapper that only configures the three things that differ (which
-`users.csv`, which `.auth` directory, which post-login URL) and re-exports everything under the old names, so no
-application spec had to change.
+`e2e/lib/helpers.ts` holds the flows both suites share — the user JSON reader, the generic pipe-CSV parser, the
+credential files, `login` / `loginAs` / `loginAsFixtureUser`, the MailHog decoding and the whole browser registration
+including the token from the verification mail. `e2e/helpers.ts` is a thin wrapper that only configures the three
+things that differ (which
+`users.json`, which `.auth` directory, which post-login URL) and re-exports the shared helpers.
 
 **The dependency only points that way.** `e2e/lib` must never import from `e2e/`, otherwise it cannot move with
 `src/app/lib` when the library is extracted. The one screen the library cannot supply is the tenant page — `TenantBase`
@@ -359,13 +426,14 @@ is extended per application — so `registerAndSetupTenant` takes it as a callba
 
 ### Users of the library suite
 
-Same `e2e` column convention as this suite, against
-`backend/grafiosch-test-integration/src/test/resources/testdata/users.csv`: rows tagged `i` are registered at REST
-level by the backend `ResourceTestSuite`, rows tagged `e` through the browser by `e2e/lib/auth.setup.ts`. Nothing seeds
+Same `e2e` property convention as this suite, against
+`backend/grafiosch-test-integration/src/test/resources/testdata/users.json`: objects tagged `i` are registered at REST
+level by the backend `ResourceTestSuite`, objects tagged `e` through the browser by `e2e/lib/auth.setup.ts`. Nothing seeds
 users with JDBC any more, so **the backend suite has to run before the browser suite** — `e2eTest.cmd --lib` does that
 for you. Specs address users by nickname, never by id.
 
-The numbering convention above applies here as well; `e2e/lib` starts at `010-mail.spec.ts`.
+The numbering convention above applies here as well. `010-mail.spec.ts` covers reusable mail, `020-nickname-lang-edit`
+updates the profile targets stored in `users.json`, and `030-password-edit` changes the configured user's password.
 
 The setup is **re-runnable**: a user that can already sign in is left alone, and one without a tenant only gets the
 tenant step, so the suite can be executed repeatedly against a populated `grafiosch_t`. Note that the login probe it

@@ -64,10 +64,8 @@ public class SecurityGroupByBaseReport<T> extends SecurityPositionSummaryReport 
       if (security.getIdSecuritycurrency() < 0 && securityPositionSummary.valueSecurity == 0) {
         continue;
       }
-      double currencyExchangeRate = (security.getCurrency().equals(dateCurrencyMap.getMainCurrency())) ? 1.0
-          : dateCurrencyMap.isUntilDateEqualNowOrAfter()
-              ? dateCurrencyMap.getCurrencypairByFromCurrency(security.getCurrency()).getSLast()
-              : dateCurrencyMap.getExactDateAndFromCurrency(dateCurrencyMap.getUntilDate(), security.getCurrency());
+      double currencyExchangeRate = ReportHelper.getReportExchangeRate(security.getCurrency(), dateCurrencyMap,
+          tradingDaysPlusJpaRepository);
 
       T groupValue = getGroupValue(security);
       SecurityPositionDynamicGroupSummary<T> securityPositionDynamicGroupSummary = groupMap.computeIfAbsent(groupValue,

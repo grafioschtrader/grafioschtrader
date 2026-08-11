@@ -1,0 +1,88 @@
+[
+  {
+    "email": "hg@hugograf.com",
+    "password": "A123abcd",
+    "nickname": "admin",
+    "localeStr": "de-CH",
+    "timezoneOffset": -60,
+    "currency": "CHF",
+    "role": "ADMIN",
+    "e2e": "i"
+  },
+  {
+    "email": "hugo.graf@grafiosch.com",
+    "password": "A123abcd",
+    "nickname": "alledit",
+    "localeStr": "de-CH",
+    "timezoneOffset": -60,
+    "currency": "CHF",
+    "role": "ALLEDIT",
+    "e2e": "i"
+  },
+  {
+    "email": "hugo.graf@outlook.com",
+    "password": "A123abcd",
+    "nickname": "user",
+    "localeStr": "en-US",
+    "timezoneOffset": -60,
+    "currency": "USD",
+    "role": "USER",
+    "e2e": "i"
+  },
+  {
+    "email": "grafiosch@outlook.com",
+    "password": "A123abcd",
+    "nickname": "limit1",
+    "localeStr": "de-CH",
+    "timezoneOffset": -60,
+    "currency": "EUR",
+    "role": "LIMITEDIT",
+    "e2e": "i"
+  },
+  {
+    "email": "hugo.graf@wirtschaftsfilz.ch",
+    "password": "A123abcd",
+    "nickname": "limit2",
+    "localeStr": "de-CH",
+    "timezoneOffset": -60,
+    "currency": "CHF",
+    "role": "LIMITEDIT",
+    "tenantEdit": {
+      "tenantName": "Tenant limit2",
+      "excludeDivTax": true,
+      "country": "Switzerland",
+      "idGtImportPlatform": "Grafioschtrader"
+    },
+    "e2e": "i"
+  },
+  {
+    "email": "e2euser@test.local",
+    "password": "A123abcd",
+    "nickname": "e2euser",
+    "localeStr": "en-US",
+    "timezoneOffset": 0,
+    "currency": "CHF",
+    "role": "ALLEDIT",
+    "e2e": "e"
+  },
+  {
+    "email": "e2euser.c@test.local",
+    "password": "A123abcd",
+    "nickname": "e2euserc",
+    "localeStr": "en-US",
+    "timezoneOffset": 0,
+    "currency": "CHF",
+    "role": "LIMITEDIT",
+    "e2e": "ec"
+  },
+  {
+    "email": "e2euser.r@test.local",
+    "password": "A123abcd",
+    "nickname": "e2euserr",
+    "localeStr": "en-US",
+    "timezoneOffset": 0,
+    "currency": "CHF",
+    "role": "LIMITEDIT",
+    "e2e": "er"
+  }
+]

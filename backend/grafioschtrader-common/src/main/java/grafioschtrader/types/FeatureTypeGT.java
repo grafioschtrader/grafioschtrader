@@ -15,10 +15,7 @@ public enum FeatureTypeGT implements FeatureType {
    * Alarm for security and portfolio events. For example, if the price of a security falls below a previously
    * determined value.
    */
-  ALERT,
-  /**
-   * GTNet peer-to-peer network for data sharing between Grafioschtrader instances. Enables discovery of other
-   * instances, trust token exchange, data sharing negotiation, and intraday price distribution.
-   */
-  GTNET
+  ALERT
+  // GTNet used to be listed here. It moved to grafiosch.types.FeatureTypeBase, because the whole implementation lives
+  // in the reusable library and a standalone Grafiosch server has to be able to report the feature as well.
 }

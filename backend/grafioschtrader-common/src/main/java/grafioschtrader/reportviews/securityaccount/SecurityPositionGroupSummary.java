@@ -16,7 +16,7 @@ public abstract class SecurityPositionGroupSummary {
   public double groupGainLossSecurityMC = 0.0;
 
   @Schema(description = "Total currency exchange gains/losses for the group in main currency")
-  public double groupCurrencyGainLossMC = 0.0;
+  public double groupGainLossCurrencyMC = 0.0;
 
   @Schema(description = "Total value of short positions in the group adjusted for leverage")
   public double groupValueSecurityShort;
@@ -65,7 +65,7 @@ public abstract class SecurityPositionGroupSummary {
     precisionMC = securityPositionSummary.precisionMC;
     securityPositionSummaryList.add(securityPositionSummary);
     groupGainLossSecurityMC += securityPositionSummary.gainLossSecurityMC;
-    groupCurrencyGainLossMC += securityPositionSummary.currencyGainLossMC;
+    groupGainLossCurrencyMC += securityPositionSummary.gainLossCurrencyMC;
     groupAccountValueSecurityMC += securityPositionSummary.accountValueSecurityMC;
 
     groupValueSecurityShort += securityPositionSummary.valueSecurity
@@ -94,8 +94,8 @@ public abstract class SecurityPositionGroupSummary {
     return DataHelper.round(groupSecurityRiskMC, precisionMC);
   }
 
-  public double getGroupCurrencyGainLossMC() {
-    return DataHelper.round(groupCurrencyGainLossMC, precisionMC);
+  public double getGroupGainLossCurrencyMC() {
+    return DataHelper.round(groupGainLossCurrencyMC, precisionMC);
   }
 
   public double getGroupExcludedDivTaxMC() {

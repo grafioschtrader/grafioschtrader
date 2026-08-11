@@ -1,0 +1,10 @@
+[historical]
+Öffnen Sie die gewünschte Kryptowährung auf <a target="_blank" href="//coinmarketcap.com/">CoinMarketCap</a>. Suchen Sie in den Netzwerkanfragen der Browser-Entwicklerwerkzeuge nach <code>/chart</code> und öffnen Sie den Aufruf von <code>cryptocurrency/detail/chart</code>.<br>
+Entnehmen Sie der Request-URL die numerischen Werte der Parameter <code>id</code> und <code>convertId</code>. Geben Sie diese zusammen mit den Währungssymbolen im Format <b>KRYPTO_SYMBOL=id,KURSWAERUNG_SYMBOL=convertId</b> ein. Übernehmen Sie <code>interval</code>, <code>range</code>, <code>timeStart</code> und <code>timeEnd</code> nicht; Grafioschtrader erzeugt diese Parameter selbst.<br>
+Geben Sie zum Beispiel aus <code>...?id=1027&amp;interval=7d&amp;convertId=2781&amp;range=All</code> für ETH/USD den Wert <b>ETH=1027,USD=2781</b> ein. Die Zahlen sind CoinMarketCap-Asset-IDs: Bitcoin hat dort die ID <code>1</code>; deshalb wird BTC/CHF als <b>BTC=1,CHF=2785</b> eingegeben.<br>
+Im Chart-Aufruf muss die Kryptowährung immer an erster Stelle stehen. Verwenden Sie daher <b>BTC=1,CHF=2785</b> sowohl für BTC/CHF als auch für CHF/BTC; für CHF/BTC berechnet Grafioschtrader automatisch den Kehrwert des Kurses.<br>
+Historische Tageswerte werden in Drei-Jahres-Fenstern geladen. CoinMarketCap liefert über diesen Chart-Endpunkt keine täglichen Eröffnungs-, Höchst- und Tiefstkurse.<br>
+Es ist kein API-Schlüssel erforderlich. Dies ist ein undokumentierter Webseiten-Endpunkt, den CoinMarketCap jederzeit unangekündigt ändern oder einschränken kann.
+[intra]
+Verwenden Sie denselben Wert im Format <b>KRYPTO_SYMBOL=id,KURSWAERUNG_SYMBOL=convertId</b> wie für die historischen Daten. Letzter Kurs, Zeitstempel, Tageseröffnung, Tageshoch, Tagestief, Vortagesschluss und prozentuale Änderung werden aus Fünf-Minuten-Chartpunkten abgeleitet.<br>
+Es ist kein API-Schlüssel erforderlich. Dies ist ein undokumentierter Webseiten-Endpunkt, den CoinMarketCap jederzeit unangekündigt ändern oder einschränken kann.

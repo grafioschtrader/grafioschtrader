@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, Inject, OnDestroy, OnInit} from '@angular/core';
 import {LoginService} from '../../login/service/log-in.service';
 import {ActivePanelService} from '../service/active.panel.service';
 import {TopMenuTypes} from './top.menu.types';
@@ -9,6 +9,7 @@ import {ViewSizeChangedService} from '../../layout/service/view.size.changed.ser
 import {Location} from '@angular/common';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {UserDataService} from '../service/user.data.service';
+import {PERSONAL_DATA_ZIP_NAME} from '../service/personal.data.zip.token';
 import {InfoLevelType} from '../../message/info.leve.type';
 import {MessageToastService} from '../../message/message.toast.service';
 import {UserSettingsDialogs} from './user-settings-dialogs';
@@ -55,11 +56,18 @@ export class MenubarComponent implements OnInit, OnDestroy {
     private userDataService: UserDataService,
     private confirmationService: ConfirmationService,
     private manageClientService: ManageClientService,
-    private dialogService: DialogService) {
+    private dialogService: DialogService,
+    @Inject(PERSONAL_DATA_ZIP_NAME) private personalDataZipName: string) {
     this.activePanelService.topMenuItems = this.menuItems;
   }
 
   ngOnInit() {
+    // The tooltip of this entry names the archive file and is therefore translated with a parameter, which the
+    // leading-underscore tooltip convention of TranslateHelper.translateMenuItems can not supply.
+    const exportDataItem: MenuItem = {
+      label: 'EXPORT_DATA_SQL',
+      command: () => this.downloadPersonalDataAsZip()
+    };
     this.menuItems[TopMenuTypes.COLLAPSE_TREE] = {
       command: (event) => this.toggleMainTree(false)
     };
@@ -78,7 +86,7 @@ export class MenubarComponent implements OnInit, OnDestroy {
           label: 'NICKNAME_LOCALE_CHANGE' + BaseSettings.DIALOG_MENU_SUFFIX,
           command: () => this.mainDialogService.visibleDialog(true, UserSettingsDialogs.NicknameLocale)
         },
-        {label: '_EXPORT_DATA_SQL', command: () => this.downloadPersonalDataAsZip()},
+        exportDataItem,
         {label: 'DELETE_MY', command: () => this.deleteMyDataAndUserAccount()}
       ]
     };
@@ -91,6 +99,10 @@ export class MenubarComponent implements OnInit, OnDestroy {
       command: (event) => this.contextHelp()
     };
     TranslateHelper.translateMenuItems(this.menuItems, this.translateService);
+    // Set after translateMenuItems, so that the already resolved text is not treated as a translation key.
+    exportDataItem.tooltipOptions = {
+      tooltipLabel: this.translateService.instant('EXPORT_DATA_SQL_TITLE', {fileName: this.personalDataZipName})
+    };
     this.addManageClientMenu();
     this.subscriptionViewSizeChanged = this.viewSizeChangedService.viewSizeChanged$.subscribe(
       () => this.toggleMainTree(true));
@@ -208,7 +220,7 @@ export class MenubarComponent implements OnInit, OnDestroy {
     const blob = await this.userDataService.getExportPersonalDataAsZip()
       .catch(error => this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'DOWNLOAD_PERSONAL_DATA_FAILED'));
     if (blob) {
-      saveAs(blob, 'gtPersonalData.zip');
+      saveAs(blob, this.personalDataZipName);
       this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'DOWNLOAD_PERSONAL_DATA_SUCCESS');
     }
   }

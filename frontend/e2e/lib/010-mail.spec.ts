@@ -6,10 +6,10 @@ import {libHelpers} from './helpers';
  * The reusable mail system driven through the library components of the standalone host: the admin sends an internal
  * message from the inbox view, the recipient reads it and reaches the forwarding settings.
  *
- * Both users come from `users.csv` and were created by the backend `ResourceTestSuite`, so the recipient is selected
+ * Both users come from `users.json` and were created by the backend `ResourceTestSuite`, so the recipient is selected
  * by nickname rather than by id — nothing pins the primary keys any more since the JDBC seeder was removed.
  *
- * Menu entries are matched bilingually: the host renders in the language of the signed-in user, and users.csv may
+ * Menu entries are matched bilingually: the host renders in the language of the signed-in user, and users.json may
  * carry any locale.
  */
 const RX = {
@@ -28,10 +28,10 @@ async function gotoInbox(page: Page): Promise<void> {
 
 test.describe.serial('reusable mail system', () => {
   const subject = `Library E2E ${Date.now()}`;
-  const recipient = libHelpers.getCsvUser('user');
+  const recipient = libHelpers.getUser('user');
 
   test('admin sends an internal message to a user', async ({page}) => {
-    await libHelpers.loginAsCsvUser(page, 'admin');
+    await libHelpers.loginAsFixtureUser(page, 'admin');
     await gotoInbox(page);
 
     // SEND_TO_USER lives in the context menu of the inbox table, which ConfigurableTreeTableComponent opens on a
@@ -70,7 +70,7 @@ test.describe.serial('reusable mail system', () => {
   });
 
   test('recipient reads the message and can open forwarding settings', async ({page}) => {
-    await libHelpers.loginAsCsvUser(page, recipient.nickname);
+    await libHelpers.loginAsFixtureUser(page, recipient.nickname);
     await gotoInbox(page);
 
     await expect(page.getByText(subject)).toBeVisible();

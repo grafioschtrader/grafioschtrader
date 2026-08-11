@@ -856,14 +856,16 @@ export class MyDialogComponent extends SimpleEditBase implements OnInit {
 Angular project `grafiosch-host` (`npm run start:grafiosch`, port 4201) is a second application built from
 `src/app/lib` alone, talking to the `grafiosch-test-integration` backend on port 8081. It is what proves the library
 layer really is free of Grafioschtrader — and it is where you see, concretely, what a consuming application has to
-supply itself:
+supply itself. `src/grafiosch-host/README.md` states that purpose in full and keeps the list of library areas the host
+does not exercise yet:
 
 | Extension point | Host implementation |
 |---|---|
 | `DIALOG_HANDLER` | `grafiosch-dialog.handler.ts` |
 | `AfterLoginHandler` | `grafiosch-after-login.handler.ts` |
-| `MAIN_TREE_CONTRIBUTOR` (multi) | `grafiosch-main-tree.contributor.ts` — at least one, or `/mainview` shows an empty tree |
+| `MAIN_TREE_CONTRIBUTOR` (multi) | `grafiosch-basedata-main-tree.contributor.ts` + `grafiosch-main-tree.contributor.ts` (shared helpers in `grafiosch-tree-contributor.base.ts`) — at least one, or `/mainview` shows an empty tree; the host binds two so the merge in `MainTreeService` is exercised |
 | `TASK_TYPE_ENUM` / `TASK_EXTENDED_SERVICE` | the library `TaskTypeBase`; no extended task types here |
+| `PERSONAL_DATA_ZIP_NAME` | optional — the library default `personalData.zip` is used; GT overrides it in `app.module.ts` with `gtPersonalData.zip` |
 | The tenant page | `grafiosch-tenant-edit.component.ts` — `TenantBase` is extended per application |
 | Route table, `ToastrModule.forRoot`, `provideZoneChangeDetection()`, the NLS app initializer | `main.ts` |
 

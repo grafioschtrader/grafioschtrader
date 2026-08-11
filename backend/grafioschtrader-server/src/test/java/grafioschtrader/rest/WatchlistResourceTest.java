@@ -227,6 +227,7 @@ class WatchlistResourceTest extends BaseIntegrationTest {
     public String e2e;
   }
 
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static class SecurityFixture {
     public String isin;
     public String currency;

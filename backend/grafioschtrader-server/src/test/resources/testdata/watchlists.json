@@ -2,7 +2,8 @@
   "_comment": [
     "Shared watchlist fixture for backend REST integration tests and frontend Playwright tests.",
     "Rows tagged e2e='i' are created by WatchlistResourceTest; e2e='e' belongs to Playwright.",
-    "Securities use ISIN plus currency as stable lookup keys. Currency pairs use their from/to codes.",
+    "Securities use ISIN plus currency or exact name plus currency as stable lookup keys.",
+    "A securitySearchName drives the Playwright search dialog's Name field; currency pairs use their from/to codes.",
     "IDs are deliberately omitted because both test layers resolve or create records through REST or the UI."
   ],
   "watchlists": [
@@ -20,7 +21,7 @@
     },
     {
       "loginNickname": "alledit",
-      "name": "Main List",
+      "name": "Hauptliste",
       "main": true,
       "delete": false,
       "securities": [],
@@ -65,19 +66,14 @@
     },
     {
       "loginNickname": "limit2",
-      "name": "Main List",
+      "name": "Hauptliste",
       "main": true,
-      "delete": true,
-      "securities": [],
-      "currencyPairs": [],
-      "e2e": "e"
-    },
-    {
-      "loginNickname": "limit2",
-      "name": "Currency Pair",
-      "main": false,
-      "delete": true,
-      "securities": [],
+      "delete": false,
+      "securitySearchName": "Forex",
+      "securities": [
+        {"name": "Forex EUR/CHF -> CHF", "currency": "CHF"},
+        {"name": "Forex USD/CHF -> CHF", "currency": "CHF"}
+      ],
       "currencyPairs": [],
       "e2e": "e"
     }

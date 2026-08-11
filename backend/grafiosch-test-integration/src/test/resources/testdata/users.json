@@ -1,0 +1,63 @@
+[
+  {
+    "email": "admin@test.local",
+    "password": "A123abcd",
+    "nickname": "admin",
+    "localeStr": "en-US",
+    "timezoneOffset": 0,
+    "currency": "CHF",
+    "role": "ADMIN",
+    "e2e": "i",
+    "nicknameLangEdit": {
+      "localeStr": "de-CH",
+      "uiShowMyProperty": 1
+    }
+  },
+  {
+    "email": "alledit@test.local",
+    "password": "A123abcd",
+    "nickname": "alledit",
+    "localeStr": "en-US",
+    "timezoneOffset": 0,
+    "currency": "CHF",
+    "role": "ALLEDIT",
+    "e2e": "i"
+  },
+  {
+    "email": "user@test.local",
+    "password": "A123abcd",
+    "nickname": "user",
+    "localeStr": "en-US",
+    "timezoneOffset": 0,
+    "currency": "USD",
+    "role": "USER",
+    "e2e": "i",
+    "passwordEdit": {
+      "passwordNew": "abcdA123"
+    }
+  },
+  {
+    "email": "limited@test.local",
+    "password": "A123abcd",
+    "nickname": "limited",
+    "localeStr": "en-US",
+    "timezoneOffset": 0,
+    "currency": "EUR",
+    "role": "LIMITEDIT",
+    "e2e": "i"
+  },
+  {
+    "email": "libe2e@test.local",
+    "password": "A123abcd",
+    "nickname": "libe2e",
+    "localeStr": "en-US",
+    "timezoneOffset": 0,
+    "currency": "CHF",
+    "role": "ALLEDIT",
+    "e2e": "e",
+    "nicknameLangEdit": {
+      "localeStr": "de-CH",
+      "uiShowMyProperty": 1
+    }
+  }
+]

@@ -39,9 +39,8 @@ public class FeatureConfig {
     if (alert) {
       features.add(FeatureTypeGT.ALERT);
     }
-    if (isGtnet()) {
-      features.add(FeatureTypeGT.GTNET);
-    }
+    // GTNET is not added here: it is a library feature now and TokenAuthentication raises it from
+    // GlobalparametersJpaRepository.isGTNetEnabled() for every application built on the base modules.
     return features;
   }
 

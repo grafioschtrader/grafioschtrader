@@ -12,7 +12,7 @@ import grafioschtrader.entities.Tenant;
 import grafioschtrader.types.TenantKindType;
 
 /**
- * Creates the {@code e2e='i'} users of {@code testdata/users.csv} and their tenants. It is the first class of
+ * Creates the {@code e2e='i'} users of {@code testdata/users.json} and their tenants. It is the first class of
  * {@link ResoureTestSuite} because every following resource test authenticates as one of these users.
  *
  * <p>

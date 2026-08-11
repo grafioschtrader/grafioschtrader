@@ -56,7 +56,7 @@ export class TransactionSecurityFieldDefinition {
     tcm.addColumn(DataType.Numeric, 'transactionExchangeRate', 'EXCHANGE_RATE', true, false,
       {maxFractionDigits: gps.getMaxFractionDigits()});
     currencyColumnConfigMC.push(tcm.addColumn(DataType.Numeric, 'transactionGainLossMC', 'GAIN', true, false));
-    currencyColumnConfigMC.push(tcm.addColumn(DataType.Numeric, 'transactionCurrencyGainLossMC', 'GAIN_LOSS_CURRENCY', true, false));
+    currencyColumnConfigMC.push(tcm.addColumn(DataType.Numeric, 'transactionGainLossCurrencyMC', 'GAIN_LOSS_CURRENCY', true, false));
     tcm.fields.filter(cc => cc.dataType === DataType.Numeric).map(cc => cc.templateName = 'greenRed');
     tcm.prepareTableAndTranslate();
     return currencyColumnConfigMC;

@@ -26,7 +26,7 @@ public class SecurityPositionGrandSummary {
   public double grandTaxCostMC = 0.0;
 
   @Schema(description = "Total currency exchange gains/losses from foreign currency exposure")
-  public double grandCurrencyGainLossMC = 0.0;
+  public double grandGainLossCurrencyMC = 0.0;
 
   /**
    * Decimal precision for monetary value display based on the main currency's standard precision (e.g., 2 for USD/EUR,
@@ -53,12 +53,13 @@ public class SecurityPositionGrandSummary {
     grandAccountValueSecurityMC += securityPositionGroupSummary.groupAccountValueSecurityMC;
     grandGainLossSecurityMC += securityPositionGroupSummary.groupGainLossSecurityMC;
     grandSecurityRiskMC += securityPositionGroupSummary.groupSecurityRiskMC;
-    grandCurrencyGainLossMC += securityPositionGroupSummary.groupCurrencyGainLossMC;
+    grandGainLossCurrencyMC += securityPositionGroupSummary.groupGainLossCurrencyMC;
   }
 
   public void roundGrandTotals() {
     grandAccountValueSecurityMC = DataBusinessHelper.round(grandAccountValueSecurityMC);
     grandGainLossSecurityMC = DataBusinessHelper.round(grandGainLossSecurityMC);
+    grandGainLossCurrencyMC = DataBusinessHelper.round(grandGainLossCurrencyMC);
     grandTaxCostMC = DataBusinessHelper.round(grandTaxCostMC);
     grandSecurityRiskMC = DataBusinessHelper.roundStandard(grandSecurityRiskMC);
   }
@@ -79,8 +80,8 @@ public class SecurityPositionGrandSummary {
     return DataHelper.round(grandTaxCostMC, precision);
   }
 
-  public double getGrandCurrencyGainLossMC() {
-    return DataHelper.round(grandCurrencyGainLossMC, precision);
+  public double getGrandGainLossCurrencyMC() {
+    return DataHelper.round(grandGainLossCurrencyMC, precision);
   }
 
 }

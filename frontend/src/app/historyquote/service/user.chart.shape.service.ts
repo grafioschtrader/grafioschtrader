@@ -6,6 +6,7 @@ import {MessageToastService} from '../../lib/message/message.toast.service';
 import {Observable} from 'rxjs';
 import {catchError} from 'rxjs/operators';
 import {BaseSettings} from '../../lib/base.settings';
+import {AppSettings} from '../../shared/app.settings';
 
 /**
  * Service for managing chart drawing shapes via REST API.
@@ -25,7 +26,7 @@ export class UserChartShapeService extends AuthServiceWithLogout<any> {
    * @returns Observable emitting the shape data, or null if no shapes exist (204 No Content)
    */
   getShapes(idSecuritycurrency: number): Observable<any> {
-    return this.httpClient.get(`${BaseSettings.API_ENDPOINT}${BaseSettings.USER_CHART_SHAPE_KEY}/${idSecuritycurrency}`,
+    return this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.USER_CHART_SHAPE_KEY}/${idSecuritycurrency}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -41,7 +42,7 @@ export class UserChartShapeService extends AuthServiceWithLogout<any> {
       userChartShapeKey: {idSecuritycurrency},
       shapeData: shapes
     };
-    return this.httpClient.put(`${BaseSettings.API_ENDPOINT}${BaseSettings.USER_CHART_SHAPE_KEY}`, body,
+    return this.httpClient.put(`${BaseSettings.API_ENDPOINT}${AppSettings.USER_CHART_SHAPE_KEY}`, body,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -52,7 +53,7 @@ export class UserChartShapeService extends AuthServiceWithLogout<any> {
    * @returns Observable completing when deletion is successful
    */
   deleteShapes(idSecuritycurrency: number): Observable<any> {
-    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${BaseSettings.USER_CHART_SHAPE_KEY}/${idSecuritycurrency}`,
+    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.USER_CHART_SHAPE_KEY}/${idSecuritycurrency}`,
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 }

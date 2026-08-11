@@ -23,7 +23,7 @@ import type {
 
 /** One finished test, flattened for reporting. */
 interface TestRecord {
-  /** Spec file relative to the Playwright root, e.g. 'e2e/085-taxdata.spec.ts'. */
+  /** Spec file relative to the Playwright root, e.g. 'e2e/115-taxdata.spec.ts'. */
   file: string;
   project: string;
   /** Full title path without the project name, e.g. 'tax data - … › creates tax country …'. */

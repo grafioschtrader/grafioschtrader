@@ -11,6 +11,7 @@ import {routing} from './app.routes';
 import {AppComponent} from './app.component';
 import {TASK_EXTENDED_SERVICE} from './lib/taskdatamonitor/service/task.extend.service.token';
 import {TASK_TYPE_ENUM} from './lib/taskdatamonitor/service/task.type.enum.token';
+import {PERSONAL_DATA_ZIP_NAME} from './lib/mainmenubar/service/personal.data.zip.token';
 import {TaskType} from './shared/types/task.type';
 import {PortfolioService} from './portfolio/service/portfolio.service';
 import {TreeModule} from 'primeng/tree';
@@ -535,6 +536,8 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     }),
     // Main Tree Dialog Handler
     {provide: DIALOG_HANDLER, useClass: AppDialogHandler},
+    // File name of the personal data export, overrides the neutral default of the lib layer
+    {provide: PERSONAL_DATA_ZIP_NAME, useValue: 'gtPersonalData.zip'},
     // After Login Handler for GT-specific initialization
     {provide: AfterLoginHandler, useClass: GtAfterLoginHandler},
     // Main Tree Contributors

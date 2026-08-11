@@ -78,7 +78,7 @@ If you want to contribute to this project and make it better, your help is very 
 
 - [CONTRIBUTING.md](CONTRIBUTING.md) — the short version: how to report a bug, coding style, what a pull request needs.
 - [Development](//github.com/grafioschtrader/grafioschtrader/wiki/Development) — prerequisites, database preparation, first build and running GT locally.
-- [Testing](//github.com/grafioschtrader/grafioschtrader/wiki/Testing) — the backend, Vitest and Playwright suites.
+- [Testing](//github.com/grafioschtrader/grafioschtrader/wiki/Testing) — the two test stacks, Vitest, and how to turn data entered through the UI into a fixture and a test. Per stack: [application](//github.com/grafioschtrader/grafioschtrader/wiki/Testing-Grafioschtrader) · [library](//github.com/grafioschtrader/grafioschtrader/wiki/Testing-Grafiosch).
 - [AI-assisted development](//github.com/grafioschtrader/grafioschtrader/wiki/AI-Assisted-Development) — if you work with Claude Code, Codex or a similar agent.
 
 Open questions and ideas are collected in the [issues](//github.com/grafioschtrader/grafioschtrader/issues).

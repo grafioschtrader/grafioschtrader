@@ -11,6 +11,8 @@ export class SecurityPositionSummary {
   public taxCostMC: number;
   public gainLossSecurity: number;
   public gainLossSecurityMC: number;
+  /** Share of the result caused by exchange rate movement; together with gainLossSecurityMC the total in main currency. */
+  public gainLossCurrencyMC: number;
   public positionGainLoss: number;
   public positionGainLossPercentage: number;
   public valueSecurity: number;

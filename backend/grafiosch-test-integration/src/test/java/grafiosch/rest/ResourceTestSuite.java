@@ -10,7 +10,7 @@ import org.junit.platform.suite.api.Suite;
  * <p>
  * The order of {@code @SelectClasses} is significant: the suite builds a database state step by step.
  * {@link UserResourceTest} has to run first because it registers the {@code e2e='i'} users of
- * {@code testdata/users.csv} that every following class authenticates as, and
+ * {@code testdata/users.json} that every following class authenticates as, and
  * {@link UserEntityChangeLimitResourceTest} raises the daily CUD limit of the limited users before they change
  * anything.
  *

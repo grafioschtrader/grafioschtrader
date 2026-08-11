@@ -19,6 +19,7 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import grafiosch.BaseConstants;
 import grafiosch.dto.AccountDeletionEligibility;
 import grafiosch.dto.AccountDeletionEligibility.DeletionEligibility;
 import grafiosch.entities.User;
@@ -136,7 +137,7 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
    * directly to the {@link HttpServletResponse}.
    *
    * @param response The {@link HttpServletResponse} to which the ZIP file will be written. The response headers will be
-   *                 set for a file attachment named "gt.zip".
+   *                 set for a file attachment named {@link BaseConstants#PERSONAL_DATA_ZIP_FILENAME}.
    * @throws Exception if any error occurs during data export, resource loading, ZIP stream creation, or writing to the
    *                   response stream. This can include {@link java.io.IOException} during stream operations or
    *                   exceptions from {@link MySqlExportMyData#exportDataMyData()}.
@@ -159,7 +160,8 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
 
     // setting headers
     response.setStatus(HttpServletResponse.SC_OK);
-    response.addHeader("Content-Disposition", "attachment; filename=\"gt.zip\"");
+    response.addHeader("Content-Disposition",
+        "attachment; filename=\"" + BaseConstants.PERSONAL_DATA_ZIP_FILENAME + "\"");
 
     ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
     addZipEntry(zipOutputStream, resourceDdl.getInputStream(), ddlFileName);

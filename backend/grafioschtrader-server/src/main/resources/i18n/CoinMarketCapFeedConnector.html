@@ -1,0 +1,10 @@
+[historical]
+Open the desired cryptocurrency on <a target="_blank" href="//coinmarketcap.com/">CoinMarketCap</a>. In the browser developer tools, search the network requests for <code>/chart</code> and open the request to <code>cryptocurrency/detail/chart</code>.<br>
+From the request URL, extract the numeric values of <code>id</code> and <code>convertId</code>. Enter them together with their currency symbols in the form <b>CRYPTO_SYMBOL=id,QUOTE_SYMBOL=convertId</b>. Do not copy <code>interval</code>, <code>range</code>, <code>timeStart</code> or <code>timeEnd</code>; Grafioschtrader generates these parameters.<br>
+For example, from <code>...?id=1027&amp;interval=7d&amp;convertId=2781&amp;range=All</code>, enter <b>ETH=1027,USD=2781</b> for ETH/USD. The numbers are CoinMarketCap asset IDs: Bitcoin's ID happens to be <code>1</code>, so BTC/CHF is entered as <b>BTC=1,CHF=2785</b>.<br>
+The chart request must always have the cryptocurrency first. Therefore, use <b>BTC=1,CHF=2785</b> for both BTC/CHF and CHF/BTC; for CHF/BTC, Grafioschtrader calculates the reciprocal price automatically.<br>
+Historical daily snapshots are loaded in three-year windows. CoinMarketCap does not provide daily open, high and low values through this chart endpoint.<br>
+No API key is required. This is an undocumented website endpoint and may be changed or restricted by CoinMarketCap without notice.
+[intra]
+Use the same <b>CRYPTO_SYMBOL=id,QUOTE_SYMBOL=convertId</b> value as for historical data. The last price, timestamp, daily open, high, low, previous close and percentage change are derived from five-minute chart points.<br>
+No API key is required. This is an undocumented website endpoint and may be changed or restricted by CoinMarketCap without notice.

@@ -260,6 +260,13 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
     accruedInterestTransaction.setQuotation(accruedInterestTransaction.getCashaccountAmount() / transaction.getUnits());
     accruedInterestTransaction.setTransactionTime(transaction.getTransactionTime());
     accruedInterestTransaction.setSecuritycurrency(transaction.getSecurity());
+    // Accrued interest is settled together with the bond trade, so it is exposed to exactly the same currencies. The
+    // three fields below are what DataBusinessHelper.getCurrencyExchangeRateToMainCurreny reads; without them it
+    // returned null for every synthetic row, so the accrued interest of a foreign bond carried no exchange rate at
+    // all: no transactionGainLossMC, and no contribution to the currency attribution although the money did move.
+    accruedInterestTransaction.setCashaccount(transaction.getCashaccount());
+    accruedInterestTransaction.setIdCurrencypair(transaction.getIdCurrencypair());
+    accruedInterestTransaction.setCurrencyExRate(transaction.getCurrencyExRate());
     return accruedInterestTransaction;
   }
 
@@ -368,11 +375,45 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
       simulateAccruedInterest(transaction, securityPositionSummary, excludeDivTaxcost, ctp.exchangeRate,
           negativeIdNumberCreater);
     }
-    if (ctp.exchangeRate != null) {
-      securityPositionSummary.balanceSecurityCurrency += ctp.securitiesNetPrice + ctp.transactionTaxCost;
-      securityPositionSummary.adjustedCostBaseMC += (ctp.securitiesNetPrice + ctp.transactionTaxCost)
-          * ctp.exchangeRate;
+    addFlowToCurrencyPosition(transaction, ctp, securityPositionSummary,
+        ctp.securitiesNetPrice + ctp.transactionTaxCost);
+  }
+
+  /**
+   * Books one cash flow of the position into the two counters behind the currency attribution.
+   *
+   * <p>
+   * The sign convention is that of the position, not of the cash account: money going into the security is positive,
+   * everything coming back out — sale proceeds, dividends, accrued interest — is negative. The main currency
+   * counterpart uses the rate of the transaction date, so the difference against the reporting date rate is exactly
+   * the currency result. See {@code specification/Currency_Gain_Loss_Attribution.md}.
+   * </p>
+   *
+   * <p>
+   * Two flows are deliberately not booked. A security already denominated in the main currency has no currency
+   * result, and {@code DataBusinessHelper.getCurrencyExchangeRateToMainCurreny} would hand out the cash account cross
+   * rate for it — 85.65 for a CHF instrument paying into a JPY account — which would invent tens of thousands of
+   * francs of gain. And a hypothetical sale is not a cash flow at all; because it would be booked at the reporting
+   * date rate its two contributions cancel, so leaving it out is both simpler and free of the {@code getSLast()}
+   * rate it would otherwise drag in.
+   * </p>
+   *
+   * @param transaction             the transaction being processed
+   * @param ctp                     calculation context holding the transaction date exchange rate
+   * @param securityPositionSummary the position whose counters are updated
+   * @param flowSC                  the flow in the security currency, positive into the position
+   */
+  private void addFlowToCurrencyPosition(final Transaction transaction, final CalcTransactionPos ctp,
+      final SecurityPositionSummary securityPositionSummary, final double flowSC) {
+    if (ctp.exchangeRate == null || transaction.getTransactionType() == TransactionType.HYPOTHETICAL_SELL
+        || transaction.getSecurity().getCurrency().equals(securityPositionSummary.mainCurrency)) {
+      // Leave transactionFlowSC null: a flow that carries no currency exposure must not be given a per-transaction
+      // share either, or the shares stop adding up to the position total.
+      return;
     }
+    securityPositionSummary.transactionFlowSC = flowSC;
+    securityPositionSummary.netInvestedSC += flowSC;
+    securityPositionSummary.netInvestedMC += flowSC * ctp.exchangeRate;
   }
 
   /**
@@ -426,16 +467,9 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
     securityPositionSummary.units -= ctp.unitsSplited;
     securityPositionSummary.gainLossSecurity += securityPositionSummary.transactionGainLoss;
     if (ctp.exchangeRate != null) {
-      double gainLostMC = securityPositionSummary.transactionGainLoss * ctp.exchangeRate;
-      securityPositionSummary.transactionGainLossMC = gainLostMC;
-
-      securityPositionSummary.transactionCurrencyGainLossMC = balance * ctp.exchangeRate
-          - balance * securityPositionSummary.adjustedCostBaseMC / securityPositionSummary.balanceSecurityCurrency;
-      securityPositionSummary.adjustedCostBaseMC -= gainLostMC * securityPositionSummary.adjustedCostBaseMC
-          / securityPositionSummary.balanceSecurityCurrency;
-      securityPositionSummary.balanceSecurityCurrency -= securityPositionSummary.transactionGainLoss;
-      securityPositionSummary.currencyGainLossMC += securityPositionSummary.transactionCurrencyGainLossMC;
+      securityPositionSummary.transactionGainLossMC = securityPositionSummary.transactionGainLoss * ctp.exchangeRate;
     }
+    addFlowToCurrencyPosition(transaction, ctp, securityPositionSummary, -balance);
   }
 
   /**
@@ -535,9 +569,13 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
     }
     securityPositionSummary.gainLossSecurity += securityPositionSummary.transactionGainLoss;
     if (exchangeRate != null && !transaction.getSecurity().getCurrency().equals(securityPositionSummary.mainCurrency)) {
+      securityPositionSummary.transactionFlowSC = -securityPositionSummary.transactionGainLoss;
       securityPositionSummary.transactionGainLossMC = securityPositionSummary.transactionGainLoss * exchangeRate;
-      // securityPositionSummary.currencyGainLossMC +=
-      // securityPositionSummary.transactionCurrencyGainLossMC;
+      // Income leaves the position just as sale proceeds do, so it belongs in the currency attribution: cash received
+      // at the rate of the payment date stops drifting from that moment on. This used to be commented out, which is
+      // what the old GAIN_LOSS_CURRENCY_TOOLTIP described when it said dividends and interest were excluded.
+      securityPositionSummary.netInvestedSC -= securityPositionSummary.transactionGainLoss;
+      securityPositionSummary.netInvestedMC -= securityPositionSummary.transactionGainLoss * exchangeRate;
     }
   }
 

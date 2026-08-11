@@ -1,7 +1,7 @@
 import {expect, Locator, Page, test} from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
-import {loginAsCsvUser, parseCsvRow} from './helpers';
+import {loginAsFixtureUser, parseCsvRow} from './helpers';
 import {fillText, openContextMenu, selectByValue} from './generic-connector.helpers';
 
 /**
@@ -26,10 +26,10 @@ import {fillText, openContextMenu, selectByValue} from './generic-connector.help
  * Numbered 005 so it runs before every other spec (workers: 1, alphabetical order): every later spec
  * benefits from configured connectors. The full price update is no longer queued at backend startup
  * either — the `e2e` profile switches `ExecuteStartupTask` off with
- * `gt.startup.price.update.task=false`, and `067-schedule-batch-jobs.spec.ts` schedules it once these
+ * `gt.startup.price.update.task=false`, and `100-schedule-batch-jobs.spec.ts` schedules it once these
  * keys exist.
  *
- * The admin user runs a German UI (locale de-CH in users.csv), so every text selector matches DE, EN
+ * The admin user runs a German UI (locale de-CH in users.json), so every text selector matches DE, EN
  * and the raw NLS key — same convention as generic-connector.helpers.ts.
  */
 
@@ -112,7 +112,7 @@ test.describe.serial('connector API keys — created through the admin UI from t
 
   test('removes pre-existing connector API keys', async ({page}) => {
     test.skip(apiKeys.length === 0, `no API-key fixture at ${CSV_PATH}`);
-    await loginAsCsvUser(page, ADMIN);
+    await loginAsFixtureUser(page, ADMIN);
     await openConnectorApiKeyView(page);
 
     // Delete every row rather than only the CSV providers: the create dialog offers just the
@@ -139,7 +139,7 @@ test.describe.serial('connector API keys — created through the admin UI from t
   test('creates every connector API key from the CSV fixture', async ({page}) => {
     test.skip(apiKeys.length === 0, `no API-key fixture at ${CSV_PATH}`);
     test.setTimeout(180_000);
-    await loginAsCsvUser(page, ADMIN);
+    await loginAsFixtureUser(page, ADMIN);
     await openConnectorApiKeyView(page);
 
     // Provider id -> readable name as offered by the dialog; used for the table assertions below,

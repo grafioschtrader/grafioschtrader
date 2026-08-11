@@ -26,7 +26,8 @@ export interface TransactionReceiptDialogData {
  */
 @Component({
   template: `
-    <transaction-receipt-table [transactions]="transactions" (selectedChange)="selected = $event">
+    <transaction-receipt-table [transactions]="transactions" [marginBased]="marginBased"
+                               (selectedChange)="selected = $event">
     </transaction-receipt-table>
     <div style="text-align: right; margin-top: 1rem;">
       <p-button [label]="'DOWNLOAD' | translate" [disabled]="selected.length === 0 || downloading"
@@ -41,6 +42,7 @@ export interface TransactionReceiptDialogData {
 export class TransactionReceiptDialogComponent implements OnInit {
   transactions: Transaction[] = [];
   selected: Transaction[] = [];
+  marginBased = false;
   downloading = false;
 
   constructor(private dynamicDialogConfig: DynamicDialogConfig,
@@ -53,9 +55,12 @@ export class TransactionReceiptDialogComponent implements OnInit {
     const data: TransactionReceiptDialogData = this.dynamicDialogConfig.data;
     BusinessHelper.getSecurityTransactionSummary(this.securityService, data.idSecuritycurrency,
       data.idSecurityaccount ? [data.idSecurityaccount] : null, data.idPortfolio, false)
-      .subscribe((sts: SecurityTransactionSummary) => this.transactions = sts.transactionPositionList
-        .map(tp => tp.transaction)
-        .filter(t => Transaction.isSecurityTransaction(t.transactionType)));
+      .subscribe((sts: SecurityTransactionSummary) => {
+        this.marginBased = BusinessHelper.isMarginProduct(sts.securityPositionSummary.security);
+        this.transactions = sts.transactionPositionList
+          .map(tp => tp.transaction)
+          .filter(t => Transaction.isSecurityTransaction(t.transactionType));
+      });
   }
 
   download(): void {

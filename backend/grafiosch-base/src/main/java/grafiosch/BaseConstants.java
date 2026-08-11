@@ -54,6 +54,13 @@ public abstract class BaseConstants {
    */
   public static final String BLOB_PROPERTIES = ".properties";
 
+  /**
+   * File name of the archive with the user's personal data export, used in the Content-Disposition header of the
+   * download. The name is deliberately application-neutral; a consuming application may present the download under a
+   * different name.
+   */
+  public static final String PERSONAL_DATA_ZIP_FILENAME = "personalData.zip";
+
   /** Message key for NLS in the event of security breaches when a user attempts to access data of another client */
   public static final String CLIENT_SECURITY_BREACH = "client.security.breach";
 

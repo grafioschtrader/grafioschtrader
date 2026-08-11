@@ -409,10 +409,11 @@ public class PerformanceReport {
    * was opened.
    *
    * <p>
-   * The daily holdings query is driven by hold_securityaccount_security and therefore cannot deliver a row for a day on
-   * which nothing was held. Without this baseline the first returned row would be the day of the opening purchase, whose
-   * cost and result are already contained in it. Since the start date of the report is an excluded baseline, that day
-   * would be lost from the analysis and the amounts would not start at zero.
+   * The daily holdings query normally returns cash-only days as well. This fallback covers a missing start-date row
+   * without duplicating the baseline when the regular query already returned it. Without the baseline the first returned
+   * row could be the day of the opening purchase, whose cost and result are already contained in it. Since the start date
+   * of the report is an excluded baseline, that day would be lost from the analysis and the amounts would not start at
+   * zero.
    * </p>
    *
    * <p>
@@ -430,7 +431,8 @@ public class PerformanceReport {
   //@formatter:on
   private List<IPeriodHolding> prependZeroBaseHolding(List<IPeriodHolding> periodHoldings, LocalDate dateFrom,
       FirstAndMissingTradingDays fmtd, Supplier<List<IPeriodHolding>> zeroBaseSupplier) {
-    if (fmtd.firstEverHoldDay == null || !dateFrom.isBefore(fmtd.firstEverHoldDay)) {
+    if (fmtd.firstEverHoldDay == null || !dateFrom.isBefore(fmtd.firstEverHoldDay)
+        || (!periodHoldings.isEmpty() && periodHoldings.getFirst().getDate().isEqual(dateFrom))) {
       return periodHoldings;
     }
     List<IPeriodHolding> zeroBaseHolding = zeroBaseSupplier.get();

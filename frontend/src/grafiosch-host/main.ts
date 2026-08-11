@@ -23,6 +23,17 @@ import {AfterLoginHandler} from '../app/lib/login/service/after-login.handler';
 import {LoginService} from '../app/lib/login/service/log-in.service';
 import {ReleaseNoteService} from '../app/lib/login/service/release.note.service';
 import {GlobalSettingsTableComponent} from '../app/lib/globalsettings/global.settings.table.component';
+import {GTNetAdminMessagesComponent} from '../app/lib/gnet/component/gtnet-admin-messages.component';
+import {GTNetExchangeLogComponent} from '../app/lib/gnet/component/gtnet-exchange-log.component';
+import {GTNetExchangeLogTabMenuComponent} from '../app/lib/gnet/component/gtnet-exchange-log-tabmenu.component';
+import {GTNetMessageAnswerTableComponent} from '../app/lib/gnet/component/gtnet-message-answer-table.component';
+import {GTNetSetupTableComponent} from '../app/lib/gnet/component/gtnet.setup.table.component';
+import {GTNetTabMenuComponent} from '../app/lib/gnet/component/gtnet-tabmenu.component';
+import {GTNetConfigEntityService} from '../app/lib/gnet/service/gtnet.config.entity.service';
+import {GTNetConfigService} from '../app/lib/gnet/service/gtnet.config.service';
+import {GTNetMessageAnswerService} from '../app/lib/gnet/service/gtnet.message.answer.service';
+import {GTNetMessageService} from '../app/lib/gnet/service/gtnet.message.service';
+import {GTNetService} from '../app/lib/gnet/service/gtnet.service';
 import {MailForwardSettingTableEditComponent} from '../app/lib/mail/component/mail.forward.setting.table.edit.component';
 import {SendRecvForwardTabMenuComponent} from '../app/lib/mail/component/send.recv.forward.tab.menu.component';
 import {SendRecvTreetableComponent} from '../app/lib/mail/component/send.recv.treetable.component';
@@ -66,6 +77,7 @@ import {UserEntityChangeLimitService} from '../app/lib/user/service/user.entity.
 import {GrafioschAppComponent} from './app.component';
 import {GrafioschAfterLoginHandler} from './grafiosch-after-login.handler';
 import {GrafioschDialogHandler} from './grafiosch-dialog.handler';
+import {GrafioschBaseDataMainTreeContributor} from './grafiosch-basedata-main-tree.contributor';
 import {GrafioschMainTreeContributor} from './grafiosch-main-tree.contributor';
 import {GrafioschSettings} from './grafiosch.settings';
 import {GrafioschTenantEditComponent} from './grafiosch-tenant-edit.component';
@@ -111,6 +123,35 @@ const routes: Routes = [
       },
       {path: BaseSettings.UDF_METADATA_GENERAL_KEY, component: UDFMetadataGeneralTableComponent, canActivate: [authGuard]},
       {path: BaseSettings.GLOBAL_SETTINGS_KEY, component: GlobalSettingsTableComponent, canActivate: [authGuard]},
+      {
+        path: GrafioschSettings.GT_NET_TAB_MENU_KEY, component: GTNetTabMenuComponent, canActivate: [authGuard],
+        children: [
+          {path: BaseSettings.GT_NET_SETUP_KEY, component: GTNetSetupTableComponent, canActivate: [authGuard]},
+          {path: BaseSettings.GT_NET_ADMIN_MESSAGES_KEY, component: GTNetAdminMessagesComponent, canActivate: [authGuard]}
+        ]
+      },
+      {
+        path: BaseSettings.GT_NET_MESSAGE_ANSWER_KEY, component: GTNetMessageAnswerTableComponent,
+        canActivate: [authGuard]
+      },
+      {
+        path: BaseSettings.GT_NET_EXCHANGE_LOG_KEY, component: GTNetExchangeLogTabMenuComponent,
+        canActivate: [authGuard],
+        children: [
+          {
+            path: BaseSettings.GT_NET_EXCHANGE_LOG_LASTPRICE_KEY, component: GTNetExchangeLogComponent,
+            canActivate: [authGuard]
+          },
+          {
+            path: BaseSettings.GT_NET_EXCHANGE_LOG_HISTORICAL_KEY, component: GTNetExchangeLogComponent,
+            canActivate: [authGuard]
+          },
+          {
+            path: BaseSettings.GT_NET_EXCHANGE_LOG_METADATA_KEY, component: GTNetExchangeLogComponent,
+            canActivate: [authGuard]
+          }
+        ]
+      },
       {path: BaseSettings.TASK_DATA_CHANGE_MONITOR_KEY, component: TaskDataChangeTableComponent, canActivate: [authGuard]},
       {path: BaseSettings.CONNECTOR_API_KEY_KEY, component: ConnectorApiKeyTableComponent, canActivate: [adminGuard]},
       {path: BaseSettings.USER_ENTITY_LIMIT_KEY, component: UserTableComponent, canActivate: [adminGuard]}
@@ -156,6 +197,10 @@ bootstrapApplication(GrafioschAppComponent, {
     ReleaseNoteService, TabMenuService, TaskDataChangeService, TreeNavigationStateService, UDFMetadataGeneralService,
     UserAdminService, UserDataService, UserEntityChangeLimitService, UserSettingsService, ViewSizeChangedService,
 
+    // The GTNet services of the library. GTNetExchangeLogService is the only one of the six declared
+    // providedIn: 'root' and therefore the only one missing here.
+    GTNetConfigEntityService, GTNetConfigService, GTNetMessageAnswerService, GTNetMessageService, GTNetService,
+
     // Host owned.
     GrafioschTenantService,
 
@@ -169,6 +214,7 @@ bootstrapApplication(GrafioschAppComponent, {
     {provide: AfterLoginHandler, useClass: GrafioschAfterLoginHandler},
     MainTreeContributorManager,
     MainTreeService,
+    {provide: MAIN_TREE_CONTRIBUTOR, useClass: GrafioschBaseDataMainTreeContributor, multi: true},
     {provide: MAIN_TREE_CONTRIBUTOR, useClass: GrafioschMainTreeContributor, multi: true},
 
     // Load the user interface texts before anything renders. The backend is their only source since issue #214, so a

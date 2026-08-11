@@ -62,6 +62,30 @@ public class SecurityTransactionSummary {
   }
 
   /**
+   * Fills in the per-transaction currency result across the whole list.
+   *
+   * <p>
+   * It cannot be computed while the transactions are being walked, because each transaction's share depends on the
+   * rate of the reporting date, which is only settled afterwards. Every flow gets a value, purchases included — the
+   * previous calculation produced one for sales alone — and the individual values sum to the
+   * {@code gainLossCurrencyMC} of the position.
+   * </p>
+   *
+   * <p>
+   * A security already denominated in the main currency is skipped: it carries no currency result, and the rate
+   * lookup would otherwise hand out the cash account cross rate for it.
+   * </p>
+   *
+   * @param reportExchangeRate rate from the security currency into the main currency at the reporting date
+   */
+  public void applyReportRate(final double reportExchangeRate) {
+    if (securityPositionSummary.getSecurity().getCurrency().equals(securityPositionSummary.mainCurrency)) {
+      return;
+    }
+    transactionPositionList.forEach(position -> position.applyReportRate(reportExchangeRate));
+  }
+
+  /**
    * Removes security object references from all transactions to reduce JSON payload size.
    * 
    * <p>

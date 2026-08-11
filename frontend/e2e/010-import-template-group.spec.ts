@@ -1,7 +1,7 @@
 import {expect, Page, Response, test} from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
-import {loginAsCsvUser} from './helpers';
+import {loginAsFixtureUser} from './helpers';
 import {fillText, openContextMenu, selectByValue} from './generic-connector.helpers';
 
 /**
@@ -16,7 +16,7 @@ import {fillText, openContextMenu, selectByValue} from './generic-connector.help
  * metadata. The file body goes verbatim into the templateAsTxt textarea; its trailing
  * 'templatePurpose=...' configuration line provides the purpose field.
  *
- * 'alledit' runs a German UI (locale de-CH in users.csv), so every text selector matches DE + EN +
+ * 'alledit' runs a German UI (locale de-CH in users.json), so every text selector matches DE + EN +
  * the raw NLS key, and dates are typed in the de-CH calendar input format (dd.mm.y → '01.01.00').
  */
 
@@ -181,7 +181,7 @@ test.describe.serial('import template group — create group and templates as al
   test.use({viewport: {width: 1400, height: 1800}});
 
   test(`creates import template group '${GRAFIOSCHTRADER_GROUP_NAME}'`, async ({page}) => {
-    await loginAsCsvUser(page, CREATOR);
+    await loginAsFixtureUser(page, CREATOR);
     await openImportTemplateView(page);
 
     // Idempotency: skip when the group already exists (dropdown option label = group name).
@@ -212,7 +212,7 @@ test.describe.serial('import template group — create group and templates as al
   test('creates one import template per platform-specific .tmpl file via the edit dialog', async ({page}) => {
     const totalTemplateCount = TEMPLATE_GROUPS.reduce((count, group) => count + group.templateFiles.length, 0);
     test.setTimeout(Math.max(240_000, totalTemplateCount * 30_000));
-    await loginAsCsvUser(page, CREATOR);
+    await loginAsFixtureUser(page, CREATOR);
     await openImportTemplateView(page);
 
     for (const group of TEMPLATE_GROUPS) {
@@ -236,7 +236,7 @@ test.describe.serial('import template group — create group and templates as al
   });
 
   test('persisted templates survive a fresh login', async ({page}) => {
-    await loginAsCsvUser(page, CREATOR);
+    await loginAsFixtureUser(page, CREATOR);
     await openImportTemplateView(page);
 
     for (const group of TEMPLATE_GROUPS) {
