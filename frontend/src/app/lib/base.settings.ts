@@ -95,8 +95,8 @@ export class BaseSettings {
   public static readonly PROPOSE_USER_TASK = 'ProposeUserTask';
   public static readonly PROPOSE_USER_TASK_KEY = BaseSettings.PROPOSE_USER_TASK.toLowerCase();
 
-  public static readonly USER_ENTITY_LIMIT = 'UserEntityChangeLimit';
-  public static readonly USER_ENTITY_LIMIT_KEY = BaseSettings.USER_ENTITY_LIMIT.toLowerCase();
+  public static readonly ENTITY_LIMIT = 'EntityLimit';
+  public static readonly ENTITY_LIMIT_KEY = BaseSettings.ENTITY_LIMIT.toLowerCase();
 
   public static readonly TASK_DATE_CHANGE = 'TaskDataChange';
   public static readonly TASK_DATA_CHANGE_KEY = 'taskdatachange';

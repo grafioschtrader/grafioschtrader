@@ -79,6 +79,7 @@ ADMIN_DATA                      [2]
   TASK_DATA_MONITOR
   CONNECTOR_API_KEY                    admin only
   USER_SETTINGS                        admin only
+  ENTITY_LIMIT                         admin only
 ```
 
 GTNet is the largest library area the host reaches: the components in `src/app/lib/gnet` and the six `GTNet*Resource`

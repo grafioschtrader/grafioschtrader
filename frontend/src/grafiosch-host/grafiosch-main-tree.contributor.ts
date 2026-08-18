@@ -59,6 +59,7 @@ export class GrafioschMainTreeContributor extends GrafioschTreeContributorBase {
     if (AuditHelper.hasAdminRole(this.gps)) {
       this.rootNode.children.push(LibDataMainTreeContributor.createConnectorApiKeyNode());
       this.rootNode.children.push(LibDataMainTreeContributor.createUserSettingsNode());
+      this.rootNode.children.push(LibDataMainTreeContributor.createEntityLimitNode());
     }
   }
 

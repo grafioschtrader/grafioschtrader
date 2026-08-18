@@ -22,6 +22,7 @@ import grafiosch.service.SendMailInternalExternalService;
 import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.CashAccountTransfer;
+import grafioschtrader.dto.IMinMaxDateHistoryquote;
 import grafioschtrader.dto.SecurityActionTreeData;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Currencypair;
@@ -31,6 +32,7 @@ import grafioschtrader.entities.SecurityAction;
 import grafioschtrader.entities.SecurityActionApplication;
 import grafioschtrader.entities.SecurityTransfer;
 import grafioschtrader.entities.Securityaccount;
+import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.repository.CashaccountJpaRepository;
@@ -41,6 +43,7 @@ import grafioschtrader.repository.SecurityActionJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecurityTransferJpaRepository;
 import grafioschtrader.repository.SecurityaccountJpaRepository;
+import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
 import grafioschtrader.types.TaskTypeExtended;
 import grafioschtrader.types.TransactionType;
@@ -70,6 +73,9 @@ public class SecurityActionService {
 
   @Autowired
   private HistoryquoteJpaRepository historyquoteJpaRepository;
+
+  @Autowired
+  private SecuritysplitJpaRepository securitysplitJpaRepository;
 
   @Autowired
   private SecurityaccountJpaRepository securityaccountJpaRepository;
@@ -194,8 +200,13 @@ public class SecurityActionService {
 
   /**
    * Applies an ISIN change for the current tenant. First bulk-reassigns all post-action-date transactions to the new
-   * security, then creates SELL/BUY pairs for the remaining pre-action-date position. Finally schedules a holdings
-   * rebuild task.
+   * security, then creates SELL/BUY pairs for the position remaining up to and including the action date. Finally
+   * schedules a holdings rebuild task.
+   * <p>
+   * The pair is priced with {@link #getAsTradedClose}, so it is booked in the share basis the units were traded in even
+   * when the old security has been re-based by a later split. Splits of the successor that only repeat the corporate
+   * event of this ISIN change are removed by {@link #removeRedundantSuccessorSplits}.
+   * </p>
    * <p>
    * <b>Why direct save() instead of saveOnlyAttributes():</b> The SELL/BUY pair is saved via
    * {@code transactionJpaRepository.save()} intentionally, bypassing the business rule checks in
@@ -229,11 +240,12 @@ public class SecurityActionService {
       throw new DataViolationException("id.security.action", "gt.security.action.no.holdings", null);
     }
 
-    // Get closing price on action date
-    Optional<Historyquote> hqOpt = historyquoteJpaRepository
-        .findByIdSecuritycurrencyAndDate(action.getSecurityOld().getIdSecuritycurrency(), action.getActionDate());
-    double closePrice = hqOpt.map(Historyquote::getClose).orElseThrow(
-        () -> new DataViolationException("action.date", "gt.security.action.no.price.on.date", null));
+    // Get closing price on action date, in the share basis that was traded on that day
+    double closePrice = getAsTradedClose(action.getSecurityOld().getIdSecuritycurrency(), action.getActionDate(),
+        "action.date", "gt.security.action.no.price.on.date");
+
+    // The successor may have inherited the corporate event of this ISIN change as a split of its own
+    removeRedundantSuccessorSplits(action.getSecurityNew());
 
     // Save the application record first to get its ID for tagging transactions
     SecurityActionApplication application = existing.orElse(new SecurityActionApplication());
@@ -243,14 +255,15 @@ public class SecurityActionService {
     application.setReversed(false);
     application = securityActionApplicationJpaRepository.save(application);
 
-    // Step 1: Bulk reassign all transactions on or after action date to the new security
+    // Step 1: Bulk reassign all transactions after the action date to the new security. The action date itself stays
+    // with the old security, because the SELL/BUY pair below is priced with its close of that very day.
     transactionJpaRepository.reassignTransactionsToNewSecurity(idTenant,
         action.getSecurityOld().getIdSecuritycurrency(), action.getSecurityNew().getIdSecuritycurrency(),
         application.getIdSecurityActionApp(), action.getActionDate());
     entityManager.flush();
     entityManager.clear();
 
-    // Step 2: Calculate net units from remaining transactions on old security (now only pre-action-date)
+    // Step 2: Calculate net units from remaining transactions on old security (now only up to the action date)
     List<Transaction> remainingTransactions = transactionJpaRepository
         .findByIdTenantAndIdSecurity(idTenant, action.getSecurityOld().getIdSecuritycurrency());
 
@@ -504,10 +517,8 @@ public class SecurityActionService {
     Cashaccount sourceCashaccount = findPreferredCashaccount(sourceAccount, transfer.getSecurity().getCurrency());
     Cashaccount targetCashaccount = findPreferredCashaccount(targetAccount, transfer.getSecurity().getCurrency());
 
-    Optional<Historyquote> hqOpt = historyquoteJpaRepository
-        .findByIdSecuritycurrencyAndDate(transfer.getSecurity().getIdSecuritycurrency(), transfer.getTransferDate());
-    double closePrice = hqOpt.map(Historyquote::getClose).orElseThrow(
-        () -> new DataViolationException("transfer.date", "gt.security.transfer.no.price.on.date", null));
+    double closePrice = getAsTradedClose(transfer.getSecurity().getIdSecuritycurrency(), transfer.getTransferDate(),
+        "transfer.date", "gt.security.transfer.no.price.on.date");
 
     return new TransferContext(idTenant, transfer, sourceAccount, targetAccount,
         sourceCashaccount, targetCashaccount, closePrice);
@@ -621,6 +632,72 @@ public class SecurityActionService {
         depositTx.setCurrencyExRate(exRate);
         depositTx.setIdCurrencypair(found.getIdSecuritycurrency());
       }
+    }
+  }
+
+  /**
+   * Returns the closing price of a security on the given date, expressed in the share basis that was actually traded on
+   * that day.
+   * <p>
+   * A {@link Historyquote} always holds the connector's current basis: after a split the whole history is reloaded and
+   * every older quote is re-based to the new number of shares. {@code transaction.units} on the other hand are never
+   * rewritten and stay as traded. {@link Securitysplit#calcSplitFatorForFromDate} returns the product of all splits
+   * after the date, which is exactly the factor that bridges the two — the same value that
+   * {@code hold_securityaccount_security.split_price_factor} stores. Without it a system SELL/BUY pair generated after
+   * a reverse split would be booked at a multiple of the price that belongs to the untouched units.
+   * </p>
+   *
+   * @param idSecuritycurrency the security whose closing price is read
+   * @param date               the day of the quote, normally the action or transfer date
+   * @param fieldKey           NLS field key of the date property for the error when no quote exists on that day
+   * @param messageKey         NLS message key for the error when no quote exists on that day
+   * @return the closing price converted to the traded share basis, rounded to
+   *         {@code BaseConstants.FID_MAX_FRACTION_DIGITS}
+   */
+  private double getAsTradedClose(Integer idSecuritycurrency, LocalDate date, String fieldKey, String messageKey) {
+    double close = historyquoteJpaRepository.findByIdSecuritycurrencyAndDate(idSecuritycurrency, date)
+        .map(Historyquote::getClose)
+        .orElseThrow(() -> new DataViolationException(fieldKey, messageKey, null));
+    return DataBusinessHelper.round(close * Securitysplit.calcSplitFatorForFromDate(
+        securitysplitJpaRepository.findByIdSecuritycurrencyOrderBySplitDateAsc(idSecuritycurrency), date));
+  }
+
+  /**
+   * Removes the splits of an ISIN-change successor that duplicate the conversion the action itself expresses.
+   * <p>
+   * The successor usually keeps the ticker symbol of its predecessor, so the split connector delivers the very
+   * corporate event that caused the ISIN change as a split of the new security as well. Its own price history starts at
+   * the change, therefore a split dated at or before the oldest quote never shaped that history and only converts the
+   * generated BUY a second time. The From/To factor of the {@link SecurityAction} is the authority for the conversion.
+   * </p>
+   * <p>
+   * Only the successor of an ISIN change is treated this way. For an ordinary security whose connector delivers a
+   * shorter history than the tenant's transactions reach back, an old split legitimately still applies.
+   * </p>
+   *
+   * @param securityNew the security referenced as the new security of the ISIN change; may be null
+   */
+  private void removeRedundantSuccessorSplits(Security securityNew) {
+    if (securityNew == null) {
+      return;
+    }
+    Integer idSecuritycurrency = securityNew.getIdSecuritycurrency();
+    LocalDate oldestQuoteDate = historyquoteJpaRepository
+        .getMinMaxDateByIdSecuritycurrencyIds(List.of(idSecuritycurrency)).stream().findFirst()
+        .map(IMinMaxDateHistoryquote::getMinDate).orElse(null);
+    if (oldestQuoteDate == null) {
+      // History not loaded yet, the split import filter in SecuritysplitJpaRepositoryImpl catches it later.
+      return;
+    }
+    List<Securitysplit> redundant = securitysplitJpaRepository
+        .findByIdSecuritycurrencyOrderBySplitDateAsc(idSecuritycurrency).stream()
+        .filter(ss -> !ss.getSplitDate().isAfter(oldestQuoteDate)).toList();
+    if (!redundant.isEmpty()) {
+      securitysplitJpaRepository.deleteAll(redundant);
+      // The split affected every tenant holding the successor, not only the one applying the ISIN change.
+      taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.HOLDINGS_SECURITY_REBUILD,
+          TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(1), idSecuritycurrency,
+          Security.class.getSimpleName()));
     }
   }
 

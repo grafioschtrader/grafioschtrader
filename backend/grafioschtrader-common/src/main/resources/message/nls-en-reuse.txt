@@ -75,3 +75,8 @@ VALUE_SECURITY
 # c.showOnlyParam1 is "aaa {{param1}}" -- placeholder text left over from development, not a real
 # label. It is referenced nowhere; consider deleting the key entirely.
 c.showOnlyParam1
+
+# --- Deliberate: entity limits (issue #206) ---
+# 'Instrument' and 'Split' are the established German terms in this application.
+SECURITYCURRENCY
+SECURITYSPLIT

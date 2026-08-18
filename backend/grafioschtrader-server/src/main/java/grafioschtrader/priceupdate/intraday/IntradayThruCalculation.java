@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.CannotAcquireLockException;
+import org.springframework.dao.ConcurrencyFailureException;
 
 import com.ezylang.evalex.Expression;
 
@@ -62,7 +62,8 @@ public class IntradayThruCalculation<S extends Securitycurrency<S>> extends Base
    * 
    * <p>This method performs a comprehensive calculation process:
    * <ul>
-   * <li><strong>Validation</strong>: Checks retry limits, active status, and update timing constraints</li>
+   * <li><strong>Validation</strong>: Checks retry limits, active status and update timing constraints, then claims the
+   * update in the database so a concurrent caller for the same instrument stands down</li>
    * <li><strong>Link Resolution</strong>: Retrieves derived instrument links and current prices for linked securities</li>
    * <li><strong>Price Calculation</strong>:
    *   <ul>
@@ -86,7 +87,8 @@ public class IntradayThruCalculation<S extends Securitycurrency<S>> extends Base
     LocalDateTime now = LocalDateTime.now();
     if ((security.getRetryIntraLoad() < maxIntraRetry || maxIntraRetry == -1)
         && security.isActiveForIntradayUpdate(now.toLocalDate())
-        && allowDelayedIntradayUpdate(security, scIntradayUpdateTimeout, now)) {
+        && allowDelayedIntradayUpdate(security, scIntradayUpdateTimeout, now)
+        && claimIntradayUpdate(security, scIntradayUpdateTimeout, now)) {
 
       SecurityCurrencypairDerivedLinks scdl = securityDerivedLinkJpaRepository
           .getDerivedInstrumentsLinksForSecurity(security);
@@ -110,10 +112,14 @@ public class IntradayThruCalculation<S extends Securitycurrency<S>> extends Base
       }
       try {
         security = securityJpaRepository.save(security);
-      } catch (final CannotAcquireLockException ex) {
-        // The calculated last price is non critical and is refreshed within minutes. Letting the exception escape would
-        // abort the whole derived instrument batch because of a single contended row.
-        log.warn("Calculated intraday price save skipped, row is locked: security={}", security);
+      } catch (final ConcurrencyFailureException ex) {
+        // Covers the optimistic case (ObjectOptimisticLockingFailureException, another writer bumped the version under
+        // the detached copy this batch is holding) as well as the pessimistic one (CannotAcquireLockException). The
+        // calculated last price is non critical and is refreshed within minutes. Letting either escape would abort the
+        // whole derived instrument batch because of a single contended row.
+        log.warn("Calculated intraday price save skipped, row was concurrently updated: security={}", security);
+      } catch (final Exception ex) {
+        log.error("Save failed for security={}", security, ex);
       }
     }
     return security;
@@ -136,6 +142,42 @@ public class IntradayThruCalculation<S extends Securitycurrency<S>> extends Base
         - 1000L * scIntradayUpdateTimeout;
     return security.getSTimestamp() == null
         || security.getSTimestamp().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() < lessThenPossible;
+  }
+
+  /**
+   * Claims the intraday calculation of this derived instrument against concurrent writers.
+   *
+   * <p>
+   * {@link #allowDelayedIntradayUpdate} decides purely on the in-memory entity, so two concurrent callers for the same
+   * derived instrument both pass it and both write the row. Because the batch of
+   * {@code SecurityJpaRepositoryImpl.updateAllLastPrices} works on detached entities read minutes earlier, the loser of
+   * that race does not merely duplicate work, its {@code save} fails the {@code @Version} check. This claim resolves
+   * the race in the database: only the caller whose conditional UPDATE affected a row proceeds. It runs after the
+   * in-memory pre-filter, so the extra statement is only issued when an update actually looks due.
+   * </p>
+   *
+   * <p>
+   * Unlike {@code IntradayThruConnector} there is no feed connector and therefore no provider specific delay, so the
+   * threshold is the plain global timeout already used by {@link #allowDelayedIntradayUpdate}. Note that a successful
+   * save afterwards writes the <em>linked</em> instrument's timestamp back into {@code s_timestamp}, which is older
+   * than the value the claim just set. The claim therefore serialises concurrent calculations but does not throttle
+   * across runs, and it cannot protect against writers that bump the version without touching {@code s_timestamp}
+   * (dividends, splits, security edits) - the catch around the save remains the safety net for those.
+   * </p>
+   *
+   * @param security                the derived instrument to claim
+   * @param scIntradayUpdateTimeout minimum interval between two updates in seconds
+   * @param now                     the new timestamp to set
+   * @return true if this caller won the claim and should perform the calculation
+   */
+  private boolean claimIntradayUpdate(final Security security, final int scIntradayUpdateTimeout,
+      final LocalDateTime now) {
+    if (security.getIdSecuritycurrency() == null) {
+      // A not yet persisted instrument has no row that a second writer could contend for, so there is nothing to claim.
+      return true;
+    }
+    return securityJpaRepository.claimIntradayUpdate(security.getIdSecuritycurrency(), now,
+        now.minusSeconds(scIntradayUpdateTimeout)) > 0;
   }
 
   /**

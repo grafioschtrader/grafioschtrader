@@ -7,7 +7,6 @@ import grafiosch.entities.Auditable;
 import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateDeleteAudit;
 import grafiosch.types.OperationType;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.BaseHistoryquote;
 
 /**
@@ -49,10 +48,6 @@ public abstract class HistoryquoteResourceBase<T extends BaseHistoryquote> exten
     return false;
   }
 
-  @Override
-  protected String getPrefixEntityLimit() {
-    return GlobalConstants.GT_LIMIT_DAY;
-  }
 
   /**
    * Resolves the owning security or currency pair of a quote row, used as the auditable parent for rights checks.

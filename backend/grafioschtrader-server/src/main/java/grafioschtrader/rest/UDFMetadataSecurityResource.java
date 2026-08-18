@@ -15,7 +15,6 @@ import grafiosch.BaseConstants;
 import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateDeleteWithUserIdJpaRepository;
 import grafiosch.rest.UpdateCreateDeleteWithUserIdResource;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.FieldDescriptorInputAndShowExtendedSecurity;
 import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.repository.UDFMetadataSecurityJpaRepository;
@@ -60,9 +59,5 @@ public class UDFMetadataSecurityResource extends UpdateCreateDeleteWithUserIdRes
     return uDFMetadataSecurityJpaRepository;
   }
 
-  @Override
-  protected String getPrefixEntityLimit() {
-    return GlobalConstants.GT_LIMIT_DAY;
-  }
 
 }

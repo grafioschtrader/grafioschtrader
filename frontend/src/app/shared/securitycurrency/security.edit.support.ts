@@ -126,9 +126,9 @@ export class SecurityEditSupport {
       this.setGTNetFields(fc, gps, 'gtNetHistoricalSend', 'gtNetHistoricalRecv', this.HISTORY_SETTINGS,
         gps.hasGtNetHistoricalExchangePeer())
       fc.push(DynamicFieldHelper.createFieldSelectString('idConnectorHistory', 'HISTORY_DATA_PROVIDER', false,
-        {fieldsetName: this.HISTORY_SETTINGS}));
-      fc.push(DynamicFieldHelper.createFieldInputStringHeqF('urlHistoryExtend', 254, false,
         {fieldsetName: this.HISTORY_SETTINGS, labelHelpText: SecurityEditSupport.FIELD_HELP_CONNECTOR}));
+      fc.push(DynamicFieldHelper.createFieldInputStringHeqF('urlHistoryExtend', 254, false,
+        {fieldsetName: this.HISTORY_SETTINGS}));
     }
     fc.push(DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'retryHistoryLoad',
       true, 0, 3, {defaultValue: 0, fieldsetName: this.HISTORY_SETTINGS}));
@@ -136,9 +136,9 @@ export class SecurityEditSupport {
       this.setGTNetFields(fc, gps, 'gtNetLastpriceSend', 'gtNetLastpriceRecv', this.INTRA_SETTINGS,
         gps.hasGtNetLastpriceExchangePeer())
       fc.push(DynamicFieldHelper.createFieldSelectString('idConnectorIntra', 'INTRA_DATA_PROVIDER', false,
-        {fieldsetName: this.INTRA_SETTINGS}));
-      fc.push(DynamicFieldHelper.createFieldInputStringHeqF('urlIntraExtend', 254, false,
         {fieldsetName: this.INTRA_SETTINGS, labelHelpText: SecurityEditSupport.FIELD_HELP_CONNECTOR}));
+      fc.push(DynamicFieldHelper.createFieldInputStringHeqF('urlIntraExtend', 254, false,
+        {fieldsetName: this.INTRA_SETTINGS}));
     }
     fc.push(DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'retryIntraLoad',
       true, 0, 3, {defaultValue: 0, fieldsetName: this.INTRA_SETTINGS}));
@@ -148,9 +148,9 @@ export class SecurityEditSupport {
   public getDividendFieldDefinition(): FieldConfig[] {
     const fc: FieldConfig[] = [];
     fc.push(DynamicFieldHelper.createFieldSelectStringHeqF(this.ID_CONNECTOR_DIVIDEND, false,
-      {fieldsetName: AppSettings.DIVIDEND_SETTINGS}));
-    fc.push(DynamicFieldHelper.createFieldInputStringHeqF('urlDividendExtend', 254, false,
       {fieldsetName: AppSettings.DIVIDEND_SETTINGS, labelHelpText: SecurityEditSupport.FIELD_HELP_CONNECTOR}));
+    fc.push(DynamicFieldHelper.createFieldInputStringHeqF('urlDividendExtend', 254, false,
+      {fieldsetName: AppSettings.DIVIDEND_SETTINGS}));
     fc.push(DynamicFieldHelper.createFieldSelectStringHeqF('dividendCurrency', false,
       {inputWidth: 10, fieldsetName: AppSettings.DIVIDEND_SETTINGS}));
     fc.push(DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'retryDividendLoad',
@@ -161,9 +161,9 @@ export class SecurityEditSupport {
   public getSplitDefinition(): FieldConfig[] {
     const fc: FieldConfig[] = [];
     fc.push(DynamicFieldHelper.createFieldSelectStringHeqF('idConnectorSplit', false,
-      {fieldsetName: AppSettings.SPLIT_SETTINGS}));
-    fc.push(DynamicFieldHelper.createFieldInputStringHeqF('urlSplitExtend', 254, false,
       {fieldsetName: AppSettings.SPLIT_SETTINGS, labelHelpText: SecurityEditSupport.FIELD_HELP_CONNECTOR}));
+    fc.push(DynamicFieldHelper.createFieldInputStringHeqF('urlSplitExtend', 254, false,
+      {fieldsetName: AppSettings.SPLIT_SETTINGS}));
     fc.push(DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'retrySplitLoad',
       true, 0, 3, {defaultValue: 0, fieldsetName: AppSettings.SPLIT_SETTINGS}));
     return fc;

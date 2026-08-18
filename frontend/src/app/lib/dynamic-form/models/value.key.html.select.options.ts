@@ -15,8 +15,12 @@ export class GroupItem {
    * @param key Key which is used intern
    * @param value This value is shown in the dropdown box
    * @param optionsText This value is shown in the list of options
-   * @param img Options may have a leading image
+   * @param img Options may have a leading image, given as the css class of a sprite such as the flag icons
+   * @param iconClass Options may have a leading icon font class instead of an image, such as 'fa fa-globe'. An icon
+   *                  font draws through a pseudo element and therefore cannot be carried by img, which renders an
+   *                  image element.
    */
-  constructor(public key: number | string, public value: string, public optionsText: string, public img: string) {
+  constructor(public key: number | string, public value: string, public optionsText: string, public img: string,
+    public iconClass?: string) {
   }
 }

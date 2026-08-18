@@ -69,14 +69,16 @@ class WatchlistResourceTest extends BaseIntegrationTest {
     Assertions.assertThat(created.getName()).isEqualTo(fixture.name);
 
     SecuritycurrencyLists instruments = resolveInstruments(fixture, created.getIdWatchlist());
-    authenticatedClient(fixture.loginNickname)
-        .put()
-        .uri(RequestGTMappings.WATCHLIST_MAP + "/" + created.getIdWatchlist() + "/addSecuritycurrency")
-        .body(instruments)
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(Watchlist.class)
-        .returnResult();
+    if (!instruments.securityList.isEmpty() || !instruments.currencypairList.isEmpty()) {
+      authenticatedClient(fixture.loginNickname)
+          .put()
+          .uri(RequestGTMappings.WATCHLIST_MAP + "/" + created.getIdWatchlist() + "/addSecuritycurrency")
+          .body(instruments)
+          .exchange()
+          .expectStatus().isOk()
+          .expectBody(Watchlist.class)
+          .returnResult();
+    }
 
     if (fixture.main) {
       Tenant tenant = authenticatedClient(fixture.loginNickname)
@@ -96,7 +98,7 @@ class WatchlistResourceTest extends BaseIntegrationTest {
 
   private SecuritycurrencyLists resolveInstruments(WatchlistFixture fixture, Integer idWatchlist) {
     List<Security> securities = new ArrayList<>();
-    for (SecurityFixture securityFixture : fixture.securities) {
+    for (SecurityFixture securityFixture : integrationSecurities(fixture)) {
       SecuritycurrencyLists result = authenticatedClient(fixture.loginNickname)
           .get()
           .uri(uriBuilder -> uriBuilder
@@ -121,7 +123,7 @@ class WatchlistResourceTest extends BaseIntegrationTest {
     }
 
     List<Currencypair> currencypairs = new ArrayList<>();
-    for (CurrencyPairFixture currencypairFixture : fixture.currencyPairs) {
+    for (CurrencyPairFixture currencypairFixture : integrationCurrencyPairs(fixture)) {
       SecuritycurrencyLists result = authenticatedClient(fixture.loginNickname)
           .get()
           .uri(uriBuilder -> uriBuilder
@@ -161,12 +163,12 @@ class WatchlistResourceTest extends BaseIntegrationTest {
     JsonNode response = parseJson(responseBody);
 
     Set<String> actualSecurities = valuesOf(response.path("securityPositionList"), "isin", "currency");
-    Set<String> expectedSecurities = fixture.securities.stream()
+    Set<String> expectedSecurities = integrationSecurities(fixture).stream()
         .map(security -> security.isin + "|" + security.currency)
         .collect(Collectors.toSet());
     Set<String> actualCurrencypairs = valuesOf(response.path("currencypairPositionList"), "fromCurrency",
         "toCurrency");
-    Set<String> expectedCurrencypairs = fixture.currencyPairs.stream()
+    Set<String> expectedCurrencypairs = integrationCurrencyPairs(fixture).stream()
         .map(currencypair -> currencypair.fromCurrency + "|" + currencypair.toCurrency)
         .collect(Collectors.toSet());
 
@@ -194,6 +196,18 @@ class WatchlistResourceTest extends BaseIntegrationTest {
       values.add(instrument.path(firstField).asText() + "|" + instrument.path(secondField).asText());
     });
     return Set.copyOf(values);
+  }
+
+  private List<SecurityFixture> integrationSecurities(WatchlistFixture fixture) {
+    return "i".equals(instrumentOwner(fixture)) ? fixture.securities : List.of();
+  }
+
+  private List<CurrencyPairFixture> integrationCurrencyPairs(WatchlistFixture fixture) {
+    return "i".equals(instrumentOwner(fixture)) ? fixture.currencyPairs : List.of();
+  }
+
+  private String instrumentOwner(WatchlistFixture fixture) {
+    return fixture.instrumentE2E == null ? fixture.e2e : fixture.instrumentE2E;
   }
 
   private JsonNode parseJson(String responseBody) {
@@ -224,11 +238,13 @@ class WatchlistResourceTest extends BaseIntegrationTest {
     public boolean main;
     public List<SecurityFixture> securities;
     public List<CurrencyPairFixture> currencyPairs;
+    public String instrumentE2E;
     public String e2e;
   }
 
   @JsonIgnoreProperties(ignoreUnknown = true)
   public static class SecurityFixture {
+    public String name;
     public String isin;
     public String currency;
   }

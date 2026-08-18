@@ -28,7 +28,6 @@ import grafiosch.BaseConstants;
 import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreate;
 import grafiosch.rest.UpdateCreateJpaRepository;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.CashAccountTransfer;
 import grafioschtrader.dto.ClosedMarginUnits;
 import grafioschtrader.dto.ExDateFromTaxDataResult;
@@ -47,6 +46,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping(RequestGTMappings.TRANSACTION_MAP)
@@ -175,6 +175,34 @@ public class TransactionResource extends UpdateCreate<Transaction> {
         year, transactionTypesNum), HttpStatus.OK);
   }
 
+  /**
+   * Creates a transaction through the generic mapping inherited from {@link UpdateCreate}, enforcing the lifetime
+   * per-tenant transaction limit that the specialised endpoints below already enforce.
+   *
+   * <p>
+   * Neither of the generic guards reaches this entity: {@code Transaction} is a {@code TenantBaseID}, so
+   * {@code createEntity} skips the daily CUD check, and {@code LimitKeyConfig.KEY_TRANSACTION} is registered with
+   * {@code checkedOnGenericCreate = false} so that the specialised call sites can raise the specific translated
+   * message instead of a bare {@code LIMIT_SECURITY_BREACH}. Without this override the generic mapping would grow the
+   * {@code transaction} table without any cap.
+   * </p>
+   *
+   * <p>
+   * This also covers a {@code PUT} carrying no id: {@code UpdateCreate.updateEntity} delegates such a request to
+   * {@code create}, which is this method.
+   * </p>
+   */
+  @Operation(summary = "New transaction", description = """
+      Generic create, kept for completeness. Prefer /securitytrans, /singlecashtrans or /cashaccounttransfer, which
+      validate against the transaction subtype.""", tags = { Transaction.TABNAME })
+  @Override
+  @PostMapping(produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<Transaction> create(@Valid @RequestBody Transaction entity) throws Exception {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    transactionJpaRepository.throwWhenTransactionLimitReached(user.getIdTenant());
+    return createEntity(entity);
+  }
+
   ///////////////////////////////////////////////////////////
   // Create, update for security transaction
   ///////////////////////////////////////////////////////////
@@ -267,9 +295,5 @@ public class TransactionResource extends UpdateCreate<Transaction> {
     return ResponseEntity.noContent().build();
   }
 
-  @Override
-  protected String getPrefixEntityLimit() {
-    return GlobalConstants.GT_LIMIT_DAY;
-  }
 
 }

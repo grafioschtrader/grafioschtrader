@@ -27,6 +27,7 @@ import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.m2m.GTNetMessageHelper;
 import grafiosch.m2m.client.BaseDataClient;
 import grafiosch.m2m.client.BaseDataClient.SendResult;
+import grafiosch.repository.GTNetExchangeLogJpaRepository;
 import grafiosch.repository.GTNetJpaRepository;
 import grafiosch.repository.GTNetSupplierDetailJpaRepository;
 import grafiosch.repository.GlobalparametersJpaRepository;
@@ -41,7 +42,6 @@ import grafioschtrader.gtnet.handler.impl.lastprice.PushOpenLastpriceQueryStrate
 import grafioschtrader.gtnet.m2m.model.InstrumentPriceDTO;
 import grafioschtrader.gtnet.model.msg.LastpriceExchangeMsg;
 import grafioschtrader.repository.CurrencypairJpaRepository;
-import grafiosch.repository.GTNetExchangeLogJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentCurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentSecurityJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;

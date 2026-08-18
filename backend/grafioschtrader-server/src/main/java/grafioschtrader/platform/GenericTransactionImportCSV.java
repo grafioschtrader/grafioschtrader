@@ -1,9 +1,14 @@
 package grafioschtrader.platform;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,8 +57,9 @@ import grafioschtrader.repository.SecurityJpaRepository;
  * 
  * <h4>Automatic Encoding Detection</h4>
  * <p>
- * Uses Mozilla's UniversalDetector to automatically identify file encoding, ensuring proper handling of international
- * characters and various CSV export formats from different trading platforms.
+ * Identifies the file encoding without user input: content that is well-formed UTF-8 is read as UTF-8, everything else
+ * is handed to Mozilla's UniversalDetector. This ensures proper handling of international characters both in the
+ * UTF-8 export of Grafioschtrader itself and in the legacy single byte exports of various trading platforms.
  * </p>
  * 
  * <h4>Template-Based Parsing</h4>
@@ -308,18 +314,63 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
   }
 
   /**
-   * Automatically detects the character encoding of the uploaded CSV file. Uses Mozilla's UniversalDetector to analyze
-   * file content and determine the appropriate encoding, falling back to UTF-8 if detection fails.
+   * Determines the character encoding of the uploaded CSV file, falling back to UTF-8 when the file cannot be read.
    */
   private void detectEncodingOfFile() {
     try {
-      encoding = UniversalDetector.detectCharset(uploadFile.getInputStream());
-      log.info("Encoding for file {} was detected as {}", uploadFile.getOriginalFilename(), encoding);
+      encoding = resolveCharset(uploadFile.getBytes());
+      log.info("Encoding for file {} was resolved as {}", uploadFile.getOriginalFilename(), encoding);
     } catch (IOException e) {
-      log.error("Encoding of file {} could not detected", uploadFile.getOriginalFilename());
+      log.error("Encoding of file {} could not be detected", uploadFile.getOriginalFilename());
+      encoding = StandardCharsets.UTF_8.name();
     }
-    if (encoding == null) {
-      encoding = StandardCharsets.UTF_8.toString();
+  }
+
+  /**
+   * Resolves the character encoding of an uploaded text file. Content that decodes strictly as UTF-8 is treated as
+   * UTF-8; the statistical detection of Mozilla's UniversalDetector is only consulted for byte sequences that UTF-8
+   * cannot explain, and UTF-8 remains the fallback when even that yields nothing.
+   *
+   * <p>
+   * The order matters. For a mostly ASCII UTF-8 file carrying only a handful of two byte sequences - which is exactly
+   * what the Grafioschtrader CSV export produces - the detector reports GB18030. Reading the file that way turns the
+   * umlauts of the German template header (Titelw&auml;hrung, W&auml;hrung) into CJK characters, so
+   * {@code isValidTemplateForForm} no longer maps all columns and the import fails with
+   * {@code gt.import.column.missmatch}. Legacy single byte files keep working: a cp1252 or latin-1 file containing an
+   * umlaut is not valid UTF-8 and therefore still goes through the detector.
+   * </p>
+   *
+   * @param content the complete content of the uploaded file
+   * @return the name of the character encoding to read the file with, never null
+   */
+  public static String resolveCharset(byte[] content) {
+    if (isValidUtf8(content)) {
+      return StandardCharsets.UTF_8.name();
+    }
+    try {
+      String detected = UniversalDetector.detectCharset(new ByteArrayInputStream(content));
+      return detected == null ? StandardCharsets.UTF_8.name() : detected;
+    } catch (IOException e) {
+      // Cannot happen on an in-memory stream, but the detector declares it for its file based overloads.
+      return StandardCharsets.UTF_8.name();
+    }
+  }
+
+  /**
+   * Checks whether the given bytes form a well-formed UTF-8 sequence. Pure ASCII qualifies, which is harmless because
+   * ASCII is byte identical in every encoding the import supports.
+   *
+   * @param content the bytes to test
+   * @return true when the content decodes as UTF-8 without a malformed or unmappable byte
+   */
+  private static boolean isValidUtf8(byte[] content) {
+    CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
+        .onUnmappableCharacter(CodingErrorAction.REPORT);
+    try {
+      decoder.decode(ByteBuffer.wrap(content));
+      return true;
+    } catch (CharacterCodingException e) {
+      return false;
     }
   }
 
@@ -444,7 +495,7 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
     ImportTransactionPos importTransactionPos = new ImportTransactionPos(importTransactionHead.getIdTenant(), fileName,
         importTransactionHead.getIdTransactionHead());
     importTransactionPos.setIdFilePart(lineNumber);
-    importTransactionPos = importTransactionPosJpaRepository.save(importTransactionPos);
+    importTransactionPos = importTransactionPosJpaRepository.saveNewPosWithLimitCheck(importTransactionPos);
     ImportTransactionPosFailed importTransactionPosFailed = new ImportTransactionPosFailed(
         importTransactionPos.getIdTransactionPos(), idTransactionImportTemplate,
         parseLineSuccessError.lastSuccessProperty,

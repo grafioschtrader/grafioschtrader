@@ -46,6 +46,9 @@ import {UpperCaseDirective} from './upper-case.directive';
             @if (entry.img) {
               <img src="assets/icons/flag_placeholder.png" [class]="entry.img" style="width: 20px"/>
             }
+            @if (entry.iconClass) {
+              <i [class]="entry.iconClass" style="width: 20px" aria-hidden="true"></i>
+            }
             <div>{{ entry.optionsText }}</div>
           </div>
         </ng-template>

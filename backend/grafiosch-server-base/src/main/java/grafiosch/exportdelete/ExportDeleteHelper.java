@@ -5,6 +5,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import grafiosch.entities.EntityLimit;
 import grafiosch.entities.Globalparameters;
 import grafiosch.entities.MailSettingForward;
 import grafiosch.entities.MultilanguageString;
@@ -21,7 +22,6 @@ import grafiosch.entities.UDFMetadataGeneral;
 import grafiosch.entities.UDFSpecialTypeDisableUser;
 import grafiosch.entities.User;
 import grafiosch.entities.UserEntityChangeCount;
-import grafiosch.entities.UserEntityChangeLimit;
 import grafiosch.exportdelete.ExportDefinition.TENANT_USER;
 
 /**
@@ -80,7 +80,7 @@ public abstract class ExportDeleteHelper {
           ExportDefinition.EXPORT_USE),
       new ExportDefinition(ProposeChangeField.TABNAME, TENANT_USER.CREATED_BY, PROPOSE_CHANGE_FIELD_SELDEL,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
-      new ExportDefinition(UserEntityChangeLimit.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),
+      new ExportDefinition(EntityLimit.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),
       new ExportDefinition(UserEntityChangeCount.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),
       // UDF EXPORT: include global (id_user=0) data alongside user data
       new ExportDefinition(UDFMetadata.TABNAME, TENANT_USER.ID_USER, UDF_METADATA_EXPORT,

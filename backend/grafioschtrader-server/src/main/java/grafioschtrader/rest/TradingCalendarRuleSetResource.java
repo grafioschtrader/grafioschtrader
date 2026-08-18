@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafiosch.rest.UpdateCreateDeleteAuditResource;
 import grafiosch.rest.UpdateCreateJpaRepository;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.TradingCalendarRuleSet;
 import grafioschtrader.repository.TradingCalendarRuleSetJpaRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -91,9 +90,5 @@ public class TradingCalendarRuleSetResource extends UpdateCreateDeleteAuditResou
     return tradingCalendarRuleSetJpaRepository;
   }
 
-  @Override
-  protected String getPrefixEntityLimit() {
-    return GlobalConstants.GT_LIMIT_DAY;
-  }
 
 }

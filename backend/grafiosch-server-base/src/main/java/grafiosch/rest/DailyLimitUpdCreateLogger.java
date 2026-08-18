@@ -1,21 +1,14 @@
 package grafiosch.rest;
 
-import java.time.LocalDate;
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
-import grafiosch.GlobalParamKeyBaseDefault;
-import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.BaseID;
+import grafiosch.entities.EntityLimit;
 import grafiosch.entities.User;
-import grafiosch.entities.UserEntityChangeCount;
-import grafiosch.entities.UserEntityChangeCount.UserEntityChangeCountId;
-import grafiosch.entities.projection.UserCountLimit;
-import grafiosch.error.LimitEntityTransactionError;
 import grafiosch.exceptions.LimitEntityTransactionException;
 import grafiosch.repository.GlobalparametersJpaRepository;
-import grafiosch.repository.UserEntityChangeCountJpaRepository;
+import grafiosch.service.DailyLimitService;
+import grafiosch.service.EntityLimitService;
 import grafiosch.types.OperationType;
 
 /**
@@ -23,7 +16,7 @@ import grafiosch.types.OperationType;
  * It is intended to be extended by REST controllers that manage entities requiring such controls.
  * <p>
  * This class maintains a count of CUD operations performed by a user on a specific entity type per day. It checks these
- * counts against predefined limits stored in UserEntityChangeLimit. If a limit is exceeded, a
+ * counts against the {@code DAY_CUD} limit configured in {@link EntityLimit}. If a limit is exceeded, a
  * {@link LimitEntityTransactionException} is thrown.
  * </p>
  * <p>
@@ -38,7 +31,10 @@ public abstract class DailyLimitUpdCreateLogger<T extends BaseID<Integer>> {
   protected GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Autowired
-  private UserEntityChangeCountJpaRepository userEntityChangeCountJpaRepository;
+  protected DailyLimitService dailyLimitService;
+
+  @Autowired
+  protected EntityLimitService entityLimitService;
 
   /**
    * Logs an add, update, or delete operation performed by a user on an entity class. This version is used when the
@@ -71,41 +67,51 @@ public abstract class DailyLimitUpdCreateLogger<T extends BaseID<Integer>> {
    * @param operationType The type of operation (ADD, UPDATE, DELETE).
    */
   protected void logAddUpdDel(Integer idUser, String entityName, OperationType operationType) {
-    UserEntityChangeCount userEntityChangeCount = userEntityChangeCountJpaRepository
-        .findById(new UserEntityChangeCountId(idUser, LocalDate.now(), entityName))
-        .orElse(new UserEntityChangeCount(new UserEntityChangeCountId(idUser, LocalDate.now(), entityName)));
-    userEntityChangeCount.incrementCounter(operationType);
-    userEntityChangeCountJpaRepository.save(userEntityChangeCount);
+    dailyLimitService.log(idUser, entityName, operationType, 1);
   }
 
   /**
    * Checks if the current CUD operation for the given entity by the specified user exceeds the daily limit. If the
-   * limit is reached or exceeded, a {@link LimitEntityTransactionException} is thrown. Otherwise, the count for the
-   * operation is incremented.
+   * limit is reached or exceeded, a {@link LimitEntityTransactionException} is thrown.
+   *
+   * <p>
+   * Which users this applies to is now entirely a matter of configuration: the resolver picks a row written for the
+   * user, then one written for the user's most privileged role, then the default row of the key. There is no
+   * hardcoded restriction to {@code ROLE_LIMITEDIT} any more, so an administrator can bound an {@code ALLEDIT} or
+   * {@code ADMIN} account as well. Out of the box only {@code ROLE_LIMITEDIT} rows are seeded, which keeps the
+   * effective behaviour identical until such a row is added.
+   * </p>
+   *
+   * <p>
+   * The limit is resolved independently of the counter row and a missing counter row counts as 0. Previously the
+   * lookup was driven by the counter table, so the check was skipped entirely until the user's first operation of the
+   * day had been recorded.
+   * </p>
    *
    * @param entity The entity instance involved in the CUD operation. Its class name is used to identify the entity type
    *               for limit checking.
    * @param user   The user performing the operation. Their ID is used to track daily limits.
    * @throws LimitEntityTransactionException If the daily CUD limit for this entity type and user is exceeded.
-    */
+   */
   protected void checkDailyLimitOnCRUDOperations(T entity, User user) {
-    if (UserAccessHelper.isLimitedEditingUser(user)) {
-      String entityName = entity.getClass().getSimpleName();
-      Optional<UserCountLimit> userCountLimitOpt = userEntityChangeCountJpaRepository
-          .getCudTransactionAndUserLimit(user.getIdUser(), entityName);
-      if (userCountLimitOpt.isPresent()) {
-        String key = getPrefixEntityLimit() + entityName;
-        Integer limit = userCountLimitOpt.get().getDayLimit() != null ? userCountLimitOpt.get().getDayLimit()
-            : globalparametersJpaRepository.getMaxValueByKey(key);
-        int cudTransaction = userCountLimitOpt.get().getCudTrans();
-        if (cudTransaction >= limit) {
-          throw new LimitEntityTransactionException(new LimitEntityTransactionError(entityName, limit, cudTransaction));
-        }
-      }
-    }
+    checkDailyLimitOnCRUDOperations(user, entity.getClass().getSimpleName(), 1);
   }
-  
-  protected String getPrefixEntityLimit() {
-    return GlobalParamKeyBaseDefault.G_LIMIT_DAY;
+
+  /**
+   * Checks the daily limit for an entity addressed by name rather than by instance, for the number of operations the
+   * caller is about to perform.
+   *
+   * <p>
+   * Used where the budget of one entity is consumed by an operation on another — a bulk price upload counts as one edit
+   * of its parent instrument — and where a single request performs several operations at once.
+   * </p>
+   *
+   * @param user       The user performing the operation. Their ID is used to track daily limits.
+   * @param entityName Entity or pseudo entity name the limit is configured for.
+   * @param additional How many operations this request performs; a value below one is treated as one.
+   * @throws LimitEntityTransactionException If the daily CUD limit for this entity name and user would be exceeded.
+   */
+  protected void checkDailyLimitOnCRUDOperations(User user, String entityName, int additional) {
+    dailyLimitService.check(user, entityName, additional);
   }
 }

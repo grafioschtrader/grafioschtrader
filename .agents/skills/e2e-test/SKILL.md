@@ -14,12 +14,13 @@ turn**.
 Not a reason to run it: "the spec fails", "let me verify", "I'm about to commit", "the database looks
 dirty", "to be safe". If you believe a full roundtrip is warranted, **say so and ask** — do not start it.
 
-Why: the roundtrip drops and recreates `grafioschtrader_t`, boots the backend, runs the whole backend
-`ResoureTestSuite` and then the entire Playwright suite. It takes a very long time, partly because the
+Why: the roundtrip drops and recreates `grafioschtrader_t`, boots the backend, then runs the numbered backend and
+Playwright phases (`ResourceTestSuite_1` → 005–020 → `ResourceTestSuite_25` → 025–045 →
+`ResourceTestSuite_50` → 050–888). It takes a very long time, partly because the
 freshly started backend downloads price and course data in the background. A single spec iteration
 takes seconds against services that are already running.
 
-The same applies to the backend `ResoureTestSuite` — do not re-run it between spec iterations.
+The same applies to the numbered backend `ResourceTestSuite_*` phases — do not re-run them between spec iterations.
 
 ## The iteration loop
 
@@ -176,7 +177,7 @@ tests can move with `src/app/lib` when it is extracted.
 
 - [ ] Ran only the affected spec, against already-running services
 - [ ] Did **not** run `e2eTest.cmd` / `e2eTest.sh` unless the user asked in that turn
-- [ ] Did **not** run the backend `ResoureTestSuite` between iterations
+- [ ] Did **not** run the backend `ResourceTestSuite_*` phases between iterations
 - [ ] Spec deletes its own data at the **start** of the run and is rerunnable
 - [ ] Number chosen by prerequisites, before `844` / `888`, gaps left intact
 - [ ] Fixture in `testdata/` (not `testdata/generated/`), natural keys, `e2e` tag present

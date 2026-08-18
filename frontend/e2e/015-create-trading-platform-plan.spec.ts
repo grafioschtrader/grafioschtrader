@@ -23,6 +23,14 @@ interface TppRow {
 const CSV_PATH = path.resolve(__dirname,
   '../../backend/grafioschtrader-server/src/test/resources/testdata/generated/tradingplatformplan.csv');
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function planNameRegex(row: TppRow): RegExp {
+  return new RegExp(`^(${escapeRegExp(row.platformPlanNameDE)}|${escapeRegExp(row.platformPlanNameEN)})$`, 'i');
+}
+
 function loadE2ERows(): TppRow[] {
   const csv = fs.readFileSync(CSV_PATH, 'utf-8');
   return csv.split(/\r?\n/)
@@ -46,7 +54,7 @@ function loadE2ERows(): TppRow[] {
 test.describe.serial('Create trading platform plans (e2e=\'e\' rows from shared CSV)', () => {
   const rows = loadE2ERows();
 
-  // Log in as 'alledit' (hugo.graf@grafiosch.com) — seeded by ResoureTestSuite. Using the e2e='e'
+  // Log in as 'alledit' (hugo.graf@grafiosch.com) — seeded by ResourceTestSuite_1. Using the e2e='e'
   // primary user (e2euser) hits the 3/day TradingPlatformPlan creation limit on the 4th row.
   const LOGIN_NICKNAME = 'alledit';
 
@@ -66,6 +74,14 @@ test.describe.serial('Create trading platform plans (e2e=\'e\' rows from shared 
       // Wait for the table to be visible and active
       const contentArea = page.locator('.data-container').first();
       await contentArea.waitFor({state: 'visible', timeout: 10_000});
+
+      // A retained plan from an earlier run already satisfies this add-only fixture.
+      const existingPlan = contentArea.locator('td').filter({hasText: planNameRegex(row)}).first();
+      if (await existingPlan.isVisible()) {
+        await expect(existingPlan).toBeVisible();
+        return;
+      }
+
       await contentArea.click();
       await page.waitForTimeout(300);
       await contentArea.click({button: 'right'});

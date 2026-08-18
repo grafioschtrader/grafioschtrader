@@ -144,7 +144,7 @@ public abstract class GenericTransactionImportCsvPdfBase {
     }
     importTransactionPosList.forEach(importTransactionPos -> {
       setCashaccountAndCheckReadyState(cashaccountList, importTransactionPos, importTransactionPosJpaRepository);
-      importTransactionPosJpaRepository.save(importTransactionPos);
+      importTransactionPosJpaRepository.saveNewPosWithLimitCheck(importTransactionPos);
     });
   }
 
@@ -253,7 +253,7 @@ public abstract class GenericTransactionImportCsvPdfBase {
     ImportTransactionPos importTransactionPos = ImportTransactionPos.createFromImportPropertiesSuccess(
         importTransactionHead.getIdTenant(), fileName, importTransactionHead.getIdTransactionHead(),
         importTransactionTemplate.getIdTransactionImportTemplate(), importProperties);
-    return importTransactionPosJpaRepository.save(importTransactionPos);
+    return importTransactionPosJpaRepository.saveNewPosWithLimitCheck(importTransactionPos);
   }
 
 }

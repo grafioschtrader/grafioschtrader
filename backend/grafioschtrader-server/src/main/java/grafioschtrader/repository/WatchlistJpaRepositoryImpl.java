@@ -18,8 +18,8 @@ import grafiosch.entities.User;
 import grafiosch.repository.BaseRepositoryImpl;
 import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.repository.RepositoryHelper;
-import grafiosch.repository.TenantLimitsHelper;
-import grafioschtrader.GlobalParamKeyDefault;
+import grafiosch.service.EntityLimitService;
+import grafioschtrader.config.LimitKeyConfig;
 import grafioschtrader.dto.IntraHistoricalWatchlistProblem;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
@@ -32,6 +32,9 @@ import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.types.WatchlistMoveStatus;
 
 public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> implements WatchlistJpaRepositoryCustom {
+
+  @Autowired
+  private EntityLimitService entityLimitService;
 
   @Autowired
   private WatchlistJpaRepository watchlistJpaRepository;
@@ -64,14 +67,12 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
     if (watchlist == null) {
       throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     } else {
-      var maxPositionForTenant = watchlistJpaRepository.countPostionsInAllWatchlistByIdTenant(user.getIdTenant())
-          .intValue();
-
-      if (watchlist.getWatchlistLength() + securitycurrencyLists.getLength() <= globalparametersJpaRepository
-          .getMaxValueByKey(GlobalParamKeyDefault.GLOB_KEY_MAX_WATCHLIST_LENGTH)
-          && maxPositionForTenant + securitycurrencyLists.getLength() <= TenantLimitsHelper.getMaxValueByKey(
-              globalparametersJpaRepository.getEntityManager(),
-              GlobalParamKeyDefault.GLOB_KEY_MAX_SECURITIES_CURRENCIES)) {
+      // Two different caps on the same pair: how many instruments this one watchlist may hold, and how many the
+      // tenant may hold over all of its watchlists.
+      if (entityLimitService.fitsWithinLimit(user, LimitKeyConfig.KEY_WATCHLIST_LENGTH, idWatchlist,
+          securitycurrencyLists.getLength())
+          && entityLimitService.fitsWithinLimit(user, LimitKeyConfig.KEY_SECURITIES_CURRENCIES, null,
+              securitycurrencyLists.getLength())) {
         securitycurrencyLists.currencypairList
             .forEach(currencypair -> watchlist.getSecuritycurrencyList().add(currencypair));
         securitycurrencyLists.securityList.forEach(security -> watchlist.getSecuritycurrencyList().add(security));
@@ -307,15 +308,15 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
   public TenantLimit[] getSecuritiesCurrenciesWachlistLimits(Integer idWatchlist) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     TenantLimit[] tenantLimits = new TenantLimit[2];
-    tenantLimits[0] = new TenantLimit(
-        globalparametersJpaRepository.getMaxValueByKey(GlobalParamKeyDefault.GLOB_KEY_MAX_WATCHLIST_LENGTH),
+    tenantLimits[0] = new TenantLimit("MAX_WATCHLIST_LENGTH",
+        entityLimitService.resolve(user, LimitKeyConfig.KEY_WATCHLIST_LENGTH).orElse(Integer.MAX_VALUE),
         watchlistJpaRepository.countPostionsInWatchlist(user.getIdTenant(), idWatchlist).intValue(),
-        GlobalParamKeyDefault.GLOB_KEY_MAX_WATCHLIST_LENGTH, Watchlist.class.getSimpleName());
+        Watchlist.class.getSimpleName());
 
-    tenantLimits[1] = new TenantLimit(
-        globalparametersJpaRepository.getMaxValueByKey(GlobalParamKeyDefault.GLOB_KEY_MAX_SECURITIES_CURRENCIES),
+    tenantLimits[1] = new TenantLimit("MAX_SECURITIES_CURRENCIES",
+        entityLimitService.resolve(user, LimitKeyConfig.KEY_SECURITIES_CURRENCIES).orElse(Integer.MAX_VALUE),
         watchlistJpaRepository.countPostionsInAllWatchlistByIdTenant(user.getIdTenant()).intValue(),
-        GlobalParamKeyDefault.GLOB_KEY_MAX_SECURITIES_CURRENCIES, Watchlist.class.getSimpleName());
+        Watchlist.class.getSimpleName());
 
     return tenantLimits;
   }

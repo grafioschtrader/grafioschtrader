@@ -45,6 +45,24 @@ public class ProposeChangeEntityResource extends UpdateCreateDeleteAuditResource
     return new ResponseEntity<>(proposeChangeEntityWithEntityList, HttpStatus.OK);
   }
 
+  /**
+   * A change proposal is never created directly. It comes into existence only through
+   * {@code UpdateCreate.createProposaleChange}, on the resource of the entity being proposed for, when the caller may
+   * not edit that entity themselves. Because
+   * {@code ProposeChangeEntityJpaRepositoryImpl.saveOnlyAttributes} performs no validation at all, a direct request
+   * could otherwise forge a proposal naming any {@code entity}, {@code idEntity} and {@code idOwnerEntity}.
+   *
+   * <p>
+   * Rejecting the hook rather than the mapping keeps the inherited {@code POST} registered and covers a {@code PUT}
+   * carrying no id as well, which {@code UpdateCreate.updateEntity} routes here. Updating or rejecting an existing
+   * proposal stays on {@code PUT} with an id.
+   * </p>
+   */
+  @Override
+  protected ResponseEntity<ProposeChangeEntity> createEntity(ProposeChangeEntity entity) throws Exception {
+    return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
+  }
+
   @Override
   protected UpdateCreateJpaRepository<ProposeChangeEntity> getUpdateCreateJpaRepository() {
     return proposeChangeEntityJpaRepository;

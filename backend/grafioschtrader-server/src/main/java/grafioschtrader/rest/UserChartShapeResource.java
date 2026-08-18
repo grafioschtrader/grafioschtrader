@@ -44,13 +44,17 @@ public class UserChartShapeResource {
         .orElseGet(() -> ResponseEntity.noContent().build());
   }
 
+  /**
+   * Stores the shapes of one chart for the current user. Ownership, the referenced instrument and the size of the
+   * shape data are all settled in {@code UserChartShapeJpaRepositoryImpl.saveWithValidation}, so that the only write
+   * path into {@code user_chart_shape} carries the checks.
+   */
   @Operation(summary = "Creates or updates chart shapes for a specific security/currency pair.", tags = {
       RequestGTMappings.USER_CHART_SHAPE })
   @PutMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<UserChartShape> saveShapes(@RequestBody UserChartShape userChartShape) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    userChartShape.getUserChartShapeKey().setIdUser(user.getIdUser());
-    return new ResponseEntity<>(userChartShapeJpaRepository.save(userChartShape), HttpStatus.OK);
+    return new ResponseEntity<>(userChartShapeJpaRepository.saveWithValidation(userChartShape, user), HttpStatus.OK);
   }
 
   @Operation(summary = "Deletes chart shapes for a specific security/currency pair.", tags = {

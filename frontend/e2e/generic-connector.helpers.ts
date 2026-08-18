@@ -186,6 +186,29 @@ export function enumLabelRx(key: string): RegExp {
   return new RegExp(`^\\s*(${candidates.join('|')})\\s*$`, 'i');
 }
 
+/**
+ * Regex matching a translated label followed by a translated qualifier in parentheses.
+ * Additional relation and scope text is accepted because limit-key labels may include both.
+ */
+export function enumLabelWithQualifierRx(labelKey: string, qualifierKey: string): RegExp {
+  const labelCandidates = [...new Set([...(loadI18n()[labelKey] ?? []), labelKey])].map(escapeRegex);
+  const qualifierCandidates = [...new Set([...(loadI18n()[qualifierKey] ?? []), qualifierKey])].map(escapeRegex);
+  return new RegExp(
+    `^\\s*(${labelCandidates.join('|')})(?:\\s*/.*?)?\\s*\\((${qualifierCandidates.join('|')})(?:,.*)?\\)\\s*$`,
+    'i');
+}
+
+/** Regex matching the complete translated label of a limit key, including every relation and scope qualifier. */
+export function enumLabelWithQualifiersRx(labelKeys: string[], qualifierKeys: string[]): RegExp {
+  const alternatives = (key: string): string => {
+    const labels = loadI18n()[key] ?? [];
+    return `(${[...new Set([...labels, key])].map(escapeRegex).join('|')})`;
+  };
+  const labels = labelKeys.map(alternatives).join('\\s*/\\s*');
+  const qualifiers = qualifierKeys.map(alternatives).join('\\s*,\\s*');
+  return new RegExp(`^\\s*${labels}\\s*\\(\\s*${qualifiers}\\s*\\)\\s*$`, 'i');
+}
+
 // ---------------------------------------------------------------------------
 // UI helpers
 // ---------------------------------------------------------------------------

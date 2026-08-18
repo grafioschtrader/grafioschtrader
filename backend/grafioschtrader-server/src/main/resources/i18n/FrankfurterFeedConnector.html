@@ -1,0 +1,8 @@
+[historical]
+<a target="_blank" href="//frankfurter.dev/">Frankfurter</a> is a free and open source exchange rate API. Its daily reference rates are blended from a large number of central banks and cover more than 200 currencies, for some of them back to 1948.<br>
+No entry is required here. Neither an API key nor a URL extension is needed: both currencies are taken directly from the currency pair, and Grafioschtrader builds the request itself.<br>
+A currency pair is only accepted when this instance offers both of its currencies. The whole requested period is loaded with a single request, in both directions of the pair.<br>
+The provider delivers a value for every calendar day, but on Saturdays and Sundays it merely carries the Friday rate forward, because the foreign exchange markets are closed. Grafioschtrader discards those days, so the history matches that of the other currency connectors.<br>
+Rates are rounded to a number of decimal places that depends on their magnitude, which keeps about five significant digits down to a rate of roughly 0.1. For a pair with a smaller rate, such as JPY/GBP, Grafioschtrader therefore requests the opposite direction and uses its reciprocal, so that no significant digits are lost.<br>
+The rates are blended across all contributing central banks, which have different fixing times. They therefore deviate from the official reference rate of a single institution, typically by one to three tenths of a percent.<br>
+Only one daily reference rate is published, therefore this connector supplies historical prices but no intraday prices.

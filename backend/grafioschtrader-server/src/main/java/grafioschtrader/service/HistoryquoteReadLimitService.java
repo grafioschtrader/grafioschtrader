@@ -9,19 +9,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.User;
 import grafiosch.entities.UserEntityChangeCount;
 import grafiosch.entities.UserEntityChangeCount.UserEntityChangeCountId;
-import grafiosch.entities.projection.UserCountLimit;
 import grafiosch.error.LimitEntityTransactionError;
 import grafiosch.exceptions.LimitEntityTransactionException;
 import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.repository.UserEntityChangeCountJpaRepository;
+import grafiosch.service.EntityLimitService;
 import grafiosch.service.UserService;
 import grafiosch.types.OperationType;
 import grafiosch.types.UserRightLimitCounter;
-import grafioschtrader.GlobalParamKeyDefault;
+import grafioschtrader.config.LimitKeyConfig;
 
 /**
  * Guards the historyquote read endpoints against mass downloading so GT cannot be abused as a free data provider
@@ -44,7 +43,10 @@ import grafioschtrader.GlobalParamKeyDefault;
 public class HistoryquoteReadLimitService {
 
   /** Pseudo entity name used in user_entity_change_count / user_entity_change_limit and the globalparameter key. */
-  public static final String HISTORYQUOTE_READ = GlobalParamKeyDefault.ENTITY_NAME_HISTORYQUOTE_READ;
+  public static final String HISTORYQUOTE_READ = LimitKeyConfig.ENTITY_NAME_HISTORYQUOTE_READ;
+
+  @Autowired
+  private EntityLimitService entityLimitService;
 
   @Autowired
   private UserEntityChangeCountJpaRepository userEntityChangeCountJpaRepository;
@@ -68,9 +70,6 @@ public class HistoryquoteReadLimitService {
    */
   public void assertReadAllowed(final Integer idSecuritycurrency) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    if (UserAccessHelper.hasHigherPrivileges(user)) {
-      return;
-    }
     final LocalDate today = LocalDate.now();
     final UserDaySeen userDaySeen = seenByUser.compute(user.getIdUser(),
         (_, existing) -> existing == null || !existing.day.equals(today) ? new UserDaySeen(today) : existing);
@@ -83,8 +82,21 @@ public class HistoryquoteReadLimitService {
   }
 
   /**
-   * Compares the persisted distinct-instrument count against the effective daily limit (per-user override or
-   * globalparameter) and either registers the new instrument or escalates and rejects.
+   * Compares the persisted distinct-instrument count against the resolved daily read budget and either registers the
+   * new instrument or escalates and rejects.
+   *
+   * <p>
+   * Which users are bounded is entirely a matter of configuration now; the former blanket exemption for
+   * {@code ALLEDIT} and {@code ADMIN} is gone. Out of the box only a {@code ROLE_LIMITEDIT} row is seeded, so the
+   * effective behaviour is unchanged until an administrator adds a row for another role. A key with no row at all
+   * means unlimited and nothing is counted.
+   * </p>
+   *
+   * <p>
+   * This is the only limit family that increments the lockout counter on rejection: reading beyond the budget is what
+   * the guard against Grafioschtrader being used as a data provider exists for, whereas exhausting an ordinary daily
+   * editing budget is normal usage.
+   * </p>
    *
    * @param idSecuritycurrency the instrument not yet seen today
    * @param userDaySeen        the caller-locked per-user dedup state for today
@@ -92,15 +104,15 @@ public class HistoryquoteReadLimitService {
    */
   private void checkLimitAndCount(final User user, final Integer idSecuritycurrency, final UserDaySeen userDaySeen,
       final LocalDate today) {
-    final Optional<UserCountLimit> userCountLimitOpt = userEntityChangeCountJpaRepository
-        .getCudTransactionAndUserLimit(user.getIdUser(), HISTORYQUOTE_READ);
-    final int count = userCountLimitOpt.map(UserCountLimit::getCudTrans).orElse(0);
-    final Integer dayLimit = userCountLimitOpt.map(UserCountLimit::getDayLimit).orElse(null);
-    final int limit = dayLimit != null ? dayLimit
-        : globalparametersJpaRepository.getMaxValueByKey(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_HISTORYQUOTE_READ);
-    if (count >= limit) {
+    final Optional<Integer> limitOpt = entityLimitService.resolve(user, LimitKeyConfig.KEY_DAY_HISTORYQUOTE_READ);
+    if (limitOpt.isEmpty()) {
+      return;
+    }
+    final int count = userEntityChangeCountJpaRepository.getCudTransactionCount(user.getIdUser(), HISTORYQUOTE_READ);
+    if (count >= limitOpt.get()) {
       userService.incrementRightsLimitCount(user.getIdUser(), UserRightLimitCounter.LIMIT_EXCEEDED_TENANT_DATA);
-      throw new LimitEntityTransactionException(new LimitEntityTransactionError(HISTORYQUOTE_READ, limit, count));
+      throw new LimitEntityTransactionException(
+          new LimitEntityTransactionError(HISTORYQUOTE_READ, limitOpt.get(), count));
     }
     final UserEntityChangeCount userEntityChangeCount = userEntityChangeCountJpaRepository
         .findById(new UserEntityChangeCountId(user.getIdUser(), today, HISTORYQUOTE_READ))

@@ -59,6 +59,8 @@ import {SecurityaccountImportSetCashaccountComponent} from './securityaccount-im
       [expandable]="true"
       [expandedRowTemplate]="expandedRowContent"
       [customSortFn]="customSort.bind(this)"
+      [valueGetterFn]="getValueByPath.bind(this)"
+      [baseLocale]="baseLocale"
       [containerClass]="'datatable'">
 
       <ng-template #iconCell let-row let-field="field" let-value="value">
@@ -146,7 +148,8 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
 
     this.addColumn(DataType.String, 'fileTypeIcon', AppSettings.INSTRUMENT_HEADER, true, false,
       {fieldValueFN: this.getFileTypeIcon.bind(this), templateName: 'icon', width: 25});
-    this.addColumn(DataType.DateNumeric, ImportSettings.IMPORT_TRANSACTION_POS + 'transactionTime', 'DATE', true, false, {width: 120});
+    this.addColumn(DataType.DateTimeString, ImportSettings.IMPORT_TRANSACTION_POS + 'transactionTime', 'DATE', true, false,
+      {width: 120});
     this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'transactionType', 'TRANSACTION_TYPE_IMP', true, false,
       {width: 60, translateValues: TranslateValue.NORMAL});
     this.addColumn(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'cashaccount.name', AppSettings.CASHACCOUNT.toUpperCase(),
@@ -174,7 +177,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     this.addColumn(DataType.DateString, ImportSettings.IMPORT_TRANSACTION_TEMPLATE + 'validSince', 'VALID_SINCE', false, true,
       {width: 60});
 
-    this.multiSortMeta.push({field: 'transactionTime', order: 1});
+    this.multiSortMeta.push({field: ImportSettings.IMPORT_TRANSACTION_POS + 'transactionTime', order: 1});
     this.prepareTableAndTranslate();
     this.readTableDefinition(AppSettings.IMPORT_TRANSACTION_POS_TABLE_SETTINGS_STORE);
   }

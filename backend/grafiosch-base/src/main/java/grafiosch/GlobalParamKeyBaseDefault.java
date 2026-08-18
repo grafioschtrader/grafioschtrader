@@ -1,14 +1,5 @@
 package grafiosch;
 
-import java.util.Map;
-
-import grafiosch.dto.MaxDefaultDBValue;
-import grafiosch.entities.Globalparameters;
-import grafiosch.entities.MailSendRecv;
-import grafiosch.entities.MailSettingForward;
-import grafiosch.entities.ProposeUserTask;
-import grafiosch.entities.UDFMetadataGeneral;
-
 /**
  * Global parameter keys and default values for system configuration and tenant regulations.
  * 
@@ -21,9 +12,6 @@ import grafiosch.entities.UDFMetadataGeneral;
  * </p>
  */
 public class GlobalParamKeyBaseDefault {
-
-  /** Base prefix for daily limit configuration keys. A dependent application should extend this prefix accordingly. */
-  public static final String G_LIMIT_DAY = BaseConstants.G_PREFIX + "limit.day.";
 
   /** Default JWT token expiration time in minutes (24 hours). */
   public static final int DEFAULT_GLOB_KEY_JWT_EXPIRATION_MINUTES = 1440;
@@ -39,26 +27,6 @@ public class GlobalParamKeyBaseDefault {
 
   /** Default alert email bitmap value (all alerts enabled). */
   public static final int DEFAULT_ALERT_MAIL = Integer.MAX_VALUE;
-
-  /** Access key for global parameters. Daily MailSettingForward creation limit per user or tenant. */
-  public static final String GLOB_KEY_LIMIT_DAY_MAILSETTINGFORWARD = GlobalParamKeyBaseDefault.G_LIMIT_DAY
-      + MailSettingForward.class.getSimpleName();
-
-  /** Access key for global parameters. Daily UDFMetadataGeneral creation limit per user or tenant. */
-  public static final String GLOB_KEY_LIMIT_DAY_UDFMETADATAGENERAL = GlobalParamKeyBaseDefault.G_LIMIT_DAY
-      + UDFMetadataGeneral.class.getSimpleName();
-
-  /** Access key for global parameters. Daily MailSendRecv operation limit per user or tenant. */
-  public static final String GLOB_KEY_LIMIT_DAY_MAIL_SEND = GlobalParamKeyBaseDefault.G_LIMIT_DAY
-      + MailSendRecv.class.getSimpleName();
-
-  /**
-   * Access key for global parameters. Daily ProposeUserTask creation limit per limited user. Caps how many unlock or
-   * limit-increase requests a limited user can file per day; without this entry the daily-limit check on the propose
-   * request create path has no configured default and fails.
-   */
-  public static final String GLOB_KEY_LIMIT_DAY_PROPOSEUSERTASK = GlobalParamKeyBaseDefault.G_LIMIT_DAY
-      + ProposeUserTask.class.getSimpleName();
 
   /** Access key for global parameters. Set expiration time for the JWT token in minutes. */
   public static final String GLOB_KEY_JWT_EXPIRATION_MINUTES = BaseConstants.G_PREFIX + "jwt.expiration.minutes";
@@ -104,14 +72,4 @@ public class GlobalParamKeyBaseDefault {
   /** Default aggregation: D=1 (daily after 1 day), W=7 (weekly after 7 days), M=30 (monthly after 30 days), Y=365 (yearly after 365 days). */
   public static final String DEFAULT_GTNET_LOG_AGGREGATE_DAYS = "D=1,W=7,M=30,Y=365";
 
-  public GlobalParamKeyBaseDefault() {
-    Map<String, MaxDefaultDBValue> defaultLimitMap = Globalparameters.defaultLimitMap;
-
-    /** Set tenant regulations violations, with daily CUD limits on user or tenant own entries */
-    defaultLimitMap.put(GlobalParamKeyBaseDefault.GLOB_KEY_LIMIT_DAY_MAIL_SEND, new MaxDefaultDBValue(200));
-    defaultLimitMap.put(GlobalParamKeyBaseDefault.GLOB_KEY_LIMIT_DAY_MAILSETTINGFORWARD, new MaxDefaultDBValue(12));
-    defaultLimitMap.put(GlobalParamKeyBaseDefault.GLOB_KEY_LIMIT_DAY_UDFMETADATAGENERAL, new MaxDefaultDBValue(20));
-    defaultLimitMap.put(GlobalParamKeyBaseDefault.GLOB_KEY_LIMIT_DAY_PROPOSEUSERTASK, new MaxDefaultDBValue(10));
-
-  }
 }

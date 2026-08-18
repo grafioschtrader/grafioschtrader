@@ -83,6 +83,18 @@ public class GTNetSecurityImpPos extends BaseID<Integer> {
   private Security security;
 
   @Schema(description = """
+      True when the import created the referenced security itself, false when it merely matched an already existing
+      one. Both cases write id_securitycurrency, so nothing else tells them apart: neither security nor
+      securitycurrency records where a row came from. The flag separates the GTNetSecurityImport lifetime cap from the
+      ordinary Security cap, so network synchronisation cannot exhaust a user's manual budget.
+
+      It is a bound on active import volume, not an immutable ledger. Rows that existed before the flag was
+      introduced are all false and cannot be backfilled, and deleting an import set cascades its positions away, after
+      which its securities stop counting against either cap.""")
+  @Column(name = "security_created_by_import")
+  private boolean securityCreatedByImport;
+
+  @Schema(description = """
       List of gaps (mismatches) identified during the last GTNet import attempt.
       Transient field populated when loading positions for display. Contains details about
       what didn't match (asset class, connectors) when the import couldn't create a security.""")
@@ -99,6 +111,14 @@ public class GTNetSecurityImpPos extends BaseID<Integer> {
     this.isin = isin;
     this.tickerSymbol = tickerSymbol;
     this.currency = currency;
+  }
+
+  public boolean isSecurityCreatedByImport() {
+    return securityCreatedByImport;
+  }
+
+  public void setSecurityCreatedByImport(boolean securityCreatedByImport) {
+    this.securityCreatedByImport = securityCreatedByImport;
   }
 
   public Integer getIdGtNetSecurityImpPos() {

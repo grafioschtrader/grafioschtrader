@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 import grafiosch.BaseConstants;
 import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.User;
+import grafiosch.service.DailyLimitService;
+import grafiosch.types.OperationType;
 import grafioschtrader.dto.HisotryqouteLinearFilledSummary;
 import grafioschtrader.dto.IDateAndClose;
 import grafioschtrader.entities.Historyquote;
@@ -34,6 +36,9 @@ public class HistoryquoteQualityService {
   @Autowired
   private MessageSource messages;
 
+  @Autowired
+  private DailyLimitService dailyLimitService;
+
   @Transactional
   public HisotryqouteLinearFilledSummary fillHistoryquoteGapsLinear(final Integer idSecuritycurrency,
       boolean moveWeekendToFriday) {
@@ -47,6 +52,9 @@ public class HistoryquoteQualityService {
     if ((UserAccessHelper.hasRightsOrPrivilegesForEditingOrDelete(user, security)
         && security.getActiveToDate().isBefore(java.time.LocalDate.now()) && security.getIdTenantPrivate() == null)
         || UserAccessHelper.isAdmin(user)) {
+      // Filling the gaps of an instrument is accounted as a single edit of that instrument, so it consumes the same
+      // daily budget as a manual change to it. Checked before the first row is written or moved.
+      dailyLimitService.check(user, Security.class.getSimpleName(), 1);
       if (moveWeekendToFriday) {
         moveWeekendDayToBusinessDay(idSecuritycurrency, hisotryqouteLinearFilledSummary);
       }
@@ -73,6 +81,7 @@ public class HistoryquoteQualityService {
 
     this.hisotryqouteLinearFill(user, idSecuritycurrency, firstLastPrice, missingDays, hisotryqouteLinearFilledSummary,
         missingHistoryquoteList);
+    dailyLimitService.log(user.getIdUser(), Security.class.getSimpleName(), OperationType.UPDATE, 1);
 
     return hisotryqouteLinearFilledSummary;
   }

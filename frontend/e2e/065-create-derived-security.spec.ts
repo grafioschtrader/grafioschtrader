@@ -19,8 +19,9 @@ interface InstrumentRef {
   displayName: string;
 }
 
-/** One derived instrument of derived-securities.json. */
+/** One derived instrument of security-creations.json. */
 interface DerivedInstrument {
+  creationType: 'DERIVED';
   sourceIdSecuritycurrency: number;
   name: string;
   /** Base instrument, formula variable 'o'; becomes security.id_link_securitycurrency. */
@@ -41,24 +42,40 @@ interface DerivedInstrument {
   e2e: string;
 }
 
-interface DerivedFixture {
+interface SecurityCreationGroup {
   loginNickname: string;
   watchlistName: string;
-  instruments: DerivedInstrument[];
+  securities: DerivedInstrument[];
+}
+
+interface SecurityCreationFixture {
+  groups: SecurityCreationGroup[];
+}
+
+interface DerivedScenario {
+  loginNickname: string;
+  watchlistName: string;
+  security: DerivedInstrument;
 }
 
 const FIXTURE_PATH = path.resolve(__dirname,
-  '../../backend/grafioschtrader-server/src/test/resources/testdata/derived-securities.json');
+  '../../backend/grafioschtrader-server/src/test/resources/testdata/security-creations.json');
 
-function loadFixture(): DerivedFixture {
+function loadFixture(): DerivedScenario[] {
   if (!fs.existsSync(FIXTURE_PATH)) {
-    return {loginNickname: 'alledit', watchlistName: 'Derived', instruments: []};
+    return [];
   }
-  const fixture = JSON.parse(fs.readFileSync(FIXTURE_PATH, 'utf-8')) as DerivedFixture;
-  return {...fixture, instruments: fixture.instruments.filter(i => i.e2e === 'e')};
+  const fixture = JSON.parse(fs.readFileSync(FIXTURE_PATH, 'utf-8')) as SecurityCreationFixture;
+  return fixture.groups.flatMap(group => group.securities
+    .filter(security => security.creationType === 'DERIVED' && security.e2e === 'e')
+    .map(security => ({
+      loginNickname: group.loginNickname,
+      watchlistName: group.watchlistName,
+      security
+    })));
 }
 
-const FIXTURE = loadFixture();
+const SCENARIOS = loadFixture();
 
 // The login user is de-CH, so every label matcher has to accept the German and the English text.
 const RX = {
@@ -222,10 +239,11 @@ test.describe.serial('derived instruments — watchlist and calculated securitie
   // button cannot be scrolled into view, because a centered p-dialog does not scroll the body.
   test.use({viewport: {width: 1600, height: 1400}});
 
-  for (const row of FIXTURE.instruments) {
+  for (const scenario of SCENARIOS) {
+    const row = scenario.security;
     test(`adds derived instrument ${row.name}`, async ({page}) => {
-      await loginAsFixtureUser(page, FIXTURE.loginNickname);
-      await openWatchlist(page, FIXTURE.watchlistName);
+      await loginAsFixtureUser(page, scenario.loginNickname);
+      await openWatchlist(page, scenario.watchlistName);
 
       // Derived instruments are globally shared and security has no unique name index, so a second
       // run would silently create duplicates — skip what is already in the watchlist.

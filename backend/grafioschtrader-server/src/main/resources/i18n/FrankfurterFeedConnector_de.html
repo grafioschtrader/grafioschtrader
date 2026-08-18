@@ -1,0 +1,8 @@
+[historical]
+<a target="_blank" href="//frankfurter.dev/">Frankfurter</a> ist eine kostenlose und quelloffene Kurs-Schnittstelle für Währungen. Ihre täglichen Referenzkurse stammen aus einer Vielzahl von Zentralbanken und umfassen mehr als 200 Währungen, einzelne davon bis zurück ins Jahr 1948.<br>
+Hier ist keine Eingabe erforderlich. Weder ein API-Schlüssel noch eine URL-Erweiterung wird benötigt: Beide Währungen werden direkt dem Währungspaar entnommen, und Grafioschtrader bildet die Anfrage selbst.<br>
+Ein Währungspaar wird nur akzeptiert, wenn diese Instanz beide Währungen anbietet. Der gesamte angeforderte Zeitraum wird mit einer einzigen Anfrage geladen, und zwar in beiden Richtungen des Paares.<br>
+Der Anbieter liefert für jeden Kalendertag einen Wert, an Samstagen und Sonntagen schreibt er aber lediglich den Freitagskurs fort, weil die Devisenmärkte geschlossen sind. Grafioschtrader verwirft diese Tage, damit die Kurshistorie zu jener der anderen Währungskonnektoren passt.<br>
+Die Kurse werden auf eine von ihrer Grössenordnung abhängige Anzahl Nachkommastellen gerundet, was bis zu einem Kurs von etwa 0.1 rund fünf signifikante Stellen erhält. Bei einem Paar mit kleinerem Kurs, etwa JPY/GBP, fragt Grafioschtrader deshalb die umgekehrte Richtung ab und verwendet deren Kehrwert, damit keine signifikanten Stellen verloren gehen.<br>
+Die Kurse werden über alle beteiligten Zentralbanken gemischt, die unterschiedliche Fixing-Zeiten haben. Sie weichen deshalb vom offiziellen Referenzkurs einer einzelnen Institution ab, typischerweise um ein bis drei Zehntelprozent.<br>
+Es wird nur ein täglicher Referenzkurs veröffentlicht, deshalb liefert dieser Konnektor historische Kurse, aber keine Intraday-Kurse.

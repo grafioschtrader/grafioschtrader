@@ -48,6 +48,7 @@ import grafioschtrader.dto.UserAuditable;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
+import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.projection.IFormulaInSecurity;
 import grafioschtrader.entities.projection.IFormulaSecurityLoad;
 import grafioschtrader.priceupdate.ThruCalculationHelper;
@@ -119,26 +120,27 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
     if (securitycurrencyIdDateCloseList.size() == 1) {
       ISecuritycurrencyIdDateClose securitycurrencyIdDateClose = securitycurrencyIdDateCloseList.getFirst();
       if (asTraded) {
-        final Double factor = securitysplitJpaRepository.getSplitFactorAfterThanEqualDate(idSecuritycurrency,
+        // A historyquote is stored on the connector's current, split-adjusted basis. Multiplying it by the factor of
+        // all splits after that date converts it back to the share basis that was actually traded on that day.
+        final double factor = Securitysplit.calcSplitFatorForFromDate(
+            securitysplitJpaRepository.findByIdSecuritycurrencyOrderBySplitDateAsc(idSecuritycurrency),
             securitycurrencyIdDateClose.getDate());
-        if (factor != null) {
-          return new ISecuritycurrencyIdDateClose() {
-            @Override
-            public Integer getIdSecuritycurrency() {
-              return securitycurrencyIdDateClose.getIdSecuritycurrency();
-            }
+        return new ISecuritycurrencyIdDateClose() {
+          @Override
+          public Integer getIdSecuritycurrency() {
+            return securitycurrencyIdDateClose.getIdSecuritycurrency();
+          }
 
-            @Override
-            public LocalDate getDate() {
-              return securitycurrencyIdDateClose.getDate();
-            }
+          @Override
+          public LocalDate getDate() {
+            return securitycurrencyIdDateClose.getDate();
+          }
 
-            @Override
-            public double getClose() {
-              return DataBusinessHelper.round(securitycurrencyIdDateClose.getClose() * factor);
-            }
-          };
-        }
+          @Override
+          public double getClose() {
+            return DataBusinessHelper.round(securitycurrencyIdDateClose.getClose() * factor);
+          }
+        };
       }
       return securitycurrencyIdDateClose;
     }
@@ -171,6 +173,10 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
   @Modifying
   public Historyquote saveOnlyAttributes(final Historyquote historyquote, final Historyquote existingEntity,
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
+    // A quote belongs to its instrument, so writing one requires rights on that instrument. Update and delete are
+    // checked against the parent by HistoryquoteResourceBase; without this line create was the one path where the
+    // daily budget could be spent on an instrument the user does not own.
+    getUserAndCheckSecurityAccess(historyquote.getIdSecuritycurrency());
     long dayDiff = checkDatePastMinus1Day(historyquote);
 
     final Historyquote historyquoteFillDate = historyquoteJpaRepository

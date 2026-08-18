@@ -281,7 +281,9 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
   }
 
   override resetMenu(historyquote: Historyquote): void {
-    if (!this.security.idLinkSecuritycurrency) {
+    // security is null for a currency pair (see readAndShowData) and undefined until the first response arrives;
+    // only a security whose quotes are derived from another instrument (idLinkSecuritycurrency) has no own menu.
+    if (this.historyquotesWithMissings && !this.security?.idLinkSecuritycurrency) {
       this.contextMenuItems = this.prepareEditMenu(this.selectedEntity);
       this.contextMenuItems.push({separator: true});
       this.importQuotesMenu.disabled = !this.hasRightsForDeleteEntity(null);

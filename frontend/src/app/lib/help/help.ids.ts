@@ -22,6 +22,7 @@ export const HelpIds: Record<string, string> = {
   HELP_TASK_DATA_CHANGE_MONITOR: 'admindata/taskdatachangemonitor',
   HELP_CONNECTOR_API_KEY: 'admindata/connectorapikey',
   HELP_USER: 'admindata/user',
+  HELP_ENTITY_LIMIT: 'admindata/entitylimit',
 
   // Manage client (library feature g.use.manageclient)
   HELP_MANAGE_CLIENT: 'tenantportfolio/client/managedclients'

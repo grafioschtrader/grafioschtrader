@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -18,11 +19,11 @@ import grafiosch.entities.TaskDataChange;
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.repository.TaskDataChangeJpaRepository;
-import grafiosch.repository.TenantLimitsHelper;
+import grafiosch.service.EntityLimitService;
 import grafiosch.types.TaskDataExecPriority;
-import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.algo.SimulationTenantCreateDTO;
 import grafioschtrader.algo.SimulationTenantInfo;
+import grafioschtrader.config.LimitKeyConfig;
 import grafioschtrader.entities.AlgoTop;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Portfolio;
@@ -52,6 +53,9 @@ public class SimulationTenantService {
   private EntityManager em;
 
   @Autowired
+  private EntityLimitService entityLimitService;
+
+  @Autowired
   private JdbcTemplate jdbcTemplate;
 
   @Autowired
@@ -76,11 +80,11 @@ public class SimulationTenantService {
     Integer mainIdTenant = user.getActualIdTenant();
 
     // 1. Validate max simulation count
-    int currentCount = tenantJpaRepository.countByIdParentTenant(mainIdTenant);
-    int maxAllowed = TenantLimitsHelper.getMaxValueByKey(em,
-        GlobalParamKeyDefault.GLOB_KEY_MAX_SIMULATION_ENVIRONMENTS);
-    if (currentCount >= maxAllowed) {
-      throw new DataViolationException("id.algo.top", "simulation.max.exceeded", new Object[] { maxAllowed });
+    Optional<Integer> maxAllowedOpt = entityLimitService.resolve(user, LimitKeyConfig.KEY_SIMULATION_TENANT);
+    if (maxAllowedOpt.isPresent()
+        && tenantJpaRepository.countByIdParentTenant(mainIdTenant) >= maxAllowedOpt.get()) {
+      throw new DataViolationException("id.algo.top", "simulation.max.exceeded",
+          new Object[] { maxAllowedOpt.get() });
     }
 
     // 2. Load and validate AlgoTop

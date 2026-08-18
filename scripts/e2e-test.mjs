@@ -15,9 +15,13 @@
  *                   from db/migration/test on backend startup).
  *                3. Start grafioschtrader-server on port 8080 with the `e2e` profile and wait
  *                   until /api/gtinfo reports database `grafioschtrader_t`.
- *                4. Run the backend integration suite `ResoureTestSuite` (seeds test data).
+ *                4. Run `ResourceTestSuite_1`, which seeds the state needed through Playwright 020.
  *                5. Ensure the frontend dev server on port 4200 (reused if already running,
- *                   otherwise started via `npm start`), then run the Playwright e2e suite.
+ *                   otherwise started via `npm start`), then run Playwright specs 005 through 020.
+ *                6. Run `ResourceTestSuite_25`, beginning with PortfolioResourceTest.
+ *                7. Run Playwright specs 025 through 045 without repeating the setup project.
+ *                8. Run `ResourceTestSuite_50`, which creates transactions after currency-pair setup.
+ *                9. Run Playwright specs 050 through 888 without repeating the setup project.
  *   --lib      Reusable-library suite: recreate `grafiosch_t`, start grafiosch-test-integration
  *              on port 8081 (profile `e2e`), run the backend integration suite `ResourceTestSuite`
  *              (registers the users.json users), ensure the grafiosch host on port 4201
@@ -53,7 +57,7 @@
  */
 
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import fsp from 'node:fs/promises';
 import net from 'node:net';
 import path from 'node:path';
@@ -82,6 +86,27 @@ const PLAYWRIGHT_OUTPUT_DIR = path.join(FRONTEND_DIR, 'test-results');
 const OUTPUT_CLEAR_BUDGET_MS = 20_000;
 
 /**
+ * Returns the main-suite spec paths whose three-digit filename prefix lies in the inclusive range.
+ * Discovering the files keeps the phase boundary intact when a new numbered spec is inserted.
+ */
+function numberedMainSpecs(from, through) {
+  const specs = readdirSync(path.join(FRONTEND_DIR, 'e2e'), { withFileTypes: true })
+    .filter(entry => entry.isFile())
+    .map(entry => ({ name: entry.name, match: /^(\d{3})-.*\.spec\.ts$/.exec(entry.name) }))
+    .filter(entry => entry.match !== null)
+    .filter(entry => {
+      const number = Number(entry.match[1]);
+      return number >= from && number <= through;
+    })
+    .map(entry => `e2e/${entry.name}`)
+    .sort();
+  if (specs.length === 0) {
+    throw new Error(`No Playwright specs found in numeric range ${from}-${through}`);
+  }
+  return specs;
+}
+
+/**
  * Heap for the forked JVMs of a suite (backend and the surefire fork of the integration tests).
  * Matches what the deployment scripts hand the server (docker/docker-compose.yml, docker/install.sh,
  * util/shellscripts/grafioschtrader.sh), so the suite runs on the same heap production gets instead
@@ -107,12 +132,34 @@ const SUITES = {
     },
     frontend: { port: 4200, npmArgs: ['start'] },
     testPhases: [
-      { name: 'backend-integration-suite', cwd: BACKEND_DIR,
+      { name: 'backend-resource-suite-1', cwd: BACKEND_DIR,
         // argLine is what surefire passes to the JVM it forks for the tests.
-        cmd: 'mvn', args: ['test', '-pl', 'grafioschtrader-server', '-Dtest=ResoureTestSuite',
+        cmd: 'mvn', args: ['test', '-pl', 'grafioschtrader-server', '-Dtest=ResourceTestSuite_1',
           `-DargLine="${E2E_JVM_ARGS}"`] },
-      { name: 'frontend-playwright-e2e', cwd: FRONTEND_DIR,
-        cmd: 'npx', args: ['playwright', 'test'],
+      { name: 'frontend-playwright-005-020', cwd: FRONTEND_DIR,
+        cmd: 'npx', args: ['playwright', 'test', '--project=grafioschtrader-e2e',
+          ...numberedMainSpecs(5, 20)],
+        clearOutputDir: PLAYWRIGHT_OUTPUT_DIR,
+        // The timing reporter writes next to the config's rootDir, which is the testDir.
+        timingJson: path.join(FRONTEND_DIR, 'e2e', 'test-results', 'e2e-timing.json') },
+      { name: 'backend-resource-suite-25', cwd: BACKEND_DIR,
+        // This phase consumes state created by the first JUnit and Playwright phases.
+        cmd: 'mvn', args: ['test', '-pl', 'grafioschtrader-server', '-Dtest=ResourceTestSuite_25',
+          `-DargLine="${E2E_JVM_ARGS}"`] },
+      { name: 'frontend-playwright-025-045', cwd: FRONTEND_DIR,
+        // auth.setup.ts is create-only and already ran as the dependency of the 005-020 phase.
+        cmd: 'npx', args: ['playwright', 'test', '--project=grafioschtrader-e2e', '--no-deps',
+          ...numberedMainSpecs(25, 45)],
+        clearOutputDir: PLAYWRIGHT_OUTPUT_DIR,
+        // The timing reporter writes next to the config's rootDir, which is the testDir.
+        timingJson: path.join(FRONTEND_DIR, 'e2e', 'test-results', 'e2e-timing.json') },
+      { name: 'backend-resource-suite-50', cwd: BACKEND_DIR,
+        // Transaction fixtures consume the currency pairs initialized by Playwright spec 045.
+        cmd: 'mvn', args: ['test', '-pl', 'grafioschtrader-server', '-Dtest=ResourceTestSuite_50',
+          `-DargLine="${E2E_JVM_ARGS}"`] },
+      { name: 'frontend-playwright-050-888', cwd: FRONTEND_DIR,
+        cmd: 'npx', args: ['playwright', 'test', '--project=grafioschtrader-e2e', '--no-deps',
+          ...numberedMainSpecs(50, 888)],
         clearOutputDir: PLAYWRIGHT_OUTPUT_DIR,
         // The timing reporter writes next to the config's rootDir, which is the testDir.
         timingJson: path.join(FRONTEND_DIR, 'e2e', 'test-results', 'e2e-timing.json') },

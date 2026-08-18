@@ -33,6 +33,8 @@ import grafiosch.common.UserAccessHelper;
 import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafiosch.entities.User;
 import grafiosch.repository.BaseRepositoryImpl;
+import grafiosch.service.DailyLimitService;
+import grafiosch.types.OperationType;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.SuccessFailedImportTransactionTemplate;
@@ -99,6 +101,9 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
+
+  @Autowired
+  private DailyLimitService dailyLimitService;
 
   @Override
   public ImportTransactionTemplate saveOnlyAttributes(ImportTransactionTemplate importTransactionTemplate,
@@ -279,7 +284,13 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
    * 
    * <p>Permission checking ensures users can only modify templates they own or have
    * administrative privileges for, preventing unauthorized template modifications.</p>
-   * 
+   *
+   * <p>Every file that is actually written consumes one unit of the daily {@code ImportTransactionTemplate} budget,
+   * exactly as a template created or edited by hand through the generic REST path does. A file refused for lack of
+   * ownership costs nothing. The check is per file, so an upload that runs out of budget partway through keeps the
+   * files it already saved and fails on the first one that no longer fits — the same accounting the per-file error
+   * counters of this method already follow.</p>
+   *
    * @param user The authenticated user performing the template import
    * @param idTransactionImportPlatform The platform ID to associate the template with
    * @param itt The template entity to save with all metadata populated
@@ -308,8 +319,12 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
       itt.setIdTransactionImportPlatform(idTransactionImportPlatform);
       sfitt.successNew++;
     }
+    final String entityName = ImportTransactionTemplate.class.getSimpleName();
+    dailyLimitService.check(user, entityName, 1);
     saveOnlyAttributes(itt, ittExisting,
         Set.of(PropertySelectiveUpdatableOrWhenNull.class, PropertyAlwaysUpdatable.class));
+    dailyLimitService.log(user.getIdUser(), entityName,
+        ittExisting == null ? OperationType.ADD : OperationType.UPDATE, 1);
   }
 
   /**

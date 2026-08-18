@@ -18,6 +18,8 @@ import grafiosch.entities.User;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafiosch.repository.ProposeChangeEntityJpaRepository;
 import grafiosch.repository.ProposeChangeFieldJpaRepository;
+import grafiosch.service.DailyLimitService;
+import grafiosch.types.OperationType;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.HistoryquotePeriodDeleteAndCreateMultiple;
 import grafioschtrader.entities.HistoryquotePeriod;
@@ -46,6 +48,9 @@ public class HistoryquotePeriodJpaRepositoryImpl implements HistoryquotePeriodJp
 
   @Autowired
   private GlobalparametersService globalparametersService;
+
+  @Autowired
+  private DailyLimitService dailyLimitService;
 
   @Override
   public void adjustHistoryquotePeriod(Security security) {
@@ -174,12 +179,17 @@ public class HistoryquotePeriodJpaRepositoryImpl implements HistoryquotePeriodJp
       }
     } else {
       // User can't change history quote periods directly if another user created the
-      // security -> create a proposal change
+      // security -> create a proposal change. This branch does not pass through UpdateCreate, so it books the daily
+      // budget of the instrument itself: one unit of Security, the same unit UpdateCreate.checkProposeChangeAndSave
+      // charges for a proposal on a Security. Without it the propose tables grow unbounded - propose_change_entity has
+      // no unique key and nothing here deduplicates a replayed request.
+      dailyLimitService.check(user, Security.class.getSimpleName(), 1);
       final ProposeChangeEntity proposeChangeEntityNew = proposeChangeEntityJpaRepository.save(new ProposeChangeEntity(
           security.getClass().getSimpleName(), security.getId(), security.getCreatedBy(), noteRequest));
       proposeChangeFieldJpaRepository.save(new ProposeChangeField(Security.HISTORYQUOTE_PERIOD_ARRAY,
           SerializationUtils.serialize(hpsNewSorted.toArray(new HistoryquotePeriod[hpsNewSorted.size()])),
           proposeChangeEntityNew.getIdProposeRequest()));
+      dailyLimitService.log(user.getIdUser(), Security.class.getSimpleName(), OperationType.ADD, 1);
 
     }
     return hpsNewSorted;

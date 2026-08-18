@@ -2,21 +2,21 @@ import {test} from '@playwright/test';
 import {loginAsFixtureUser} from './helpers';
 import {
   ensureWatchlist,
-  ensureWatchlistSecuritiesByNameSearch,
-  loadE2EWatchlists,
+  ensureWatchlistSecuritiesBySearch,
+  loadPlaywrightInstrumentWatchlists,
 } from './watchlist.helpers';
 
 /**
- * The derived Forex securities are created by 065-create-derived-security.spec.ts. This spec therefore runs
- * immediately afterwards and adds them to limit2's performance watchlist through the existing-instrument dialog.
+ * Spanish securities are created by 050 and derived Forex securities by 065. This spec runs after both producers and
+ * adds every Playwright-owned instrument to its integration- or Playwright-owned performance watchlist.
  */
-const WATCHLISTS = loadE2EWatchlists().filter(watchlist => watchlist.securitySearchName);
+const WATCHLISTS = loadPlaywrightInstrumentWatchlists();
 
 for (const watchlist of WATCHLISTS) {
-  test(`adds ${watchlist.securitySearchName} securities to ${watchlist.name} of '${watchlist.loginNickname}'`,
+  test(`adds fixture securities to ${watchlist.name} of '${watchlist.loginNickname}'`,
     async ({page}) => {
       await loginAsFixtureUser(page, watchlist.loginNickname);
       await ensureWatchlist(page, watchlist);
-      await ensureWatchlistSecuritiesByNameSearch(page, watchlist);
+      await ensureWatchlistSecuritiesBySearch(page, watchlist);
     });
 }

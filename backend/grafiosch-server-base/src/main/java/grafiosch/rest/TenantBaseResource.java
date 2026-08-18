@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import grafiosch.BaseConstants;
+import grafiosch.config.LimitKeyBaseConfig;
 import grafiosch.dto.AccountDeletionEligibility;
 import grafiosch.dto.CreateClientRequest;
 import grafiosch.dto.ShareReadAccessRequest;
@@ -40,6 +42,7 @@ import grafiosch.repository.TenantAccessJpaRepository;
 import grafiosch.repository.TenantBaseCustom;
 import grafiosch.repository.UserJpaRepository;
 import grafiosch.security.JwtTokenHandler;
+import grafiosch.service.EntityLimitService;
 import grafiosch.service.MailExternalService;
 import grafiosch.types.TenantAccessLevel;
 import io.swagger.v3.oas.annotations.Operation;
@@ -69,6 +72,9 @@ public abstract class TenantBaseResource<T extends BaseID<Integer>> extends Upda
 
   @Autowired
   protected MailExternalService mailExternalService;
+
+  @Autowired
+  protected EntityLimitService entityLimitService;
 
   @Autowired
   protected org.springframework.context.MessageSource messages;
@@ -266,6 +272,12 @@ public abstract class TenantBaseResource<T extends BaseID<Integer>> extends Upda
     } else {
       if (request.getPassword() == null || request.getPassword().isBlank()) {
         throw new DataViolationException("password", "g.share.password.required", null);
+      }
+      // Only this branch creates a row. Every invite of an e-mail without an account writes an enabled ROLE_USER and
+      // sends an outbound mail, and nothing else bounds how many of those one tenant may produce; the branch above
+      // writes a tenant_access row that is already one per (user, tenant).
+      if (!entityLimitService.fitsWithinLimit(owner, LimitKeyBaseConfig.KEY_SHARE_INVITE, null, 1)) {
+        throw new SecurityException(BaseConstants.LIMIT_SECURITY_BREACH);
       }
       User viewer = new User(email, new BCryptPasswordEncoder().encode(request.getPassword()),
           deriveUniqueNickname(email), owner.getLocaleStr(), owner.getTimezoneOffset());

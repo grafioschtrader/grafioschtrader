@@ -24,7 +24,6 @@ import grafiosch.dto.TenantLimit;
 import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.IntraHistoricalWatchlistProblem;
 import grafioschtrader.dto.WatchlistSecurityStatus;
 import grafioschtrader.entities.Watchlist;
@@ -278,9 +277,5 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
     return watchlistJpaRepository.getDataProviderDivSplitResponseForUser(idSecuritycurrency, isDiv);
   }
 
-  @Override
-  protected String getPrefixEntityLimit() {
-    return GlobalConstants.GT_LIMIT_DAY;
-  }
 
 }

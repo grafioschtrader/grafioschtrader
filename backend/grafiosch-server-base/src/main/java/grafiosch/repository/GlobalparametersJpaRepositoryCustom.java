@@ -22,20 +22,18 @@ public interface GlobalparametersJpaRepositoryCustom {
   int getTaskDataDaysPreserve();
 
   /**
-   * There is a maximum number of data records for certain entities, which can be queried.
-   * Delegates to TenantLimitsHelper for cached retrieval with database override support.
-   * 
-   * @param key the global parameter key in format "gt.limit.day.{EntityClassName}"
-   * @return the maximum value for the specified key from database or default configuration
-   */
-  int getMaxValueByKey(String key);
-
-  /**
-   * Retrieves tenant limit information using message keys.
-   * Converts message keys to parameter keys and delegates to TenantLimitsHelper.
-   * 
-   * @param msgKeys list of message keys in format "LIMIT_DAY_{ENTITYNAME}"
-   * @return a list of TenantLimit objects with current usage vs limits for authenticated user's tenant
+   * Retrieves the configured caps and the current usage for a set of limit message keys, for the screens that warn a
+   * user before they run into a cap.
+   *
+   * <p>
+   * A message key such as {@code MAX_CASH_ACCOUNT} is looked up in the limit key registry, which carries it explicitly
+   * because it cannot be derived from the entity name. The cap comes from the limit resolver and the usage from the
+   * key's counter, so a per-role or per-user override is reflected here as well.
+   * </p>
+   *
+   * @param msgKeys message keys of registered MAX limit keys
+   * @return one entry per message key, with the resolved cap and the current usage of the authenticated user
+   * @throws IllegalArgumentException when a message key belongs to no registered limit key
    */
   List<TenantLimit> getMaxTenantLimitsByMsgKeys(List<String> msgKeys);
 

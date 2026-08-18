@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import grafiosch.rest.UpdateCreateDeleteAuditResource;
 import grafiosch.rest.UpdateCreateJpaRepository;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.TransactionCostEstimateRequest;
 import grafioschtrader.dto.TransactionCostEstimateResult;
 import grafioschtrader.entities.TradingPlatformPlan;
@@ -62,9 +61,5 @@ public class TradingPlatformPlanResource extends UpdateCreateDeleteAuditResource
     return tradingPlatformPlanJpaRepository;
   }
 
-  @Override
-  protected String getPrefixEntityLimit() {
-    return GlobalConstants.GT_LIMIT_DAY;
-  }
 
 }

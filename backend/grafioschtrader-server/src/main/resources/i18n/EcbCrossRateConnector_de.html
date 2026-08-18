@@ -1,0 +1,7 @@
+[historical]
+Die Euro-Referenzkurse der <a target="_blank" href="//www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html">Europäischen Zentralbank</a>.<br>
+Hier ist keine Eingabe erforderlich. Weder ein API-Schlüssel noch eine URL-Erweiterung wird benötigt: Beide Währungen werden direkt dem Währungspaar entnommen.<br>
+Es werden nur die Währungen unterstützt, die unter den Euro-Referenzkursen aufgeführt sind. Jede davon kann mit jeder anderen kombiniert werden; bei einem Paar ohne den Euro wird der Kreuzkurs aus den beiden Euro-Kursen berechnet.<br>
+Die Kurse werden in der Regel gegen 14:10 Uhr MEZ ermittelt und an Werktagen gegen 16:00 Uhr MEZ veröffentlicht, ausser an TARGET-Schliesstagen. Es handelt sich deshalb um Referenzkurse und nicht um Schlusskurse, was für gewisse Zwecke unzureichend sein kann.<br>
+Die Aktualisierung erfolgt in zwei Schritten. Ein Hintergrundjob lädt zuerst die Kurse der Europäischen Zentralbank in die Datenbank von Grafioschtrader. Die Kurshistorie des Währungspaares wird anschliessend zusammen mit der Aktualisierung der übrigen Währungspaare aus diesen gespeicherten Kursen gebildet, ohne dass die Datenquelle nochmals angefragt wird.<br>
+Es werden nur historische Kurse geliefert, einen Innertag-Kurs gibt es nicht.

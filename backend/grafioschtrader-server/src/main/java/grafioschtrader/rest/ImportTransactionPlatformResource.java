@@ -18,7 +18,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import grafiosch.rest.UpdateCreateDeleteAuditResource;
 import grafiosch.rest.UpdateCreateJpaRepository;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.ImportTransactionPlatform;
 import grafioschtrader.platform.IPlatformTransactionImport;
 import grafioschtrader.platformimport.pdf.ImportTransactionHelperPdf;
@@ -67,10 +66,6 @@ public class ImportTransactionPlatformResource extends UpdateCreateDeleteAuditRe
     return new ResponseEntity<>(text, HttpStatus.OK);
   }
   
-  @Override
-  protected String getPrefixEntityLimit() {
-    return GlobalConstants.GT_LIMIT_DAY;
-  }
 
 
 }

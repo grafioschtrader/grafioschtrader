@@ -26,6 +26,7 @@ import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafiosch.entities.ProposeUserTask;
 import grafiosch.entities.Role;
 import grafiosch.entities.User;
+import grafiosch.limit.EntityLimitCache;
 import grafiosch.usertask.UserTaskType;
 
 public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User>
@@ -36,6 +37,9 @@ public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User>
 
   @Autowired
   private RoleJpaRepository roleJpaRepository;
+
+  @Autowired
+  private EntityLimitCache entityLimitCache;
 
   @Autowired
   private ProposeUserTaskJpaRepository proposeUserTaskJpaRepository;
@@ -62,6 +66,9 @@ public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User>
     existingEntity.setRoleMap(roleMap);
     if (!existingEntity.getMostPrivilegedRole().equals(user.getMostPrivilegedRole())) {
       existingEntity.setLastRoleModifiedTime(LocalDateTime.now());
+      // The resolver picks the row of the most privileged role, so a role change makes every cached limit of this
+      // user stale.
+      entityLimitCache.evictUser(existingEntity.getIdUser());
     }
     return RepositoryHelper.saveOnlyAttributes(userJpaRepository, user, existingEntity, updatePropertyLevelClasses);
   }

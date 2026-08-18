@@ -1,7 +1,5 @@
 package grafiosch.dto;
 
-import java.util.regex.Pattern;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "The limits definition for a certain entity")
@@ -20,10 +18,6 @@ public class TenantLimit {
     this.actual = actual;
     this.msgKey = msgKey;
     this.className = className;
-  }
-
-  public TenantLimit(int limit, int actual, String key, String className) {
-    this(key.substring(3).toUpperCase().replaceAll(Pattern.quote("."), "_"), limit, actual, className);
   }
 
 }

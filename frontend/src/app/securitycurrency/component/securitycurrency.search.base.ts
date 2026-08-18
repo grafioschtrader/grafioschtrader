@@ -29,6 +29,12 @@ import {
  */
 @Directive()
 export abstract class SecuritycurrencySearchBase implements OnInit {
+  /**
+   * Field which turns the name into a regular expression. It only modifies how 'name' is matched, it is not a search
+   * criterion of its own, which is why it is excluded from the emptiness check of the second group.
+   */
+  private static readonly NAME_REGEX = 'nameRegex';
+
   // Access child components
   @ViewChild(DynamicFormComponent) dynamicFormComponent: DynamicFormComponent;
   @Input() supplementCriteria: SupplementCriteria;
@@ -62,6 +68,8 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
       DynamicFieldHelper.createFieldCheckboxHeqF('withHoldings',
         {userDefinedValue: this.secondGroup}),
       DynamicFieldHelper.createFieldInputStringHeqF('name', 80, false,
+        {userDefinedValue: this.secondGroup}),
+      DynamicFieldHelper.createFieldCheckboxHeqF(SecuritycurrencySearchBase.NAME_REGEX,
         {userDefinedValue: this.secondGroup}),
       DynamicFieldHelper.createFieldInputStringHeqF('tickerSymbol', 6, false,
         {upperCase: true, userDefinedValue: this.secondGroup}),
@@ -156,6 +164,9 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
           this.dynamicFormComponent.controls.filter(fieldConfig => fieldConfig.userDefinedValue === this.firstGroup)
             .forEach(fieldConfig => AppHelper.invisibleAndHide(fieldConfig, !secondGroupIsEmpty));
           AppHelper.invisibleAndHide(this.configObject.name, this.configObject.name.invisible || this.isExactCurrency());
+          // The regular expression is only supported for securities, the currency pair search matches the currency codes
+          AppHelper.invisibleAndHide(this.configObject.nameRegex,
+            this.configObject.name.invisible || this.isCurrency());
           AppHelper.invisibleAndHide(this.configObject.tickerSymbol, this.isCurrency());
           AppHelper.invisibleAndHide(this.configObject.onlyTenantPrivate, this.isCurrency());
           AppHelper.invisibleAndHide(this.configObject.leverageFactor, this.isCurrency());
@@ -171,7 +182,7 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
 
   private isSecondGroupEmpty(): boolean {
     const foundFieldConfig = this.dynamicFormComponent.controls.filter(fieldConfig =>
-      fieldConfig.userDefinedValue === this.secondGroup)
+      fieldConfig.userDefinedValue === this.secondGroup && fieldConfig.field !== SecuritycurrencySearchBase.NAME_REGEX)
       .find(fieldConfig => fieldConfig.dataType === DataType.Boolean && fieldConfig.formControl.value
         || fieldConfig.dataType !== DataType.Boolean
         && fieldConfig.formControl.value && fieldConfig.formControl.value !== '');

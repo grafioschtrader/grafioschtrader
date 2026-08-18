@@ -14,22 +14,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.GTNet;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.entities.User;
 import grafiosch.entities.UserEntityChangeCount;
 import grafiosch.entities.UserEntityChangeCount.UserEntityChangeCountId;
-import grafiosch.entities.projection.UserCountLimit;
 import grafiosch.exceptions.TaskBackgroundException;
 import grafiosch.repository.GTNetJpaRepository;
 import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.repository.UserEntityChangeCountJpaRepository;
 import grafiosch.repository.UserJpaRepository;
+import grafiosch.service.EntityLimitService;
 import grafiosch.task.ITask;
 import grafiosch.types.ITaskType;
 import grafiosch.types.OperationType;
-import grafioschtrader.GlobalParamKeyDefault;
+import grafioschtrader.config.LimitKeyConfig;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.GTNetSecurityImpGap;
 import grafioschtrader.entities.GTNetSecurityImpHead;
@@ -86,6 +85,9 @@ public class GTNetSecurityImportTask implements ITask {
   private static final Logger log = LoggerFactory.getLogger(GTNetSecurityImportTask.class);
 
   @Autowired
+  private EntityLimitService entityLimitService;
+
+  @Autowired
   private GTNetSecurityImpHeadJpaRepository gtNetSecurityImpHeadJpaRepository;
 
   @Autowired
@@ -127,7 +129,7 @@ public class GTNetSecurityImportTask implements ITask {
   @Autowired
   private HistoryquoteJpaRepository historyquoteJpaRepository;
 
-  private static final String ENTITY_NAME_GTNET_SECURITY_IMPORT = "GTNetSecurityImport";
+  private static final String ENTITY_NAME_GTNET_SECURITY_IMPORT = LimitKeyConfig.ENTITY_NAME_GTNET_SECURITY_IMPORT;
 
   @Override
   public ITaskType getTaskType() {
@@ -195,7 +197,6 @@ public class GTNetSecurityImportTask implements ITask {
       log.debug("Using user ID {} for created_by field", ctx.idCreatedByUser);
     }
 
-    ctx.isLimitedUser = ctx.user != null && UserAccessHelper.isLimitedEditingUser(ctx.user);
     ctx.fromImport = taskDataChange.getOldValueString() != null && !taskDataChange.getOldValueString().isEmpty();
 
     if (ctx.fromImport) {
@@ -248,7 +249,7 @@ public class GTNetSecurityImportTask implements ITask {
         return;
       }
 
-      checkAndEnforceDailyLimit(ctx, counters, totalPositions);
+      checkAndEnforceLimits(ctx, counters, totalPositions);
       createAndLinkNewSecurity(pos, bestMatch, head, ctx, counters, pendingHistoricalImports);
 
     } catch (TaskBackgroundException tbe) {
@@ -264,6 +265,8 @@ public class GTNetSecurityImportTask implements ITask {
    */
   private void linkExistingSecurity(GTNetSecurityImpPos pos, Security security, ImportContext ctx) {
     pos.setSecurity(security);
+    // Left false on purpose: the security already existed, so it keeps counting against the ordinary Security cap.
+    pos.setSecurityCreatedByImport(false);
     gtNetSecurityImpPosJpaRepository.save(pos);
     log.debug("Linked existing security {} to position {}", security.getIdSecuritycurrency(), pos.getIdGtNetSecurityImpPos());
 
@@ -277,15 +280,27 @@ public class GTNetSecurityImportTask implements ITask {
   }
 
   /**
-   * Checks daily limit for limited users and throws exception if exceeded.
+   * Enforces both budgets that bound securities created by an import, before the next one is written.
+   *
+   * <p>
+   * There is deliberately no role test here. Which users a budget applies to is a matter of configuration: the
+   * resolver picks a row written for the user, then one for the user's most privileged role, then the default row of
+   * the key, and no row at all means unlimited. The former {@code isLimitedEditingUser} gate contradicted that - an
+   * administrator could not bound an {@code ALLEDIT} or {@code ADMIN} account here even by writing a row.
+   * </p>
    */
-  private void checkAndEnforceDailyLimit(ImportContext ctx, int[] counters, int totalPositions)
+  private void checkAndEnforceLimits(ImportContext ctx, int[] counters, int totalPositions)
       throws TaskBackgroundException {
-    if (ctx.isLimitedUser && isLimitExceeded(ctx.user)) {
+    if (isLimitExceeded(ctx.user)) {
       int remaining = totalPositions - counters[3];
       log.warn("Daily limit exceeded for user {}. Created: {}, Linked: {}, Remaining: {}",
           ctx.idCreatedByUser, counters[0], counters[1], remaining);
       throw new TaskBackgroundException("GTNET_IMPORT_LIMIT_EXCEEDED", false);
+    }
+    // The lifetime cap on import created securities was registered, seeded and reported but never enforced.
+    if (!entityLimitService.fitsWithinLimit(ctx.user, LimitKeyConfig.KEY_GTNET_SECURITY_IMPORT, null, 1)) {
+      log.warn("Lifetime limit for import created securities reached for user {}", ctx.idCreatedByUser);
+      throw new TaskBackgroundException("GTNET_IMPORT_MAX_EXCEEDED", false);
     }
   }
 
@@ -299,6 +314,9 @@ public class GTNetSecurityImportTask implements ITask {
 
     if (newSecurity != null) {
       pos.setSecurity(newSecurity);
+      // Marks the security as created by this import rather than merely matched by it, which is what separates the
+      // GTNetSecurityImport lifetime cap from the ordinary Security cap.
+      pos.setSecurityCreatedByImport(true);
       gtNetSecurityImpPosJpaRepository.save(pos);
       log.debug("Created and linked new security {} to position {}",
           newSecurity.getIdSecuritycurrency(), pos.getIdGtNetSecurityImpPos());
@@ -330,7 +348,6 @@ public class GTNetSecurityImportTask implements ITask {
   private static class ImportContext {
     Integer idCreatedByUser;
     User user;
-    boolean isLimitedUser;
     boolean fromImport;
   }
 
@@ -532,24 +549,20 @@ public class GTNetSecurityImportTask implements ITask {
   }
 
   /**
-   * Checks if the user has reached their daily limit for GTNet security imports.
-   * Only applies to users with ROLE_LIMIT_EDIT role.
+   * Checks whether the user has reached today's budget for GTNet security imports. Applies to whichever users an
+   * {@code entity_limit} row is configured for; no row at all means unlimited.
    *
-   * @param user the user performing the import
-   * @return true if limit is exceeded and no more securities can be created, false otherwise
+   * @param user the user performing the import, may be {@code null} in a context without one
+   * @return true if the budget is exhausted and no more securities may be created
    */
   private boolean isLimitExceeded(User user) {
-    Optional<UserCountLimit> userCountLimitOpt = userEntityChangeCountJpaRepository
-        .getCudTransactionAndUserLimit(user.getIdUser(), ENTITY_NAME_GTNET_SECURITY_IMPORT);
-
-    if (userCountLimitOpt.isPresent()) {
-      Integer limit = userCountLimitOpt.get().getDayLimit() != null
-          ? userCountLimitOpt.get().getDayLimit()
-          : globalparametersJpaRepository.getMaxValueByKey(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_GTNETSECURITYIMPORT);
-      int cudTransaction = userCountLimitOpt.get().getCudTrans();
-      return cudTransaction >= limit;
+    if (user == null) {
+      return false;
     }
-    return false;
+    Optional<Integer> limitOpt = entityLimitService.resolve(user, LimitKeyConfig.KEY_DAY_GTNET_SECURITY_IMPORT);
+    // No configured row means unlimited, which is why returning false here is still correct.
+    return limitOpt.isPresent() && userEntityChangeCountJpaRepository.getCudTransactionCount(user.getIdUser(),
+        ENTITY_NAME_GTNET_SECURITY_IMPORT) >= limitOpt.get();
   }
 
   /**

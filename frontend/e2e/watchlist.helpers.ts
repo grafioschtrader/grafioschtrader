@@ -28,8 +28,12 @@ export interface WatchlistFixture {
   delete: boolean;
   /** Optional value entered into the add-existing-instrument dialog's Name field. */
   securitySearchName?: string;
+  /** Optional localized value selected in the add-existing-instrument dialog's subcategory field. */
+  securitySearchSubCategoryNLS?: string;
   securities: WatchlistSecurityFixture[];
   currencyPairs: WatchlistCurrencyPairFixture[];
+  /** Optional ownership override when the watchlist and its instruments are produced by different test layers. */
+  instrumentE2E?: string;
   /** 'e' for Playwright, 'i' for the backend REST integration test. */
   e2e: string;
 }
@@ -40,12 +44,21 @@ interface WatchlistFixtureFile {
 
 /** Loads the Playwright-owned watchlists from the shared JSON fixture. */
 export function loadE2EWatchlists(): WatchlistFixture[] {
+  return loadWatchlistFixture().watchlists.filter(row => row.e2e === 'e');
+}
+
+/** Loads watchlists whose instruments, but not necessarily the watchlist itself, belong to Playwright. */
+export function loadPlaywrightInstrumentWatchlists(): WatchlistFixture[] {
+  return loadWatchlistFixture().watchlists.filter(row => (row.instrumentE2E ?? row.e2e) === 'e'
+    && row.securities.length > 0);
+}
+
+function loadWatchlistFixture(): WatchlistFixtureFile {
   if (!fs.existsSync(FIXTURE_PATH)) {
     console.warn(`Fixture ${FIXTURE_PATH} not found - skipping the watchlist e2e specs.`);
-    return [];
+    return {watchlists: []};
   }
-  const fixture = JSON.parse(fs.readFileSync(FIXTURE_PATH, 'utf-8')) as WatchlistFixtureFile;
-  return fixture.watchlists.filter(row => row.e2e === 'e');
+  return JSON.parse(fs.readFileSync(FIXTURE_PATH, 'utf-8')) as WatchlistFixtureFile;
 }
 
 /** Creates a watchlist through the navigation tree, or accepts the existing exact-name node. */
@@ -98,13 +111,67 @@ async function ensureMainWatchlist(page: Page, watchlistNode: Locator): Promise<
 }
 
 /**
- * Adds the fixture's name-keyed securities through the watchlist search dialog. Existing rows are retained, so the
- * helper can recover from both a completed run and a run that added only part of the requested result set.
+ * Adds every security returned for the fixture's localized subcategory. The watchlist search excludes instruments
+ * that are already present, so completed and partially completed runs are both safe to repeat.
  */
-export async function ensureWatchlistSecuritiesByNameSearch(page: Page,
+export async function ensureWatchlistSecuritiesBySubCategorySearch(page: Page,
     watchlist: WatchlistFixture): Promise<void> {
-  const expectedSecurities = watchlist.securities.filter(security => security.name);
-  if (!watchlist.securitySearchName || expectedSecurities.length === 0) {
+  const subCategoryNLS = watchlist.securitySearchSubCategoryNLS;
+  if (!subCategoryNLS) {
+    return;
+  }
+
+  const watchlistNode = page.getByRole('treeitem', {name: watchlist.name, exact: true}).first();
+  await watchlistNode.waitFor({state: 'visible', timeout: 15_000});
+  await watchlistNode.click();
+
+  const container = page.locator('.data-container').first();
+  await container.waitFor({state: 'visible', timeout: 15_000});
+  const addDialog = await openAddInstrumentDialog(page, container);
+  const subCategorySelect = addDialog.locator('select#subCategoryNLS');
+  await expect(subCategorySelect.locator('option', {hasText: exactText(subCategoryNLS)}))
+    .toHaveCount(1, {timeout: 15_000});
+  await subCategorySelect.selectOption(subCategoryNLS);
+
+  const searchResponsePromise = page.waitForResponse(response => response.request().method() === 'GET'
+    && /\/api\/watchlist\/\d+\/search(?:\?|$)/.test(response.url()));
+  await addDialog.locator('button[type="submit"]').click();
+  const searchResponse = await searchResponsePromise;
+  expect(searchResponse.ok(), `subcategory search ${subCategoryNLS}`).toBeTruthy();
+  const searchResult = await searchResponse.json() as {securityList: unknown[]; currencypairList: unknown[]};
+  expect(searchResult.currencypairList, `currency-pair results for ${subCategoryNLS}`).toHaveLength(0);
+
+  const resultRows = addDialog.locator('add-instrument-table tbody tr');
+  if (searchResult.securityList.length > 0) {
+    await expect(resultRows.first()).toBeVisible({timeout: 15_000});
+    await addDialog.locator('add-instrument-table p-tableheadercheckbox').click();
+    const addButton = addDialog.getByRole('button', {name: /^(Hinzuf.gen|Add)$/});
+    await expect(addButton).toBeEnabled({timeout: 5_000});
+    await addButton.click();
+    await expect(addButton).toBeDisabled({timeout: 15_000});
+    await expect(resultRows).toHaveCount(0, {timeout: 15_000});
+  } else {
+    await expect(resultRows).toHaveCount(0, {timeout: 15_000});
+  }
+
+  await closeAddInstrumentDialog(addDialog);
+  const watchlistRows = container.locator('p-table tbody tr');
+  await expect(watchlistRows.first(), `${watchlist.name} contains ${subCategoryNLS} securities`)
+    .toBeVisible({timeout: 15_000});
+  for (const row of await watchlistRows.all()) {
+    await expect(row).toContainText(subCategoryNLS);
+  }
+}
+
+/**
+ * Adds the fixture's Playwright-owned securities through the watchlist search dialog. ISIN-keyed securities are
+ * searched individually, while name-keyed securities sharing securitySearchName are added from one result set.
+ * Existing rows are retained, so a completed or partially completed run can be repeated safely.
+ */
+export async function ensureWatchlistSecuritiesBySearch(page: Page,
+    watchlist: WatchlistFixture): Promise<void> {
+  const expectedSecurities = watchlist.securities;
+  if (expectedSecurities.length === 0) {
     return;
   }
 
@@ -116,7 +183,7 @@ export async function ensureWatchlistSecuritiesByNameSearch(page: Page,
   await container.waitFor({state: 'visible', timeout: 15_000});
   const missing: WatchlistSecurityFixture[] = [];
   for (const security of expectedSecurities) {
-    if (!await watchlistSecurityRow(container, security).isVisible().catch(() => false)) {
+    if (!await watchlistSecurityRow(page, container, security).isVisible().catch(() => false)) {
       missing.push(security);
     }
   }
@@ -124,6 +191,54 @@ export async function ensureWatchlistSecuritiesByNameSearch(page: Page,
     return;
   }
 
+  for (const security of missing.filter(candidate => candidate.isin)) {
+    await addSecuritiesThroughSearch(page, container, [security], 'isin', security.isin!);
+  }
+
+  const nameSecurities = missing.filter(candidate => !candidate.isin);
+  if (nameSecurities.length > 0) {
+    if (!watchlist.securitySearchName) {
+      throw new Error(`Watchlist ${watchlist.name} has name-keyed securities without securitySearchName`);
+    }
+    await addSecuritiesThroughSearch(page, container, nameSecurities, 'name', watchlist.securitySearchName);
+  }
+
+  for (const security of expectedSecurities) {
+    await expect(watchlistSecurityRow(page, container, security),
+      `watchlist row ${security.name ?? security.isin}/${security.currency}`).toBeVisible({timeout: 15_000});
+  }
+}
+
+async function addSecuritiesThroughSearch(page: Page, container: Locator,
+    securities: WatchlistSecurityFixture[], field: 'isin' | 'name', searchValue: string): Promise<void> {
+  const addDialog = await openAddInstrumentDialog(page, container);
+
+  const searchInput = field === 'isin' ? addDialog.locator('#isin')
+    : addDialog.getByRole('textbox', {name: /^Name$/});
+  await expect(searchInput).toBeVisible();
+  await searchInput.fill(searchValue);
+  await searchInput.dispatchEvent('input');
+  await addDialog.locator('button[type="submit"]').click();
+
+  const resultRows = addDialog.locator('add-instrument-table tbody tr');
+  for (const security of securities) {
+    const key = security.isin ?? security.name!;
+    const resultRow = resultRows
+      .filter({has: page.locator('td').filter({hasText: exactText(key)})})
+      .filter({has: page.locator('td').filter({hasText: exactText(security.currency)})});
+    await expect(resultRow, `exact search result ${key}/${security.currency}`)
+      .toHaveCount(1, {timeout: 15_000});
+    await resultRow.locator('p-tablecheckbox').click();
+  }
+
+  const addButton = addDialog.getByRole('button', {name: /^(Hinzuf.gen|Add)$/});
+  await expect(addButton).toBeEnabled({timeout: 5_000});
+  await addButton.click();
+  await expect(addButton).toBeDisabled({timeout: 15_000});
+  await closeAddInstrumentDialog(addDialog);
+}
+
+async function openAddInstrumentDialog(page: Page, container: Locator): Promise<Locator> {
   await container.click();
   await page.waitForTimeout(300);
   await container.click({button: 'right'});
@@ -136,37 +251,22 @@ export async function ensureWatchlistSecuritiesByNameSearch(page: Page,
   // The final stock-exchange option is loaded immediately before the form reset. Waiting for it prevents that reset
   // from wiping a search value entered too early.
   await expect(addDialog.locator('select#idStockexchange option')).not.toHaveCount(0, {timeout: 15_000});
-
-  const name = addDialog.getByRole('textbox', {name: /^Name$/});
-  await expect(name).toBeVisible();
-  await name.fill(watchlist.securitySearchName);
-  await name.dispatchEvent('input');
-  await addDialog.locator('button[type="submit"]').click();
-
-  const resultRows = addDialog.locator('add-instrument-table tbody tr');
-  await expect(resultRows).toHaveCount(missing.length, {timeout: 15_000});
-  for (const security of missing) {
-    const resultRow = resultRows.filter({hasText: security.name!}).filter({hasText: security.currency}).first();
-    await expect(resultRow, `search result ${security.name}/${security.currency}`).toBeVisible();
-    await resultRow.locator('p-tablecheckbox').click();
-  }
-
-  const addButton = addDialog.getByRole('button', {name: /^(Hinzuf.gen|Add)$/});
-  await expect(addButton).toBeEnabled({timeout: 5_000});
-  await addButton.click();
-  await expect(addButton).toBeDisabled({timeout: 15_000});
-  await addDialog.getByRole('button', {name: /^(Beenden|Close)$/}).click();
-  await addDialog.locator('.p-dialog').waitFor({state: 'hidden', timeout: 10_000});
-
-  for (const security of expectedSecurities) {
-    await expect(watchlistSecurityRow(container, security),
-      `watchlist row ${security.name}/${security.currency}`).toBeVisible({timeout: 15_000});
-  }
+  return addDialog;
 }
 
-function watchlistSecurityRow(container: Locator, security: WatchlistSecurityFixture): Locator {
+async function closeAddInstrumentDialog(addDialog: Locator): Promise<void> {
+  await addDialog.getByRole('button', {name: /^(Beenden|Close)$/}).click();
+  await addDialog.locator('.p-dialog').waitFor({state: 'hidden', timeout: 10_000});
+}
+
+function watchlistSecurityRow(page: Page, container: Locator, security: WatchlistSecurityFixture): Locator {
+  const key = security.name ?? security.isin!;
   return container.locator('p-table tbody tr')
-    .filter({hasText: security.name!})
-    .filter({hasText: security.currency})
+    .filter({has: page.locator('td').filter({hasText: exactText(key)})})
+    .filter({has: page.locator('td').filter({hasText: exactText(security.currency)})})
     .first();
+}
+
+function exactText(value: string): RegExp {
+  return new RegExp(`^\\s*${value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`);
 }

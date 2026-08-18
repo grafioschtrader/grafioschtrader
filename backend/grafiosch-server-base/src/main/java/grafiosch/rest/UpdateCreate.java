@@ -23,6 +23,7 @@ import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
 import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.Auditable;
 import grafiosch.entities.BaseID;
+import grafiosch.entities.EntityLimit;
 import grafiosch.entities.ProposeChangeEntity;
 import grafiosch.entities.ProposeChangeField;
 import grafiosch.entities.ProposeTransientTransfer;
@@ -30,11 +31,10 @@ import grafiosch.entities.TenantBase;
 import grafiosch.entities.TenantBaseID;
 import grafiosch.entities.User;
 import grafiosch.entities.UserBaseID;
-import grafiosch.entities.UserEntityChangeLimit;
 import grafiosch.exceptions.ResourceNotFoundException;
+import grafiosch.limit.LimitKeyRegistry;
 import grafiosch.repository.ProposeChangeEntityJpaRepository;
 import grafiosch.repository.ProposeChangeFieldJpaRepository;
-import grafiosch.repository.TenantLimitsHelper;
 import grafiosch.types.OperationType;
 import grafiosch.types.ProposeDataChangeState;
 import jakarta.persistence.EntityManager;
@@ -115,26 +115,46 @@ public abstract class UpdateCreate<T extends BaseID<Integer>> extends DailyLimit
       } else {
         entity = checkAndSetEntityWithTenant(entity, user);
       }
-      if (!TenantLimitsHelper.canAddWhenCheckedAgainstMayBeExistingTenantLimit(entityManager, entity)) {
-        throw new SecurityException(BaseConstants.LIMIT_SECURITY_BREACH);
-      }
     } else {
       if (entity instanceof UserBaseID) {
         checkAndSetEntityWithUser(entity, user);
       }
       checkDailyLimitOnCRUDOperations(entity, user);
     }
+    // Unlike the daily check this runs for tenant-owned and shared entities alike: shared data such as Security or
+    // Assetclass now carries a lifetime cap counted by created_by, which the tenant-only branch would never reach.
+    checkFlatMaxLimitOnCreate(entity, user);
     final T result = getUpdateCreateJpaRepository().saveOnlyAttributes(entity, null,
         Set.of(PropertySelectiveUpdatableOrWhenNull.class, PropertyAlwaysUpdatable.class));
 
     logAddUpdDel(user.getIdUser(), result, OperationType.ADD);
-    if (entity instanceof UserEntityChangeLimit && ((UserEntityChangeLimit) entity).getIdProposeRequest() != null) {
-      // UserEntityChangeLimit can have a proposal request without an existing
-      // UserEntityChangeLimit, because the
-      // user which caused it, produces only a proposal on non existing entity
+    if (entity instanceof EntityLimit entityLimit && entityLimit.getIdProposeRequest() != null) {
+      // An EntityLimit can carry a proposal request without an existing EntityLimit, because the user who caused it
+      // produces only a proposal on a non existing entity.
       updateEntity(entity);
     }
     return ResponseEntity.ok().body(result);
+  }
+
+  /**
+   * Enforces the lifetime cap guarding this entity, if one is registered for it.
+   *
+   * <p>
+   * The key is looked up by assignability rather than by class identity, so a subclass is counted against its parent's
+   * cap — a {@code Securitycashaccount} now counts against the {@code Cashaccount} limit, which the previous identity
+   * comparison silently missed.
+   * </p>
+   *
+   * @param entity the entity about to be created
+   * @param user   the acting user
+   * @throws SecurityException when the cap is reached
+   */
+  private void checkFlatMaxLimitOnCreate(T entity, User user) {
+    LimitKeyRegistry.findFlatMaxForEntity(entity.getClass()).ifPresent(registration -> {
+      if (!entityLimitService.fitsWithinLimit(user, registration.limitKey(), null, 1)) {
+        throw new SecurityException(BaseConstants.LIMIT_SECURITY_BREACH);
+      }
+    });
   }
 
   /**

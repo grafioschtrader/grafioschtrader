@@ -38,8 +38,8 @@ public class RequestMappings {
   public static final String UDFSPECIALTYPEDISABLEUSER = "udfspecialtypedisableuser";
   public static final String UDF_SEPCIAL_TYPE_DISABLE_USER_MAP = API + UDFSPECIALTYPEDISABLEUSER;
 
-  public static final String USER_ENTITY_CHANGE_LIMIT = "userentitychangelimit";
-  public static final String USER_ENTITY_CHANGE_LIMIT_MAP = API + USER_ENTITY_CHANGE_LIMIT;
+  public static final String ENTITY_LIMIT = "entitylimit";
+  public static final String ENTITY_LIMIT_MAP = API + ENTITY_LIMIT;
 
   public static final String USER_MAP = API + User.TABNAME;
 

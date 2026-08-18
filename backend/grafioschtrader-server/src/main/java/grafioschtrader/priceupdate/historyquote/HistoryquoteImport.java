@@ -22,6 +22,8 @@ import grafiosch.common.FieldColumnMapping;
 import grafiosch.common.ValueFormatConverter;
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
+import grafiosch.service.DailyLimitService;
+import grafiosch.types.OperationType;
 import grafioschtrader.common.DateBusinessHelper;
 import grafioschtrader.dto.SupportedCSVFormat;
 import grafioschtrader.dto.UploadHistoryquotesSuccess;
@@ -72,16 +74,20 @@ public class HistoryquoteImport {
 
   private final HistoryquoteJpaRepository historyquoteJpaRepository;
   private final Validator validator;
+  private final DailyLimitService dailyLimitService;
 
   /**
    * Creates a new history quote importer.
    *
    * @param historyquoteJpaRepository repository for accessing and persisting history quotes
    * @param validator Jakarta Bean Validation validator for validating imported records
+   * @param dailyLimitService enforces and books the daily budget of the instrument the quotes belong to
    */
-  public HistoryquoteImport(HistoryquoteJpaRepository historyquoteJpaRepository, Validator validator) {
+  public HistoryquoteImport(HistoryquoteJpaRepository historyquoteJpaRepository, Validator validator,
+      DailyLimitService dailyLimitService) {
     this.historyquoteJpaRepository = historyquoteJpaRepository;
     this.validator = validator;
+    this.dailyLimitService = dailyLimitService;
   }
 
   /**
@@ -111,10 +117,15 @@ public class HistoryquoteImport {
   public UploadHistoryquotesSuccess uploadHistoryquotes(Integer idSecuritycurrency, MultipartFile[] uploadFiles,
       SupportedCSVFormat supportedCSVFormat) throws Exception {
     final UserAuditable userAuditable = historyquoteJpaRepository.getUserAndCheckSecurityAccess(idSecuritycurrency);
+    final String entityName = userAuditable.getInstrumentEntityName();
 
     UploadHistoryquotesSuccess uploadHistoryquotesSuccess = new UploadHistoryquotesSuccess();
 
     if (!uploadFiles[0].isEmpty()) {
+      // The upload is accounted as a single edit of the instrument, so it consumes the same daily budget as a manual
+      // change to that security or currency pair. Checked before the file is read, so an exhausted budget writes
+      // nothing at all.
+      dailyLimitService.check(userAuditable.user, entityName, 1);
 
       Collection<Historyquote> historyquotes = new ArrayList<>();
 
@@ -126,6 +137,7 @@ public class HistoryquoteImport {
             valueFormatConverter);
       }
       historyquoteJpaRepository.saveAll(historyquotes);
+      dailyLimitService.log(userAuditable.user.getIdUser(), entityName, OperationType.UPDATE, 1);
     }
     return uploadHistoryquotesSuccess;
   }

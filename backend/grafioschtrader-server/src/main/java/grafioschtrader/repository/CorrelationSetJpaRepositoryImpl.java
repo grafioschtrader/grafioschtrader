@@ -19,7 +19,8 @@ import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafiosch.repository.BaseRepositoryImpl;
 import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.repository.RepositoryHelper;
-import grafioschtrader.GlobalParamKeyDefault;
+import grafiosch.service.EntityLimitService;
+import grafioschtrader.config.LimitKeyConfig;
 import grafioschtrader.dto.CorrelationLimits;
 import grafioschtrader.dto.CorrelationResult;
 import grafioschtrader.dto.CorrelationRollingResult;
@@ -33,6 +34,9 @@ import jakarta.transaction.Transactional;
 
 public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<CorrelationSet>
     implements CorrelationSetJpaRepositoryCustom {
+
+  @Autowired
+  private EntityLimitService entityLimitService;
 
   @Autowired
   private CorrelationSetJpaRepository correlationSetJpaRepository;
@@ -125,28 +129,28 @@ public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<Correlat
   @Override
   public CorrelationLimits getCorrelationSetLimit() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    return new CorrelationLimits(new TenantLimit(
-        globalparametersJpaRepository.getMaxValueByKey(GlobalParamKeyDefault.GLOB_KEY_MAX_CORRELATION_SET),
+    return new CorrelationLimits(new TenantLimit("MAX_CORRELATION_SET",
+        entityLimitService.resolve(user, LimitKeyConfig.KEY_CORRELATION_SET).orElse(Integer.MAX_VALUE),
         correlationSetJpaRepository.countByIdTenant(user.getIdTenant()).intValue(),
-        GlobalParamKeyDefault.GLOB_KEY_MAX_CORRELATION_SET, CorrelationSet.class.getSimpleName()));
+        CorrelationSet.class.getSimpleName()));
   }
 
   @Override
   public TenantLimit getCorrelationSetInstrumentLimit(Integer idCorrelationSet) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    return new TenantLimit(
-        globalparametersJpaRepository.getMaxValueByKey(GlobalParamKeyDefault.GLOB_KEY_MAX_CORRELATION_INSTRUMENTS),
+    return new TenantLimit("MAX_CORRELATION_INSTRUMENTS",
+        entityLimitService.resolve(user, LimitKeyConfig.KEY_CORRELATION_INSTRUMENTS).orElse(Integer.MAX_VALUE),
         correlationSetJpaRepository.countInstrumentsInCorrelationSet(user.getIdTenant(), idCorrelationSet).intValue(),
-        GlobalParamKeyDefault.GLOB_KEY_MAX_CORRELATION_INSTRUMENTS, CorrelationSet.class.getSimpleName());
+        CorrelationSet.class.getSimpleName());
   }
 
   @Override
   public CorrelationSet addSecuritycurrenciesToCorrelationSet(Integer idCorrelationSet,
       SecuritycurrencyLists securitycurrencyLists) {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     var correlationSet = getCorrelationSetById(idCorrelationSet);
-    if (correlationSet.getSecuritycurrencyList().size()
-        + securitycurrencyLists.getLength() <= globalparametersJpaRepository
-            .getMaxValueByKey(GlobalParamKeyDefault.GLOB_KEY_MAX_CORRELATION_INSTRUMENTS)) {
+    if (entityLimitService.fitsWithinLimit(user, LimitKeyConfig.KEY_CORRELATION_INSTRUMENTS, idCorrelationSet,
+        securitycurrencyLists.getLength())) {
       securitycurrencyLists.currencypairList
           .forEach(currencypair -> correlationSet.getSecuritycurrencyList().add(currencypair));
       securitycurrencyLists.securityList.forEach(security -> correlationSet.getSecuritycurrencyList().add(security));

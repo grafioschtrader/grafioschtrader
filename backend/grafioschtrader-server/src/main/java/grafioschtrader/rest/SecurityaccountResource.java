@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.FeeModelComparisonResponse;
 import grafioschtrader.dto.TradingPeriodTransactionSummary;
 import grafioschtrader.dto.TransactionCostEstimateRequest;
@@ -388,9 +387,5 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
     return securityGroupByAssetclassSubCategoryReport;
   }
 
-  @Override
-  protected String getPrefixEntityLimit() {
-    return GlobalConstants.GT_LIMIT_DAY;
-  }
 
 }

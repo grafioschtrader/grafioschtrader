@@ -245,8 +245,24 @@ export class DynamicFieldHelper {
 
   public static createFieldDropdownStringHeqF(fieldName: string, required: boolean,
     fieldOptions?: FieldOptions): FieldConfig {
-    const fieldConfig = DynamicFieldHelper.createFieldDropdownNumberString(DataType.String, fieldName,
+    return DynamicFieldHelper.createFieldDropdownString(fieldName,
       AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName), required, fieldOptions);
+  }
+
+  /**
+   * Creates a dropdown field with a custom label key. Unlike a plain select this one is a PrimeNG dropdown, so its
+   * options are taken from the group items of the field and may carry a leading image or icon.
+   *
+   * @param fieldName Unique field identifier
+   * @param labelKey Translation key for field label
+   * @param required Whether selection is mandatory
+   * @param fieldOptions Additional configuration options including dropdown items
+   * @returns FieldConfig for dropdown component with empty string default value
+   */
+  public static createFieldDropdownString(fieldName: string, labelKey: string, required: boolean,
+    fieldOptions?: FieldOptions): FieldConfig {
+    const fieldConfig = DynamicFieldHelper.createFieldDropdownNumberString(DataType.String, fieldName, labelKey,
+      required, fieldOptions);
     fieldConfig.defaultValue = fieldConfig.defaultValue || '';
     return fieldConfig;
   }

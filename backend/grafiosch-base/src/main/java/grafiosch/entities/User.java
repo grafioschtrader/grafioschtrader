@@ -96,10 +96,10 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   @JoinTable(name = TABNAME_USER_ROLE, joinColumns = @JoinColumn(name = "id_user", referencedColumnName = "id_user"), inverseJoinColumns = @JoinColumn(name = "id_role", referencedColumnName = "id_role"))
   private Collection<Role> roles;
 
-  @Schema(description = "The time-limited exception limits for CUD operations of certain information classes.")
+  @Schema(description = "The limits configured for this single user, of any limit type.")
   @JoinColumn(name = "id_user")
   @OneToMany(fetch = FetchType.LAZY)
-  private List<UserEntityChangeLimit> userEntityChangeLimitList;
+  private List<EntityLimit> entityLimitList;
 
   @Schema(description = "Tenant reference")
   @Column(name = "id_tenant")
@@ -191,7 +191,7 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
       If the user of the “User with limits” role exceeds the limit with CUD operations on an information class.
       He can simultaneously request an increase in this limit for this information class.
       The desired request is added here and should be displayed accordingly in the user interface so
-      that this proposal is accepted or rejected. This would create or change a 'UserEntityChangeLimit'.""")
+      that this proposal is accepted or rejected. This would create or change an 'EntityLimit'.""")
   @Transient
   private List<ProposeUserTask> userChangeLimitProposeList = new ArrayList<>();
 
@@ -360,12 +360,12 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
     this.lastRoleModifiedTime = lastRoleModifiedTime;
   }
 
-  public List<UserEntityChangeLimit> getUserEntityChangeLimitList() {
-    return userEntityChangeLimitList;
+  public List<EntityLimit> getEntityLimitList() {
+    return entityLimitList;
   }
 
-  public void setUserEntityChangeLimitList(List<UserEntityChangeLimit> userEntityChangeLimitList) {
-    this.userEntityChangeLimitList = userEntityChangeLimitList;
+  public void setEntityLimitList(List<EntityLimit> entityLimitList) {
+    this.entityLimitList = entityLimitList;
   }
 
   @Override

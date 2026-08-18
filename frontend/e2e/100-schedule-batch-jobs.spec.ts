@@ -11,7 +11,7 @@ import {enumLabelRx, openContextMenu} from './generic-connector.helpers';
  *
  * Until now this job was queued by `ExecuteStartupTask` when the backend started, for `now + 5 min`
  * and with PRIO_HIGH. In an e2e run that is the wrong moment: the roundtrip first boots the backend,
- * then runs the backend suite `ResoureTestSuite` and only afterwards Playwright, so the five minutes
+ * then runs two backend resource-suite phases around the early Playwright specs, so the five minutes
  * were long over before the first spec even logged in. The price update therefore ran without the
  * connector API keys of `005-connector-api-key.spec.ts` and competed with every spec for database,
  * CPU and connectors. `application-e2e.properties` now sets `gt.startup.price.update.task=false`,

@@ -8,7 +8,6 @@ import java.util.Map;
 import grafiosch.entities.User;
 import grafioschtrader.dto.InstrumentStatisticsResult;
 import grafioschtrader.dto.SeasonalReturnsResult;
-import grafioschtrader.types.SeasonalPeriodType;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.reportviews.historyquotequality.HistoryquoteQualityGrouped;
@@ -19,6 +18,7 @@ import grafioschtrader.reportviews.securitycurrency.SecurityDataProviderUrls;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
 import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotesResult;
 import grafioschtrader.search.SecuritycurrencySearch;
+import grafioschtrader.types.SeasonalPeriodType;
 
 public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Security> {
 

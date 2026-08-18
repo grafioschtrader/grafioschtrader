@@ -39,4 +39,15 @@ Before it can be implemented, these points still need to be clarified.
 ### Does not work
 Listed here are those data sources that were considered possible candidates but ultimately did not seem feasible for implementation.
 
+#### Stooq (stooq.com)
+
+Checked 2026-08-14 against production `grafioschtrader` (Apple / Yahoo and BTC/USD / CoinMarketCap). Third-party profile of the public CSV interface: https://github.com/api-evangelist/stooq
+
+- Machine download is `GET https://stooq.com/q/d/l/?s={symbol}&d1=YYYYMMDD&d2=YYYYMMDD&i=d&apikey=...`. Without a valid `apikey` the body is `Access denied` (HTTP 200). The key has been required since about 2026-04-01; it is issued after a visual captcha on `https://stooq.com/q/d/?s=aapl.us&get_apikey`. A dummy key is rejected the same way.
+- Tickers: `aapl.us`, crypto `btc.v`, FX often `eurusd` or `gbp.v`. Interval `i=d` is one bar per day. Quota exceeded is also HTTP 200 with body `Exceeded the daily hits limit`.
+- HTML table scraping is not a fallback: about 40 rows per page, extra crypto pages empty without a session. Do not scrape.
+- Recent Apple daily bars match Yahoo/GT to the cent. 2008 Apple closes from the HTML table were systematically about 16% below GT's Yahoo series (likely dividend adjustment vs split-adjusted close). Recent BTC/USD was within about 0.9–4.3% of CoinMarketCap. Full-CSV quality was not re-checked because no key was available.
+
+A connector would be a `BaseFeedApiKeyConnector`. Do not add it until an administrator has a key and the 2008 Apple gap has been re-measured on the CSV series.
+
 ### Should be implemented 

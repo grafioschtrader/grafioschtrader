@@ -1,6 +1,7 @@
 export class SecuritycurrencySearch {
   isin: number = null;
   name: string = null;
+  nameRegex: boolean = null;
   tickerSymbol: string = null;
   currency: string = null;
   idStockexchange: number = null;

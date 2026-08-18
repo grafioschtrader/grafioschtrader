@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import grafiosch.BaseConstants;
 import grafiosch.common.UserAccessHelper;
 import grafiosch.dynamic.model.ClassDescriptorInputAndShow;
 import grafiosch.dynamic.model.FieldDescriptorInputAndShow;
@@ -115,9 +114,5 @@ public class GTNetMessageResource extends UpdateCreateDeleteAudit<GTNetMessage> 
     return gtNetMessageJpaRepository;
   }
 
-  @Override
-  protected String getPrefixEntityLimit() {
-    return BaseConstants.G_LIMIT_DAY;
-  }
 
 }

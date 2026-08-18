@@ -17,6 +17,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,13 +37,10 @@ import grafiosch.repository.GTNetSupplierDetailJpaRepository;
 import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.rest.UpdateCreateJpaRepository;
 import grafiosch.rest.UpdateCreateResource;
+import grafiosch.types.ProgressStateType;
 import grafiosch.types.TaskDataExecPriority;
 import grafiosch.types.TaskTypeBase;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.IFeedConnector;
-import grafioschtrader.types.AssetclassType;
-import grafioschtrader.types.SeasonalPeriodType;
-import grafioschtrader.types.SpecialInvestmentInstruments;
 import grafioschtrader.dto.GTSecuritiyCurrencyExchange;
 import grafioschtrader.dto.HisotryqouteLinearFilledSummary;
 import grafioschtrader.dto.InstrumentStatisticsResult;
@@ -69,6 +67,9 @@ import grafioschtrader.repository.SecurityDerivedLinkJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.search.SecuritycurrencySearch;
 import grafioschtrader.task.exec.GTNetExchangeSyncTask;
+import grafioschtrader.types.AssetclassType;
+import grafioschtrader.types.SeasonalPeriodType;
+import grafioschtrader.types.SpecialInvestmentInstruments;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -337,10 +338,6 @@ public class SecurityResource extends UpdateCreateResource<Security> {
     return new ResponseEntity<>(securityJpaRepository.getSecurityCurrencyPairInfo(), HttpStatus.OK);
   }
 
-  @Override
-  protected String getPrefixEntityLimit() {
-    return GlobalConstants.GT_LIMIT_DAY;
-  }
 
   // ==================== GTNet Exchange Endpoints ====================
 
@@ -434,11 +431,21 @@ public class SecurityResource extends UpdateCreateResource<Security> {
 
   @Operation(summary = "Triggers GTNet exchange sync",
       description = "Creates a background task to sync GTNet exchange configurations with GTNet peers. "
-          + "Use fullRecreation=true to recreate all supplier details, or false (default) for incremental sync.",
+          + "Use fullRecreation=true to recreate all supplier details, or false (default) for incremental sync. "
+          + "Requires ROLE_ADMIN and refuses a second sync while one is still waiting.",
       tags = { Security.TABNAME })
   @PostMapping(value = "/gtnetexchange/triggersync", produces = APPLICATION_JSON_VALUE)
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> triggerGTNetExchangeSync(
       @RequestParam(defaultValue = "false") boolean fullRecreation) {
+    // Two guards, because this mapping writes task_data_change from a URL that the ADMIN matcher on
+    // TASK_DATA_CHANGE_MAP does not cover. Without the role every authenticated user could enqueue tasks through it,
+    // and without the waiting check a single user could enqueue an unbounded number of identical ones - the table has
+    // no unique index. The shape follows GTNetSecurityImpHeadJpaRepositoryImpl.queueImportJobIfNotExists.
+    if (taskDataChangeJpaRepository.existsByIdTaskAndProgressStateType(TaskTypeBase.GTNET_EXCHANGE_SYNC.getValue(),
+        ProgressStateType.PROG_WAITING.getValue())) {
+      return new ResponseEntity<>(HttpStatus.CONFLICT);
+    }
     Integer modeId = fullRecreation
         ? GTNetExchangeSyncTask.FULL_RECREATION_MODE
         : GTNetExchangeSyncTask.INCREMENTAL_MODE;

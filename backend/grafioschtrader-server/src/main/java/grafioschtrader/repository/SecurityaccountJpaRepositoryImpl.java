@@ -25,6 +25,12 @@ import grafioschtrader.service.FeeModelComparisonService;
 public class SecurityaccountJpaRepositoryImpl extends BaseRepositoryImpl<Securityaccount>
     implements SecurityaccountJpaRepositoryCustom {
 
+  /**
+   * Upper bound on the trading periods one securities account may carry in a single request. Structural rather than
+   * administrator tunable, so it is a constant here and not an {@code entity_limit} key.
+   */
+  private static final int MAX_TRADING_PERIODS = 40;
+
   @Autowired
   private SecurityaccountJpaRepository securityaccountJpaRepository;
 
@@ -68,12 +74,21 @@ public class SecurityaccountJpaRepositoryImpl extends BaseRepositoryImpl<Securit
   }
 
   /**
-   * Validates trading periods for overlap and transaction conflicts before saving.
+   * Validates trading periods for count, overlap and transaction conflicts before saving.
    */
   private void validateTradingPeriods(Securityaccount securityaccount, Securityaccount existingEntity) {
     List<SecaccountTradingPeriod> newPeriods = securityaccount.getTradingPeriods();
     if (newPeriods == null || newPeriods.isEmpty()) {
       return;
+    }
+
+    // 0. Count validation. The overlap rule below does not bound the list: arbitrarily many disjoint one day periods
+    // per (specInvestInstrument, categoryType) group are accepted, the collection is CascadeType.ALL without a @Size,
+    // and secaccount_trading_period carries no limit key of its own. Forty covers every instrument/asset class window
+    // with room for a handful of date slices; beyond that the list is no longer a configuration.
+    if (newPeriods.size() > MAX_TRADING_PERIODS) {
+      throw new DataViolationException("date.from", "gt.trading.period.too.many",
+          new Object[] { MAX_TRADING_PERIODS });
     }
 
     // 1. Overlap validation: group by (specInvestInstrument, categoryType)

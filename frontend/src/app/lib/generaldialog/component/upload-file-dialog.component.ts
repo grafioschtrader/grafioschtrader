@@ -147,6 +147,10 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
           this.messageToastService.showMessageI18nEnableHtml(uhs.validationErrors + uhs.notOverridden > 0 ?
             uhs.duplicatedInImport > 0 ? InfoLevelType.WARNING : InfoLevelType.ERROR
             : InfoLevelType.SUCCESS, 'UPLOAD_SUCCESS', uhs);
+        } else {
+          // Endpoints without a result payload would otherwise close the dialog silently, which is
+          // indistinguishable from a failure when the upload legitimately produced no rows.
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'UPLOAD_FILE_SUCCESS');
         }
         this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED));
       }, error: () => this.configObject.submit.disabled = false});

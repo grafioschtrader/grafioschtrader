@@ -1,6 +1,5 @@
 package grafioschtrader.repository;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
@@ -47,25 +46,6 @@ public interface SecuritysplitJpaRepository
   //@formatter:on
   @Query(nativeQuery = true)
   List<Securitysplit> getByIdTenant(Integer idTenant);
-
-  //@formatter:off
-  /**
-   * Calculates the cumulative split factor for a security after the specified date.
-   * <p>
-   * Uses logarithmic summation to multiply individual split ratios:
-   * <ul>
-   *   <li>to_factor / from_factor for each split</li>
-   *   <li>only includes splits with split_date &gt; the given date</li>
-   * </ul>
-   * Rounds the result to one decimal place.
-   *
-   * @param idSecuritycurrency the ID of the security‐currency for which the factor is computed
-   * @param date               the exclusive lower bound for split_date
-   * @return the cumulative split factor as a {@link Double}, or {@code null} if no splits match
-   */
-  //@formatter:on
-  @Query(nativeQuery = true)
-  Double getSplitFactorAfterThanEqualDate(Integer idSecuritycurrency, LocalDate date);
 
 //@formatter:off
   /**

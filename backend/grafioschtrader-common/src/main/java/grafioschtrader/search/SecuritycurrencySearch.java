@@ -25,7 +25,13 @@ public class SecuritycurrencySearch implements Serializable {
   
   @Schema(description = "Name of the security or currency pair.")
   private String name;
-  
+
+  @Schema(description = """
+      When true the name is interpreted as a regular expression instead of a substring. The pattern is evaluated by
+      the database in MariaDB's PCRE dialect and matches case-insensitively. It is ignored when the name is empty and
+      it is not applied to currency pairs.""")
+  private boolean nameRegex;
+
   @Schema(description = "ID of the stock exchange where the security is traded.")
   private Integer idStockexchange;
   
@@ -109,6 +115,14 @@ public class SecuritycurrencySearch implements Serializable {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public boolean isNameRegex() {
+    return nameRegex;
+  }
+
+  public void setNameRegex(boolean nameRegex) {
+    this.nameRegex = nameRegex;
   }
 
   public Integer getIdStockexchange() {
@@ -241,7 +255,8 @@ public class SecuritycurrencySearch implements Serializable {
 
   @Override
   public String toString() {
-    return "SecuritycurrencySearch [isin=" + isin + ", name=" + name + ", tickerSymbol=" + tickerSymbol + ", currency="
+    return "SecuritycurrencySearch [isin=" + isin + ", name=" + name + ", nameRegex=" + nameRegex + ", tickerSymbol="
+        + tickerSymbol + ", currency="
         + currency + ", assetclassType=" + assetclassType + ", specialInvestmentInstruments="
         + specialInvestmentInstruments + ", subCategoryNLS=" + subCategoryNLS + ", onlyTenantPrivate="
         + onlyTenantPrivate + ", leverageFactor=" + leverageFactor + ", activeDate=" + activeDate + "]";

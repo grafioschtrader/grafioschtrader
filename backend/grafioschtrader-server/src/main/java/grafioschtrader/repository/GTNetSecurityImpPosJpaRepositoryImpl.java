@@ -23,6 +23,10 @@ import grafiosch.common.CSVImportHelper;
 import grafiosch.common.FieldColumnMapping;
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
+import grafiosch.service.DailyLimitService;
+import grafiosch.service.EntityLimitService;
+import grafiosch.types.OperationType;
+import grafioschtrader.config.LimitKeyConfig;
 import grafioschtrader.dto.UploadHistoryquotesSuccess;
 import grafioschtrader.entities.GTNetSecurityImpGap;
 import grafioschtrader.entities.GTNetSecurityImpHead;
@@ -61,6 +65,12 @@ public class GTNetSecurityImpPosJpaRepositoryImpl implements GTNetSecurityImpPos
 
   @Autowired
   private Validator validator;
+
+  @Autowired
+  private EntityLimitService entityLimitService;
+
+  @Autowired
+  private DailyLimitService dailyLimitService;
 
   @Override
   public List<GTNetSecurityImpPos> findByIdGtNetSecurityImpHeadAndIdTenant(Integer idGtNetSecurityImpHead,
@@ -122,7 +132,47 @@ public class GTNetSecurityImpPosJpaRepositoryImpl implements GTNetSecurityImpPos
       }
     }
 
-    return gtNetSecurityImpPosJpaRepository.save(entity);
+    boolean isCreate = entity.getId() == null;
+    if (isCreate) {
+      checkPositionLimits(entity.getIdGtNetSecurityImpHead(), 1);
+    }
+    GTNetSecurityImpPos saved = gtNetSecurityImpPosJpaRepository.save(entity);
+    logPositions(isCreate ? OperationType.ADD : OperationType.UPDATE, 1);
+    return saved;
+  }
+
+  /**
+   * Enforces the two lifetime caps and today's budget before staging positions are written.
+   *
+   * <p>
+   * {@code GTNetSecurityImpPos} extends plain {@code BaseID} and its resource never touches {@code UpdateCreate}, so
+   * neither the generic create path nor the generic daily check ever sees these rows. The whole batch is checked
+   * before the first insert, so an upload over budget writes nothing at all rather than stopping halfway.
+   * </p>
+   *
+   * @param idGtNetSecurityImpHead the import set the new positions go into
+   * @param additional             how many positions are about to be created
+   * @throws SecurityException when the tenant total or the ceiling of this one import set would be exceeded
+   */
+  private void checkPositionLimits(Integer idGtNetSecurityImpHead, int additional) {
+    User user = entityLimitService.getCurrentUserOrNull();
+    if (user == null || additional < 1) {
+      return;
+    }
+    if (!entityLimitService.fitsWithinLimit(user, LimitKeyConfig.KEY_GTNET_SECURITY_IMP_POS_ALL, null, additional)
+        || !entityLimitService.fitsWithinLimit(user, LimitKeyConfig.KEY_GTNET_SECURITY_IMP_POS_SINGLE,
+            idGtNetSecurityImpHead, additional)) {
+      throw new SecurityException(BaseConstants.LIMIT_SECURITY_BREACH);
+    }
+    dailyLimitService.check(user, GTNetSecurityImpPos.class.getSimpleName(), additional);
+  }
+
+  /** Books performed staging operations on today's counter. */
+  private void logPositions(OperationType operationType, int count) {
+    User user = entityLimitService.getCurrentUserOrNull();
+    if (user != null && count > 0) {
+      dailyLimitService.log(user.getIdUser(), GTNetSecurityImpPos.class.getSimpleName(), operationType, count);
+    }
   }
 
   @Override
@@ -261,7 +311,9 @@ public class GTNetSecurityImpPosJpaRepositoryImpl implements GTNetSecurityImpPos
       }
     }
 
+    checkPositionLimits(idGtNetSecurityImpHead, positionsToSave.size());
     gtNetSecurityImpPosJpaRepository.saveAll(positionsToSave);
+    logPositions(OperationType.ADD, positionsToSave.size());
     return result;
   }
 
@@ -325,7 +377,9 @@ public class GTNetSecurityImpPosJpaRepositoryImpl implements GTNetSecurityImpPos
     List<GTNetSecurityImpPos> positionsToSave = buildPositionsToSave(missingSecurityPositions, header);
 
     if (!positionsToSave.isEmpty()) {
+      checkPositionLimits(header.getIdGtNetSecurityImpHead(), positionsToSave.size());
       gtNetSecurityImpPosJpaRepository.saveAll(positionsToSave);
+      logPositions(OperationType.ADD, positionsToSave.size());
       LOG.info("Saved {} GTNet positions for header {}", positionsToSave.size(), header.getIdGtNetSecurityImpHead());
     } else {
       LOG.warn("No valid positions to save for header {}", header.getIdGtNetSecurityImpHead());
@@ -372,10 +426,23 @@ public class GTNetSecurityImpPosJpaRepositoryImpl implements GTNetSecurityImpPos
       throw new DataViolationException("head.name", "gt.net.security.imp.head.name.required", null);
     }
 
+    // A raw save that bypasses GTNetSecurityImpHeadJpaRepositoryImpl.saveOnlyAttributes and the generic create path,
+    // so both the lifetime cap and the daily budget of an import head have to be enforced here.
+    User user = entityLimitService.getCurrentUserOrNull();
+    if (user != null) {
+      if (!entityLimitService.fitsWithinLimit(user, LimitKeyConfig.KEY_GTNET_SECURITY_IMP_HEAD, null, 1)) {
+        throw new SecurityException(BaseConstants.LIMIT_SECURITY_BREACH);
+      }
+      dailyLimitService.check(user, GTNetSecurityImpHead.class.getSimpleName(), 1);
+    }
     GTNetSecurityImpHead header = new GTNetSecurityImpHead();
     header.setName(headName.trim());
     header.setIdTenant(idTenant);
-    return gtNetSecurityImpHeadJpaRepository.save(header);
+    GTNetSecurityImpHead savedHeader = gtNetSecurityImpHeadJpaRepository.save(header);
+    if (user != null) {
+      dailyLimitService.log(user.getIdUser(), GTNetSecurityImpHead.class.getSimpleName(), OperationType.ADD, 1);
+    }
+    return savedHeader;
   }
 
   private List<GTNetSecurityImpPos> buildPositionsToSave(List<ImportTransactionPos> importPositions,

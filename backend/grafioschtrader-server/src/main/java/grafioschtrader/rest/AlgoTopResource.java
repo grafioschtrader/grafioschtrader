@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.algo.AlgoTopCreate;
 import grafioschtrader.algo.AlgoTopCreateFromPortfolio;
 import grafioschtrader.entities.AlgoTop;
@@ -126,9 +125,5 @@ public class AlgoTopResource extends AlgoBaseResource<AlgoTop> {
     return ResponseEntity.ok().build();
   }
 
-  @Override
-  protected String getPrefixEntityLimit() {
-    return GlobalConstants.GT_LIMIT_DAY;
-  }
 
 }

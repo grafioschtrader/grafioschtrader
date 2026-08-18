@@ -48,6 +48,7 @@ import {RequestForYouTableComponent} from './lib/proposechange/component/request
 import {YourProposalTableComponent} from './lib/proposechange/component/your.proposal.table.component';
 import {StrategyOverviewComponent} from './algo/component/strategy.overview.component';
 import {AlgoTopDataViewComponent} from './algo/component/algo.top.data.view.component';
+import {EntityLimitTableComponent} from './lib/entitylimit/component/entity.limit.table.component';
 import {UserTableComponent} from './lib/user/component/user.table.component';
 import {TradingCalendarGlobalComponent} from './tradingcalendar/component/trading.calendar.global.component';
 import {TenantPerformanceTabMenuComponent} from './tenant/component/tenant.performance.tab.menu.component';
@@ -422,7 +423,8 @@ const APP_ROUTES: Routes = [
 
       {path: AppSettings.TAX_DATA_KEY, component: TaxDataTreetableComponent, canActivate: [authGuard]},
       {path: BaseSettings.CONNECTOR_API_KEY_KEY, component: ConnectorApiKeyTableComponent, canActivate: [adminGuard]},
-      {path: BaseSettings.USER_ENTITY_LIMIT_KEY, component: UserTableComponent, canActivate: [adminGuard]}
+      {path: BaseSettings.USER_ADMIN_KEY, component: UserTableComponent, canActivate: [adminGuard]},
+      {path: BaseSettings.ENTITY_LIMIT_KEY, component: EntityLimitTableComponent, canActivate: [adminGuard]}
     ]
   },
 

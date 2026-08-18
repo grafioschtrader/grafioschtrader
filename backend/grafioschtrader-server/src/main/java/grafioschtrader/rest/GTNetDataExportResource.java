@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import grafiosch.entities.GTNetExchangeLog;
 import grafiosch.entities.GTNetSupplierDetail;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.repository.GTNetJpaRepository;
@@ -26,7 +27,6 @@ import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.types.ProgressStateType;
 import grafiosch.types.TaskDataExecPriority;
 import grafiosch.types.TaskTypeBase;
-import grafiosch.entities.GTNetExchangeLog;
 import grafioschtrader.entities.GTNetHistoryquote;
 import grafioschtrader.entities.GTNetInstrument;
 import grafioschtrader.entities.GTNetInstrumentCurrencypair;

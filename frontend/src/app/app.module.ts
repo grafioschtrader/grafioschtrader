@@ -145,10 +145,11 @@ import {AlgoSecurityService} from './algo/service/algo.security.service';
 import {IndicatorEditComponent} from './historyquote/component/indicator-edit.component';
 import {UserAdminService} from './lib/user/service/user.admin.service';
 import {UserTableComponent} from './lib/user/component/user.table.component';
-import {UserEntityChangeLimitTableComponent} from './lib/user/component/user-entity-change-limit-table.component';
+import {EntityLimitUserTableComponent} from './lib/user/component/entity-limit-user-table.component';
 import {UserEditComponent} from './lib/user/component/user-edit-component';
-import {UserEntityChangeLimitService} from './lib/user/service/user.entity.change.limit.service';
-import {UserEntityChangeLimitEditComponent} from './lib/user/component/user-entity-change-limit-edit.component';
+import {EntityLimitService} from './lib/entitylimit/service/entity.limit.service';
+import {EntityLimitTableComponent} from './lib/entitylimit/component/entity.limit.table.component';
+import {EntityLimitEditComponent} from './lib/entitylimit/component/entity.limit.edit.component';
 import {ProposeUserTaskService} from './lib/dynamicdialog/service/propose.user.task.service';
 import {ActuatorService} from './lib/services/actuator.service';
 import {MultiTranslateHttpLoader} from './lib/translator/multi.translate.http.loader';
@@ -439,8 +440,9 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     UserTableComponent,
     UserEditComponent,
     UserChangeOwnerEntitiesComponent,
-    UserEntityChangeLimitTableComponent,
-    UserEntityChangeLimitEditComponent,
+    EntityLimitUserTableComponent,
+    EntityLimitEditComponent,
+    EntityLimitTableComponent,
     GlobalSettingsTableComponent,
     GlobalSettingsEditComponent,
     ConnectorApiKeyTableComponent,
@@ -496,7 +498,7 @@ const createTranslateLoader = (http: HttpClient) => new MultiTranslateHttpLoader
     ProposeUserTaskService, SecurityaccountService, SecurityService, SecuritysplitService, StockexchangeService,
     SecurityActionService, StandingOrderService, TaskDataChangeService, TaxDataService, TenantService, TimeSeriesQuotesService, TradingDaysMinusService, TradingDaysPlusService,
     TradingPlatformPlanService, TradingCalendarRuleSetService, GenericConnectorDefService, TransactionService, TransactionReceiptService, UDFDataService, UDFMetadataGeneralService, UDFMetadataSecurityService,
-    UDFSpecialTypeDisableUserService, UserAdminService, UserChartShapeService, UserDataService, UserEntityChangeLimitService, UserSettingsService,
+    UDFSpecialTypeDisableUserService, UserAdminService, UserChartShapeService, UserDataService, EntityLimitService, UserSettingsService,
     ViewSizeChangedService, WatchlistService, WatchlistFilterSortStateService,
     {provide: TASK_EXTENDED_SERVICE, useClass: SecurityService},
     {provide: TASK_TYPE_ENUM, useValue: TaskType},

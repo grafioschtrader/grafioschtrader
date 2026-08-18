@@ -1,0 +1,143 @@
+[
+  {
+    "kind": "security",
+    "nickname": "admin",
+    "description": "CFD möglich",
+    "descriptionHelp": "Wird CFD bei einer meiner Handelsplattformen angeboten?",
+    "udfDataType": "UDF_Boolean",
+    "fieldSize": null,
+    "uiOrder": 12,
+    "categoryTypeEnums": [
+      "EQUITIES"
+    ],
+    "specialInvestmentInstrumentEnums": [
+      "DIRECT_INVESTMENT",
+      "ETF"
+    ],
+    "e2e": "e"
+  },
+  {
+    "kind": "security",
+    "nickname": "admin",
+    "description": "Short Volume Link",
+    "descriptionHelp": "Link to Marketbeat",
+    "udfDataType": "UDF_URLString",
+    "fieldSize": null,
+    "uiOrder": 15,
+    "categoryTypeEnums": [
+      "EQUITIES"
+    ],
+    "specialInvestmentInstrumentEnums": [
+      "DIRECT_INVESTMENT",
+      "CFD"
+    ],
+    "e2e": "e"
+  },
+  {
+    "kind": "general",
+    "nickname": "admin",
+    "description": "Ausblick",
+    "descriptionHelp": null,
+    "udfDataType": "UDF_DateTimeNumeric",
+    "fieldSize": null,
+    "uiOrder": 10,
+    "entity": "Currencypair",
+    "e2e": "e"
+  },
+  {
+    "kind": "security",
+    "nickname": "alledit",
+    "description": "Wikipedia Link",
+    "descriptionHelp": "Link zu Wikipedia",
+    "udfDataType": "UDF_URLString",
+    "fieldSize": null,
+    "uiOrder": 5,
+    "categoryTypeEnums": [
+      "EQUITIES",
+      "FIXED_INCOME",
+      "REAL_ESTATE"
+    ],
+    "specialInvestmentInstrumentEnums": [
+      "DIRECT_INVESTMENT",
+      "CFD"
+    ],
+    "e2e": "e"
+  },
+  {
+    "kind": "security",
+    "nickname": "alledit",
+    "description": "CFD möglich",
+    "descriptionHelp": "Wird CFD bei einer meiner Handelsplattformen angeboten?",
+    "udfDataType": "UDF_Boolean",
+    "fieldSize": null,
+    "uiOrder": 12,
+    "categoryTypeEnums": [
+      "EQUITIES"
+    ],
+    "specialInvestmentInstrumentEnums": [
+      "DIRECT_INVESTMENT",
+      "ETF"
+    ],
+    "e2e": "e"
+  },
+  {
+    "kind": "security",
+    "nickname": "alledit",
+    "description": "Rating",
+    "descriptionHelp": "Rating gemäss Moody's",
+    "udfDataType": "UDF_String",
+    "fieldSize": "1,4",
+    "uiOrder": 6,
+    "categoryTypeEnums": [
+      "FIXED_INCOME",
+      "CONVERTIBLE_BOND"
+    ],
+    "specialInvestmentInstrumentEnums": [
+      "DIRECT_INVESTMENT"
+    ],
+    "e2e": "e"
+  },
+  {
+    "kind": "security",
+    "nickname": "alledit",
+    "description": "Gesamtkostenquote (TER)",
+    "descriptionHelp": "Gesamtkostenquote (TER) in Prozent",
+    "udfDataType": "UDF_Numeric",
+    "fieldSize": "3,2",
+    "uiOrder": 18,
+    "categoryTypeEnums": [
+      "EQUITIES",
+      "FIXED_INCOME",
+      "MONEY_MARKET",
+      "COMMODITIES",
+      "REAL_ESTATE",
+      "MULTI_ASSET",
+      "CONVERTIBLE_BOND",
+      "CREDIT_DERIVATIVE"
+    ],
+    "specialInvestmentInstrumentEnums": [
+      "ETF",
+      "MUTUAL_FUND",
+      "PENSION_FUNDS"
+    ],
+    "e2e": "e"
+  },
+  {
+    "kind": "security",
+    "nickname": "alledit",
+    "description": "Bilanz Link",
+    "descriptionHelp": "Link zu Bilanz",
+    "udfDataType": "UDF_URLString",
+    "fieldSize": null,
+    "uiOrder": 8,
+    "categoryTypeEnums": [
+      "EQUITIES",
+      "FIXED_INCOME"
+    ],
+    "specialInvestmentInstrumentEnums": [
+      "DIRECT_INVESTMENT",
+      "CFD"
+    ],
+    "e2e": "e"
+  }
+]

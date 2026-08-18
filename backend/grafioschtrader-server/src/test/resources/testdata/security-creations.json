@@ -1,0 +1,133 @@
+{
+  "_comment": [
+    "Hand-authored fixture for Playwright specs that create securities through a watchlist.",
+    "It must NOT be moved into testdata/generated/, because nv.bat wipes that directory.",
+    "The groups mirror production records, but runtime lookups use natural keys rather than source IDs.",
+    "DERIVED securities are consumed by 065-create-derived-security.spec.ts.",
+    "STANDARD_WITH_PERIODS securities are consumed by 067-create-fixed-deposit-security.spec.ts.",
+    "For fixed-price securities the complete period list mirrors production. Only USER_CREATED rows",
+    "are entered in the UI; the backend derives the leading SYSTEM_CREATED row from denomination."
+  ],
+  "groups": [
+    {
+      "loginNickname": "alledit",
+      "watchlistName": "Derived",
+      "securities": [
+        {
+          "creationType": "DERIVED",
+          "sourceIdSecuritycurrency": 3962,
+          "name": "Gold 100 Gramm in CHF",
+          "baseInstrument": {
+            "type": "SECURITY",
+            "searchName": "Gold Feinunze",
+            "displayName": "Gold Feinunze"
+          },
+          "formulaPrices": "o * 3.2150746569 * p",
+          "additionalInstruments": {
+            "p": {
+              "type": "CURRENCYPAIR",
+              "searchName": "USD",
+              "displayName": "USD/CHF"
+            }
+          },
+          "currency": "CHF",
+          "assetclassSubCategoryDE": "Gold physisch",
+          "stockexchangeName": "Primary exchange Switzerland",
+          "activeFromDate": "2000-02-03",
+          "activeToDate": "2036-01-01",
+          "distributionFrequency": "DF_NONE",
+          "leverageFactor": 1.0,
+          "e2e": "e"
+        },
+        {
+          "creationType": "DERIVED",
+          "sourceIdSecuritycurrency": 3996,
+          "name": "Forex EUR/CHF -> CHF",
+          "baseInstrument": {
+            "type": "CURRENCYPAIR",
+            "searchName": "EUR",
+            "displayName": "EUR/CHF"
+          },
+          "formulaPrices": null,
+          "additionalInstruments": {},
+          "currency": "CHF",
+          "assetclassSubCategoryDE": "Forex",
+          "stockexchangeName": "Primary exchange Switzerland",
+          "activeFromDate": "2000-02-03",
+          "activeToDate": "2036-01-01",
+          "distributionFrequency": "DF_NONE",
+          "leverageFactor": 1.0,
+          "e2e": "e"
+        },
+        {
+          "creationType": "DERIVED",
+          "sourceIdSecuritycurrency": 3739,
+          "name": "Forex USD/CHF -> CHF",
+          "baseInstrument": {
+            "type": "CURRENCYPAIR",
+            "searchName": "USD",
+            "displayName": "USD/CHF"
+          },
+          "formulaPrices": null,
+          "additionalInstruments": {},
+          "currency": "CHF",
+          "assetclassSubCategoryDE": "Forex",
+          "stockexchangeName": "Primary exchange Switzerland",
+          "activeFromDate": "2000-02-03",
+          "activeToDate": "2036-01-01",
+          "distributionFrequency": "DF_NONE",
+          "leverageFactor": 1.0,
+          "e2e": "e"
+        }
+      ]
+    },
+    {
+      "loginNickname": "alledit",
+      "watchlistName": "Festgeld",
+      "securities": [
+        {
+          "creationType": "STANDARD_WITH_PERIODS",
+          "sourceIdSecuritycurrency": 3721,
+          "name": "Festgeld 2019",
+          "isin": null,
+          "tickerSymbol": null,
+          "currency": "CHF",
+          "activeFromDate": "2019-01-03",
+          "activeToDate": "2019-12-30",
+          "distributionFrequency": "DF_NONE",
+          "denomination": 100,
+          "leverageFactor": 1.0,
+          "stockexchangeName": "Private Papers",
+          "assetclassSubCategoryDE": "Festgeld",
+          "historyquotePeriods": [
+            {
+              "fromDate": "2019-01-03",
+              "toDate": "2019-04-02",
+              "price": 100,
+              "createType": "SYSTEM_CREATED"
+            },
+            {
+              "fromDate": "2019-04-03",
+              "toDate": "2019-04-27",
+              "price": 88,
+              "createType": "USER_CREATED"
+            },
+            {
+              "fromDate": "2019-04-28",
+              "toDate": "2019-12-17",
+              "price": 94,
+              "createType": "USER_CREATED"
+            },
+            {
+              "fromDate": "2019-12-18",
+              "toDate": "2019-12-30",
+              "price": 99,
+              "createType": "USER_CREATED"
+            }
+          ],
+          "e2e": "e"
+        }
+      ]
+    }
+  ]
+}

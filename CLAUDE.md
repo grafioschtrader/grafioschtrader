@@ -245,7 +245,7 @@ npm start
 - `backend/grafiosch-server-base/src/test/java/grafiosch/test/rest/` — the **shared integration test fixture**,
   published as a test-jar and consumed by both applications (see below)
 - `backend/grafiosch-test-integration/src/test/java/grafiosch/rest/` — `ResourceTestSuite` of the reusable libraries
-- `backend/grafioschtrader-server/src/test/java/grafioschtrader/` — `ResoureTestSuite` plus connector, NLS and unit tests
+- `backend/grafioschtrader-server/src/test/java/grafioschtrader/` — numbered `ResourceTestSuite_*` phases plus connector, NLS and unit tests
 
 **Test configuration**: Annotate test classes with `@ActiveProfiles("test")` to use separate test database and disabled
 async features. Both applications wrap that plus `@SpringBootTest` into one composed annotation
@@ -283,7 +283,7 @@ npm run test:watch  # watch mode
 
 **Full roundtrip**: `e2eTest.cmd` (Windows) / `./e2eTest.sh` (Linux/macOS) at the repository root runs
 the complete cycle: MailHog check, DROP/CREATE of `grafioschtrader_t`, backend startup with the `e2e`
-profile, backend `ResoureTestSuite`, then the whole Playwright suite. See `scripts/e2e-test.mjs` and
+profile, then alternates the numbered backend `ResourceTestSuite_*` and Playwright phases. See `scripts/e2e-test.mjs` and
 `frontend/e2e/README.md`.
 
 **The full procedure is packaged as the `e2e-test` skill** (`.agents/skills/e2e-test/SKILL.md`) —
@@ -293,7 +293,7 @@ its summary.
 **IMPORTANT — run `e2eTest.cmd` / `e2eTest.sh` ONLY when the user explicitly asks for it.** Never
 start the full roundtrip on your own initiative — not because a spec failed, not to verify, not
 before a commit. If you think a roundtrip is warranted, say so and ask. The same applies to the
-backend `ResoureTestSuite`: do not re-run it between spec iterations. The full suite takes very long,
+numbered backend `ResourceTestSuite_*` phases: do not re-run them between spec iterations. The full suite takes very long,
 among other reasons because the freshly started backend downloads price/course data in the background.
 
 When adding or fixing a **single** Playwright spec:
@@ -382,7 +382,7 @@ double-opt-in Java test when decryption or entity logic is needed (`ConnectorApi
   suite, `e` = created by a Playwright spec. One file can feed both suites.
 
 **Test ordering is mandatory to consider — many tests consume data created by earlier ones:**
-- **JUnit**: `ResoureTestSuite` pins the order via `@SelectClasses`. Insert a new class where its
+- **JUnit**: `ResourceTestSuite_1`, `ResourceTestSuite_25`, and `ResourceTestSuite_50` pin the order via `@SelectClasses`. Insert a new class where its
   prerequisites already exist. Such a class *fails standalone* — that is expected; run it via the suite.
 - **Playwright**: `workers: 1`, so lexicographic filename order **is** the execution order. Three-digit
   prefix in steps of five; pick the number by prerequisites, before the teardown specs `844` / `888`.
@@ -453,6 +453,18 @@ portable baseline from the `grafiosch-base` entity sources (`TABNAME*` constants
 resolve as raw NLS keys because the texts live in the application bundle. Moving the entity back is enough
 to correct it — the next regeneration stops dumping the table and reports it as dropped, so no `DROP
 TABLE` migration is needed.
+
+#### What a new entity owes beyond persisting
+
+Two obligations are unguarded — no compiler and no test catches a miss. The entity must appear in an
+`ExportDefinition` array, or its rows are absent from "export my data" and survive the deletion of
+the user's account; and every user-writable entity must be bounded by an `entity_limit` key, because
+a key with no row means unlimited and `ROLE_LIMIT_EDIT` reaches almost every `/api/**` write
+endpoint.
+
+**Follow the `new-entity` skill** (`.agents/skills/new-entity/SKILL.md`) whenever an entity or table
+is added; `backend/CLAUDE.md` → "New Entity or Table — Export/Delete Definition and Entity Limit"
+carries the short form.
 
 ### Adding Frontend Component
 
@@ -566,6 +578,29 @@ CREATE TABLE child_table (...);
 | `CHANGE COLUMN` | — | Yes: stored procedure with `INFORMATION_SCHEMA` check |
 | `MODIFY COLUMN` | — | Usually safe to re-run; procedure if conditional |
 | `INSERT INTO` | — | Yes: delete-first, `INSERT IGNORE`, or `ON DUPLICATE KEY` |
+
+### Design Specifications (`specification/`)
+
+Concept specifications live in `specification/`, working material and requirement drafts in `doc/`. A
+specification is a **plan for work not yet done**, written to be turned into source code. Four rules govern
+them; the full procedure is the **`specification` skill** (`.agents/skills/specification/SKILL.md`), which
+covers writing one, incorporating concerns raised by someone else, staged updates and retirement.
+
+- **The source code is the only source of truth.** Never answer a question about how GT behaves today from
+  a specification — versions, Flyway numbers, method and query names drift. Re-verify against the tree.
+- **A specification always reads as a first draft.** However often it is revised, it must read as if written
+  in one pass by someone with the codebase open. No revision notes, no reference to a reviewer or a
+  companion concern file, no rebuttal wording, no "corrected" annotations, no completion marks on delivered
+  stages. A finding that arrived as criticism becomes an ordinary requirement sentence. A
+  `**Code baseline:** backend <version>, highest Flyway script <name>` header line is the one exception and
+  belongs in every specification.
+- **It is only updated when delivery is staged** — refresh the code baseline, re-verify what the completed
+  stage changed, and remove the finished stages. A single-shot implementation never updates its
+  specification.
+- **It is deleted once fully implemented.** Do not archive it. Before deleting, move what must survive:
+  user-visible behaviour and its limitations into the **gt-user-manual** (`update-user-manual` skill — do
+  this *before* the deletion, it is usually the only place those limitations exist), decisions into the
+  commit message or a GitHub issue, durable agent rules into these `CLAUDE.md` files.
 
 ### Git Commit Guidelines
 

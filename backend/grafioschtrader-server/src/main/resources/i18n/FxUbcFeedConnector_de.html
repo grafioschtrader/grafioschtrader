@@ -1,1 +1,8 @@
-Wird nicht angezeigt!
+[historical]
+Der <a target="_blank" href="//fx.sauder.ubc.ca/">Pacific Exchange Rate Service</a> der Sauder School of Business an der University of British Columbia veröffentlicht weit zurückreichende Tageskurse für Währungen.<br>
+Hier ist keine Eingabe erforderlich. Weder ein API-Schlüssel noch eine URL-Erweiterung wird benötigt: Beide Währungen werden direkt dem Währungspaar entnommen, und Grafioschtrader bildet die Anfrage selbst.<br>
+Der Anbieter liefert pro Anfrage höchstens vier Jahre, eine Historie ab dem Jahr 2000 wird deshalb mit mehreren aufeinanderfolgenden Anfragen und einer kurzen Pause dazwischen geholt.<br>
+Seine Server sind häufig ausgelastet. Die Antwort enthält dann gar keine Kurse oder hält ausdrücklich fest, dass der Server zu stark belastet ist. Grafioschtrader verwirft in diesem Fall den ganzen Ladevorgang, statt eine unvollständige Historie zu speichern, und der Wiederholungszähler des Währungspaares wird erhöht. Ein späterer Versuch gelingt oft.<br>
+Wegen dieser eingeschränkten Verfügbarkeit ist bei einem Währungspaar, dessen Währungen Frankfurter anbietet, jene Datenquelle vorzuziehen und diese hier als zweite Wahl zu behalten.<br>
+Das Zertifikat dieser Seite wurde von Java wiederholt zurückgewiesen. Scheitert die Kursaktualisierung mit einem Zertifikatsfehler, muss der Administrator dieses Zertifikat in den Truststore der Java-Installation importieren.<br>
+Es wird nur ein Tageskurs veröffentlicht, deshalb liefert dieser Konnektor historische Kurse, aber keine Innertag-Kurse.

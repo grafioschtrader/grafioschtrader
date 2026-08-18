@@ -264,4 +264,28 @@ public interface ImportTransactionPosJpaRepositoryCustom {
    * @return the number of import positions that were updated
    */
   int assignSecurityToMatchingImportPositions(Security security);
+
+  /**
+   * Persists a newly parsed import position, enforcing the caps that bound the staging table.
+   *
+   * <p>
+   * This is the single funnel every new {@code imp_trans_pos} row passes through. There is no generic create for an
+   * import position - rows arrive only from the platform import classes behind the head scoped upload endpoints - so
+   * neither the lifetime cap nor the daily budget can be enforced by {@code UpdateCreate}. Three limits are checked
+   * here: the tenant total, the positions of the one head this row belongs to, and today's CUD budget of the acting
+   * user. The daily counter is booked per saved row.
+   * </p>
+   *
+   * <p>
+   * The row count a document will produce is not known before it is parsed, so a file that crosses a cap in the middle
+   * stops there rather than being rejected as a whole. The rows written before that point stay when the calling upload
+   * path is not transactional.
+   * </p>
+   *
+   * @param importTransactionPos the freshly built, not yet persisted position
+   * @return the persisted position
+   * @throws SecurityException                                            when a lifetime cap is reached
+   * @throws grafiosch.exceptions.LimitEntityTransactionException         when today's budget is exhausted
+   */
+  ImportTransactionPos saveNewPosWithLimitCheck(ImportTransactionPos importTransactionPos);
 }

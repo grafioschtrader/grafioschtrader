@@ -22,7 +22,6 @@ import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.rest.UpdateCreateDeleteAuditResource;
 import grafiosch.rest.UpdateCreateJpaRepository;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.generic.GenericConnectorTestRequest;
 import grafioschtrader.connector.instrument.generic.GenericConnectorTestResult;
@@ -64,10 +63,6 @@ public class GenericConnectorResource extends UpdateCreateDeleteAuditResource<Ge
     return genericConnectorDefJpaRepository;
   }
 
-  @Override
-  protected String getPrefixEntityLimit() {
-    return GlobalConstants.GT_LIMIT_DAY;
-  }
 
   /**
    * Prevents non-owner/non-admin users from falling through to the proposal path. The creator can edit directly

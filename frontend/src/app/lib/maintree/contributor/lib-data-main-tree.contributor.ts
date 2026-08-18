@@ -110,7 +110,27 @@ export class LibDataMainTreeContributor {
       label: 'USER_SETTINGS',
       data: new TypeNodeData(
         LibTreeNodeType.NO_MENU,
-        LibDataMainTreeContributor.addMainRoute(BaseSettings.USER_ENTITY_LIMIT_KEY),
+        LibDataMainTreeContributor.addMainRoute(BaseSettings.USER_ADMIN_KEY),
+        null,
+        null,
+        null
+      )
+    };
+  }
+
+  /**
+   * Creates the entity limit node (admin only).
+   * Gives access to every configured limit, of any limit type and any scope, which the user administration screen
+   * cannot show because it only ever lists the limits of one user.
+   *
+   * @returns TreeNode configured for limit administration
+   */
+  static createEntityLimitNode(): TreeNode {
+    return {
+      label: 'ENTITY_LIMIT_INFO_CLASS',
+      data: new TypeNodeData(
+        LibTreeNodeType.NO_MENU,
+        LibDataMainTreeContributor.addMainRoute(BaseSettings.ENTITY_LIMIT_KEY),
         null,
         null,
         null

@@ -9,7 +9,7 @@
     "portfolio in grafioschtrader_t after the suite has run — 888 then generates no test for it.",
     "",
     "'loginNickname' refers to users.json. 'e2euser' is registered through the UI by auth.setup.ts and",
-    "runs an English UI (en-US); 'alledit' and 'limit2' are seeded by the backend ResoureTestSuite",
+    "runs an English UI (en-US); 'alledit', 'limit1', and 'limit2' are seeded by ResourceTestSuite_1",
     "and run a German UI (de-CH) — therefore the specs match every menu text bilingually.",
     "",
     "'transactions' are consumed by 120-bank-account-transactions.spec.ts and, for rows tagged e2e='i',",
@@ -28,12 +28,11 @@
     "",
     "'tradingPlatformPlan' is matched case-insensitively as a SUBSTRING of the option label in the",
     "securities account dialog, because the label is language dependent. The plans come from",
-    "testdata/generated/tradingplatformplan.csv, but from two different producers: rows tagged e2e='i'",
-    "are seeded by the backend TradingPlatformPlanResourceTest — that covers 'CornèrTrader",
-    "Transaktionsbetrag' / 'CornèrTrader Transactions value' — while rows tagged e2e='e' are created",
-    "through the UI by frontend/e2e/015-create-trading-platform-plan.spec.ts, which covers 'Saxo",
-    "Trader' (DE = EN). That spec is numbered 015 so it runs before 025; renumbering it after 025",
-    "makes the SaxoTrader securities account fail with 'no trading platform plan matching Saxo Trader'.",
+    "testdata/generated/tradingplatformplan.csv, but from two different producers. ResourceTestSuite_1",
+    "creates rows tagged e2e='i'; frontend/e2e/015-create-trading-platform-plan.spec.ts creates rows",
+    "tagged e2e='e'. ResourceTestSuite_25 then creates the integration portfolios after both producers",
+    "have run. Moving PortfolioResourceTest before 015 makes accounts using an e-tagged plan fail with",
+    "'no trading platform plan matching ...'.",
     "The plan and the portfolio below are both spelled 'CornèrTrader' (Cornèr Bank AG).",
     "null means: take the first non-empty option.",
     "",
@@ -106,6 +105,134 @@
           "date": "2008-08-15",
           "cashAccount": "Migros-V CHF",
           "amount": 6365
+        }
+      ],
+      "e2e": "i"
+    },
+    {
+      "loginNickname": "user",
+      "name": "Swissquote",
+      "currency": "CHF",
+      "delete": false,
+      "cashAccounts": [
+        {"name": "SQ USD", "currency": "USD"},
+        {"name": "SQ CHF", "currency": "CHF"},
+        {"name": "SQ EUR", "currency": "EUR"}
+      ],
+      "securityAccounts": [
+        {
+          "name": "Swissquote",
+          "tradingPlatformPlan": "Swissquote Flat Fee or Transaction Value",
+          "lowestTransactionCost": 9,
+          "tradingPeriods": [
+            {"specInvestInstrument": "DIRECT_INVESTMENT", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"},
+            {"specInvestInstrument": "ETF", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"}
+          ]
+        }
+      ],
+      "transactions": [
+        {
+          "kind": "single",
+          "transactionType": "DEPOSIT",
+          "date": "2019-12-23",
+          "cashAccount": "SQ USD",
+          "amount": 150000
+        },
+        {
+          "kind": "transfer",
+          "date": "2026-08-11",
+          "debitCashAccount": "SQ USD",
+          "creditPortfolio": "Swissquote",
+          "creditCashAccount": "SQ CHF",
+          "creditAmount": 30000,
+          "exchangeRate": 0.80999994,
+          "expectedDebitAmount": 37037.04
+        }
+      ],
+      "e2e": "i"
+    },
+    {
+      "loginNickname": "limit1",
+      "name": "Migros",
+      "currency": "EUR",
+      "delete": false,
+      "cashAccounts": [
+        {"name": "Migros EUR", "currency": "EUR"},
+        {"name": "Migros CHF", "currency": "CHF"}
+      ],
+      "securityAccounts": [
+        {
+          "name": "Migros",
+          "tradingPlatformPlan": "Migros Bank Standard",
+          "lowestTransactionCost": 40,
+          "tradingPeriods": [
+            {"specInvestInstrument": "DIRECT_INVESTMENT", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"},
+            {"specInvestInstrument": "ETF", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"},
+            {"specInvestInstrument": "DIRECT_INVESTMENT", "categoryType": "FIXED_INCOME", "dateFrom": "2000-01-03"},
+            {"specInvestInstrument": "ETF", "categoryType": null, "dateFrom": "2000-01-03"}
+          ]
+        }
+      ],
+      "transactions": [
+        {
+          "kind": "single",
+          "transactionType": "DEPOSIT",
+          "date": "2020-01-07",
+          "cashAccount": "Migros EUR",
+          "amount": 144444
+        },
+        {
+          "kind": "transfer",
+          "date": "2021-01-05",
+          "debitCashAccount": "Migros EUR",
+          "creditPortfolio": "Migros",
+          "creditCashAccount": "Migros CHF",
+          "creditAmount": 72000,
+          "exchangeRate": 1.07820005,
+          "expectedDebitAmount": 66777.96
+        }
+      ],
+      "e2e": "i"
+    },
+    {
+      "loginNickname": "limit1",
+      "name": "Swissquote",
+      "currency": "EUR",
+      "delete": false,
+      "cashAccounts": [
+        {"name": "Swissquote CHF", "currency": "CHF"},
+        {"name": "Swissquote EUR", "currency": "EUR"}
+      ],
+      "securityAccounts": [
+        {
+          "name": "Swissquote",
+          "tradingPlatformPlan": "Swissquote Flat Fee or Transaction Value",
+          "lowestTransactionCost": 9,
+          "tradingPeriods": [
+            {"specInvestInstrument": "DIRECT_INVESTMENT", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"},
+            {"specInvestInstrument": "ETF", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"},
+            {"specInvestInstrument": "ETF", "categoryType": "FIXED_INCOME", "dateFrom": "2000-01-03"},
+            {"specInvestInstrument": "DIRECT_INVESTMENT", "categoryType": "FIXED_INCOME", "dateFrom": "2000-01-03"}
+          ]
+        }
+      ],
+      "transactions": [
+        {
+          "kind": "single",
+          "transactionType": "DEPOSIT",
+          "date": "2020-01-06",
+          "cashAccount": "Swissquote EUR",
+          "amount": 122222
+        },
+        {
+          "kind": "transfer",
+          "date": "2021-01-13",
+          "debitCashAccount": "Swissquote EUR",
+          "creditPortfolio": "Swissquote",
+          "creditCashAccount": "Swissquote CHF",
+          "creditAmount": 62000,
+          "exchangeRate": 1.08100003,
+          "expectedDebitAmount": 57354.30
         }
       ],
       "e2e": "i"

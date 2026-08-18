@@ -23,7 +23,6 @@ import grafiosch.repository.TenantBaseCustom;
 import grafiosch.rest.TenantBaseResource;
 import grafiosch.rest.UpdateCreateJpaRepository;
 import grafiosch.types.TenantAccessLevel;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.algo.SimulationTenantCreateDTO;
 import grafioschtrader.algo.SimulationTenantInfo;
 import grafioschtrader.dto.TaxStatementExportRequest;
@@ -110,10 +109,6 @@ public class TenantResource extends TenantBaseResource<Tenant> {
     return tenantJpaRepository;
   }
 
-  @Override
-  protected String getPrefixEntityLimit() {
-    return GlobalConstants.GT_LIMIT_DAY;
-  }
 
   /**
    * Allows switching into a simulation tenant that is a child of the user's home tenant (in addition to the generic

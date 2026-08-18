@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import grafiosch.rest.UpdateCreateDeleteAuditResource;
 import grafiosch.rest.UpdateCreateJpaRepository;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.RiskFreeInstrumentOption;
 import grafioschtrader.entities.RiskFreeRateMapping;
 import grafioschtrader.repository.RiskFreeRateMappingJpaRepository;
@@ -69,8 +68,4 @@ public class RiskFreeRateMappingResource extends UpdateCreateDeleteAuditResource
     return riskFreeRateMappingJpaRepository;
   }
 
-  @Override
-  protected String getPrefixEntityLimit() {
-    return GlobalConstants.GT_LIMIT_DAY;
-  }
 }

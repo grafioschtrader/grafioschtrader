@@ -76,7 +76,7 @@ to recognise:
 
 | File | Origin | Purpose |
 |------|--------|---------|
-| `V0_10_0__init.sql` | **generated** | Whole schema baseline: `CREATE TABLE` for every table backed by a `grafiosch-base` JPA entity, plus reference data for `globalparameters` (`g.` only) and `role`. |
+| `V0_10_0__init.sql` | **generated** | Whole schema baseline: `CREATE TABLE` for every table backed by a `grafiosch-base` JPA entity, plus reference data for `globalparameters` (`g.` only), `role` and `entity_limit` (library entities only). |
 | `V0_10_1__portable_e2e_compat.sql` | **manual** | Relaxes application-specific constraints the dump inherits from Grafioschtrader, and adds objects the dump does not carry. |
 
 ## What is generated automatically
@@ -107,7 +107,11 @@ What the script does:
    diff.
 3. Appends **data** for `role` and for `globalparameters` filtered to
    `property_name LIKE 'g.%' AND property_name NOT LIKE 'g.migration.%'` (see below).
-4. Appends `UPDATE globalparameters SET property_int = NULL WHERE property_name = 'g.gnet.my.entry.id';`
+4. Appends **data** for `entity_limit`, filtered to `id_user IS NULL` and to the entity names of
+   `grafiosch-base` (see below). The statements are built with `CONCAT` / `QUOTE` through the client
+   rather than dumped, because `mysqldump --complete-insert` names the five `PERSISTENT` generated
+   columns of that table and an `INSERT` assigning one is rejected.
+5. Appends `UPDATE globalparameters SET property_int = NULL WHERE property_name = 'g.gnet.my.entry.id';`
    to neutralize the instance-specific value (see below).
 
 It **reports** two kinds of drift on stdout rather than failing:
@@ -130,6 +134,34 @@ watermarks. Before the filter the baseline seeded 56 rows, 46 of them `gt.`.
 
 `g.migration.%` is excluded on top of that: those are Grafioschtrader Flyway idempotency markers
 (`g.migration.task_id_renumber_done`, written by `V0_36_1__renumber_task_ids.sql`), not parameters.
+
+### Why `entity_limit` is filtered to library entities
+
+`entity_limit` is the single configuration table of the limit model (GitHub issue #206). It replaced the
+`g.max.*` / `gt.max.*` / `g.limit.day.*` / `gt.limit.day.*` rows of `globalparameters` and the
+`user_entity_change_limit` table, and the migration that introduced it **deleted** the keys it took over.
+Four of them were library defaults — `g.limit.day.MailSendRecv`, `.MailSettingForward`,
+`.UDFMetadataGeneral`, `.ProposeUserTask` — which until then reached the baseline through the `g.` filter
+of `globalparameters` simply because that is where they happened to live. Without this step the portable
+host has **no limit at all**: the resolver treats a key with no row as unlimited.
+
+Two restrictions apply, for two different reasons:
+
+- **`id_user IS NULL`** is forced by `FK_EntityLimit_User`. `user` is dumped structure-only, so a per-user
+  override would reference a row that does not exist. Role scoped rows are kept — `role` is dumped with
+  the master's own ids, and the `entity_limit` block is written after it so the foreign key resolves.
+- **The entity name must belong to `grafiosch-base`**, derived from the entity sources exactly like the
+  table list. This is the `g.` filter of `globalparameters` in another shape: an application row names an
+  entity this host does not have (`Security`, `Watchlist`, `Transaction`, `SimulationTenant`, …), its
+  `MAX` key is registered nowhere here — `LimitKeyConfig` lives in `grafioschtrader-server` — and
+  `EntityLimitJpaRepositoryImpl.isKnownKey()` would reject it. The skipped names are listed on stdout.
+
+Today that leaves the four rows above, all `DAY_CUD` and scoped to `ROLE_LIMITEDIT`, which is the scope the
+former hardcoded `isLimitedEditingUser` check had. `id_entity_limit`, both timestamps and the audit columns
+are **not** carried over from the master: ids are allocated locally, the timestamps default to
+`CURRENT_TIMESTAMP` and `created_by` / `last_modified_by` / `version` are written as the fresh-install
+values. That keeps the generated block byte-identical across regenerations instead of churning whenever an
+administrator touched a limit on the dumping machine.
 
 ### Instance-specific values
 

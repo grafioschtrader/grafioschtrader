@@ -46,7 +46,7 @@ public class SecurityConfig {
               .requestMatchers(HttpMethod.PUT, RequestMappings.TASK_DATA_CHANGE_MAP).hasRole(Role.ADMIN)
               .requestMatchers(HttpMethod.DELETE, RequestMappings.TASK_DATA_CHANGE_MAP + "/*").hasRole(Role.ADMIN)
               .requestMatchers(RequestMappings.CONNECTOR_API_KEY_MAP + "/**").hasRole(Role.ADMIN)
-              .requestMatchers(RequestMappings.USER_ENTITY_CHANGE_LIMIT_MAP + "/**").hasRole(Role.ADMIN)
+              .requestMatchers(RequestMappings.ENTITY_LIMIT_MAP + "/**").hasRole(Role.ADMIN)
               .requestMatchers(RequestMappings.USERADMIN_MAP + "/**").hasRole(Role.ADMIN)
               .requestMatchers(RequestMappings.API + "**").hasAnyRole(Role.USER, Role.LIMIT_EDIT));
     } catch (Exception e) {

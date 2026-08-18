@@ -97,7 +97,8 @@ public class HistoryquoteLegacyResource extends HistoryquoteResourceBase<History
       @RequestParam(required = false) char thousandSeparator,
       @RequestParam(required = false) String dateFormat) throws Exception {
     requireEditOrDeleteRights(idSecuritycurrency);
-    HistoryquoteLegacyImport importer = new HistoryquoteLegacyImport(historyquoteLegacyJpaRepository);
+    HistoryquoteLegacyImport importer = new HistoryquoteLegacyImport(historyquoteLegacyJpaRepository,
+        dailyLimitService);
     return new ResponseEntity<>(importer.uploadHistoryquotes(idSecuritycurrency, uploadFiles,
         new SupportedCSVFormat(decimalSeparator, thousandSeparator, dateFormat)), HttpStatus.OK);
   }

@@ -18,6 +18,8 @@ import grafiosch.common.CSVImportHelper;
 import grafiosch.common.ValueFormatConverter;
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
+import grafiosch.service.DailyLimitService;
+import grafiosch.types.OperationType;
 import grafioschtrader.common.DateBusinessHelper;
 import grafioschtrader.dto.SupportedCSVFormat;
 import grafioschtrader.dto.UploadHistoryquotesSuccess;
@@ -63,9 +65,12 @@ import grafioschtrader.types.HistoryquoteCreateType;
 public class HistoryquoteLegacyImport {
 
   private final HistoryquoteLegacyJpaRepository historyquoteLegacyJpaRepository;
+  private final DailyLimitService dailyLimitService;
 
-  public HistoryquoteLegacyImport(HistoryquoteLegacyJpaRepository historyquoteLegacyJpaRepository) {
+  public HistoryquoteLegacyImport(HistoryquoteLegacyJpaRepository historyquoteLegacyJpaRepository,
+      DailyLimitService dailyLimitService) {
     this.historyquoteLegacyJpaRepository = historyquoteLegacyJpaRepository;
+    this.dailyLimitService = dailyLimitService;
   }
 
   @Transactional
@@ -79,6 +84,11 @@ public class HistoryquoteLegacyImport {
     if (uploadFiles.length == 0 || uploadFiles[0].isEmpty()) {
       return stats;
     }
+    // Archiving prices is accounted as a single edit of the instrument they belong to, so it consumes the same daily
+    // budget as a manual change to that instrument. Checked before the file is read, so an exhausted budget writes
+    // nothing at all.
+    final String entityName = userAuditable.getInstrumentEntityName();
+    dailyLimitService.check(userAuditable.user, entityName, 1);
 
     final ValueFormatConverter converter = new ValueFormatConverter(supportedCSVFormat.decimalSeparator,
         supportedCSVFormat.dateFormat, supportedCSVFormat.thousandSeparator);
@@ -112,6 +122,7 @@ public class HistoryquoteLegacyImport {
     if (!toInsert.isEmpty()) {
       historyquoteLegacyJpaRepository.saveAll(toInsert);
     }
+    dailyLimitService.log(userAuditable.user.getIdUser(), entityName, OperationType.UPDATE, 1);
     return stats;
   }
 

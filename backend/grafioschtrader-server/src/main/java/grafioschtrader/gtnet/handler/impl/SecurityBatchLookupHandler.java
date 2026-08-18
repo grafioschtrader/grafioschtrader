@@ -20,11 +20,11 @@ import grafiosch.gtnet.handler.HandlerResult;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
-import grafioschtrader.service.GTNetExchangeLogService;
 import grafioschtrader.gtnet.model.SecurityGtnetLookupDTO;
 import grafioschtrader.gtnet.model.msg.SecurityBatchLookupMsg;
 import grafioschtrader.gtnet.model.msg.SecurityBatchLookupResponseMsg;
 import grafioschtrader.gtnet.model.msg.SecurityLookupMsg;
+import grafioschtrader.service.GTNetExchangeLogService;
 
 /**
  * Handler for GT_NET_SECURITY_BATCH_LOOKUP_SEL_C requests from remote instances.

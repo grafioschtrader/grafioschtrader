@@ -153,7 +153,11 @@ The library defines `g.`-prefixed **defaults**; the application may override the
 - `globalparameters` property names (the `property_name` primary key)
 - NLS / message keys in `messages*.properties`
 - `@Value("${...}")` and `@ConfigurationProperties(prefix = "...")` property names (and their entries in `application*.properties`)
-- Daily-limit keys: `BaseConstants.G_LIMIT_DAY` (`g.limit.day.`) for base-module entities vs `GlobalConstants.GT_LIMIT_DAY` (`gt.limit.day.`) for application entities
+
+Limit keys are **not** affected: since GitHub issue #206 they are rows of `entity_limit` keyed by
+entity name, not `globalparameters` rows, so they carry no `g.` / `gt.` prefix. The former
+`g.max.*` / `gt.max.*` / `g.limit.day.*` / `gt.limit.day.*` keys were deleted by the migration that
+introduced the table.
 
 ### Rule when adding a new key
 
@@ -366,26 +370,46 @@ private LocalDateTime createdAt;
 | `STANDARD_LOCAL_DATE_TIME` | `"yyyy-MM-dd HH:mm"` | `LocalDateTime` (no seconds) |
 | `STANDARD_LOCAL_DATE_TIME_SECOND` | `"yyyy-MM-dd HH:mm:ss"` | `LocalDateTime` (with seconds) |
 
-## Daily Limit Registration for Entity CRUD Operations
+## New Entity or Table — Export/Delete Definition and Entity Limit
 
-**IMPORTANT**: Every entity managed through a `*Resource` class extending `UpdateCreate` / `DailyLimitUpdCreateLogger` must have a corresponding daily limit key registered in `Globalparameters.defaultLimitMap`. Without this, a `NullPointerException` occurs in `TenantLimitsHelper.getMaxValueByMaxDefaultDBValueWithKey()` when a limited-editing user performs a CUD operation.
+**IMPORTANT**: A new entity owes two things that **no test and no compiler checks**. Both are about
+what the REST API permits, not about what the UI offers — `ROLE_LIMIT_EDIT`, the role every
+self-registered user holds, may call almost every `/api/**` write endpoint.
 
-**Required steps when adding a new entity with CUD operations:**
+**1. It must appear in an `ExportDefinition` array**, or its rows are missing from "export my data"
+and survive the deletion of the user's account. With a `RESTRICT` foreign key to `tenant` / `user`
+the account deletion aborts instead; without one the rows are orphaned forever. Two arrays are merged
+at startup by `ExportDeleteHelper.addExportDefinitions(...)` (`GTStartUp`): library tables in
+`grafiosch/exportdelete/ExportDeleteHelper.exportDefinitions`, application tables in
+`grafioschtrader/exportdelete/MyDataExportDeleteDefinition.exportDefinitions`.
 
-1. Define a constant for the limit key in `GlobalParamKeyDefault` (or `GlobalParamKeyBaseDefault` for base-module entities):
-   ```java
-   public static final String GLOB_KEY_LIMIT_DAY_MYENTITY = G_LIMIT_DAY + "MyEntity";
-   ```
-   The suffix must match the entity's **simple class name** exactly (`entity.getClass().getSimpleName()`).
+| Entity kind | `TENANT_USER` | usage flags |
+|-------------|---------------|-------------|
+| tenant-private (`TenantBaseID`) | `ID_TENANT` | `EXPORT_USE \| DELETE_USE` |
+| user-private (`UserBaseID`) | `ID_USER` | `EXPORT_USE \| DELETE_USE` |
+| child reached only through its parent | `NONE` + join SQL | `EXPORT_USE \| DELETE_USE` |
+| shared reference data | `NONE` | `EXPORT_USE \| CHANGE_USER_ID_FOR_CREATED_BY` |
+| derived / rebuilt on import | — | omit, and say why in the class Javadoc |
 
-2. Register a default value in the same class's static initializer block:
-   ```java
-   defaultLimitMap.put(GlobalParamKeyDefault.GLOB_KEY_LIMIT_DAY_MYENTITY, new MaxDefaultDBValue(10));
-   ```
+The array position is the foreign-key order in both directions: `MySqlExportMyData` walks it forward
+(parent first, so the re-import holds), `MySqlDeleteMyData` walks it backwards (children first).
 
-3. Override `getPrefixEntityLimit()` in the Resource class to return the correct prefix (usually `GlobalParamKeyBaseDefault.G_LIMIT_DAY` or a `gt.` variant).
+**2. Every user-writable entity must be bounded by a limit key.** Limits live in the `entity_limit`
+table (GitHub issue #206). `LimitType.MAX` caps how many rows may exist and is **registered
+explicitly** in `grafioschtrader/config/LimitKeyConfig.java`; `LimitType.DAY_CUD` / `DAY_READ` cap
+operations per user per day and are **derived** — every concrete `BaseID` entity that is neither
+`TenantBaseID` nor `AdminEntity`, so an ordinary shared entity needs no registration, only a seed
+row. A key with no row resolves as *unlimited*.
 
-**How the lookup works**: `DailyLimitUpdCreateLogger.checkDailyLimitOnCRUDOperations()` builds the key as `getPrefixEntityLimit() + entity.getClass().getSimpleName()` and looks it up via `Globalparameters.defaultLimitMap`. If the key is missing from the map, `maxDefaultDBValue` will be `null`.
+A `TenantBaseID`, or a resource that does not extend `UpdateCreate`, never reaches
+`checkDailyLimitOnCRUDOperations` and must call `DailyLimitService.check` / `.log` at its own write
+site. A `MAX` default must be seeded with the same literal in the production migration **and** in
+`src/test/resources/db/migration/test/V4__seed_entity_limits.sql`, or `EntityLimitSeedGuardTest`
+fails the build.
+
+**The full checklist — including scopes, pseudo entity names, NLS keys and the runtime
+`IExportMyDataAddon` escape hatch — is the `new-entity` skill (`.agents/skills/new-entity/SKILL.md`).
+Read it whenever an entity or table is added.**
 
 ## Globalparameters: Adding New Entries
 

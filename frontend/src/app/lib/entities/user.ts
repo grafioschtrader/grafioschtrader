@@ -1,5 +1,5 @@
 import {BaseID} from './base.id';
-import {UserEntityChangeLimit} from './user.entity.change.limit';
+import {EntityLimit} from './entity.limit';
 import {ProposeUserTask} from './propose.user.task';
 import {Auditable} from './auditable';
 
@@ -15,7 +15,7 @@ export class User extends Auditable implements BaseID {
   securityBreachCount: number;
   limitRequestExceedCount: number;
   uiShowMyProperty: boolean;
-  userEntityChangeLimitList: UserEntityChangeLimit[];
+  entityLimitList: EntityLimit[];
   userChangePropose: ProposeUserTask;
   userChangeLimitProposeList: ProposeUserTask[];
 

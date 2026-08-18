@@ -39,3 +39,7 @@ WATCHLIST
 # VALUE is "Total" in both, which also looks like the wrong text for that key.
 SERVER_STATE
 VALUE
+
+# --- Deliberate: entity limits (issue #206) ---
+# 'Element' is the same word in both languages.
+relation.entity.name

@@ -337,7 +337,7 @@ public class GenericTransactionImportPDF extends GenericTransactionImportCsvPdfB
     ImportTransactionPos importTransactionPos = new ImportTransactionPos(importTransactionHead.getIdTenant(),
         orginalFileName, importTransactionHead.getIdTransactionHead());
     importTransactionPos.setIdFilePart(lastFileNumber);
-    importTransactionPos = importTransactionPosJpaRepository.save(importTransactionPos);
+    importTransactionPos = importTransactionPosJpaRepository.saveNewPosWithLimitCheck(importTransactionPos);
     List<ImportTransactionPosFailed> importTransactionPosFailedList = parseInputPDFasTXT
         .getImportTransactionPosFailed(importTransactionPos.getIdTransactionPos());
     importTransactionPosFailedJpaRepository.saveAll(importTransactionPosFailedList);

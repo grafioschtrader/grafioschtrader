@@ -21,7 +21,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import grafiosch.entities.BaseID;
 import grafiosch.repository.UserEntityChangeCountJpaRepository;
-import grafiosch.repository.UserEntityChangeLimitJpaRepository;
+import grafiosch.entities.EntityLimit;
+import grafiosch.repository.EntityLimitJpaRepository;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Stockexchange;
@@ -35,7 +36,7 @@ class DeleteALLDataTest extends BaseIntegrationTest {
   private UserEntityChangeCountJpaRepository userEntityChangeCountJpaRepository;
 
   @Autowired
-  private UserEntityChangeLimitJpaRepository userEntityChangeLimitJpaRepository;
+  private EntityLimitJpaRepository entityLimitJpaRepository;
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
@@ -53,12 +54,19 @@ class DeleteALLDataTest extends BaseIntegrationTest {
     Assertions.assertThat(userEntityChangeCountJpaRepository.count()).isZero();
   }
 
+  /**
+   * Removes only the per-user limit rows the suite created. The role rows and the mandatory default rows of the
+   * registered MAX keys are seeded by the migration and must survive: deleting a default row would leave that cap
+   * unlimited for every following run.
+   */
   @Test
   @Order(2)
-  @DisplayName("Delete user entity change limit for all users")
-  void deleteUserEntityChangeLimit() {
-    userEntityChangeLimitJpaRepository.deleteAll();
-    Assertions.assertThat(userEntityChangeLimitJpaRepository.count()).isZero();
+  @DisplayName("Delete per-user entity limits for all users")
+  void deleteUserEntityLimits() {
+    List<EntityLimit> userLimits = entityLimitJpaRepository.findAll().stream()
+        .filter(entityLimit -> entityLimit.getIdUser() != null).toList();
+    entityLimitJpaRepository.deleteAll(userLimits);
+    Assertions.assertThat(entityLimitJpaRepository.findAll()).noneMatch(entityLimit -> entityLimit.getIdUser() != null);
   }
 
   @ParameterizedTest

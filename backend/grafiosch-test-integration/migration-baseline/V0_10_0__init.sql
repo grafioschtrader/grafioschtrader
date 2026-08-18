@@ -15,6 +15,39 @@ CREATE TABLE `connector_apikey` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `entity_limit` (
+  `id_entity_limit` int(11) NOT NULL AUTO_INCREMENT,
+  `limit_type` tinyint(4) NOT NULL,
+  `entity_name` varchar(40) NOT NULL,
+  `relation_entity_name` varchar(40) DEFAULT NULL,
+  `count_scope` tinyint(4) DEFAULT NULL,
+  `owner_scope` tinyint(4) DEFAULT NULL,
+  `id_role` int(11) DEFAULT NULL,
+  `id_user` int(11) DEFAULT NULL,
+  `limit_value` int(11) NOT NULL,
+  `valid_until` date DEFAULT NULL,
+  `created_by` int(11) NOT NULL,
+  `creation_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `last_modified_by` int(11) NOT NULL,
+  `last_modified_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `version` int(11) NOT NULL,
+  `uk_relation_entity_name` varchar(40) GENERATED ALWAYS AS (coalesce(`relation_entity_name`,'')) STORED,
+  `uk_count_scope` tinyint(4) GENERATED ALWAYS AS (coalesce(`count_scope`,-1)) STORED,
+  `uk_owner_scope` tinyint(4) GENERATED ALWAYS AS (coalesce(`owner_scope`,-1)) STORED,
+  `uk_id_role` int(11) GENERATED ALWAYS AS (coalesce(`id_role`,0)) STORED,
+  `uk_id_user` int(11) GENERATED ALWAYS AS (coalesce(`id_user`,0)) STORED,
+  PRIMARY KEY (`id_entity_limit`),
+  UNIQUE KEY `El_unique` (`limit_type`,`entity_name`,`uk_relation_entity_name`,`uk_count_scope`,`uk_owner_scope`,`uk_id_role`,`uk_id_user`),
+  KEY `El_lookup` (`limit_type`,`entity_name`),
+  KEY `FK_EntityLimit_User` (`id_user`),
+  KEY `FK_EntityLimit_Role` (`id_role`),
+  CONSTRAINT `FK_EntityLimit_Role` FOREIGN KEY (`id_role`) REFERENCES `role` (`id_role`),
+  CONSTRAINT `FK_EntityLimit_User` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE,
+  CONSTRAINT `CK_EntityLimit_Scope` CHECK (`id_role` is null or `id_user` is null)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `globalparameters` (
   `property_name` varchar(45) NOT NULL,
   `property_int` int(11) DEFAULT NULL,
@@ -468,30 +501,12 @@ CREATE TABLE `user` (
 CREATE TABLE `user_entity_change_count` (
   `id_user` int(11) NOT NULL,
   `date` date NOT NULL,
-  `entity_name` varchar(25) NOT NULL,
+  `entity_name` varchar(40) NOT NULL,
   `count_insert` int(11) NOT NULL,
   `count_update` int(11) NOT NULL,
   `count_delete` int(11) NOT NULL,
   PRIMARY KEY (`id_user`,`date`,`entity_name`) USING BTREE,
   CONSTRAINT `FK_UserEntityChangeCount_User` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `user_entity_change_limit` (
-  `id_user_entity_change_limit` int(11) NOT NULL AUTO_INCREMENT,
-  `id_user` int(11) NOT NULL,
-  `entity_name` varchar(25) NOT NULL,
-  `day_limit` int(11) NOT NULL,
-  `until_date` date NOT NULL,
-  `created_by` int(11) NOT NULL,
-  `creation_time` timestamp NOT NULL DEFAULT current_timestamp(),
-  `last_modified_by` int(11) NOT NULL,
-  `last_modified_time` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `version` int(11) NOT NULL,
-  PRIMARY KEY (`id_user_entity_change_limit`),
-  UNIQUE KEY `Uecl_unique` (`id_user`,`entity_name`) USING BTREE,
-  CONSTRAINT `FK_UserEntityChangeLimit_User` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -549,7 +564,6 @@ INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_strin
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.gnet.use',1,NULL,NULL,NULL,NULL,0,NULL);
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.gnet.use.log',1,NULL,NULL,NULL,NULL,0,NULL);
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.jwt.expiration.minutes',1440,NULL,NULL,NULL,NULL,0,NULL);
-INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.limit.day.MailSendRecv',200,NULL,NULL,NULL,NULL,0,NULL);
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.max.limit.request.exceeded.count',20,NULL,NULL,NULL,NULL,0,'min:1,max:99');
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.max.security.breach.count',5,NULL,NULL,NULL,NULL,0,NULL);
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.password.regex.properties',NULL,NULL,NULL,NULL,'de=Das Passwort besteht aus mindestens acht Zeichen mit mindestens einem Buchstaben und einer Zahl.\nregex=^(?\\=.*[A-Za-z])(?\\=.*\\\\d)[A-Za-z\\\\d]{8,}$\nforceRegex=false\nen=The password has at least eight characters with at least one letter and one number.\n\n\n\n\n',0,NULL);
@@ -590,6 +604,24 @@ INSERT INTO `role` (`id_role`, `rolename`) VALUES (8,'ROLE_LIMITEDIT');
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
+
+-- ----------------------------------------------------------------------
+-- Limit configuration, filtered to the library layer for the same reason as globalparameters above:
+-- an application row names an entity this host does not have and a MAX key nothing registers here.
+-- Only rows without a user are dumped - `user` is structure-only, so a per-user override would
+-- reference a row that does not exist. Role scoped rows are kept, `role` is seeded above with the
+-- master's own ids. A key with no row at all resolves as unlimited.
+-- ----------------------------------------------------------------------
+
+INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'GTNet', NULL, NULL, NULL, 8, 5, NULL, 0, 0, 0);
+INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'GTNetConfig', NULL, NULL, NULL, 8, 3, NULL, 0, 0, 0);
+INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'GTNetConfigEntity', NULL, NULL, NULL, 8, 10, NULL, 0, 0, 0);
+INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'GTNetMessage', NULL, NULL, NULL, 8, 20, NULL, 0, 0, 0);
+INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'GTNetMessageAnswer', NULL, NULL, NULL, 8, 20, NULL, 0, 0, 0);
+INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'MailSendRecv', NULL, NULL, NULL, 8, 200, NULL, 0, 0, 0);
+INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'MailSettingForward', NULL, NULL, NULL, 8, 12, NULL, 0, 0, 0);
+INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'ProposeUserTask', NULL, NULL, NULL, 8, 10, NULL, 0, 0, 0);
+INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'UDFMetadataGeneral', NULL, NULL, NULL, 8, 20, NULL, 0, 0, 0);
 
 -- g.gnet.my.entry.id points at the dumping machine's own GTNet entry, but gt_net is dumped
 -- structure-only. NULL - not a deleted row - is the fresh-install state: the key stays visible in

@@ -21,10 +21,11 @@ import grafiosch.exceptions.DataViolationException;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafiosch.repository.BaseRepositoryImpl;
 import grafiosch.repository.GlobalparametersJpaRepository;
+import grafiosch.service.EntityLimitService;
 import grafiosch.types.OperationType;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.common.DataBusinessHelper;
+import grafioschtrader.config.LimitKeyConfig;
 import grafioschtrader.dto.CashAccountTransfer;
 import grafioschtrader.dto.ClosedMarginUnits;
 import grafioschtrader.dto.ExDateFromTaxDataResult;
@@ -51,6 +52,9 @@ import grafioschtrader.types.TransactionType;
 
 public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction>
     implements TransactionJpaRepositoryCustom {
+
+  @Autowired
+  private EntityLimitService entityLimitService;
 
   @Autowired
   private TransactionJpaRepository transactionJpaRepository;
@@ -238,9 +242,10 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
   @Override
   public void throwWhenTransactionLimitReached(Integer idTenant) {
-    int max = globalparametersJpaRepository.getMaxValueByKey(GlobalParamKeyDefault.GLOB_KEY_MAX_TRANSACTION);
-    if (transactionJpaRepository.countByIdTenant(idTenant) >= max) {
-      throw new GeneralNotTranslatedWithArgumentsException("gt.transaction.limit.exceeded", new Object[] { max });
+    Optional<Integer> maxOpt = entityLimitService.resolveForCurrentUser(LimitKeyConfig.KEY_TRANSACTION);
+    if (maxOpt.isPresent() && transactionJpaRepository.countByIdTenant(idTenant) >= maxOpt.get()) {
+      throw new GeneralNotTranslatedWithArgumentsException("gt.transaction.limit.exceeded",
+          new Object[] { maxOpt.get() });
     }
   }
 

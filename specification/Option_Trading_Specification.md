@@ -1,8 +1,10 @@
 # Options Trading — Implementation Specification
 
 **Status:** Design specification — not yet implemented. This document is the single source of truth for
-adding option trading to Grafioschtrader; it supersedes the earlier concept and its review notes.
-**Target:** v0.36.x series. The Flyway migration takes the next free version **after `V0_36_3`**
+adding option trading to Grafioschtrader; it supersedes the earlier concept.
+**Code baseline:** backend **0.36.7**, highest Flyway script `V0_36_7__Frankfurter_and_entity_limit.sql`.
+Every statement about existing behaviour below was verified against that tree.
+**Target:** v0.36.x series. The Flyway migration takes the next free version **after `V0_36_7`**
 (derive the exact number from `pom.xml` and the highest existing migration at implementation start).
 **Audience:** the maintainer and any AI agent implementing options in GT.
 
@@ -24,13 +26,22 @@ be *changed* rather than *extended*:
 
 1. The `s_quotation` DB check constraint rejects the zero-quotation `EXPIRE_WORTHLESS` transaction and
    must be widened.
-2. The security-holdings **rebuild** named queries and the **incremental** holdings Java path both
-   hard-code transaction types 4–5 (`ACCUMULATE`/`REDUCE`) and their unit sign; both must learn the
-   terminal option types with an opener-derived sign.
+2. The holdings unit sign lives in five SQL surfaces — three rebuild named queries and two stored
+   procedures — all of which hard-code transaction types 4–5 (`ACCUMULATE`/`REDUCE`) and
+   `IF(type = 4, 1, −1)`. All five, plus the two `countConsistencyDefects` jobs, must learn the terminal
+   option types with an opener-derived sign (§4.0d).
 3. `TransactionJpaRepositoryImpl.processAndSaveTransaction()` silently ignores unknown transaction types
    (`default: break` → returns `null`); the three new types must be wired explicitly.
 4. Group aggregation (`SecurityPositionGroupSummary.addToGroupSummaryAndCalcGroupTotals`) **overwrites**
    `securityRiskMC`, so option notional needs its own field rather than reusing that one.
+5. `Transaction.validateCashaccountAmount()` needs three new cash formulas, and its auto-correction
+   block — which is reached even from the switch's `default:` arm — must be closed to the terminal
+   types, or a rounding residual rewrites a stored settlement price (§4.0b, §4.0c).
+
+**§4.0 is normative and must be read before writing any calculator or SQL.** It fixes the holdings unit
+scale, the three cash formulas, the auto-correction exclusion and the set of SQL surfaces that carry the
+unit sign. Getting any of them wrong makes the first release wrong by a factor of the contract
+multiplier, or by the whole strike notional.
 
 Everything else — leverage semantics, open→close linkage via `connectedIdTransaction`, multi-currency
 cash settlement, and the margin-instrument pattern (`CFD`, `FOREX`) — carries over as a *reference
@@ -45,7 +56,7 @@ pattern*, not by reuse of the margin code itself.
   `s_quotation` constraint.
 - A new lifecycle calculator (`SecurityOptionsCalc`) and a units checker (`SecurityOptionsUnitsCheck`),
   both siblings of the margin equivalents.
-- Holdings rebuild + incremental extensions for the terminal types.
+- Holdings rebuild extensions for the terminal types, across all five SQL surfaces (§4.0d).
 - Frontend: an option fieldset on the security-edit form, an option-aware transaction dialog, an
   option-position view, an expiration-calendar report, and relation-aware generic link handling.
 
@@ -74,7 +85,16 @@ Every tradable instrument is a `Security` (subclass of `Securitycurrency`) class
 `SpecialInvestmentInstruments` value (`OPTION`)**, exactly as `CFD` and `FOREX` already are. The asset
 class follows the **underlying**: an equity option lives under `EQUITIES`, an index option under whatever
 class hosts the index (typically `EQUITIES`). `Assetclass.possibleInstrumentsMap` is extended to allow
-`OPTION` under the appropriate asset classes; nothing else in that mechanism changes.
+`OPTION`; nothing else in that mechanism changes. V1 is equity and index options, so exactly **one**
+entry gains the value:
+
+| `AssetclassType` | Add `OPTION`? |
+|---|---|
+| `EQUITIES` | **Yes** — equity options, and index options whose index is classified here |
+| `FIXED_INCOME`, `MONEY_MARKET`, `COMMODITIES`, `CONVERTIBLE_BOND`, `CREDIT_DERIVATIVE`, `CURRENCY_PAIR`, `REAL_ESTATE`, `MULTI_ASSET` | **No** in V1 |
+
+A commodity-index option would need `COMMODITIES` as well; it is deliberately out of V1 scope, so the
+entry is not added and such a contract cannot be created.
 
 Call/put is **data on the row**, not a kind of instrument, so a single `OPTION` value is used rather than
 separate `OPTION_CALL`/`OPTION_PUT`.
@@ -139,7 +159,7 @@ linked-security exclusions in searches do not hide options.
 | Column | Reused as |
 |---|---|
 | `active_to_date` | Option **expiration date** (date only). GT does not model last-trading vs. expiration date, AM/PM settlement session, or exercise-cutoff time — an explicit V1 limitation, documented in the User Manual. |
-| `active_from_date` | Earliest tradable date. `active_from_date ≤ transaction date ≤ active_to_date` is enforced for every option transaction, with the European early-exercise exception (§3.4). |
+| `active_from_date` | Earliest tradable date. `active_from_date ≤ transaction date ≤ active_to_date` is enforced for **every** option transaction, without exception. `EUROPEAN` style narrows the window further for terminal events, which may then settle only *on* `active_to_date` (§3.4). Separately, terminal events and the server-built cascade are released from the **trading-day** check (§4.5); that is the only check they are exempt from — date range, closed period and account `activeToDate` always apply. |
 | `currency` | Option's quoting currency. Under the single-currency rule (§2.7) this equals the strike and underlying currency. |
 | `stockexchange` | Listing venue (CBOE, Eurex, …). Part of the uniqueness key. |
 | `leverage_factor` | Not used for options; defaults to 1. The multiplier replaces it. |
@@ -228,12 +248,26 @@ Rules when `specialInvestmentInstrument = OPTION`:
   exercise/assignment — a physically-settled option whose terminal behavior can never succeed must not
   be creatable):
 
-  | Underlying | Allowed `settlement_type` |
+  | Underlying `specialInvestmentInstrument` | Allowed `settlement_type` |
   |---|---|
-  | Equity / ETF (`DIRECT_INVESTMENT`, `ETF`, `MUTUAL_FUND`) | `PHYSICAL` or `CASH` |
-  | Non-investable index (`NON_INVESTABLE_INDICES`) | `CASH` only |
+  | `DIRECT_INVESTMENT` (equity), `ETF` | `PHYSICAL` or `CASH` |
+  | `MUTUAL_FUND` | `PHYSICAL` or `CASH` — **conscious V1 choice**; listed options on a fund are unusual, but nothing in the accounting breaks, so it is allowed rather than special-cased out |
+  | `NON_INVESTABLE_INDICES` | `CASH` only |
+  | `ISSUER_RISK_PRODUCT`, `CFD`, `FOREX`, `PENSION_FUNDS`, `OPTION` | **rejected as underlying** in V1 |
+  | any bond (`FIXED_INCOME` / `CONVERTIBLE_BOND` + `DIRECT_INVESTMENT`) | **rejected as underlying** in V1 |
+  | any `isDerivedInstrument()` security | **rejected as underlying** — formula-priced instruments are a poor underlying and pricing/search treat them as calculated |
+
+  Note that the `DIRECT_INVESTMENT` row is admissible only together with the asset-class restriction of
+  §2.1: the underlying's own asset class decides, so a bond is excluded by its `FIXED_INCOME` category
+  even though it shares the `DIRECT_INVESTMENT` refinement with an equity.
 
   The cascade-time check in §3.7 stays as defense in depth for rows predating this rule.
+- **Own ISIN only.** `security` carries `UNIQUE (isin, currency)`. US listed options usually have no
+  ISIN (NULLs never collide), European contracts often have their own — both are fine. The failure mode
+  is a user pasting the **underlying's** ISIN onto the option, which then collides with the stock row.
+  `beforeSave()` rejects `option.isin == underlying.isin` at the same currency with a message stating
+  that the option's ISIN is its own contract ISIN, not the stock's. The security-edit form must never
+  auto-copy the underlying's ISIN when the underlying is picked.
 - Uniqueness pre-check mirroring both DB indexes (§2.6) for a translated error naming the existing row.
 - **Immutability**: once any transaction references the option, the identity/settlement fields (strike,
   expiration, type, style, multiplier, settlement type, underlying) are locked — the same lock pattern GT
@@ -254,7 +288,7 @@ is handled by the transition policy in §3.9. Deliberately-adjusted contracts ar
 ### 2.10 Migration sketch (idempotent)
 
 ```sql
--- V0_3x_y__option_trading.sql  (next free version after V0_36_3; do NOT backfill into an older series)
+-- V0_3x_y__option_trading.sql  (next free version after V0_36_7; do NOT backfill into an older series)
 ALTER TABLE security ADD COLUMN IF NOT EXISTS strike_price                    DECIMAL(15, 6) NULL;
 ALTER TABLE security ADD COLUMN IF NOT EXISTS option_type                     TINYINT        NULL;
 ALTER TABLE security ADD COLUMN IF NOT EXISTS exercise_style                  TINYINT        NULL;
@@ -283,6 +317,13 @@ DROP INDEX IF EXISTS idx_security_option_underlying_expiry ON security;
 CREATE INDEX idx_security_option_underlying_expiry
   ON security (id_underlying_securitycurrency, active_to_date);
 
+-- Opener lookup. Every terminal event, every option close and every cascade leg resolves its partner
+-- through con_id_transaction; the units check and the delete/edit paths do it under a pessimistic lock.
+-- The column has neither an FK nor an index today, so each of those lookups is a table scan.
+-- Deliberately NOT unique: several partial terminal events legitimately share one opener.
+DROP INDEX IF EXISTS idx_transaction_con_id ON transaction;
+ALTER TABLE transaction ADD INDEX idx_transaction_con_id (con_id_transaction);
+
 -- Widen s_quotation to admit EXPIRE_WORTHLESS (type 14, quotation 0). DIVIDEND/FINANCE_COST (6-7) keep
 -- their existing exemption; EXERCISE (12)/ASSIGN (13) carry strike/settlement price and keep > 0.
 ALTER TABLE transaction DROP CONSTRAINT IF EXISTS s_quotation;
@@ -297,7 +338,7 @@ ALTER TABLE transaction ADD CONSTRAINT s_quotation CHECK (
 
 MariaDB has no partial indexes, so plain composite indexes are used; non-option rows are cheap NULL
 entries. The `s_quotation` replacement only **widens** acceptance, so no existing row can start failing —
-this is proven by a migration test (§8.5).
+this is proven by a migration test (§8.4).
 
 ### 2.11 Why not a `SecurityOption` subclass?
 
@@ -318,6 +359,13 @@ of an option trade exactly as for a stock buy/sell.
 Display name convention (applied automatically at create; user-overridable): `{underlying} {YYYY-MM-DD}
 {C|P} {strike}`, e.g. `AAPL 2026-06-19 C 200`. The display name is **not** the market-data identity —
 that is `option_contract_symbol` (§2.6).
+
+**The generated name must satisfy `Security.name`'s `@Size(min = 2, max = 80)`.** The suffix
+`" YYYY-MM-DD C 999999.99"` alone consumes about 25 characters, so an underlying whose name is longer
+than ~55 characters would overflow and the auto-name would fail validation immediately after a
+successful pick. The generator therefore truncates the underlying part to the first 40 characters
+(trimmed at a word boundary where possible) before appending the suffix, and asserts the result against
+the limit. Auto-naming must never produce a name the same save then rejects.
 
 ### 3.2 Contract multiplier — one authoritative source
 
@@ -383,10 +431,10 @@ Transaction-level rules (enforced in `TransactionJpaRepositoryImpl` / `SecurityO
   opening `ACCUMULATE` or `REDUCE`.
 - A long holder (`ACCUMULATE` opener) can only `EXERCISE`; a writer (`REDUCE` opener) can only be
   `ASSIGN`ed. Wrong direction is rejected.
-- `EUROPEAN` options cannot be exercised/assigned before expiration (`transactionTime < activeToDate`
-  rejected for `EXERCISE`/`ASSIGN` when `exercise_style = EUROPEAN`). This is the only exception to
-  `active_from_date ≤ transaction date ≤ active_to_date` (§2.5) — terminal events settle **on** the
-  expiration date.
+- `EUROPEAN` options cannot be exercised/assigned before expiration: `EXERCISE`/`ASSIGN` with
+  `transactionTime < activeToDate` is rejected when `exercise_style = EUROPEAN`. Combined with the
+  date-range rule of §2.5 this leaves a single admissible day — `active_to_date` — for a European
+  terminal event. `AMERICAN` style keeps the full range.
 - **Integral units** (§3.5): fractional contracts are rejected on open/close/exercise/assign/expiry.
 - Terminal-event units ≤ remaining open units (partial exercise/assignment allowed).
 - Account/security `activeToDate` and `SecaccountTradingPeriod` checks apply, exactly as for other
@@ -469,10 +517,16 @@ WITHDRAWAL/DEPOSIT pair):
   the existing exchange-rate path handles a foreign cash account.
 - **Fees/taxes**: exercise/assignment fees ride the **option leg** `cashaccountAmount` (§3.3); the
   underlying leg is booked at clean strike × quantity so its basis is the strike. (Cost-basis note below.)
-- **Covered-only**: `SecurityGeneralUnitsCheck` forbids negative units and GT has no short-stock
-  representation, so a `REDUCE` cascade only works when the account already holds enough underlying
-  (covered call / shares being put). An uncovered `REDUCE` cascade is rejected with a message telling the
-  user to record the cash outcome instead (or first record the share purchase the broker performed).
+- **Covered-only, and covered means *this security account***: `SecurityGeneralUnitsCheck` forbids
+  negative units and GT has no short-stock representation, so a `REDUCE` cascade only works when **the
+  option opener's own security account** already holds enough underlying (covered call / shares being
+  put). Shares held in another security account of the same tenant do **not** count — users will assume
+  tenant-level cover, so the User Manual has to say this explicitly. An uncovered `REDUCE` cascade is
+  rejected with a message telling the user to record the cash outcome instead (or first record the
+  share purchase the broker performed).
+- **A short put is not cash-secured.** Its assignment cascades to an `ACCUMULATE` (buy stock), which
+  can never fail on units, so the only guard is the ordinary `checkOverdraftAllowed` on that buy. GT
+  reserves no cash when the put is written (§5). "Covered-only" is a units rule, not a collateral rule.
 - **Non-trading-day / closed-period / activeToDate**: the terminal option leg is exempt from the
   option-exchange trading-day check (§4.5). The **cascaded underlying leg** must also be accepted on the
   settlement date even if it is a non-trading day for the underlying's exchange — but this exemption is
@@ -527,23 +581,24 @@ verdict. Silent fall-through is not acceptable.
   `isOptionTransaction()`, `isOptionOpenPosition()`, … and widen only the multiplier gate:
   `isMarginInstrumentNotFinanceCost() || isOptionTransaction()` so `premium × mult × contracts` is
   computed for options.
-- **Holdings — incremental AND rebuild (both hard-coded today).**
-  - Rebuild named queries (`HoldSecurityaccountSecurity.getBuySellTransWithSecuritySplitByIdSecurityaccount`,
-    `…AndSecurity`, `…AndSecurityMargin`) hard-code `transaction_type BETWEEN 4 AND 5` and
-    `IF(type=4,1,−1)`. Extend (or add option-specific variants) to include types 12–14 for option
-    securities, with the unit sign taken from the **opener** via `con_id_transaction`
-    (`IF(opener.transaction_type = 4, −1, +1) × units`) — a terminal event's own type cannot tell you the
-    sign, because expiry closes a long *or* a short.
-  - Incremental path `HoldSecurityaccountSecurityJpaRepositoryImpl.createSecurityHoldingsForSecurityaccountAndSecurity()`
-    computes the sign as `ACCUMULATE ? 1 : −1` in Java — this **also** must use the opener-derived sign
-    for terminal types, or a terminal on a short opener would wrongly reduce units. The invariant
-    "**incremental adjustment ≡ full rebuild** for every terminal event" is a mandatory test (§8.5).
+- **Holdings — five SQL surfaces carry the unit sign.** §4.0d is normative and enumerates them.
+  `adjustSecurityaccountHoldings()` deletes and rebuilds the affected account/security from SQL, so
+  every surface carrying the `transaction_type BETWEEN 4 AND 5` filter and the `IF(type = 4, 1, −1)`
+  sign has to learn the terminal types with an **opener-derived** sign — a terminal event's own type
+  cannot supply the sign, because expiry closes a long *or* a short. Missing one surface makes a
+  tenant-wide rebuild disagree with a per-account rebuild, or makes the nightly consistency job report
+  correct option rows as defects.
 - **`adjustSecurityaccountHoldings()`** — updates holdings only for `ACCUMULATE`/`REDUCE` today; the
   three terminal types must trigger the same adjustment.
-- **Cash-amount validation** — `Transaction.validateCashaccountAmount()` recalculates from
-  `getSeucritiesNetPrice()`. New branches: `EXPIRE_WORTHLESS` expects `−(cost+tax)` (0 if none);
-  cash-settled `EXERCISE`/`ASSIGN` expect `intrinsic × mult × contracts × longShortSign − cost − tax`;
-  physical `EXERCISE`/`ASSIGN` expect `−(cost+tax)` on the option leg.
+- **Cash-amount validation** — `Transaction.validateCashaccountAmount()` gets three new branches, given
+  verbatim in §4.0b. They are **mandatory**, not a refinement: `getSeucritiesNetPrice()` is
+  `quotation × units × getValuePerPoint()`, and on a terminal event `quotation` holds the settlement
+  price or the strike, not a premium — so falling through to
+  `validateSecurityGeneralCashaccountAmount` / `validateSecurityMarginCashaccountAmount` books the
+  whole settlement or strike notional instead of the intrinsic payoff (§4.0b).
+- **Auto-correction is blocked for the terminal types** (§4.0c). The guard belongs on the auto-correct
+  block itself, which sits *after* the type switch in `validateCashaccountAmount` and is reached from
+  its `default:` arm as well, gated only on `quotation != null`.
 - **Opener edits** — recommended: **lock the opener once a terminal event exists** (editing a premium
   after exercise is meaningless), reusing the margin lock rather than recalculating connected closes.
 - **Delete path** — `deleteSingleDoubleTransaction()` runs the units check with `OperationType.DELETE`;
@@ -552,22 +607,33 @@ verdict. Silent fall-through is not acceptable.
 - **`quotation` reuse is fine (per decision).** The reused `quotation` field means premium/unit for
   trades, settlement price for cash terminal events, and strike for physical terminal events. This is
   acceptable because **generic reports read cash effects from `cashaccountAmount`, not `quotation`**, and
-  the terminal-event `quotation` is consumed only by `SecurityOptionsCalc`. One defensive requirement:
-  confirm no automatic quotation-correction path fires on the terminal types (they carry deliberate
-  settlement/strike values, not market quotes).
+  the terminal-event `quotation` is consumed only by `SecurityOptionsCalc`. It carries one obligation:
+  the auto-correction path fires on any type that reaches it with a non-null quotation, so the terminal
+  types must be excluded from it explicitly (§4.0c).
 
 **Normative consumer matrix** (extend as the audit is regenerated):
 
 | Consumer | Verdict for 12/13/14 |
 |---|---|
-| Holdings rebuild queries (×3) + incremental Java path | **Adapt** — include; sign from linked opener (§3.9) |
-| `adjustSecurityaccountHoldings()` | **Adapt** — treat as unit events |
-| `HoldCashaccountBalance` bucket queries | **Adapt** — cash-settled terminal in the accumulate/reduce bucket; physical leg only the fee; worthless only the fee |
-| `Transaction.validateCashaccountAmount()` | **Adapt** — new branches (above) |
+| The five holdings SQL surfaces (3 named queries, 2 stored procedures) | **Adapt** — include; sign from the linked opener (§4.0d) |
+| `HoldSecurityaccountSecurity.countConsistencyDefects` | **Adapt** — include the terminal types **and** multiply by `asset_investment_value_2`; it recomputes plain `SUM(±units)` today, on which every option position would report a `ROW_HOLDINGS` defect (§4.0a) |
+| `HoldCashaccountBalance.countConsistencyDefects` | **Adapt** — `accumulateReduce` is `BETWEEN 4 AND 5`; cash-settled terminals belong in that bucket or the job reports false defects |
+| `adjustSecurityaccountHoldings()` | **Adapt** — the three terminal types must trigger the rebuild; it returns early on anything but 4/5 today |
+| `HoldCashaccountBalance` bucket queries | **Adapt** — cash-settled terminal in the accumulate/reduce bucket; physical leg only the fee; worthless only the fee. The **balance** itself is already right (it sums all types); only the period breakdown drifts |
+| `Transaction.validateCashaccountAmount()` | **Adapt** — new branches (§4.0b) plus the auto-correct exclusion (§4.0c) |
+| `Security.calculatePositionClose` / `SecurityPositionSummary.calcGainLossByPrice` | **Adapt** — the value line honours `openUnitsTimeValuePerPoint`, which `SecurityOptionsCalc` populates with the signed `contracts × multiplier` (§4.1); the closing percentage line divides by `adjustedCostBase` and takes `Math.abs` for options (§4.4) |
+| `Ech0196MappingService` (Swiss eCH-0196 tax export) | **Reject** — skip `isOption()` positions in `mapPositions`, alongside the existing `isMarginInstrument()` skip, and list the omissions visibly. Without the skip an option is exported as an ordinary security at `valueAtEndOfYearMC`, and its `unitsAtEndOfYear <= 0` filter drops short positions silently. V1 implements no option tax treatment; a dedicated mapping is a later decision |
+| `SecurityActionService.createTransfer` / `SecurityTransfer` | **Reject** — add an `isOption()` guard to `validateAndPrepareTransfer` next to the existing `gt.security.transfer.margin.not.allowed` rejection, with its own message key. A transfer's sell leg is a bare `REDUCE` **without** `connectedIdTransaction`, which `SecurityOptionsCalc` reads as a sell-to-open, so an unguarded transfer creates a phantom short position in the source account. A lot-preserving option transfer is deferred |
+| `DIVIDEND` / `FINANCE_COST` on an `isOption()` security | **Reject** in the save path. `canHaveDividendConnector()` and `canHaveSplitConnector()` both exclude `OPTION` and so keep these connectors out of the UI, but neither is consulted by `processAndSaveTransaction`, which routes both types for any security |
+| Manually entered split on an option security | **Reject** — complements §3.10, where automatic split handling must never touch option rows |
+| `Securityaccount.getAllTransactionCostByTenant` / `…BySecurityaccount` | **Adapt** — include exercise/assignment fees (12–13), and multiply the reported price by `asset_investment_value_2` where the security has a value per point; it computes `units × quotation` today, which understates an option trade by the multiplier |
+| `Historyquote.getHistoryquoteCurrenciesForBuyAndSellByIdTenantAndMainCurrency` | **Adapt** — types 4–5 only today, so the FX rate for a cash-settled terminal date can be missing |
+| `CheckCashaccountAmountTransaction` (data verification) | **Adapt** — must use the new cash formulas (§4.0b) or it reports every option terminal event as a defect |
+| `filterMarginTransaction` / `getOpenPositionMarginPosition` | **Adapt** — write the option equivalent from the §3.6 truth table, gated on `isOption()`. Do **not** clone the margin filter: it carries a `!= FINANCE_COST` condition and a `securityRisk` expectation that are meaningless for options |
+| Watchlist context menu (`watchlist.table.ts`) | **Adapt** — offer option open/close/terminal actions, not raw ACCUMULATE/REDUCE |
 | `SecurityOptionsCalc` (new) | **Include** — realised/unrealised, notional |
 | `AccountPositionGroupSummaryReport` | **Adapt** — realised P&L like a close |
 | `PerformanceReport` | **Include (indirect)** — correct once holdings + cash rows are correct; acceptance-tested, not code-changed |
-| Transaction-cost / fee reports (buy/sell type ranges) | **Adapt** — include exercise/assign fees (types 12–13) |
 | Fee-model estimator | **Adapt or reject** — decide per estimator; reject in V1 if not straightforward |
 | `SecurityDividendsReport`, dividends component | **Reject** — ignore option terminal types |
 | `StandingOrderJpaRepositoryImpl` | **Reject** — options not offered in standing orders |
@@ -634,6 +700,137 @@ expiration-calendar report (§4.3):
 
 ## 4. Holdings, Valuation & P&L
 
+### 4.0 Frozen numeric contracts (normative)
+
+Four decisions determine whether option positions are valued and settled correctly. They are binding on
+every calculator, query and stored procedure written for this feature, and each has a matching
+acceptance test in §8.4.
+
+#### 4.0a Holdings unit scale — `contracts × multiplier`
+
+`hold_securityaccount_security.holdings` stores, for an option,
+
+```text
+±contracts × contract_multiplier
+```
+
+— the **margin shape**. GT has exactly two existing scales: the general rebuild query writes
+`SUM(IF(type = 4, 1, −1) × units)`, the margin one writes
+`IF(type = 4, 1, −1) × units × asset_investment_value_2`. Options take the second.
+
+The reason is that every hold-table consumer values a position as `holdings × last_price`. With the
+contract count in the column, a multiplier-100 contract quoted at 5.00 would be valued at 5 instead of
+500 — and each of `PerformanceReport`, watchlist units, asset-class totals, `SecurityDividendsReport`
+year-end units and the tax export would need its own multiplier branch. With `contracts × multiplier`
+they are all correct with no change.
+
+The price of that choice is that `holdings` is **not** a contract count. Consumers that must divide by
+the multiplier before showing a number to the user:
+
+- the option-position view (§7) — displays contracts,
+- the expiration-calendar report and `OptionExpirationEntry.openContracts` (§3.12),
+- any "units" column the generic security tables render for an option row.
+
+One consumer needs more than the terminal types added to it.
+`HoldSecurityaccountSecurity.countConsistencyDefects` recomputes the expected holdings as
+`SUM(IF(type = 4, 1, −1) × units)` — with **no** `asset_investment_value_2` and no instrument filter —
+and compares that against `hold.holdings`. On this scale every option position would be reported as a
+`ROW_HOLDINGS` defect. The query must therefore multiply by `asset_investment_value_2` wherever the
+security carries a value per point. That correction also covers CFD and FOREX, which the query treats
+the same way today, and it is part of this change set.
+
+**Sign** on closes and terminal events comes from the **opener**, never from the row's own type:
+
+```text
+sign        = IF(opener.transaction_type = 4, −1, +1)     -- close a long / close a short
+factorUnits = sign × contracts × contract_multiplier
+```
+
+Expiry closes a long *or* a short, so `EXPIRE_WORTHLESS` alone carries no directional information.
+After a full close the holdings must be exactly zero.
+
+#### 4.0b Cash-validation formulas
+
+`Transaction.validateCashaccountAmount()` gets three branches. They must **not** fall through to
+`validateSecurityGeneralCashaccountAmount` or `validateSecurityMarginCashaccountAmount`:
+
+```text
+EXPIRE_WORTHLESS:
+  cash = −(cost + tax)                                    // 0 when there is no fee
+
+EXERCISE / ASSIGN, settlement_type = CASH:
+  cash     = longShortSign × intrinsic × mult × n − (cost + tax)
+  intrinsic = CALL ? max(quotation − strike, 0)
+                   : max(strike − quotation, 0)
+
+EXERCISE / ASSIGN, settlement_type = PHYSICAL:
+  cash = −(cost + tax)                                    // the strike cash rides the cascade (§3.7)
+```
+
+**`getSeucritiesNetPrice()` must not be used for the terminal types.** It is
+`quotation × units × getValuePerPoint()`, and once the multiplier gate is widened (§3.9)
+`getValuePerPoint()` returns the contract multiplier for every option transaction. On a cash exercise
+`quotation` holds the **settlement price**, so the helper would compute `settlement × mult × n`
+(210 × 100 × 1 = 21 000) where the intrinsic payoff is `10 × 100 = 1 000`. On a physical exercise
+`quotation` holds the **strike**, so it would book the whole strike notional on the option leg instead
+of `−(cost + tax)`.
+
+`checkNegativeQuoataion()` already permits 0 (it rejects only `< 0`, and only outside types 6–7), so
+expiry-at-zero passes once `s_quotation` is widened (§2.10).
+
+#### 4.0c No auto-correction on the terminal types
+
+`GlobalConstants.AUTO_CORRECT_TO_AMOUNT` is `true`. When the rounded cash amounts agree but the
+unrounded ones do not, `correctSecurityTransactionToAmount()` silently rewrites **`quotation`** (or the
+exchange rate) and then recomputes `cashaccountAmount`. On a terminal event that would rewrite the
+official settlement price, or mutate the strike snapshot of a physical exercise, because of a rounding
+residual.
+
+**Terminal types never enter the auto-correct path.** A residual is either stored as
+`cashaccountRoundingDiff` (when the user accepted it, or it is inside the template tolerance) or the
+save is rejected — exactly the two outcomes the existing code already offers.
+
+**Place the guard on the auto-correct block itself**, not on the type switch. In
+`validateCashaccountAmount` the switch's `default:` arm sets `calcCashaccountAmount = cashaccountAmount`
+and then falls through into the same auto-correct block, which is gated only on
+`quotation != null && AUTO_CORRECT_TO_AMOUNT`. A terminal event booked with more precision than the
+currency fraction would otherwise be "corrected" from that arm even though its type never appeared in
+the switch.
+
+#### 4.0d Holdings are rebuilt from SQL
+
+Holdings maintenance for a general security is a **rebuild**, not an incremental update.
+`adjustSecurityaccountHoldings()` (which returns early for anything but `ACCUMULATE`/`REDUCE` today)
+calls `rebuildHoldingsForSecurityaccountAndSecurity`, which deletes the affected account/security rows
+and recreates them from the named queries. The one Java sign expression in that area,
+`buySellFactor = ACCUMULATE ? 1 : −1` in `setMarginValues`, tracks the margin average price and is not
+the holdings sign.
+
+The unit sign therefore lives entirely in **five SQL surfaces**, all of which hard-code
+`transaction_type BETWEEN 4 AND 5` and `IF(type = 4, 1, −1)` and all of which must learn the terminal
+types with the opener-derived sign of §4.0a:
+
+| Surface | Where | Used by |
+|---|---|---|
+| `HoldSecurityaccountSecurity.getBuySellTransWithSecuritySplitByIdSecurityaccount` | `jpa-named-queries.properties` | per-account rebuild |
+| `…ByIdSecurityaccountAndSecurity` | same | per-account/security rebuild |
+| `…ByIdSecurityaccountAndSecurityMargin` | same | margin variant |
+| `holdSecuritySplitTransaction` | stored procedure | `rebuildHoldingsForSecurity` (all accounts) |
+| `holdSecuritySplitMarginTransaction` | stored procedure | same, margin variant |
+
+Both procedures were last rewritten in `V0_36_4`, so the option migration must `CREATE OR REPLACE`
+them — an `ALTER TABLE`-only migration leaves the tenant-wide rebuild on the old definition. They exist
+in three places that have to stay in step: the migration, `db/migration/gt_ddl.sql` (regenerated, never
+hand-edited) and `src/test/resources/db/migration/test/V1__schema.sql`.
+
+Two consistency jobs carry the same hard-coded range and must be adapted with them, or correct option
+positions get reported as defects: `HoldSecurityaccountSecurity.countConsistencyDefects` (see §4.0a)
+and `HoldCashaccountBalance.countConsistencyDefects` (`accumulateReduce = BETWEEN 4 AND 5`).
+
+The headline invariant of §8.4 is accordingly three-way:
+**per-account rebuild ≡ all-accounts stored-procedure rebuild ≡ consistency check**, for every terminal
+type, on both a long and a short opener.
+
 ### 4.1 New calculator: `SecurityOptionsCalc`
 
 `grafioschtrader/instrument/SecurityOptionsCalc.java` (new), modeled on `SecurityMarginCalc`:
@@ -650,6 +847,23 @@ Dispatch lives in `SecurityCalcService.getSecurityCalc()`, which returns `securi
 Two adjacent details in `SecurityCalcService.calcTransactions()`: the accrued-interest handling runs only
 for non-margin instruments — widen the guard to "not margin **and** not option"; and reuse the existing
 closed-position-removal mechanism so fully closed option positions drop out of the summary.
+
+**It must populate `openUnitsTimeValuePerPoint`** with the **signed** `contracts × multiplier`, the way
+`SecurityMarginCalc` does. `SecurityPositionSummary.calcGainLossByPrice()` computes
+`valueSecurity = price × (openUnitsTimeValuePerPoint == 0 ? units : openUnitsTimeValuePerPoint)`, so a
+field left at 0 makes every caller that marks an open position to market through
+`Security.calculatePositionClose` (watchlist, some portfolio summaries) value a multiplier-100 contract
+100× too low. Signing it is what produces the writer's negative liability of §4.3.
+
+`calcGainLossByPrice()` needs no `isOption()` branch for the value: its non-margin arm reduces to
+`gainLossSecurity += valueSecurity − adjustedCostBase`, which is the formula of §4.3. Its closing
+percentage line is the one place that does change (§4.4).
+
+**Hypothetical close of a short.** `createHypotheticalSellTransaction` is how open positions are shown
+as if closed at last price; it dispatches through `getSecurityCalc()`, so `SecurityOptionsCalc` supplies
+its own. For a **written** option that hypothetical close is a **buy-to-close** — an `ACCUMULATE` linked
+to the opener, the way `SecurityMarginCalc` emits a hypothetical buy for a short opener. Reusing the
+general "hypothetical sell all units" would flip the sign of the writer's unrealised P&L.
 
 Helper on `Security`:
 
@@ -686,9 +900,11 @@ it into a group total alongside the existing one. The "Risk Exposure" widget (§
 | `adjustedCostBase` | `+(net premium paid)` | `−(net premium received)` (credit) |
 | `gainLossSecurity` | `valueSecurity − adjustedCostBase` | `valueSecurity − adjustedCostBase` |
 
-Short sanity check: written at 5.00, now 2.00, mult 100, 1 contract → `valueSecurity = −200`,
-`adjustedCostBase = −500`, `gainLoss = −200 − (−500) = +300`. ✔ (The `adjustedCostBase − valueSecurity`
-variant would give the wrong sign for shorts.)
+Short sanity check, **ignoring costs**: written at 5.00, now 2.00, mult 100, 1 contract →
+`valueSecurity = −200`, `adjustedCostBase = −500`, `gainLoss = −200 − (−500) = +300`. ✔ (The
+`adjustedCostBase − valueSecurity` variant would give the wrong sign for shorts.) The §4.4a worked
+examples add a 1.00 opening cost to the same position, which moves the basis to `−499` and the gain to
+`+299`.
 
 ### 4.4 Realised P&L, partial closes, ordering
 
@@ -705,6 +921,10 @@ costs/taxes) — the identity every worked example below satisfies.
   each consumes remaining units and its proportional basis in time order.
 - **Short gain%**: the percentage denominator for a credit (short) position uses the **absolute** premium
   basis `|adjustedCostBase|`, so a profitable short does not report a negative-denominator artifact.
+  Concretely, `SecurityPositionSummary.calcGainLossByPrice()` ends with
+  `transactionGainLossPercentage = gainLossSecurity × 100 / adjustedCostBase`; for an option that
+  divisor becomes `Math.abs(adjustedCostBase)`. This is the one line of that method options do change
+  (§4.1).
 - **`realisedGainSecurity` accumulates completed slices**: a transient field on
   `SecurityPositionSummary`, updated by the calculator on **every** closing/terminal event — not only
   when units reach zero. The realised gain of a slice is **its cash flow minus its allocated share of
@@ -795,6 +1015,22 @@ badged so the user does not read the number as final. Intrinsic value (computed 
 quote) is shown as **informational only**. GT does not force the value to zero (wrong for an unresolved
 ITM option) and does not silently trust the stale quote as final.
 
+**Interaction with the missing-quote scan.** `PerformanceReport` blocks its from/to date picker on days
+that `HoldSecurityaccountSecurity.getMissingQuotesForSecurityByTenantAndPeriod` reports as missing. That
+query bounds its search with `tdp.trading_date <= LEAST(s.active_to_date, …)`, so trading days **after**
+an option's expiration are outside the scan by construction, however long the position stays open — a
+forgotten expiry costs a stale valuation, not an unusable report, and needs no further handling.
+
+Days **inside** the active range do need a rule. Illiquid contracts do not trade every day, the provider
+then delivers no close, and `historyquote` has no row for a trading day on which the position was held.
+For equities that is a rare data problem; for options it is normal market behaviour, and a few thin
+contracts would otherwise make the date picker unusable for the whole tenant.
+
+**Rule:** for `isOption()` securities the last known quote is carried forward across quote-less trading
+days inside the active range, and those days are excluded from the missing-quote set. This is
+independent of the stale marking above, which covers the *expired* state rather than illiquidity.
+Acceptance-tested in §8.4.
+
 ---
 
 ## 5. Reports & Analyses
@@ -802,19 +1038,32 @@ ITM option) and does not silently trust the stale quote as final.
 - **Asset-class breakdown** (`SecurityGroupByAssetclassWithCashReport`, `tenant.summaries.assetclass`):
   equity/index options roll up under `EQUITIES` with no special handling. The chart uses `valueSecurity`
   (market value), not notional — a deep-OTM long call has tiny value but huge notional; notional appears
-  only in the Risk Exposure widget.
+  only in the Risk Exposure widget. The resulting pictures are market-value-correct but can surprise, so
+  the User Manual shows all four: a **covered call** appears as stock value minus the short call
+  (economically right); a **protective put** as stock plus the long put (right); a **naked short put**
+  as a *negative* `EQUITIES` slice with no stock behind it; a **deep-OTM long call** as a nearly
+  invisible slice despite a large notional.
 - **Performance** (`PerformanceReport`): not code-changed but **not automatically type-agnostic** — it is
   correct only after the holdings rebuild + cash-bucket queries handle the terminal types (§3.9). It is
-  an acceptance-test target (§8.5), not an assumption.
+  an acceptance-test target (§8.4), not an assumption.
 - **Expiration calendar** (new, §4.3): open option positions by `active_to_date` — underlying, type,
   strike, expiration, days remaining, intrinsic, market value; expired-but-open flagged (§4.7). The single
   most valuable options report.
 - **Risk metrics**: V1 surfaces **notional exposure** only (`strike × mult × contracts`, per position and
-  summed long/short and absolute). `strike × mult × contracts` is labeled **notional exposure, not max
-  loss** — a naked short call's loss is unbounded, and GT performs **no** margin/collateral/buying-power
-  checks. "Covered-only" (§3.7) means only that a generated sale cannot make units negative; it does not
-  make a short put cash-secured or reserve shares/cash. These limitations get prominent UI wording and
-  User-Manual warnings. Greeks/IV deferred.
+  summed long/short and absolute), and the widget must say what it is *not*, in the same sentence as the
+  number:
+  - **Notional is not max loss.** A naked short call's loss is unbounded. GT performs **no**
+    margin, collateral or buying-power check, and imposes **no position limit** — a user can write an
+    arbitrarily large short and drive tenant equity substantially negative, because a written option is
+    carried as a liability in `valueSecurity`.
+  - **"Covered-only" (§3.7) is a units rule.** It means only that a generated sale cannot make units
+    negative, in the option opener's own security account. It does not make a short put cash-secured,
+    does not reserve shares or cash, and does not look at other accounts of the tenant.
+  - **A multi-leg notional is not spread risk.** Each leg is its own security, so summing
+    `optionNotionalMC` over a vertical or a collar yields the sum of the strikes, not the structure's
+    max loss. The widget labels the total "sum of contract notionals, not spread risk".
+
+  These get prominent UI wording and User-Manual warnings. Greeks/IV deferred.
 - **Correlation matrix**: option price is non-linear in the underlying, so options are **excluded
   visibly** — the add-dialog filters `isOption()` out with an explanatory tooltip; the backend rejects
   option ids defensively; a legacy set containing an option marks it excluded in the result rather than
@@ -903,12 +1152,20 @@ Document honestly; do not over-promise European support in V1.
   and an underlying search-picker (`idUnderlyingSecuritycurrency`). Auto-name from underlying + expiration
   + type + strike (§3.1). Identity/settlement fields render read-only once a transaction references the
   option (§2.8); `optionContractSymbol` stays editable until first set (§2.6).
-- **Enum mirrors + i18n**: add `OPTION` to `shared/types/special.investment.instruments.ts`; add
-  `EXERCISE`/`ASSIGN`/`EXPIRE_WORTHLESS` to `shared/types/transaction.type.ts`; add the three option enums;
-  add `EXERCISE`/`ASSIGN`/`EXPIRE_WORTHLESS` + all option labels to `assets/i18n/en.json` + `de.json`
-  (UPPER_SNAKE). Backend: `typenames.properties` gains `trans_12`–`trans_14` and
-  `specialInvestmentInstruments_7` (missing entries throw `MissingResourceException`); backend validation
-  messages go in `grafioschtrader-common/.../messages*.properties` (UTF-8, both languages).
+- **Enum mirrors**: add `OPTION` to `shared/types/special.investment.instruments.ts`; add
+  `EXERCISE`/`ASSIGN`/`EXPIRE_WORTHLESS` to `shared/types/transaction.type.ts`; add the three option
+  enums as new mirror files. These are **numeric mirrors only** — no labels. Each new mirror file needs
+  the `Corresponds to backend: <path>` marker comment, which is what enrols it in
+  `frontend/src/enum.mirror.spec.ts`; without the marker a renumbered or missing constant fails
+  silently (backend/CLAUDE.md).
+- **i18n is backend-only.** The frontend has no translation files; since issue #214 it loads
+  `GET /api/globalparameters/properties/{language}` as ngx-translate's only source. Every option label,
+  including the `UPPER_SNAKE` enum texts, goes into
+  `grafioschtrader-common/src/main/resources/message/messages.properties` and `messages_de.properties`
+  (UTF-8, no BOM, both languages, no duplicate keys — `NlsBundleGuardTest` fails the build otherwise).
+  Additionally `grafioschtrader/typenames.properties` gains `trans_12`–`trans_14` and
+  `specialInvestmentInstruments_7`, which are loaded via `ResourceBundle` and throw
+  `MissingResourceException` when absent.
 - **Transaction dialog** (`transaction/component/transaction-security-edit.component.ts`): add an
   `isOption` branch — labels "Premium per contract"/"Contracts"/"Multiplier (display-only)"; expiration
   warning when `transactionTime > activeToDate`; `EXERCISE`/`ASSIGN` require linking to an opener (reuse
@@ -943,8 +1200,8 @@ its acceptance gate.
 | Stage | Scope | Key contents |
 |---|---|---|
 | **1 — Instrument foundation** | Option metadata + manual quotes | Schema migration (§2.10, may defer the `s_quotation` change to Stage 3), `OPTION` + three option enums, underlying FK, contract symbol + uniqueness (public-only), `beforeSave()` validation + immutability + single-currency, security-edit fieldset, manual price entry. No option transactions. |
-| **2 — Long-option accounting** | Buy-to-open / sell-to-close long calls & puts | Save-path wiring for `ACCUMULATE`/`REDUCE` on options, multiplier snapshot, `SecurityOptionsUnitsCheck`, `SecurityOptionsCalc`, holdings incremental + rebuild extension, position summary + notional field, performance inclusion, option-position view — one release, proven by the rebuild-equivalence test. |
-| **3 — Long cash terminal events** | `EXPIRE_WORTHLESS` + broker-confirmed **long-side** cash `EXERCISE` | `s_quotation` replacement, terminal types in holdings queries with opener-derived sign (incremental **and** rebuild), payoff/realised semantics (§4.4a), expiration-calendar + expired warnings. **`ASSIGN` is a writer event → Stage 4.** |
+| **2 — Long-option accounting** | Buy-to-open / sell-to-close long calls & puts | Save-path wiring for `ACCUMULATE`/`REDUCE` on options, multiplier snapshot, `SecurityOptionsUnitsCheck`, `SecurityOptionsCalc` (incl. `openUnitsTimeValuePerPoint`), the holdings scale of §4.0a across all five SQL surfaces, position summary + notional field, performance inclusion, option-position view — one release, proven by the three-way rebuild-equivalence test. |
+| **3 — Long cash terminal events** | `EXPIRE_WORTHLESS` + broker-confirmed **long-side** cash `EXERCISE` | `s_quotation` replacement, terminal types with opener-derived sign in all five holdings SQL surfaces **and** both consistency jobs (§4.0d), the cash formulas and auto-correct exclusion (§4.0b–c), payoff/realised semantics (§4.4a), expiration-calendar + expired warnings. **`ASSIGN` is a writer event → Stage 4.** |
 | **4 — Written options** | Sell-to-open, buy-to-close, cash `ASSIGN`, liability valuation | Short-position summary + liability, partial closes + proportional allocation, notional widget, direction validation. |
 | **5 — Physical settlement** | Covered-only exercise/assignment cascade | Cascade create/edit/delete (§3.7–3.8), covered enforcement, cascade preview, basis docs. |
 | **6 — Import / export / receipts (+ optional automation)** | Broker CSV + receipts round-trip | Contract-symbol parsing → matching/creation, BTO/STC/STO/BTC + terminal mapping, opener matching incl. partial closes, cascade-link preservation across exported ids, fees/taxes/settlement value, idempotent re-import + reconciliation, tenant copy/simulation relation remap. Automation only under §4.6 preconditions. Separate normative sub-spec. |
@@ -976,7 +1233,7 @@ validation message** — hiding UI actions is not enforcement:
 ### 8.2 Migration safety & backwards compatibility
 
 - Schema changes are additive **except** the `s_quotation` replacement, which only widens acceptance
-  (adds `type 14, quotation 0`) — proven equivalent for all existing rows by a migration test (§8.5).
+  (adds `type 14, quotation 0`) — proven equivalent for all existing rows by a migration test (§8.4).
 - New enum values do not touch existing data; the calculator routes on `isOption()` (false for all
   existing rows); `isDerivedInstrument()`, margin routing, and searches are untouched (§2.4).
 - Nothing is renamed or has its semantics changed. A pre-existing `Security` has all option columns NULL.
@@ -1010,8 +1267,19 @@ assign/expire trades; connector availability + gaps (European, expired-contract 
   cascade links rejected; **only the server-generated cascade leg receives the non-trading-day
   exemption** — an ordinary underlying transaction never does (§3.6).
 - Opener edit/delete locking once terminals exist; delete terminal removes the cascade.
-- **Incremental holdings ≡ full rebuild** after every terminal type, on both long and short openers (the
-  headline invariant, §3.9).
+- **Three-way rebuild equivalence** — per-account rebuild ≡ all-accounts stored-procedure rebuild ≡
+  `countConsistencyDefects` reporting zero, after every terminal type, on both long and short openers
+  (the headline invariant, §4.0d).
+- **Holdings scale, asserted twice on the same position** (§4.0a): the hold row and the market value use
+  `contracts × multiplier` (1 contract, mult 100, last 5.00 → `holdings = 100`, value 500), while the
+  option-position view and the expiration calendar report **1 contract**. Both assertions are required —
+  either one alone passes under either scale.
+- **Cash-settled exercise books the intrinsic payoff**, not the settlement notional (§4.0b): settlement
+  210, strike 200, mult 100, 1 contract → `+1 000`, never `+21 000`. Physical exercise books
+  `−(cost + tax)` on the option leg, with the strike cash on the cascade.
+- **A rounding residual on a terminal event never mutates `quotation`** (§4.0c) — assert the stored
+  settlement price and the strike snapshot are byte-identical after a save that carries sub-currency
+  precision, and that the residual lands in `cashaccountRoundingDiff` or the save is rejected.
 - **Notional survives group aggregation** (dedicated field, not `securityRiskMC`, §4.2).
 - Single-currency validation: reject option ccy ≠ underlying ccy; cash-account conversion still works.
 - Closed/open valuation; realised/unrealised split; performance-report period attribution of expiry
@@ -1036,6 +1304,19 @@ assign/expire trades; connector availability + gaps (European, expired-contract 
   `SecurityActionService` copies option fields verbatim.
 - Consumer verdicts realized: CSV/receipt/copy/simulation/GTNet/algo/standing-order behave per §3.9
   (include/adapt or explicit reject).
+- **Explicit rejects** (§3.9): an option is refused by `SecurityActionService.createTransfer`, skipped by
+  `Ech0196MappingService` — asserted for a **short** position too, since its `unitsAtEndOfYear <= 0`
+  filter would drop that one without any skip — and refused for `DIVIDEND`, `FINANCE_COST` and a
+  manually entered split. Each is asserted against a crafted REST body, not only against a hidden UI
+  action.
+- **Short percentage** uses `|adjustedCostBase|`: a profitable writer reports a positive gain-%, not the
+  negative-denominator artifact (§4.4).
+- **`openUnitsTimeValuePerPoint` is populated** (§4.1): a position marked to market through
+  `Security.calculatePositionClose` — not only through a transaction replay — values a multiplier-100
+  contract at `last × 100 × n`.
+- **Illiquid option inside its active range**: trading days with no `historyquote` row do not enter the
+  missing-quote set and do not block the performance date picker (§4.7). Second assertion on the same
+  fixture: an expired-but-open position contributes no missing-quote days either.
 
 Frontend (Vitest for pure logic; E2E for flows):
 
@@ -1099,6 +1380,12 @@ Frontend (Vitest for pure logic; E2E for flows):
 | 30 | Expiration-calendar endpoint? | New `OptionResource`, `GET /option/expiringsoon` with fully defined DTO, defaults, ordering (§3.12). |
 | 31 | Stage gating? | Server-side capability gates per stage with explicit rejections — UI hiding is not enforcement (§8.1). |
 | 32 | Cascade-link forgery? | Client links to a terminal event rejected outright; cascade legs are server-created only and alone receive the trading-day exemption (§3.6). |
+| 33 | Hold-table unit scale for options? | `±contracts × multiplier` — the margin shape, so `holdings × last` stays correct everywhere; UI divides by the multiplier to show contracts (§4.0a). |
+| 34 | Terminal-event cash from `getSeucritiesNetPrice()`? | No — three explicit branches; the helper would book the settlement or strike notional (§4.0b). |
+| 35 | Auto-correction on terminal types? | Excluded, with the guard on the auto-correct block itself, not on the type switch (§4.0c). |
+| 36 | Account-to-account transfer of an option? | Rejected in V1, mirroring the existing margin rejection; a bare `REDUCE` leg would read as a phantom sell-to-open (§3.9). |
+| 37 | eCH-0196 export of options? | Rejected in V1 — omitted positions listed visibly rather than exported without an option tax treatment (§3.9). |
+| 38 | Quote-less trading days on illiquid options? | Last known quote carried forward; those days are excluded from the missing-quote set (§4.7). |
 
 ---
 
@@ -1124,23 +1411,35 @@ Backend:
   branch; widen the accrued-interest guard.
 - `grafioschtrader/repository/TransactionJpaRepositoryImpl.java` — type-switch wiring, multiplier
   snapshot, holdings adjustment, cascade create/edit/delete with opener locking (§3.7–3.9).
-- `grafioschtrader/repository/HoldSecurityaccountSecurityJpaRepositoryImpl.java` — opener-derived sign in
-  the incremental path (`createSecurityHoldingsForSecurityaccountAndSecurity`, §3.9).
-- `META-INF/jpa-named-queries.properties` — extend the three `getBuySellTrans…` rebuild queries for
-  terminal types with opener-derived sign.
+- `META-INF/jpa-named-queries.properties` — the three `getBuySellTrans…` rebuild queries, both
+  `countConsistencyDefects` queries, `Securityaccount.getAllTransactionCost*` and
+  `Historyquote.getHistoryquoteCurrenciesForBuyAndSellByIdTenantAndMainCurrency` (§4.0d, §3.9).
+- The two hold stored procedures, `holdSecuritySplitTransaction` and
+  `holdSecuritySplitMarginTransaction` — `CREATE OR REPLACE` in the migration; last rewritten in
+  `V0_36_4` (§4.0d).
+- `grafioschtrader/tax/swiss/ech0196/Ech0196MappingService.java` — reject `isOption()` positions.
+- `grafioschtrader/reportviews/securityaccount/SecurityPositionSummary.java` —
+  `calcGainLossByPrice()`: `|adjustedCostBase|` in the percentage; the value line needs no change once
+  `openUnitsTimeValuePerPoint` is populated (§4.1).
 - `grafioschtrader/reportviews/securityaccount/SecurityPositionSummary.java` — new `optionNotionalMC` +
   transient `realisedGainSecurity`.
 - `grafioschtrader/reportviews/securityaccount/SecurityPositionGroupSummary.java` — sum the option
   notional field (do not overwrite it as `securityRiskMC` is overwritten, §4.2).
 - `grafioschtrader/reports/PerformanceReport.java` — no code change expected; acceptance-tested (§5).
 - `grafioschtrader/service/SecurityActionService.java` + split handling — must never touch option rows;
-  ISIN change copies option fields verbatim (§3.10).
+  ISIN change copies option fields verbatim (§3.10); `validateAndPrepareTransfer` rejects `isOption()`
+  alongside the existing margin rejection (§3.9).
 - `grafioschtrader/task/exec/GTNetSecurityImportTask.java` — explicit `OPTION` rejection in
   `createSecurityFromDTO()` (bypasses `beforeSave()`, §2.8).
 - `grafioschtrader/typenames.properties` — `trans_12`–`trans_14`, `specialInvestmentInstruments_7`.
 - `grafioschtrader/rest/OptionResource.java` (new) — `expiringsoon` endpoint + `OptionExpirationEntry`
   DTO (§3.12).
-- `db/migration/V0_3x_y__option_trading.sql` — new Flyway migration (next version after V0_36_3).
+- `db/migration/V0_3x_y__option_trading.sql` — new Flyway migration (next version after the then-highest
+  script; `V0_36_7` against the baseline of this document). It carries the columns, the FK, both unique indexes, the
+  `idx_transaction_con_id` index, the widened `s_quotation` **and** `CREATE OR REPLACE` for the two hold
+  stored procedures.
+- `db/migration/gt_ddl.sql` (auto-generated — never hand-edited) and
+  `src/test/resources/db/migration/test/V1__schema.sql` must end up carrying the same objects.
 - Audit-and-decide (per §3.9 matrix): `exportcsv`, `receipt`, `ImportTransactionPos`, tenant
   copy/simulation, GTNet security metadata, fee-model estimator, tax export, `Algo*`,
   `StandingOrderJpaRepositoryImpl`, UDF applicability, correlation set, `SecuritySearchBuilder`.
@@ -1157,6 +1456,9 @@ Frontend:
 - `securitycurrency/component/option-chain-picker.component.ts` — new (Stage 7).
 - Frontend `Security` model + product-icon/help-id/route/menu registration.
 
-Translations:
-- `frontend/src/assets/i18n/*.json` — option labels + `EXERCISE`/`ASSIGN`/`EXPIRE_WORTHLESS`.
-- `grafioschtrader-common/.../messages*.properties` (EN + DE, UTF-8) — backend option messages.
+Translations (backend only, §7):
+- `grafioschtrader-common/src/main/resources/message/messages.properties` + `messages_de.properties`
+  (UTF-8, no BOM) — **all** option texts: field labels, validation messages, the `UPPER_SNAKE` enum
+  labels for `EXERCISE` / `ASSIGN` / `EXPIRE_WORTHLESS` and the option enums, and the new reject
+  messages (option transfer, eCH-0196 omission, dividend/finance-cost/split on an option, stage gates).
+- `grafioschtrader/typenames.properties` — `trans_12`–`trans_14`, `specialInvestmentInstruments_7`.

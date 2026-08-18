@@ -1,1 +1,8 @@
-It is now shown!
+[historical]
+The <a target="_blank" href="//fx.sauder.ubc.ca/">Pacific Exchange Rate Service</a> of the Sauder School of Business at the University of British Columbia publishes daily exchange rates reaching far back.<br>
+No entry is required here. Neither an API key nor a URL extension is needed: both currencies are taken directly from the currency pair, and Grafioschtrader builds the request itself.<br>
+The provider answers with at most four years per request, therefore a history starting in the year 2000 is fetched with several consecutive requests and a short pause between them.<br>
+Its servers are frequently at capacity. The answer then contains no rates at all, or it states outright that the server is too busy. Grafioschtrader discards the whole load in that case rather than storing a truncated history, and the retry counter of the currency pair is raised. Repeating the update later often succeeds.<br>
+Because of this limited availability, prefer the Frankfurter data source for a currency pair whose currencies it offers, and keep this one as the second choice.<br>
+The certificate of this site has repeatedly been rejected by Java. Should the price update fail with a certificate error, the administrator has to import that certificate into the trust store of the Java installation.<br>
+Only one daily rate is published, therefore this connector supplies historical prices but no intraday prices.

@@ -33,7 +33,7 @@ export class SecurityaccountImportExtendedInfoComponent extends SingleRecordConf
   }
 
   ngOnInit(): void {
-    this.addFieldProperty(DataType.DateString, ImportSettings.IMPORT_TRANSACTION_POS + 'transactionTime', 'DATE',
+    this.addFieldProperty(DataType.DateTimeString, ImportSettings.IMPORT_TRANSACTION_POS + 'transactionTime', 'DATE',
       {fieldsetName: this.IMPORT_VALUE});
 
     this.addFieldProperty(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'transactionType', 'TRANSACTION_TYPE_IMP',

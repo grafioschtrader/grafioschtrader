@@ -30,6 +30,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import grafiosch.common.DataHelper;
 import grafiosch.entities.GTNet;
@@ -42,6 +44,7 @@ import grafiosch.entities.GTNetMessageAnswer;
 import grafiosch.entities.GTNetMessageAttempt;
 import grafiosch.entities.GTNetSupplierDetail;
 import grafiosch.entities.TaskDataChange;
+import grafiosch.entities.User;
 import grafiosch.exportdelete.MySqlInsertStatementGenerator;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.gtnet.AcceptRequestTypes;
@@ -74,6 +77,8 @@ import grafiosch.gtnet.model.msg.FirstHandshakeMsg;
 import grafiosch.m2m.GTNetMessageHelper;
 import grafiosch.m2m.client.BaseDataClient;
 import grafiosch.m2m.client.BaseDataClient.SendResult;
+import grafiosch.service.DailyLimitService;
+import grafiosch.types.OperationType;
 import grafiosch.types.TaskDataExecPriority;
 import grafiosch.types.TaskTypeBase;
 import jakarta.transaction.Transactional;
@@ -125,6 +130,9 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
+
+  @Autowired
+  private DailyLimitService dailyLimitService;
 
   @Autowired
   private ObjectMapper objectMapper;
@@ -371,6 +379,16 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     GTNet sourceGTNet = gtNetJpaRepository
         .findById(GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersJpaRepository)).orElseThrow();
 
+    // The GTNetMessage rows this request is about to write are charged to today's budget as one unit, before the
+    // first of them is saved. This mapping does not pass through UpdateCreate, so the seeded DAY_CUD|GTNetMessage row
+    // that bounds POST /api/gtnetmessage would otherwise never be consulted here - a budget an administrator can see
+    // in the limits UI but that nothing enforces is worse than no budget at all.
+    int messageCost = countMessagesToWrite(gtNetList, messageCode);
+    User user = getAuthenticatedUserOrNull();
+    if (user != null) {
+      dailyLimitService.check(user, GTNetMessage.class.getSimpleName(), messageCost);
+    }
+
     // Future-oriented messages use background delivery via GTNetMessageAttempt
     if (FUTURE_ORIENTED_MESSAGE_CODES.contains(messageCode)) {
       handleFutureOrientedBroadcast(sourceGTNet, gtNetList, gtNetMsgRequest, msgRequest, messageCode);
@@ -387,7 +405,39 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       saveBroadcastToOwnEntry(sourceGTNet, msgRequest, messageCode);
     }
 
+    if (user != null) {
+      dailyLimitService.log(user.getIdUser(), GTNetMessage.class.getSimpleName(), OperationType.ADD, messageCost);
+    }
     return this.getAllGTNetsWithMessages();
+  }
+
+  /**
+   * Counts the {@link GTNetMessage} rows one {@code submitMsg} request writes. A future-oriented broadcast creates a
+   * single message and one delivery attempt per target; every other code writes one message per target. A broadcast
+   * additionally keeps a copy under the own entry for visibility.
+   *
+   * @param gtNetList   the resolved target domains
+   * @param messageCode the code being sent
+   * @return how many message rows the request costs, at least one
+   */
+  private int countMessagesToWrite(List<GTNet> gtNetList, GTNetMessageCode messageCode) {
+    int cost = FUTURE_ORIENTED_MESSAGE_CODES.contains(messageCode) ? 1 : gtNetList.size();
+    if (messageCode.name().contains(GTNetModelHelper.MESSAGE_TO_ALL)) {
+      cost++;
+    }
+    return Math.max(cost, 1);
+  }
+
+  /**
+   * Returns the user on the security context, or null when there is none. {@code submitMsg} is also reached from
+   * {@code GTNetLifecycleListener} during startup and shutdown, where no request and therefore no user exists; such a
+   * caller keeps its present behaviour and consumes no budget.
+   *
+   * @return the authenticated user, or null for a background caller
+   */
+  private User getAuthenticatedUserOrNull() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    return authentication != null && authentication.getDetails() instanceof User user ? user : null;
   }
 
   /**
@@ -1540,6 +1590,13 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       return this.getAllGTNetsWithMessages();
     }
 
+    // One GTNetMessage row per valid target, charged as one unit before the first is written, so a multi target
+    // request that would cross the remaining budget is refused whole rather than delivered halfway.
+    User user = getAuthenticatedUserOrNull();
+    if (user != null) {
+      dailyLimitService.check(user, GTNetMessage.class.getSimpleName(), validTargets.size());
+    }
+
     // Single target: send synchronously (no background job)
     if (validTargets.size() == 1) {
       GTNet targetGTNet = validTargets.get(0);
@@ -1583,6 +1640,10 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       log.info("Scheduled GTNet admin message delivery task for immediate execution");
     }
 
+    if (user != null) {
+      dailyLimitService.log(user.getIdUser(), GTNetMessage.class.getSimpleName(), OperationType.ADD,
+          validTargets.size());
+    }
     return this.getAllGTNetsWithMessages();
   }
 

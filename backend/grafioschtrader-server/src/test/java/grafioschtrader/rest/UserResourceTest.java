@@ -13,7 +13,7 @@ import grafioschtrader.types.TenantKindType;
 
 /**
  * Creates the {@code e2e='i'} users of {@code testdata/users.json} and their tenants. It is the first class of
- * {@link ResoureTestSuite} because every following resource test authenticates as one of these users.
+ * {@link ResourceTestSuite_1} because every following resource test authenticates as one of these users.
  *
  * <p>
  * The four ordered steps — register, verify the mail token, promote the role, create the tenant — are implemented in

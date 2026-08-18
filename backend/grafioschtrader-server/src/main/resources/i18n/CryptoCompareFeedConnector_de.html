@@ -1,0 +1,6 @@
+<a target="_blank" href="//www.cryptocompare.com">CryptoCompare</a> ist die Standard-Datenquelle für Innertag- und historische Kurse von Kryptowährungen.<br>
+Hier ist keine Eingabe erforderlich. Eine URL-Erweiterung wird nicht benötigt: Beide Währungen werden direkt dem Währungspaar entnommen, und Grafioschtrader bildet die Anfrage selbst.<br>
+Diese Datenquelle benötigt einen API-Schlüssel, den der Administrator einmalig für die ganze Instanz erfasst. Die <a target="_blank" href="//min-api.cryptocompare.com/pricing">Anfragelimits</a> des kostenlosen Schlüssels sind vergleichsweise hoch.<br>
+Ein Währungspaar wird nur akzeptiert, wenn der Anbieter es führt. Die Antwort trifft auch bei einem unbekannten Paar mit einem erfolgreichen HTTP-Status ein, deshalb wertet Grafioschtrader stattdessen den Text der Antwort aus.<br>
+[historical]
+Eine Anfrage liefert eine begrenzte Anzahl Tage, eine lange Kurshistorie wird deshalb mit mehreren aufeinanderfolgenden Anfragen geladen.

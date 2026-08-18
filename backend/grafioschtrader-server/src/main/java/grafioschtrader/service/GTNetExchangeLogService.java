@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import grafiosch.entities.GTNet;
-import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafiosch.repository.GTNetExchangeLogJpaRepository;
+import grafioschtrader.gtnet.GTNetExchangeKindType;
 
 /**
  * Service for logging GTNet exchange operations.

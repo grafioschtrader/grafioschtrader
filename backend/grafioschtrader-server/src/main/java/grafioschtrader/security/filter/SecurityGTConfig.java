@@ -9,6 +9,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -39,6 +40,8 @@ import grafioschtrader.security.TokenAuthenticationService;
  *   <li><strong>Stateless Authentication:</strong> JWT token-based authentication without server sessions</li>
  *   <li><strong>Custom Filter Chain:</strong> Specialized login and authentication filters for API security</li>
  *   <li><strong>Role-based Authorization:</strong> Granular access control based on user roles and permissions</li>
+ *   <li><strong>Method Security:</strong> {@code @PreAuthorize} on individual handler methods, for endpoints whose
+ *       role requirement cannot be expressed as a URL pattern</li>
  *   <li><strong>Rate Limiting:</strong> Configurable request throttling to prevent API abuse</li>
  * </ul>
  * 
@@ -52,6 +55,7 @@ import grafioschtrader.security.TokenAuthenticationService;
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @Order(1)
 public class SecurityGTConfig {
 
@@ -114,12 +118,15 @@ public class SecurityGTConfig {
           .requestMatchers(HttpMethod.GET, RequestMappings.API + "gtinfo").permitAll()
           .requestMatchers(HttpMethod.GET, RequestMappings.M2M_API + "**").permitAll()
           .requestMatchers(HttpMethod.POST, RequestMappings.M2M_API + "**").permitAll();
-      // Creating a managed client (advisor capability) requires ROLE_USER or higher; must precede the broad API/**
-      // rule (which also permits ROLE_LIMITEDIT) so limited-edit users are excluded.
+      // Every rule that is narrower than the broad API/** rule which configureGlobalParameters registers (that one
+      // also permits ROLE_LIMITEDIT) has to be registered BEFORE that call: Spring Security evaluates authorization
+      // rules in registration order and the first match wins, so a narrower rule added afterwards is dead code.
+      // Creating a managed client (advisor capability) requires ROLE_USER or higher.
       authz.requestMatchers(HttpMethod.POST, RequestGTMappings.TENANT_MAP + "/createclient")
           .hasAnyRole(Role.USER, Role.ALL_EDIT, Role.ADMIN);
-      SecurityConfig.configureGlobalParameters(http);
+      // Editing the global trading calendar is an administrative operation.
       authz.requestMatchers(HttpMethod.PUT, RequestGTMappings.TRADINGDAYSPLUS_MAP).hasRole(Role.ADMIN);
+      SecurityConfig.configureGlobalParameters(http);
     }); // Close authorizeHttpRequests
 
     http.addFilterBefore(new StatelessLoginFilter("/api/login", tokenAuthenticationService, userService,

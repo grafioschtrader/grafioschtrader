@@ -1,0 +1,7 @@
+[historical]
+The euro foreign exchange reference rates of the <a target="_blank" href="//www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html">European Central Bank</a>.<br>
+No entry is required here. Neither an API key nor a URL extension is needed: both currencies are taken directly from the currency pair.<br>
+Only the currencies listed under the euro foreign exchange reference rates are supported. Each of them can be combined with any other one; for a pair which does not contain the euro, the cross rate is calculated from the two euro rates.<br>
+The rates are usually determined at about 14:10 CET and published on working days at around 16:00 CET, except on TARGET closing days. They are therefore reference rates and not closing prices, which can be insufficient for some purposes.<br>
+The update runs in two steps. A background job first loads the rates of the European Central Bank into the database of Grafioschtrader. The price history of the currency pair is then built from those stored rates, together with the update of the other currency pairs and without accessing the data source again.<br>
+Only historical prices are delivered, there is no intraday price.

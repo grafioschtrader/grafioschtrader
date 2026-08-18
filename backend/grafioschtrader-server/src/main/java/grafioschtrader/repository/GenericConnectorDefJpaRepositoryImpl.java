@@ -30,12 +30,23 @@ import grafioschtrader.entities.GenericConnectorHttpHeader;
 public class GenericConnectorDefJpaRepositoryImpl extends BaseRepositoryImpl<GenericConnectorDef>
     implements GenericConnectorDefJpaRepositoryCustom {
 
+  /** One endpoint per feed support: history, intraday, dividend and split. */
+  private static final int MAX_ENDPOINTS = 4;
+
+  /** Request headers of a single connector. Generous for an HTTP client, far below a usable flooding vector. */
+  private static final int MAX_HTTP_HEADERS = 20;
+
+  /** Column or JSON path mappings of one endpoint. */
+  private static final int MAX_FIELD_MAPPINGS = 40;
+
   @Autowired
   private GenericConnectorDefJpaRepository genericConnectorDefJpaRepository;
 
   @Override
   public GenericConnectorDef saveOnlyAttributes(final GenericConnectorDef entity, final GenericConnectorDef existingEntity,
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
+
+    validateCollectionSizes(entity);
 
     // Usage-based permission check for non-admin users
     if (existingEntity != null) {
@@ -66,6 +77,38 @@ public class GenericConnectorDefJpaRepositoryImpl extends BaseRepositoryImpl<Gen
       return Set.of(PropertyAlwaysUpdatable.class);
     }
     return Set.of(PropertySelectiveUpdatableOrWhenNull.class, PropertyAlwaysUpdatable.class);
+  }
+
+  /**
+   * Bounds the cascaded child collections of one request. The parent carries a daily budget of its own, but the three
+   * collections below are {@code CascadeType.ALL} without a {@code @Size}, so a single accepted request could insert an
+   * arbitrary number of rows into {@code generic_connector_endpoint},
+   * {@code generic_connector_http_header} and {@code generic_connector_field_mapping}.
+   *
+   * <p>
+   * The counts are structural rather than administrator-tunable - they follow from what a connector definition can
+   * meaningfully hold - so they are constants here and not {@code entity_limit} keys.
+   * </p>
+   *
+   * @param entity the posted connector definition, before any child row is written
+   * @throws DataViolationException when a collection exceeds its cap
+   */
+  private void validateCollectionSizes(GenericConnectorDef entity) {
+    checkSize(entity.getEndpoints(), MAX_ENDPOINTS, "generic.connector.endpoint", "gt.connector.endpoint.too.many");
+    checkSize(entity.getHttpHeaders(), MAX_HTTP_HEADERS, "generic.connector.http.header",
+        "gt.connector.http.header.too.many");
+    if (entity.getEndpoints() != null) {
+      for (GenericConnectorEndpoint endpoint : entity.getEndpoints()) {
+        checkSize(endpoint.getFieldMappings(), MAX_FIELD_MAPPINGS, "generic.connector.field.mapping",
+            "gt.connector.field.mapping.too.many");
+      }
+    }
+  }
+
+  private void checkSize(List<?> collection, int max, String field, String messageKey) {
+    if (collection != null && collection.size() > max) {
+      throw new DataViolationException(field, messageKey, new Object[] { max });
+    }
   }
 
   /**

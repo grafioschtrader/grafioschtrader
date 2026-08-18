@@ -1,70 +1,58 @@
 import {test, expect, Locator, Page} from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
-import {loginAsFixtureUser, parseCsvRow} from './helpers';
+import {loginAsFixtureUser} from './helpers';
 import {toShortDate} from './portfolio.helpers';
 
 /**
- * Shape of one row in generated/securities.csv — column order mirrors
- * SecurityResourceTest.SecurityAggregator (21 domain columns) plus the e2e flag.
+ * Create-time business values from generated/securities.json. References to the stock exchange and asset class use
+ * natural keys so the same fixture works after the backend suite has recreated those records with different IDs.
  */
 interface SecurityRow {
   name: string;
-  isin: string;
-  tickerSymbol: string;
+  isin: string | null;
+  tickerSymbol: string | null;
   currency: string;
   activeFromDate: string;
   activeToDate: string;
-  distFrequency: string;
-  denomination: string;
-  leverageFactor: string;
+  distributionFrequency: string;
+  denomination: number | null;
+  leverageFactor: number;
   stockexchangeName: string;
   categoryType: string;
   subCategoryDE: string;
-  specInvestmentInstrument: string;
-  productLink: string;
-  idTenantPrivate: string;
-  formulaPrices: string;
-  idConnectorHistory: string;
-  urlHistoryExtend: string;
-  idConnectorIntra: string;
-  urlIntraExtend: string;
-  note: string;
+  specialInvestmentInstrument: string;
+  stockexchangeLink: string | null;
+  productLink: string | null;
+  formulaPrices: string | null;
+  idConnectorHistory: string | null;
+  urlHistoryExtend: string | null;
+  idConnectorIntra: string | null;
+  urlIntraExtend: string | null;
+  idConnectorDividend: string | null;
+  urlDividendExtend: string | null;
+  dividendCurrency: string | null;
+  idConnectorSplit: string | null;
+  urlSplitExtend: string | null;
+  note: string | null;
   e2e: string;
 }
 
-const CSV_PATH = path.resolve(__dirname,
-  '../../backend/grafioschtrader-server/src/test/resources/testdata/generated/securities.csv');
+const JSON_PATH = path.resolve(__dirname,
+  '../../backend/grafioschtrader-server/src/test/resources/testdata/generated/securities.json');
 const WATCHLIST_NAME = 'Spain';
 const LOGIN_NICKNAME = 'alledit';
 
 function loadE2ERows(): SecurityRow[] {
-  if (!fs.existsSync(CSV_PATH)) {
+  if (!fs.existsSync(JSON_PATH)) {
+    console.warn(`Fixture ${JSON_PATH} not found - skipping security e2e (run nv.bat to generate it).`);
     return [];
   }
-  const csv = fs.readFileSync(CSV_PATH, 'utf-8');
-  return csv.split(/\r?\n/)
-    .filter(l => l.trim().length > 0)
-    .map(line => {
-      const c = parseCsvRow(line);
-      return {
-        name: c[0], isin: c[1], tickerSymbol: c[2], currency: c[3],
-        activeFromDate: c[4], activeToDate: c[5],
-        distFrequency: c[6], denomination: c[7], leverageFactor: c[8],
-        stockexchangeName: c[9],
-        categoryType: c[10], subCategoryDE: c[11], specInvestmentInstrument: c[12],
-        productLink: c[13], idTenantPrivate: c[14], formulaPrices: c[15],
-        idConnectorHistory: c[16], urlHistoryExtend: c[17],
-        idConnectorIntra: c[18], urlIntraExtend: c[19],
-        note: c[20], e2e: c[21],
-      };
-    })
-    .filter(r => r.e2e === 'e');
+  return (JSON.parse(fs.readFileSync(JSON_PATH, 'utf-8')) as SecurityRow[]).filter(row => row.e2e === 'e');
 }
 
-// mysqldump INTO OUTFILE writes SQL NULL as \N. Treat those as empty strings when filling the form.
-function nonNull(v: string): string {
-  return v === '\\N' || v === undefined ? '' : v;
+function hasText(value: string | null | undefined): value is string {
+  return value !== null && value !== undefined && value.length > 0;
 }
 
 /**
@@ -88,7 +76,7 @@ function nameCell(page: Page, name: string): Locator {
 }
 
 async function typeDate(scope: Locator, fieldId: string, isoDate: string, locale: string): Promise<void> {
-  if (!nonNull(isoDate)) {
+  if (!hasText(isoDate)) {
     return;
   }
   const input = scope.locator(`#${fieldId} input, input#${fieldId}`).first();
@@ -102,6 +90,22 @@ async function typeDate(scope: Locator, fieldId: string, isoDate: string, locale
   await input.pressSequentially(shortDate, {delay: 20});
   await input.blur();
   await expect(input, `${fieldId} did not keep the typed date`).toHaveValue(shortDate);
+}
+
+/**
+ * Types into a visible p-inputNumber. leverageFactor remains in the DOM while hidden for asset classes that use the
+ * default factor, so checking locator count alone would wait until the complete test timeout.
+ */
+async function typeNumberIfVisible(scope: Locator, fieldId: string, value: number): Promise<void> {
+  const input = scope.locator(`#${fieldId} input, input#${fieldId}`).first();
+  if (!await input.isVisible()) {
+    return;
+  }
+  await input.click();
+  await input.press('Control+a');
+  await input.press('Backspace');
+  await input.pressSequentially(String(value), {delay: 20});
+  await input.press('Tab');
 }
 
 test.describe.serial('Seed Spanish securities in the Spain watchlist', () => {
@@ -175,14 +179,14 @@ test.describe.serial('Seed Spanish securities in the Spain watchlist', () => {
       await stockexchangeSelect.selectOption(stockexchangeOptionValue);
       await stockexchangeSelect.dispatchEvent('change');
 
-      if (nonNull(row.isin)) {
+      if (hasText(row.isin)) {
         const isinInput = dialog.locator('#isin');
         await isinInput.click();
         await isinInput.fill(row.isin);
         await isinInput.dispatchEvent('input');
       }
 
-      if (nonNull(row.tickerSymbol)) {
+      if (hasText(row.tickerSymbol)) {
         const tickerInput = dialog.locator('#tickerSymbol');
         await tickerInput.click();
         await tickerInput.fill(row.tickerSymbol);
@@ -194,27 +198,32 @@ test.describe.serial('Seed Spanish securities in the Spain watchlist', () => {
       await currencySelect.selectOption({value: row.currency});
       await currencySelect.dispatchEvent('change');
 
-      // distributionFrequency is stored as byte in CSV → enum key in the UI select.
-      // The select's option values are enum names (e.g. 'ANNUAL', 'QUARTERLY'). If CSV exports the
-      // byte code, the test may need to translate; for now pass through and fall back on defaults.
+      // JSON carries the REST enum name, which is also the select option value.
       const distSelect = dialog.locator('select#distributionFrequency');
-      if (await distSelect.count() > 0 && nonNull(row.distFrequency)) {
-        const byIndex = Number(row.distFrequency);
-        if (!Number.isNaN(byIndex)) {
-          const opts = distSelect.locator('option');
-          const optCount = await opts.count();
-          if (optCount > byIndex) {
-            await distSelect.selectOption({index: byIndex});
-            await distSelect.dispatchEvent('change');
-          }
+      if (await distSelect.count() > 0 && hasText(row.distributionFrequency)) {
+        await distSelect.selectOption({value: row.distributionFrequency});
+        await distSelect.dispatchEvent('change');
+      }
+
+      if (row.denomination !== null) {
+        const denomInput = dialog.locator('#denomination input, input#denomination').first();
+        if (await denomInput.count() > 0) {
+          await denomInput.fill(String(row.denomination));
+          await denomInput.dispatchEvent('input');
         }
       }
 
-      if (nonNull(row.denomination)) {
-        const denomInput = dialog.locator('#denomination input, input#denomination').first();
-        if (await denomInput.count() > 0) {
-          await denomInput.fill(row.denomination);
-          await denomInput.dispatchEvent('input');
+      await typeNumberIfVisible(dialog, 'leverageFactor', row.leverageFactor);
+
+      for (const [field, value] of [
+        ['stockexchangeLink', row.stockexchangeLink], ['productLink', row.productLink], ['note', row.note]
+      ] as const) {
+        if (hasText(value)) {
+          const input = dialog.locator(`#${field}`).first();
+          if (await input.count() > 0) {
+            await input.fill(value);
+            await input.dispatchEvent('input');
+          }
         }
       }
 
@@ -223,32 +232,72 @@ test.describe.serial('Seed Spanish securities in the Spain watchlist', () => {
       await typeDate(dialog, 'activeToDate', row.activeToDate, creds.locale);
 
       // --- Connectors ---
-      if (nonNull(row.idConnectorHistory)) {
+      if (hasText(row.idConnectorHistory)) {
         const histSelect = dialog.locator('select#idConnectorHistory');
         await expect(histSelect.locator(`option[value="${row.idConnectorHistory}"]`))
           .toHaveCount(1, {timeout: 10_000});
         await histSelect.selectOption({value: row.idConnectorHistory});
         await histSelect.dispatchEvent('change');
       }
-      if (nonNull(row.urlHistoryExtend)) {
+      if (hasText(row.urlHistoryExtend)) {
         const u = dialog.locator('#urlHistoryExtend');
         if (await u.count() > 0) {
           await u.fill(row.urlHistoryExtend);
           await u.dispatchEvent('input');
         }
       }
-      if (nonNull(row.idConnectorIntra)) {
+      if (hasText(row.idConnectorIntra)) {
         const intraSelect = dialog.locator('select#idConnectorIntra');
         await expect(intraSelect.locator(`option[value="${row.idConnectorIntra}"]`))
           .toHaveCount(1, {timeout: 10_000});
         await intraSelect.selectOption({value: row.idConnectorIntra});
         await intraSelect.dispatchEvent('change');
       }
-      if (nonNull(row.urlIntraExtend)) {
+      if (hasText(row.urlIntraExtend)) {
         const u = dialog.locator('#urlIntraExtend');
         if (await u.count() > 0) {
           await u.fill(row.urlIntraExtend);
           await u.dispatchEvent('input');
+        }
+      }
+
+      if (hasText(row.idConnectorDividend)) {
+        const dividendSelect = dialog.locator('select#idConnectorDividend');
+        if (await dividendSelect.count() > 0) {
+          await expect(dividendSelect.locator(`option[value="${row.idConnectorDividend}"]`))
+            .toHaveCount(1, {timeout: 10_000});
+          await dividendSelect.selectOption({value: row.idConnectorDividend});
+          await dividendSelect.dispatchEvent('change');
+        }
+      }
+      if (hasText(row.urlDividendExtend)) {
+        const input = dialog.locator('#urlDividendExtend').first();
+        if (await input.count() > 0) {
+          await input.fill(row.urlDividendExtend);
+          await input.dispatchEvent('input');
+        }
+      }
+      if (hasText(row.dividendCurrency)) {
+        const currency = dialog.locator('select#dividendCurrency').first();
+        if (await currency.count() > 0) {
+          await currency.selectOption({value: row.dividendCurrency});
+          await currency.dispatchEvent('change');
+        }
+      }
+      if (hasText(row.idConnectorSplit)) {
+        const splitSelect = dialog.locator('select#idConnectorSplit');
+        if (await splitSelect.count() > 0) {
+          await expect(splitSelect.locator(`option[value="${row.idConnectorSplit}"]`))
+            .toHaveCount(1, {timeout: 10_000});
+          await splitSelect.selectOption({value: row.idConnectorSplit});
+          await splitSelect.dispatchEvent('change');
+        }
+      }
+      if (hasText(row.urlSplitExtend)) {
+        const input = dialog.locator('#urlSplitExtend').first();
+        if (await input.count() > 0) {
+          await input.fill(row.urlSplitExtend);
+          await input.dispatchEvent('input');
         }
       }
 

@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.GTNetSecurityImpHead;
 import grafioschtrader.repository.GTNetSecurityImpHeadJpaRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -79,8 +78,4 @@ public class GTNetSecurityImpHeadResource extends UpdateCreateDeleteWithTenantRe
     return gtNetSecurityImpHeadJpaRepository;
   }
 
-  @Override
-  protected String getPrefixEntityLimit() {
-    return GlobalConstants.GT_LIMIT_DAY;
-  }
 }

@@ -2,6 +2,7 @@ package grafioschtrader.priceupdate.intraday;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.ThreadHelper;
@@ -104,10 +105,13 @@ public abstract class BaseIntradayThru<S extends Securitycurrency<S>> extends Ba
               .add(updateLastPriceSecurityCurrency(securitycurrency, maxIntraRetry, scIntradayUpdateTimeout));
         });
       } else {
-        ThreadHelper.executeForkJoinPool(() -> securtycurrencies.parallelStream().forEach(securitycurrency -> {
-          securtycurrenciesUpd
-              .add(updateLastPriceSecurityCurrency(securitycurrency, maxIntraRetry, scIntradayUpdateTimeout));
-        }), GlobalConstants.FORK_JOIN_POOL_CORE_MULTIPLIER);
+        // Collect inside the stream rather than adding to the shared list from every worker: ArrayList is not
+        // thread-safe, so concurrent add() could drop entries or throw. The single addAll runs on the submitting
+        // thread and executeForkJoinPool blocks on get(), which supplies the required happens-before edge.
+        ThreadHelper.executeForkJoinPool(() -> securtycurrenciesUpd.addAll(securtycurrencies.parallelStream()
+            .map(securitycurrency -> updateLastPriceSecurityCurrency(securitycurrency, maxIntraRetry,
+                scIntradayUpdateTimeout))
+            .collect(Collectors.toList())), GlobalConstants.FORK_JOIN_POOL_CORE_MULTIPLIER);
       }
     } else if (securtycurrencies.size() == 1) {
       securtycurrenciesUpd

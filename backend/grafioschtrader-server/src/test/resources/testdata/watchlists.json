@@ -2,8 +2,10 @@
   "_comment": [
     "Shared watchlist fixture for backend REST integration tests and frontend Playwright tests.",
     "Rows tagged e2e='i' are created by WatchlistResourceTest; e2e='e' belongs to Playwright.",
+    "instrumentE2E overrides ownership of a row's securities and currency pairs when their producer differs.",
     "Securities use ISIN plus currency or exact name plus currency as stable lookup keys.",
     "A securitySearchName drives the Playwright search dialog's Name field; currency pairs use their from/to codes.",
+    "A securitySearchSubCategoryNLS selects every remaining result for that localized subcategory through Playwright.",
     "IDs are deliberately omitted because both test layers resolve or create records through REST or the UI."
   ],
   "watchlists": [
@@ -18,6 +20,58 @@
       ],
       "currencyPairs": [],
       "e2e": "i"
+    },
+    {
+      "loginNickname": "user",
+      "name": "Main list",
+      "main": true,
+      "delete": false,
+      "securities": [
+        {"isin": "US74347X8496", "currency": "USD"},
+        {"isin": "US74348A6082", "currency": "USD"},
+        {"isin": "US74347R2224", "currency": "USD"},
+        {"isin": "US74347B7148", "currency": "USD"},
+        {"isin": "US74349Y8378", "currency": "USD"},
+        {"isin": "US74348A2107", "currency": "USD"},
+        {"isin": "US74347B4251", "currency": "USD"},
+        {"isin": "US74349Y7537", "currency": "USD"},
+        {"isin": "US74348A3766", "currency": "USD"}
+      ],
+      "currencyPairs": [],
+      "e2e": "i"
+    },
+    {
+      "loginNickname": "limit1",
+      "name": "Hauptliste",
+      "main": true,
+      "delete": false,
+      "securities": [
+        {"name": "Repsol", "isin": "ES0173516115", "currency": "EUR"},
+        {"name": "Telefónica SA", "isin": "ES0178430E18", "currency": "EUR"}
+      ],
+      "currencyPairs": [],
+      "instrumentE2E": "e",
+      "e2e": "i"
+    },
+    {
+      "loginNickname": "admin",
+      "name": "_USA",
+      "main": false,
+      "delete": false,
+      "securitySearchSubCategoryNLS": "Aktien USA",
+      "securities": [],
+      "currencyPairs": [],
+      "e2e": "e"
+    },
+    {
+      "loginNickname": "admin",
+      "name": "_Switzerland",
+      "main": false,
+      "delete": false,
+      "securitySearchSubCategoryNLS": "Aktien Schweiz",
+      "securities": [],
+      "currencyPairs": [],
+      "e2e": "e"
     },
     {
       "loginNickname": "alledit",
@@ -60,6 +114,35 @@
       "name": "Derived",
       "main": false,
       "delete": false,
+      "securities": [],
+      "currencyPairs": [],
+      "e2e": "e"
+    },
+    {
+      "loginNickname": "alledit",
+      "name": "Festgeld",
+      "main": false,
+      "delete": false,
+      "securities": [],
+      "currencyPairs": [],
+      "e2e": "e"
+    },
+    {
+      "loginNickname": "alledit",
+      "name": "_USA",
+      "main": false,
+      "delete": false,
+      "securitySearchSubCategoryNLS": "Aktien USA",
+      "securities": [],
+      "currencyPairs": [],
+      "e2e": "e"
+    },
+    {
+      "loginNickname": "alledit",
+      "name": "_Switzerland",
+      "main": false,
+      "delete": false,
+      "securitySearchSubCategoryNLS": "Aktien Schweiz",
       "securities": [],
       "currencyPairs": [],
       "e2e": "e"

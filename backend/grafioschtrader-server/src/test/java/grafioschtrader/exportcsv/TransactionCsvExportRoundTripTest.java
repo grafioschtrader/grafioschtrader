@@ -281,6 +281,11 @@ class TransactionCsvExportRoundTripTest {
   private ParsedCsv generateAndParse(List<Transaction> transactions, Set<Integer> idsInFile, Locale locale)
       throws IOException {
     String csv = generator.generate(transactions, idsInFile, locale);
+    // TransactionCsvExportService writes the file as UTF-8 without a BOM. The import resolves the encoding from the
+    // bytes alone, so a file that is not recognised as UTF-8 arrives with mangled umlauts in the German header.
+    assertEquals(StandardCharsets.UTF_8.name(),
+        GenericTransactionImportCSV.resolveCharset(csv.getBytes(StandardCharsets.UTF_8)),
+        "Exported CSV must be recognised as UTF-8 by the import path");
     List<ImportTransactionTemplate> templates = readAllTemplates();
     Map<TemplateConfigurationAndStateCsv, ImportTransactionTemplate> templateMap = ImportTransactionHelperCsv
         .readTemplates(templates, locale);

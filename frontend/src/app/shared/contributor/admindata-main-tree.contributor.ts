@@ -121,6 +121,7 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
     if (AuditHelper.hasAdminRole(this.globalParamService)) {
       this.rootNode.children.push(LibDataMainTreeContributor.createConnectorApiKeyNode());
       this.rootNode.children.push(LibDataMainTreeContributor.createUserSettingsNode());
+      this.rootNode.children.push(LibDataMainTreeContributor.createEntityLimitNode());
     }
   }
 

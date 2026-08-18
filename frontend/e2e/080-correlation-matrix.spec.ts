@@ -12,7 +12,7 @@ import {loginAsFixtureUser} from './helpers';
  * Data constraint: correlation needs overlapping historical prices. Only the CH/US securities that
  * nv.bat dumps into V2__testdata.sql carry historyquote rows in grafioschtrader_t (span 2000-2026,
  * near-total overlap). Those are the only instruments used here (searched by asset class, ISIN and
- * approximate name). The generated/securities.csv securities have no DB history and are avoided.
+ * approximate name). The generated/securities.json securities have no DB history and are avoided.
  *
  * The user hugo.graf@grafiosch.com = users.json nickname 'alledit' (role ALLEDIT, de-CH locale), so
  * the running UI is German; every text selector below matches both the German and English strings.

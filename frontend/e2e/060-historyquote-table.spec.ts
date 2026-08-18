@@ -14,7 +14,7 @@ import {expectToast} from './manage-client.helpers';
  * Why this instrument: nv.bat dumps the CH/US securities that have a future active_to_date and no
  * API-key connector into V2__testdata.sql *together with their historyquote rows*. Nestlé is one of
  * them (id_securitycurrency 1980, ~6700 quotes from 2000 onwards), so the data exists the moment
- * Flyway has run. Securities created through the UI from generated/securities.csv are useless here:
+ * Flyway has run. Securities created through the UI from generated/securities.json are useless here:
  * saving one only enqueues a background price import that runs behind the startup price update and
  * may not have produced a single quote by the time the spec looks.
  *

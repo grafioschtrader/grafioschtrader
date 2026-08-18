@@ -33,8 +33,7 @@ class TradingPlatformPlanResourceTest extends BaseIntegrationTest {
 
   /**
    * Fetches the ImportTransactionPlatform rows created by the sibling {@code ImportTransactionPlatformResourceTest} so
-   * this test can resolve by name. Relies on Surefire's alphabetical class ordering ('I' &lt; 'T') for that prerequisite
-   * to run first.
+   * this test can resolve by name. {@link ResourceTestSuite_1} places that prerequisite before this class.
    */
   @BeforeAll
   void setUp() {
@@ -65,7 +64,7 @@ class TradingPlatformPlanResourceTest extends BaseIntegrationTest {
     if (importPlatformName != null) {
       ImportTransactionPlatform platform = platformByName.get(importPlatformName);
       assertNotNull(platform, "Import platform '" + importPlatformName + "' missing. "
-          + "Ensure ImportTransactionPlatformResourceTest runs before this test (class ordering: I < T).");
+          + "Ensure ImportTransactionPlatformResourceTest runs before this test in ResourceTestSuite_1.");
       tpp.setImportTransactionPlatform(platform);
     }
     tpp.setPlatformPlanNameByLanguage(platformPlanNameDE, Language.GERMAN);

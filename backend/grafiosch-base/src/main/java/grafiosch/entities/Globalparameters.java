@@ -15,7 +15,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -32,8 +31,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.BaseConstants;
 import grafiosch.dto.IPropertiesSelfCheck;
-import grafiosch.dto.MaxDefaultDBValue;
-import grafiosch.dto.MaxDefaultDBValueWithKey;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Cacheable;
@@ -73,8 +70,6 @@ public class Globalparameters implements Serializable {
   public static final String TABNAME = "globalparameters";
 
   private static final Logger log = LoggerFactory.getLogger(Globalparameters.class);
-
-  public static final Map<String, MaxDefaultDBValue> defaultLimitMap = new HashMap<>();
 
   private static final long serialVersionUID = 1L;
 
@@ -222,48 +217,6 @@ public class Globalparameters implements Serializable {
 
   public void setInputRule(String inputRule) {
     this.inputRule = inputRule;
-  }
-
-  /**
-   * Converts message key format to property key format.
-   * 
-   * @param msgKey message key with underscores
-   * @return property key with dots in lowercase
-   */
-  public static String getKeyFromMsgKey(String msgKey) {
-    return msgKey.toLowerCase().replaceAll("_", ".");
-  }
-
-  /**
-   * Gets maximum default database value by message key.
-   * 
-   * @param msgKey message key format
-   * @return maximum default value with key wrapper
-   */
-  public static MaxDefaultDBValueWithKey getMaxDefaultDBValueByMsgKey(final String msgKey) {
-    return getMaxDefaultDBValueByKey(getKeyFromMsgKey(msgKey));
-  }
-
-  /**
-   * Gets maximum default database value by property key.
-   * 
-   * @param key property key format
-   * @return maximum default value with key wrapper
-   */
-  public static MaxDefaultDBValueWithKey getMaxDefaultDBValueByKey(final String key) {
-    return new MaxDefaultDBValueWithKey(key, defaultLimitMap.get(key));
-  }
-
-  /**
-   * Resets the database value for a specific configuration key.
-   * 
-   * @param key the configuration key to reset
-   */
-  public static void resetDBValueOfKey(final String key) {
-    MaxDefaultDBValue mddv = defaultLimitMap.get(key);
-    if (mddv != null) {
-      mddv.setDbValue(null);
-    }
   }
 
   /**

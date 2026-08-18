@@ -11,7 +11,8 @@ import grafioschtrader.entities.UserChartShape.UserChartShapeKey;
  * Repository for managing user chart shape persistence. Provides CRUD operations for chart drawing shapes
  * associated with a specific user and security/currency pair.
  */
-public interface UserChartShapeJpaRepository extends JpaRepository<UserChartShape, UserChartShapeKey> {
+public interface UserChartShapeJpaRepository
+    extends JpaRepository<UserChartShape, UserChartShapeKey>, UserChartShapeJpaRepositoryCustom {
 
   /**
    * Finds chart shapes for a given user and security/currency pair.

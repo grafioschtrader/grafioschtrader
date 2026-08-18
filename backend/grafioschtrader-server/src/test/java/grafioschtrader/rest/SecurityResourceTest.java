@@ -2,12 +2,13 @@ package grafioschtrader.rest;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
@@ -19,12 +20,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.aggregator.ArgumentsAccessor;
-import org.junit.jupiter.params.aggregator.ArgumentsAggregationException;
-import org.junit.jupiter.params.aggregator.ArgumentsAggregator;
-import org.junit.jupiter.params.provider.CsvFileSource;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import grafiosch.types.Language;
 import grafioschtrader.GlobalConstants;
@@ -39,9 +38,9 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 @TestInstance(Lifecycle.PER_CLASS)
 class SecurityResourceTest extends BaseIntegrationTest  {
 
+  private static final String FIXTURE = "/testdata/generated/securities.json";
   private static List<Assetclass> assetclasses;
   private static List<Stockexchange> stockexchanges;
-  private static Comparator<Stockexchange> comparatorSE = (s1, s2) -> s1.getName().compareTo(s2.getName());
 
   @BeforeAll
   void setUpUserToken() {
@@ -85,24 +84,33 @@ class SecurityResourceTest extends BaseIntegrationTest  {
         .filter(s -> GlobalConstants.STOCK_EX_MIC_SIX.equals(s.getMic())).findFirst();
     Assertions.assertThat(stockexchangeOpt).isPresent();
     stockexchanges = Arrays.asList(body);
-    stockexchanges.sort(comparatorSE);
+  }
+
+  static Stream<SecuritySeed> integrationRows() {
+    try (InputStream input = SecurityResourceTest.class.getResourceAsStream(FIXTURE)) {
+      if (input == null) {
+        throw new IllegalStateException("Missing fixture " + FIXTURE + " - regenerate it with nv.bat");
+      }
+      SecuritySeed[] all = new ObjectMapper().readValue(input, SecuritySeed[].class);
+      return Arrays.stream(all).filter(row -> "i".equals(row.e2e()));
+    } catch (java.io.IOException e) {
+      throw new UncheckedIOException("Unable to read " + FIXTURE, e);
+    }
   }
 
   @Order(10)
   @ParameterizedTest
-  @CsvFileSource(resources = "/testdata/generated/securities.csv", encoding = "UTF-8", delimiter = '|', nullValues = "\\N")
-  @DisplayName("Create AT/AU securities from CSV (e2e='i')")
-  void createAllSecuritiesTest(ArgumentsAccessor accessor) throws ArgumentsAggregationException {
-    Assumptions.assumeTrue("i".equals(accessor.getString(21)), "row is not integration-flagged");
+  @MethodSource("integrationRows")
+  @DisplayName("Create AT/AU securities from JSON (e2e='i')")
+  void createAllSecuritiesTest(SecuritySeed row) {
     // Some connectors (e.g. gt.datafeed.vienna) trigger a synchronous external HTTP fetch during
     // POST /api/security when gt.security.async.historyquotes=false, which can hang past the
     // RestTestClient's default read timeout. Skip those rows to keep the suite deterministic.
-    String historyConnector = accessor.getString(16);
-    String intraConnector = accessor.getString(18);
     Assumptions.assumeFalse(
-        "gt.datafeed.vienna".equals(historyConnector) || "gt.datafeed.vienna".equals(intraConnector),
+        "gt.datafeed.vienna".equals(row.idConnectorHistory())
+            || "gt.datafeed.vienna".equals(row.idConnectorIntra()),
         "skip rows whose connector performs a slow external fetch during creation");
-    Security security = new SecurityAggregator().aggregateArguments(accessor, (ParameterContext) null);
+    Security security = row.toSecurity();
 
     Security created = authenticatedClient(RestTestHelper.getRadomUser())
         .post()
@@ -116,41 +124,57 @@ class SecurityResourceTest extends BaseIntegrationTest  {
 
     assertNotNull(created);
     Assertions.assertThat(created.getIdSecuritycurrency()).isGreaterThan(0);
+    Assertions.assertThat(created.getStockexchangeLink()).isEqualTo(row.stockexchangeLink());
+    Assertions.assertThat(created.getIdConnectorHistory()).isEqualTo(row.idConnectorHistory());
+    Assertions.assertThat(created.getUrlHistoryExtend()).isEqualTo(row.urlHistoryExtend());
+    Assertions.assertThat(created.getIdConnectorIntra()).isEqualTo(row.idConnectorIntra());
+    Assertions.assertThat(created.getUrlIntraExtend()).isEqualTo(row.urlIntraExtend());
+    Assertions.assertThat(created.getIdConnectorDividend()).isEqualTo(row.idConnectorDividend());
+    Assertions.assertThat(created.getUrlDividendExtend()).isEqualTo(row.urlDividendExtend());
+    Assertions.assertThat(created.getDividendCurrency()).isEqualTo(row.dividendCurrency());
+    Assertions.assertThat(created.getIdConnectorSplit()).isEqualTo(row.idConnectorSplit());
+    Assertions.assertThat(created.getUrlSplitExtend()).isEqualTo(row.urlSplitExtend());
   }
 
-  static class SecurityAggregator implements ArgumentsAggregator {
+  record SecuritySeed(String name, String isin, String tickerSymbol, String currency, String activeFromDate,
+      String activeToDate, DistributionFrequency distributionFrequency, Integer denomination, float leverageFactor,
+      String stockexchangeName, AssetclassType categoryType, String subCategoryDE,
+      SpecialInvestmentInstruments specialInvestmentInstrument, String stockexchangeLink, String productLink,
+      String formulaPrices, String idConnectorHistory, String urlHistoryExtend, String idConnectorIntra,
+      String urlIntraExtend, String idConnectorDividend, String urlDividendExtend, String dividendCurrency,
+      String idConnectorSplit, String urlSplitExtend, String note, String e2e) {
 
-    final Stockexchange searchStockexchange = new Stockexchange();
-
-    @Override
-    public Security aggregateArguments(ArgumentsAccessor accessor, ParameterContext context)
-        throws ArgumentsAggregationException {
+    Security toSecurity() {
       Security s = new Security();
-      s.setName(accessor.getString(0));
-      s.setIsin(accessor.getString(1));
-      s.setTickerSymbol(accessor.getString(2));
-      s.setCurrency(accessor.getString(3));
-      s.setActiveFromDate(accessor.get(4, LocalDate.class));
-      s.setActiveToDate(accessor.get(5, LocalDate.class));
-      s.setDistributionFrequency(DistributionFrequency.getDistributionFrequency(accessor.getByte(6)));
-      s.setDenomination(accessor.getInteger(7));
-      s.setLeverageFactor(accessor.getFloat(8));
-      searchStockexchange.setName(accessor.getString(9));
-      int index = Collections.binarySearch(stockexchanges, searchStockexchange, comparatorSE);
-      s.setStockexchange(stockexchanges.get(index));
-      s.setAssetClass(RestTestHelper.getAssetclassBy(assetclasses, accessor.getByte(10), accessor.getString(11),
-          accessor.getByte(12)));
-      s.setProductLink(accessor.getString(13));
-      s.setIdTenantPrivate(accessor.getInteger(14));
-      s.setFormulaPrices(accessor.getString(15));
-      s.setIdConnectorHistory(accessor.getString(16));
-      s.setUrlHistoryExtend(accessor.getString(17));
-      s.setIdConnectorIntra(accessor.getString(18));
-      s.setUrlIntraExtend(accessor.getString(19));
-      s.setNote(accessor.getString(20));
+      s.setName(name);
+      s.setIsin(isin);
+      s.setTickerSymbol(tickerSymbol);
+      s.setCurrency(currency);
+      s.setActiveFromDate(LocalDate.parse(activeFromDate));
+      s.setActiveToDate(LocalDate.parse(activeToDate));
+      s.setDistributionFrequency(distributionFrequency);
+      s.setDenomination(denomination);
+      s.setLeverageFactor(leverageFactor);
+      s.setStockexchange(stockexchanges.stream().filter(se -> se.getName().equals(stockexchangeName)).findFirst()
+          .orElseThrow(() -> new IllegalStateException("Unknown stock exchange in " + FIXTURE + ": "
+              + stockexchangeName)));
+      s.setAssetClass(RestTestHelper.getAssetclassBy(assetclasses, categoryType.getValue(), subCategoryDE,
+          specialInvestmentInstrument.getValue()));
+      s.setStockexchangeLink(stockexchangeLink);
+      s.setProductLink(productLink);
+      s.setFormulaPrices(formulaPrices);
+      s.setIdConnectorHistory(idConnectorHistory);
+      s.setUrlHistoryExtend(urlHistoryExtend);
+      s.setIdConnectorIntra(idConnectorIntra);
+      s.setUrlIntraExtend(urlIntraExtend);
+      s.setIdConnectorDividend(idConnectorDividend);
+      s.setUrlDividendExtend(urlDividendExtend);
+      s.setDividendCurrency(dividendCurrency);
+      s.setIdConnectorSplit(idConnectorSplit);
+      s.setUrlSplitExtend(urlSplitExtend);
+      s.setNote(note);
       return s;
     }
-
   }
 
 }

@@ -19,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.ImportTransactionHead;
 import grafioschtrader.repository.ImportTransactionHeadJpaRepository;
 import grafioschtrader.repository.ImportTransactionHeadJpaRepositoryImpl.SuccessFailedDirectImportTransaction;
@@ -79,9 +78,5 @@ public class ImportTransactionHeadResource extends UpdateCreateDeleteWithTenantR
     return importTransactionHeadJpaRepository;
   }
 
-  @Override
-  protected String getPrefixEntityLimit() {
-    return GlobalConstants.GT_LIMIT_DAY;
-  }
 
 }

@@ -164,7 +164,8 @@ public class HistoryquoteResource extends HistoryquoteResourceBase<Historyquote>
       @RequestParam(required = false) char thousandSeparator, @RequestParam(required = false) String dateFormat)
       throws Exception {
 
-    HistoryquoteImport historyquoteImport = new HistoryquoteImport(historyquoteJpaRepository, validator);
+    HistoryquoteImport historyquoteImport = new HistoryquoteImport(historyquoteJpaRepository, validator,
+        dailyLimitService);
     return new ResponseEntity<>(historyquoteImport.uploadHistoryquotes(idSecuritycurrency, uploadFiles,
         new SupportedCSVFormat(decimalSeparator, thousandSeparator, dateFormat)), HttpStatus.OK);
   }

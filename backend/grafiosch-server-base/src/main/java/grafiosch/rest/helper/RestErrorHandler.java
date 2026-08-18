@@ -15,6 +15,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.TransactionSystemException;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import grafiosch.BaseConstants;
 import grafiosch.entities.User;
 import grafiosch.error.ErrorWithLogout;
 import grafiosch.error.ErrorWrapper;
@@ -260,6 +262,35 @@ public class RestErrorHandler {
     log.warn(ex.getMessage(), ex);
     final Locale currentLocale = LocaleContextHolder.getLocale();
     return new ErrorWrapper(new SecurityBreachError(messageSource.getMessage(ex.getMessage(), null, currentLocale)));
+  }
+
+  /**
+   * Handles a rejected method-level authorization check, such as a {@code @PreAuthorize} on a handler method.
+   *
+   * <p>
+   * Spring Security raises {@code AuthorizationDeniedException} (a subclass of {@link AccessDeniedException}) inside
+   * the handler invocation, which means it reaches this advice rather than the {@code ExceptionTranslationFilter}.
+   * Without this handler the catch-all {@link #serverException(Exception)} would answer 500 and echo the exception
+   * message instead of the 403 the caller must see.
+   * </p>
+   *
+   * <p>
+   * Unlike {@link #processSecurityException(SecurityException)} this does <b>not</b> increment the security breach
+   * counter. A denial by a URL rule in the filter chain does not increment it either, and administrative views are
+   * reachable in the navigation tree for every user, so counting a wrong-role request would lock out users who merely
+   * opened a page they are not entitled to save on.
+   * </p>
+   *
+   * @param ex the authorization failure raised by method security
+   * @return ErrorWrapper with FORBIDDEN status containing the localized "not authorized" message
+   */
+  @ExceptionHandler(value = { AccessDeniedException.class })
+  @ResponseStatus(HttpStatus.FORBIDDEN)
+  public ErrorWrapper processAccessDeniedException(final AccessDeniedException ex) {
+    log.warn("Authorization denied: {}", ex.getMessage());
+    final Locale currentLocale = LocaleContextHolder.getLocale();
+    return new ErrorWrapper(new SingleNativeMsgError(
+        messageSource.getMessage(BaseConstants.RIGHTS_SECURITY_BREACH, null, currentLocale)));
   }
 
   /**

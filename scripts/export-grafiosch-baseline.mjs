@@ -23,7 +23,12 @@
  *   2. Reference data for `role` and for `globalparameters` — the latter filtered to `g.%`, because
  *      the `gt.%` rows are Grafioschtrader application config that no grafiosch-* code ever reads and
  *      that partly carries the dumping machine's own state (demo tenant ids, connector watermarks).
- *   3. An UPDATE that nulls `g.gnet.my.entry.id`, the one instance-specific value left after the
+ *   3. The library-owned default rows of `entity_limit`, filtered to `id_user IS NULL` and to the
+ *      entity names of grafiosch-base — the same layer argument as the `g.%` filter above. Until
+ *      V0_36_7 these limits were `g.limit.day.*` rows of `globalparameters` and arrived with the
+ *      dump of point 2; without them the portable host has no limit at all, because a key with no
+ *      row resolves as unlimited.
+ *   4. An UPDATE that nulls `g.gnet.my.entry.id`, the one instance-specific value left after the
  *      filter: `gt_net` is dumped structure-only, so the dumping machine's own GTNet entry id would
  *      dangle and every GTNet background task would warn on each boot.
  *
@@ -56,6 +61,39 @@ const GNET_MY_ENTRY_ID = 'g.gnet.my.entry.id';
  * parameters.
  */
 const GLOBALPARAMETERS_WHERE = "property_name LIKE 'g.%' AND property_name NOT LIKE 'g.migration.%'";
+
+/** Configuration table of the limit model, seeded per layer just like `globalparameters`. */
+const ENTITY_LIMIT_TABLE = 'entity_limit';
+
+/**
+ * Seed filter for `entity_limit`. Two independent restrictions:
+ *
+ * `id_user IS NULL` is forced by FK_EntityLimit_User — `user` is dumped structure-only, so a per-user
+ * override would reference a row that does not exist. Role scoped rows are fine: `role` is dumped with
+ * the master's own ids a few lines above.
+ *
+ * The entity name has to belong to grafiosch-base, for the same reason `globalparameters` is filtered
+ * to `g.%`: an application row names an entity the portable host does not have, its MAX key is
+ * registered nowhere there, and EntityLimitJpaRepositoryImpl.isKnownKey() rejects it.
+ *
+ * @param entityClassNames entity class names derived from the grafiosch-base sources
+ * @return the WHERE clause selecting the rows to seed
+ */
+function entityLimitWhere(entityClassNames) {
+  return `id_user IS NULL AND entity_name IN (${entityClassNames.map(n => `'${n}'`).join(',')})`;
+}
+
+/**
+ * SELECT that assembles one INSERT statement per row, see {@link dumpEntityLimit} for why the statements
+ * are built rather than dumped. QUOTE() renders NULL as the unquoted word NULL, so it doubles as the null
+ * guard for the string and date columns; the numeric ones need IFNULL.
+ */
+const ENTITY_LIMIT_INSERT_SELECT = `CONCAT(
+  'INSERT INTO \`${ENTITY_LIMIT_TABLE}\` (limit_type, entity_name, relation_entity_name, count_scope, ',
+  'owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (',
+  limit_type, ', ', QUOTE(entity_name), ', ', QUOTE(relation_entity_name), ', ',
+  IFNULL(count_scope, 'NULL'), ', ', IFNULL(owner_scope, 'NULL'), ', ', IFNULL(id_role, 'NULL'), ', ',
+  limit_value, ', ', QUOTE(valid_until), ', 0, 0, 0);')`;
 
 function fail(msg) {
   console.error(`export-grafiosch-baseline: ${msg}`);
@@ -138,6 +176,32 @@ function camelToSnake(name) {
   return name.replace(/([a-z0-9])([A-Z])/g, '$1_$2').replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2').toLowerCase();
 }
 
+/** Reads the entity package once, as {className, source} pairs. */
+function readEntitySources(entityDir) {
+  if (!existsSync(entityDir)) {
+    fail(`Entity directory not found: ${entityDir}`);
+  }
+  return readdirSync(entityDir).filter(f => f.endsWith('.java'))
+    .map(f => ({ className: f.slice(0, -'.java'.length), source: readFileSync(path.join(entityDir, f), 'utf8') }));
+}
+
+/**
+ * Collects the simple class names of the JPA entities of grafiosch-base — the entity names a limit key
+ * may carry in the portable host. A daily key names the JPA metamodel entity, which is the simple class
+ * name (EntityLimitJpaRepositoryImpl.derivedDailyEntityClasses()), so the sources are the right origin,
+ * and derived rather than hand-maintained for the same reason as the table list.
+ *
+ * The `@Entity\b` guard is the one of pass 4 of {@link collectEntityTables}: it must not match
+ * `@EntityListeners`, which sits on the `@MappedSuperclass` Auditable.
+ *
+ * @param entityDir absolute path of the entity package to scan
+ * @return sorted array of entity class names
+ */
+function collectEntityClassNames(entityDir) {
+  return readEntitySources(entityDir).filter(({ source }) => /^@Entity\s*(\(|$)/m.test(source))
+    .map(({ className }) => className).sort();
+}
+
 /**
  * Collects every table name the grafiosch-base persistence model maps, from three sources:
  *
@@ -158,11 +222,7 @@ function camelToSnake(name) {
  * @return sorted array of distinct table names
  */
 function collectEntityTables(entityDir) {
-  if (!existsSync(entityDir)) {
-    fail(`Entity directory not found: ${entityDir}`);
-  }
-  const files = readdirSync(entityDir).filter(f => f.endsWith('.java'))
-    .map(f => ({ className: f.slice(0, -'.java'.length), source: readFileSync(path.join(entityDir, f), 'utf8') }));
+  const files = readEntitySources(entityDir);
 
   // Pass 1 — every string constant, per class. Almost every entity names its constant TABNAME, so a
   // single flat map would let the last file win; unqualified references are therefore resolved
@@ -227,6 +287,81 @@ function tablesOfExistingBaseline(outPath) {
   return [...readFileSync(outPath, 'utf8').matchAll(/^CREATE TABLE `([a-z_0-9]+)`/gm)].map(m => m[1]);
 }
 
+/**
+ * Builds the INSERT statements of the library-owned default rows of `entity_limit`, and reports what the
+ * layer filter left behind.
+ *
+ * The statements are assembled with CONCAT/QUOTE through the client instead of being dumped — the same
+ * pattern nv.bat uses for the user-zero row — because mysqldump --complete-insert names the five
+ * PERSISTENT generated columns (`uk_id_role`, ...) in the column list, and an INSERT that assigns a
+ * generated column is rejected outright.
+ *
+ * Three columns are deliberately not carried over from the master. `id_entity_limit` so the portable host
+ * allocates its own ids; `creation_time` / `last_modified_time` so the block is byte-identical on every
+ * regeneration instead of churning whenever an administrator touched a row on the dumping machine — both
+ * default to CURRENT_TIMESTAMP. `created_by` / `last_modified_by` / `version` are written as the
+ * fresh-install values (User Zero, 0) for the same reason: the editing administrator of the master does
+ * not exist here.
+ *
+ * Reporting rather than failing follows the style of the table drift notes: this script runs on a release
+ * cut, and a note the operator reads is more useful than an abort. The two cases worth a note are an
+ * application row that is skipped — expected, but it makes the filter visible — and an empty result, which
+ * means the master has the table but no library default at all.
+ *
+ * @return the INSERT block, preceded by its banner, or an empty buffer when there is nothing to seed
+ */
+function dumpEntityLimit(client, args, present, entityDir) {
+  const { user, password, database } = args;
+  if (!present.has(ENTITY_LIMIT_TABLE)) {
+    console.log(`  NOTE  ${ENTITY_LIMIT_TABLE}: no such table in '${database}' — is the master schema `
+      + `current? The portable host gets no limit configuration and every limit resolves as unlimited`);
+    return Buffer.alloc(0);
+  }
+
+  const entityClassNames = collectEntityClassNames(entityDir);
+  const query = (select, where) => run(client,
+    [`--user=${user}`, `--database=${database}`, '--batch', '--skip-column-names', '--raw',
+      `--execute=SELECT ${select} FROM ${ENTITY_LIMIT_TABLE} WHERE ${where}`],
+    password, 'mysql').toString('utf8').split('\n').map(l => l.trim()).filter(Boolean);
+
+  const skipped = query('DISTINCT entity_name', 'id_user IS NULL')
+    .filter(entityName => !entityClassNames.includes(entityName));
+  if (skipped.length > 0) {
+    console.log(`  NOTE  ${ENTITY_LIMIT_TABLE}: skipping the application-layer limits of `
+      + `${skipped.join(', ')} — no grafiosch-base entity carries those names`);
+  }
+
+  // ORDER BY, not the physical row order, so that a value change is the only thing that ever shows in the
+  // diff of the regenerated baseline.
+  const inserts = query(ENTITY_LIMIT_INSERT_SELECT,
+    `${entityLimitWhere(entityClassNames)} ORDER BY limit_type, entity_name, uk_relation_entity_name, `
+    + 'uk_count_scope, uk_owner_scope, uk_id_role');
+  if (inserts.length === 0) {
+    console.log(`  NOTE  ${ENTITY_LIMIT_TABLE}: no library default row in '${database}' — the portable host `
+      + `gets no limit configuration and every limit resolves as unlimited`);
+    return Buffer.alloc(0);
+  }
+
+  return Buffer.from([
+    '',
+    '-- ----------------------------------------------------------------------',
+    '-- Limit configuration, filtered to the library layer for the same reason as globalparameters above:',
+    '-- an application row names an entity this host does not have and a MAX key nothing registers here.',
+    '-- Only rows without a user are dumped - `user` is structure-only, so a per-user override would',
+    '-- reference a row that does not exist. Role scoped rows are kept, `role` is seeded above with the',
+    '-- master\'s own ids. A key with no row at all resolves as unlimited.',
+    '-- ----------------------------------------------------------------------',
+    '',
+    ...inserts,
+    '',
+  ].join('\n'), 'utf8');
+}
+
+/** Number of seeded rows in a block that holds one INSERT per row. */
+function countInserts(dump) {
+  return (dump.toString('utf8').match(/^INSERT INTO/gm) ?? []).length;
+}
+
 // ---------------------------------------------------------------------------
 
 function main() {
@@ -279,6 +414,10 @@ function main() {
     'globalparameters'], password, 'mysqldump');
   const role = run(dumper, [...dataArgs, database, 'role'], password, 'mysqldump');
 
+  // 3. The library-owned default rows of entity_limit, dumped after role because FK_EntityLimit_Role
+  // points at it.
+  const entityLimit = dumpEntityLimit(client, args, present, entityDir);
+
   const banner = Buffer.from([
     '',
     '-- ----------------------------------------------------------------------',
@@ -289,7 +428,7 @@ function main() {
     '',
   ].join('\n'), 'utf8');
 
-  // 3. Neutralize the one instance-specific value that survives the filter.
+  // 4. Neutralize the one instance-specific value that survives the filter.
   const neutralize = Buffer.from([
     '',
     `-- ${GNET_MY_ENTRY_ID} points at the dumping machine's own GTNet entry, but gt_net is dumped`,
@@ -301,10 +440,10 @@ function main() {
 
   mkdirSync(path.dirname(outPath), { recursive: true });
   writeFileSync(outPath, Buffer.concat([Buffer.from(structure, 'utf8'), banner, globalparameters, role,
-    neutralize]));
+    entityLimit, neutralize]));
 
-  const seeded = (globalparameters.toString('utf8').match(/^INSERT INTO/gm) ?? []).length;
-  console.log(`Wrote ${sharedTables.length} tables and ${seeded} globalparameters rows to ${outPath}`);
+  console.log(`Wrote ${sharedTables.length} tables, ${countInserts(globalparameters)} globalparameters rows `
+    + `and ${countInserts(entityLimit)} ${ENTITY_LIMIT_TABLE} rows to ${outPath}`);
 
   if (args['copy-to']) {
     const target = path.resolve(args['copy-to']);

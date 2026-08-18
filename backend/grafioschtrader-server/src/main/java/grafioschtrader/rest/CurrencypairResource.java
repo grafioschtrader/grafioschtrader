@@ -23,15 +23,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetSupplierDetail;
+import grafiosch.BaseConstants;
 import grafiosch.entities.User;
 import grafiosch.repository.GTNetJpaRepository;
 import grafiosch.repository.GTNetSupplierDetailJpaRepository;
 import grafiosch.rest.UpdateCreateJpaRepository;
 import grafiosch.rest.UpdateCreateResource;
-import grafioschtrader.GlobalConstants;
+import grafiosch.service.DailyLimitService;
+import grafiosch.service.EntityLimitService;
+import grafiosch.types.OperationType;
+import grafioschtrader.config.LimitKeyConfig;
 import grafioschtrader.connector.instrument.IFeedConnector;
-import grafioschtrader.types.AssetclassType;
-import grafioschtrader.types.SpecialInvestmentInstruments;
 import grafioschtrader.dto.CrossRateRequest;
 import grafioschtrader.dto.CrossRateResponse;
 import grafioschtrader.dto.GTSecuritiyCurrencyExchange;
@@ -49,6 +51,8 @@ import grafioschtrader.repository.GTNetSupplierDetailLastJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
 import grafioschtrader.search.SecuritycurrencySearch;
+import grafioschtrader.types.AssetclassType;
+import grafioschtrader.types.SpecialInvestmentInstruments;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -79,6 +83,12 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
 
+  @Autowired
+  private DailyLimitService dailyLimitService;
+
+  @Autowired
+  private EntityLimitService entityLimitService;
+
   @Operation(summary = "Get currency pair by security currency ID", description = """
       Retrieves a currency pair associated with the given currency ID. Returns null if no matching currency pair is found.
       """, tags = {
@@ -101,9 +111,40 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
   public ResponseEntity<Currencypair> findOrCreateCurrencypairByFromAndToCurrency(
       @Parameter(description = "Base currency as three-letter ISO currency code", required = true) @PathVariable final String baseCurrency,
       @Parameter(description = "Quote currency as three-letter ISO currency code", required = true) @PathVariable final String quoteCurrency) {
-    return new ResponseEntity<>(
-        currencypairJpaRepository.findOrCreateCurrencypairByFromAndToCurrency(baseCurrency, quoteCurrency, true),
-        HttpStatus.OK);
+    Currencypair currencypair = currencypairJpaRepository.findByFromCurrencyAndToCurrency(baseCurrency, quoteCurrency);
+    if (currencypair == null) {
+      final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+      checkCurrencypairCreateLimits(user);
+      currencypair = currencypairJpaRepository.findOrCreateCurrencypairByFromAndToCurrency(baseCurrency, quoteCurrency,
+          true);
+      dailyLimitService.log(user.getIdUser(), Currencypair.class.getSimpleName(), OperationType.ADD, 1);
+    }
+    return new ResponseEntity<>(currencypair, HttpStatus.OK);
+  }
+
+  /**
+   * Charges a currency pair created through this GET mapping the same budget the generic {@code POST /api/currencypair}
+   * consumes: today's {@code DAY_CUD|Currencypair} unit and the lifetime {@code MAX|Currencypair} of the creator. A
+   * mapping that writes a row is a create, whichever HTTP verb it carries, and without this the endpoint is a bypass of
+   * both caps.
+   *
+   * <p>
+   * The check sits here and not in {@code CurrencypairJpaRepositoryImpl.createNonExistingCurrencypair} on purpose. That
+   * method is also reached from transaction import, cash account create, standing order resolve, tenant and portfolio
+   * currency change and the holdings rebuild. A budget there would fail a legitimate import halfway through on a
+   * currency the user never asked for, which is a worse outcome than the bypass it would close: the currency codes are
+   * validated by {@code @ValidCurrencyCode} before insert, so the reachable row count is the ISO times crypto cross
+   * product rather than unbounded.
+   * </p>
+   *
+   * @param user the acting user, whose daily counter and creator count are consulted
+   * @throws SecurityException when the lifetime cap of the creator is reached
+   */
+  private void checkCurrencypairCreateLimits(User user) {
+    dailyLimitService.check(user, Currencypair.class.getSimpleName(), 1);
+    if (!entityLimitService.fitsWithinLimit(user, LimitKeyConfig.KEY_CURRENCYPAIR, null, 1)) {
+      throw new SecurityException(BaseConstants.LIMIT_SECURITY_BREACH);
+    }
   }
 
   @Operation(summary = "Get currency pair with the most recent historical quote up to a given date", description = """
@@ -207,10 +248,6 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
         currencypairJpaRepository.getCurrencypairInTransactionByPortfolioId(idPortfolio, idTenant), HttpStatus.OK);
   }
 
-  @Override
-  protected String getPrefixEntityLimit() {
-    return GlobalConstants.GT_LIMIT_DAY;
-  }
 
   // ==================== GTNet Exchange Endpoints ====================
 

@@ -14,7 +14,7 @@ import grafiosch.exportdelete.ExportDeleteHelper;
 import grafiosch.gtnet.ExchangeKindTypeRegistry;
 import grafiosch.gtnet.GTNetMessageCodeRegistry;
 import grafiosch.gtnet.GTNetModelHelper;
-import grafioschtrader.config.TenantConfig;
+import grafioschtrader.config.LimitKeyConfig;
 import grafioschtrader.exportdelete.MyDataExportDeleteDefinition;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
@@ -93,17 +93,15 @@ public class GTStartUp {
    * @see PostConstruct
    * @see BaseConstants#TIME_ZONE
    * @see GlobalConstants#GT_PREFIX
-   * @see TenantConfig#initialzie()
+   * @see LimitKeyConfig#initialize()
    * @see MailSendForwardDefault#initialize()
-   * @see GlobalParamKeyDefault
    */
   @PostConstruct
   void started() {
     TimeZone.setDefault(TimeZone.getTimeZone(BaseConstants.TIME_ZONE));
-    new GlobalParamKeyDefault();
     MailSendForwardDefault.initialize();
     BaseConstants.PREFIXES_PARAM.add(GlobalConstants.GT_PREFIX);
-    TenantConfig.initialzie();
+    LimitKeyConfig.initialize();
     TaskDataChange.TASK_TYPES_REGISTRY.addTypes(TaskTypeExtended.values());
     UDFMetadata.UDF_SPECIAL_TYPE_REGISTRY.addTypes(UDFSpecialGTType.values());
     ConnectorApiKey.SUBSCRIPTION_REGISTRY.addTypes(SubscriptionType.values());

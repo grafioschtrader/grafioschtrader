@@ -12,6 +12,7 @@ import grafiosch.entities.TaskDataChange;
 import grafiosch.entities.User;
 import grafiosch.repository.BaseRepositoryImpl;
 import grafiosch.repository.TaskDataChangeJpaRepository;
+import grafiosch.service.DailyLimitService;
 import grafiosch.types.ProgressStateType;
 import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.entities.GTNetSecurityImpHead;
@@ -30,10 +31,16 @@ public class GTNetSecurityImpHeadJpaRepositoryImpl extends BaseRepositoryImpl<GT
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
 
+  @Autowired
+  private DailyLimitService dailyLimitService;
+
   @Override
   public GTNetSecurityImpHead saveOnlyAttributes(GTNetSecurityImpHead entity, GTNetSecurityImpHead existingEntity,
       Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    // A GTNet import head is tenant private, so UpdateCreate.createEntity takes the tenant branch and never reaches
+    // the generic daily check. The lifetime cap is enforced there, the budget has to be checked here.
+    dailyLimitService.check(user, GTNetSecurityImpHead.class.getSimpleName(), 1);
 
     GTNetSecurityImpHead saveEntity = entity;
     if (existingEntity != null) {

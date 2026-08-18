@@ -36,7 +36,8 @@ import jakarta.persistence.criteria.Root;
  * <p>
  * The search supports extensive filtering capabilities including:
  * <ul>
- * <li><strong>Identification:</strong> ISIN, name, ticker symbol</li>
+ * <li><strong>Identification:</strong> ISIN, name (as substring or, optionally, as regular expression), ticker
+ * symbol</li>
  * <li><strong>Classification:</strong> Asset class type, investment instrument type, subcategory</li>
  * <li><strong>Trading:</strong> Stock exchange, currency, active date ranges</li>
  * <li><strong>Access:</strong> Tenant privacy, leverage factor, derived securities</li>
@@ -61,6 +62,9 @@ import jakarta.persistence.criteria.Root;
 public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder implements Specification<Security> {
 
   private static final long serialVersionUID = 1L;
+
+  /** Inline PCRE flag which makes a user supplied name pattern match case-insensitively. */
+  private static final String CASE_INSENSITIVE_PREFIX = "(?i)";
 
   /** Tenant ID for privacy security filtering and access control */
   final Integer idTenant;
@@ -149,10 +153,7 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
         mainPredicates.add(builder.or(builder.equal(securityRoot.get(Security_.idTenantPrivate), idTenant),
             builder.isNull(securityRoot.get(Security_.idTenantPrivate))));
       }
-      if (securitycurrencySearch.getName() != null) {
-        mainPredicates.add(builder.and(builder.like(builder.lower(securityRoot.get(Security_.name)),
-            "%" + securitycurrencySearch.getName().toLowerCase() + "%")));
-      }
+      addNamePredicate(securityRoot, builder, mainPredicates);
       if (securitycurrencySearch.getTickerSymbol() != null) {
         mainPredicates.add(builder.and(builder.like(securityRoot.get(Security_.tickerSymbol),
             "%" + securitycurrencySearch.getTickerSymbol().toUpperCase() + "%")));
@@ -176,6 +177,45 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
     }
     final Predicate[] predicatesArray = new Predicate[mainPredicates.size()];
     return builder.and(mainPredicates.toArray(predicatesArray));
+  }
+
+  /**
+   * Adds the predicate that filters securities by their name.
+   * <p>
+   * Without {@link SecuritycurrencySearch#isNameRegex()} the name is matched case-insensitively as a substring, which
+   * is the long-standing behaviour of this search. With the flag set the input is handed to the database as a regular
+   * expression instead, which allows criteria that are encoded in the name itself — for example
+   * {@code ^[23]([.,]\d+)?(?=\s)} to find bonds whose name starts with a coupon between 2 and 3.99 percent.
+   * </p>
+   * <p>
+   * The pattern is evaluated by MariaDB in its PCRE dialect through {@code REGEXP_INSTR} (see
+   * {@link RegexpFunctionContributor}). Case-insensitivity is requested with the inline flag {@code (?i)} rather than
+   * by lowering both sides: lowering a <em>pattern</em> would change its meaning ({@code \D} would become {@code \d}).
+   * A blank name yields no predicate at all, because an empty pattern matches every row.
+   * </p>
+   * <p>
+   * The pattern relies on Hibernate's default {@code hibernate.criteria.value_handling_mode=BIND}, which turns the
+   * literal into a JDBC bind parameter. Switching that setting to {@code INLINE} would let MariaDB consume the
+   * backslashes of the pattern as string escapes and silently change its meaning.
+   * </p>
+   *
+   * @param securityRoot   the root entity for the query
+   * @param builder        the criteria builder for constructing predicates
+   * @param mainPredicates the list to add the name predicate to
+   */
+  private void addNamePredicate(final Root<Security> securityRoot, final CriteriaBuilder builder,
+      final List<Predicate> mainPredicates) {
+    final String name = securitycurrencySearch.getName();
+    if (name == null || name.isBlank()) {
+      return;
+    }
+    if (securitycurrencySearch.isNameRegex()) {
+      mainPredicates.add(builder.gt(builder.function(RegexpFunctionContributor.REGEXP_INSTR, Integer.class,
+          securityRoot.get(Security_.name), builder.literal(CASE_INSENSITIVE_PREFIX + name)), 0));
+    } else {
+      mainPredicates.add(
+          builder.and(builder.like(builder.lower(securityRoot.get(Security_.name)), "%" + name.toLowerCase() + "%")));
+    }
   }
 
   /**

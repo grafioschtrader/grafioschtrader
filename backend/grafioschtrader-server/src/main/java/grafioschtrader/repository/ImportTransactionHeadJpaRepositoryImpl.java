@@ -18,6 +18,10 @@ import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafiosch.repository.BaseRepositoryImpl;
+import grafiosch.service.DailyLimitService;
+import grafiosch.service.EntityLimitService;
+import grafiosch.types.OperationType;
+import grafioschtrader.config.LimitKeyConfig;
 import grafioschtrader.entities.ImportTransactionHead;
 import grafioschtrader.entities.ImportTransactionPlatform;
 import grafioschtrader.entities.ImportTransactionPos;
@@ -36,6 +40,12 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
 
   @Autowired
   private ImportTransactionHeadJpaRepository importTransactionHeadJpaRepository;
+
+  @Autowired
+  private EntityLimitService entityLimitService;
+
+  @Autowired
+  private DailyLimitService dailyLimitService;
 
   @Autowired
   private ImportTransactionTemplateJpaRepository importTransactionTemplateJpaRepository;
@@ -65,6 +75,11 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
   public ImportTransactionHead saveOnlyAttributes(ImportTransactionHead importTransactionHead,
       ImportTransactionHead existingEntity, final Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
 
+    // An import head is tenant private, so UpdateCreate.createEntity takes the tenant branch and never reaches the
+    // generic daily check. The counter is written by the resource on create, update and delete alike, so the budget
+    // is checked here for both directions. The lifetime cap needs nothing here: it is registered as checked on the
+    // generic create path.
+    checkDailyLimit();
     ImportTransactionHead createImportTransactionHead = importTransactionHead;
     if (existingEntity != null) {
       createImportTransactionHead = existingEntity;
@@ -76,6 +91,14 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
       checkGtPlatformConfigured(createImportTransactionHead.getIdTenant());
     }
     return importTransactionHeadJpaRepository.save(createImportTransactionHead);
+  }
+
+  /** Checks today's CUD budget of the acting user for import heads. Skipped when there is no authenticated user. */
+  private void checkDailyLimit() {
+    User user = entityLimitService.getCurrentUserOrNull();
+    if (user != null) {
+      dailyLimitService.check(user, ImportTransactionHead.class.getSimpleName(), 1);
+    }
   }
 
   /**
@@ -102,10 +125,16 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
     Securityaccount securityaccount = this.securityaccountJpaRepository
         .findByIdSecuritycashAccountAndIdTenant(idSecuritycashaccount, user.getIdTenant());
     if (securityaccount != null) {
+      // The head is written with a plain save() rather than through UpdateCreate, so neither the lifetime cap nor the
+      // daily budget would be consumed here. On a fully successful direct import the head is deleted again further
+      // down, which is why only the daily budget is permanently spent by this path.
+      checkHeadLimits();
+      checkRoomForOneFurtherPosition();
       ImportTransactionHead importTransactionHead = new ImportTransactionHead(user.getIdTenant(), securityaccount,
           LocalDateTime.now().toString(), "Computer generated");
       importTransactionHead.setUseGtPlatform(useGtPlatform);
       importTransactionHead = importTransactionHeadJpaRepository.save(importTransactionHead);
+      dailyLimitService.log(user.getIdUser(), ImportTransactionHead.class.getSimpleName(), OperationType.ADD, 1);
       this.getTemplateReadFilesAndSaveAsImport(importTransactionHead, uploadFiles, null);
 
       List<ImportTransactionPos> importTransactionPosList = importTransactionPosJpaRepository
@@ -137,17 +166,14 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
       // Failed to create a transaction
       return new SuccessFailedDirectImportTransaction(importTransactionHead.getIdTransactionHead());
     } else {
-      // Remove only the positions that were actually imported. Positions skipped because of the total transaction
-      // limit are kept (together with the head) so the user can import them later after deleting existing transactions.
+      // An import either happens in full or not at all: a batch that would breach the total transaction limit is
+      // rejected before the first write, so reaching this point means every position was imported.
       importTransactionPosJpaRepository.deleteAll(
           savedImpPosAndTransactions.stream().map(spat -> spat.importTransactionPos).collect(Collectors.toList()));
-      if (result.overTransactionLimitCount == 0) {
-        importTransactionHeadJpaRepository.delete(importTransactionHead);
-      }
+      importTransactionHeadJpaRepository.delete(importTransactionHead);
       int noOfDifferentSecurities = (int) savedImpPosAndTransactions.stream()
           .map(spat -> spat.transaction.getSecurity().getIdSecuritycurrency()).distinct().count();
-      return new SuccessFailedDirectImportTransaction(savedImpPosAndTransactions.size(), noOfDifferentSecurities,
-          result.overTransactionLimitCount);
+      return new SuccessFailedDirectImportTransaction(savedImpPosAndTransactions.size(), noOfDifferentSecurities);
     }
   }
 
@@ -158,6 +184,7 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
     ImportTransactionHead importTransactionHead = importTransactionHeadJpaRepository
         .getReferenceById(idTransactionHead);
     if (user.getIdTenant().equals(importTransactionHead.getIdTenant())) {
+      checkRoomForOneFurtherPosition();
       this.getTemplateReadFilesAndSaveAsImport(importTransactionHead, uploadFiles, idTransactionImportTemplate);
     } else {
       throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
@@ -280,6 +307,41 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
     }
   }
 
+  /**
+   * Enforces the lifetime cap and the daily budget of an import head created outside {@code UpdateCreate}.
+   *
+   * @throws SecurityException when the tenant already holds the maximum number of import heads
+   */
+  private void checkHeadLimits() {
+    User user = entityLimitService.getCurrentUserOrNull();
+    if (user != null) {
+      if (!entityLimitService.fitsWithinLimit(user, LimitKeyConfig.KEY_IMPORT_TRANSACTION_HEAD, null, 1)) {
+        throw new SecurityException(BaseConstants.LIMIT_SECURITY_BREACH);
+      }
+      dailyLimitService.check(user, ImportTransactionHead.class.getSimpleName(), 1);
+    }
+  }
+
+  /**
+   * Rejects an upload before a single document is parsed when there is no room left for even one further position.
+   *
+   * <p>
+   * How many positions a document yields is only known after it has been parsed, so the caps themselves are enforced
+   * per row in {@code ImportTransactionPosJpaRepositoryImpl.saveNewPosWithLimitCheck}. This pre-check exists so that a
+   * tenant that is already at its ceiling gets a clean refusal instead of parsing a whole batch to fail on its first
+   * row.
+   * </p>
+   *
+   * @throws SecurityException when the tenant total of import positions is exhausted
+   */
+  private void checkRoomForOneFurtherPosition() {
+    User user = entityLimitService.getCurrentUserOrNull();
+    if (user != null
+        && !entityLimitService.fitsWithinLimit(user, LimitKeyConfig.KEY_IMPORT_TRANSACTION_POS, null, 1)) {
+      throw new SecurityException(BaseConstants.LIMIT_SECURITY_BREACH);
+    }
+  }
+
   @Override
   public int delEntityWithTenant(Integer id, Integer idTenant) {
     return importTransactionHeadJpaRepository.deleteByIdTransactionHeadAndIdTenant(id, idTenant);
@@ -289,23 +351,15 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
     public Integer idTransactionHead;
     public Integer noOfImportedTransactions;
     public Integer noOfDifferentSecurities;
-    /**
-     * Number of transactions that could not be imported because the tenant reached the total transaction limit
-     * ({@code gt.max.transaction}). When greater than 0 the import partially succeeded and the frontend shows a warning.
-     */
-    public Integer overTransactionLimitCount = 0;
     public boolean failed = true;
 
     public SuccessFailedDirectImportTransaction(Integer idTransactionHead) {
       this.idTransactionHead = idTransactionHead;
     }
 
-    public SuccessFailedDirectImportTransaction(Integer noOfImportedTransactions, Integer noOfDifferentSecurities,
-        Integer overTransactionLimitCount) {
+    public SuccessFailedDirectImportTransaction(Integer noOfImportedTransactions, Integer noOfDifferentSecurities) {
       this.noOfImportedTransactions = noOfImportedTransactions;
       this.noOfDifferentSecurities = noOfDifferentSecurities;
-      this.overTransactionLimitCount = overTransactionLimitCount;
-
       this.failed = false;
     }
 

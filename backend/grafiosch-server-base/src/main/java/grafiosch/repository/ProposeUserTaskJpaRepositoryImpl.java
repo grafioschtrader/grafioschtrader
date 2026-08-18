@@ -22,7 +22,7 @@ import grafiosch.entities.ProposeChangeField;
 import grafiosch.entities.ProposeUserTask;
 import grafiosch.entities.Role;
 import grafiosch.entities.User;
-import grafiosch.entities.UserEntityChangeLimit;
+import grafiosch.entities.EntityLimit;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.service.MailExternalService;
 import grafiosch.service.SendMailInternalExternalService;
@@ -90,7 +90,7 @@ public class ProposeUserTaskJpaRepositoryImpl extends ProposeRequestService<Prop
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
     proposeUserTask
         .setEntity(proposeUserTask.getUserTaskType() == UserTaskType.RELEASE_LOGOUT ? User.class.getSimpleName()
-            : UserEntityChangeLimit.class.getSimpleName());
+            : EntityLimit.class.getSimpleName());
     checkPropertiesInModel(proposeUserTask);
     rejectDuplicatePendingLimitRequest(proposeUserTask);
     Role role = roleJpaRepository.findByRolename(Role.ROLE_ADMIN);

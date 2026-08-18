@@ -19,8 +19,10 @@ import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafiosch.entities.Globalparameters;
 import grafiosch.entities.User;
 import grafiosch.repository.GlobalparametersJpaRepository;
+import grafiosch.service.EntityLimitService;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.GlobalParamKeyDefault;
+import grafioschtrader.config.LimitKeyConfig;
 import grafioschtrader.dto.QuoteToleranceRange;
 
 /**
@@ -35,6 +37,9 @@ import grafioschtrader.dto.QuoteToleranceRange;
  */
 @Service
 public class GlobalparametersService {
+
+  @Autowired
+  private EntityLimitService entityLimitService;
 
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
@@ -253,25 +258,29 @@ public class GlobalparametersService {
   /**
    * Gets the maximum number of split entries a user may record per instrument.
    *
-   * @return the configured limit; defaults to {@link GlobalParamKeyDefault#DEFAULT_MAX_INSTRUMENT_SPLITS}
-   * @see GlobalParamKeyDefault#GLOB_KEY_MAX_INSTRUMENT_SPLITS
+   * <p>
+   * Resolved for the acting user, so a per-role or per-user override applies. The user comes from the security
+   * context rather than a parameter, which keeps the signature and the {@code MaxInstrumentLimits} REST contract
+   * unchanged; without an authenticated user the default row of the key applies.
+   * </p>
+   *
+   * @return the configured limit, or {@link Integer#MAX_VALUE} when the key is unconfigured and therefore unlimited
+   * @see LimitKeyConfig#KEY_INSTRUMENT_SPLITS
    */
   public int getMaxInstrumentSplits() {
-    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_MAX_INSTRUMENT_SPLITS)
-        .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_MAX_INSTRUMENT_SPLITS);
+    return entityLimitService.resolveForCurrentUser(LimitKeyConfig.KEY_INSTRUMENT_SPLITS).orElse(Integer.MAX_VALUE);
   }
 
   /**
-   * Gets the maximum number of history-quote periods a user may record per instrument.
+   * Gets the maximum number of history-quote periods a user may record per instrument. Resolved for the acting user,
+   * see {@link #getMaxInstrumentSplits()}.
    *
-   * @return the configured limit; defaults to
-   *         {@link GlobalParamKeyDefault#DEFAULT_MAX_INSTRUMENT_HISTORYQUOTE_PERIODS}
-   * @see GlobalParamKeyDefault#GLOB_KEY_MAX_INSTRUMENT_HISTORYQUOTE_PERIODS
+   * @return the configured limit, or {@link Integer#MAX_VALUE} when the key is unconfigured and therefore unlimited
+   * @see LimitKeyConfig#KEY_INSTRUMENT_HISTORYQUOTE_PERIODS
    */
   public int getMaxInstrumentHistoryquotePeriods() {
-    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_MAX_INSTRUMENT_HISTORYQUOTE_PERIODS)
-        .map(Globalparameters::getPropertyInt)
-        .orElse(GlobalParamKeyDefault.DEFAULT_MAX_INSTRUMENT_HISTORYQUOTE_PERIODS);
+    return entityLimitService.resolveForCurrentUser(LimitKeyConfig.KEY_INSTRUMENT_HISTORYQUOTE_PERIODS)
+        .orElse(Integer.MAX_VALUE);
   }
 
 

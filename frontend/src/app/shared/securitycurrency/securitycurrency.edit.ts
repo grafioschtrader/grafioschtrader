@@ -34,6 +34,11 @@ export abstract class SecuritycurrencyEdit extends FormBase {
   protected readonly ID_CONNECTOR_HISTORY = 'idConnectorHistory';
   protected readonly ID_CONNECTOR_INTRA = 'idConnectorIntra';
   protected connectorPriceFieldConfig: FieldConfig[];
+  /**
+   * Generic help text of every connector selection, captured before the first selection replaces it with the help of the
+   * chosen connector. Keyed by field name, it is restored when no connector is selected or the selected one ships no help.
+   */
+  private readonly connectorHelpFallback: { [fieldName: string]: string } = {};
 
   // connectorFieldConfig: FieldConfig[];
 
@@ -91,27 +96,35 @@ export abstract class SecuritycurrencyEdit extends FormBase {
   }
 
   /**
+   * Wires every connector selection to its url extension field. The help text of the chosen connector is put on the
+   * selection itself and not on the url extension, because the latter is hidden for every connector which does not
+   * require a url extension - its help would be unreachable.
+   *
    * In a case of editing a currency pair some input fields are disabled.
    *
    * @param connectorIdConfigs Fields of connector Id
    * @param urlExtends Field of url extends
-   * @param isCurrency true if a currency pair ist edited
+   * @param feedIdentifier Identifier which marks a connector as not requiring a url extension
    */
   private valueChangedOnFeedConnectors(connectorIdConfigs: FieldConfig[], urlExtends: FieldConfig[],
                                        feedIdentifier: FeedIdentifier): void {
     for (let i = 0; i < connectorIdConfigs.length; i++) {
-      this.connectorSubscribe[connectorIdConfigs[i].field] = connectorIdConfigs[i].formControl.valueChanges.subscribe(
+      const connectorConfig = connectorIdConfigs[i];
+      // Only the very first pass sees the generic text, later passes would capture a connector help text.
+      this.connectorHelpFallback[connectorConfig.field] ??= connectorConfig.labelHelpText;
+      this.connectorSubscribe[connectorConfig.field] = connectorConfig.formControl.valueChanges.subscribe(
         connector => {
           const foundConnector = this.feedPriceConnectors.find(fc => fc.id === connector);
           if (foundConnector) {
-            urlExtends[i].labelHelpText = (this.configObject[this.ID_CONNECTOR_HISTORY] === connectorIdConfigs[i]) ?
-              foundConnector.description.historicalDescription : foundConnector.description.intraDescription;
-            if (this.ID_CONNECTOR_INTRA === connectorIdConfigs[i].field
+            connectorConfig.labelHelpText = ((this.ID_CONNECTOR_HISTORY === connectorConfig.field)
+              ? foundConnector.description?.historicalDescription : foundConnector.description?.intraDescription)
+              || this.connectorHelpFallback[connectorConfig.field];
+            if (this.ID_CONNECTOR_INTRA === connectorConfig.field
               && foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.FS_INTRA]]) {
               this.disableEnableFeedUrlExtended(urlExtends[i],
                 foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.FS_INTRA]],
                 feedIdentifier);
-            } else if (this.ID_CONNECTOR_HISTORY === connectorIdConfigs[i].field
+            } else if (this.ID_CONNECTOR_HISTORY === connectorConfig.field
               && foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.FS_HISTORY]]) {
               this.disableEnableFeedUrlExtended(urlExtends[i],
                 foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.FS_HISTORY]],
@@ -127,10 +140,11 @@ export abstract class SecuritycurrencyEdit extends FormBase {
             }
           } else {
             // No connector is chosen
+            connectorConfig.labelHelpText = this.connectorHelpFallback[connectorConfig.field];
             AppHelper.disableAndHideInput(urlExtends[i]);
           }
-          if (urlExtends[i].labelShowText) {
-            urlExtends[i].labelShowText = urlExtends[i].labelHelpText;
+          if (connectorConfig.labelShowText) {
+            connectorConfig.labelShowText = connectorConfig.labelHelpText;
           }
         });
     }

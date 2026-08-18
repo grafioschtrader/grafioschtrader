@@ -27,6 +27,10 @@
     "timezoneOffset": -60,
     "currency": "USD",
     "role": "USER",
+    "tenantEdit": {
+      "country": "United States",
+      "idGtImportPlatform": "Grafioschtrader"
+    },
     "e2e": "i"
   },
   {
@@ -37,6 +41,10 @@
     "timezoneOffset": -60,
     "currency": "EUR",
     "role": "LIMITEDIT",
+    "tenantEdit": {
+      "country": "DE",
+      "idGtImportPlatform": "Grafioschtrader"
+    },
     "e2e": "i"
   },
   {

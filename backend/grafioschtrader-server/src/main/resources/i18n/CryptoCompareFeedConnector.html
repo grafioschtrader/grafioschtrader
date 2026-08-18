@@ -1,0 +1,6 @@
+<a target="_blank" href="//www.cryptocompare.com">CryptoCompare</a> is the standard data source for intraday and historical prices of cryptocurrencies.<br>
+No entry is required here. A URL extension is not needed: both currencies are taken directly from the currency pair, and Grafioschtrader builds the request itself.<br>
+This data source requires an API key, which the administrator enters once for the whole instance. The <a target="_blank" href="//min-api.cryptocompare.com/pricing">request limits</a> of the free key are comparatively high.<br>
+A currency pair is only accepted when the provider offers it. The answer arrives with an HTTP status of success even for an unknown pair, therefore Grafioschtrader evaluates the text of the answer instead.<br>
+[historical]
+One request delivers a limited number of days, so a long price history is loaded with several consecutive requests.

@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.CannotAcquireLockException;
+import org.springframework.dao.ConcurrencyFailureException;
 
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
@@ -82,10 +82,11 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
       }
       try {
         securitycurrency = jpaRepository.save(securitycurrency);
-      } catch (final CannotAcquireLockException ex) {
-        // The last price is non critical and is refreshed within minutes, so a lost lock race is not worth a stack
-        // trace. Losing it means another writer is updating the very same row right now.
-        log.warn("Intraday price save skipped, row is locked: securitycurrency={}", securitycurrency);
+      } catch (final ConcurrencyFailureException ex) {
+        // The last price is non critical and is refreshed within minutes, so a lost race is not worth a stack trace.
+        // Losing it means another writer is updating the very same row right now, either holding the row lock
+        // (CannotAcquireLockException) or having bumped the version first (ObjectOptimisticLockingFailureException).
+        log.warn("Intraday price save skipped, row was concurrently updated: securitycurrency={}", securitycurrency);
       } catch (final Exception ex) {
         log.error("Save failed for securitycurrency={}", securitycurrency, ex);
       }

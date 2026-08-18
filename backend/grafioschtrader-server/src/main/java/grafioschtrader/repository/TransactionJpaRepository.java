@@ -120,21 +120,27 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   List<Transaction> findByIdSecurityActionApp(Integer idSecurityActionApp);
 
   /**
-   * Reassigns all transactions for a given old security to a new security from a specified date onward.
+   * Reassigns all transactions for a given old security to a new security after a specified date.
    * Used during ISIN change (SecurityAction) to move post-action-date transactions to the new security.
+   * <p>
+   * The action date itself is <b>excluded</b>: the system SELL/BUY pair is priced with the closing quote of the
+   * <i>old</i> security on that day, so the action date still belongs to the old security. Were it included, a user
+   * transaction dated exactly on the action date would be moved to the new security and at the same time drop out of
+   * the residual-units sum, so its units would never be converted by the split ratio of the action.
+   * </p>
    *
    * @param idTenant       the tenant owning the transactions
    * @param oldSecurityId  the old security ID to match
    * @param newSecurityId  the new security ID to assign
    * @param appId          the SecurityActionApplication ID to tag reassigned transactions
-   * @param fromDate       the action date (inclusive) from which transactions are reassigned
+   * @param fromDate       the action date (exclusive) after which transactions are reassigned
    * @return number of rows updated
    */
   @Transactional
   @Modifying
   @Query(value = "UPDATE transaction SET id_securitycurrency = :newSecurityId, id_security_action_app = :appId "
       + "WHERE id_tenant = :idTenant AND id_securitycurrency = :oldSecurityId "
-      + "AND tt_date >= :fromDate", nativeQuery = true)
+      + "AND tt_date > :fromDate", nativeQuery = true)
   int reassignTransactionsToNewSecurity(@Param("idTenant") Integer idTenant,
       @Param("oldSecurityId") Integer oldSecurityId, @Param("newSecurityId") Integer newSecurityId,
       @Param("appId") Integer appId, @Param("fromDate") LocalDate fromDate);
@@ -142,6 +148,11 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   /**
    * Reverts reassigned transactions back to the old security during ISIN change reversal.
    * Only reverts non-system-created transactions (those that were bulk-reassigned, not the SELL/BUY pair).
+   * <p>
+   * The note is compared with the NULL-safe {@code <=>} operator, because an ordinary user transaction usually carries
+   * no note at all and {@code NULL != 'System-Created'} evaluates to NULL rather than TRUE. With a plain {@code !=}
+   * exactly those transactions would stay on the new security, keeping a dangling id_security_action_app.
+   * </p>
    *
    * @param oldSecurityId the original security ID to restore
    * @param appId         the SecurityActionApplication ID identifying reassigned transactions
@@ -150,7 +161,7 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   @Transactional
   @Modifying
   @Query(value = "UPDATE transaction SET id_securitycurrency = :oldSecurityId, id_security_action_app = NULL "
-      + "WHERE id_security_action_app = :appId AND note != 'System-Created'", nativeQuery = true)
+      + "WHERE id_security_action_app = :appId AND NOT (note <=> 'System-Created')", nativeQuery = true)
   int revertReassignedTransactions(@Param("oldSecurityId") Integer oldSecurityId,
       @Param("appId") Integer appId);
 

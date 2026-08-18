@@ -5,7 +5,7 @@ import {gtHelpers} from './helpers';
 
 /**
  * Registers every users.json object tagged `e2e='e'` through the browser, verifies it via MailHog and sets its tenant
- * up. The objects tagged `'i'` are created earlier and at REST level by the backend `ResoureTestSuite`.
+ * up. The objects tagged `'i'` are created earlier and at REST level by backend `ResourceTestSuite_1`.
  *
  * The flow itself is shared with the portable library suite (`e2e/lib/helpers.ts`); only the tenant screen below is
  * specific to Grafioschtrader, because its tenant needs a currency.

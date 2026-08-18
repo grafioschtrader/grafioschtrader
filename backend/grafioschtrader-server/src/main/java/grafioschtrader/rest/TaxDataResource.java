@@ -3,6 +3,7 @@ package grafioschtrader.rest;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
+import java.time.Year;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -46,6 +47,7 @@ import grafioschtrader.repository.TaxCountryJpaRepository;
 import grafioschtrader.repository.TaxSecurityYearConfigJpaRepository;
 import grafioschtrader.repository.TaxYearJpaRepository;
 import grafioschtrader.service.IctaxImportService;
+import grafioschtrader.service.InstrumentVisibilityService;
 import grafioschtrader.tax.swiss.ech0196.Ech0196BarcodeGenerator;
 import grafioschtrader.tax.swiss.ech0196.Ech0196MappingService;
 import grafioschtrader.tax.swiss.ech0196.Ech0196PdfGenerator;
@@ -62,6 +64,9 @@ public class TaxDataResource {
 
   public static final String TAX_DATA = "taxdata";
   public static final String TAX_DATA_MAP = RequestMappings.API + TAX_DATA;
+
+  /** How many years back from the current one are accepted without a stored {@code tax_year} row. */
+  private static final int ACCEPTED_TAX_YEARS_BACK = 5;
 
   /** Valid Swiss canton abbreviations with display labels, served to the frontend for dropdown population. */
   private static final List<ValueKeyHtmlSelectOptions> CANTONS = List.of(
@@ -100,6 +105,9 @@ public class TaxDataResource {
 
   @Autowired
   private TaxYearJpaRepository taxYearJpaRepository;
+
+  @Autowired
+  private InstrumentVisibilityService instrumentVisibilityService;
 
   @Autowired
   private IctaxSecurityTaxDataJpaRepository ictaxSecurityTaxDataJpaRepository;
@@ -245,6 +253,10 @@ public class TaxDataResource {
     int idTenant = user.getIdTenant();
     short taxYear = ((Number) body.get("taxYear")).shortValue();
     int idSecuritycurrency = ((Number) body.get("idSecuritycurrency")).intValue();
+    checkTaxYearAccepted(taxYear);
+    if (!instrumentVisibilityService.isVisible(idSecuritycurrency, user)) {
+      throw new DataViolationException("id.securitycurrency", "gt.tax.exclusion.instrument.unknown", null);
+    }
 
     TaxSecurityYearConfigId id = new TaxSecurityYearConfigId(idTenant, taxYear, idSecuritycurrency);
     boolean excluded;
@@ -256,6 +268,26 @@ public class TaxDataResource {
       excluded = true;
     }
     return ResponseEntity.ok(Map.of("excluded", excluded));
+  }
+
+  /**
+   * Accepts only a year the installation knows or a recent one. The composite primary key of
+   * {@code tax_security_year_config} makes the toggle idempotent per triple, but it is not a bound in itself: the
+   * column is a {@code SMALLINT}, so without this every one of its values would open another row per instrument. This
+   * endpoint is deliberately not admin-only - excluding an own position from an own tax statement is a tenant
+   * operation - so the key space is closed here instead.
+   *
+   * @param taxYear the year posted by the client
+   * @throws DataViolationException when the year is neither stored nor within the recent window
+   */
+  private void checkTaxYearAccepted(short taxYear) {
+    int currentYear = Year.now().getValue();
+    if (taxYear >= currentYear - ACCEPTED_TAX_YEARS_BACK && taxYear <= currentYear) {
+      return;
+    }
+    if (!taxYearJpaRepository.existsByTaxYear(taxYear)) {
+      throw new DataViolationException("tax.year", "gt.tax.year.not.accepted", new Object[] { taxYear });
+    }
   }
 
   private void checkAdmin() {

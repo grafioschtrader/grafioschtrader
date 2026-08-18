@@ -14,9 +14,9 @@ import {DataType} from '../../dynamic-form/models/data.type';
 import {UserSettingsService} from '../../services/user.settings.service';
 import {HelpIds} from '../../help/help.ids';
 import {User} from '../../entities/user';
-import {UserEntityChangeLimitTableComponent} from './user-entity-change-limit-table.component';
+import {EntityLimitUserTableComponent} from './entity-limit-user-table.component';
 import {UserEditComponent} from './user-edit-component';
-import {UserEntityChangeLimitEditComponent} from './user-entity-change-limit-edit.component';
+import {EntityLimitEditComponent} from '../../entitylimit/component/entity.limit.edit.component';
 import {UserChangeOwnerEntitiesComponent} from './user-change-owner-entities.component';
 import {ProcessedActionData} from '../../types/processed.action.data';
 import {ProcessedAction} from '../../types/processed.action';
@@ -67,9 +67,9 @@ import {BaseSettings} from '../../base.settings';
 
     <!-- Expanded row content template for user entity change limits -->
     <ng-template #expandedContent let-user>
-      <user-entity-change-limit-table [user]="user"
+      <entity-limit-user-table [user]="user"
                                       (dateChanged)="handleChangesOnLimitTable($event)">
-      </user-entity-change-limit-table>
+      </entity-limit-user-table>
     </ng-template>
     @if (visibleDialog) {
       <user-edit [visibleDialog]="visibleDialog"
@@ -78,10 +78,10 @@ import {BaseSettings} from '../../base.settings';
       </user-edit>
     }
     @if (visibleEditLimitDialog) {
-      <user-entity-change-limit-edit [visibleDialog]="visibleEditLimitDialog"
+      <entity-limit-edit [visibleDialog]="visibleEditLimitDialog"
                                      [user]="selectedEntity"
                                      (closeDialog)="handleEditLimitCloseDialog($event)">
-      </user-entity-change-limit-edit>
+      </entity-limit-edit>
     }
 
     @if (visibleChangeEntitiesOwnerDialog) {
@@ -94,7 +94,7 @@ import {BaseSettings} from '../../base.settings';
   `,
   providers: [DialogService],
   standalone: true,
-  imports: [ConfigurableTableComponent, AngularSvgIconModule, TranslateModule, UserEntityChangeLimitTableComponent, UserEditComponent, UserEntityChangeLimitEditComponent, UserChangeOwnerEntitiesComponent]
+  imports: [ConfigurableTableComponent, AngularSvgIconModule, TranslateModule, EntityLimitUserTableComponent, UserEditComponent, EntityLimitEditComponent, UserChangeOwnerEntitiesComponent]
 })
 export class UserTableComponent extends TableCrudSupportMenu<User> implements OnDestroy {
 
@@ -109,8 +109,8 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
   visibleChangeEntitiesOwnerDialog: boolean;
 
   private limitChangeMenuItem: MenuItem = {
-    label: 'CREATE|' + UserEntityChangeLimitTableComponent.USER_ENTITY_CHANGE_LIMIT + BaseSettings.DIALOG_MENU_SUFFIX,
-    command: (event) => this.addUserEntityChangeLimit()
+    label: 'CREATE|' + EntityLimitUserTableComponent.ENTITY_LIMIT + BaseSettings.DIALOG_MENU_SUFFIX,
+    command: (event) => this.addEntityLimit()
   };
 
   private changeEntitiesOwnerMenuItem: MenuItem = {
@@ -175,7 +175,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
   }
 
   canExpandRow(user: User): boolean {
-    return user.userEntityChangeLimitList.length + user.userChangeLimitProposeList.length > 0;
+    return user.entityLimitList.length + user.userChangeLimitProposeList.length > 0;
   }
 
   ngOnDestroy(): void {
@@ -188,7 +188,7 @@ export class UserTableComponent extends TableCrudSupportMenu<User> implements On
     }
   }
 
-  addUserEntityChangeLimit(): void {
+  addEntityLimit(): void {
     this.visibleEditLimitDialog = true;
   }
 

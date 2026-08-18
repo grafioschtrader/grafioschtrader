@@ -64,15 +64,28 @@ public class UserEntityChangeCount {
   }
 
   public void incrementCounter(OperationType operationType) {
+    incrementCounter(operationType, 1);
+  }
+
+  /**
+   * Adds a number of operations to the counter of one operation type. A bulk write that consumes a daily budget in one
+   * step is booked with the number of units it cost, so that the counter stays comparable with the limit the check read
+   * before the write.
+   *
+   * @param operationType the operation type whose counter is raised
+   * @param count         how much to add; a value below one is treated as one
+   */
+  public void incrementCounter(OperationType operationType, int count) {
+    int increment = Math.max(count, 1);
     switch (operationType) {
     case ADD:
-      countInsert++;
+      countInsert += increment;
       break;
     case UPDATE:
-      countUpdate++;
+      countUpdate += increment;
       break;
     default:
-      countDelete++;
+      countDelete += increment;
     }
   }
 

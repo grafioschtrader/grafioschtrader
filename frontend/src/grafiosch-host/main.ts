@@ -72,7 +72,8 @@ import {UDFMetadataGeneralTableComponent} from '../app/lib/udfmeta/components/ud
 import {UDFMetadataGeneralService} from '../app/lib/udfmeta/service/udf.metadata.general.service';
 import {UserAdminService} from '../app/lib/user/service/user.admin.service';
 import {UserTableComponent} from '../app/lib/user/component/user.table.component';
-import {UserEntityChangeLimitService} from '../app/lib/user/service/user.entity.change.limit.service';
+import {EntityLimitService} from '../app/lib/entitylimit/service/entity.limit.service';
+import {EntityLimitTableComponent} from '../app/lib/entitylimit/component/entity.limit.table.component';
 
 import {GrafioschAppComponent} from './app.component';
 import {GrafioschAfterLoginHandler} from './grafiosch-after-login.handler';
@@ -154,7 +155,8 @@ const routes: Routes = [
       },
       {path: BaseSettings.TASK_DATA_CHANGE_MONITOR_KEY, component: TaskDataChangeTableComponent, canActivate: [authGuard]},
       {path: BaseSettings.CONNECTOR_API_KEY_KEY, component: ConnectorApiKeyTableComponent, canActivate: [adminGuard]},
-      {path: BaseSettings.USER_ENTITY_LIMIT_KEY, component: UserTableComponent, canActivate: [adminGuard]}
+      {path: BaseSettings.USER_ADMIN_KEY, component: UserTableComponent, canActivate: [adminGuard]},
+      {path: BaseSettings.ENTITY_LIMIT_KEY, component: EntityLimitTableComponent, canActivate: [adminGuard]}
     ]
   },
   {path: '', pathMatch: 'full', redirectTo: BaseSettings.LOGIN_KEY}
@@ -195,7 +197,7 @@ bootstrapApplication(GrafioschAppComponent, {
     FilterService, GlobalparameterService, LoginService, MailSendRecvService, MailSettingForwardService,
     MainDialogService, ManageClientService, MessageToastService, ProposeChangeEntityService, ProposeUserTaskService,
     ReleaseNoteService, TabMenuService, TaskDataChangeService, TreeNavigationStateService, UDFMetadataGeneralService,
-    UserAdminService, UserDataService, UserEntityChangeLimitService, UserSettingsService, ViewSizeChangedService,
+    UserAdminService, UserDataService, EntityLimitService, UserSettingsService, ViewSizeChangedService,
 
     // The GTNet services of the library. GTNetExchangeLogService is the only one of the six declared
     // providedIn: 'root' and therefore the only one missing here.

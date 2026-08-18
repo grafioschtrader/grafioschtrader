@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
 import org.apache.commons.beanutils.BeanUtils;
@@ -20,8 +22,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +34,7 @@ import grafiosch.BaseConstants;
 import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.entities.User;
+import grafiosch.exceptions.DataViolationException;
 import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.GlobalConstants;
@@ -78,6 +83,9 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     implements IPositionCloseOnLatestPrice<Security, SecurityPositionSummary>, SecurityJpaRepositoryCustom {
 
   private static final Logger log = LoggerFactory.getLogger(SecurityJpaRepositoryImpl.class);
+
+  /** Upper bound for a user supplied name pattern, long enough for any sensible search. */
+  private static final int MAX_NAME_REGEX_LENGTH = 200;
 
   private IHistoryquoteLoad<Security> historyquoteThruCalculation;
   private IIntradayLoad<Security> intradayThruCalculation;
@@ -577,13 +585,54 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     if (securitycurrencySearch.getAssetclassType() == AssetclassType.CURRENCY_PAIR) {
       return Collections.emptyList();
     } else {
+      checkNameRegex(securitycurrencySearch);
       List<Integer> idSecurityList = null;
       if (securitycurrencySearch.getWithHoldings()) {
         idSecurityList = this.holdSecurityaccountSecurityRepository.getIdSecurityByIdTenantWithHoldings(idTenant);
       }
-      return this.securityJpaRepository.findAll(
-          new SecuritySearchBuilder(idWatchlist, idCorrelationSet, securitycurrencySearch, idTenant, idSecurityList));
+      try {
+        return this.securityJpaRepository.findAll(
+            new SecuritySearchBuilder(idWatchlist, idCorrelationSet, securitycurrencySearch, idTenant, idSecurityList));
+      } catch (InvalidDataAccessResourceUsageException | JpaSystemException ex) {
+        // The pattern compiled in Java but MariaDB's PCRE refused it. Without a regular expression the same exception
+        // means a real defect and must keep its stack trace.
+        if (!securitycurrencySearch.isNameRegex()) {
+          throw ex;
+        }
+        throw invalidNameRegex(securitycurrencySearch.getName());
+      }
     }
+  }
+
+  /**
+   * Rejects a name pattern that cannot be used as a regular expression before it reaches the database.
+   * <p>
+   * The search endpoints take their criteria as plain query parameters and are not bean validated, so the pattern is
+   * checked here — the single point through which every security search of {@code SecurityResource},
+   * {@code WatchlistJpaRepositoryImpl} and {@code CorrelationSetJpaRepositoryImpl} passes. The length is capped as
+   * well, so that a deliberately pathological pattern cannot be sent to the endpoint directly.
+   * </p>
+   *
+   * @param securitycurrencySearch the search criteria, checked only when its name is used as a regular expression
+   * @throws DataViolationException if the pattern is too long or is not a valid regular expression
+   */
+  private void checkNameRegex(final SecuritycurrencySearch securitycurrencySearch) {
+    final String name = securitycurrencySearch.getName();
+    if (!securitycurrencySearch.isNameRegex() || name == null || name.isBlank()) {
+      return;
+    }
+    if (name.length() > MAX_NAME_REGEX_LENGTH) {
+      throw invalidNameRegex(name);
+    }
+    try {
+      Pattern.compile(name);
+    } catch (PatternSyntaxException e) {
+      throw invalidNameRegex(name);
+    }
+  }
+
+  private DataViolationException invalidNameRegex(final String name) {
+    return new DataViolationException("name", "gt.search.name.regex.invalid", new Object[] { name });
   }
 
   @Override

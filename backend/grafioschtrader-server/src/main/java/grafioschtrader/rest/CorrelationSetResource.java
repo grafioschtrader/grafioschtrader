@@ -21,7 +21,6 @@ import grafiosch.dto.TenantLimit;
 import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.CorrelationLimits;
 import grafioschtrader.dto.CorrelationResult;
 import grafioschtrader.dto.CorrelationRollingResult;
@@ -125,9 +124,5 @@ public class CorrelationSetResource extends UpdateCreateDeleteWithTenantResource
     return correlationSetJpaRepository;
   }
 
-  @Override
-  protected String getPrefixEntityLimit() {
-    return GlobalConstants.GT_LIMIT_DAY;
-  }
 
 }

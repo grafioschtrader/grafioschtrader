@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Currency;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,15 +20,15 @@ import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.repository.BaseRepositoryImpl;
-import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.repository.RepositoryHelper;
+import grafiosch.service.EntityLimitService;
 import grafioschtrader.GlobalConstants;
-import grafioschtrader.GlobalParamKeyDefault;
+import grafioschtrader.config.LimitKeyConfig;
+import grafioschtrader.dto.QuoteToleranceRange;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.StandingOrder;
 import grafioschtrader.entities.StandingOrderCashaccount;
 import grafioschtrader.entities.StandingOrderSecurity;
-import grafioschtrader.dto.QuoteToleranceRange;
 import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.service.StandingOrderExecutionService;
 import grafioschtrader.types.PeriodDayPosition;
@@ -46,10 +47,10 @@ public class StandingOrderJpaRepositoryImpl extends BaseRepositoryImpl<StandingO
       TransactionType.DEPOSIT, TransactionType.INTEREST_CASHACCOUNT, TransactionType.FEE);
 
   @Autowired
-  private StandingOrderJpaRepository standingOrderJpaRepository;
+  private EntityLimitService entityLimitService;
 
   @Autowired
-  private GlobalparametersJpaRepository globalparametersJpaRepository;
+  private StandingOrderJpaRepository standingOrderJpaRepository;
 
   @Autowired
   private TransactionJpaRepository transactionJpaRepository;
@@ -70,12 +71,11 @@ public class StandingOrderJpaRepositoryImpl extends BaseRepositoryImpl<StandingO
 
     // Tenant limit check on create
     if (existingEntity == null) {
-      int maxAllowed = globalparametersJpaRepository
-          .getMaxValueByKey(GlobalParamKeyDefault.GLOB_KEY_MAX_STANDING_ORDER);
-      long current = standingOrderJpaRepository.countByIdTenant(user.getIdTenant());
-      if (current >= maxAllowed) {
+      Optional<Integer> maxAllowedOpt = entityLimitService.resolve(user, LimitKeyConfig.KEY_STANDING_ORDER);
+      if (maxAllowedOpt.isPresent()
+          && standingOrderJpaRepository.countByIdTenant(user.getIdTenant()) >= maxAllowedOpt.get()) {
         throw new DataViolationException("standing.order", "standing.order.limit.exceeded",
-            new Object[] {maxAllowed});
+            new Object[] { maxAllowedOpt.get() });
       }
     }
     if (existingEntity != null

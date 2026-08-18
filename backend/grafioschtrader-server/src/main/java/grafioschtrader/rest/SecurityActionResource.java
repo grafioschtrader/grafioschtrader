@@ -2,6 +2,7 @@ package grafioschtrader.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,13 +36,23 @@ public class SecurityActionResource {
     return ResponseEntity.ok(securityActionService.getTreeData());
   }
 
+  /**
+   * Creates an ISIN change event. Restricted to an administrator: the operation creates the successor instrument as
+   * shared data outside the generic create path, and it mails every tenant holding the predecessor.
+   */
   @Operation(summary = "Admin creates an ISIN change event")
+  @PreAuthorize("hasRole('ADMIN')")
   @PostMapping
   public ResponseEntity<SecurityAction> createSecurityAction(@RequestBody SecurityAction securityAction) {
     return ResponseEntity.ok(securityActionService.createSecurityAction(securityAction));
   }
 
+  /**
+   * Deletes an ISIN change event. Restricted to an administrator, because the event is shared data that only an
+   * administrator creates; the absence of applications is a precondition, not an ownership check.
+   */
   @Operation(summary = "Admin deletes an ISIN change event (only if no applications exist)")
+  @PreAuthorize("hasRole('ADMIN')")
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteSecurityAction(@PathVariable Integer id) {
     securityActionService.deleteSecurityAction(id);

@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.TaxYearCorrectionSecurityInfo;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.TaxYearCorrection;
@@ -64,8 +63,4 @@ public class TaxYearCorrectionResource extends UpdateCreateDeleteWithTenantResou
     return taxYearCorrectionJpaRepository;
   }
 
-  @Override
-  protected String getPrefixEntityLimit() {
-    return GlobalConstants.GT_LIMIT_DAY;
-  }
 }

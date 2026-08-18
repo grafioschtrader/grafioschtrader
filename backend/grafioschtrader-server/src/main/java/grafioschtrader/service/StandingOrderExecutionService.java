@@ -27,11 +27,11 @@ import com.ezylang.evalex.data.EvaluationValue;
 import grafiosch.common.DataHelper;
 import grafiosch.exceptions.DataViolation;
 import grafiosch.exceptions.DataViolationException;
-import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.repository.UserJpaRepository;
-import grafioschtrader.GlobalParamKeyDefault;
+import grafiosch.service.EntityLimitService;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.common.DateBusinessHelper;
+import grafioschtrader.config.LimitKeyConfig;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.StandingOrder;
 import grafioschtrader.entities.StandingOrderCashaccount;
@@ -63,13 +63,13 @@ public class StandingOrderExecutionService {
   private static final int MAX_TRADING_DAY_ADJUSTMENT_ITERATIONS = 10;
 
   @Autowired
+  private EntityLimitService entityLimitService;
+
+  @Autowired
   private StandingOrderJpaRepository standingOrderJpaRepository;
 
   @Autowired
   private TransactionJpaRepository transactionJpaRepository;
-
-  @Autowired
-  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Autowired
   private HistoryquoteJpaRepository historyquoteJpaRepository;
@@ -141,8 +141,10 @@ public class StandingOrderExecutionService {
     List<StandingOrderFailure> failures = new ArrayList<>();
     LocalDate scheduledDate = so.getNextExecutionDate();
 
-    // Enforce the total (lifetime) per-tenant transaction limit, also for automatic standing-order executions.
-    int maxTransaction = globalparametersJpaRepository.getMaxValueByKey(GlobalParamKeyDefault.GLOB_KEY_MAX_TRANSACTION);
+    // Enforce the total (lifetime) per-tenant transaction limit, also for automatic standing-order executions. This
+    // runs on the scheduler without an authenticated user, so the resolver falls through to the default row of the
+    // key; a per-user or per-role override cannot apply here. An unconfigured key means unlimited.
+    int maxTransaction = entityLimitService.resolve(null, LimitKeyConfig.KEY_TRANSACTION).orElse(Integer.MAX_VALUE);
     int tenantTransactionCount = transactionJpaRepository.countByIdTenant(so.getIdTenant());
 
     while (scheduledDate != null && !scheduledDate.isAfter(processingDate) && so.getNextExecutionDate() != null) {

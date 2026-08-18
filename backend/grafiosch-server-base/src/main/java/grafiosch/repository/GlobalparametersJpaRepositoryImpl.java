@@ -29,6 +29,9 @@ import grafiosch.dto.TenantLimit;
 import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafiosch.entities.Globalparameters;
 import grafiosch.entities.User;
+import grafiosch.limit.LimitKeyRegistration;
+import grafiosch.limit.LimitKeyRegistry;
+import grafiosch.service.EntityLimitService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
@@ -56,10 +59,8 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
   @Autowired
   private BaseFeatureConfig baseFeatureConfig;
 
-  @Override
-  public int getMaxValueByKey(String key) {
-    return TenantLimitsHelper.getMaxValueByKey(entityManager, key);
-  }
+  @Autowired
+  private EntityLimitService entityLimitService;
 
   @Override
   public EntityManager getEntityManager() {
@@ -74,7 +75,16 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
 
   @Override
   public List<TenantLimit> getMaxTenantLimitsByMsgKeys(List<String> msgKeys) {
-    return TenantLimitsHelper.getMaxTenantLimitsByMsgKeys(entityManager, msgKeys);
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    return msgKeys.stream().map(msgKey -> {
+      LimitKeyRegistration registration = LimitKeyRegistry.findByMsgKey(msgKey)
+          .orElseThrow(() -> new IllegalArgumentException("No registered limit key for message key: " + msgKey));
+      // An unlimited key is reported with Integer.MAX_VALUE: the contract is an int and the consumers compare
+      // "actual >= limit", so this keeps an unconfigured key from reading as a cap of zero.
+      int limit = entityLimitService.resolve(user, registration.limitKey()).orElse(Integer.MAX_VALUE);
+      return new TenantLimit(msgKey, limit, entityLimitService.count(user, registration.limitKey(), null),
+          registration.entityClass().getSimpleName());
+    }).toList();
   }
 
   @Override
@@ -226,7 +236,6 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
         validateInputRule(existingGp, updGp, user);
         existingGp.replaceExistingPropertyValue(updGp);
         existingGp = globalparametersJpaRepository.save(existingGp);
-        Globalparameters.resetDBValueOfKey(existingGp.getPropertyName());
         return existingGp;
       }
     }

@@ -20,8 +20,6 @@ import {Security} from '../../entities/security';
 import {Currencypair} from '../../entities/currencypair';
 import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
 import {ViewSizeChangedService} from '../../lib/layout/service/view.size.changed.service';
-import {combineLatest, Observable} from 'rxjs';
-import {TenantLimit} from '../../shared/types/tenant.limit';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {FilterType} from '../../lib/datashowbase/filter.type';
@@ -172,16 +170,15 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
   }
 
 
-  /** Loads watchlist data without price updates and combines with tenant limit information. */
+  /** Loads watchlist data and tenant limits independently so a slow limit request cannot block the table refresh. */
   protected override getWatchlistWithoutUpdate(): void {
-    const watchListObservable: Observable<SecuritycurrencyGroup> = this.watchlistService.getWatchlistWithoutUpdate(this.idWatchlist);
-    const tenantLimitObservable: Observable<TenantLimit[]> = this.watchlistService.getSecuritiesCurrenciesWatchlistLimits(this.idWatchlist);
-    combineLatest([watchListObservable, tenantLimitObservable]).subscribe((result: [SecuritycurrencyGroup, TenantLimit[]]) => {
-      this.createSecurityPositionList(result[0]);
-      this.tenantLimits = result[1];
+    this.watchlistService.getWatchlistWithoutUpdate(this.idWatchlist).subscribe((data: SecuritycurrencyGroup) => {
+      this.createSecurityPositionList(data);
       this.loading = false;
       this.updateAllPrice();
     });
+    this.watchlistService.getSecuritiesCurrenciesWatchlistLimits(this.idWatchlist)
+      .subscribe(tenantLimits => this.tenantLimits = tenantLimits);
   }
 
   /** Updates all price data for the watchlist by delegating to REST service implementation. */

@@ -27,7 +27,11 @@ const COUNTRY_CODE_SWITZERLAND = 'CH';
 const EDIT_TENANT_RX = /^(Edit Client|Bearbeiten Klient|EDIT_RECORD\|TENANT)(\.\.\.)?$/i;
 
 const tenantEditUsers = (loadUsers() as TenantEditUserFixture[])
-  .filter(user => user.tenantEdit != null);
+  // Partial tenantEdit blocks belong to the backend integration suite. This UI workflow needs all
+  // four dialog values and therefore consumes only complete targets.
+  .filter(user => user.tenantEdit != null
+    && typeof user.tenantEdit.tenantName === 'string'
+    && typeof user.tenantEdit.excludeDivTax === 'boolean');
 
 if (tenantEditUsers.length === 0) {
   throw new Error('No tenantEdit target found in the Grafioschtrader users.json fixture');

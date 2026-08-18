@@ -2,6 +2,7 @@ package grafioschtrader.entities;
 
 import java.util.EnumSet;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.common.EnumHelper;
@@ -39,6 +40,7 @@ public class UDFMetadataSecurity extends UDFMetadata {
   public UDFMetadataSecurity() {
   }
 
+  @JsonCreator(mode = JsonCreator.Mode.DISABLED)
   public UDFMetadataSecurity(long categoryTypes, long specialInvestmentInstruments, Integer idUser, Byte udfSpecialType,
       String description, String descriptionHelp, UDFDataType udfDataType, String fieldSize, byte uiOrder) {
     super(idUser, udfSpecialType, description, descriptionHelp, udfDataType.getValue(), fieldSize, uiOrder);

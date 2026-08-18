@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {AuthServiceWithLogout} from '../../lib/login/service/base.auth.service.with.logout';
 import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
 import {ImportTransactionHead} from '../../entities/import.transaction.head';
-import {Observable, of} from 'rxjs';
+import {Observable} from 'rxjs';
 import {AppSettings} from '../../shared/app.settings';
 import {HttpClient} from '@angular/common/http';
 import {MessageToastService} from '../../lib/message/message.toast.service';
@@ -48,10 +48,7 @@ export class ImportTransactionHeadService extends AuthServiceWithLogout<ImportTr
         formData, this.getMultipartHeaders())
       .pipe(
         map(() => true), // HTTP 204 = Success
-        catchError((error) => {
-          this.handleError.bind(this);
-          return of(false);
-        })
+        catchError(this.handleError.bind(this))
       );
   }
 
@@ -70,7 +67,5 @@ export interface SuccessFailedDirectImportTransaction {
   idTransactionHead: number;
   noOfImportedTransactions: number;
   noOfDifferentSecurities: number;
-  /** Number of transactions not imported because the tenant reached the total transaction limit. */
-  overTransactionLimitCount: number;
   failed: boolean;
 }

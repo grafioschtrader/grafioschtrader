@@ -17,7 +17,6 @@ import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateDeleteAuditResource;
 import grafiosch.rest.UpdateCreateJpaRepository;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.repository.AssetclassJpaRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -68,10 +67,6 @@ public class AssetclassResource extends UpdateCreateDeleteAuditResource<Assetcla
     return new ResponseEntity<>(assetclassJpaRepository.assetclassHasSecurity(idAssetClass) > 0, HttpStatus.OK);
   }
   
-  @Override
-  protected String getPrefixEntityLimit() {
-    return GlobalConstants.GT_LIMIT_DAY;
-  }
 
 
   @Operation(summary = "Return of all investable asset classes used in a specific watchlist. CFD is excluded.", description = "", tags = {
