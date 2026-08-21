@@ -74,6 +74,26 @@
       "e2e": "e"
     },
     {
+      "loginNickname": "admin",
+      "name": "_Switzerland Bond",
+      "main": false,
+      "delete": false,
+      "securitySearchSubCategoryNLS": "Anleihen Schweiz",
+      "securities": [],
+      "currencyPairs": [],
+      "e2e": "e"
+    },
+    {
+      "loginNickname": "admin",
+      "name": "_Schwellenländer Bond",
+      "main": false,
+      "delete": false,
+      "securitySearchSubCategoryNLS": "Anleihen Schwellenländer",
+      "securities": [],
+      "currencyPairs": [],
+      "e2e": "e"
+    },
+    {
       "loginNickname": "alledit",
       "name": "Hauptliste",
       "main": true,

@@ -10,7 +10,7 @@ import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {SecurityCurrencyHelper} from '../../securitycurrency/service/security.currency.helper';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
-import {TooltipModule} from 'primeng/tooltip';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
 
 /**
  * Shows some statistical data on the quality of the historical price data

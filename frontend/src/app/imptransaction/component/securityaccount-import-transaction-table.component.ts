@@ -2,7 +2,7 @@ import {Component, Injector, OnDestroy} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TranslateService} from '@ngx-translate/core';
 import {AngularSvgIconModule, SvgIconRegistryService} from 'angular-svg-icon';
-import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
 import {toClipboard} from 'copee';
 
 import {UserSettingsService} from '../../lib/services/user.settings.service';
@@ -27,7 +27,7 @@ import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-ta
 import {Security} from '../../entities/security';
 import {SecuritycurrencySearchAndSetComponent} from '../../securitycurrency/component/securitycurrency-search-and-set.component';
 import {SupplementCriteria} from '../../securitycurrency/model/supplement.criteria';
-import {DialogService} from 'primeng/dynamicdialog';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {ImportTransactionPos} from '../../entities/import.transaction.pos';
 import {BaseSettings} from '../../lib/base.settings';

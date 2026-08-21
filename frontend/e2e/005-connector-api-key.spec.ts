@@ -97,7 +97,7 @@ async function openRowMenu(page: Page, row: Locator): Promise<Locator> {
 }
 
 /**
- * Confirms the PrimeNG confirm dialog. Several p-dialog hosts with role="alertdialog" are present in
+ * Confirms the Optimus UI confirm dialog. Several p-dialog hosts with role="alertdialog" are present in
  * the DOM at all times (the tree's and the table's), so the visible one must be selected explicitly —
  * an unfiltered .first() resolves to a permanently hidden host.
  */

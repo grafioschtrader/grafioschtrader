@@ -107,7 +107,7 @@ docker compose up -d               # start / apply .env changes
 ### Update to a new release
 
 ```bash
-./update.sh 0.36.7     # or: ./update.sh latest
+./update.sh 0.36.7.1     # or: ./update.sh latest
 ```
 
 `update.sh` does the whole update: it backs up the database, `.env` and
@@ -127,13 +127,17 @@ old and the new spelling of a key — decide which value should win, remove the
 other, and run the update again. The `.bak` copies taken next to the database
 dump hold the state from before the change.
 
+`update.sh` also gives the installation its own daily download times if it still
+runs on the delivered defaults — see *Changing settings* below. An installation
+whose times you have already adjusted is left alone.
+
 If the images have to be built instead of pulled, update the source first —
 `update.sh` builds what is checked out next to it and refuses to mislabel an
 older release with a new version number:
 
 ```bash
 git -C .. fetch --depth 1 origin master && git -C .. reset --hard FETCH_HEAD
-./update.sh 0.36.7 --build
+./update.sh 0.36.7.1 --build
 ```
 
 The same thing by hand:
@@ -146,7 +150,7 @@ docker compose exec mariadb mariadb-dump -uroot -p"$DB_ROOT_PASSWORD" \
 
 # 2. Only when GT_VERSION pins a version: set the new one in .env
 #    (with GT_VERSION=latest, skip this step)
-sed -i 's/^GT_VERSION=.*/GT_VERSION=0.36.7/' .env
+sed -i 's/^GT_VERSION=.*/GT_VERSION=0.36.7.1/' .env
 
 # 3. Fetch the new images and restart
 docker compose pull
@@ -158,7 +162,7 @@ docker compose logs -f backend
 
 Database migrations run automatically on startup, so the backend can stay in
 `starting` for a while after a release with many migrations. `GT_VERSION=latest`
-(the installer's default) tracks the newest release; set `GT_VERSION=0.36.7` to
+(the installer's default) tracks the newest release; set `GT_VERSION=0.36.7.1` to
 pin an exact version, which is worth doing if you want an update to be a
 deliberate, reversible step.
 
@@ -209,6 +213,21 @@ gt.eod.cron.quotation=0 30 22 * * ?
 All scheduled-task times are interpreted in **UTC**. The file lives on your
 machine and survives image updates — the same role
 `application-production.properties` plays in the classic installation.
+
+**The daily download times are set for you.** The end-of-day price and the
+dividend job fetch from free, public data providers, and every installation is
+delivered with the same default times — unchanged, all Grafioschtrader instances
+world-wide would query those providers in the same minute. `install.sh` and
+`update.sh` therefore run
+[`gtcronrandom.sh`](../util/shellscripts/gtcronrandom.sh), which draws one random
+slot between 05:00 and 08:00 of **this host's** local time and writes the whole
+morning chain — `gt.eod.cron.quotation`, `gt.dividend.update.data`,
+`gt.standing.order.execution`, `gt.check.inactive.dividend` and
+`gt.hold.consistency.check` — into the file as UTC times, keeping their order and
+spacing. It only does so while all five are still at their defaults: as soon as
+you change one of them the automatic adjustment stops for good and the schedule
+is yours. `GT_CRON_RANDOMIZE=off ./update.sh` switches it off, and the script can
+be run by hand with `--dry-run` to see what it would write.
 Exception: settings that docker-compose supplies as environment variables
 (database, mail, JWT, admin email) cannot be overridden here, because
 environment variables always take precedence in Spring Boot; change those in
@@ -295,4 +314,6 @@ services:
   ```
 - **Scheduled jobs (price updates etc.) run at "odd" times** — all cron
   settings are interpreted in UTC by design; the containers deliberately run
-  on UTC.
+  on UTC. The morning jobs additionally sit on a slot drawn at random for this
+  installation, so that not every instance queries the free data providers in
+  the same minute; see *Changing settings*.

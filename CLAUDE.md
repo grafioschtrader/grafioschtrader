@@ -8,7 +8,7 @@ Grafioschtrader (GT) is a **multi-tenant portfolio management web application** 
 
 **Tech Stack:**
 - **Backend**: Java 25 + Spring Boot 4.1.0 (multi-module Maven project)
-- **Frontend**: Angular 21 + TypeScript 5.9.3 + PrimeNG 21
+- **Frontend**: Angular 21 + TypeScript 5.9.3 + Optimus UI 1
 - **Database**: MariaDB with Flyway migrations
 - **Security**: JWT authentication, Jasypt property encryption
 
@@ -16,7 +16,7 @@ Grafioschtrader (GT) is a **multi-tenant portfolio management web application** 
 
 Additional Claude Code guidance files exist in subdirectories:
 - **`backend/CLAUDE.md`** - Backend-specific patterns: NLS message placement, SQL statement placement in repositories, named queries
-- **`frontend/CLAUDE.md`** - Frontend-specific patterns: PrimeNG base classes, translation file placement, dialog/table conventions
+- **`frontend/CLAUDE.md`** - Frontend-specific patterns: Optimus UI base classes, translation file placement, dialog/table conventions
 
 ## Build Commands
 
@@ -816,7 +816,7 @@ addColumn(dataType: DataType, field: string, headerKey: string, visible: boolean
 }
 
 /**
- * Creates translated value store for PrimeNG table sorting.
+ * Creates translated value store for Optimus UI table sorting.
  * Adds translated fields with '$' suffix to support proper sorting of translated values.
  *
  * @param data - Array of data objects to process for translation

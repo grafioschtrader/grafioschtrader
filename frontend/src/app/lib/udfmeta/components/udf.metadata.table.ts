@@ -1,9 +1,9 @@
 import {Injector} from '@angular/core';
 import {UDFMetadata, UDFMetadataParam} from '../model/udf.metadata';
-import {ConfirmationService, FilterService, MenuItem, SortMeta} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem, SortMeta} from '@openng/optimus-ui/api';
 import {MessageToastService} from '../../message/message.toast.service';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
-import {DialogService} from 'primeng/dynamicdialog';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {UserSettingsService} from '../../services/user.settings.service';
@@ -38,11 +38,11 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
    * @param udfSpecialTypeDisableUserService - Service for managing disabled special types
    * @param deleteReadAllService - Service providing read and delete operations for metadata
    * @param entityName - Entity type name for the metadata being managed
-   * @param confirmationService - PrimeNG confirmation dialog service
+   * @param confirmationService - Optimus confirmation dialog service
    * @param messageToastService - Service for displaying user notifications
    * @param activePanelService - Service for managing active panels in the UI
-   * @param dialogService - PrimeNG dynamic dialog service
-   * @param filterService - PrimeNG filter service for table filtering
+   * @param dialogService - Optimus dynamic dialog service
+   * @param filterService - Optimus filter service for table filtering
    * @param translateService - Translation service for i18n support
    * @param gps - Global parameter service providing user settings and system configuration
    * @param usersettingsService - Service for managing user preferences

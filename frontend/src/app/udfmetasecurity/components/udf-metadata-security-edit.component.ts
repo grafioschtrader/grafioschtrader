@@ -17,7 +17,7 @@ import {UDFMetadataHelper} from '../../lib/udfmeta/components/udf.metadata.helpe
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 import {UDFMetadataSecurity, UDFMetadataSecurityParam} from '../model/udf.metadata.security';
 
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 /**

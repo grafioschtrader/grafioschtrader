@@ -1,6 +1,6 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
-import {ButtonModule} from 'primeng/button';
-import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
+import {ButtonModule} from '@openng/optimus-ui/button';
+import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {forkJoin} from 'rxjs';
 

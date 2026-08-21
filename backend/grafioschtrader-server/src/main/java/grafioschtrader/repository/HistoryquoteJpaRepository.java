@@ -31,7 +31,19 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
 
   void deleteByIdSecuritycurrencyAndDate(Integer idSecuritycurrency, LocalDate date);
 
-  int deleteByIdSecuritycurrencyAndCreateType(Integer idSecuritycurrency, byte createType);
+  /**
+   * Deletes all history quotes of one instrument that carry the given create type and fall into the given period. Both
+   * boundary dates belong to the period. Used by the bulk deletion of linear filled and manually imported prices, which
+   * is restricted to a period so that only a part of a linear filling has to be withdrawn.
+   *
+   * @param idSecuritycurrency the security or currency pair whose quotes are deleted
+   * @param createType         the create type of the deleted quotes
+   * @param dateFrom           first date of the deleted period, inclusive
+   * @param dateTo             last date of the deleted period, inclusive
+   * @return number of deleted history quotes
+   */
+  int deleteByIdSecuritycurrencyAndCreateTypeAndDateBetween(Integer idSecuritycurrency, byte createType,
+      LocalDate dateFrom, LocalDate dateTo);
 
   @Transactional
   int deleteByIdSecuritycurrencyAndDateGreaterThanEqual(Integer idSecuritycurrency, LocalDate date);
@@ -276,14 +288,22 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
 
   /**
    * Return of historical prices based on the trading calendar of the security. This means that a closed price can be
-   * zero if it does not exist. Dates up to the active date or the current date minus 1 day are taken into account.
-   * Prices are taken into account up to the trading calendar tracking date at the latest.
+   * null if it does not exist. The expected trading days run from the active from date of the security up to
+   * {@code fillUpToDate}, limited by its active to date. Existing prices after {@code fillUpToDate} are still returned,
+   * so a later real price can close a trailing gap, but no further day is reported as missing.
+   * <p>
+   * The caller decides how far the calendar is trusted. {@link grafioschtrader.entities.Stockexchange#getCalendarKnownUntil()}
+   * yields the date up to which the exchange calendar is derived; a date beyond it means the exchange holidays of that
+   * period are unknown, so a day that is in fact a holiday may be reported as missing.
+   *
+   * Named query: Historyquote.getClosedAndMissingHistoryquoteByIdSecurity
    *
    * @param idSecuritycurrency The identifier of the security
-   * @return Date with close price
+   * @param fillUpToDate       Last date for which a missing trading day is reported
+   * @return Date with close price, ordered by date ascending
    */
   @Query(nativeQuery = true)
-  List<IDateAndClose> getClosedAndMissingHistoryquoteByIdSecurity(Integer idSecuritycurrency);
+  List<IDateAndClose> getClosedAndMissingHistoryquoteByIdSecurity(Integer idSecuritycurrency, LocalDate fillUpToDate);
 
   /**
    * For each security or currencypair in a specified watchlist, retrieves the most recent available closing price on or

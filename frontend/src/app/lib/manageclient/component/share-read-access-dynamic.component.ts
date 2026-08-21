@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {combineLatest} from 'rxjs';
-import {DynamicDialogRef} from 'primeng/dynamicdialog';
+import {DynamicDialogRef} from '@openng/optimus-ui/dynamicdialog';
 
 import {PasswordBaseComponent} from '../../login/component/password.base.component';
 import {GlobalparameterService, PasswordRegexProperties} from '../../services/globalparameter.service';

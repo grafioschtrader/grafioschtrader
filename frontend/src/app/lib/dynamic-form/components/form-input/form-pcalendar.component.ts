@@ -4,8 +4,8 @@ import {Helper} from '../../../helper/helper';
 import {AbstractControl, ReactiveFormsModule} from '@angular/forms';
 import {Subscription} from 'rxjs';
 
-import {DatePicker} from 'primeng/datepicker';
-import {TooltipModule} from 'primeng/tooltip';
+import {DatePicker} from '@openng/optimus-ui/datepicker';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
 import {TranslateModule} from '@ngx-translate/core';
 import {FilterOutPipe} from '../../pipe/FilterOutPipe';
 
@@ -73,7 +73,7 @@ export class FormPCalendarComponent extends BaseInputComponent implements OnInit
 
   /**
    * Reports a manually entered date which the date picker does not accept. Such an entry is discarded silently by
-   * PrimeNG: text which does not match the date format sets the model to null, and a date which is outside the
+   * Optimus: text which does not match the date format sets the model to null, and a date which is outside the
    * permitted period or on an excluded day leaves the model untouched while the input field is repainted with the
    * previous value. In both cases the user gets no explanation, therefore the entry is evaluated here once more and
    * turned into an error message of the field. Selection over the calendar overlay never reaches this state, because

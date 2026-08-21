@@ -10,16 +10,16 @@ import {Security} from '../../entities/security';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {TransactionSecurityOptionalParam} from '../../transaction/model/transaction.security.optional.param';
-import {FilterService, SharedModule} from 'primeng/api';
+import {FilterService, SharedModule} from '@openng/optimus-ui/api';
 import {TenantDividendsExtendedBase} from './tenant.dividends.extended.base';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {TaxDataService} from '../../taxdata/service/tax-data.service';
 import {CommonModule} from '@angular/common';
-import {TableModule} from 'primeng/table';
-import {TooltipModule} from 'primeng/tooltip';
-import {CheckboxModule} from 'primeng/checkbox';
-import {ContextMenuModule} from 'primeng/contextmenu';
-import {MenuItem} from 'primeng/api';
+import {TableModule} from '@openng/optimus-ui/table';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
+import {CheckboxModule} from '@openng/optimus-ui/checkbox';
+import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
+import {MenuItem} from '@openng/optimus-ui/api';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {BaseSettings} from '../../lib/base.settings';
@@ -156,7 +156,7 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
   /**
    * Expansion state of the security rows, keyed by {@code security.idSecuritycurrency}. The object is owned by the
    * parent {@code TenantDividendsComponent} and passed in by reference, so the expansion survives this child being
-   * recreated on a parent reload. PrimeNG mutates it in place on toggle, keeping the parent map in sync.
+   * recreated on a parent reload. Optimus mutates it in place on toggle, keeping the parent map in sync.
    */
   @Input() expandedRowKeys: { [id: string]: boolean } = {};
 

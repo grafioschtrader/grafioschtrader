@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {Observable, Subject} from 'rxjs';
-import {SortMeta} from 'primeng/api';
+import {SortMeta} from '@openng/optimus-ui/api';
 import {ColumnConfig, getFilterKey} from '../../lib/datashowbase/column.config';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {AppSettings} from '../../shared/app.settings';
@@ -14,14 +14,14 @@ export enum FilterSortScope {
 }
 
 /**
- * A single stored filter. The metadata is whatever PrimeNG put into its filter map and is kept verbatim, because its
+ * A single stored filter. The metadata is whatever Optimus put into its filter map and is kept verbatim, because its
  * shape differs by control: a column filter menu writes an array of constraints, the dropdown and the date/decimal
  * helpers write a single object. Rebuilding it by hand would break one of the two.
  */
 export interface StoredFilter {
   /** Translated column header, so a filter can be named even in a watchlist type without that column. */
   label: string;
-  /** PrimeNG filter metadata, single object or array of constraints. */
+  /** Optimus filter metadata, single object or array of constraints. */
   meta: any;
 }
 
@@ -77,7 +77,7 @@ const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/;
  *
  * <p>
  * Each of the four watchlist types is its own component which is destroyed and recreated on every tab and every
- * watchlist change, so neither PrimeNG's filter map nor the sort metadata survive on their own. This service holds
+ * watchlist change, so neither Optimus's filter map nor the sort metadata survive on their own. This service holds
  * both outside of the components and persists them in the local storage, which is why a filter entered on one tab is
  * immediately in effect on the others.
  * </p>
@@ -139,7 +139,7 @@ export class WatchlistFilterSortStateService {
    *
    * @param idWatchlist the watchlist which is displayed
    * @param fields the columns of the displaying table
-   * @returns the filter map for PrimeNG, empty when nothing is filtered
+   * @returns the filter map for Optimus, empty when nothing is filtered
    */
   getEffectiveFilters(idWatchlist: number, fields: ColumnConfig[]): { [filterKey: string]: any } {
     const applicable = this.applicableFilterKeys(fields);
@@ -160,7 +160,7 @@ export class WatchlistFilterSortStateService {
    *
    * @param idWatchlist the watchlist which is displayed
    * @param fields the columns of the displaying table
-   * @returns the sort metadata for PrimeNG, empty when nothing is sorted
+   * @returns the sort metadata for Optimus, empty when nothing is sorted
    */
   getEffectiveSorts(idWatchlist: number, fields: ColumnConfig[]): SortMeta[] {
     const applicable = this.applicableSortFields(fields);
@@ -177,7 +177,7 @@ export class WatchlistFilterSortStateService {
    *
    * @param idWatchlist the watchlist which is displayed
    * @param fields the columns of the displaying table
-   * @param currentFilters PrimeNG's filter map of the displaying table
+   * @param currentFilters Optimus's filter map of the displaying table
    */
   captureFilters(idWatchlist: number, fields: ColumnConfig[], currentFilters: { [filterKey: string]: any }): void {
     const local = this.entriesOf(idWatchlist).filters;
@@ -341,7 +341,7 @@ export class WatchlistFilterSortStateService {
   }
 
   /**
-   * Determines the filter keys a table can apply. The key is the field PrimeNG filters on, which for a column with a
+   * Determines the filter keys a table can apply. The key is the field Optimus filters on, which for a column with a
    * transformed or translated value is the shadow field and not the field itself.
    *
    * @param fields the columns of the table
@@ -410,7 +410,7 @@ export class WatchlistFilterSortStateService {
   }
 
   /**
-   * Decides whether a filter holds a value at all. Follows PrimeNG, which treats null, undefined and the empty string
+   * Decides whether a filter holds a value at all. Follows Optimus, which treats null, undefined and the empty string
    * as no filter, and considers a constraint list blank when none of its constraints has a value. A multi select
    * filter carries an array of values, which is blank while nothing is selected.
    *

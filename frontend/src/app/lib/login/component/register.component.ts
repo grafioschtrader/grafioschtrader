@@ -18,7 +18,7 @@ import {HelpIds} from '../../help/help.ids';
 import {BaseSettings} from '../../base.settings';
 
 import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
-import {ProgressBarModule} from 'primeng/progressbar';
+import {ProgressBarModule} from '@openng/optimus-ui/progressbar';
 import {ApplicationInfoComponent} from './application-info.component';
 
 /**

@@ -1,9 +1,9 @@
 import {Component} from '@angular/core';
 
 import {FormsModule} from '@angular/forms';
-import {DialogModule} from 'primeng/dialog';
-import {ButtonModule} from 'primeng/button';
-import {InputNumberModule} from 'primeng/inputnumber';
+import {DialogModule} from '@openng/optimus-ui/dialog';
+import {ButtonModule} from '@openng/optimus-ui/button';
+import {InputNumberModule} from '@openng/optimus-ui/inputnumber';
 
 
 /**

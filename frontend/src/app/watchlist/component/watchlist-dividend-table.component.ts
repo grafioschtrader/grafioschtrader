@@ -7,7 +7,7 @@ import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {DividendService} from '../service/dividend.service';
 import {DividendSplitTableBase} from './dividend.split.table.base';
 import {Dividend} from '../../entities/dividend.split';
-import {FilterService} from 'primeng/api';
+import {FilterService} from '@openng/optimus-ui/api';
 import {AppSettings} from '../../shared/app.settings';
 import {CommonModule} from '@angular/common';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
@@ -39,7 +39,7 @@ export class WatchlistDividendTableComponent extends DividendSplitTableBase<Divi
    * Creates a new watchlist dividend table component and configures the table columns.
    *
    * @param dividendService Service for retrieving dividend data
-   * @param filterService PrimeNG service for table filtering functionality
+   * @param filterService Optimus service for table filtering functionality
    * @param usersettingsService Service for persisting user table preferences
    * @param translateService Angular translation service for internationalization
    * @param gps Global parameter service for locale and formatting settings

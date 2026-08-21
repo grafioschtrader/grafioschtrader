@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {combineLatest, of} from 'rxjs';
 
 import {SimpleEntityEditBase} from '../../edit/simple.entity.edit.base';

@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {Observable, of} from 'rxjs';
-import {MenuItem, TreeNode} from 'primeng/api';
+import {MenuItem, TreeNode} from '@openng/optimus-ui/api';
 import {TranslateService} from '@ngx-translate/core';
 import {MainTreeContributor} from '../../lib/maintree/contributor/main-tree-contributor.interface';
 import {TreeNodeType} from '../maintree/types/tree.node.type';

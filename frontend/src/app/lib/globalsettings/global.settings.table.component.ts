@@ -2,9 +2,9 @@ import {Component, Injector, OnInit} from '@angular/core';
 
 import {TableConfigBase} from '../datashowbase/table.config.base';
 import {Globalparameters} from '../entities/globalparameters';
-import {FilterService, MenuItem} from 'primeng/api';
+import {FilterService, MenuItem} from '@openng/optimus-ui/api';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {Textarea} from 'primeng/textarea';
+import {Textarea} from '@openng/optimus-ui/textarea';
 import {ConfigurableTableComponent} from '../datashowbase/configurable-table.component';
 import {GlobalSettingsEditComponent} from './global.settings-edit.component';
 import {GlobalparameterService} from '../services/globalparameter.service';

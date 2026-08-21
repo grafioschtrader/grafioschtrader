@@ -370,7 +370,7 @@ export async function createAllImportedTransactions(page: Page, expectedCount: n
     await expect(table.locator('tbody p-tablecheckbox input:checked')).toHaveCount(expectedCount);
 
     const container = transactionImportContainer(page);
-    // The checkbox click reaches the parent's click handler before PrimeNG emits the new selection. Trigger a fresh
+    // The checkbox click reaches the parent's click handler before Optimus UI emits the new selection. Trigger a fresh
     // bubbled click after selection has settled so the parent rebuilds its menu with the current selectedEntities.
     await table.dispatchEvent('click');
     await container.click({button: 'right'});

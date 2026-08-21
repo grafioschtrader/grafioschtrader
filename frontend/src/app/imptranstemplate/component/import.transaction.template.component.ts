@@ -13,7 +13,7 @@ import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key
 import {ImportTransactionTemplate} from '../../entities/import.transaction.template';
 import {ImportTransactionTemplateTableComponent} from './import-transaction-template-table.component';
 import {ParentChildRowSelection} from '../../lib/datashowbase/parent.child.row.selection';
-import {ConfirmationService, MenuItem} from 'primeng/api';
+import {ConfirmationService, MenuItem} from '@openng/optimus-ui/api';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {plainToInstance} from 'class-transformer';
@@ -30,7 +30,7 @@ import {NgxFileDropEntry, NgxFileDropModule} from 'ngx-file-drop';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {BaseSettings} from '../../lib/base.settings';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
-import {ContextMenuModule} from 'primeng/contextmenu';
+import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
 import {ImportTransactionEditPlatformComponent} from './import-transaction-edit-platform.component';
 import {TransformPdfToTxtDialogComponent} from './transform-pdf-to-txt-dialog.component';
 import {TemplateFormCheckDialogComponent} from './template-form-check-dialog.component';

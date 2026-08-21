@@ -8,8 +8,8 @@ import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {IdsAccounts} from '../model/ids.accounts';
 import {ShowRecordConfigBase} from '../../lib/datashowbase/show.record.config.base';
 
-import {DialogModule} from 'primeng/dialog';
-import {ButtonModule} from 'primeng/button';
+import {DialogModule} from '@openng/optimus-ui/dialog';
+import {ButtonModule} from '@openng/optimus-ui/button';
 import {TranslateModule} from '@ngx-translate/core';
 
 /**

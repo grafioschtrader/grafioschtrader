@@ -1,9 +1,9 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {DialogModule} from 'primeng/dialog';
-import {ProgressSpinnerModule} from 'primeng/progressspinner';
-import {MessageModule} from 'primeng/message';
+import {DialogModule} from '@openng/optimus-ui/dialog';
+import {ProgressSpinnerModule} from '@openng/optimus-ui/progressspinner';
+import {MessageModule} from '@openng/optimus-ui/message';
 import {Subscription} from 'rxjs';
 
 import {GtnetSecurityLookupService} from '../service/gtnet-security-lookup.service';

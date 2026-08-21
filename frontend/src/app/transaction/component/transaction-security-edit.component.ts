@@ -57,9 +57,9 @@ import {RuleEvent} from '../../lib/dynamic-form/error/error.message.rules';
 import {AppSettings} from '../../shared/app.settings';
 import {BusinessSelectOptionsHelper} from '../../shared/securitycurrency/business.select.options.helper';
 import {BaseSettings} from '../../lib/base.settings';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
-import {DialogService} from 'primeng/dynamicdialog';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 import {CalcExRateDialogComponent} from './calc-ex-rate-dialog.component';
 import {DynamicDialogHelper} from '../../lib/dynamicdialog/component/dynamicDialogHelper';
 

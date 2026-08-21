@@ -13,17 +13,17 @@ import {
 import {CommonModule} from '@angular/common';
 import {TranslateService} from '@ngx-translate/core';
 import {FormsModule, Validators} from '@angular/forms';
-import {Table, TableModule} from 'primeng/table';
-import {ContextMenuModule} from 'primeng/contextmenu';
-import {TooltipModule} from 'primeng/tooltip';
-import {MenuItem, SortEvent} from 'primeng/api';
-import {InputTextModule} from 'primeng/inputtext';
-import {InputNumberModule} from 'primeng/inputnumber';
-import {DatePickerModule} from 'primeng/datepicker';
-import {SelectModule} from 'primeng/select';
-import {CheckboxModule} from 'primeng/checkbox';
-import {ButtonModule} from 'primeng/button';
-import {Textarea} from 'primeng/textarea';
+import {Table, TableModule} from '@openng/optimus-ui/table';
+import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
+import {MenuItem, SortEvent} from '@openng/optimus-ui/api';
+import {InputTextModule} from '@openng/optimus-ui/inputtext';
+import {InputNumberModule} from '@openng/optimus-ui/inputnumber';
+import {DatePickerModule} from '@openng/optimus-ui/datepicker';
+import {SelectModule} from '@openng/optimus-ui/select';
+import {CheckboxModule} from '@openng/optimus-ui/checkbox';
+import {ButtonModule} from '@openng/optimus-ui/button';
+import {Textarea} from '@openng/optimus-ui/textarea';
 import {ColumnConfig, EditInputType} from './column.config';
 import {DataType} from '../dynamic-form/models/data.type';
 import {Helper} from '../helper/helper';
@@ -75,11 +75,11 @@ export interface ValidationErrorEvent<T> {
 }
 
 /**
- * Reusable table component providing PrimeNG inline row editing functionality.
+ * Reusable table component providing Optimus inline row editing functionality.
  * Similar to ConfigurableTableComponent but with full CRUD editing support.
  *
  * Key features:
- * - Inline row editing with PrimeNG pEditableRow, p-cellEditor
+ * - Inline row editing with Optimus pEditableRow, p-cellEditor
  * - Automatic input type selection based on DataType or explicit configuration
  * - Dependent dropdown support (declarative and callback approaches)
  * - Validation with inline error display
@@ -271,7 +271,7 @@ export interface ValidationErrorEvent<T> {
           </tr>
         </ng-template>
 
-        <!-- Expanded row template - always present so PrimeNG can find it -->
+        <!-- Expanded row template - always present so Optimus can find it -->
         <ng-template #expandedrow let-row let-columns="fields">
           @if (expandable && expandedRowTemplate) {
             <tr>
@@ -314,7 +314,7 @@ export interface ValidationErrorEvent<T> {
                    [style.width.px]="field.width || 100">
           }
 
-          <!-- PrimeNG InputNumber -->
+          <!-- Optimus InputNumber -->
           @case (EditInputType.InputNumber) {
             <p-inputNumber [(ngModel)]="rowData[field.field]"
                           (ngModelChange)="onFieldChange(field, rowData, $event)"
@@ -620,7 +620,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
   /** Object tracking which rows are currently expanded. */
   expandedRowKeys: { [key: string]: boolean } = {};
 
-  /** Reference to PrimeNG table component */
+  /** Reference to Optimus table component */
   @ViewChild('table') table: Table;
 
   /** Map of row keys to cloned row data for cancel restoration */
@@ -657,9 +657,9 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
   // ============================================================================
 
   /**
-   * Stable context-menu model bound to the PrimeNG context menu. Rebuilt only when the relevant
+   * Stable context-menu model bound to the Optimus context menu. Rebuilt only when the relevant
    * inputs change (see {@link buildContextMenu}). It must hold a stable array reference between
-   * rebuilds: PrimeNG's ContextMenu reprocesses its internal items on every `model` assignment, so
+   * rebuilds: Optimus's ContextMenu reprocesses its internal items on every `model` assignment, so
    * binding a getter that returns a fresh array each change-detection cycle would rebuild the menu
    * continuously and swallow item clicks.
    */
@@ -720,7 +720,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
     // Rebuild only when the parent-supplied items actually change. The add-row item is derived from
     // createNewEntityFn / addRowLabel, but those must NOT be rebuild triggers: parents commonly bind
     // createNewEntityFn as `someFn.bind(this)`, which yields a fresh function reference on every change
-    // detection cycle. Rebuilding on that churn replaces menuModel (and thus the PrimeNG menu's DOM
+    // detection cycle. Rebuilding on that churn replaces menuModel (and thus the Optimus menu's DOM
     // items) on every CD, so a real mouse-down's CD tick recreates the item between mousedown and
     // mouseup and the click never reaches it. createNewEntityFn / addRowLabel are captured once in
     // ngOnInit, which is sufficient because they are set declaratively and do not change at runtime.
@@ -1138,7 +1138,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
   // Event Handlers
   // ============================================================================
 
-  /** Handles sort events from PrimeNG table */
+  /** Handles sort events from Optimus table */
   onSort(event: SortEvent): void {
     if (this.customSortFn) {
       this.customSortFn(event);
@@ -1187,12 +1187,12 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
     return count;
   }
 
-  /** Handles row expand events from PrimeNG table. */
+  /** Handles row expand events from Optimus table. */
   onRowExpand(event: any): void {
     this.rowExpand.emit(event);
   }
 
-  /** Handles row collapse events from PrimeNG table. */
+  /** Handles row collapse events from Optimus table. */
   onRowCollapse(event: any): void {
     this.rowCollapse.emit(event);
   }
@@ -1238,7 +1238,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
       this.onRowEditInit(row, rowIndex);
 
       if (this.table) {
-        // Directly set PrimeNG's editing state — no DOM manipulation needed
+        // Directly set Optimus's editing state — no DOM manipulation needed
         this.table.editingRowKeys[rowKey] = true;
 
         // Focus first editable cell after Angular change detection renders the edit inputs

@@ -5,8 +5,8 @@ import {provideAnimations} from '@angular/platform-browser/animations';
 import {provideRouter, Routes} from '@angular/router';
 import {TranslateLoader, TranslateModule, TranslateService} from '@ngx-translate/core';
 import {AngularSvgIconModule} from 'angular-svg-icon';
-import {ConfirmationService, FilterService} from 'primeng/api';
-import {DialogService} from 'primeng/dynamicdialog';
+import {ConfirmationService, FilterService} from '@openng/optimus-ui/api';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 import {ToastrModule} from 'ngx-toastr';
 import {firstValueFrom} from 'rxjs';
 

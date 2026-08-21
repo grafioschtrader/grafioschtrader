@@ -17,10 +17,10 @@ import {Subscription} from 'rxjs';
 import {TranslateHelper} from '../../helper/translate.helper';
 import {SelectOptionsHelper} from '../../helper/select.options.helper';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {GTNetMessageCodeType} from '../model/gtnet.message';
-import {MenuItem} from 'primeng/api';
+import {MenuItem} from '@openng/optimus-ui/api';
 import {BaseSettings} from '../../base.settings';
 
 /**

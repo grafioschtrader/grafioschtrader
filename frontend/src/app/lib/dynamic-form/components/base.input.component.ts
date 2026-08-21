@@ -36,7 +36,7 @@ export abstract class BaseInputComponent implements FieldFormFormGroupConfig, On
   /**
    * Moves the keyboard focus to this input.
    *
-   * The '#input' view child is a native element for the plain HTML controls, but a PrimeNG component
+   * The '#input' view child is a native element for the plain HTML controls, but an Optimus UI component
    * instance for the wrapped ones (p-select, ...), where 'nativeElement' does not exist and the component
    * offers its own focus(). Both cases are handled here so that callers do not have to know which kind of
    * control a field happens to use.

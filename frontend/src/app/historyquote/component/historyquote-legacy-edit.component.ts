@@ -1,5 +1,5 @@
 import {Component, Input} from '@angular/core';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 
 import {HistoryquoteLegacy} from '../../entities/historyquote.legacy';

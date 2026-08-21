@@ -1,8 +1,8 @@
 import {Component, EventEmitter, Injector, Input, OnChanges, Output, SimpleChanges} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
-import {FilterService, TreeNode} from 'primeng/api';
-import {TreeTableModule} from 'primeng/treetable';
-import {TooltipModule} from 'primeng/tooltip';
+import {FilterService, TreeNode} from '@openng/optimus-ui/api';
+import {TreeTableModule} from '@openng/optimus-ui/treetable';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
 
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';

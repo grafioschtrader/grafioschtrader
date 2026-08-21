@@ -31,6 +31,26 @@ gen_secret() {
   fi
 }
 
+# Give this installation its own time slot for the daily download of prices and
+# dividends, so that not every GT instance world-wide queries the free data
+# providers in the same minute. It only fires while the schedule in
+# config/application-production.properties is still untouched, so a time set by
+# hand is never overwritten. The anchor is drawn in this host's local time; the
+# written values are UTC, because the backend evaluates all cron expressions in
+# UTC. Set GT_CRON_RANDOMIZE=off to skip it.
+randomize_cron() {
+  local script=../util/shellscripts/gtcronrandom.sh
+  local config=config/application-production.properties
+  [ -f "$config" ] || return 0
+  if [ ! -f "$script" ]; then
+    warn "gtcronrandom.sh was not found next to this installation — the daily price"
+    warn "and dividend jobs keep the default times. Set gt.eod.cron.quotation and"
+    warn "gt.dividend.update.data in $config by hand."
+    return 0
+  fi
+  bash "$script" --file "$config" || warn "The cron randomization failed — the default times are kept."
+}
+
 # True if a TCP port already has a listener on this machine. Best-effort: when
 # neither ss nor netstat is available the port is assumed free.
 port_in_use() {
@@ -63,6 +83,7 @@ if [ -f .env ]; then
   bold "An existing configuration (.env) was found."
   read -r -p "Keep it and just (re)start Grafioschtrader? [Y/n] " keep
   if [ "${keep:-Y}" != "n" ] && [ "${keep:-Y}" != "N" ]; then
+    randomize_cron
     pull_images
     docker compose up -d
     bold "Grafioschtrader is starting with the existing configuration."
@@ -264,6 +285,10 @@ info "Configuration written to .env (file permissions restricted to your user)."
 # --------------------------------------------------------------------------
 # Start
 # --------------------------------------------------------------------------
+echo
+bold "Daily download schedule"
+randomize_cron
+
 echo
 bold "Downloading images and starting Grafioschtrader ..."
 pull_images

@@ -10,10 +10,10 @@ import {CreateType, Securitysplit} from '../../entities/dividend.split';
 import {SvgIconRegistryService, AngularSvgIconModule} from 'angular-svg-icon';
 import {DividendSplitSvgCreator} from '../../shared/dividendsplit/dividend.split.svg.creator';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
-import {FilterService} from 'primeng/api';
+import {FilterService} from '@openng/optimus-ui/api';
 import {CommonModule} from '@angular/common';
-import {TableModule} from 'primeng/table';
-import {ButtonModule} from 'primeng/button';
+import {TableModule} from '@openng/optimus-ui/table';
+import {ButtonModule} from '@openng/optimus-ui/button';
 
 /**
  * Shows the table of splits

@@ -1,12 +1,12 @@
 import {TranslateService} from '@ngx-translate/core';
-import {FilterService, TreeNode} from 'primeng/api';
+import {FilterService, TreeNode} from '@openng/optimus-ui/api';
 import {GlobalparameterService} from '../services/globalparameter.service';
 import {TableTreetableTotalBase} from './table.treetable.total.base';
 import {TranslateHelper} from '../helper/translate.helper';
 import {BaseSettings} from '../base.settings';
 
 /**
- * Abstract base class for configuring PrimeNG TreeTable components with hierarchical data display.
+ * Abstract base class for configuring Optimus TreeTable components with hierarchical data display.
  * Extends TableTreetableTotalBase to provide tree-specific functionality including breadth-first
  * tree traversal for translation processing and field configuration setup.
  *
@@ -21,7 +21,7 @@ export abstract class TreeTableConfigBase extends TableTreetableTotalBase {
    *
    * @param translateService - Angular translation service for internationalization
    * @param gps - Global parameter service for locale and formatting settings
-   * @param filterService - Optional PrimeNG service for registering custom filters
+   * @param filterService - Optional Optimus service for registering custom filters
    */
   protected constructor(translateService: TranslateService, gps: GlobalparameterService, filterService?: FilterService) {
     super(translateService, gps, null, filterService);
@@ -48,12 +48,12 @@ export abstract class TreeTableConfigBase extends TableTreetableTotalBase {
    * - Uses a queue-based breadth-first traversal to process all tree levels
    * - Processes all nodes at each level before moving to child levels
    * - Safely handles trees with varying depths and branch structures
-   * - Automatically sets up fieldTranslated properties for PrimeNG sorting
+   * - Automatically sets up fieldTranslated properties for Optimus sorting
    *
    * **Translation Processing:**
    * - Only processes columns marked with translateValues property
    * - Creates translated value maps for consistent display across the tree
-   * - Adds '$' suffix fields for PrimeNG TreeTable sorting support
+   * - Adds '$' suffix fields for Optimus TreeTable sorting support
    * - Handles null/undefined tree structures gracefully
    *
    * @param root - Array of root TreeNode objects representing the tree structure.

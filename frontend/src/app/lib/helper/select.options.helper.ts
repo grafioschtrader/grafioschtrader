@@ -1,11 +1,11 @@
 import {ValueKeyHtmlSelectOptions} from '../dynamic-form/models/value.key.html.select.options';
 import {TranslateService} from '@ngx-translate/core';
 import {EnumI} from './enumI';
-import {SelectItem} from 'primeng/api';
+import {SelectItem} from '@openng/optimus-ui/api';
 
 /**
  * Comprehensive utility class for creating select/dropdown options from various data sources.
- * Provides factory methods for generating ValueKeyHtmlSelectOptions and PrimeNG SelectItems
+ * Provides factory methods for generating ValueKeyHtmlSelectOptions and Optimus SelectItems
  * with built-in support for internationalization, filtering, sorting, and state management.
  *
  * Key features:
@@ -15,7 +15,7 @@ import {SelectItem} from 'primeng/api';
  * - Optional empty value handling
  * - Option state management (disabled/enabled)
  * - Automatic sorting with locale awareness
- * - PrimeNG SelectItem compatibility
+ * - Optimus SelectItem compatibility
  *
  * Supports common dropdown scenarios:
  * - Static option lists from arrays or objects
@@ -314,8 +314,8 @@ export class SelectOptionsHelper {
   }
 
   /**
-   * Creates PrimeNG SelectItem array from enum with translation.
-   * Converts enum values to PrimeNG-compatible SelectItem format with asynchronous translation.
+   * Creates Optimus SelectItem array from enum with translation.
+   * Converts enum values to Optimus-compatible SelectItem format with asynchronous translation.
    * Modifies the provided items array in-place, adding translated options as they become available.
    *
    * @param translateService Angular TranslateService for label translation
@@ -323,7 +323,7 @@ export class SelectOptionsHelper {
    * @param items Target array to populate with SelectItem objects (modified in-place)
    *
    * @example
-   * // Create PrimeNG dropdown items for status enum
+   * // Create Optimus dropdown items for status enum
    * const statusItems: SelectItem[] = [];
    * SelectOptionsHelper.createSelectItemForEnum(translateService, Status, statusItems);
    * // statusItems will be populated asynchronously as translations complete
@@ -414,7 +414,7 @@ export class SelectOptionsHelper {
     return options;
   }
 
-  // Primeng SelectItem[]
+  // Optimus UI SelectItem[]
   /////////////////////////////////////////////////////////////
 
   /**

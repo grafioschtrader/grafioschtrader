@@ -34,7 +34,7 @@ export const RX = {
 
 /**
  * Success/warning toasts are rendered by ngx-toastr into a body-level `#toast-container`, not a
- * PrimeNG `p-toast`. Asserts a toast whose text matches `messageRx` appears.
+ * Optimus UI `p-toast`. Asserts a toast whose text matches `messageRx` appears.
  */
 export async function expectToast(page: Page, messageRx: RegExp): Promise<void> {
   await expect(page.locator('#toast-container').getByText(messageRx).first())

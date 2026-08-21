@@ -150,7 +150,7 @@ async function createTemplate(page: Page, t: TemplateFileData): Promise<void> {
   await selectByValue(dialog, 'templateFormatType', t.templateFormatType);
 
   // p-datepicker exposes an inner <input>; parsing follows formConfig.dateFormat (de-CH: dd.mm.y).
-  // The date MUST be typed with real key events: PrimeNG's onUserInput ignores input events that
+  // The date MUST be typed with real key events: Optimus UI's onUserInput ignores input events that
   // were not preceded by a keydown (isKeydown guard), so fill()/dispatchEvent('input') never
   // reaches the model and the text is wiped again on blur.
   const dateInput = dialog.locator('#validSince input').first();

@@ -15,10 +15,10 @@ import {TransformedError} from '../login/service/transformed.error';
 import {LimitEntityTransactionError} from '../login/service/limit.entity.transaction.error';
 import {MessageToastService} from '../message/message.toast.service';
 import {ServiceEntityUpdate} from './service.entity.update';
-import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {DynamicDialogConfig, DynamicDialogRef} from '@openng/optimus-ui/dynamicdialog';
 
 /**
- * Abstract base class for dynamically created PrimeNG editing dialogs.
+ * Abstract base class for dynamically created Optimus editing dialogs.
  * Provides common functionality for entity editing with form validation, submission, and dialog management.
  * The dialog itself is dynamic, not the input fields.
  *

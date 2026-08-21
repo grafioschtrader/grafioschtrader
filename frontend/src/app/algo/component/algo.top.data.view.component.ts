@@ -3,7 +3,7 @@ import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {ConfirmationService, MenuItem, TreeNode} from 'primeng/api';
+import {ConfirmationService, MenuItem, TreeNode} from '@openng/optimus-ui/api';
 import {concat, Subscription} from 'rxjs';
 import {toArray} from 'rxjs/operators';
 import {ActivatedRoute, Params} from '@angular/router';
@@ -245,7 +245,7 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
    * Returns CSS class for tree table rows.
    * AlgoAssetclass rows are displayed in bold to distinguish them visually.
    *
-   * @param rowNode - PrimeNG TreeNode wrapper
+   * @param rowNode - Optimus TreeNode wrapper
    * @param rowData - The row data object
    * @returns CSS class string or null
    */

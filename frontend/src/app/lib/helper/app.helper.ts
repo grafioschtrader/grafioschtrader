@@ -7,7 +7,7 @@ import {ColumnConfig} from '../datashowbase/column.config';
 import {ParamMap} from '@angular/router';
 import {FormConfig} from '../dynamic-form/models/form.config';
 import {HttpHeaders, HttpParams} from '@angular/common/http';
-import {ConfirmationService} from 'primeng/api';
+import {ConfirmationService} from '@openng/optimus-ui/api';
 import {FileSystemFileEntry, NgxFileDropEntry} from 'ngx-file-drop';
 import {InfoLevelType} from '../message/info.leve.type';
 import {MessageToastService} from '../message/message.toast.service';
@@ -395,7 +395,7 @@ export class AppHelper {
    * Supports parameterized messages with pipe separator (|) for dynamic content.
    *
    * @param translateService Translation service for message and header
-   * @param confirmationService PrimeNG confirmation service
+   * @param confirmationService Optimus confirmation service
    * @param msgKey Translation key for message (supports "key|param" format)
    * @param acceptFN Function to execute when user confirms
    * @param headerKey Translation key for dialog header
@@ -500,7 +500,7 @@ export class AppHelper {
    * Internal method for handling confirmation dialogs with optional parameters.
    *
    * @param translateService Translation service for message translation
-   * @param confirmationService PrimeNG confirmation service
+   * @param confirmationService Optimus confirmation service
    * @param msgKey Translation key for dialog message
    * @param param Optional parameter for message interpolation
    * @param acceptFN Function to execute when user confirms

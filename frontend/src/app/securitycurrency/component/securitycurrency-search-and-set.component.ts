@@ -8,7 +8,7 @@ import {Security} from '../../entities/security';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
 import {MultipleRequestToOneService} from '../../shared/service/multiple.request.to.one.service';
 import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {DynamicDialogConfig, DynamicDialogRef} from '@openng/optimus-ui/dynamicdialog';
 
 /**
  * Dialog for selecting a security or currency by search criteria.

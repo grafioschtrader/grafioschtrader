@@ -6,7 +6,7 @@ import {PeriodHoldingAndDiff} from '../model/performance.period';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {AppHelper} from '../../lib/helper/app.helper';
 
-import {TooltipModule} from 'primeng/tooltip';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
 
 @Component({
     selector: 'performance-period-from-to-diff',

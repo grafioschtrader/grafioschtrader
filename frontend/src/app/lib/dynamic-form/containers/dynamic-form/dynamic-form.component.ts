@@ -12,7 +12,7 @@ import {ValueKeyHtmlSelectOptions} from '../../models/value.key.html.select.opti
 import {CommonModule} from '@angular/common';
 import {DynamicFormLayoutComponent} from './dynamic-form-layout.component';
 import {ErrorMessageComponent} from './error-message.compoent';
-import {ButtonModule} from 'primeng/button';
+import {ButtonModule} from '@openng/optimus-ui/button';
 import {DynamicFieldDirective} from '../../components/dynamic-field/dynamic-field.directive';
 
 /**

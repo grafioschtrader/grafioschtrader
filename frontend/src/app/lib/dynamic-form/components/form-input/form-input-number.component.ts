@@ -2,25 +2,25 @@ import {Component} from '@angular/core';
 import {BaseInputComponent} from '../base.input.component';
 import {ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
-import {InputNumberModule} from 'primeng/inputnumber';
-import {TooltipModule} from 'primeng/tooltip';
+import {InputNumberModule} from '@openng/optimus-ui/inputnumber';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
 import {TranslateModule} from '@ngx-translate/core';
 import {FilterOutPipe} from '../../pipe/FilterOutPipe';
 
 /**
- * PrimeNG InputNumber wrapper component for dynamic forms.
+ * Optimus InputNumber wrapper component for dynamic forms.
  * Supports treating zero values as null/empty via the treatZeroAsNull setting.
  * *
  * WORKAROUND NOTE
  *
- * PrimeNG InputNumber has a known issue when using
+ * Optimus InputNumber has a known issue when using
  *   mode="currency" + locale="de-CH" + negative values.
  *
  * In this combination, entering a negative number (e.g. "-3")
  * causes incorrect cursor behavior and the value to be cleared
  * when the input loses focus (TAB / blur).
  *
- * The problem originates from PrimeNG's internal parsing logic,
+ * The problem originates from Optimus's internal parsing logic,
  * which relies on Intl.NumberFormat. For Swiss locales (de-CH),
  * the currency format uses different separators and spacing,
  * which leads to parsing failures for negative currency values.
@@ -125,7 +125,7 @@ export class FormInputNumberComponent extends BaseInputComponent {
 
   /**
    * Prefix used only for Swiss negative values
-   * (e.g. "CHF -3.00" instead of PrimeNG currency formatting).
+   * (e.g. "CHF -3.00" instead of Optimus currency formatting).
    */
   get inputPrefix(): string | undefined {
     if (this.useSwissNegativeWorkaround && this.currency) {
@@ -135,9 +135,9 @@ export class FormInputNumberComponent extends BaseInputComponent {
   }
 
   /**
-   * Currency passed to PrimeNG.
+   * Currency passed to Optimus.
    * Must be undefined (not null) when the workaround is active,
-   * otherwise PrimeNG throws an error.
+   * otherwise Optimus throws an error.
    */
   get inputCurrency(): string | undefined {
     if (this.useSwissNegativeWorkaround) {

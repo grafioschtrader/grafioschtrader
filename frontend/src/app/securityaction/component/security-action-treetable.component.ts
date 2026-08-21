@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {TranslatePipe, TranslateService} from '@ngx-translate/core';
-import {MenuItem, TreeNode} from 'primeng/api';
+import {MenuItem, TreeNode} from '@openng/optimus-ui/api';
 import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
@@ -18,8 +18,8 @@ import {
   SecurityTransfer
 } from '../model/security-action.model';
 import {NgClass} from '@angular/common';
-import {Panel} from 'primeng/panel';
-import {SharedModule} from 'primeng/api';
+import {Panel} from '@openng/optimus-ui/panel';
+import {SharedModule} from '@openng/optimus-ui/api';
 import {ConfigurableTreeTableComponent} from '../../lib/datashowbase/configurable-tree-table.component';
 import {BaseSettings} from '../../lib/base.settings';
 import {MessageToastService} from '../../lib/message/message.toast.service';

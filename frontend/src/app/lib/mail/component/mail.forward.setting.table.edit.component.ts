@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
-import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {UserSettingsService} from '../../services/user.settings.service';

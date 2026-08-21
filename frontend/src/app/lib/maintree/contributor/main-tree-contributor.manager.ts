@@ -1,7 +1,7 @@
 import {Inject, Injectable, Optional} from '@angular/core';
 import {combineLatest, Observable, of} from 'rxjs';
 import {map, tap} from 'rxjs/operators';
-import {MenuItem, TreeNode} from 'primeng/api';
+import {MenuItem, TreeNode} from '@openng/optimus-ui/api';
 import {MAIN_TREE_CONTRIBUTOR, MainTreeContributor} from './main-tree-contributor.interface';
 import {ProcessedActionData} from '../../types/processed.action.data';
 

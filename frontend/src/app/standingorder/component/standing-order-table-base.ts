@@ -1,6 +1,6 @@
 import {Directive, OnDestroy} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
-import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';

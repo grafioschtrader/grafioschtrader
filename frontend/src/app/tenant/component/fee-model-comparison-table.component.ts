@@ -1,7 +1,7 @@
 import {Component, Injector, Input, OnChanges, OnDestroy, SimpleChanges} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
-import {FilterService} from 'primeng/api';
-import {DialogService} from 'primeng/dynamicdialog';
+import {FilterService} from '@openng/optimus-ui/api';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 import {FeeModelComparisonDetail} from '../../entities/fee.model.comparison';
 import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {FilterType} from '../../lib/datashowbase/filter.type';

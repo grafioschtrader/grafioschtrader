@@ -11,7 +11,7 @@ import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../helper/select.options.helper';
 import {TranslateHelper} from '../../helper/translate.helper';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {GTNetConfigEntityDisplay} from './gtnet-config-entity-table.component';
 

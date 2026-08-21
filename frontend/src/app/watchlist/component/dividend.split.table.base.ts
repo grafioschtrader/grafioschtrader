@@ -7,7 +7,7 @@ import {GlobalparameterService} from '../../lib/services/globalparameter.service
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {DividendSplit} from '../../entities/dividend.split';
 import {DividendSplitSvgCreator} from '../../shared/dividendsplit/dividend.split.svg.creator';
-import {FilterService} from 'primeng/api';
+import {FilterService} from '@openng/optimus-ui/api';
 
 /**
  * Abstract base class for displaying dividend and split data in table format with SVG icon support.
@@ -21,7 +21,7 @@ export abstract class DividendSplitTableBase<S extends DividendSplit> extends Ta
   /**
    * Creates a new dividend/split table base with sorting and icon configuration.
    *
-   * @param filterService PrimeNG filter service for table filtering capabilities
+   * @param filterService Optimus filter service for table filtering capabilities
    * @param usersettingsService Service for persisting user table preferences
    * @param translateService Angular translation service for internationalization
    * @param gps Global parameter service for locale and formatting settings

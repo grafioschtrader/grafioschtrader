@@ -11,7 +11,7 @@ import {Cashaccount} from '../../entities/cashaccount';
 import {StandingOrderService} from '../service/standing.order.service';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 import {AppSettings} from '../../shared/app.settings';
 import {TransactionType} from '../../shared/types/transaction.type';

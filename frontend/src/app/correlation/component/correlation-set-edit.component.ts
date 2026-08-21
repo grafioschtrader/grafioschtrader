@@ -11,7 +11,7 @@ import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {CorrelationEditingSupport} from './correlation.editing.support';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 
 /**

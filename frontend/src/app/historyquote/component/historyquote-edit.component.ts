@@ -10,7 +10,7 @@ import {HelpIds} from '../../lib/help/help.ids';
 import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
 import {AppSettings} from '../../shared/app.settings';
 import {AppHelper} from '../../lib/helper/app.helper';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 import {HistoryquoteEditBase} from './historyquote-edit.base';
 

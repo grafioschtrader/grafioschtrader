@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from '@angular/core';
-import {DialogService} from 'primeng/dynamicdialog';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 import {WatchlistTable, WatchListType} from './watchlist.table';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
@@ -8,7 +8,7 @@ import {DataChangedService} from '../../lib/maintree/service/data.changed.servic
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {WatchlistService} from '../service/watchlist.service';
 import {ActivatedRoute, Router} from '@angular/router';
-import {ConfirmationService, FilterService} from 'primeng/api';
+import {ConfirmationService, FilterService} from '@openng/optimus-ui/api';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {TranslateService, TranslateModule} from '@ngx-translate/core';
@@ -33,7 +33,7 @@ import {FieldDescriptorInputAndShowExtendedSecurity} from '../../udfmetasecurity
 import {CommonModule} from '@angular/common';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {AngularSvgIconModule} from 'angular-svg-icon';
-import {TooltipModule} from 'primeng/tooltip';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
 import {TransactionSecurityTableComponent} from '../../transaction/component/transaction-security-table.component';
 import {TransactionSecurityMarginTreetableComponent} from '../../transaction/component/transaction-security-margin-treetable.component';
 import {SecuritycurrencyUdfComponent} from './securitycurrency-udf.component';
@@ -108,7 +108,7 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
    * @param securityService Service for security-related operations
    * @param currencypairService Service for currency pair operations
    * @param uDFMetadataSecurityService Service for UDF metadata operations
-   * @param dialogService PrimeNG service for dynamic dialog management
+   * @param dialogService Optimus service for dynamic dialog management
    * @param alarmSetupService Service for alarm configuration
    * @param timeSeriesQuotesService Service for time series quote operations
    * @param dataChangedService Service for data change notifications
@@ -116,11 +116,11 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
    * @param watchlistService Service for watchlist operations
    * @param router Angular router for navigation
    * @param activatedRoute Current activated route
-   * @param confirmationService PrimeNG service for confirmation dialogs
+   * @param confirmationService Optimus service for confirmation dialogs
    * @param messageToastService Service for displaying toast messages
    * @param productIconService Service for product icon management
    * @param changeDetectionStrategy Angular change detection reference
-   * @param filterService PrimeNG service for table filtering
+   * @param filterService Optimus service for table filtering
    * @param translateService Angular translation service
    * @param gpsGT Global parameter service for GT-specific settings
    * @param gps Global parameter service for application settings

@@ -3,9 +3,9 @@ import {BaseInputComponent} from '../base.input.component';
 
 import {ReactiveFormsModule} from '@angular/forms';
 import {TranslateModule} from '@ngx-translate/core';
-import {ButtonModule} from 'primeng/button';
-import {InputGroup} from 'primeng/inputgroup';
-import {InputGroupAddon} from 'primeng/inputgroupaddon';
+import {ButtonModule} from '@openng/optimus-ui/button';
+import {InputGroup} from '@openng/optimus-ui/inputgroup';
+import {InputGroupAddon} from '@openng/optimus-ui/inputgroupaddon';
 import {UpperCaseDirective} from './upper-case.directive';
 
 /**

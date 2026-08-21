@@ -12,7 +12,7 @@ import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.ser
 import {TranslateService} from '@ngx-translate/core';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ActivatedRoute, Params} from '@angular/router';
-import {ConfirmationService, FilterService} from 'primeng/api';
+import {ConfirmationService, FilterService} from '@openng/optimus-ui/api';
 import {CommonModule} from '@angular/common';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {TransactionCashaccountEditSingleComponent} from '../../transaction/component/transaction-cashaccount-editsingle.component';

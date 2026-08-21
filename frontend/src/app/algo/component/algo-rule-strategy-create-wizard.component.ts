@@ -2,10 +2,10 @@ import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
-import {MenuItem} from 'primeng/api';
+import {MenuItem} from '@openng/optimus-ui/api';
 import {TranslateModule} from '@ngx-translate/core';
-import {DialogModule} from 'primeng/dialog';
-import {ButtonModule} from 'primeng/button';
+import {DialogModule} from '@openng/optimus-ui/dialog';
+import {ButtonModule} from '@openng/optimus-ui/button';
 import {StepsComponent} from '../../lib/wizard/component/steps.component';
 import {StepComponent} from '../../lib/wizard/component/step.component';
 

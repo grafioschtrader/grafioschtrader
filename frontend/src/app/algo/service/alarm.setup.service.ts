@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {MenuItem, MenuItemCommandEvent} from 'primeng/api';
+import {MenuItem, MenuItemCommandEvent} from '@openng/optimus-ui/api';
 import {Securitycurrency} from '../../entities/securitycurrency';
 import {AlgoCallParam, AlgoStrategyDefinitionForm} from '../model/algo.dialog.visible';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';

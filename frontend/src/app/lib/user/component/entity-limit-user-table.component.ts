@@ -8,7 +8,7 @@ import {AngularSvgIconModule} from 'angular-svg-icon';
 import {EntityLimitEditComponent} from '../../entitylimit/component/entity.limit.edit.component';
 import {UserSettingsService} from '../../services/user.settings.service';
 import {DataType} from '../../dynamic-form/models/data.type';
-import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
 import {EntityLimit} from '../../entities/entity.limit';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach';

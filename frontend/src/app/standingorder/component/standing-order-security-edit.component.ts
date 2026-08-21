@@ -13,7 +13,7 @@ import {StandingOrderService} from '../service/standing.order.service';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 import {AppSettings} from '../../shared/app.settings';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
@@ -24,7 +24,7 @@ import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 import {Portfolio} from '../../entities/portfolio';
 import {StandingOrderEditBase} from './standing-order-edit-base';
 import {AppHelpIds} from '../../shared/help/help.ids';
-import {DialogService} from 'primeng/dynamicdialog';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 
 /** Invest mode: 0 = fixed units, 1 = fixed amount. Not persisted — derived from which field is non-null. */
 enum InvestMode {

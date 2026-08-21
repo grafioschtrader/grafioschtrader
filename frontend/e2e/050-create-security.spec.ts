@@ -57,7 +57,7 @@ function hasText(value: string | null | undefined): value is string {
 
 /**
  * Writes an ISO date into a p-datepicker of the dialog. Two things make a plain fill() useless here:
- * the picker ignores input events that were not preceded by a keydown (PrimeNG's isKeydown guard),
+ * the picker ignores input events that were not preceded by a keydown (Optimus UI's isKeydown guard),
  * so the reactive form never sees the value, and it parses only the two-digit-year short format of
  * the logged-in user (de-CH 'dd.mm.y'). An ISO string therefore ends up as an unparsable text, the
  * control turns invalid ("the entered date cannot be interpreted") and Save stays disabled forever.
@@ -227,7 +227,7 @@ test.describe.serial('Seed Spanish securities in the Spain watchlist', () => {
         }
       }
 
-      // Dates — PrimeNG p-calendar exposes an inner <input> that has to be typed key by key.
+      // Dates — Optimus UI p-calendar exposes an inner <input> that has to be typed key by key.
       await typeDate(dialog, 'activeFromDate', row.activeFromDate, creds.locale);
       await typeDate(dialog, 'activeToDate', row.activeToDate, creds.locale);
 

@@ -17,7 +17,7 @@ import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {SimpleDynamicEditBase} from '../../lib/edit/simple.dynamic.edit.base';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
-import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {DynamicDialogConfig, DynamicDialogRef} from '@openng/optimus-ui/dynamicdialog';
 import {BaseSettings} from '../../lib/base.settings';
 import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {SecaccountTradingPeriod} from '../../entities/secaccount.trading.period';

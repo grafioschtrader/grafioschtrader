@@ -2,7 +2,7 @@ import {SimpleEditBase} from './simple.edit.base';
 import {Directive} from '@angular/core';
 
 /**
- * Abstract base directive for PrimeNG editing dialogs with dynamic fields.
+ * Abstract base directive for Optimus UI editing dialogs with dynamic fields.
  * Extends SimpleEditBase to provide specialized functionality for dynamic field editing.
  */
  @Directive()

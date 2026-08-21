@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {AppSettings} from '../../shared/app.settings';
-import {MenuItem} from 'primeng/api';
+import {MenuItem} from '@openng/optimus-ui/api';
 import {Router} from '@angular/router';
 import {TimeSeriesParam} from '../component/time.series.chart.component';
 import {BaseSettings} from '../../lib/base.settings';

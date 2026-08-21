@@ -19,7 +19,7 @@ import {Validators} from '@angular/forms';
 import {BaseSettings} from '../../base.settings';
 import {TaskTypeBase} from '../types/task.type.base';
 
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 
 @Component({

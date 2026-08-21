@@ -13,7 +13,7 @@ import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist'
 import {WatchlistService} from '../service/watchlist.service';
 import {WatchlistHelper} from './watchlist.helper';
 import {CommonModule} from '@angular/common';
-import {TooltipModule} from 'primeng/tooltip';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
 import {ReplacePipe} from '../../shared/pipe/replace.pipe';
 import {AppHelper} from '../../lib/helper/app.helper';
 

@@ -11,9 +11,9 @@ import {combineLatest, Observable} from 'rxjs';
 import {Currencypair} from '../../entities/currencypair';
 import {SecuritycurrencySearchTableBase} from './securitycurrency.search.table.base';
 import {SupplementCriteria} from '../model/supplement.criteria';
-import {FilterService} from 'primeng/api';
-import {TableModule} from 'primeng/table';
-import {ButtonModule} from 'primeng/button';
+import {FilterService} from '@openng/optimus-ui/api';
+import {TableModule} from '@openng/optimus-ui/table';
+import {ButtonModule} from '@openng/optimus-ui/button';
 import {CommonModule} from '@angular/common';
 
 /**

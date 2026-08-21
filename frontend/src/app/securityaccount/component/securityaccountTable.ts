@@ -22,7 +22,7 @@ import {SecurityAccountGroup} from '../model/security.account.group';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
-import {FilterService, SelectItem} from 'primeng/api';
+import {FilterService, SelectItem} from '@openng/optimus-ui/api';
 import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
 
 

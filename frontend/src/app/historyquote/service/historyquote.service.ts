@@ -18,6 +18,7 @@ import {IHistoryquoteQuality} from '../../entities/view/ihistoryquote.quality';
 import {SupportedCSVFormats, UploadServiceFunction} from '../../lib/generaldialog/model/file.upload.param';
 import {ISecuritycurrencyIdDateClose} from '../../entities/projection/i.securitycurrency.id.date.close';
 import {BaseSettings} from '../../lib/base.settings';
+import {HistoryquoteDeleteBounds} from '../../securitycurrency/model/historyquote.quality.group';
 
 @Injectable()
 export class HistoryquoteService extends AuthServiceWithLogout<Historyquote> implements ServiceEntityUpdate<Historyquote>,
@@ -93,14 +94,38 @@ export class HistoryquoteService extends AuthServiceWithLogout<Historyquote> imp
       this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-  public deleteHistoryquotesByCreateTypes(idSecuritycurrency: number, hct: HistoryquoteCreateType[]) {
-    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/delete/${idSecuritycurrency}`,
-      this.getOptionsCreateType(hct)).pipe(catchError(this.handleError.bind(this)));
+  /**
+   * Loads the period the deletion offers, the oldest and the most recent stored price of the instrument. It is read
+   * before the dialog is created, because its date fields must be configured with the selectable range while the
+   * dynamic form is built.
+   *
+   * @param idSecuritycurrency - Security or currency pair whose stored period is asked for
+   */
+  public getDeleteBounds(idSecuritycurrency: number): Observable<HistoryquoteDeleteBounds> {
+    return <Observable<HistoryquoteDeleteBounds>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}`
+      + `${AppSettings.HISTORYQUOTE_KEY}/deletebounds/${idSecuritycurrency}`,
+      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
-  private getOptionsCreateType(hct: HistoryquoteCreateType[]) {
+  /**
+   * Deletes the linear filled and/or manually imported quotes of an instrument inside a period. Both boundary dates
+   * belong to the period, so only that part of a linear filling is withdrawn.
+   *
+   * @param idSecuritycurrency - Security or currency pair whose quotes are deleted
+   * @param hct - Create types to delete, only manually imported and linear filled are accepted by the backend
+   * @param dateFrom - First date of the deleted period as yyyy-MM-dd, inclusive
+   * @param dateTo - Last date of the deleted period as yyyy-MM-dd, inclusive
+   */
+  public deleteHistoryquotesByCreateTypes(idSecuritycurrency: number, hct: HistoryquoteCreateType[], dateFrom: string,
+    dateTo: string) {
+    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/delete/${idSecuritycurrency}`,
+      this.getOptionsCreateType(hct, dateFrom, dateTo)).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  private getOptionsCreateType(hct: HistoryquoteCreateType[], dateFrom: string, dateTo: string) {
     let httpParams = new HttpParams();
     hct.forEach((id: number) => httpParams = httpParams.append(`createTypes`, id.toString()));
+    httpParams = httpParams.append(`dateFrom`, dateFrom).append(`dateTo`, dateTo);
     return {headers: this.prepareHeaders(), params: httpParams};
   }
 

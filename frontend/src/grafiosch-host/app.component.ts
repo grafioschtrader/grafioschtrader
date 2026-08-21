@@ -1,9 +1,9 @@
 import {Component} from '@angular/core';
 import {RouterOutlet} from '@angular/router';
 import {TranslateService} from '@ngx-translate/core';
-import {PrimeNG} from 'primeng/config';
-import Aura from '@primeuix/themes/aura';
-import {definePreset} from '@primeuix/themes';
+import {Optimus} from '@openng/optimus-ui/config';
+import Aura from '@openng/optimus-ui-themes/aura';
+import {definePreset} from '@openng/optimus-ui-themes';
 
 import {GlobalSessionNames} from '../app/lib/global.session.names';
 import {LoginService} from '../app/lib/login/service/log-in.service';
@@ -11,7 +11,7 @@ import {MessageToastComponent} from '../app/lib/message/message.toast.component'
 import {GrafioschSettings} from './grafiosch.settings';
 
 /**
- * Compact PrimeNG preset. It only narrows the default paddings so tables and menus have the same density as in
+ * Compact Optimus preset. It only narrows the default paddings so tables and menus have the same density as in
  * Grafioschtrader; the component tokens are the ones that actually decide the spacing, a component level CSS rule
  * would lose the cascade.
  */
@@ -44,11 +44,11 @@ const GrafioschPreset = definePreset(Aura, {
 })
 export class GrafioschAppComponent {
 
-  constructor(translateService: TranslateService, primeNGConfig: PrimeNG) {
+  constructor(translateService: TranslateService, optimusConfig: Optimus) {
     translateService.addLangs(['en', 'de']);
     translateService.setDefaultLang(GrafioschSettings.DEFAULT_LANGUAGE);
     localStorage.setItem(GlobalSessionNames.EXTERNAL_HELP_URL, GrafioschSettings.HELP_URL_BASE);
-    LoginService.setGlobalLang(translateService, primeNGConfig);
-    primeNGConfig.theme.set({preset: GrafioschPreset});
+    LoginService.setGlobalLang(translateService, optimusConfig);
+    optimusConfig.theme.set({preset: GrafioschPreset});
   }
 }

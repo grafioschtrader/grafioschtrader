@@ -33,7 +33,7 @@ import {gtDate} from '../../lib/validator/validator';
 import {Validators} from '@angular/forms';
 import {RuleEvent} from '../../lib/dynamic-form/error/error.message.rules';
 import moment from 'moment';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 /**

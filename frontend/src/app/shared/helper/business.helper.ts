@@ -13,7 +13,7 @@ import {HistoryquoteService} from '../../historyquote/service/historyquote.servi
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {Securitycurrency} from '../../entities/securitycurrency';
-import {MenuItem} from 'primeng/api';
+import {MenuItem} from '@openng/optimus-ui/api';
 import {Security} from '../../entities/security';
 import {TenantLimit} from '../../shared/types/tenant.limit';
 import {AssetclassType} from '../types/assetclass.type';

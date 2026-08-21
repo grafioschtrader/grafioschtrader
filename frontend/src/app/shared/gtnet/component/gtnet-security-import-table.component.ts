@@ -1,8 +1,8 @@
 import {ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TranslateService} from '@ngx-translate/core';
-import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
-import {ContextMenuModule} from 'primeng/contextmenu';
+import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
+import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
 
 import {TableEditConfigBase} from '../../../lib/datashowbase/table.edit.config.base';
 import {EditableTableComponent, RowEditSaveEvent} from '../../../lib/datashowbase/editable-table.component';

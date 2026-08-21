@@ -2,8 +2,8 @@ import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {ActivatedRoute, Params} from '@angular/router';
 import {TranslateService} from '@ngx-translate/core';
-import {ConfirmationService, MenuItem} from 'primeng/api';
-import {ContextMenuModule} from 'primeng/contextmenu';
+import {ConfirmationService, MenuItem} from '@openng/optimus-ui/api';
+import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
 
 import {ActivePanelService} from '../../../lib/mainmenubar/service/active.panel.service';
 import {AppSettings} from '../../app.settings';

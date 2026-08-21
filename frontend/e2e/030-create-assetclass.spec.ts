@@ -84,7 +84,7 @@ test.describe.serial('Create asset classes (e2e=\'e\' rows from shared CSV)', ()
       await treeNode.waitFor({state: 'visible', timeout: 15_000});
       await treeNode.click();
 
-      // The Asset class view has no .data-container wrapper — right-click on the PrimeNG table itself
+      // The Asset class view has no .data-container wrapper — right-click on the Optimus UI table itself
       // to open the context menu bound by pContextMenu on p-table.
       const contentArea = page.locator('p-table, .p-datatable').first();
       await contentArea.waitFor({state: 'visible', timeout: 10_000});
@@ -107,7 +107,7 @@ test.describe.serial('Create asset classes (e2e=\'e\' rows from shared CSV)', ()
       await categoryTypeSelect.dispatchEvent('change');
 
       // en / de — createFieldSuggestionInputString renders <p-autoComplete> whose inner <input> gets neither the
-      // bound `[id]` nor any inputId (PrimeNG v21 does not propagate the outer id). The <label for="en"> still
+      // bound `[id]` nor any inputId (Optimus UI 1.x does not propagate the outer id). The <label for="en"> still
       // exists on the form row, so locate by walking the row that contains that label.
       const enInput = dialog.locator('.dynamic-form-row:has(label[for="en"]) input').first();
       await fillSuggestionInput(enInput, row.subCategoryEN.trim());

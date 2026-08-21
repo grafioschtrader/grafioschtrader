@@ -310,6 +310,22 @@ public class Stockexchange extends Auditable implements Serializable {
     return this.idStockexchange;
   }
 
+  /**
+   * Date up to which the trading calendar of this exchange is derived, and therefore the last date on which a missing
+   * price may be attributed to a trading day rather than to an unknown exchange holiday.
+   * <p>
+   * Falls back to yesterday when no calendar source ever ran, which is the same fallback the calendar driven queries
+   * apply. Note that the meaning of {@code maxCalendarUpdDate} differs by calendar source: an index derived exchange
+   * carries the last quote date of its reference index and therefore lags, while a rule set derived exchange carries
+   * the end of the generated period, which lies in the future.
+   *
+   * @return the last date the calendar of this exchange is known for
+   */
+  @JsonIgnore
+  public LocalDate getCalendarKnownUntil() {
+    return maxCalendarUpdDate == null ? LocalDate.now().minusDays(1) : maxCalendarUpdDate;
+  }
+
   @JsonFormat(pattern = GlobalConstants.STARNDARD_LOCAL_TIME)
   public LocalTime getLocalTime() {
     return LocalTime.now(ZoneId.of(timeZone));

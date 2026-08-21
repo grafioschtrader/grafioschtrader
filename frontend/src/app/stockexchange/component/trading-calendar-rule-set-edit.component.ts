@@ -1,9 +1,9 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {DialogModule} from 'primeng/dialog';
-import {FieldsetModule} from 'primeng/fieldset';
-import {ButtonModule} from 'primeng/button';
+import {DialogModule} from '@openng/optimus-ui/dialog';
+import {FieldsetModule} from '@openng/optimus-ui/fieldset';
+import {ButtonModule} from '@openng/optimus-ui/button';
 
 import {AppHelper} from '../../lib/helper/app.helper';
 import {AppSettings} from '../../shared/app.settings';

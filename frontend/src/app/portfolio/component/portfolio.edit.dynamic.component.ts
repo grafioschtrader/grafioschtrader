@@ -13,7 +13,7 @@ import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
-import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {DynamicDialogConfig, DynamicDialogRef} from '@openng/optimus-ui/dynamicdialog';
 import {SimpleDynamicEditBase} from '../../lib/edit/simple.dynamic.edit.base';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 

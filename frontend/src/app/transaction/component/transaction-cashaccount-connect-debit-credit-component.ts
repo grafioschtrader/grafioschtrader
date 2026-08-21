@@ -6,7 +6,7 @@ import {HelpIds} from '../../lib/help/help.ids';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {FormDefinitionHelper} from '../../shared/edit/form.definition.helper';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 @Component({

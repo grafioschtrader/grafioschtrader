@@ -10,7 +10,7 @@ import {Security} from '../../entities/security';
 import {plainToInstance} from 'class-transformer';
 import {DeleteCreateMultiple} from '../../securitycurrency/service/delete.create.multiple';
 import {ClassConstructor} from 'class-transformer/types/interfaces';
-import {FilterService} from 'primeng/api';
+import {FilterService} from '@openng/optimus-ui/api';
 import {BaseSettings} from '../../lib/base.settings';
 
 

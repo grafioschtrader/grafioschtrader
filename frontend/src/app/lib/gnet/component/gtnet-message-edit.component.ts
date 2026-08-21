@@ -22,7 +22,7 @@ import {GTNetService} from '../service/gtnet.service';
 import {GTNetWithMessages, MsgRequest} from '../model/gtnet';
 import {MultiTargetMsgRequest} from '../model/multi-target-msg-request';
 import {BaseSettings} from '../../base.settings';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 
 /**

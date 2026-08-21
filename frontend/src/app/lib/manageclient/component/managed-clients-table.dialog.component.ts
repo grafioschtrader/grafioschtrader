@@ -1,10 +1,10 @@
 import {Component, Injector, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {ConfirmationService, FilterService} from 'primeng/api';
-import {TableModule} from 'primeng/table';
-import {ButtonModule} from 'primeng/button';
-import {TooltipModule} from 'primeng/tooltip';
+import {ConfirmationService, FilterService} from '@openng/optimus-ui/api';
+import {TableModule} from '@openng/optimus-ui/table';
+import {ButtonModule} from '@openng/optimus-ui/button';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
 
 import {TableConfigBase} from '../../datashowbase/table.config.base';
 import {DataType} from '../../dynamic-form/models/data.type';

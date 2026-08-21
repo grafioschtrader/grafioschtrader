@@ -1,13 +1,13 @@
 import {Injectable} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
-import {DialogService} from 'primeng/dynamicdialog';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 
 import {TransactionReceiptDialogComponent, TransactionReceiptDialogData} from '../component/transaction-receipt-dialog.component';
 
 /**
  * Opens the transaction receipt dialog for a security. Kept as a small service so menu providers like
  * TimeSeriesQuotesService, which cannot host a dialog in a template, can trigger the dialog programmatically
- * through the PrimeNG DialogService.
+ * through the Optimus DialogService.
  */
 @Injectable()
 export class TransactionReceiptService {

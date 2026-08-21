@@ -31,7 +31,7 @@ function loadE2ERows(): SeRow[] {
     .filter(r => r.e2e === 'e');
 }
 
-// Toggle a PrimeNG p-checkbox to match the desired boolean state. The native <input> carries the id,
+// Toggle an Optimus UI p-checkbox to match the desired boolean state. The native <input> carries the id,
 // and the neighbouring .p-checkbox-box receives the visual click.
 async function setCheckbox(dialog: Locator, fieldId: string, desired: boolean): Promise<void> {
   const native = dialog.locator(`input#${fieldId}`);
@@ -59,7 +59,7 @@ test.describe.serial('Create stockexchanges (e2e=\'e\' rows from shared CSV)', (
       await treeNode.waitFor({state: 'visible', timeout: 15_000});
       await treeNode.click();
 
-      // The Stock exchange view has no .data-container wrapper — right-click on the PrimeNG table itself.
+      // The Stock exchange view has no .data-container wrapper — right-click on the Optimus UI table itself.
       const contentArea = page.locator('p-table, .p-datatable').first();
       await contentArea.waitFor({state: 'visible', timeout: 10_000});
 

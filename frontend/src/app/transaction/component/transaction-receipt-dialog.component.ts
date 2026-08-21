@@ -1,8 +1,8 @@
 import {Component, OnInit} from '@angular/core';
 import {HttpResponse} from '@angular/common/http';
 import {TranslateModule} from '@ngx-translate/core';
-import {ButtonModule} from 'primeng/button';
-import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {ButtonModule} from '@openng/optimus-ui/button';
+import {DynamicDialogConfig, DynamicDialogRef} from '@openng/optimus-ui/dynamicdialog';
 
 import saveAs from '../../lib/filesaver/filesaver';
 import {TransactionReceiptTableComponent} from './transaction-receipt-table.component';

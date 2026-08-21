@@ -1,7 +1,7 @@
 import {CommonModule} from '@angular/common';
 import {Component, EventEmitter, Injector, Input, OnChanges, OnInit, Output} from '@angular/core';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {FilterService} from 'primeng/api';
+import {FilterService} from '@openng/optimus-ui/api';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';

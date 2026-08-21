@@ -12,7 +12,7 @@ import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.ser
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {ColumnConfig, ColumnGroupConfig} from '../../lib/datashowbase/column.config';
 import {HelpIds} from '../../lib/help/help.ids';
-import {FilterService, MenuItem} from 'primeng/api';
+import {FilterService, MenuItem} from '@openng/optimus-ui/api';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
@@ -20,9 +20,9 @@ import {IdsAccounts} from '../model/ids.accounts';
 import {AppSettings} from '../../shared/app.settings';
 import {BaseSettings} from '../../lib/base.settings';
 import {CommonModule} from '@angular/common';
-import {TableModule} from 'primeng/table';
-import {TooltipModule} from 'primeng/tooltip';
-import {ContextMenuModule} from 'primeng/contextmenu';
+import {TableModule} from '@openng/optimus-ui/table';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
+import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
 import {TransactionService} from '../../transaction/service/transaction.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
@@ -288,7 +288,7 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
 
   /**
    * Returns the security-table expansion map for the given year, lazily creating it on first access. Always returns the
-   * same object reference for a year so the binding stays stable across change detection and PrimeNG can mutate it in
+   * same object reference for a year so the binding stays stable across change detection and Optimus can mutate it in
    * place when the user expands/collapses a security row.
    *
    * @param year the year of the dividends year group

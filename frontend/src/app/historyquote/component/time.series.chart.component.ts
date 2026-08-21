@@ -1,11 +1,6 @@
 import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
-import {
-  CrossRateRequest,
-  CrossRateResponse,
-  CurrenciesAndClosePrice,
-  CurrencypairService
-} from '../../securitycurrency/service/currencypair.service';
+import {CrossRateRequest, CrossRateResponse, CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {HistoryquoteService} from '../service/historyquote.service';
 import {ActivatedRoute} from '@angular/router';
@@ -17,14 +12,14 @@ import {HelpIds} from '../../lib/help/help.ids';
 import {CurrencypairWithTransaction} from '../../entities/view/currencypair.with.transaction';
 import {SecurityTransactionSummary} from '../../entities/view/security.transaction.summary';
 import {PlotlyLocales} from '../../shared/plotlylocale/plotly.locales';
-import {combineLatest, Observable, Subject, Subscription} from 'rxjs';
+import {combineLatest, Observable, Subscription} from 'rxjs';
 import {PlotlyHelper} from '../../shared/chart/plotly.helper';
 import {TransactionType} from '../../shared/types/transaction.type';
 import {AppHelper, Comparison} from '../../lib/helper/app.helper';
 import moment, {Moment} from 'moment';
 import {AppSettings} from '../../shared/app.settings';
 import {SecurityTransactionPosition} from '../../entities/view/security.transaction.position';
-import {ConfirmationService, MenuItem, SelectItem} from 'primeng/api';
+import {ConfirmationService, MenuItem, SelectItem} from '@openng/optimus-ui/api';
 import {
   IndicatorDefinition,
   IndicatorDefinitions,
@@ -42,7 +37,6 @@ import {MessageToastService} from '../../lib/message/message.toast.service';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {HistoryquoteDateClose} from '../../entities/projection/historyquote.date.close';
-import {TwoKeyMap} from '../../lib/helper/two.key.map';
 import {Transaction} from '../../entities/transaction';
 import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.helper';
 import {BaseSettings} from '../../lib/base.settings';
@@ -51,13 +45,14 @@ import {HistoryquoteOHLC} from '../../entities/projection/historyquote.ohlc';
 import {HistoryquoteChartResponse} from '../../entities/projection/historyquote.chart.response';
 import {NgClass} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {DatePicker} from 'primeng/datepicker';
-import {Select} from 'primeng/select';
-import {ContextMenu} from 'primeng/contextmenu';
+import {DatePicker} from '@openng/optimus-ui/datepicker';
+import {Select} from '@openng/optimus-ui/select';
+import {ContextMenu} from '@openng/optimus-ui/contextmenu';
 import {IndicatorEditComponent} from './indicator-edit.component';
 import {UserChartShapeService} from '../service/user.chart.shape.service';
-import {debounceTime} from 'rxjs/operators';
 import {GlobalSessionNames} from '../../lib/global.session.names';
+import {ChartCurrencyNormalizer} from './chart.currency.normalizer';
+import {ChartShapeController} from './chart.shape.controller';
 
 declare let Plotly: any;
 
@@ -186,16 +181,12 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   private taFormDefinitions: { [key: string]: TaFormDefinition };
   private indicatorDefinitions: IndicatorDefinitions;
 
-  private crossRateMap = new TwoKeyMap<CurrenciesAndClosePrice>();
-  private mainCurrency: string;
   private legendTooltipMap = new Map<string, string>();
 
-  private shapeHistory: any[][] = [];
-  private shapeHistoryIndex: number = -1;
-  private isProgrammaticRelayout: boolean = false;
-  private shapeSave$ = new Subject<{idSecuritycurrency: number, shapes: any[]}>();
-  private shapeSaveSubscription: Subscription;
-
+  /** Converts the quotes of every series into the currency the user selected. */
+  private currencyNormalizer = new ChartCurrencyNormalizer();
+  /** Owns the freehand drawings on the chart together with their history and their persistence. */
+  private shapeController: ChartShapeController;
 
   constructor(private messageToastService: MessageToastService,
     private usersettingsService: UserSettingsService,
@@ -207,12 +198,13 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     private activatedRoute: ActivatedRoute,
     private translateService: TranslateService,
     private activePanelService: ActivePanelService,
-    private confirmationService: ConfirmationService,
-    private userChartShapeService: UserChartShapeService) {
+    confirmationService: ConfirmationService,
+    userChartShapeService: UserChartShapeService) {
 
     this.dateFormat = gps.getCalendarTwoNumberDateFormat().toLocaleLowerCase();
     //  this.yearRange = `2000:${new Date().getFullYear()}`;
     this.indicatorDefinitions = new IndicatorDefinitions();
+    this.shapeController = new ChartShapeController(userChartShapeService, confirmationService, translateService);
     this.initChartTypeOptions();
   }
 
@@ -246,24 +238,20 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
   ngOnInit(): void {
     this.activePanelService.registerPanel(this);
+    // Ready the drawing support before the route parameters can trigger the first plot.
+    this.shapeController.setChartElement(this.chartElement.nativeElement);
+    this.shapeController.init();
     this.activatedRoute.paramMap.subscribe(paramMap => {
       const paramObject = AppHelper.createParamObjectFromParamMap(paramMap);
       this.prepareChart(paramObject.allParam);
     });
     this.historyquoteService.getAllTaForms().subscribe(formDefinition => this.taFormDefinitions = formDefinition);
-    this.shapeSaveSubscription = this.shapeSave$.pipe(debounceTime(500)).subscribe(data => {
-      if (data.shapes.length > 0) {
-        this.userChartShapeService.saveShapes(data.idSecuritycurrency, data.shapes).subscribe();
-      } else {
-        this.userChartShapeService.deleteShapes(data.idSecuritycurrency).subscribe();
-      }
-    });
   }
 
   ngOnDestroy(): void {
     this.subscriptionLatest && this.subscriptionLatest.unsubscribe();
     this.subscriptionViewSizeChanged && this.subscriptionViewSizeChanged.unsubscribe();
-    this.shapeSaveSubscription && this.shapeSaveSubscription.unsubscribe();
+    this.shapeController.destroy();
     this.activePanelService.destroyPanel(this);
   }
 
@@ -325,7 +313,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
             timeSeriesParams[i].currencySecurity, ohlcData));
           if (observable.length === 3) {
             this.addCrossRateResponse(data[2]);
-            this.normalizeSecurityPrice(this.loadedData[this.loadedData.length - 1]);
+            this.currencyNormalizer.normalize(this.loadedData[this.loadedData.length - 1], this.requestedCurrency);
           }
 
           if (i === timeSeriesParams.length - 1) {
@@ -404,7 +392,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
   handleChangeCurrency(event) {
     this.requestedCurrency = event.value;
-    this.normalizeAllSecurityPrices();
+    this.currencyNormalizer.normalizeAll(this.loadedData, this.requestedCurrency);
     this.prepareLoadedDataAndPlot(true);
   }
 
@@ -419,6 +407,8 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
   private prepareLoadedDataAndPlot(userUserInputDate: boolean) {
     const element = this.chartElement.nativeElement;
+    // Drawings belong to a single instrument, a comparison of several disables them.
+    this.shapeController.setSecuritycurrency(this.loadedData.length === 1 ? this.loadedData[0].idSecuritycurrency : null);
     !userUserInputDate && this.evaluateOldestYoungestMatchDate();
     let traces = this.createAllQuotesLines();
     traces = traces.concat(this.createAllMarkerTraces());
@@ -434,28 +424,28 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       }
     }
     if (!userUserInputDate && this.loadedData.length === 1) {
-      this.userChartShapeService.getShapes(this.loadedData[0].idSecuritycurrency).subscribe({
-        next: (response) => {
-          const shapes = response?.shapeData || [];
-          this.initShapeHistory(shapes);
-          const layout: any = this.getLayout(this.getHoldingLayout(), shapes);
-          this.plot(element, traces, layout);
-          this.redoTaAfterDateChange();
-        },
-        error: () => {
-          this.initShapeHistory([]);
-          const layout: any = this.getLayout(this.getHoldingLayout(), []);
-          this.plot(element, traces, layout);
-          this.redoTaAfterDateChange();
-        }
+      // A newly opened instrument starts from its stored drawings, which begin a fresh undo history.
+      this.shapeController.loadShapes(this.loadedData[0].idSecuritycurrency).subscribe(shapes => {
+        this.shapeController.initHistory(shapes);
+        this.plotWithShapes(element, traces, shapes);
       });
     } else {
-      const savedShapes = this.shapeHistory.length > 0 && this.shapeHistoryIndex >= 0
-        ? this.shapeHistory[this.shapeHistoryIndex] : [];
-      const layout: any = this.getLayout(this.getHoldingLayout(), savedShapes);
-      this.plot(element, traces, layout);
-      this.redoTaAfterDateChange();
+      // A replot caused by the user keeps the drawings at the current history position on screen.
+      this.plotWithShapes(element, traces, this.shapeController.getCurrentShapes());
     }
+  }
+
+  /**
+   * Plots the given traces together with the drawn shapes and restores the technical indicators, which
+   * are added as separate traces after the plot exists.
+   *
+   * @param element the plot container
+   * @param traces all traces of the chart
+   * @param shapes the drawings to place in the layout
+   */
+  private plotWithShapes(element: any, traces: any[], shapes: any[]): void {
+    this.plot(element, traces, this.getLayout(this.getHoldingLayout(), shapes));
+    this.redoTaAfterDateChange();
   }
 
   private getHoldingLayout() {
@@ -812,7 +802,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
           } else {
             // Y represent the normalized sell or buy price
             let normalizeFactor = 1;
-            if (!this.normalizeNotNeeded(loadedData)) {
+            if (!this.currencyNormalizer.isNormalizeNotNeeded(loadedData, this.requestedCurrency)) {
               const foundStartIndex = AppHelper.binarySearch(loadedData.historyquotes,
                 moment(securityTransactionPosition.transaction.transactionTime).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE),
                 this.compareHistoricalFN);
@@ -897,9 +887,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   private addCurrencyCrossRateObservable(timeSeriesParams: TimeSeriesParam[], currencySecurity: string,
     observable: Observable<any>[]): void {
     if (timeSeriesParams[timeSeriesParams.length - 1].currencySecurity != null) {
-      const currencypairList: string[] = [];
-      this.crossRateMap.getValues().forEach(crossRateResponse => currencypairList.push(
-        crossRateResponse.currencypair.fromCurrency + '|' + crossRateResponse.currencypair.toCurrency));
+      const currencypairList: string[] = this.currencyNormalizer.getExistingCurrencypairKeys();
       const uniqueSecuritycurrency = new Set(this.loadedData.filter(ld => ld.currencySecurity).map(ld => ld.currencySecurity));
       uniqueSecuritycurrency.add(currencySecurity);
       observable.push(this.currencypairService.getCurrencypairForCrossRate(new CrossRateRequest(
@@ -908,11 +896,9 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private addCrossRateResponse(crossRateResponse: CrossRateResponse): void {
-    this.mainCurrency = crossRateResponse.mainCurrency;
-    crossRateResponse.currenciesAndClosePrice.forEach(crr => {
-      this.createTodayAsHistoryquote(crr.currencypair.sTimestamp, crr.currencypair.sLast, crr.closeAndDateList);
-      this.crossRateMap.set(crr.currencypair.fromCurrency, crr.currencypair.toCurrency, crr);
-    });
+    crossRateResponse.currenciesAndClosePrice.forEach(crr =>
+      this.createTodayAsHistoryquote(crr.currencypair.sTimestamp, crr.currencypair.sLast, crr.closeAndDateList));
+    this.currencyNormalizer.setCrossRates(crossRateResponse);
     const co = new Set(this.loadedData.filter(ld => ld.currencySecurity).map(ld => ld.currencySecurity));
     this.currenciesOptions = [{value: '', label: ''}];
     co.add(crossRateResponse.mainCurrency);
@@ -1156,44 +1142,13 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     config.modeBarButtonsToRemove = ['lasso2d', 'select2d'];
     config.modeBarButtonsToAdd = [
       'drawline', 'drawopenpath', 'drawclosedpath', 'drawcircle', 'drawrect', 'eraseshape',
-      {
-        name: 'undo',
-        title: 'Undo',
-        icon: Plotly.Icons.undo,
-        click: () => this.undoShapes()
-      },
-      {
-        name: 'redo',
-        title: 'Redo',
-        icon: {
-          width: 857.1,
-          height: 1000,
-          path: 'm857 350q0-87-34-166t-91-137-137-92-166-34q-96 0-183 41t-147 114q-4 6-4 13t5 11l76 77q6 5 14 5 9-1 13-7 ' +
-            '41-53 100-82t126-29q58 0 110 23t92 61 61 91 22 111-22 111-61 91-92 61-110 23q-55 0-105-20t-90-57l77-77q17-16 ' +
-            '8-38-10-23-33-23h-250q-15 0-25 11t-11 25v250q0 24 22 33 22 10 39-8l72-72q60 57 137 88t159 31q87 0 166-34t137-91 ' +
-            '91-137 34-166z',
-          transform: 'matrix(-1 0 0 1 857 0)'
-        },
-        click: () => this.redoShapes()
-      },
-      {
-        name: 'deleteAllShapes',
-        title: 'Delete all shapes',
-        icon: {
-          width: 448,
-          height: 512,
-          path: 'M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 ' +
-            '48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 ' +
-            '0 0 0 47.9-45L416 128H32z'
-        },
-        click: () => this.deleteAllShapes()
-      }
+      ...this.shapeController.getModeBarButtons()
     ];
     config.displaylogo = false;
     Plotly.purge(this.chartElement.nativeElement);
     Plotly.newPlot(element, traces, layout, config).then(this.attachTooltip.bind(this));
     element.on('plotly_afterplot', this.attachTooltip.bind(this));
-    element.on('plotly_relayout', this.onShapesChanged.bind(this));
+    element.on('plotly_relayout', () => this.shapeController.onRelayout());
 
     PlotlyHelper.registerPlotlyClick(element, this.chartDataPointClicked.bind(this));
     if (!this.subscriptionViewSizeChanged) {
@@ -1216,93 +1171,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
   private attachTooltip(): void {
     PlotlyHelper.attachTooltip(Plotly, this.legendTooltipMap, this.chartElement);
-  }
-
-  /**
-   * Initializes the shape history stack with the given shapes as the first entry.
-   */
-  private initShapeHistory(shapes: any[]): void {
-    this.shapeHistory = [JSON.parse(JSON.stringify(shapes || []))];
-    this.shapeHistoryIndex = 0;
-  }
-
-  /**
-   * Handles shape changes (draw, edit, delete) and persists them to backend.
-   * Tracks undo/redo history unless the change was triggered programmatically.
-   */
-  private onShapesChanged(eventData: any): void {
-    if (this.loadedData.length === 1) {
-      const shapes = this.chartElement.nativeElement.layout?.shapes;
-      if (shapes !== undefined) {
-        if (this.isProgrammaticRelayout) {
-          this.isProgrammaticRelayout = false;
-          this.persistShapesToBackend(shapes);
-        } else {
-          const shapesCopy = JSON.parse(JSON.stringify(shapes));
-          this.shapeHistory = this.shapeHistory.slice(0, this.shapeHistoryIndex + 1);
-          this.shapeHistory.push(shapesCopy);
-          this.shapeHistoryIndex = this.shapeHistory.length - 1;
-          this.persistShapesToBackend(shapes);
-        }
-      }
-    }
-  }
-
-  /**
-   * Persists shapes to backend via debounced subject.
-   */
-  private persistShapesToBackend(shapes: any[]): void {
-    if (this.loadedData.length === 1) {
-      this.shapeSave$.next({idSecuritycurrency: this.loadedData[0].idSecuritycurrency, shapes: shapes || []});
-    }
-  }
-
-  /**
-   * Undoes the last shape change by stepping back in the shape history.
-   */
-  private undoShapes(): void {
-    if (this.shapeHistoryIndex > 0) {
-      this.shapeHistoryIndex--;
-      this.applyShapesFromHistory();
-    }
-  }
-
-  /**
-   * Redoes the last undone shape change by stepping forward in the shape history.
-   */
-  private redoShapes(): void {
-    if (this.shapeHistoryIndex < this.shapeHistory.length - 1) {
-      this.shapeHistoryIndex++;
-      this.applyShapesFromHistory();
-    }
-  }
-
-  /**
-   * Applies the shapes at the current history index to the chart layout.
-   */
-  private applyShapesFromHistory(): void {
-    this.isProgrammaticRelayout = true;
-    const shapes = JSON.parse(JSON.stringify(this.shapeHistory[this.shapeHistoryIndex]));
-    Plotly.relayout(this.chartElement.nativeElement, {shapes});
-  }
-
-  /**
-   * Deletes all shapes from the chart after user confirmation.
-   */
-  private deleteAllShapes(): void {
-    const currentShapes = this.chartElement.nativeElement.layout?.shapes || [];
-    if (currentShapes.length === 0) {
-      return;
-    }
-    this.translateService.get(['DELETE_ALL_SHAPES', 'DELETE_ALL_SHAPES_CONFIRM']).subscribe(translations => {
-      this.confirmationService.confirm({
-        header: translations['DELETE_ALL_SHAPES'],
-        message: translations['DELETE_ALL_SHAPES_CONFIRM'],
-        accept: () => {
-          Plotly.relayout(this.chartElement.nativeElement, {shapes: []});
-        }
-      });
-    });
   }
 
   private getLayout(holdingLayout, shapes: any[] = []): any {
@@ -1410,88 +1278,6 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     }
     PlotlyHelper.translateLayout(this.translateService, layout);
     return layout;
-  }
-
-  private normalizeAllSecurityPrices(): void {
-    this.loadedData.filter(ld => ld.currencySecurity != null).forEach(ld => this.normalizeSecurityPrice(ld));
-  }
-
-  private normalizeSecurityPrice(loadedData: LoadedData): void {
-    if (this.normalizeNotNeeded(loadedData)) {
-      loadedData.historyquotesNorm = loadedData.historyquotes;
-    } else {
-      const mainToSecurityCurrency: CurrenciesAndClosePrice = this.getCurrencypairOrReverse(this.mainCurrency, loadedData.currencySecurity);
-      const requestToSecurityCurrency: CurrenciesAndClosePrice = this.getCurrencypairOrReverse(this.requestedCurrency,
-        loadedData.currencySecurity);
-      if (this.requestedCurrency === this.mainCurrency) {
-        this.calculateHistoryquotes(loadedData, [mainToSecurityCurrency], [
-          mainToSecurityCurrency.currencypair.fromCurrency !== this.mainCurrency]);
-      } else if (requestToSecurityCurrency != null && (requestToSecurityCurrency.currencypair.fromCurrency === this.mainCurrency
-        || requestToSecurityCurrency.currencypair.toCurrency === this.mainCurrency)) {
-        this.calculateHistoryquotes(loadedData, [requestToSecurityCurrency],
-          [requestToSecurityCurrency.currencypair.fromCurrency === this.mainCurrency]);
-      } else {
-        // Main currency is in the middle like EUR -> CHF -> USD (requested currency: EUR, main currency: CHF,
-        // security currency: USD
-        const mainToRequestCurrency: CurrenciesAndClosePrice = this.getCurrencypairOrReverse(this.mainCurrency, this.requestedCurrency);
-        this.calculateHistoryquotes(loadedData, [mainToSecurityCurrency, mainToRequestCurrency],
-          [mainToSecurityCurrency.currencypair.fromCurrency !== this.mainCurrency,
-            mainToRequestCurrency.currencypair.fromCurrency === this.mainCurrency]);
-      }
-    }
-  }
-
-  private normalizeNotNeeded(loadedData: LoadedData): boolean {
-    return this.requestedCurrency.length === 0 || loadedData.currencySecurity == null
-      || loadedData.currencySecurity === this.requestedCurrency;
-  }
-
-  private getCurrencypairOrReverse(reqesteOrMainCurrency: string, currencySecurity: string): CurrenciesAndClosePrice {
-    let mainToSecurityCurrency: CurrenciesAndClosePrice = this.crossRateMap.get(reqesteOrMainCurrency, currencySecurity);
-    if (mainToSecurityCurrency == null) {
-      mainToSecurityCurrency = this.crossRateMap.get(currencySecurity, reqesteOrMainCurrency);
-    }
-    return mainToSecurityCurrency;
-  }
-
-  private calculateHistoryquotes(loadedData: LoadedData, currenciesAndClosePrice: CurrenciesAndClosePrice[],
-    multiple: boolean[]) {
-    const map2Loop: { [date: string]: HistoryquoteDateClose } = {};
-    loadedData.historyquotesNorm = [];
-
-    for (let i = 0; i < currenciesAndClosePrice.length; i++) {
-      let cIndex = Math.abs(AppHelper.binarySearch(currenciesAndClosePrice[i].closeAndDateList,
-        loadedData.historyquotes[0].date, this.compareHistoricalFN));
-      for (let hIndex = 0; hIndex < loadedData.historyquotes.length; hIndex++) {
-        do {
-          if (loadedData.historyquotes[hIndex].date > currenciesAndClosePrice[i].closeAndDateList[cIndex].date) {
-            cIndex++;
-          } else if (loadedData.historyquotes[hIndex].date < currenciesAndClosePrice[i].closeAndDateList[cIndex].date) {
-            hIndex++;
-          }
-        } while (hIndex < loadedData.historyquotes.length && cIndex < currenciesAndClosePrice[i].closeAndDateList.length
-        && loadedData.historyquotes[hIndex].date !== currenciesAndClosePrice[i].closeAndDateList[cIndex].date);
-        if (hIndex < loadedData.historyquotes.length && cIndex < currenciesAndClosePrice[i].closeAndDateList.length) {
-          if (loadedData.historyquotes[hIndex].close != null) {
-            if (i === 0) {
-              const historyquoteDateClose = {
-                date: loadedData.historyquotes[hIndex].date,
-                close: loadedData.historyquotes[hIndex].close * (multiple[i] ? currenciesAndClosePrice[i].closeAndDateList[cIndex].close :
-                  1 / currenciesAndClosePrice[i].closeAndDateList[cIndex].close)
-              };
-              loadedData.historyquotesNorm.push(historyquoteDateClose);
-              currenciesAndClosePrice.length > 1 && (map2Loop[historyquoteDateClose.date] = historyquoteDateClose);
-            } else {
-              const historyquoteDateClose = map2Loop[loadedData.historyquotes[hIndex].date];
-              if (historyquoteDateClose) {
-                historyquoteDateClose.close *= (multiple[i] ? currenciesAndClosePrice[i].closeAndDateList[cIndex].close :
-                  1 / currenciesAndClosePrice[i].closeAndDateList[cIndex].close);
-              }
-            }
-          }
-        }
-      }
-    }
   }
 }
 

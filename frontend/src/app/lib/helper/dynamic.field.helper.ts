@@ -4,7 +4,7 @@ import {InputType} from '../dynamic-form/models/input.type';
 import {AppHelper} from './app.helper';
 import {ValidatorFn, Validators} from '@angular/forms';
 import {ErrorMessageRules, RuleEvent} from '../dynamic-form/error/error.message.rules';
-import {MenuItem} from 'primeng/api';
+import {MenuItem} from '@openng/optimus-ui/api';
 
 import {
   email,
@@ -144,7 +144,7 @@ export class DynamicFieldHelper {
    * @param labelKey Translation key for button label
    * @param buttonFN Function to execute when button is clicked
    * @param fieldOptions Additional configuration options
-   * @returns FieldConfig for PrimeNG button component
+   * @returns FieldConfig for Optimus button component
    */
   public static createFunctionButton(labelKey: string, buttonFN: (event?: any) => void, fieldOptions?: FieldOptions): FieldConfig {
     return this.createFunctionButtonFieldName(null, labelKey, buttonFN, fieldOptions);
@@ -158,7 +158,7 @@ export class DynamicFieldHelper {
    * @param labelKey Translation key for button label
    * @param buttonFN Function to execute when button is clicked
    * @param fieldOptions Additional configuration options
-   * @returns FieldConfig for PrimeNG button component
+   * @returns FieldConfig for Optimus button component
    */
   public static createFunctionButtonFieldName(fieldName: string, labelKey: string, buttonFN: (event?: any) => void,
     fieldOptions?: FieldOptions): FieldConfig {
@@ -250,7 +250,7 @@ export class DynamicFieldHelper {
   }
 
   /**
-   * Creates a dropdown field with a custom label key. Unlike a plain select this one is a PrimeNG dropdown, so its
+   * Creates a dropdown field with a custom label key. Unlike a plain select this one is an Optimus dropdown, so its
    * options are taken from the group items of the field and may carry a leading image or icon.
    *
    * @param fieldName Unique field identifier
@@ -711,8 +711,8 @@ export class DynamicFieldHelper {
   }
 
   /**
-   * Creates a PrimeNG input number field with auto-generated label.
-   * Note: PrimeNG p-inputNumber component may have compatibility issues.
+   * Creates an Optimus input number field with auto-generated label.
+   * Note: Optimus p-inputNumber component may have compatibility issues.
    *
    * @param fieldName Unique field identifier (also used for label key generation)
    * @param required Whether input is mandatory
@@ -721,7 +721,7 @@ export class DynamicFieldHelper {
    * @param allowNegative Whether negative values are permitted
    * @param fieldOptions Additional configuration options
    * @param excludeZero When true, zero is not allowed as input (allows both positive and negative but not zero)
-   * @returns FieldConfig for PrimeNG number input with calculated min/max values
+   * @returns FieldConfig for Optimus number input with calculated min/max values
    */
   public static createFieldInputNumberHeqF(fieldName: string, required: boolean, integerLimit: number,
     maxFractionDigits: number, allowNegative: boolean, fieldOptions?: FieldOptions,
@@ -731,8 +731,8 @@ export class DynamicFieldHelper {
   }
 
   /**
-   * Creates a PrimeNG input number field with custom label.
-   * Note: PrimeNG p-inputNumber component may have compatibility issues.
+   * Creates an Optimus input number field with custom label.
+   * Note: Optimus p-inputNumber component may have compatibility issues.
    *
    * @param fieldName Unique field identifier
    * @param labelKey Translation key for field label
@@ -742,7 +742,7 @@ export class DynamicFieldHelper {
    * @param allowNegative Whether negative values are permitted
    * @param fieldOptions Additional configuration options
    * @param excludeZero When true, zero is not allowed as input (allows both positive and negative but not zero)
-   * @returns FieldConfig for PrimeNG number input with calculated min/max values
+   * @returns FieldConfig for Optimus number input with calculated min/max values
    */
   public static createFieldInputNumber(fieldName: string, labelKey: string, required: boolean, integerLimit: number,
     maxFractionDigits: number, allowNegative: boolean, fieldOptions?: FieldOptions,
@@ -1140,7 +1140,7 @@ export interface FieldOptions {
   handleChangeFileInputFN?: (fileList: FileList) => void;
   /** Context menu items for right-click menu on input fields */
   contextMenuItems?: MenuItem[];
-  /** Enables a search/filter input inside the PrimeNG dropdown overlay */
+  /** Enables a search/filter input inside the Optimus dropdown overlay */
   filter?: boolean;
   /** TreeNode array for TreeSelect component */
   treeNodes?: any[];
@@ -1156,4 +1156,3 @@ export interface FieldOptionsCc extends FieldOptions {
   /** Alternative target field name for data binding */
   targetField?: string;
 }
-

@@ -1,6 +1,6 @@
 import {TranslateService} from '@ngx-translate/core';
 import {Type} from '@angular/core';
-import {DialogService, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {DialogService, DynamicDialogRef} from '@openng/optimus-ui/dynamicdialog';
 
 export class DynamicDialogHelper {
 

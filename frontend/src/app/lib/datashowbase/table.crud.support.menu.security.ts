@@ -1,10 +1,10 @@
 import {CrudMenuOptions, TableCrudSupportMenu} from './table.crud.support.menu';
 import {Directive, Injector} from '@angular/core';
 import {DeleteService} from './delete.service';
-import {ConfirmationService, FilterService} from 'primeng/api';
+import {ConfirmationService, FilterService} from '@openng/optimus-ui/api';
 import {MessageToastService} from '../message/message.toast.service';
 import {ActivePanelService} from '../mainmenubar/service/active.panel.service';
-import {DialogService} from 'primeng/dynamicdialog';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../services/globalparameter.service';
 import {UserSettingsService} from '../services/user.settings.service';

@@ -127,6 +127,18 @@ Two hard rules:
 
 MailHog/Mailpit must be listening (SMTP 1025, HTTP 8025) for the registration flows.
 
+## Service ownership and teardown
+
+"Keep the services running" applies only while iterating on the affected spec. It does not authorize leaving a
+service behind after the task.
+
+- **Never stop a service that was already running when the task began.** It belongs to the user or another workflow.
+- **Track every service process started by the agent**, including its launcher and child process that owns the port.
+- **Before reporting the task complete, stop every backend or frontend service the agent started**, including child
+  processes, and verify that its port is no longer listening. Leave it running only when the user explicitly asks.
+- If an attempted service start fails or times out, inspect and clean up any launcher or child process it left behind.
+- MailHog/Mailpit is infrastructure: do not stop a pre-existing instance merely because the E2E task is complete.
+
 ## Verification without a browser
 
 - `npx playwright test --list` — parses the config and enumerates the specs in ~2 s.
@@ -176,6 +188,7 @@ tests can move with `src/app/lib` when it is extracted.
 ## Checklist before reporting an E2E task as done
 
 - [ ] Ran only the affected spec, against already-running services
+- [ ] Stopped and verified every backend/frontend service started by the agent; left pre-existing services untouched
 - [ ] Did **not** run `e2eTest.cmd` / `e2eTest.sh` unless the user asked in that turn
 - [ ] Did **not** run the backend `ResourceTestSuite_*` phases between iterations
 - [ ] Spec deletes its own data at the **start** of the run and is rerunnable

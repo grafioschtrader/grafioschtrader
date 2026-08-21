@@ -1,4 +1,4 @@
-import {TreeNode} from 'primeng/api';
+import {TreeNode} from '@openng/optimus-ui/api';
 import {AlgoSecurity} from './algo.security';
 import {AlgoAssetclass} from './algo.assetclass';
 import {AlgoStrategy} from './algo.strategy';

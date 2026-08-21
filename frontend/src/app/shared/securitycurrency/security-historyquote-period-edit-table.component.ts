@@ -7,10 +7,10 @@ import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {SplitPeriodTableBase} from './split.period.table.base';
 import {HistoryquotePeriod} from '../../entities/historyquote.period';
 import {HistoryquotePeriodService} from '../../securitycurrency/service/historyquote.period.service';
-import {FilterService} from 'primeng/api';
+import {FilterService} from '@openng/optimus-ui/api';
 import {CommonModule} from '@angular/common';
-import {TableModule} from 'primeng/table';
-import {ButtonModule} from 'primeng/button';
+import {TableModule} from '@openng/optimus-ui/table';
+import {ButtonModule} from '@openng/optimus-ui/button';
 import {AngularSvgIconModule} from 'angular-svg-icon';
 
 /**

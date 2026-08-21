@@ -39,8 +39,8 @@ import {SecurityCurrencypairDerivedLinks} from '../model/security.currencypair.d
 import {AppSettings} from '../../shared/app.settings';
 import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
-import {DialogModule} from 'primeng/dialog';
-import {DialogService} from 'primeng/dynamicdialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 
 /**
  * To create a derived instrument a base instrument is required. Additionally, a formula can be added. Prices depend on other instrument,

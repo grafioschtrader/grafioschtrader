@@ -1,5 +1,5 @@
 import {TranslateService} from '@ngx-translate/core';
-import {DialogService, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {DialogService, DynamicDialogRef} from '@openng/optimus-ui/dynamicdialog';
 import {DynamicDialogHelper} from '../../lib/dynamicdialog/component/dynamicDialogHelper';
 import {TenantEditDynamicComponent} from '../../tenant/component/tenant.edit.dynamic.component';
 import {Tenant} from '../../entities/tenant';

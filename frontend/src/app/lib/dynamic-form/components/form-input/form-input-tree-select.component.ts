@@ -2,16 +2,16 @@ import {BaseInputComponent} from '../base.input.component';
 import {Component, DoCheck, OnInit} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
-import {TreeSelectModule} from 'primeng/treeselect';
-import {TooltipModule} from 'primeng/tooltip';
+import {TreeSelectModule} from '@openng/optimus-ui/treeselect';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
 import {TranslateModule} from '@ngx-translate/core';
-import {TreeNode} from 'primeng/api';
+import {TreeNode} from '@openng/optimus-ui/api';
 import {FilterOutPipe} from '../../pipe/FilterOutPipe';
 
 /**
- * A form input component wrapping PrimeNG TreeSelect with checkbox selection mode. Displays a hierarchical tree of
+ * A form input component wrapping Optimus TreeSelect with checkbox selection mode. Displays a hierarchical tree of
  * options where parent and child nodes can be selected via checkboxes. The tree nodes are provided through
- * {@code config.treeNodes}. Uses ngModel binding because PrimeNG TreeSelect checkbox mode requires an iterable
+ * {@code config.treeNodes}. Uses ngModel binding because Optimus TreeSelect checkbox mode requires an iterable
  * selection object that is incompatible with reactive form controls.
  */
 @Component({

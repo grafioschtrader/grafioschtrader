@@ -1,7 +1,7 @@
 import {Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {ConfirmationService, FilterService} from 'primeng/api';
+import {ConfirmationService, FilterService} from '@openng/optimus-ui/api';
 import {TransactionContextMenu} from '../../transaction/component/transaction.context.menu';
 import {TransactionService} from '../../transaction/service/transaction.service';
 import {TransactionCallParam} from '../../transaction/component/transaction.call.parm';

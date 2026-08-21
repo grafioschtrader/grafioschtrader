@@ -24,7 +24,7 @@ import {AppSettings} from '../../shared/app.settings';
 import {UDFMetadataHelper} from '../../lib/udfmeta/components/udf.metadata.helper';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 import {BaseSettings} from '../../lib/base.settings';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 
 

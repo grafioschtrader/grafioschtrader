@@ -1,6 +1,6 @@
 import {Component, Injector, Input, OnDestroy} from '@angular/core';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {FilterService, MenuItem} from 'primeng/api';
+import {FilterService, MenuItem} from '@openng/optimus-ui/api';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
@@ -35,7 +35,7 @@ import {BaseSettings} from '../../lib/base.settings';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {TranslateModule} from '@ngx-translate/core';
-import {TableModule} from 'primeng/table';
+import {TableModule} from '@openng/optimus-ui/table';
 import {CorrelationAddInstrumentComponent} from './correlation-add-instrument.component';
 import {InstrumentStatisticsResultComponent} from '../../shared/securitycurrency/instrument-statistics-result.component';
 import {GlobalSessionNames} from '../../lib/global.session.names';
@@ -67,7 +67,7 @@ import {GlobalSessionNames} from '../../lib/global.session.names';
  * - Click-to-select instruments for correlation pair analysis
  * - Context menu with add/remove/chart operations
  * - Dialog-based instrument addition with tenant limit validation
- * - Responsive design with PrimeNG table components
+ * - Responsive design with Optimus table components
  *
  * The component extends TableConfigBase to leverage common table functionality including sorting,
  * filtering, column management, and internationalization support.
@@ -195,7 +195,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    * @param messageToastService Service for displaying toast messages
    * @param dataChangedService Service for data change notifications
    * @param chartDataService Service for chart data management
-   * @param filterService PrimeNG filter service
+   * @param filterService Optimus filter service
    * @param translateService Service for internationalization
    * @param gps Global parameter service
    * @param usersettingsService Service for user settings persistence

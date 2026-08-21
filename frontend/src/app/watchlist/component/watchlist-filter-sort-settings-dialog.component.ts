@@ -2,10 +2,10 @@ import {Component} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {SelectItem} from 'primeng/api';
-import {SelectModule} from 'primeng/select';
-import {ButtonModule} from 'primeng/button';
-import {DynamicDialogConfig} from 'primeng/dynamicdialog';
+import {SelectItem} from '@openng/optimus-ui/api';
+import {SelectModule} from '@openng/optimus-ui/select';
+import {ButtonModule} from '@openng/optimus-ui/button';
+import {DynamicDialogConfig} from '@openng/optimus-ui/dynamicdialog';
 import {
   FilterSortEntryView,
   FilterSortScope,

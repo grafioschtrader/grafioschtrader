@@ -20,7 +20,7 @@ import {NumberFormatType} from '../../shared/types/number.format.type';
 import {TickerBuildStrategy} from '../../shared/types/ticker.build.strategy';
 import {HtmlExtractMode} from '../../shared/types/html.extract.mode';
 import {EndpointOption, ENDPOINT_OPTION_BY_FEED} from '../../shared/types/endpoint.option';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 const ALL_FEED_INSTRUMENT_COMBOS = [

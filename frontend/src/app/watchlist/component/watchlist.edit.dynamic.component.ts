@@ -2,7 +2,7 @@ import {AfterViewInit, Component, OnInit} from '@angular/core';
 
 import {SimpleDynamicEditBase} from '../../lib/edit/simple.dynamic.edit.base';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
-import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {DynamicDialogConfig, DynamicDialogRef} from '@openng/optimus-ui/dynamicdialog';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
@@ -43,8 +43,8 @@ export class WatchlistEditDynamicComponent extends SimpleDynamicEditBase<Watchli
    * Creates an instance of WatchlistEditDynamicComponent.
    *
    * @param {GlobalparameterGTService} gpsGT - GT-specific global parameters service
-   * @param {DynamicDialogConfig} dynamicDialogConfig - PrimeNG dialog configuration
-   * @param {DynamicDialogRef} dynamicDialogRef - PrimeNG dialog reference
+   * @param {DynamicDialogConfig} dynamicDialogConfig - Optimus dialog configuration
+   * @param {DynamicDialogRef} dynamicDialogRef - Optimus dialog reference
    * @param {TranslateService} translateService - Angular translation service
    * @param {GlobalparameterService} gps - Global parameters service
    * @param {MessageToastService} messageToastService - Toast notification service

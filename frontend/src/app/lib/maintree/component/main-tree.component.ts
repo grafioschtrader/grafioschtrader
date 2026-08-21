@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit, ViewChild, Type, Inject} from '@angular/core';
 import {Router} from '@angular/router';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {MenuItem, TreeNode} from 'primeng/api';
+import {MenuItem, TreeNode} from '@openng/optimus-ui/api';
 import {Subscription} from 'rxjs';
 import {MainTreeService} from '../service/main-tree.service';
 import {TreeNavigationStateService} from '../service/tree.navigation.state.service';
@@ -14,16 +14,16 @@ import {DataChangedService} from '../service/data.changed.service';
 import {DialogHandler, DIALOG_HANDLER} from '../handler/dialog-handler.interface';
 import {HelpIds} from '../../help/help.ids';
 import {CommonModule} from '@angular/common';
-import {TreeModule} from 'primeng/tree';
-import {ContextMenuModule} from 'primeng/contextmenu';
-import {ConfirmDialogModule} from 'primeng/confirmdialog';
-import {ButtonModule} from 'primeng/button';
-import {SharedModule} from 'primeng/api';
+import {TreeModule} from '@openng/optimus-ui/tree';
+import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
+import {ConfirmDialogModule} from '@openng/optimus-ui/confirmdialog';
+import {ButtonModule} from '@openng/optimus-ui/button';
+import {SharedModule} from '@openng/optimus-ui/api';
 
 /**
  * This is the component for displaying the navigation tree. It is used to control the indicators of the main area.
  *
- * Important: PrimeNG Tree uses OnPush change detection strategy. To successfully refresh the tree after data changes,
+ * Important: Optimus Tree uses OnPush change detection strategy. To successfully refresh the tree after data changes,
  * all TreeNode objects must be deep cloned to create new object references. A shallow copy (e.g., [...array]) is not
  * sufficient - the entire node hierarchy must have new references. This is handled by MainTreeService.getClonedPortfolioTrees()
  * which recursively clones all nodes while preserving properties like 'expanded'.
@@ -38,7 +38,8 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   @ViewChild('cm', {static: true}) contextMenu: any;
 
   /**
-   * Only used to get primeng p-tabmenu working. For example when portfolio is clicked the 2nd time in the navigator, it could produce
+   * Only used to get the Optimus UI p-tabmenu working. For example when portfolio is clicked the 2nd time in the
+   * navigator, it could produce
    * an empty p-tabmenu.
    */
   lastRoute: string;
@@ -84,7 +85,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
 
   /**
    * Refreshes the entire tree.
-   * Triggers PrimeNG Tree change detection by updating the value reference and serialized data.
+   * Triggers Optimus Tree change detection by updating the value reference and serialized data.
    */
   private refreshTree(): void {
     this.mainTreeService.refreshAllNodes().subscribe(() => {
@@ -93,9 +94,9 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   }
 
   /**
-   * Triggers PrimeNG Tree to recognize changes by deep cloning the tree structure.
+   * Triggers Optimus Tree to recognize changes by deep cloning the tree structure.
    * This creates new object references for all nodes, which is required for
-   * PrimeNG Tree's OnPush change detection strategy.
+   * Optimus Tree's OnPush change detection strategy.
    */
   private triggerTreeUpdate(): void {
     this.portfolioTrees = this.mainTreeService.getClonedPortfolioTrees();
@@ -220,6 +221,5 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   }
 
 }
-
 
 

@@ -2,8 +2,8 @@ import {BaseInputComponent} from '../base.input.component';
 import {Component} from '@angular/core';
 import {ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
-import {MultiSelectModule} from 'primeng/multiselect';
-import {TooltipModule} from 'primeng/tooltip';
+import {MultiSelectModule} from '@openng/optimus-ui/multiselect';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
 import {TranslateModule} from '@ngx-translate/core';
 import {FilterOutPipe} from '../../pipe/FilterOutPipe';
 

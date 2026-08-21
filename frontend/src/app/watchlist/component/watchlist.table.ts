@@ -4,8 +4,8 @@ import {ActivatedRoute, Params, Router} from '@angular/router';
 import {WatchlistService} from '../service/watchlist.service';
 import {SecuritycurrencyGroup} from '../../entities/view/securitycurrency.group';
 import {SecuritycurrencyPosition} from '../../entities/view/securitycurrency.position';
-import {DialogService} from 'primeng/dynamicdialog';
-import {ConfirmationService, FilterService, MenuItem, SortEvent, SortMeta} from 'primeng/api';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
+import {ConfirmationService, FilterService, MenuItem, SortEvent, SortMeta} from '@openng/optimus-ui/api';
 import {TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
@@ -195,7 +195,7 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    *
    * @param {WatchListType} watchlistType - Type of watchlist (performance, price feed, etc.)
    * @param {string} storeKey - Local storage key for table settings
-   * @param {DialogService} dialogService - PrimeNG dialog service
+   * @param {DialogService} dialogService - Optimus dialog service
    * @param {AlarmSetupService} alarmSetupService - Service for alarm setup functionality
    * @param {TimeSeriesQuotesService} timeSeriesQuotesService - Service for time series operations
    * @param {DataChangedService} dataChangedService - Service for data change notifications
@@ -203,11 +203,11 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * @param {WatchlistService} watchlistService - Service for watchlist operations
    * @param {Router} router - Angular router for navigation
    * @param {ActivatedRoute} activatedRoute - Current activated route
-   * @param {ConfirmationService} confirmationService - PrimeNG confirmation dialog service
+   * @param {ConfirmationService} confirmationService - Optimus confirmation dialog service
    * @param {MessageToastService} messageToastService - Service for toast notifications
    * @param {ProductIconService} productIconService - Service for product icons
    * @param {ChangeDetectorRef} changeDetectionStrategy - Angular change detection reference
-   * @param {FilterService} filterService - PrimeNG filter service
+   * @param {FilterService} filterService - Optimus filter service
    * @param {TranslateService} translateService - Angular translation service
    * @param {GlobalparameterGTService} gpsGT - GT-specific global parameters service
    * @param {GlobalparameterService} gps - Global parameters service
@@ -285,7 +285,7 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
   }
 
   /**
-   * Hands the stored sort order to the table. Assigning a new array is required, PrimeNG only re-sorts when the bound
+   * Hands the stored sort order to the table. Assigning a new array is required, Optimus only re-sorts when the bound
    * reference changes. Without a stored sort order the instruments are sorted by name, as before.
    */
   protected applyStoredSorts(): void {

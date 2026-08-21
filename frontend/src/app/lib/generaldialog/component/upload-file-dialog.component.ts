@@ -3,7 +3,7 @@ import {ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {ProcessedActionData} from '../../types/processed.action.data';
 import {ProcessedAction} from '../../types/processed.action';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {DataType} from '../../dynamic-form/models/data.type';
 import {AppHelper} from '../../helper/app.helper';
@@ -176,7 +176,7 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
    * Lifecycle hook called when the dialog is closed. Cleans up the decimal separator change subscription
    * to prevent memory leaks. Delegates to parent class for standard cleanup operations.
    *
-   * @param event - PrimeNG dialog hide event
+   * @param event - Optimus dialog hide event
    */
   override onHide(event) {
     super.onHide(event);

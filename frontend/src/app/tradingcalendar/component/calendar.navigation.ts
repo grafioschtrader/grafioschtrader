@@ -2,7 +2,7 @@ import {LocaleSettings} from '../../lib/fullyearcalendar/Interface/locale.settin
 import {YearCalendarData} from '../../lib/fullyearcalendar/Interface/year.calendar.data';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {Helper} from '../../lib/helper/helper';
-import {MenuItem, SelectItem} from 'primeng/api';
+import {MenuItem, SelectItem} from '@openng/optimus-ui/api';
 import {DayOfWeek} from '../../lib/fullyearcalendar/model/day.of.week';
 import {RangeSelectDays} from '../../lib/fullyearcalendar/Interface/range.select.days';
 import {TranslateHelper} from '../../lib/helper/translate.helper';

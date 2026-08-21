@@ -1,4 +1,4 @@
-import {TreeNode} from 'primeng/api';
+import {TreeNode} from '@openng/optimus-ui/api';
 import {TypeNodeData} from '../types/type.node.data';
 import {AppHelper} from '../../helper/app.helper';
 import {BaseSettings} from '../../base.settings';

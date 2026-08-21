@@ -161,8 +161,8 @@ export function loadPortfolios(): PortfolioFixture[] {
  * {{i18nRecord}}'/'Erstellen {{i18nRecord}}', NEW='New {{i18nRecord}}'/'Neues {{i18nRecord}}',
  * DELETE_RECORD='Delete {{i18nRecord}}'/'Löschen {{i18nRecord}}'. The tree uses 'DELETE|PORTFOLIO'
  * and 'DELETE|SECURITYACCOUNT', but DELETE='Delete'/'Löschen' carries no placeholder, so the entity
- * never appears there. The confirm dialog's accept button comes from PrimeNG
- * (src/app/lib/translator/primeng.translations.ts).
+ * never appears there. The confirm dialog's accept button comes from Optimus UI
+ * (src/app/lib/translator/optimus.translations.ts).
  */
 export const RX = {
   createPortfolio: /(Create\s+Portfolio|Erstellen\s+Portfolio)/i,
@@ -210,7 +210,7 @@ export async function openTreeContextMenu(page: Page, target: Locator, itemRx: R
 /**
  * Confirms the delete question. Header and buttons are both translated — the header comes from
  * MSG_GENERAL_HEADER ('Confirmation'/'Bestätigung', the default headerKey of
- * AppHelper.confirmationDialog), the buttons from PrimeNG.
+ * AppHelper.confirmationDialog), the buttons from Optimus UI.
  */
 export async function confirmDelete(page: Page): Promise<void> {
   const confirmDialog = page.getByRole('alertdialog', {name: RX.confirmHeader});
@@ -255,9 +255,9 @@ export async function selectWhenLoaded(dialog: Locator, selector: string,
 }
 
 /**
- * Formats an ISO date the way the PrimeNG date picker of the given user renders it. The picker uses
+ * Formats an ISO date the way the Optimus UI date picker of the given user renders it. The picker uses
  * GlobalparameterService.getCalendarTwoNumberDateFormat(), which is moment's locale pattern 'L' with
- * the four-digit year token replaced by PrimeNG's `y` — and that token is a **two-digit** year. So
+ * the four-digit year token replaced by Optimus UI's `y` — and that token is a **two-digit** year. So
  * de-CH types '03.01.00' and en-US '01/03/00'; a four-digit year is rejected and blur wipes the field
  * again (same trap as 010-import-template-group and 065-create-derived-security).
  */
@@ -276,7 +276,7 @@ export function toShortDate(isoDate: string, locale: string): string {
 
 /**
  * Writes an ISO date into a p-datepicker inside an editable-table row. The picker ignores input
- * events without a preceding keydown (PrimeNG's isKeydown guard), so fill() never reaches the model —
+ * events without a preceding keydown (Optimus UI's isKeydown guard), so fill() never reaches the model —
  * the text has to be typed key by key, exactly as in 065-create-derived-security.spec.ts.
  */
 export async function setRowDate(row: Locator, index: number, isoDate: string,

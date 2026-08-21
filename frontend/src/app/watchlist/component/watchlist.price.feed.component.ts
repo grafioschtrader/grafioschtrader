@@ -21,8 +21,8 @@ import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.qu
 import {combineLatest, Observable} from 'rxjs';
 import {Security} from '../../entities/security';
 import {Currencypair} from '../../entities/currencypair';
-import {DialogService} from 'primeng/dynamicdialog';
-import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
+import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {TenantLimit} from '../../shared/types/tenant.limit';
@@ -35,7 +35,7 @@ import {BaseSettings} from '../../lib/base.settings';
 import {CommonModule} from '@angular/common';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {AngularSvgIconModule} from 'angular-svg-icon';
-import {TooltipModule} from 'primeng/tooltip';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
 import {TransactionSecurityTableComponent} from '../../transaction/component/transaction-security-table.component';
 import {TransactionSecurityMarginTreetableComponent} from '../../transaction/component/transaction-security-margin-treetable.component';
 import {SecuritycurrencyUdfComponent} from './securitycurrency-udf.component';
@@ -117,7 +117,7 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
    *
    * @param securityService - Service for security-related operations and data retrieval
    * @param currencypairService - Service for currency pair operations and data retrieval
-   * @param dialogService - PrimeNG service for managing dynamic dialogs
+   * @param dialogService - Optimus service for managing dynamic dialogs
    * @param alarmSetupService - Service for setting up and managing alarms
    * @param timeSeriesQuotesService - Service for time series quote operations
    * @param dataChangedService - Service for tracking data changes across components
@@ -125,11 +125,11 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
    * @param watchlistService - Service for watchlist operations and data management
    * @param router - Angular router for navigation
    * @param activatedRoute - Current activated route for parameter access
-   * @param confirmationService - PrimeNG service for confirmation dialogs
+   * @param confirmationService - Optimus service for confirmation dialogs
    * @param messageToastService - Service for displaying toast messages to users
    * @param productIconService - Service for retrieving product-specific icons
    * @param changeDetectionStrategy - Angular change detection reference
-   * @param filterService - PrimeNG service for table filtering functionality
+   * @param filterService - Optimus service for table filtering functionality
    * @param translateService - Angular service for internationalization
    * @param gpsGT - Global parameter service for GT-specific settings
    * @param gps - Global parameter service for application-wide settings

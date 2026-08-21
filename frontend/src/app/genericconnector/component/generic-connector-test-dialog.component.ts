@@ -12,10 +12,10 @@ import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppHelpIds} from '../../shared/help/help.ids';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
-import {FieldsetModule} from 'primeng/fieldset';
-import {TableModule} from 'primeng/table';
+import {FieldsetModule} from '@openng/optimus-ui/fieldset';
+import {TableModule} from '@openng/optimus-ui/table';
 import moment from 'moment';
 
 /**

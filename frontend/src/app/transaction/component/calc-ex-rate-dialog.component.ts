@@ -4,7 +4,7 @@ import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {DynamicDialogConfig, DynamicDialogRef} from '@openng/optimus-ui/dynamicdialog';
 import {AppSettings} from '../../shared/app.settings';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';

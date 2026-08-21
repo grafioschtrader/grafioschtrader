@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {IGlobalMenuAttach} from '../component/iglobal.menu.attach';
 import {TopMenuTypes} from '../component/top.menu.types';
-import {MenuItem} from 'primeng/api';
+import {MenuItem} from '@openng/optimus-ui/api';
 
 /**
  * Service for managing active panels and their associated top menu items in the application.

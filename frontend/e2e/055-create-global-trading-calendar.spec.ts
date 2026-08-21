@@ -207,7 +207,7 @@ test.describe.serial('create the global trading calendar as admin', () => {
       expect(finalDraft.filter(day => day.backgroundColor === 'yellow')).toHaveLength(expectedDates.length);
 
       const saveResponsePromise = page.waitForResponse(response => isTradingDaysResponse(response, 'PUT'));
-      // The projected PrimeNG icon is part of the accessible name (for example "\uE95B Save"), so
+      // The projected Optimus UI icon is part of the accessible name (for example "\uE95B Save"), so
       // locate the calendar footer button by its visible label instead of an exact role name.
       const saveButton = contentArea.locator('p-footer button').filter({hasText: /Save|Speichern/i});
       await expect(saveButton).toBeEnabled();

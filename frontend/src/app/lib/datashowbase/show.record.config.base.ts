@@ -303,7 +303,7 @@ export abstract class ShowRecordConfigBase {
   }
 
   /**
-   * Creates translated value store for PrimeNG table sorting.
+   * Creates translated value store for Optimus UI table sorting.
    * Adds translated fields with '$' suffix to support proper sorting of translated values.
    *
    * @param data - Array of data objects to process for translation

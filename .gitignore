@@ -20,3 +20,7 @@ __pycache__/
 
 # Locally exported connector API keys in PLAINTEXT (see ConnectorApiKeyCsvExportTest) — never commit
 backend/grafioschtrader-server/src/test/resources/local-seed/
+
+# Playwright artefact trees from "npx playwright test --output=target/...", used when the
+# default test-results directory is wedged. Traces of a single spec reach tens of megabytes.
+/target/

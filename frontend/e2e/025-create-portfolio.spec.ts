@@ -54,7 +54,7 @@ for (const p of PORTFOLIOS) {
         await fillFormInput(dialog, '#name', sa.name);
         await selectTradingPlatformPlan(page, dialog, sa);
 
-        // PrimeNG's p-inputnumber only commits its model on blur, so dispatch input and press Tab —
+        // Optimus UI's p-inputnumber only commits its model on blur, so dispatch input and press Tab —
         // otherwise the reactive form stays invalid and Save remains disabled.
         const costInput = dialog.locator('#lowestTransactionCost input');
         await costInput.click();

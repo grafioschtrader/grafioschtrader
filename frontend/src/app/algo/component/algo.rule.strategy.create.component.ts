@@ -22,7 +22,7 @@ import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key
 import {AppSettings} from '../../shared/app.settings';
 import {BusinessSelectOptionsHelper} from '../../shared/securitycurrency/business.select.options.helper';
 import {SimpleDynamicEditBase} from '../../lib/edit/simple.dynamic.edit.base';
-import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {DynamicDialogConfig, DynamicDialogRef} from '@openng/optimus-ui/dynamicdialog';
 import {AlgoTop} from '../model/algo.top';
 import {CallParam} from '../../shared/maintree/types/dialog.visible';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';

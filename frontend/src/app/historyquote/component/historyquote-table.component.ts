@@ -17,6 +17,7 @@ import {SecurityTransactionPosition} from '../../entities/view/security.transact
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {SecurityService} from '../../securitycurrency/service/security.service';
+import {HistoryquoteDeleteBounds, HistoryquoteFillGapsBounds} from '../../securitycurrency/model/historyquote.quality.group';
 import {HelpIds} from '../../lib/help/help.ids';
 import {TimeSeriesParam} from './time.series.chart.component';
 import {AuditHelper} from '../../lib/helper/audit.helper';
@@ -31,10 +32,10 @@ import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {HistoryquotesWithMissings} from '../model/historyquotes.with.missings';
 import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
-import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
 import {FileUploadParam} from '../../lib/generaldialog/model/file.upload.param';
 import {AngularSvgIconModule, SvgIconRegistryService} from 'angular-svg-icon';
-import {DialogService} from 'primeng/dynamicdialog';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 import {BaseSettings} from '../../lib/base.settings';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {HistoryquoteQualityComponent} from './historyquote-quality.component';
@@ -119,6 +120,7 @@ import {GlobalSessionNames} from '../../lib/global.session.names';
       <historyquote-quality-fill-gaps [visibleDialog]="visibleFillGapsDialog"
                                       [historyquoteQuality]="historyquotesWithMissings?.historyquoteQuality"
                                       [securitycurrency]="historyquotesWithMissings?.securitycurrency"
+                                      [fillGapsBounds]="fillGapsBounds"
                                       (closeDialog)="handleCloseDialogAndRead($event)">
       </historyquote-quality-fill-gaps>
     }
@@ -127,6 +129,7 @@ import {GlobalSessionNames} from '../../lib/global.session.names';
       <historyquote-delete-dialog [visibleDialog]="visibleDeleteHistoryquotes"
                                   [idSecuritycurrency]="historyquotesWithMissings.securitycurrency.idSecuritycurrency"
                                   [historyquoteQuality]="historyquotesWithMissings.historyquoteQuality"
+                                  [deleteBounds]="deleteBounds"
                                   (closeDialog)="handleCloseDialogAndRead($event)">
       </historyquote-delete-dialog>
     }
@@ -161,7 +164,11 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
   visibleUploadFileDialog = false;
   fileUploadParam: FileUploadParam;
   visibleFillGapsDialog = false;
+  /** Date boundaries of the fill gaps dialog, loaded before it is shown so its date field can be built at once. */
+  fillGapsBounds: HistoryquoteFillGapsBounds;
   visibleDeleteHistoryquotes = false;
+  /** Oldest and most recent stored price, loaded before the delete dialog is shown. */
+  deleteBounds: HistoryquoteDeleteBounds;
   importQuotesMenu: MenuItem = {
     label: 'IMPORT_QUOTES' + BaseSettings.DIALOG_MENU_SUFFIX,
     command: (event) => this.uploadImportQuotes()
@@ -272,12 +279,28 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
     this.readDataAndProposeDataChangedEvent(processedActionData);
   }
 
+  /**
+   * The stored period is fetched before the dialog is created, because its date fields must be configured with the
+   * selectable range while the dynamic form is built.
+   */
   deleteCreateTypeQuotes(): void {
-    this.visibleDeleteHistoryquotes = true;
+    this.historyquoteService.getDeleteBounds(this.historyquotesWithMissings.securitycurrency.idSecuritycurrency)
+      .subscribe(deleteBounds => {
+        this.deleteBounds = deleteBounds;
+        this.visibleDeleteHistoryquotes = true;
+      });
   }
 
+  /**
+   * The date boundaries are fetched before the dialog is created, because its date field must be configured with the
+   * selectable range while the dynamic form is built.
+   */
   fillLinearGap(): void {
-    this.visibleFillGapsDialog = true;
+    this.securityService.getFillGapsBounds(this.historyquotesWithMissings.securitycurrency.idSecuritycurrency)
+      .subscribe(fillGapsBounds => {
+        this.fillGapsBounds = fillGapsBounds;
+        this.visibleFillGapsDialog = true;
+      });
   }
 
   override resetMenu(historyquote: Historyquote): void {

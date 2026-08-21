@@ -88,7 +88,7 @@ const RX = {
 
 /**
  * Converts an ISO date to the two-digit-year short format the calendar parses for de-CH
- * (formConfig.dateFormat = 'dd.mm.y'), e.g. 2000-02-03 → 03.02.00. PrimeNG's shortYearCutoff maps
+ * (formConfig.dateFormat = 'dd.mm.y'), e.g. 2000-02-03 → 03.02.00. Optimus UI's shortYearCutoff maps
  * a two-digit year up to (current year + 10) into the 2000s, which covers 00 and 36.
  */
 function toDeChShortDate(isoDate: string): string {
@@ -108,7 +108,7 @@ async function selectByOptionText(scope: Locator, fieldId: string, text: string)
 }
 
 /**
- * Types a date into a p-datepicker. Real key events are mandatory: PrimeNG's onUserInput ignores
+ * Types a date into a p-datepicker. Real key events are mandatory: Optimus UI's onUserInput ignores
  * input events that were not preceded by a keydown, so fill() never reaches the model and blur
  * wipes the text again. Existing content is cleared first because picking a security base
  * instrument copies the base's dates into the form.

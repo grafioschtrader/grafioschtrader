@@ -1,7 +1,7 @@
 import {Injector} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
-import {FilterService, MenuItem, SortEvent, SortMeta} from 'primeng/api';
-import {DialogService} from 'primeng/dynamicdialog';
+import {FilterService, MenuItem, SortEvent, SortMeta} from '@openng/optimus-ui/api';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 import {UserSettingsService} from '../services/user.settings.service';
 import {Helper} from '../helper/helper';
 import {ColumnConfig} from './column.config';
@@ -11,7 +11,7 @@ import {GlobalparameterService} from '../services/globalparameter.service';
 import {ColumnVisibilityDialogComponent} from './column-visibility-dialog.component';
 
 /**
- * Abstract base class for displaying data in PrimeNG table format with comprehensive
+ * Abstract base class for displaying data in Optimus table format with comprehensive
  * filtering, sorting, column management, and persistence capabilities.
  *
  * This class provides core table functionality without menu support or data editing.
@@ -65,7 +65,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   /**
    * Creates a new table configuration base.
    *
-   * @param filterService - PrimeNG service for registering custom filters
+   * @param filterService - Optimus service for registering custom filters
    * @param usersettingsService - Service for persisting user table preferences
    * @param translateService - Angular translation service
    * @param gps - Global parameter base service for locale and formatting
@@ -249,10 +249,10 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   }
 
   /**
-   * Handles pagination events from PrimeNG table.
+   * Handles pagination events from Optimus table.
    * Updates current page information for pagination state management.
    *
-   * @param event - PrimeNG pagination event containing page info
+   * @param event - Optimus pagination event containing page info
    */
   onPage(event) {
     this.rowsPerPage = event.rows;
@@ -260,10 +260,10 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   }
 
   /**
-   * Handles column resize events from PrimeNG table.
+   * Handles column resize events from Optimus table.
    * Updates column width in configuration based on user resize actions.
    *
-   * @param event - PrimeNG column resize event
+   * @param event - Optimus column resize event
    */
   onColResize(event) {
     const columnConfig = this.getColumnConfigByHeaderTranslated(event.element.innerText.trim());
@@ -281,10 +281,10 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   }
 
   /**
-   * Handles custom sorting for PrimeNG table.
+   * Handles custom sorting for Optimus table.
    * Delegates to single or multi-column sorting based on sort mode.
    *
-   * @param event - PrimeNG sort event containing sort configuration
+   * @param event - Optimus sort event containing sort configuration
    */
   customSort(event: SortEvent): void {
     if (event.mode === 'single') {

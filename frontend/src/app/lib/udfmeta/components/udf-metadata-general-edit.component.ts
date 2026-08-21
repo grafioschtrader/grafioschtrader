@@ -17,7 +17,7 @@ import {SelectOptionsHelper} from '../../helper/select.options.helper';
 import {UDFConfig} from '../../login/model/configuration-with-login';
 import {BaseSettings} from '../../base.settings';
 
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 
 /**

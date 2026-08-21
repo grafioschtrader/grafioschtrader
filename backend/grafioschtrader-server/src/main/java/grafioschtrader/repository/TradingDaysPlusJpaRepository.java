@@ -32,6 +32,16 @@ public interface TradingDaysPlusJpaRepository
   TradingDaysPlus findTopByOrderByTradingDateAsc();
 
   /**
+   * Returns the latest possible trading day strictly before the given date. Passing today yields the last completed
+   * trading day, which is how a date can be tested for "lies in the past" without counting weekends and worldwide
+   * holidays as a delay.
+   *
+   * @param tradingDate the exclusive upper bound
+   * @return the newest trading day before the given date, or null when there is none
+   */
+  TradingDaysPlus findTopByTradingDateLessThanOrderByTradingDateDesc(LocalDate tradingDate);
+
+  /**
    * Returns possible trading days which includes the fromDate and toDate.
    */
   List<TradingDaysPlus> findByTradingDateBetweenOrderByTradingDate(LocalDate fromDate, LocalDate toDate);

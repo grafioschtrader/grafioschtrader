@@ -2,9 +2,9 @@ import {Component} from '@angular/core';
 import {BaseInputComponent} from '../base.input.component';
 import {ReactiveFormsModule} from '@angular/forms';
 
-import {Textarea} from 'primeng/textarea';
-import {ContextMenuModule} from 'primeng/contextmenu';
-import {TooltipModule} from 'primeng/tooltip';
+import {Textarea} from '@openng/optimus-ui/textarea';
+import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
 import {TranslateModule} from '@ngx-translate/core';
 import {FilterOutPipe} from '../../pipe/FilterOutPipe';
 

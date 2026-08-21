@@ -13,7 +13,7 @@ import {InfoLevelType} from '../../message/info.leve.type';
 import {MessageToastService} from '../../message/message.toast.service';
 import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
 import {Helper} from '../../helper/helper';
-import {DialogService, DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {DialogService, DynamicDialogConfig, DynamicDialogRef} from '@openng/optimus-ui/dynamicdialog';
 import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
 import {BaseSettings} from '../../base.settings';
 import {GlobalparameterService} from '../../services/globalparameter.service';

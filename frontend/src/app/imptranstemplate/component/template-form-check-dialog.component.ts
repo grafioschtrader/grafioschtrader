@@ -11,7 +11,7 @@ import {FormTemplateCheck} from './form.template.check';
 import {ImportTransactionPlatform} from '../../entities/import.transaction.platform';
 import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 import {TemplateFormCheckDialogResultSuccessComponent} from './template-form-check-dialog-result-success.component';
 import {TemplateFormCheckDialogResultFailedComponent} from './template-form-check-dialog-result-failed.component';

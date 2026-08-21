@@ -79,10 +79,11 @@ performance calculations and becomes the tenant's `id_watchlist_performance`. An
 
 The eight `alledit` watchlists (`Hauptliste`, `currencypair`, `Spain`, `Switzerland`, `Derived`, `Festgeld`, `_USA`,
 and `_Switzerland`) are retained; `Hauptliste` is the tenant's performance watchlist, while later workflows populate
-and reuse the other lists. Spec 040 also creates `_USA` and `_Switzerland` for `admin`. For both German-language users it
-searches the existing-instrument dialog by localized subcategory (`Aktien USA` and `Aktien Schweiz`), selects every
-remaining result, and verifies that the resulting watchlists contain only that subcategory. Because the search omits
-instruments already in a watchlist, completed and partially completed runs are safe to repeat. The retained `limit2`
+and reuse the other lists. Spec 040 also creates `_USA`, `_Switzerland`, `_Switzerland Bond`, and
+`_Schwellenländer Bond` for `admin`. For both German-language users it searches the existing-instrument dialog by
+localized subcategory (`Aktien USA`, `Aktien Schweiz`, `Anleihen Schweiz`, and `Anleihen Schwellenländer`), selects
+every remaining result, and verifies that the resulting watchlists contain only that subcategory. Because the search
+omits instruments already in a watchlist, completed and partially completed runs are safe to repeat. The retained `limit2`
 watchlist `Hauptliste` is also selected for performance calculations. After 065 creates the shared derived securities,
 `070-add-forex-to-performance-watchlist.spec.ts` searches for Name=`Forex` and adds the two exact fixture results to
 that list.
@@ -268,7 +269,7 @@ two selects and hence language independent; a `null` `categoryType` picks the em
 `+` button sits outside `<editable-table>`, so `addEditableTableRow()` from
 `generic-connector.helpers.ts` does not apply — `addTradingPeriod()` in `portfolio.helpers.ts` is its
 counterpart. Its date picker arrives pre-filled with the oldest trading day (`2000-01-03`); the
-helper only types when the fixture asks for a different date, and then key by key, because PrimeNG
+helper only types when the fixture asks for a different date, and then key by key, because Optimus UI
 ignores values injected with `fill()`.
 
 The two `limit1` portfolios are integration-owned exports from `grafioschtrader_t`: `Migros` and `Swissquote`, each
@@ -389,10 +390,12 @@ keys and exported business values:
 Database, tenant, account, security, and generated transaction IDs are always resolved at runtime.
 
 The spec depends on `132-import-transactions-csv.spec.ts`, which creates the 1,000-unit source holding. At startup 145
-reverses an exact transfer left by an earlier run through `/api/securityaction/transfer/{id}` and waits for the
-scheduled holdings rebuild before reopening the form. It then verifies the disabled source context, fills every
-editable form value from the CSV, and checks the persisted transfer plus source and target holdings. This makes the
-spec repeatable against the same populated `grafioschtrader_t`, including after an interrupted run.
+first logs in as `alledit` and creates the fixture's exact Repsol closing price through `/api/historyquote` when the
+asynchronous history connector has not supplied it. It then logs in as `limit1`, reverses an exact transfer left by an
+earlier run through `/api/securityaction/transfer/{id}`, and waits for the scheduled holdings rebuild before reopening
+the form. It verifies the disabled source context, fills every editable form value from the CSV, and checks the
+persisted transfer plus source and target holdings. This makes the spec repeatable against the same populated
+`grafioschtrader_t`, including after an interrupted run and independently of connector timing.
 
 With the backend and frontend still active, execute only this spec with
 `npx playwright test e2e/145-security-transfer.spec.ts --project=grafioschtrader-e2e --no-deps`.
@@ -401,9 +404,10 @@ With the backend and frontend still active, execute only this spec with
 
 `150-udf-metadata.spec.ts` exercises both metadata creation dialogs using the hand-authored
 `testdata/udf-metadata.json` fixture. The source business values come from production security UDF rows `2`, `3`,
-`4`, `81`, `82`, and `162`, plus general UDF row `148` (`Currencypair` / `Ausblick`). Production IDs are deliberately
-not stored: `admin` recreates security rows `2` and `3` and general row `148`, while `alledit` recreates security rows
-`162`, `2`, `81`, `82`, and `4` using nickname plus the metadata values as natural keys.
+`4`, `81`, `82`, and `162`, general UDF row `148` (`Currencypair` / `Ausblick`), and `grafioschtrader_t` general row
+`5887` (`Currencypair` / `FX möglich`). Database IDs are deliberately not stored: `admin` recreates security rows `2`
+and `3` and general row `148`, while `alledit` recreates security rows `162`, `2`, `81`, `82`, and `4` plus the
+currency-pair definition using nickname and metadata values as natural keys.
 
 Before creating a row, the spec uses the authenticated UDF REST endpoint to delete matching user-owned leftovers from
 an interrupted or earlier run. It explicitly excludes `idUser = 0`, so system UDF definitions are neither created nor
@@ -414,6 +418,22 @@ the start.
 
 With the backend and frontend still active, execute only this spec with
 `npx playwright test e2e/150-udf-metadata.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
+## UDF data spec (155-*)
+
+`155-udf-data.spec.ts` consumes the user-owned definitions created by `150-*` and recreates the values exported from
+`grafioschtrader_t` in `testdata/udf_data.json`. The fixture uses nickname, watchlist name, ISIN plus currency, or a
+currency pair's from/to codes instead of database IDs. UDF values are keyed by their metadata description because
+`150-*` receives new `id_udf_metadata` values on every fresh database.
+
+The spec opens `_USA` for `admin` and `alledit` and `currencypair` for `alledit`, selects each exact instrument row,
+and chooses **Edit additional field...** from its context menu. It derives the runtime `f<id>` field names from the
+rendered labels, fills the security or currency-pair form, and verifies both the save response and a subsequent
+authenticated `GET /api/udfdata/{entity}/{idEntity}`. Existing rows are updated through the same UI, so rerunning the
+spec reconciles interrupted or completed runs without deleting shared instruments or watchlists.
+
+With the backend and frontend still active, execute only this spec with
+`npx playwright test e2e/155-udf-data.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
 ## Security-split spec (160-*)
 
@@ -432,6 +452,23 @@ partially interrupted runs converge on the same state without deleting the share
 
 With the backend and frontend still active, execute only this spec with
 `npx playwright test e2e/160-security-splits.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
+## Time-series chart spec (170-*)
+
+`170-time-series-chart.spec.ts` exercises `TimeSeriesChartComponent` as the German-locale `alledit` user with HPQ and
+DIS from `_USA` and Nestlé (`NESN`) from `_Switzerland`. All three are shared securities with deep history from
+`V2__testdata.sql`; the watchlists are populated by `040-*` and are only read here. The assertions cover manual and
+preset date ranges, checkboxes, volume, line/candlestick/OHLC rendering, and edited SMA, EMA, and RSI periods. They
+inspect Plotly trace and layout state plus the indicator request bodies, not the financial values of seeded quotes.
+
+The comparison flow adds DIS and NESN to HPQ, verifies the single-instrument controls and indicators become
+unavailable, and switches the three traces between USD and CHF. The drawing flow creates a line, rectangle, and circle,
+then covers erase, undo, redo, reload, and confirmed delete-all through the real `userchartshape` REST calls. It deletes
+only `alledit`'s HPQ shape row at the start and leaves it absent at the end, so interrupted and completed runs are
+repeatable without changing shared securities, quotes, or watchlists.
+
+With the backend and frontend still active, execute only this spec with
+`npx playwright test e2e/170-time-series-chart.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
 ## Entity-limit spec (190-*)
 
@@ -480,7 +517,7 @@ The deleted row is not blindly the first one but the newest quote **older than t
 rejects a quote dated today or on a weekend (`checkDatePastMinus1Day`) and the dialog's date picker
 sets `maxDate = yesterday`, while the connector may deliver a partial candle for the current day.
 The exact OHLCV values are taken from the table's own REST response, not from the formatted cells,
-and typed back key by key — both the PrimeNG date picker and `p-inputNumber` ignore values injected
+and typed back key by key — both the Optimus UI date picker and `p-inputNumber` ignore values injected
 with `fill()`.
 
 Delete-then-recreate makes the spec repeatable: a rerun targets the same date again. The recreated
@@ -492,6 +529,26 @@ run then targets the row before it.
 
 The instrument is added only when missing, so the spec can be re-run against the same `grafioschtrader_t`
 without a reset.
+
+## History quote bulk-tools spec (062-*)
+
+`062-historyquote-bulk-tools.spec.ts` logs in as `admin`, opens the `_Schwellenländer Bond` watchlist populated by
+040, and exercises the two bulk tools of `HistoryquoteTableComponent` on the seeded CRE18 bond. It first opens
+"Delete imported and/or linear filled", verifies that both displayed dates are the unchanged bounds returned by the
+backend, and executes the deletion. The resulting series must contain neither `MANUAL_IMPORTED` nor
+`FILLED_CLOSED_LINEAR_TRADING_DAY` rows and must retain exactly the two `ADD_MODIFIED_USER` quotes dated 2024-12-31
+and 2025-04-14.
+
+The spec then opens "Linear filling missing EOD" and normally accepts its proposed date. When that date is Saturday or
+Sunday, it enters the preceding Friday instead. After filling, the newest quote must be no later than the chosen date
+and no more than four calendar days older, allowing for weekends and holidays of CRE18's exchange.
+
+The delete step is the cleanup at the start of every normal rerun. If a previous run stopped after deletion but before
+filling, the absence of deletable quote types is accepted and the test resumes with the fill step. This makes the spec
+repeatable without resetting `grafioschtrader_t`.
+
+With the backend and frontend still active, execute only this spec with
+`npx playwright test e2e/062-historyquote-bulk-tools.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
 ## Derived instrument spec (065-*)
 

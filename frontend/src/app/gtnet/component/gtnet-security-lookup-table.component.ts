@@ -1,8 +1,8 @@
 import {Component, EventEmitter, Injector, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {ButtonModule} from 'primeng/button';
-import {FilterService} from 'primeng/api';
+import {ButtonModule} from '@openng/optimus-ui/button';
+import {FilterService} from '@openng/optimus-ui/api';
 import moment from 'moment';
 
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';

@@ -43,6 +43,8 @@ import grafiosch.types.TaskTypeBase;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.dto.GTSecuritiyCurrencyExchange;
 import grafioschtrader.dto.HisotryqouteLinearFilledSummary;
+import grafioschtrader.dto.HistoryquoteFillGapsBounds;
+import grafioschtrader.dto.HistoryquoteFillGapsParam;
 import grafioschtrader.dto.InstrumentStatisticsResult;
 import grafioschtrader.dto.SeasonalReturnsResult;
 import grafioschtrader.dto.SecurityCurrencypairDerivedLinks;
@@ -73,6 +75,7 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping(RequestGTMappings.SECURITY_MAP)
@@ -278,14 +281,21 @@ public class SecurityResource extends UpdateCreateResource<Security> {
         hqi.idStockexchange, hqi.categoryType, hqi.specialInvestmentInstrument), HttpStatus.OK);
   }
 
-  @Operation(summary = "Some historical quotes of a specified security may missing some days. The missing days are determined using the trading calendar and filled with data.", description = "The gap/s is filled linar", tags = {
+  @Operation(summary = "Some historical quotes of a specified security may missing some days. The missing days are determined using the trading calendar and filled with data.", description = "The gap/s is filled linar up to the date chosen by the user", tags = {
       Security.TABNAME })
   @PostMapping(value = "/{idSecuritycurreny}/fillgapes", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<HisotryqouteLinearFilledSummary> fillHistoryquoteGapsLinear(
       @PathVariable() Integer idSecuritycurreny,
-      @Parameter(description = "True if move existing weekend quotes to a missing friday", required = true) @RequestBody final boolean moveWeekendToFriday) {
-    return new ResponseEntity<>(historyquoteQuality.fillHistoryquoteGapsLinear(idSecuritycurreny, moveWeekendToFriday),
+      @Parameter(description = "End date of the filling and the handling of existing weekend quotes", required = true) @Valid @RequestBody final HistoryquoteFillGapsParam fillGapsParam) {
+    return new ResponseEntity<>(historyquoteQuality.fillHistoryquoteGapsLinear(idSecuritycurreny, fillGapsParam),
         HttpStatus.OK);
+  }
+
+  @Operation(summary = "Returns the date boundaries the linear gap filling offers for a specified security", description = "Delivers the selectable range, the proposed end date and whether the trading calendar of the exchange lags behind", tags = {
+      Security.TABNAME })
+  @GetMapping(value = "/{idSecuritycurreny}/fillgapsbounds", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<HistoryquoteFillGapsBounds> getFillGapsBounds(@PathVariable() Integer idSecuritycurreny) {
+    return new ResponseEntity<>(historyquoteQuality.getFillGapsBounds(idSecuritycurreny), HttpStatus.OK);
   }
 
   @Operation(summary = "Return of annual return over specified periods.", description = "The result in currency of the instrument and the main currency of the client.", tags = {

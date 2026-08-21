@@ -11,13 +11,13 @@ import {
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {Table, TableModule} from 'primeng/table';
-import {ContextMenuModule} from 'primeng/contextmenu';
-import {TooltipModule} from 'primeng/tooltip';
-import {SharedModule, SelectItem} from 'primeng/api';
-import {MenuItem, SortEvent} from 'primeng/api';
-import {DatePickerModule} from 'primeng/datepicker';
-import {MultiSelectModule} from 'primeng/multiselect';
+import {Table, TableModule} from '@openng/optimus-ui/table';
+import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
+import {SharedModule, SelectItem} from '@openng/optimus-ui/api';
+import {MenuItem, SortEvent} from '@openng/optimus-ui/api';
+import {DatePickerModule} from '@openng/optimus-ui/datepicker';
+import {MultiSelectModule} from '@openng/optimus-ui/multiselect';
 import {ColumnConfig, getFilterKey} from './column.config';
 import {DataType} from '../dynamic-form/models/data.type';
 import {Helper} from '../helper/helper';
@@ -36,7 +36,7 @@ interface HeaderGroupItem {
 }
 
 /**
- * Reusable table component providing standardized PrimeNG table functionality with column configuration,
+ * Reusable table component providing standardized Optimus table functionality with column configuration,
  * sorting, pagination, row expansion, selection, and context menu support.
  *
  * This component is designed to be library-agnostic and can be used across different applications.
@@ -420,7 +420,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
 
   /**
    * Property name used as the unique identifier for each row.
-   * Used by PrimeNG for tracking rows during updates and selections.
+   * Used by Optimus for tracking rows during updates and selections.
    */
   @Input() dataKey: string;
 
@@ -472,7 +472,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
   @Input() multiSortMeta: any[] = [];
 
   /**
-   * Enable custom sorting logic instead of PrimeNG's default sorting.
+   * Enable custom sorting logic instead of Optimus's default sorting.
    */
   @Input() enableCustomSort = true;
 
@@ -519,13 +519,13 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
   @Input() formLocale = 'en-US';
 
   /**
-   * Emits whenever the applied column filters change. The event is PrimeNG's filter event, its `filters` property is
+   * Emits whenever the applied column filters change. The event is Optimus's filter event, its `filters` property is
    * the complete filter map of the table. Lets a parent persist and later restore what the user filtered for.
    */
   @Output() filterChange = new EventEmitter<any>();
 
   /**
-   * Reference to the PrimeNG table component for programmatic filter access.
+   * Reference to the Optimus table component for programmatic filter access.
    */
   @ViewChild('table') table: Table;
 
@@ -658,7 +658,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
 
   /**
    * Object tracking which rows are currently expanded. Keys are the dataKey values.
-   * Managed internally by PrimeNG when rows are toggled.
+   * Managed internally by Optimus when rows are toggled.
    */
   @Input() expandedRowKeys: { [key: string]: boolean } = {};
 
@@ -682,7 +682,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
   @Input() contextMenuEnabled = true;
 
   /**
-   * Array of menu items for the context menu. Uses PrimeNG MenuItem interface.
+   * Array of menu items for the context menu. Uses Optimus MenuItem interface.
    */
   @Input() contextMenuItems: MenuItem[] = [];
 
@@ -844,11 +844,11 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
   }
 
   /**
-   * Handles sort events from PrimeNG table.
+   * Handles sort events from Optimus table.
    * Delegates to custom sort function if provided, otherwise performs no action
-   * (allows PrimeNG default sorting when enableCustomSort=false).
+   * (allows Optimus default sorting when enableCustomSort=false).
    *
-   * @param event - PrimeNG sort event containing sort metadata
+   * @param event - Optimus sort event containing sort metadata
    */
   onSort(event: SortEvent): void {
     if (this.customSortFn) {
@@ -865,7 +865,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
    * @returns The selected filter values, or null when the column is not filtered
    */
   getSelectFilterValue(field: ColumnConfig): any {
-    // PrimeNG removes the entry instead of blanking it, so a missing key means "not filtered".
+    // Optimus removes the entry instead of blanking it, so a missing key means "not filtered".
     return this.table?.filters?.[getFilterKey(field)]?.['value'] ?? null;
   }
 
@@ -873,7 +873,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
    * Returns the property the table filters a column on.
    *
    * @param field - Column configuration of the filter
-   * @returns The property name to hand to PrimeNG
+   * @returns The property name to hand to Optimus
    */
   filterKey(field: ColumnConfig): string {
     return getFilterKey(field);
@@ -891,29 +891,29 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
   }
 
   /**
-   * Handles row expand events from PrimeNG table.
+   * Handles row expand events from Optimus table.
    * Emits the event to parent component for lazy loading support.
    *
-   * @param event - PrimeNG row expand event containing row data
+   * @param event - Optimus row expand event containing row data
    */
   onRowExpand(event: any): void {
     this.rowExpand.emit(event);
   }
 
   /**
-   * Handles row collapse events from PrimeNG table.
+   * Handles row collapse events from Optimus table.
    * Emits the event to parent component.
    *
-   * @param event - PrimeNG row collapse event containing row data
+   * @param event - Optimus row collapse event containing row data
    */
   onRowCollapse(event: any): void {
     this.rowCollapse.emit(event);
   }
 
   /**
-   * Handles pagination events from PrimeNG table.
+   * Handles pagination events from Optimus table.
    *
-   * @param event - PrimeNG page event containing page info
+   * @param event - Optimus page event containing page info
    */
   onPage(event: any): void {
     this.pageChange.emit(event);

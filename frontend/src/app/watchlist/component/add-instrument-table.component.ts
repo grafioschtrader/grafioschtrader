@@ -12,7 +12,7 @@ import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {TenantLimit} from '../../shared/types/tenant.limit';
 import {SecuritycurrencySearchTableBase} from '../../securitycurrency/component/securitycurrency.search.table.base';
-import {FilterService} from 'primeng/api';
+import {FilterService} from '@openng/optimus-ui/api';
 import {Observable} from 'rxjs';
 
 /**
@@ -38,7 +38,7 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
    * @param instance - The target entity instance to add instruments to
    * @param dataChangedService - Service for notifying about data changes
    * @param addSearchToListService - Service for searching and adding instruments to lists
-   * @param filterService - PrimeNG filter service for table filtering
+   * @param filterService - Optimus filter service for table filtering
    * @param translateService - Angular translation service for internationalization
    * @param gps - Global parameter service for application settings
    * @param usersettingsService - Service for user-specific settings and preferences

@@ -2,8 +2,8 @@ import {Component, Injector, Input, OnChanges, SimpleChanges} from '@angular/cor
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {TableModule} from 'primeng/table';
-import {FilterService} from 'primeng/api';
+import {TableModule} from '@openng/optimus-ui/table';
+import {FilterService} from '@openng/optimus-ui/api';
 import moment from 'moment';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {ShowRecordConfigBase} from '../../lib/datashowbase/show.record.config.base';

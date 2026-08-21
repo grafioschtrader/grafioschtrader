@@ -1,6 +1,6 @@
 import {Component, Input, OnInit, TemplateRef, ViewChild} from '@angular/core';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {TreeNode} from 'primeng/api';
+import {TreeNode} from '@openng/optimus-ui/api';
 import {TreeTableConfigBase} from '../../datashowbase/tree.table.config.base';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {GTNetExchangeLogService} from '../service/gtnet-exchange-log.service';

@@ -9,7 +9,7 @@ import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {TranslateService} from '@ngx-translate/core';
 import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {TreeNode} from 'primeng/api';
+import {TreeNode} from '@openng/optimus-ui/api';
 import {ConfigurableTreeTableComponent} from '../../lib/datashowbase/configurable-tree-table.component';
 
 /**

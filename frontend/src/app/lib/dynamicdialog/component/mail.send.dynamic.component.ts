@@ -12,7 +12,7 @@ import {TranslateHelper} from '../../helper/translate.helper';
 import {FieldConfig} from '../../dynamic-form/models/field.config';
 import {SelectOptionsHelper} from '../../helper/select.options.helper';
 import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {DialogService, DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {DialogService, DynamicDialogConfig, DynamicDialogRef} from '@openng/optimus-ui/dynamicdialog';
 import {MailSendRecv, ReplyToRolePrivateType} from '../../mail/model/mail.send.recv';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 import {UserAdminService} from '../../user/service/user.admin.service';

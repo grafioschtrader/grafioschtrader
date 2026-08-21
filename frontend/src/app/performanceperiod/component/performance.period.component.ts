@@ -12,7 +12,7 @@ import {BusinessHelper} from '../../shared/helper/business.helper';
 import {HelpIds} from '../../lib/help/help.ids';
 import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {MenuItem} from 'primeng/api';
+import {MenuItem} from '@openng/optimus-ui/api';
 import {Subscription} from 'rxjs';
 import moment from 'moment';
 import {Weekday} from '../../shared/helper/weekday';
@@ -28,7 +28,7 @@ import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
 import {GlobalGTSessionNames} from '../../shared/global.gt.session.names';
 import {BaseSettings} from '../../lib/base.settings';
 import { CommonModule, DatePipe } from '@angular/common';
-import {ProgressBarModule} from 'primeng/progressbar';
+import {ProgressBarModule} from '@openng/optimus-ui/progressbar';
 import {TenantPerformanceFromToDiffComponent} from './performance-period-from-to-diff.component';
 import {TenantPerformanceTreetableComponent} from './performance-period-treetable.component';
 

@@ -1,20 +1,20 @@
 /**
- * PrimeNG widget locale data, kept on the client on purpose.
+ * Optimus UI widget locale data, kept on the client on purpose.
  *
- * These texts label PrimeNG's own filter and calendar widgets rather than anything Grafioschtrader owns, so a second
- * frontend built on another technology has no use for them. Two properties of the data also make a backend
+ * These texts label Optimus UI's own filter and calendar widgets rather than anything Grafioschtrader owns, so a
+ * second frontend built on another technology has no use for them. Two properties of the data also make a backend
  * .properties file the wrong container: five German entries are string ARRAYS (day and month names), which .properties
  * cannot express, and the German set is larger than the English one, which would fail the EN/DE parity guard for a
  * reason that is not a missing translation.
  *
  * Merged last by MultiTranslateHttpLoader, so LoginService.setGlobalLang() keeps resolving
- * translateService.get('primeng') into the object PrimeNG's setTranslation() expects.
+ * translateService.get('optimus') into the object Optimus UI's setTranslation() expects.
  *
  * See GitHub issue #214.
  */
-export const PRIMENG_TRANSLATIONS: Record<string, {primeng: Record<string, string | string[]>}> = {
+export const OPTIMUS_TRANSLATIONS: Record<string, {optimus: Record<string, string | string[]>}> = {
   en: {
-    primeng: {
+    optimus: {
       startsWith: "Starts with",
       contains: "Contains",
       notContains: "Not contains",
@@ -48,7 +48,7 @@ export const PRIMENG_TRANSLATIONS: Record<string, {primeng: Record<string, strin
     }
   },
   de: {
-    primeng: {
+    optimus: {
       startsWith: "Startet mit",
       contains: "Enthält",
       notContains: "Enthält nicht",

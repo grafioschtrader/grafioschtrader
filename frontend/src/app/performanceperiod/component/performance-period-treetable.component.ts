@@ -9,7 +9,7 @@ import {
   PeriodStepMissingHoliday,
   PeriodWindowWithField
 } from '../model/performance.period';
-import {TreeNode} from 'primeng/api';
+import {TreeNode} from '@openng/optimus-ui/api';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ColumnConfig, ColumnGroupConfig} from '../../lib/datashowbase/column.config';
 import {WeekYear} from '../service/holding.service';
@@ -18,8 +18,8 @@ import moment from 'moment';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {CommonModule} from '@angular/common';
-import {TreeTableModule} from 'primeng/treetable';
-import {TooltipModule} from 'primeng/tooltip';
+import {TreeTableModule} from '@openng/optimus-ui/treetable';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
 
 /**
  * Shows a tree table with periodic windows on the first column, which can be week or year.
@@ -101,7 +101,7 @@ import {TooltipModule} from 'primeng/tooltip';
     }
 
     /*
-     * PrimeNG renders the tree table with "table-layout: fixed; width: 100%", which hands every column
+     * Optimus renders the tree table with "table-layout: fixed; width: 100%", which hands every column
      * without an explicit width the same share of the panel. The column totals of the footer are an order
      * of magnitude larger than the values of a single period, so they no longer fit and the global
      * "td {text-overflow: ellipsis}" rule silently clipped them. Auto layout lets the widest cell of a
@@ -134,7 +134,7 @@ import {TooltipModule} from 'primeng/tooltip';
     /*
      * tabular-nums gives all digits the same advance width so the figures of a column line up.
      *
-     * The cell padding of this table is deliberately not set here: PrimeNG applies it from the treetable
+     * The cell padding of this table is deliberately not set here: Optimus applies it from the treetable
      * design tokens of MyPreset in app.component.ts, and a rule of this component would tie with the
      * theme rule on specificity and lose, because the theme sheet is injected after the component style.
      * Such a rule only appears to work after a hot reload, when the injection order happens to flip.

@@ -2,8 +2,8 @@ import {AfterViewInit, Component, OnDestroy, OnInit, ViewChild} from '@angular/c
 import {CommonModule} from '@angular/common';
 import {ActivatedRoute} from '@angular/router';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {ProgressBarModule} from 'primeng/progressbar';
-import {MenuItem} from 'primeng/api';
+import {ProgressBarModule} from '@openng/optimus-ui/progressbar';
+import {MenuItem} from '@openng/optimus-ui/api';
 import {Subscription} from 'rxjs';
 import {FormBase} from '../../lib/edit/form.base';
 import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';

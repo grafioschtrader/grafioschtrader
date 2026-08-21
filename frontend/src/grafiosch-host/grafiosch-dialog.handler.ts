@@ -1,5 +1,5 @@
 import {Injectable, Type} from '@angular/core';
-import {DialogService} from 'primeng/dynamicdialog';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 import {Observable, of} from 'rxjs';
 
 import {DialogHandler} from '../app/lib/maintree/handler/dialog-handler.interface';

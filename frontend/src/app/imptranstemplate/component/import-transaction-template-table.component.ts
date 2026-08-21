@@ -13,8 +13,8 @@ import {CrudMenuOptions, TableCrudSupportMenu} from '../../lib/datashowbase/tabl
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {plainToClass} from 'class-transformer';
-import {DialogService} from 'primeng/dynamicdialog';
-import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
+import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
 import {combineLatest} from 'rxjs';
 import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';

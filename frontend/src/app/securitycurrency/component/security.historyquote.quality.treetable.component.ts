@@ -9,7 +9,7 @@ import {
   HistoryquoteQualityHead,
   HistoryquoteQualityIds
 } from '../model/historyquote.quality.group';
-import {MenuItem, SelectItem, TreeNode} from 'primeng/api';
+import {MenuItem, SelectItem, TreeNode} from '@openng/optimus-ui/api';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {ColumnGroupConfig} from '../../lib/datashowbase/column.config';
 import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
@@ -22,11 +22,11 @@ import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.qu
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {SecurityHistoryquoteQualityTableComponent, SecurityIdWithCurrency} from './security-historyquote-quality-table.component';
 import {NgClass} from '@angular/common';
-import {Panel} from 'primeng/panel';
-import {Select} from 'primeng/select';
+import {Panel} from '@openng/optimus-ui/panel';
+import {Select} from '@openng/optimus-ui/select';
 import {FormsModule} from '@angular/forms';
 import {ConfigurableTreeTableComponent} from '../../lib/datashowbase/configurable-tree-table.component';
-import {SharedModule} from 'primeng/api';
+import {SharedModule} from '@openng/optimus-ui/api';
 
 /**
  * Shows the quality of historical price data per stock exchange or data provider.

@@ -24,14 +24,14 @@ import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
-import {FieldsetModule} from 'primeng/fieldset';
-import {ButtonModule} from 'primeng/button';
+import {FieldsetModule} from '@openng/optimus-ui/fieldset';
+import {ButtonModule} from '@openng/optimus-ui/button';
 import {YamlEditorComponent, YamlFieldCompletion} from '../../algo/component/yaml-editor.component';
 import {HttpClient} from '@angular/common/http';
 import {AppSettings} from '../../shared/app.settings';
-import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {DynamicDialogConfig, DynamicDialogRef} from '@openng/optimus-ui/dynamicdialog';
 
 /**
  * Dialog component for editing the fee model YAML and testing fee estimations.

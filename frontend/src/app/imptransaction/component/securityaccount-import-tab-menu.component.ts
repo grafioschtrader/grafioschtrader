@@ -3,7 +3,7 @@ import {CommonModule} from '@angular/common';
 import {ActivatedRoute, Params, Router, RouterModule} from '@angular/router';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {Subscription} from 'rxjs';
-import {TabsModule} from 'primeng/tabs';
+import {TabsModule} from '@openng/optimus-ui/tabs';
 
 import {AppSettings} from '../../shared/app.settings';
 import {Securityaccount} from '../../entities/securityaccount';

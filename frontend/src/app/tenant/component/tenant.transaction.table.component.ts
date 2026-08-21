@@ -11,7 +11,7 @@ import {Currencypair} from '../../entities/currencypair';
 import {combineLatest, Observable} from 'rxjs';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
 import {TransactionTable} from '../../transaction/component/transaction.table';
-import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
@@ -55,9 +55,9 @@ export class TenantTransactionTableComponent extends TransactionTable implements
    * @param parentChildRegisterService Service for managing parent-child component relationships and state
    * @param activePanelService Service for managing active panel state and menu interactions
    * @param transactionService Service for transaction data operations and persistence
-   * @param confirmationService PrimeNG service for displaying confirmation dialogs
+   * @param confirmationService Optimus service for displaying confirmation dialogs
    * @param messageToastService Service for displaying user notification messages
-   * @param filterService PrimeNG service for table filtering functionality
+   * @param filterService Optimus service for table filtering functionality
    * @param translateService Angular service for internationalization and text translation
    * @param gps Global parameter service for application-wide settings and configuration
    * @param usersettingsService Service for managing user-specific settings and preferences

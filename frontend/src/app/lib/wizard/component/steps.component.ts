@@ -10,8 +10,8 @@ import {
   SimpleChanges
 } from '@angular/core';
 
-import {StepperModule} from 'primeng/stepper';
-import {ButtonModule} from 'primeng/button';
+import {StepperModule} from '@openng/optimus-ui/stepper';
+import {ButtonModule} from '@openng/optimus-ui/button';
 import { StepComponent } from './step.component';
 
 @Component({

@@ -250,7 +250,7 @@ async function openTableContextMenu(page: Page, target?: Locator): Promise<Locat
 }
 
 /**
- * Types a value into a p-inputNumber. Real key events are required: PrimeNG updates its model from
+ * Types a value into a p-inputNumber. Real key events are required: Optimus UI updates its model from
  * the keydown/keypress handlers, so fill() would leave the reactive form untouched. The read-back
  * assertion turns a locale or masking problem into a clear failure instead of a save error.
  */

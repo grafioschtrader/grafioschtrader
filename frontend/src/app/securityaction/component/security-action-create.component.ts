@@ -18,9 +18,9 @@ import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {SupplementCriteria} from '../../securitycurrency/model/supplement.criteria';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {SecuritycurrencySearchAndSetComponent} from '../../securitycurrency/component/securitycurrency-search-and-set.component';
-import {DialogService} from 'primeng/dynamicdialog';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 
 /**
  * Dialog component for admin users to create a new ISIN change event. Uses DialogService to open

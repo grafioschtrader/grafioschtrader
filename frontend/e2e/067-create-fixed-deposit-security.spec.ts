@@ -139,9 +139,9 @@ async function addExistingSecurity(page: Page, security: FixedDepositSecurity): 
   await dialog.locator('.p-dialog').waitFor({state: 'visible', timeout: 10_000});
   await expect(dialog.locator('select#idStockexchange option')).not.toHaveCount(0, {timeout: 15_000});
 
-  const name = dialog.getByRole('textbox', {name: /^Name$/});
+  const name = dialog.locator('input#name');
+  await expect(name).toBeVisible();
   await name.fill(security.name);
-  await name.dispatchEvent('input');
   await dialog.locator('button[type="submit"]').click();
 
   const exactRow = dialog.locator('add-instrument-table tbody tr')

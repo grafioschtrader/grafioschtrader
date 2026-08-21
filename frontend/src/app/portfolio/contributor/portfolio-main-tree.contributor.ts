@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {Observable, combineLatest, of} from 'rxjs';
 import {catchError, map, tap} from 'rxjs/operators';
 import moment from 'moment';
-import {MenuItem, TreeNode, ConfirmationService} from 'primeng/api';
+import {MenuItem, TreeNode, ConfirmationService} from '@openng/optimus-ui/api';
 import {TranslateService} from '@ngx-translate/core';
 import {MainTreeContributor} from '../../lib/maintree/contributor/main-tree-contributor.interface';
 import {TreeNodeType} from '../../shared/maintree/types/tree.node.type';

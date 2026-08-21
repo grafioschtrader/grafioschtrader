@@ -10,8 +10,8 @@ import {TradingPlatformPlanService} from '../service/trading.platform.plan.servi
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {HelpIds} from '../../lib/help/help.ids';
 import {ImportTransactionPlatformService} from '../../imptranstemplate/service/import.transaction.platform.service';
-import {DialogService} from 'primeng/dynamicdialog';
-import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
+import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 import {BaseSettings} from '../../lib/base.settings';

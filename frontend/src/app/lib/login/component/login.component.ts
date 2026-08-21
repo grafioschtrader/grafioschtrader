@@ -7,7 +7,7 @@ import {GlobalparameterService} from '../../services/globalparameter.service';
 import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
 import {TranslateHelper} from '../../helper/translate.helper';
 import {FormBase} from '../../edit/form.base';
-import {DialogService} from 'primeng/dynamicdialog';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 import {ActuatorService, ApplicationInfo} from '../../services/actuator.service';
 import {combineLatest} from 'rxjs';
 import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
@@ -20,7 +20,7 @@ import {HelpIds} from '../../help/help.ids';
 import {BaseSettings} from '../../base.settings';
 
 import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
-import {CardModule} from 'primeng/card';
+import {CardModule} from '@openng/optimus-ui/card';
 import {ApplicationInfoComponent} from './application-info.component';
 import {PasswordEditComponent} from './password-edit.component';
 

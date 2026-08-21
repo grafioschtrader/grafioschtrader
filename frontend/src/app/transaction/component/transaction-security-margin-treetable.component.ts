@@ -1,5 +1,5 @@
 import {Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
-import {ConfirmationService, FilterService, MenuItem, TreeNode} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem, TreeNode} from '@openng/optimus-ui/api';
 import {TransactionContextMenu} from './transaction.context.menu';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {SecurityService} from '../../securitycurrency/service/security.service';
@@ -23,9 +23,9 @@ import {TransactionSecurityFieldDefinition} from './transaction.security.field.d
 import {TransactionSecurityOptionalParam} from '../model/transaction.security.optional.param';
 import {HelpIds} from '../../lib/help/help.ids';
 import {CommonModule} from '@angular/common';
-import {TreeTableModule} from 'primeng/treetable';
-import {TooltipModule} from 'primeng/tooltip';
-import {ContextMenuModule} from 'primeng/contextmenu';
+import {TreeTableModule} from '@openng/optimus-ui/treetable';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
+import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
 import {TransactionSecurityEditComponent} from './transaction-security-edit.component';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
@@ -156,9 +156,9 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    * @param parentChildRegisterService Service for managing parent-child component relationships
    * @param activePanelService Service for managing active panel state
    * @param transactionService Service for transaction operations and data management
-   * @param confirmationService PrimeNG service for displaying confirmation dialogs
+   * @param confirmationService Optimus service for displaying confirmation dialogs
    * @param messageToastService Service for displaying toast messages to users
-   * @param filterService PrimeNG service for table filtering functionality
+   * @param filterService Optimus service for table filtering functionality
    * @param translateService Angular service for internationalization and translations
    * @param gps Global parameter service for application-wide settings
    * @param usersettingsService Service for managing user-specific settings
@@ -244,7 +244,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
         this.setFieldHeaderTranslation(cc);
       });
       // Build the tree locally, then set firstRowIndexOnPage BEFORE transactionNodes so
-      // PrimeNG's TreeTable.updateSerializedValue (triggered by [value]) reads the
+      // Optimus's TreeTable.updateSerializedValue (triggered by [value]) reads the
       // correct `first` and slices the right page in one CD cycle. setTimeout would land
       // first in a later cycle and only update the paginator UI, not the rendered rows.
       const rootNodes = this.buildTreeNodes();

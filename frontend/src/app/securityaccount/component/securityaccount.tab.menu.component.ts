@@ -8,7 +8,7 @@ import {BaseTabMenuComponent} from '../../lib/tabmenu/component/base.tab.menu.co
 import {TabItem} from '../../lib/types/tab.item';
 import {BaseSettings} from '../../lib/base.settings';
 import {TreeNavigationStateService} from '../../lib/maintree/service/tree.navigation.state.service';
-import {Tabs, TabList, Tab} from 'primeng/tabs';
+import {Tabs, TabList, Tab} from '@openng/optimus-ui/tabs';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
 
 /**

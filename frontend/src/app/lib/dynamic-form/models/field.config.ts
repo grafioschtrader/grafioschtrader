@@ -3,7 +3,7 @@ import {InputType} from './input.type';
 import {BaseInputComponent} from '../components/base.input.component';
 import {BaseFieldFieldgroupConfig} from './base.field.fieldgroup.config';
 import {BaseFieldDefinition, PropertyEditShare} from './base.field.definition';
-import {MenuItem, TreeNode} from 'primeng/api';
+import {MenuItem, TreeNode} from '@openng/optimus-ui/api';
 
 /**
  * Definition of input elements and buttons.
@@ -45,13 +45,13 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinit
   /** To Uppercase */
   upperCase?: boolean;
 
-  /** PrimeNG Dropdown may have children. For buttons can be used for loading state. */
+  /** Optimus Dropdown may have children. For buttons can be used for loading state. */
   groupItemUseOrLoading?: boolean;
 
-  /** Contains the items for a PrimeNG Dropdown */
+  /** Contains the items for an Optimus dropdown. */
   groupItem?: GroupItem[];
 
-  /** Enables a search/filter input inside PrimeNG dropdown (p-select) overlay */
+  /** Enables a search/filter input inside Optimus dropdown (p-select) overlay */
   filter?: boolean;
 
   /**
@@ -93,7 +93,7 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinit
   /** Default value */
   defaultValue?: any;
 
-  /** Used for PrimeNG p-inputNumber */
+  /** Used for Optimus p-inputNumber */
   inputNumberSettings?: InputNumberSetting;
 
   calendarConfig?: CalendarConfig;
@@ -118,7 +118,7 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinit
   suggestions?: string[];
   suggestionsFN?: (any) => void;
 
-  /** TreeNode array for PrimeNG TreeSelect component */
+  /** TreeNode array for Optimus TreeSelect component */
   treeNodes?: TreeNode[];
 
   /** Whether TreeSelect propagates selection to children/parents (default true) */

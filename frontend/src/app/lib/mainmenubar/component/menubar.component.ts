@@ -15,12 +15,12 @@ import {MessageToastService} from '../../message/message.toast.service';
 import {UserSettingsDialogs} from './user-settings-dialogs';
 import {Subscription} from 'rxjs';
 import {TranslateHelper} from '../../helper/translate.helper';
-import {ConfirmationService, MenuItem} from 'primeng/api';
+import {ConfirmationService, MenuItem} from '@openng/optimus-ui/api';
 import saveAs from '../../filesaver/filesaver';
 import {BaseSettings} from '../../base.settings';
 import {HelpIds} from '../../help/help.ids';
-import {MenubarModule} from 'primeng/menubar';
-import {DialogService} from 'primeng/dynamicdialog';
+import {MenubarModule} from '@openng/optimus-ui/menubar';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 import {ManageClientService} from '../../manageclient/service/manage-client.service';
 import {ClientCreateDynamicComponent} from '../../manageclient/component/client-create-dynamic.component';
 import {ManagedClientsTableDialogComponent} from '../../manageclient/component/managed-clients-table.dialog.component';
@@ -186,7 +186,7 @@ export class MenubarComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** Publishes a fresh array reference so the PrimeNG menubar picks up structural changes. */
+  /** Publishes a fresh array reference so the Optimus menubar picks up structural changes. */
   private refreshTopMenu(): void {
     this.menuItems = this.menuItems.slice();
     this.activePanelService.topMenuItems = this.menuItems;

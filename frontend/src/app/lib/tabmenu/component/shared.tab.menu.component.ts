@@ -7,10 +7,10 @@ import {Subscription} from 'rxjs';
 import {TabMenuService} from '../service/tab.menu.service';
 import {SessionStorageTabHelper} from './session.storage.tab.helper';
 
-import {TabsModule} from 'primeng/tabs';
+import {TabsModule} from '@openng/optimus-ui/tabs';
 
 /**
- * Shared Tab Menu Component providing a consistent tab menu interface using PrimeNG p-tabs.
+ * Shared Tab Menu Component providing a consistent tab menu interface using Optimus p-tabs.
  * Supports automatic translation, session storage persistence, and custom navigation handlers.
  *
  * @example

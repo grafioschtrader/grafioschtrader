@@ -1,6 +1,6 @@
 import {Injector} from '@angular/core';
 import {TableConfigBase} from './table.config.base';
-import {FilterService} from 'primeng/api';
+import {FilterService} from '@openng/optimus-ui/api';
 import {UserSettingsService} from '../services/user.settings.service';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../services/globalparameter.service';

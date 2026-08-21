@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {ConfirmationService, MenuItem, TreeNode} from 'primeng/api';
+import {ConfirmationService, MenuItem, TreeNode} from '@openng/optimus-ui/api';
 import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
 import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';

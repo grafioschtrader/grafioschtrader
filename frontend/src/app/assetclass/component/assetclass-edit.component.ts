@@ -15,7 +15,7 @@ import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
 import {AppSettings} from '../../shared/app.settings';
 import {AssetClassTypeSpecInstrument} from '../../udfmetasecurity/components/asset.class.type.spec.instrument';
 import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 /**

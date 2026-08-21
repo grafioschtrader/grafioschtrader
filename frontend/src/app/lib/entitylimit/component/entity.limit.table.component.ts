@@ -1,7 +1,7 @@
 import {Component, Injector, OnDestroy, ViewChild} from '@angular/core';
-import {DialogService} from 'primeng/dynamicdialog';
-import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
-import {TooltipModule} from 'primeng/tooltip';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
+import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {combineLatest} from 'rxjs';
 

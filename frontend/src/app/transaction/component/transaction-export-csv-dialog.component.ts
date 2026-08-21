@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, OnInit, ViewChild} from '@angular/core';
 import {HttpResponse} from '@angular/common/http';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {DynamicDialogConfig, DynamicDialogRef} from '@openng/optimus-ui/dynamicdialog';
 
 import saveAs from '../../lib/filesaver/filesaver';
 import {FormBase} from '../../lib/edit/form.base';

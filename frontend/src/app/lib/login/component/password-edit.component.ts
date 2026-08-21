@@ -15,7 +15,7 @@ import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.i
 import {GlobalSessionNames} from '../../global.session.names';
 import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
 
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 
 /**

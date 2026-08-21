@@ -9,7 +9,7 @@ import {Subscription} from 'rxjs';
 import {InfoLevelType} from '../../message/info.leve.type';
 import {AppHelper} from '../../helper/app.helper';
 import {TranslateService} from '@ngx-translate/core';
-import {ConfirmationService, MenuItem} from 'primeng/api';
+import {ConfirmationService, MenuItem} from '@openng/optimus-ui/api';
 import {MessageToastService} from '../../message/message.toast.service';
 import {DeleteService} from '../../datashowbase/delete.service';
 import {BaseID} from '../../entities/base.id';

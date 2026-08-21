@@ -5,8 +5,8 @@ import {TranslateModule} from '@ngx-translate/core';
 import {FilterOutPipe} from '../../pipe/FilterOutPipe';
 import {CommonModule} from '@angular/common';
 import {ReactiveFormsModule} from '@angular/forms';
-import {KeyFilterModule} from 'primeng/keyfilter';
-import {TooltipModule} from 'primeng/tooltip';
+import {KeyFilterModule} from '@openng/optimus-ui/keyfilter';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
 import {UpperCaseDirective} from './upper-case.directive';
 
 /**

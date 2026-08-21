@@ -1,6 +1,6 @@
 import {InjectionToken, Type} from '@angular/core';
 import {Observable} from 'rxjs';
-import {MenuItem, TreeNode} from 'primeng/api';
+import {MenuItem, TreeNode} from '@openng/optimus-ui/api';
 import {ProcessedActionData} from '../../types/processed.action.data';
 
 /**

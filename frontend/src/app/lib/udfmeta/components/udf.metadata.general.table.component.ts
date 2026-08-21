@@ -1,7 +1,7 @@
 import {Component, Injector, OnDestroy} from '@angular/core';
-import {DialogService} from 'primeng/dynamicdialog';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 import {UDFMetadataGeneral, UDFMetadataGeneralParam} from '../model/udf.metadata';
-import {ConfirmationService, FilterService} from 'primeng/api';
+import {ConfirmationService, FilterService} from '@openng/optimus-ui/api';
 import {MessageToastService} from '../../message/message.toast.service';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
@@ -82,11 +82,11 @@ export class UDFMetadataGeneralTableComponent extends UDFMetaTable<UDFMetadataGe
    *
    * @param udfSpecialTypeDisableUserService - Service for managing disabled special types
    * @param uDFMetadataGeneralService - Service for UDF metadata CRUD operations
-   * @param confirmationService - PrimeNG confirmation dialog service
+   * @param confirmationService - Optimus confirmation dialog service
    * @param messageToastService - Service for displaying user notifications
    * @param activePanelService - Service for managing active panels in the UI
-   * @param dialogService - PrimeNG dynamic dialog service
-   * @param filterService - PrimeNG filter service for table filtering
+   * @param dialogService - Optimus dynamic dialog service
+   * @param filterService - Optimus filter service for table filtering
    * @param translateService - Translation service for i18n support
    * @param gps - Global parameter service providing user settings and system configuration
    * @param usersettingsService - Service for managing user preferences

@@ -1,7 +1,7 @@
 import {Injectable, Type} from '@angular/core';
 import {Observable} from 'rxjs';
 import {TranslateService} from '@ngx-translate/core';
-import {DialogService} from 'primeng/dynamicdialog';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 import {DialogHandler} from '../../../lib/maintree/handler/dialog-handler.interface';
 import {MainTreeDynamicDialogs} from '../../../dynamic-dialog/component/main.tree.dynamic.dialogs';
 import {CallParam} from '../types/dialog.visible';

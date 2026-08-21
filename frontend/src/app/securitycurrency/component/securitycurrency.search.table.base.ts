@@ -7,7 +7,7 @@ import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
 import {Currencypair} from '../../entities/currencypair';
 import {Security} from '../../entities/security';
-import {FilterService} from 'primeng/api';
+import {FilterService} from '@openng/optimus-ui/api';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 

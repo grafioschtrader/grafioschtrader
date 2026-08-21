@@ -32,7 +32,7 @@
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "node_modules/normalize.css/normalize.css",
-              "node_modules/primeicons/primeicons.css",
+              "node_modules/@openng/icons/openng-icons.css",
               "node_modules/font-awesome/css/font-awesome.min.css",
               "node_modules/ngx-toastr/toastr.css",
               "node_modules/flag-icons/css/flag-icons.min.css",
@@ -138,7 +138,7 @@
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "node_modules/normalize.css/normalize.css",
-              "node_modules/primeicons/primeicons.css",
+              "node_modules/@openng/icons/openng-icons.css",
               "node_modules/font-awesome/css/font-awesome.min.css",
               "src/assets/theme.css",
               "src/styles.css",

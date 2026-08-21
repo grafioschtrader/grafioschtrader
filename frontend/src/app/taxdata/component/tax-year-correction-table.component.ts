@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {ConfirmationService, FilterService} from 'primeng/api';
+import {ConfirmationService, FilterService} from '@openng/optimus-ui/api';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {ButtonModule} from 'primeng/button';
+import {ButtonModule} from '@openng/optimus-ui/button';
 
 import {TableEditConfigBase} from '../../lib/datashowbase/table.edit.config.base';
 import {EditableTableComponent, RowEditEvent, RowEditSaveEvent} from '../../lib/datashowbase/editable-table.component';

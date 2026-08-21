@@ -16,7 +16,7 @@ import {MessageToastService} from '../../message/message.toast.service';
 import {TranslateHelper} from '../../helper/translate.helper';
 import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
 
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 
 /**

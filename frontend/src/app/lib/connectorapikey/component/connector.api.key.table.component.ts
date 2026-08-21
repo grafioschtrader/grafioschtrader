@@ -1,9 +1,9 @@
 import {Component, Injector, OnDestroy} from '@angular/core';
 
-import {DialogService} from 'primeng/dynamicdialog';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 import {TableCrudSupportMenu} from '../../datashowbase/table.crud.support.menu';
 import {ConnectorApiKey, SubscriptionTypeReadableName} from '../types/connector.api.key';
-import {ConfirmationService, FilterService} from 'primeng/api';
+import {ConfirmationService, FilterService} from '@openng/optimus-ui/api';
 import {MessageToastService} from '../../message/message.toast.service';
 import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';

@@ -60,6 +60,12 @@ interface ApiSecurity {
   currency: string;
 }
 
+interface ApiHistoryquoteDateClose {
+  idSecuritycurrency: number;
+  date: string;
+  close: number;
+}
+
 interface ApiSecurityTransfer {
   idSecurityTransfer: number;
   security: ApiSecurity;
@@ -113,6 +119,51 @@ export async function resolveTransferAccounts(page: Page,
     source: resolveAccount(portfolios, fixture.sourcePortfolioName, fixture.sourceAccountName),
     target: resolveAccount(portfolios, fixture.targetPortfolioName, fixture.targetAccountName),
   };
+}
+
+/** Ensures the exact closing price required by the backend exists, without relying on an async connector import. */
+export async function ensureSecurityTransferQuote(page: Page, fixture: SecurityTransferFixture): Promise<void> {
+  await test.step('ensure security-transfer closing price', async () => {
+    const headers = await authHeaders(page);
+    const searchResponse = await page.request.get('/api/security/search', {
+      headers,
+      params: {isin: fixture.isin, currency: fixture.currency},
+    });
+    expect(searchResponse.ok(), `searching security ${fixture.isin}/${fixture.currency}: ${await searchResponse.text()}`)
+      .toBeTruthy();
+    const matches = (await searchResponse.json() as ApiSecurity[])
+      .filter(security => security.isin === fixture.isin && security.currency === fixture.currency);
+    expect(matches, `security ${fixture.isin}/${fixture.currency}`).toHaveLength(1);
+
+    const quoteUrl = `/api/historyquote/${matches[0].idSecuritycurrency}/${fixture.transferDate.replaceAll('-', '')}/true`;
+    let quote = await getHistoryquoteDateClose(page, quoteUrl, headers);
+    if (quote?.date === fixture.transferDate) {
+      expect(quote.close, `closing price for ${fixture.isin} on ${fixture.transferDate}`)
+        .toBeCloseTo(fixture.quotation, 8);
+      return;
+    }
+
+    const createResponse = await page.request.post('/api/historyquote', {
+      headers,
+      data: {
+        idSecuritycurrency: matches[0].idSecuritycurrency,
+        date: fixture.transferDate,
+        close: fixture.quotation,
+      },
+    });
+    if (!createResponse.ok()) {
+      // The background connector may insert the same quote between the lookup and create requests.
+      const createError = await createResponse.text();
+      quote = await getHistoryquoteDateClose(page, quoteUrl, headers);
+      expect(quote?.date, `creating ${fixture.isin} quote on ${fixture.transferDate}: ${createError}`)
+        .toBe(fixture.transferDate);
+    } else {
+      quote = await getHistoryquoteDateClose(page, quoteUrl, headers);
+    }
+    expect(quote?.date, `closing price date for ${fixture.isin}`).toBe(fixture.transferDate);
+    expect(quote?.close, `closing price for ${fixture.isin} on ${fixture.transferDate}`)
+      .toBeCloseTo(fixture.quotation, 8);
+  });
 }
 
 /**
@@ -294,6 +345,14 @@ async function getSecurityActionTree(page: Page,
   return await response.json() as ApiSecurityActionTreeData;
 }
 
+async function getHistoryquoteDateClose(page: Page, url: string,
+    headers: Record<string, string>): Promise<ApiHistoryquoteDateClose | null> {
+  const response = await page.request.get(url, {headers});
+  const body = await response.text();
+  expect(response.ok(), `loading history quote: ${body}`).toBeTruthy();
+  return body.length > 0 ? JSON.parse(body) as ApiHistoryquoteDateClose : null;
+}
+
 function matchesFixture(transfer: ApiSecurityTransfer, fixture: SecurityTransferFixture,
     resolved: ResolvedSecurityTransferFixture): boolean {
   return transfer.security?.name === fixture.securityName
@@ -361,7 +420,10 @@ async function fillDate(dialog: Locator, isoDate: string, locale: string): Promi
   await input.click();
   await input.press('Control+a');
   await input.press('Backspace');
-  await input.pressSequentially(value, {delay: 20});
+  // Optimus parses on every keyboard-generated input event. Insert the complete date in one event so an incomplete
+  // intermediate value is not rejected and repainted as empty before the next character is entered.
+  await input.press('ArrowRight');
+  await input.fill(value);
   await input.press('Tab');
   await expect(input).toHaveValue(value);
 }

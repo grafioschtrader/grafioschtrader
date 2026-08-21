@@ -1,7 +1,7 @@
 import {Directive, Injector, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
-import {ConfirmationService, FilterService, MenuItem, SortEvent} from 'primeng/api';
-import {DialogService} from 'primeng/dynamicdialog';
+import {ConfirmationService, FilterService, MenuItem, SortEvent} from '@openng/optimus-ui/api';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 
 import {CrudMenuOptions, TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';

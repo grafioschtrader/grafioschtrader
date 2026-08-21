@@ -8,13 +8,13 @@ import {
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {TreeTableModule} from 'primeng/treetable';
-import {ContextMenuModule} from 'primeng/contextmenu';
-import {CheckboxModule} from 'primeng/checkbox';
-import {TooltipModule} from 'primeng/tooltip';
-import {InputNumberModule} from 'primeng/inputnumber';
-import {InputTextModule} from 'primeng/inputtext';
-import {MenuItem, TreeNode} from 'primeng/api';
+import {TreeTableModule} from '@openng/optimus-ui/treetable';
+import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
+import {CheckboxModule} from '@openng/optimus-ui/checkbox';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
+import {InputNumberModule} from '@openng/optimus-ui/inputnumber';
+import {InputTextModule} from '@openng/optimus-ui/inputtext';
+import {MenuItem, TreeNode} from '@openng/optimus-ui/api';
 import {ColumnConfig, EditInputType} from './column.config';
 import {DataType} from '../dynamic-form/models/data.type';
 import {BaseLocale} from '../dynamic-form/models/base.locale';
@@ -35,7 +35,7 @@ export interface TreeTableCellEditEvent {
 }
 
 /**
- * Reusable tree table component providing standardized PrimeNG TreeTable functionality with column
+ * Reusable tree table component providing standardized Optimus TreeTable functionality with column
  * configuration, sorting, selection, context menu support, and inline cell editing.
  *
  * This component is the tree-table counterpart to ConfigurableTableComponent. It eliminates
@@ -432,17 +432,17 @@ export class ConfigurableTreeTableComponent {
 
   /**
    * Handles right-click on a tree table row to update selection before context menu shows.
-   * PrimeNG TreeTable passes serialized nodes ({node, parent, level, visible}) as the
+   * Optimus TreeTable passes serialized nodes ({node, parent, level, visible}) as the
    * template $implicit variable. We must extract the actual TreeNode (.node) to keep
-   * selection consistent with PrimeNG's own left-click handling.
+   * selection consistent with Optimus's own left-click handling.
    *
    * A right-click must select exactly like a left-click, otherwise a host that keeps its own copy of
    * the selected node (to build a level dependent context menu) still holds the previously
    * left-clicked node and opens the wrong menu. The nodeSelect event is therefore emitted
-   * unconditionally: PrimeNG toggles an already selected row off on the next click, so the host has
+   * unconditionally: Optimus toggles an already selected row off on the next click, so the host has
    * to be told about the right-clicked row even when it is the current selection.
    *
-   * @param rowNode - The serialized tree node from PrimeNG's body template
+   * @param rowNode - The serialized tree node from Optimus's body template
    */
   onRowContextMenu(rowNode: any): void {
     const node = rowNode.node ?? rowNode;
@@ -458,7 +458,7 @@ export class ConfigurableTreeTableComponent {
    *
    * @param rowData - Row data object containing the toggled field
    * @param field - Column configuration for the checkbox field
-   * @param event - PrimeNG checkbox change event
+   * @param event - Optimus checkbox change event
    */
   onCheckboxChange(rowData: any, field: ColumnConfig, event: any): void {
     this.checkboxChange.emit({rowData, field, value: event.checked});
@@ -516,7 +516,7 @@ export class ConfigurableTreeTableComponent {
   /**
    * Stores the original value when cell editing begins.
    *
-   * @param event - PrimeNG TreeTable edit init event with {field, data}
+   * @param event - Optimus TreeTable edit init event with {field, data}
    */
   onCellEditInit(event: any): void {
     this.editingOriginalValue = event.data[event.field];
@@ -526,7 +526,7 @@ export class ConfigurableTreeTableComponent {
    * Handles cell edit completion (Enter/Tab/click outside).
    * Emits cellEditComplete with original and new values.
    *
-   * @param event - PrimeNG TreeTable edit complete event with {field, data}
+   * @param event - Optimus TreeTable edit complete event with {field, data}
    */
   onCellEditCompleteHandler(event: any): void {
     const fieldConfig = this.fields.find(f => f.field === event.field);
@@ -544,7 +544,7 @@ export class ConfigurableTreeTableComponent {
    * Handles cell edit cancellation (Escape key).
    * Restores the original value and emits cellEditCancel.
    *
-   * @param event - PrimeNG TreeTable edit cancel event with {field, data}
+   * @param event - Optimus TreeTable edit cancel event with {field, data}
    */
   onCellEditCancelHandler(event: any): void {
     const fieldConfig = this.fields.find(f => f.field === event.field);
@@ -625,7 +625,7 @@ export class ConfigurableTreeTableComponent {
   /**
    * Returns CSS class(es) for a row using the rowClassFn callback.
    *
-   * @param rowNode - PrimeNG TreeNode wrapper
+   * @param rowNode - Optimus TreeNode wrapper
    * @param rowData - Row data object
    * @returns CSS class string or null
    */

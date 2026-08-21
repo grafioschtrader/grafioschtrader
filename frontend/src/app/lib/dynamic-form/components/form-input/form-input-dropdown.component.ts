@@ -1,15 +1,15 @@
 import {Component} from '@angular/core';
 import {BaseInputComponent} from '../base.input.component';
 import {ReactiveFormsModule} from '@angular/forms';
-import {SelectModule} from 'primeng/select';
-import {TooltipModule} from 'primeng/tooltip';
+import {SelectModule} from '@openng/optimus-ui/select';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
 import {TranslateModule} from '@ngx-translate/core';
 import {FilterOutPipe} from '../../pipe/FilterOutPipe';
 import {UpperCaseDirective} from './upper-case.directive';
 
 
 /**
- * This PrimeNG dropdown allows grouping the offered options.
+ * This Optimus dropdown allows grouping the offered options.
  */
 @Component({
     selector: 'form-input-dropdown',

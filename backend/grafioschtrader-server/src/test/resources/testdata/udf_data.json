@@ -1,0 +1,101 @@
+{
+  "_comment": [
+    "User-defined field values exported from grafioschtrader_t for the Playwright suite.",
+    "Metadata descriptions and instrument natural keys replace database IDs because IDs differ between runs.",
+    "The watchlist name identifies where Playwright selects the instrument before opening the UDF form."
+  ],
+  "udfData": [
+    {
+      "loginNickname": "admin",
+      "watchlistName": "_USA",
+      "entity": "Security",
+      "securityName": "Meta Platforms Inc (ehemals Facebook)",
+      "isin": "US30303M1027",
+      "currency": "USD",
+      "values": {
+        "CFD möglich": true,
+        "Short Volume Link": "https://www.marketbeat.com/stocks/NASDAQ/META/short-interest/"
+      },
+      "e2e": "e"
+    },
+    {
+      "loginNickname": "admin",
+      "watchlistName": "_USA",
+      "entity": "Security",
+      "securityName": "Walt Disney Company",
+      "isin": "US2546871060",
+      "currency": "USD",
+      "values": {
+        "CFD möglich": true,
+        "Short Volume Link": "https://www.marketbeat.com/stocks/NYSE/DIS/short-interest/"
+      },
+      "e2e": "e"
+    },
+    {
+      "loginNickname": "admin",
+      "watchlistName": "_USA",
+      "entity": "Security",
+      "securityName": "Dropbox, Inc.",
+      "isin": "US26210C1045",
+      "currency": "USD",
+      "values": {
+        "CFD möglich": true,
+        "Short Volume Link": "https://www.marketbeat.com/stocks/NASDAQ/DBX/short-interest/"
+      },
+      "e2e": "e"
+    },
+    {
+      "loginNickname": "alledit",
+      "watchlistName": "_USA",
+      "entity": "Security",
+      "securityName": "Electronic Arts",
+      "isin": "US2855121099",
+      "currency": "USD",
+      "values": {
+        "Wikipedia Link": "https://de.wikipedia.org/wiki/Electronic_Arts",
+        "CFD möglich": true,
+        "Bilanz Link": "https://www.finanzen.ch/dividende/electronic_arts#bilanz-guv"
+      },
+      "e2e": "e"
+    },
+    {
+      "loginNickname": "alledit",
+      "watchlistName": "_USA",
+      "entity": "Security",
+      "securityName": "Walt Disney Company",
+      "isin": "US2546871060",
+      "currency": "USD",
+      "values": {
+        "Wikipedia Link": "https://de.wikipedia.org/wiki/The_Walt_Disney_Company",
+        "CFD möglich": true,
+        "Bilanz Link": "https://www.finanzen.ch/dividende/disney#bilanz-guv"
+      },
+      "e2e": "e"
+    },
+    {
+      "loginNickname": "alledit",
+      "watchlistName": "_USA",
+      "entity": "Security",
+      "securityName": "Dropbox, Inc.",
+      "isin": "US26210C1045",
+      "currency": "USD",
+      "values": {
+        "Wikipedia Link": "https://de.wikipedia.org/wiki/Dropbox",
+        "CFD möglich": true,
+        "Bilanz Link": "https://www.finanzen.ch/dividende/dropbox#bilanz-guv"
+      },
+      "e2e": "e"
+    },
+    {
+      "loginNickname": "alledit",
+      "watchlistName": "currencypair",
+      "entity": "Currencypair",
+      "fromCurrency": "CHF",
+      "toCurrency": "GBP",
+      "values": {
+        "FX möglich": true
+      },
+      "e2e": "e"
+    }
+  ]
+}

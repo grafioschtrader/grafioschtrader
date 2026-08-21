@@ -1,6 +1,6 @@
 import {Router} from '@angular/router';
 import {TranslateService} from '@ngx-translate/core';
-import {DialogService, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {DialogService, DynamicDialogRef} from '@openng/optimus-ui/dynamicdialog';
 import {GlobalparameterService} from '../../services/globalparameter.service';
 import {LoginService} from '../../login/service/log-in.service';
 import {LimitTransactionRequestDynamicComponent} from './limit.transaction.request.dynamic.component';

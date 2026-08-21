@@ -1,7 +1,7 @@
 import {Injector} from '@angular/core';
 import {ShowRecordConfigBase} from './show.record.config.base';
 import {TranslateService} from '@ngx-translate/core';
-import {FilterService, SelectItem} from 'primeng/api';
+import {FilterService, SelectItem} from '@openng/optimus-ui/api';
 import moment from 'moment';
 import {ColumnConfig, ColumnGroupConfig} from './column.config';
 import {AppHelper} from '../helper/app.helper';
@@ -33,7 +33,7 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
   /** Flag indicating whether any columns have filtering enabled */
   public hasFilter = false;
 
-  /** Custom filter options for PrimeNG table/tree table filter dropdowns */
+  /** Custom filter options for Optimus table/tree table filter dropdowns */
   customMatchModeOptions: SelectItem[] = [];
 
   /** Names of registered custom filter functions */
@@ -45,7 +45,7 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    * @param translateService - Angular translation service for internationalization
    * @param gps - Global parameter base service for locale and formatting settings
    * @param injector - Angular injector for lazy service resolution in subclasses
-   * @param filterService - Optional PrimeNG service for registering custom filters
+   * @param filterService - Optional Optimus service for registering custom filters
    */
   protected constructor(translateService: TranslateService,
     gps: GlobalparameterService,
@@ -225,7 +225,7 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
   }
 
   /**
-   * Registers custom filter functions with PrimeNG FilterService.
+   * Registers custom filter functions with Optimus FilterService.
    * Sets up date-specific filters and translates filter option labels.
    */
   protected registerFilter(): void {
@@ -339,7 +339,7 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    * and points {@link ColumnConfig.filterField} at it. Without this, filtering such a column would match against the
    * raw data value while the user sees, and filters for, the transformed one.
    *
-   * The shadow property is written flat on the row with all dots of the field path replaced, because PrimeNG resolves
+   * The shadow property is written flat on the row with all dots of the field path replaced, because Optimus resolves
    * a dotted field name by walking the object graph instead of reading a property of that literal name. Columns with
    * translated values are excluded, they already carry their own '$' field through the translated value store.
    *
@@ -360,7 +360,7 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    *
    * @param event - Calendar input event
    * @param columnConfig - Column configuration for the date field
-   * @param table - PrimeNG table or tree table instance
+   * @param table - Optimus table or tree table instance
    * @param calendar - Calendar component instance
    */
   public dateInputFilter(event, columnConfig: ColumnConfig, table: FilterableTable, calendar: any): void {
@@ -375,7 +375,7 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    *
    * @param event - Date value to filter by
    * @param columnConfig - Column configuration containing data type info
-   * @param table - PrimeNG table or tree table instance to apply filter to
+   * @param table - Optimus table or tree table instance to apply filter to
    */
   public filterDate(event, columnConfig: ColumnConfig, table: FilterableTable): void {
     if (event) {
@@ -397,7 +397,7 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    *
    * @param event - Input event containing filter value
    * @param columnConfig - Column configuration for the numeric field
-   * @param table - PrimeNG table or tree table instance to apply filter to
+   * @param table - Optimus table or tree table instance to apply filter to
    */
   public filterDecimal(event, columnConfig: ColumnConfig, table: FilterableTable): void {
     table.filter(event.target.value, columnConfig.field, 'equals');

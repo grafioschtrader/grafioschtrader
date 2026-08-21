@@ -96,7 +96,7 @@ export function loadGenericConnectors(): GenericConnectorDefData[] {
 }
 
 // ---------------------------------------------------------------------------
-// i18n label lookup for PrimeNG multiselect items whose labels are TRANSLATED
+// i18n label lookup for Optimus UI multiselect items whose labels are TRANSLATED
 // enum names (supportedCategories → AssetclassCategory, endpointOptions →
 // EndpointOption). Select/option elements use raw enum names as values and
 // need no lookup. Enum translations live in the BACKEND messages*.properties
@@ -271,7 +271,7 @@ export async function selectByValue(scope: Locator, fieldId: string, value: stri
 
 /**
  * Sets a dynamic-form checkbox (FormCheckboxComponent renders a plain native
- * <input type="checkbox"> — NOT a PrimeNG p-checkbox) to the desired state. setChecked() performs
+ * <input type="checkbox"> — NOT an Optimus UI p-checkbox) to the desired state. setChecked() performs
  * a real click when the state differs, which fires the change event the reactive form listens to.
  */
 export async function setCheckbox(scope: Locator, fieldId: string, desired: boolean): Promise<void> {
@@ -279,7 +279,7 @@ export async function setCheckbox(scope: Locator, fieldId: string, desired: bool
 }
 
 /**
- * Selects entries in a PrimeNG p-multiSelect whose item labels are translated enum names.
+ * Selects entries in an Optimus UI p-multiSelect whose item labels are translated enum names.
  * Opens the overlay, clicks each item by its DE/EN label (or raw key), then closes with Escape.
  */
 export async function pickMultiSelect(page: Page, scope: Locator, fieldId: string,

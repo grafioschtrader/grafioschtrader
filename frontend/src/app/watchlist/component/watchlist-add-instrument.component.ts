@@ -9,7 +9,7 @@ import {SecuritycurrencySearchBase} from '../../securitycurrency/component/secur
 import {TenantLimit} from '../../shared/types/tenant.limit';
 import {MultipleRequestToOneService} from '../../shared/service/multiple.request.to.one.service';
 import {WatchlistAddInstrumentTableComponent} from './watchlist-add-instrument-table.component';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 /**

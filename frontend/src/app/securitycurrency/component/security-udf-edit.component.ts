@@ -9,7 +9,7 @@ import {Assetclass} from '../../entities/assetclass';
 import {SecurityUDFHelper} from './security.udf.helper';
 import {BaseUDFDataEdit} from '../../lib/udfmeta/components/base.udf.data.edit';
 import {Security} from '../../entities/security';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 
 /**

@@ -13,7 +13,7 @@ import {BaseAuthService} from './base.auth.service';
 import {UserOwnProjection} from '../../entities/projection/user.own.projection';
 import {SuccessfullyChanged} from '../model/successfully.changed';
 import {AppHelper} from '../../helper/app.helper';
-import {PrimeNG} from 'primeng/config';
+import {Optimus} from '@openng/optimus-ui/config';
 import {BaseSettings} from '../../base.settings';
 import {AfterLoginHandler} from './after-login.handler';
 import {ConfigurationWithLogin} from '../model';
@@ -25,20 +25,20 @@ export class LoginService extends BaseAuthService<User> {
   constructor(private router: Router,
     public translateService: TranslateService,
     private gps: GlobalparameterService,
-    private primeNGConfig: PrimeNG,
+    private optimusConfig: Optimus,
     httpClient: HttpClient,
     messageToastService: MessageToastService,
     @Optional() private afterLoginHandler?: AfterLoginHandler) {
     super(httpClient, messageToastService);
   }
 
-  public static setGlobalLang(translateService: TranslateService, primeNGConfig: PrimeNG): void {
+  public static setGlobalLang(translateService: TranslateService, optimusConfig: Optimus): void {
     if (translateService.getLangs().find(lang => lang === sessionStorage.getItem(GlobalSessionNames.LANGUAGE))) {
       translateService.use(sessionStorage.getItem(GlobalSessionNames.LANGUAGE)).subscribe(params => console.log('loaded'));
     } else {
       translateService.use(AppHelper.getNonUserDefinedLanguage(translateService.getBrowserLang()));
     }
-    translateService.get('primeng').subscribe(res => primeNGConfig.setTranslation(res));
+    translateService.get('optimus').subscribe(res => optimusConfig.setTranslation(res));
   }
 
   login(email: string, password: string, note?: string): Observable<Response> {
@@ -88,7 +88,7 @@ export class LoginService extends BaseAuthService<User> {
     // AppComponent could only fall back to the browser language. Without this call the user's
     // configured language would take effect at the next full page load at the earliest, and never
     // at all when the browser is set to another language.
-    LoginService.setGlobalLang(this.translateService, this.primeNGConfig);
+    LoginService.setGlobalLang(this.translateService, this.optimusConfig);
 
     // Call application-specific handler if provided
     if (this.afterLoginHandler) {

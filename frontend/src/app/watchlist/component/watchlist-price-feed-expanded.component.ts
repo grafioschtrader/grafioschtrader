@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {TranslateModule} from '@ngx-translate/core';
-import {AccordionModule} from 'primeng/accordion';
+import {AccordionModule} from '@openng/optimus-ui/accordion';
 import {SecuritycurrencyPosition} from '../../entities/view/securitycurrency.position';
 import {Security} from '../../entities/security';
 import {Currencypair} from '../../entities/currencypair';
@@ -15,7 +15,7 @@ import {WatchlistExpandedPanelStateService} from '../service/watchlist.expanded.
  * return and statistical data of the instrument in two accordion panels, both closed initially.
  *
  * <p>
- * The panels are not only hidden but their content is removed from the DOM while they are closed, because a PrimeNG
+ * The panels are not only hidden but their content is removed from the DOM while they are closed, because an Optimus
  * accordion keeps its content mounted. Only this way the statistics are requested from the server when the user
  * opens the panel for the first time and not already when the row is expanded.
  * </p>

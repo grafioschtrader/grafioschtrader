@@ -15,8 +15,8 @@ import {RangeSelectDays} from '../../lib/fullyearcalendar/Interface/range.select
 import {TradingCalendarGlobalComponent} from '../../tradingcalendar/component/trading.calendar.global.component';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {TradingDaysWithDateBoundaries} from '../../tradingcalendar/model/trading.days.with.date.boundaries';
-import {DialogService} from 'primeng/dynamicdialog';
-import {MenuItem} from 'primeng/api';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
+import {MenuItem} from '@openng/optimus-ui/api';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {TradingCalendarOtherExchangeDynamicComponent} from './trading.calendar.other.exchange.dynamic.component';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
@@ -25,11 +25,11 @@ import {AuditHelper} from '../../lib/helper/audit.helper';
 import {Stockexchange} from '../../entities/stockexchange';
 import {CreateType} from '../../entities/dividend.split';
 import {BaseSettings} from '../../lib/base.settings';
-import {PanelModule} from 'primeng/panel';
-import {SelectModule} from 'primeng/select';
+import {PanelModule} from '@openng/optimus-ui/panel';
+import {SelectModule} from '@openng/optimus-ui/select';
 import {FullyearcalendarLibComponent} from '../../lib/fullyearcalendar/fullyearcalendar-lib.component';
-import {ButtonModule} from 'primeng/button';
-import {ContextMenuModule} from 'primeng/contextmenu';
+import {ButtonModule} from '@openng/optimus-ui/button';
+import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
 import {NgClass} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 

@@ -3,6 +3,7 @@ import {test} from '@playwright/test';
 import {loginAsFixtureUser} from './helpers';
 import {
   expectSecurityTransfer,
+  ensureSecurityTransferQuote,
   loadE2ESecurityTransfers,
   openSecurityTransferDialog,
   reconcileSecurityTransfer,
@@ -19,6 +20,8 @@ for (const fixture of SECURITY_TRANSFERS) {
 
       test('creates the security transfer from its fixture', async ({page}) => {
         test.setTimeout(240_000);
+        await loginAsFixtureUser(page, 'alledit');
+        await ensureSecurityTransferQuote(page, fixture);
         const credentials = await loginAsFixtureUser(page, fixture.loginNickname);
         const resolved = await resolveTransferAccounts(page, fixture);
         await reconcileSecurityTransfer(page, fixture, resolved);

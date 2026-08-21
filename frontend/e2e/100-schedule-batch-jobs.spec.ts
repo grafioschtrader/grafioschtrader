@@ -117,7 +117,7 @@ async function openTaskDataMonitorView(page: Page): Promise<void> {
 }
 
 /**
- * Picks a task type in the create dialog. `idTask` is a filterable PrimeNG p-select
+ * Picks a task type in the create dialog. `idTask` is a filterable Optimus UI p-select
  * (DynamicFieldHelper.createFieldDropdownStringHeqF), not a native <select>, so the value is chosen
  * from an overlay list instead of through selectOption(). The item text is the translated task
  * description followed by ' - ' and the task number; that number is its only language-independent
@@ -167,7 +167,7 @@ async function openRowMenu(page: Page, row: Locator): Promise<Locator> {
 }
 
 /**
- * Confirms the PrimeNG confirm dialog. Several p-dialog hosts with role="alertdialog" are present in
+ * Confirms the Optimus UI confirm dialog. Several p-dialog hosts with role="alertdialog" are present in
  * the DOM at all times (the tree's and the table's), so the visible one must be selected explicitly —
  * an unfiltered .first() resolves to a permanently hidden host.
  */
@@ -236,7 +236,7 @@ test.describe.serial('schedule CSV-defined batch jobs as admin', () => {
       }
       await expect(dialog.locator('select#idEntity, input#idEntityNum')).toBeHidden();
 
-      // Real key events are mandatory: PrimeNG's onUserInput ignores input events that were not
+      // Real key events are mandatory: Optimus UI's onUserInput ignores input events that were not
       // preceded by a keydown, so fill() never reaches the model.
       const dateInput = dialog.locator('#earliestStartTime input, input#earliestStartTime').first();
       await dateInput.click();

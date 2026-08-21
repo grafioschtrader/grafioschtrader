@@ -16,7 +16,7 @@ import {GlobalparameterService} from '../../lib/services/globalparameter.service
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {PageFirstRowSelectedRow, ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
+import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
 import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
 import {HelpIds} from '../../lib/help/help.ids';
 import {StandingOrderCallParam} from '../../standingorder/model/standing.order.call.param';
@@ -33,7 +33,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
   /** Reference to special investment instruments enum for template usage */
   SpecialInvestmentInstruments: typeof SpecialInvestmentInstruments = SpecialInvestmentInstruments;
 
-  /** ViewChild reference to the PrimeNG context menu component */
+  /** ViewChild reference to the Optimus context menu component */
   @ViewChild('cm') contextMenu: any;
 
   /** Emits processed action data when transaction operations complete */
@@ -80,9 +80,9 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    * @param parentChildRegisterService Service for managing parent-child component relationships and state
    * @param activePanelService Service for managing active panel state and menu integration
    * @param transactionService Service for transaction CRUD operations and business logic
-   * @param confirmationService PrimeNG service for displaying confirmation dialogs
+   * @param confirmationService Optimus service for displaying confirmation dialogs
    * @param messageToastService Service for displaying user notifications and messages
-   * @param filterService PrimeNG service for table filtering functionality
+   * @param filterService Optimus service for table filtering functionality
    * @param translateService Angular service for internationalization and translation
    * @param gps Global parameter service for application-wide settings and configuration
    * @param usersettingsService Service for managing user-specific settings and preferences

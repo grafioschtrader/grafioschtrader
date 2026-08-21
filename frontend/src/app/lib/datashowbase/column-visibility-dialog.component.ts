@@ -1,9 +1,9 @@
 import {Component} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TranslateModule} from '@ngx-translate/core';
-import {CheckboxModule} from 'primeng/checkbox';
+import {CheckboxModule} from '@openng/optimus-ui/checkbox';
 import {FormsModule} from '@angular/forms';
-import {DynamicDialogConfig} from 'primeng/dynamicdialog';
+import {DynamicDialogConfig} from '@openng/optimus-ui/dynamicdialog';
 import {ColumnConfig} from './column.config';
 
 /**

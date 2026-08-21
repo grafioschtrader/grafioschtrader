@@ -7,7 +7,7 @@ import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {SvgIconRegistryService, AngularSvgIconModule} from 'angular-svg-icon';
 import {DividendSplitTableBase} from './dividend.split.table.base';
 import {Securitysplit} from '../../entities/dividend.split';
-import {FilterService} from 'primeng/api';
+import {FilterService} from '@openng/optimus-ui/api';
 import {CommonModule} from '@angular/common';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 
@@ -36,7 +36,7 @@ export class WatchlistSecuritysplitTableComponent extends DividendSplitTableBase
   /**
    * Creates a new watchlist security split table component with required services and column configuration.
    * @param securitysplitService Service for loading security split data from the backend
-   * @param filterService PrimeNG filter service for table filtering functionality
+   * @param filterService Optimus filter service for table filtering functionality
    * @param usersettingsService Service for managing user table preferences and settings
    * @param translateService Angular translation service for internationalization
    * @param gps Global parameter service for locale and formatting settings

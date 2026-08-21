@@ -6,9 +6,9 @@ import {FailedParsedTemplateState} from './failed.parsed.template.state';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {FilterService} from 'primeng/api';
-import {TableModule} from 'primeng/table';
-import {TooltipModule} from 'primeng/tooltip';
+import {FilterService} from '@openng/optimus-ui/api';
+import {TableModule} from '@openng/optimus-ui/table';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
 
 /**
  * Display if the import template was not completely recognized. The last successfully recognized field per import

@@ -1,7 +1,7 @@
 import {Component, Injector, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {TranslateService} from '@ngx-translate/core';
-import {FilterService, MenuItem} from 'primeng/api';
+import {FilterService, MenuItem} from '@openng/optimus-ui/api';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {Subscription} from 'rxjs';
 import {TransactionCostGrandSummary} from '../../entities/view/transactioncost/transaction.cost.grand.summary';

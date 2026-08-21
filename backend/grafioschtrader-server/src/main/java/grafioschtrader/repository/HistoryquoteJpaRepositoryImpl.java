@@ -32,11 +32,13 @@ import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.Auditable;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.entities.User;
+import grafiosch.exceptions.DataViolationException;
 import grafiosch.repository.BaseRepositoryImpl;
 import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.DeleteHistoryquotesSuccess;
+import grafioschtrader.dto.HistoryquoteDeleteBounds;
 import grafioschtrader.dto.HistoryquoteChartResponse;
 import grafioschtrader.dto.HistoryquoteDateClose;
 import grafioschtrader.dto.HistoryquoteDateOHLC;
@@ -407,7 +409,10 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
       if (userAccess.security.getStockexchange().isNoMarketValue()) {
         return historyquotePeriodJpaRepository.getDateAndCloseByIdSecurity(idSecuritycurrency);
       } else {
-        return historyquoteJpaRepository.getClosedAndMissingHistoryquoteByIdSecurity(idSecuritycurrency);
+        // Missing days are only reported as far as the trading calendar of the exchange reaches, otherwise an unknown
+        // exchange holiday would show up as a hole in the series.
+        return historyquoteJpaRepository.getClosedAndMissingHistoryquoteByIdSecurity(idSecuritycurrency,
+            userAccess.security.getStockexchange().getCalendarKnownUntil());
       }
     }
 
@@ -526,26 +531,37 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
   @Transactional
   @Modifying
   public DeleteHistoryquotesSuccess deleteHistoryquotesByCreateTypes(Integer idSecuritycurrency,
-      List<Byte> historyquoteCreateTypesAsBytes) {
+      List<Byte> historyquoteCreateTypesAsBytes, LocalDate dateFrom, LocalDate dateTo) {
     historyquoteJpaRepository.getUserAndCheckSecurityAccess(idSecuritycurrency);
+    if (dateFrom.isAfter(dateTo)) {
+      throw new DataViolationException("date.from", "gt.date.from.after.to", new Object[] { dateFrom, dateTo });
+    }
 
     DeleteHistoryquotesSuccess dhs = new DeleteHistoryquotesSuccess();
     for (Byte historyquoteCreateTypesAsByte : historyquoteCreateTypesAsBytes) {
       HistoryquoteCreateType hct = HistoryquoteCreateType.getHistoryquoteCreateType(historyquoteCreateTypesAsByte);
       switch (hct) {
       case FILLED_CLOSED_LINEAR_TRADING_DAY:
-        dhs.filledLinear = historyquoteJpaRepository.deleteByIdSecuritycurrencyAndCreateType(idSecuritycurrency,
-            HistoryquoteCreateType.FILLED_CLOSED_LINEAR_TRADING_DAY.getValue());
+        dhs.filledLinear = historyquoteJpaRepository.deleteByIdSecuritycurrencyAndCreateTypeAndDateBetween(
+            idSecuritycurrency, HistoryquoteCreateType.FILLED_CLOSED_LINEAR_TRADING_DAY.getValue(), dateFrom, dateTo);
         break;
       case MANUAL_IMPORTED:
-        dhs.manualImported = historyquoteJpaRepository.deleteByIdSecuritycurrencyAndCreateType(idSecuritycurrency,
-            HistoryquoteCreateType.MANUAL_IMPORTED.getValue());
+        dhs.manualImported = historyquoteJpaRepository.deleteByIdSecuritycurrencyAndCreateTypeAndDateBetween(
+            idSecuritycurrency, HistoryquoteCreateType.MANUAL_IMPORTED.getValue(), dateFrom, dateTo);
         break;
       default:
         throw new SecurityException(BaseConstants.LIMIT_SECURITY_BREACH);
       }
     }
     return dhs;
+  }
+
+  @Override
+  public HistoryquoteDeleteBounds getDeleteBounds(Integer idSecuritycurrency) {
+    historyquoteJpaRepository.getUserAndCheckSecurityAccess(idSecuritycurrency);
+    return historyquoteJpaRepository.getMinMaxDateByIdSecuritycurrencyIds(List.of(idSecuritycurrency)).stream()
+        .findFirst().map(minMax -> new HistoryquoteDeleteBounds(minMax.getMinDate(), minMax.getMaxDate()))
+        .orElseThrow(() -> new DataViolationException("date.from", "gt.not.single.valid.close", null));
   }
 
   private static class UserAccess {

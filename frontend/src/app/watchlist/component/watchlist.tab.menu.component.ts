@@ -3,7 +3,7 @@ import {ActivatedRoute, Params, Router, RouterModule} from '@angular/router';
 import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {combineLatest, Observable, Subscription} from 'rxjs';
 
-import {Tab, TabList, Tabs} from 'primeng/tabs';
+import {Tab, TabList, Tabs} from '@openng/optimus-ui/tabs';
 import {Watchlist} from '../../entities/watchlist';
 import {UDFMetadataSecurityService} from '../../udfmetasecurity/service/udf.metadata.security.service';
 import {GlobalSessionNames} from '../../lib/global.session.names';

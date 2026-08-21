@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {TreeNode} from 'primeng/api';
+import {TreeNode} from '@openng/optimus-ui/api';
 
 import {Transaction} from '../../entities/transaction';
 import {buildTransactionReceiptTree, getSelectedTransactions} from './transaction-receipt-tree';

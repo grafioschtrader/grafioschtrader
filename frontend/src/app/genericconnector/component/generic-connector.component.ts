@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {ConfirmationService, MenuItem} from 'primeng/api';
+import {ConfirmationService, MenuItem} from '@openng/optimus-ui/api';
 import {combineLatest} from 'rxjs';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {SingleRecordMasterViewBase} from '../../lib/masterdetail/component/single.record.master.view.base';
@@ -21,8 +21,8 @@ import {ProcessedAction} from '../../lib/types/processed.action';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {AppHelper} from '../../lib/helper/app.helper';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
-import {ContextMenuModule} from 'primeng/contextmenu';
-import {AccordionModule} from 'primeng/accordion';
+import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
+import {AccordionModule} from '@openng/optimus-ui/accordion';
 import {GenericConnectorDefDetailComponent} from './generic-connector-def-detail.component';
 import {GenericConnectorEndpointPanelComponent} from './generic-connector-endpoint-panel.component';
 import {GenericConnectorDefEditComponent} from './generic-connector-def-edit.component';
@@ -30,7 +30,7 @@ import {GenericConnectorEndpointEditComponent} from './generic-connector-endpoin
 import {GenericConnectorHttpHeaderTableComponent} from './generic-connector-http-header-table.component';
 import {GenericConnectorHttpHeader} from '../../entities/generic.connector.http.header';
 import {GenericConnectorTestDialogComponent} from './generic-connector-test-dialog.component';
-import {DialogService} from 'primeng/dynamicdialog';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 import {DynamicDialogs} from '../../lib/dynamicdialog/component/dynamic.dialogs';
 import {MailSendParam} from '../../lib/dynamicdialog/component/mail.send.dynamic.component';
 import {AppSettings} from '../../shared/app.settings';

@@ -8,7 +8,7 @@ import {HelpIds} from '../../help/help.ids';
 import {AppHelper} from '../../helper/app.helper';
 import {UDFMetadataHelper} from './udf.metadata.helper';
 import {CommonModule} from '@angular/common';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 
 /**

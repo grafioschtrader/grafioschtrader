@@ -3,7 +3,7 @@
 # Update a Docker-based Grafioschtrader installation.
 #
 #   ./update.sh              update to the version currently set in .env
-#   ./update.sh 0.36.7       switch to an exact version
+#   ./update.sh 0.36.7.1       switch to an exact version
 #   ./update.sh latest       track the newest release
 #   ./update.sh --build      build the images from source instead of pulling
 #
@@ -110,6 +110,29 @@ if grep -q 'G_JWT_SECRET' docker-compose.yml; then
     bold "Migrating renamed configuration keys"
     "$MIGRATE" --force -i config/application-production.properties \
       || fail "the configuration migration failed — no image was pulled, nothing was changed."
+  fi
+fi
+
+# --------------------------------------------------------------------------
+# 4b. Daily download schedule
+# --------------------------------------------------------------------------
+# Every GT installation ships with the same cron defaults, so without a change
+# all of them query the free price and dividend providers in the same minute.
+# This gives the installation its own slot, drawn in this host's local time and
+# written as UTC (the backend evaluates every cron expression in UTC). It only
+# fires while the schedule is still untouched — a time set by hand is never
+# overwritten, and installations from before this feature are covered here.
+# Set GT_CRON_RANDOMIZE=off to skip it.
+RANDOMIZE=../util/shellscripts/gtcronrandom.sh
+if [ -f config/application-production.properties ]; then
+  if [ ! -f "$RANDOMIZE" ]; then
+    warn "gtcronrandom.sh was not found next to this installation — the daily price"
+    warn "and dividend jobs keep their current times."
+  else
+    bold ""
+    bold "Daily download schedule"
+    bash "$RANDOMIZE" --file config/application-production.properties \
+      || warn "The cron randomization failed — the current times are kept."
   fi
 fi
 

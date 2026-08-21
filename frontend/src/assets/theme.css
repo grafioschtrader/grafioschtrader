@@ -2194,13 +2194,13 @@ p-togglebutton.ng-dirty.ng-invalid > .p-togglebutton.p-button {
         outline-offset: 0;
         box-shadow: 0 0 0 0.2rem rgba(38, 143, 255, 0.5); }
     .fc.fc-unthemed .fc-toolbar .fc-button .fc-icon-chevron-left {
-      font-family: "PrimeIcons" !important;
+      font-family: "openng-icons" !important;
       text-indent: 0;
       font-size: 1rem; }
       .fc.fc-unthemed .fc-toolbar .fc-button .fc-icon-chevron-left:before {
         content: ""; }
     .fc.fc-unthemed .fc-toolbar .fc-button .fc-icon-chevron-right {
-      font-family: "PrimeIcons" !important;
+      font-family: "openng-icons" !important;
       text-indent: 0;
       font-size: 1rem; }
       .fc.fc-unthemed .fc-toolbar .fc-button .fc-icon-chevron-right:before {
@@ -2264,7 +2264,7 @@ p-togglebutton.ng-dirty.ng-invalid > .p-togglebutton.p-button {
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        font-family: "PrimeIcons" !important;
+        font-family: "openng-icons" !important;
         font-size: 1rem;
         width: 1.5rem;
         height: 1rem;
@@ -2328,13 +2328,13 @@ p-togglebutton.ng-dirty.ng-invalid > .p-togglebutton.p-button {
       background: #007bff;
       border: 1px solid #007bff; }
     .fc.fc-theme-standard .fc-toolbar .fc-button .fc-icon-chevron-left {
-      font-family: "PrimeIcons" !important;
+      font-family: "openng-icons" !important;
       text-indent: 0;
       font-size: 1rem; }
       .fc.fc-theme-standard .fc-toolbar .fc-button .fc-icon-chevron-left:before {
         content: ""; }
     .fc.fc-theme-standard .fc-toolbar .fc-button .fc-icon-chevron-right {
-      font-family: "PrimeIcons" !important;
+      font-family: "openng-icons" !important;
       text-indent: 0;
       font-size: 1rem; }
       .fc.fc-theme-standard .fc-toolbar .fc-button .fc-icon-chevron-right:before {

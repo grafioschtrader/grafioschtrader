@@ -8,7 +8,7 @@ import {DynamicFieldSimpleEditBase} from '../../lib/edit/dynamic.field.simple.ed
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {Dialog} from 'primeng/dialog';
+import {Dialog} from '@openng/optimus-ui/dialog';
 import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 
 @Component({

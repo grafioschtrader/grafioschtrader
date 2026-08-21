@@ -13,6 +13,8 @@ import {catchError} from 'rxjs/operators';
 import {LoginService} from '../../lib/login/service/log-in.service';
 import {
   HisotryqouteLinearFilledSummary,
+  HistoryquoteFillGapsBounds,
+  HistoryquoteFillGapsParam,
   HistoryquoteQualityHead,
   HistoryquoteQualityIds,
   IHistoryquoteQualityWithSecurityProp
@@ -149,10 +151,17 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
       }).pipe(catchError(this.handleError.bind(this)));
   }
 
-  fillHistoryquoteGapsLinear(idSecuritycurreny: number, moveWeekendToFriday: boolean): Observable<HisotryqouteLinearFilledSummary> {
+  fillHistoryquoteGapsLinear(idSecuritycurreny: number, fillGapsParam: HistoryquoteFillGapsParam):
+    Observable<HisotryqouteLinearFilledSummary> {
     return <Observable<HisotryqouteLinearFilledSummary>>this.httpClient.post(
       `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idSecuritycurreny}/fillgapes`,
-      moveWeekendToFriday, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+      fillGapsParam, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  }
+
+  getFillGapsBounds(idSecuritycurreny: number): Observable<HistoryquoteFillGapsBounds> {
+    return <Observable<HistoryquoteFillGapsBounds>>this.httpClient.get(
+      `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idSecuritycurreny}/fillgapsbounds`,
+      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
   }
 
   getSecurityStatisticsReturnResult(idSecuritycurrency: number, dateFrom: Date | string, dateTo: Date | string):

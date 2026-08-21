@@ -63,11 +63,11 @@ export interface ColumnConfig extends BaseFieldDefinition {
   filterValues?: ValueLabelHtmlSelectOptions[];
 
   /**
-   * Name of the property PrimeNG filters on when it differs from {@link BaseFieldDefinition.field}.
+   * Name of the property Optimus UI filters on when it differs from {@link BaseFieldDefinition.field}.
    * Set automatically by {@link TableTreetableTotalBase.createFilterField} for columns whose displayed value is
-   * produced by {@link fieldValueFN}: PrimeNG matches against the raw data value, which for those columns is not what
+   * produced by {@link fieldValueFN}: Optimus UI matches against the raw data value, which for those columns is not what
    * the user sees (for example a connector id instead of its readable name). The shadow property carries the displayed
-   * value and its name contains no dot, because PrimeNG resolves a dotted field name by walking the object graph.
+   * value and its name contains no dot, because Optimus UI resolves a dotted field name by walking the object graph.
    */
   filterField?: string;
 
@@ -86,12 +86,12 @@ export interface ColumnConfig extends BaseFieldDefinition {
   * Value: Translated display text (e.g., "Active", "Pending")
   *
   * Used for filter dropdown generation, consistent value display, and enabling
-  * proper alphabetical sorting of translated content in PrimeNG tables.
+  * proper alphabetical sorting of translated content in Optimus UI tables.
   * Rebuilt when language changes or new unique values appear in dataset.
   *
   * **Field Creation**: For sorting support, translated values are also added to each
   * data object with a "$" suffix (e.g., field "status" gets "status$" with translated value).
-  * The `fieldTranslated` property points to this suffixed field name for PrimeNG sorting.
+  * The `fieldTranslated` property points to this suffixed field name for Optimus UI sorting.
   *
   * @example
   * // translatedValueMap: { "ACTIVE": "Active", "INACTIVE": "Inactive" }
@@ -101,7 +101,7 @@ export interface ColumnConfig extends BaseFieldDefinition {
 
   /**
    * Field name for accessing translated values, typically original field name with '$' suffix.
-   * Used internally for PrimeNG table sorting of translated content.
+   * Used internally for Optimus UI table sorting of translated content.
    */
   fieldTranslated: string;
 
@@ -230,7 +230,7 @@ export interface ColumnConfig extends BaseFieldDefinition {
 
 /**
  * Enumeration defining input types for inline table cell editing.
- * Maps to appropriate PrimeNG components or native HTML input elements.
+ * Maps to appropriate Optimus UI components or native HTML input elements.
  * Used by EditableTableComponent to render the correct input control.
  */
 export enum EditInputType {
@@ -240,11 +240,11 @@ export enum EditInputType {
   Number = 'number',
   /** Native HTML select (dropdown) for enumerated values */
   Select = 'select',
-  /** PrimeNG InputNumber component for formatted numeric values */
+  /** Optimus UI InputNumber component for formatted numeric values */
   InputNumber = 'inputNumber',
-  /** PrimeNG DatePicker component for date values */
+  /** Optimus UI DatePicker component for date values */
   DatePicker = 'datePicker',
-  /** PrimeNG Checkbox component for boolean values */
+  /** Optimus UI Checkbox component for boolean values */
   Checkbox = 'checkbox',
   /** Native HTML textarea (pTextarea styled) for multi-line string values */
   Textarea = 'textarea',

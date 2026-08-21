@@ -3,7 +3,7 @@ import {HttpClient} from '@angular/common/http';
 import {forkJoin, Observable, of} from 'rxjs';
 import {catchError, map, retry} from 'rxjs/operators';
 import deepmerge from 'deepmerge';
-import {PRIMENG_TRANSLATIONS} from './primeng.translations';
+import {OPTIMUS_TRANSLATIONS} from './optimus.translations';
 
 
 export interface ITranslationResource {
@@ -40,10 +40,10 @@ export class MultiTranslateHttpLoader implements TranslateLoader {
         );
     });
 
-    // PrimeNG's own widget texts are merged last so they cannot be shadowed; primeng.translations.ts explains why
+    // Optimus UI's own widget texts are merged last so they cannot be shadowed; optimus.translations.ts explains why
     // they are kept on the client instead of being served by the backend.
     return forkJoin(requests).pipe(
-      map((response: Record<string, any>[]) => deepmerge.all([...response, PRIMENG_TRANSLATIONS[language] ?? {}]))
+      map((response: Record<string, any>[]) => deepmerge.all([...response, OPTIMUS_TRANSLATIONS[language] ?? {}]))
     );
   }
 }

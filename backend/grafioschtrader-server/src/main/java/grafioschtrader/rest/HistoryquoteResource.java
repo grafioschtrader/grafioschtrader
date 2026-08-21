@@ -4,6 +4,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,8 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,6 +31,7 @@ import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateJpaRepository;
 import grafioschtrader.dto.DeleteHistoryquotesSuccess;
 import grafioschtrader.dto.HistoryquoteChartResponse;
+import grafioschtrader.dto.HistoryquoteDeleteBounds;
 import grafioschtrader.dto.HistoryquotesWithMissings;
 import grafioschtrader.dto.IDateAndClose;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
@@ -170,15 +174,27 @@ public class HistoryquoteResource extends HistoryquoteResourceBase<Historyquote>
         new SupportedCSVFormat(decimalSeparator, thousandSeparator, dateFormat)), HttpStatus.OK);
   }
 
-  @Operation(summary = "Delete linear filled and/or manual imported quotes", description = "", tags = {
-      Historyquote.TABNAME })
+  @Operation(summary = "Delete linear filled and/or manual imported quotes of a period", description = """
+      The deletion is limited to the period chosen by the user, so a part of a linear filling can be withdrawn
+      without losing the prices before it.""", tags = { Historyquote.TABNAME })
   @DeleteMapping(value = "/delete/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<DeleteHistoryquotesSuccess> deleteHistoryquotesByCreateTypes(
       @Parameter(description = "Id of security or currency pair", required = true) @PathVariable Integer idSecuritycurrency,
-      @Parameter(description = "Possible values 2 (MANUAL_IMPORTED) or 3 (FILLED_CLOSED_LINEAR_TRADING_DAY)", required = true) @RequestParam(value = "createTypes") List<Byte> historyquoteCreateTypesAsBytes) {
-    return new ResponseEntity<>(
-        historyquoteJpaRepository.deleteHistoryquotesByCreateTypes(idSecuritycurrency, historyquoteCreateTypesAsBytes),
-        HttpStatus.OK);
+      @Parameter(description = "Possible values 2 (MANUAL_IMPORTED) or 3 (FILLED_CLOSED_LINEAR_TRADING_DAY)", required = true) @RequestParam(value = "createTypes") List<Byte> historyquoteCreateTypesAsBytes,
+      @Parameter(description = "First date of the deleted period, inclusive", required = true) @RequestParam @DateTimeFormat(iso = ISO.DATE) final LocalDate dateFrom,
+      @Parameter(description = "Last date of the deleted period, inclusive", required = true) @RequestParam @DateTimeFormat(iso = ISO.DATE) final LocalDate dateTo) {
+    return new ResponseEntity<>(historyquoteJpaRepository.deleteHistoryquotesByCreateTypes(idSecuritycurrency,
+        historyquoteCreateTypesAsBytes, dateFrom, dateTo), HttpStatus.OK);
+  }
+
+  @Operation(summary = "Returns the period the deletion of linear filled and manual imported quotes offers", description = """
+      Oldest and most recent stored price of the instrument. Taken from the stored prices themselves, because a linear
+      filling may reach beyond the last completed trading day the data quality figures stop at.""", tags = {
+      Historyquote.TABNAME })
+  @GetMapping(value = "/deletebounds/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<HistoryquoteDeleteBounds> getDeleteBounds(
+      @Parameter(description = "Id of security or currency pair", required = true) @PathVariable Integer idSecuritycurrency) {
+    return new ResponseEntity<>(historyquoteJpaRepository.getDeleteBounds(idSecuritycurrency), HttpStatus.OK);
   }
 
   @Operation(summary = "Delete single history quote", description = "", tags = { Historyquote.TABNAME })

@@ -1,7 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Validators} from '@angular/forms';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 
 import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';

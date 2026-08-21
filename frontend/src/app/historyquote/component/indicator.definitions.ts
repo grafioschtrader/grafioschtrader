@@ -1,6 +1,6 @@
 import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 import {FieldDescriptorInputAndShow} from '../../lib/dynamicfield/field.descriptor.input.and.show';
-import {MenuItem} from 'primeng/api';
+import {MenuItem} from '@openng/optimus-ui/api';
 
 /**
  * Registry of indicator definitions for the chart.

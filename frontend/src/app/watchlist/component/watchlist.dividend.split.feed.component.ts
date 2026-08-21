@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from '@angular/core';
-import {DialogService} from 'primeng/dynamicdialog';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
@@ -8,7 +8,7 @@ import {DataChangedService} from '../../lib/maintree/service/data.changed.servic
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
 import {WatchlistService} from '../service/watchlist.service';
 import {ActivatedRoute, Router} from '@angular/router';
-import {ConfirmationService, FilterService} from 'primeng/api';
+import {ConfirmationService, FilterService} from '@openng/optimus-ui/api';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
 import {TranslateService, TranslateModule} from '@ngx-translate/core';
@@ -28,7 +28,7 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
 import {CommonModule} from '@angular/common';
 import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
 import {AngularSvgIconModule} from 'angular-svg-icon';
-import {TooltipModule} from 'primeng/tooltip';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
 import {TransactionSecurityTableComponent} from '../../transaction/component/transaction-security-table.component';
 import {TransactionSecurityMarginTreetableComponent} from '../../transaction/component/transaction-security-margin-treetable.component';
 import {SecuritycurrencyUdfComponent} from './securitycurrency-udf.component';
@@ -97,7 +97,7 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
    * Initializes the watchlist table with dividend and split feed specific columns and configurations.
    * @param securityService Service for security-related operations and data access
    * @param currencypairService Service for currency pair operations and data access
-   * @param dialogService PrimeNG service for managing dynamic dialogs
+   * @param dialogService Optimus service for managing dynamic dialogs
    * @param alarmSetupService Service for setting up and managing security alarms
    * @param timeSeriesQuotesService Service for time series quote data and operations
    * @param dataChangedService Service for handling data change notifications across components
@@ -105,11 +105,11 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
    * @param watchlistService Service for watchlist operations and data management
    * @param router Angular router for navigation between routes
    * @param activatedRoute Current activated route for accessing route parameters
-   * @param confirmationService PrimeNG service for displaying confirmation dialogs
+   * @param confirmationService Optimus service for displaying confirmation dialogs
    * @param messageToastService Service for displaying toast notification messages
    * @param productIconService Service for retrieving product-specific icons
    * @param changeDetectionStrategy Angular change detection strategy for performance optimization
-   * @param filterService PrimeNG service for table filtering operations
+   * @param filterService Optimus service for table filtering operations
    * @param translateService Angular service for internationalization and text translation
    * @param gpsGT Global parameter service for GT-specific configurations
    * @param gps Global parameter service for application-wide settings and parameters

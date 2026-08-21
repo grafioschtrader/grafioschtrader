@@ -54,11 +54,11 @@ Parent: dynamic-form input changes → loadData() → response received
 Child: @Input() data changes → ngOnChanges → createTranslatedValueStore(data)
 ```
 
-## PrimeNG Table and Tree Components
+## Optimus UI Table and Tree Components
 
 ### Mandatory Base Class Inheritance
 
-Components that use PrimeNG tables (`p-table`) or trees (`p-tree`, `p-treeTable`) **MUST** extend one of the following base classes:
+Components that use Optimus UI tables (`p-table`) or trees (`p-tree`, `p-treeTable`) **MUST** extend one of the following base classes:
 
 | Base Class | Use Case |
 |------------|----------|
@@ -187,7 +187,7 @@ this.createTranslatedValueStore(this.entityList);
 ### Dropdown Selection Filters (FilterType.withOptions)
 
 A `FilterType.withOptions` column renders a **`<p-multiSelect>`** over the values that occur in the
-column and filters with PrimeNG's built-in `in` match mode: the selected values are combined with
+column and filters with Optimus UI's built-in `in` match mode: the selected values are combined with
 **OR**, an empty selection removes the filter. AND is deliberately not offered — every such column
 holds one value per row, so an AND across two selected values could never match anything. Selecting a
 single entry behaves exactly like the former single-select.
@@ -299,9 +299,9 @@ this.addColumn(DataType.String, 'cashaccount.name', 'CASHACCOUNT', true, false);
 this.addColumn(DataType.String, 'security.name', 'SECURITY', true, false);
 ```
 
-## PrimeNG Button Patterns (PrimeNG 21+)
+## Optimus UI Button Patterns (Optimus UI 1.x)
 
-**IMPORTANT**: In PrimeNG 21+, the `icon` attribute on `<p-button>` and `pButton` is **deprecated**. Set the
+**IMPORTANT**: In Optimus UI 1.x, the `icon` attribute on `<p-button>` and `pButton` is **deprecated**. Set the
 icon with the **`pButtonIcon` directive** on a projected child element instead. The `<i pButtonIcon>` element is
 picked up via content projection (the button's `iconSignal = contentChild(ButtonIcon)` query) and styled as the
 button icon. `ButtonModule` already exports the `pButtonIcon` directive, so no extra import is needed.
@@ -535,7 +535,7 @@ const dialogRef = this.dialogService.open(PortfolioEditDynamicComponent, {
 dialogRef.onClose.subscribe((result: ProcessedActionData) => { ... });
 ```
 
-> **ALWAYS make `DialogService.open(...)` dialogs closable.** This PrimeNG DynamicDialog setup does
+> **ALWAYS make `DialogService.open(...)` dialogs closable.** This Optimus UI DynamicDialog setup does
 > **not** reliably default to a closable dialog, so every `dialogService.open(...)` config **must**
 > include `closable: true` (shows the X) and `closeOnEscape: true` (ESC closes), plus `modal: true`.
 > Omitting them produces a dialog the user cannot dismiss — especially a read-only/table dialog that
@@ -953,8 +953,8 @@ So in almost all cases you simply add `MY_KEY=My text` to both language files of
    the server resolves; never both on one key, and double every `'` in a `{0}` text.
 5. Keys may contain `A-Z a-z 0-9 _ . |` only — a space silently truncates the key in `.properties`.
 
-`primeng` widget texts are the one exception: they stay on the client in
-`src/app/lib/translator/primeng.translations.ts`, because they contain string arrays and differ in
+Optimus UI widget texts are the one exception: they stay on the client in
+`src/app/lib/translator/optimus.translations.ts`, because they contain string arrays and differ in
 size between the languages.
 
 ## Translation Keys

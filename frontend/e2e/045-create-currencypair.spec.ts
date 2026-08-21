@@ -89,7 +89,7 @@ test.describe.serial('Seed currency pairs in the currencypair watchlist', () => 
       }
 
       // Activate the content area (left-click first, then right-click). Mirrors the pattern used by
-      // spec 025-create-portfolio.spec.ts — PrimeNG context menu requires the panel to be active first.
+      // spec 025-create-portfolio.spec.ts — Optimus UI context menu requires the panel to be active first.
       const menu = await openWatchlistContextMenu(page);
 
       // Menu label 'CREATE_AND_ADD_CURRENCYPAIR...' → "Create and add currencypair..." (EN) /

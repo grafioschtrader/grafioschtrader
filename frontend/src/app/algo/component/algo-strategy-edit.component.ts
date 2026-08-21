@@ -19,11 +19,11 @@ import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AlgoStrategyHelper} from './algo.strategy.helper';
 import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.helper';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {YamlEditorComponent} from './yaml-editor.component';
-import {ButtonModule} from 'primeng/button';
+import {ButtonModule} from '@openng/optimus-ui/button';
 import * as yaml from 'js-yaml';
 
 /** Default YAML template for the Mean Reversion Dip strategy */

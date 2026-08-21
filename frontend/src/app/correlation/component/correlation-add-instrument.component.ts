@@ -8,7 +8,7 @@ import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
 import {CorrelationSetAddInstrumentTableComponent} from './correlation-set-add-instrument-table.component';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 
 /**

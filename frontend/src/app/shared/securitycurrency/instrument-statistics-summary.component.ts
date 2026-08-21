@@ -5,7 +5,7 @@ import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 
 import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {TreeNode} from 'primeng/api';
+import {TreeNode} from '@openng/optimus-ui/api';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {ConfigurableTreeTableComponent} from '../../lib/datashowbase/configurable-tree-table.component';
 

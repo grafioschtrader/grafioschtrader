@@ -8,7 +8,7 @@
 }
 
 /**
-* PrimeNg Table
+* Optimus UI Table
 */
 
 /* Background color of the selected row in a table */
@@ -200,7 +200,7 @@ legend {
   color: indianred;
 }
 
-/* Override PrimeNG InputNumber styling for negative numbers */
+/* Override Optimus UI InputNumber styling for negative numbers */
 .negativ-number .p-inputtext,
 .negativ-number .p-inputtext:disabled {
   color: indianred !important;

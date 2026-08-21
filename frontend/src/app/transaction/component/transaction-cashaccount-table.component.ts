@@ -22,7 +22,7 @@ import {
   ParentChildRegisterService
 } from '../../shared/service/parent.child.register.service';
 import {PortfolioService} from '../../portfolio/service/portfolio.service';
-import {ConfirmationService, FilterService} from 'primeng/api';
+import {ConfirmationService, FilterService} from '@openng/optimus-ui/api';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
 import {TransactionType} from '../../shared/types/transaction.type';
@@ -79,9 +79,9 @@ export class TransactionCashaccountTableComponent extends TransactionContextMenu
    * @param parentChildRegisterService Service for managing parent-child component relationships
    * @param activePanelService Service for managing active panel state
    * @param transactionService Service for transaction operations
-   * @param confirmationService PrimeNG service for confirmation dialogs
+   * @param confirmationService Optimus service for confirmation dialogs
    * @param messageToastService Service for displaying toast messages
-   * @param filterService PrimeNG service for table filtering
+   * @param filterService Optimus service for table filtering
    * @param translateService Angular service for internationalization
    * @param gps Global parameter service for application settings
    * @param usersettingsService Service for user-specific settings

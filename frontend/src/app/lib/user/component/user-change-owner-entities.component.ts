@@ -2,7 +2,7 @@ import {Component, Input, OnInit} from '@angular/core';
 
 import {SimpleEditBase} from '../../edit/simple.edit.base';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 import {MessageToastService} from '../../message/message.toast.service';
 import {MainDialogService} from '../../mainmenubar/service/main.dialog.service';

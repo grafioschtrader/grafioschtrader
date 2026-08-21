@@ -1,7 +1,7 @@
 import {Injectable, Inject, Optional} from '@angular/core';
 import {Observable, combineLatest, of} from 'rxjs';
 import {catchError, map} from 'rxjs/operators';
-import {MenuItem, TreeNode} from 'primeng/api';
+import {MenuItem, TreeNode} from '@openng/optimus-ui/api';
 import {MAIN_TREE_CONTRIBUTOR, MainTreeContributor, MainTreeCallbacks} from '../contributor/main-tree-contributor.interface';
 import {ProcessedActionData} from '../../types/processed.action.data';
 
@@ -18,7 +18,7 @@ export class MainTreeService {
 
   /**
    * Deep clones a TreeNode array, creating new object references for all nodes.
-   * This is necessary to trigger PrimeNG Tree's OnPush change detection.
+   * This is necessary to trigger Optimus Tree's OnPush change detection.
    */
   private deepCloneTreeNodes(nodes: TreeNode[]): TreeNode[] {
     return nodes.map(node => this.deepCloneTreeNode(node));
@@ -234,7 +234,7 @@ export class MainTreeService {
 
   /**
    * Returns a deep cloned copy of the tree structure.
-   * Use this to trigger PrimeNG Tree's OnPush change detection.
+   * Use this to trigger Optimus Tree's OnPush change detection.
    */
   getClonedPortfolioTrees(): TreeNode[] {
     return this.deepCloneTreeNodes(this.portfolioTrees);

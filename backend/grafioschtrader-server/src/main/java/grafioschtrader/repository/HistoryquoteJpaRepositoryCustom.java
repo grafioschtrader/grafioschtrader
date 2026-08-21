@@ -10,6 +10,7 @@ import grafiosch.entities.Auditable;
 import grafiosch.entities.User;
 import grafiosch.repository.BaseRepositoryCustom;
 import grafioschtrader.dto.DeleteHistoryquotesSuccess;
+import grafioschtrader.dto.HistoryquoteDeleteBounds;
 import grafioschtrader.dto.HistoryquoteChartResponse;
 import grafioschtrader.dto.HistoryquotesWithMissings;
 import grafioschtrader.dto.IDateAndClose;
@@ -162,7 +163,29 @@ public interface HistoryquoteJpaRepositoryCustom extends BaseRepositoryCustom<Hi
 
   void afterDelete(Optional<Historyquote> deletedHistoryquoteOpt);
 
+  /**
+   * Deletes the linear filled and/or manually imported history quotes of one instrument inside the given period. Both
+   * boundary dates belong to the period. Restricting the deletion to a period allows a part of a linear filling to be
+   * withdrawn, for example when a new price level applies from a certain date on.
+   *
+   * @param idSecuritycurreny             the security or currency pair whose quotes are deleted
+   * @param historyquoteCreateTypesAsBytes create types to delete, only 2 (MANUAL_IMPORTED) and 3
+   *                                       (FILLED_CLOSED_LINEAR_TRADING_DAY) are accepted
+   * @param dateFrom                       first date of the deleted period, inclusive
+   * @param dateTo                         last date of the deleted period, inclusive
+   * @return the number of deleted quotes per create type
+   */
   DeleteHistoryquotesSuccess deleteHistoryquotesByCreateTypes(Integer idSecuritycurreny,
-      List<Byte> historyquoteCreateTypesAsBytes);
+      List<Byte> historyquoteCreateTypesAsBytes, LocalDate dateFrom, LocalDate dateTo);
+
+  /**
+   * Returns the oldest and the most recent stored price of an instrument, the period the deletion dialog offers. The
+   * figures of the data quality are not usable for this, because they stop at the last completed trading day while a
+   * linear filling may have written prices beyond it.
+   *
+   * @param idSecuritycurreny the security or currency pair whose stored period is asked for
+   * @return the oldest and the most recent stored price
+   */
+  HistoryquoteDeleteBounds getDeleteBounds(Integer idSecuritycurreny);
 
 }

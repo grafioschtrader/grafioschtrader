@@ -1,10 +1,10 @@
 import {CommonModule} from '@angular/common';
 import {Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
-import {ContextMenuModule} from 'primeng/contextmenu';
-import {Table, TableModule} from 'primeng/table';
-import {TooltipModule} from 'primeng/tooltip';
+import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
+import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
+import {Table, TableModule} from '@openng/optimus-ui/table';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
@@ -97,7 +97,7 @@ export class TenantTransactionCostExtendedComponent extends TransactionContextMe
   /** Index of the first row displayed on the current page */
   @Input() firstRowIndex: number;
 
-  /** Reference to the PrimeNG table component for accessing table functionality like CSV export */
+  /** Reference to the Optimus table component for accessing table functionality like CSV export */
   @ViewChild('dataTable', {static: true}) dataTable: Table;
 
   /** Currently selected transaction cost position for context menu operations */

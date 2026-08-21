@@ -15,8 +15,8 @@ import {GlobalparameterService} from '../services/globalparameter.service';
 import {AuditHelper} from '../helper/audit.helper';
 import {TranslateHelper} from '../helper/translate.helper';
 import {LimitEntityTransactionError} from '../login/service/limit.entity.transaction.error';
-import {DialogService} from 'primeng/dynamicdialog';
-import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
+import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
 import {DynamicDialogs} from '../dynamicdialog/component/dynamic.dialogs';
 import saveAs from '../filesaver/filesaver';
 import {BaseSettings} from '../base.settings';
@@ -78,11 +78,11 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
    *
    * @param entityName - Name of the entity type for translation and identification
    * @param deleteService - Service providing delete operations for entities
-   * @param confirmationService - PrimeNG service for confirmation dialogs
+   * @param confirmationService - Optimus service for confirmation dialogs
    * @param messageToastService - Service for displaying toast messages
    * @param activePanelService - Service for global menu integration
-   * @param dialogService - PrimeNG service for dynamic dialog management
-   * @param filterService - PrimeNG service for table filtering
+   * @param dialogService - Optimus service for dynamic dialog management
+   * @param filterService - Optimus service for table filtering
    * @param translateService - Angular translation service
    * @param gps - Global parameter service for locale and permissions
    * @param usersettingsService - Service for persisting user preferences

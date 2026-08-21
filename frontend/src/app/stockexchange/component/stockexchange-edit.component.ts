@@ -29,7 +29,7 @@ import {GroupItem, ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/model
 import {StockexchangeMic} from '../model/stockexchange.base.data';
 import {StockexchangeHelper} from './stockexchange.helper';
 import {BaseSettings} from '../../lib/base.settings';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 import {TradingCalendarRuleSetService} from '../service/trading.calendar.rule.set.service';
 

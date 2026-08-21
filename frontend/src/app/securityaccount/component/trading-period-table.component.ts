@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild} from '@angular/core';
-import {FilterService} from 'primeng/api';
+import {FilterService} from '@openng/optimus-ui/api';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {ButtonModule} from 'primeng/button';
+import {ButtonModule} from '@openng/optimus-ui/button';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
@@ -258,7 +258,7 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
   }
 
   /**
-   * Converts ISO date strings (from backend JSON) to Date objects for PrimeNG DatePicker binding.
+   * Converts ISO date strings (from backend JSON) to Date objects for Optimus DatePicker binding.
    */
   private convertDatesToDateObjects(periods: SecaccountTradingPeriod[]): SecaccountTradingPeriod[] {
     return periods.map(p => {

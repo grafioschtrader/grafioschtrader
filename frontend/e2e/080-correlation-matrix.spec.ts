@@ -287,7 +287,7 @@ test.describe.serial('Correlation matrix', () => {
     // The matrix now holds exactly the maximum number of instruments.
     await expect(matrixRows(page)).toHaveCount(MAX_INSTRUMENTS, {timeout: 20_000});
 
-    // At the limit, PrimeNG prevents interaction with the add command via aria-disabled.
+    // At the limit, Optimus UI prevents interaction with the add command via aria-disabled.
     const menu = await openContextMenu(page);
     const addInstrumentItem = menu.getByRole('menuitem', {
       name: /(Bestehendes\s+Instrument\s+hinzuf.gen|Add\s+existing\s+instrument)/i,

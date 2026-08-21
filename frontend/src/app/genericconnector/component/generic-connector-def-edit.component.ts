@@ -15,16 +15,16 @@ import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {AppSettings} from '../../shared/app.settings';
 import {AppHelpIds} from '../../shared/help/help.ids';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
-import {FieldsetModule} from 'primeng/fieldset';
+import {FieldsetModule} from '@openng/optimus-ui/fieldset';
 import {YamlEditorComponent} from '../../algo/component/yaml-editor.component';
 import {HttpClient} from '@angular/common/http';
 import {MultilanguageString} from '../../lib/entities/multilanguage.string';
 import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
 import {Stockexchange} from '../../entities/stockexchange';
 import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
-import {TreeNode} from 'primeng/api';
+import {TreeNode} from '@openng/optimus-ui/api';
 import {combineLatest} from 'rxjs';
 
 @Component({

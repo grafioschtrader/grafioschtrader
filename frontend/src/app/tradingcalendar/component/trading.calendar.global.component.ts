@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {AddRemoveDay, SaveTradingDays, TradingDaysPlusService} from '../service/trading.days.plus.service';
-import {MenuItem} from 'primeng/api';
+import {MenuItem} from '@openng/optimus-ui/api';
 import {InfoLevelType} from '../../lib/message/info.leve.type';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
@@ -11,12 +11,12 @@ import {TradingCalendarBase} from './trading.calendar.base';
 import {TradingDaysWithDateBoundaries} from '../model/trading.days.with.date.boundaries';
 import {AuditHelper} from '../../lib/helper/audit.helper';
 import {CommonModule} from '@angular/common';
-import {PanelModule} from 'primeng/panel';
-import {SelectModule} from 'primeng/select';
+import {PanelModule} from '@openng/optimus-ui/panel';
+import {SelectModule} from '@openng/optimus-ui/select';
 import {FormsModule} from '@angular/forms';
-import {ButtonModule} from 'primeng/button';
+import {ButtonModule} from '@openng/optimus-ui/button';
 import {FullyearcalendarLibComponent} from '../../lib/fullyearcalendar/fullyearcalendar-lib.component';
-import {ContextMenuModule} from 'primeng/contextmenu';
+import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
 
 /**
  * Component for the  global trading calendar

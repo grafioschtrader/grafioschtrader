@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, OnDestroy, ViewChild} from '@angular/core';
 import {SingleRecordMasterViewBase} from '../../lib/masterdetail/component/single.record.master.view.base';
 import {CorrelationLimit, CorrelationResult, CorrelationSet, SamplingPeriodType} from '../../entities/correlation.set';
-import {ConfirmationService, MenuItem} from 'primeng/api';
+import {ConfirmationService, MenuItem} from '@openng/optimus-ui/api';
 import {ActivatedRoute} from '@angular/router';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {MessageToastService} from '../../lib/message/message.toast.service';
@@ -19,8 +19,8 @@ import {CorrelationEditingSupport} from './correlation.editing.support';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {TranslateModule} from '@ngx-translate/core';
-import {PanelModule} from 'primeng/panel';
-import {ContextMenuModule} from 'primeng/contextmenu';
+import {PanelModule} from '@openng/optimus-ui/panel';
+import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 import {CorrelationSetEditComponent} from './correlation-set-edit.component';
 
@@ -104,7 +104,7 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
    * @param activatedRoute - Angular activated route for parameter access
    * @param correlationSetService - Service for correlation set operations
    * @param gps - Global parameter service for user settings and configuration
-   * @param confirmationService - PrimeNG confirmation dialog service
+   * @param confirmationService - Optimus confirmation dialog service
    * @param messageToastService - Service for displaying user messages
    * @param activePanelService - Service for managing active panel state
    * @param translateService - Angular translation service for internationalization

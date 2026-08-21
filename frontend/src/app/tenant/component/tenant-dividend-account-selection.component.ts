@@ -3,10 +3,10 @@ import {Portfolio} from '../../entities/portfolio';
 import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {TreeNode} from 'primeng/api';
+import {TreeNode} from '@openng/optimus-ui/api';
 import {ColumnConfig} from '../../lib/datashowbase/column.config';
 
-import {TreeTableModule} from 'primeng/treetable';
+import {TreeTableModule} from '@openng/optimus-ui/treetable';
 
 /**
  * Display all portfolios and corresponding accounts in a tree structure. This enables a selection of these.

@@ -13,7 +13,7 @@ import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
 import {atLeastOneFieldValidator} from '../../lib/validator/validator';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {ProcessedAction} from '../../lib/types/processed.action';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 
 /**

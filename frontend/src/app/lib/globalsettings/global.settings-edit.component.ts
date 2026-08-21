@@ -8,7 +8,7 @@ import {Globalparameters} from '../entities/globalparameters';
 import {InputRule} from '../entities/input-rule';
 import {FieldConfig} from '../dynamic-form/models/field.config';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {DynamicFormModule} from '../dynamic-form/dynamic-form.module';
 import {GlobalparameterService} from '../services/globalparameter.service';
 import {MessageToastService} from '../message/message.toast.service';

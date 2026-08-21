@@ -1,7 +1,7 @@
 import {AddInstrumentTable} from '../../watchlist/component/add-instrument-table.component';
 import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
 import {Component, Injector} from '@angular/core';
-import {FilterService} from 'primeng/api';
+import {FilterService} from '@openng/optimus-ui/api';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
@@ -11,8 +11,8 @@ import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {CommonModule} from '@angular/common';
 import {TranslateModule} from '@ngx-translate/core';
 import {FormsModule} from '@angular/forms';
-import {TableModule} from 'primeng/table';
-import {ButtonModule} from 'primeng/button';
+import {TableModule} from '@openng/optimus-ui/table';
+import {ButtonModule} from '@openng/optimus-ui/button';
 
 /**
  * Table component for selecting and displaying instruments in the correlation set search dialog.
@@ -30,7 +30,7 @@ export class CorrelationSetAddInstrumentTableComponent extends AddInstrumentTabl
    * Initializes the correlation set instrument table with required services.
    * @param dataChangedService Service for handling data change notifications
    * @param correlationSetService Service for correlation set operations
-   * @param filterService PrimeNG filter service for table filtering
+   * @param filterService Optimus filter service for table filtering
    * @param translateService Service for internationalization
    * @param gps Global parameter service for application settings
    * @param usersettingsService Service for user preference management

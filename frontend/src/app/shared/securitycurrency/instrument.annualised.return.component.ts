@@ -1,14 +1,14 @@
 import {Component, Injector, Input, OnInit} from '@angular/core';
 import {AnnualisedYears} from '../../entities/view/instrument.statistics.result';
-import {FilterService} from 'primeng/api';
+import {FilterService} from '@openng/optimus-ui/api';
 import {TranslateService, TranslateModule} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
 import {CommonModule} from '@angular/common';
-import {TableModule} from 'primeng/table';
-import {TooltipModule} from 'primeng/tooltip';
+import {TableModule} from '@openng/optimus-ui/table';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
 
 /**
  * Shows the annualised return for an instrument.

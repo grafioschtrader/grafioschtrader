@@ -56,3 +56,6 @@ Thumbs.db
 
 # Claude Code temporary files
 tmpclaude-*
+
+# Chromium writes debug.log here when the e2e browser is started with logging enabled.
+/debug.log

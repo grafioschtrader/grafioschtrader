@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Injector, Input, OnChanges, OnDestroy, Output, SimpleChanges} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
-import {DialogService} from 'primeng/dynamicdialog';
+import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {AngularSvgIconModule, SvgIconRegistryService} from 'angular-svg-icon';
 import {combineLatest} from 'rxjs';

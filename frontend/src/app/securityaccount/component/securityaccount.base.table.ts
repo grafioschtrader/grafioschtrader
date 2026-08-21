@@ -8,7 +8,7 @@ import {Subscription} from 'rxjs';
 import {ColumnConfig, ColumnGroupConfig} from '../../lib/datashowbase/column.config';
 import {SecurityPositionSummary} from '../../entities/view/security.position.summary';
 import {TransactionCallParam} from '../../transaction/component/transaction.call.parm';
-import {FilterService, MenuItem} from 'primeng/api';
+import {FilterService, MenuItem} from '@openng/optimus-ui/api';
 import {Portfolio} from '../../entities/portfolio';
 import {SecurityPositionGrandSummary} from '../../entities/view/security.position.grand.summary';
 import {SecurityaccountService} from '../service/securityaccount.service';

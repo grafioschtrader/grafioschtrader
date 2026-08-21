@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 import {SimpleEditBase} from '../../lib/edit/simple.edit.base';

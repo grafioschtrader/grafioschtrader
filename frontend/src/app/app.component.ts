@@ -1,12 +1,12 @@
 import {Component, OnDestroy} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {LoginService} from './lib/login/service/log-in.service';
-import {PrimeNG} from 'primeng/config';
+import {Optimus} from '@openng/optimus-ui/config';
 import {AppSettings} from './shared/app.settings';
 import {Subscription} from 'rxjs';
 import {NavigationStart, Router} from '@angular/router';
-import Aura from '@primeuix/themes/aura';
-import {definePreset} from '@primeuix/themes';
+import Aura from '@openng/optimus-ui-themes/aura';
+import {definePreset} from '@openng/optimus-ui-themes';
 import {Security} from './entities/security';
 import {AuditHelper} from './lib/helper/audit.helper';
 import {DynamicFieldHelper} from './lib/helper/dynamic.field.helper';
@@ -136,14 +136,14 @@ export class AppComponent implements OnDestroy {
 
   private readonly subscription: Subscription;
 
-  constructor(translateService: TranslateService, primeNGConfig: PrimeNG, private router: Router) {
+  constructor(translateService: TranslateService, optimusConfig: Optimus, private router: Router) {
     translateService.addLangs(['en', 'de']);
     // this language will be used as a fallback when a translation isn't found in the current language
     translateService.setDefaultLang(AppSettings.DEFAULT_LANGUAGE);
     // TODO Move it to the session storage.
     localStorage.setItem(GlobalSessionNames.EXTERNAL_HELP_URL, AppSettings.HELP_URL_BASE);
-    LoginService.setGlobalLang(translateService, primeNGConfig);
-    this.initializePrimeNGStyles(primeNGConfig);
+    LoginService.setGlobalLang(translateService, optimusConfig);
+    this.initializeOptimusStyles(optimusConfig);
     AuditHelper.setCustomOwnershipCheck((entity: any, userId: number) => {
       return entity instanceof Security &&
         entity.idTenantPrivate &&
@@ -168,12 +168,11 @@ export class AppComponent implements OnDestroy {
     });
   }
 
-  private initializePrimeNGStyles(primeNGConfig: PrimeNG): void {
-    primeNGConfig.theme.set({ preset: MyPreset });
+  private initializeOptimusStyles(optimusConfig: Optimus): void {
+    optimusConfig.theme.set({ preset: MyPreset });
   }
 
   ngOnDestroy(): void {
     this.subscription && this.subscription.unsubscribe();
   }
 }
-

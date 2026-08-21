@@ -139,5 +139,16 @@
       "CFD"
     ],
     "e2e": "e"
+  },
+  {
+    "kind": "general",
+    "nickname": "alledit",
+    "description": "FX möglich",
+    "descriptionHelp": "Ist Forex mit diesem Währungspaar möglich",
+    "udfDataType": "UDF_Boolean",
+    "fieldSize": null,
+    "uiOrder": 10,
+    "entity": "Currencypair",
+    "e2e": "e"
   }
 ]

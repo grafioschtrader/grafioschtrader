@@ -7,8 +7,8 @@ import {UserSettingsService} from '../../lib/services/user.settings.service';
 import {HistoryquoteQualityIds, IHistoryquoteQualityWithSecurityProp} from '../model/historyquote.quality.group';
 import {DataType} from '../../lib/dynamic-form/models/data.type';
 import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
-import {FilterService} from 'primeng/api';
-import {TableModule} from 'primeng/table';
+import {FilterService} from '@openng/optimus-ui/api';
+import {TableModule} from '@openng/optimus-ui/table';
 import {NgClass} from '@angular/common';
 
 /**

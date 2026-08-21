@@ -1,8 +1,8 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TranslateModule} from '@ngx-translate/core';
-import {CheckboxChangeEvent, CheckboxModule} from 'primeng/checkbox';
-import {TooltipModule} from 'primeng/tooltip';
+import {CheckboxChangeEvent, CheckboxModule} from '@openng/optimus-ui/checkbox';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
 
 /**
  * Event payload for checkbox toggle actions.

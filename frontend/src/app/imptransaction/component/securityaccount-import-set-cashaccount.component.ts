@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {DialogModule} from 'primeng/dialog';
+import {DialogModule} from '@openng/optimus-ui/dialog';
 
 import {AppHelper} from '../../lib/helper/app.helper';
 import {SimpleEditBase} from '../../lib/edit/simple.edit.base';

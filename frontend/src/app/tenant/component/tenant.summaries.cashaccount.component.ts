@@ -20,15 +20,15 @@ import {HelpIds} from '../../lib/help/help.ids';
 import {TenantPortfolioSummary} from '../model/tenant.portfolio.summary';
 import {TranslateHelper} from '../../lib/helper/translate.helper';
 import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {FilterService, MenuItem, SelectItem} from 'primeng/api';
+import {FilterService, MenuItem, SelectItem} from '@openng/optimus-ui/api';
 import {BusinessHelper} from '../../shared/helper/business.helper';
 import {BaseSettings} from '../../lib/base.settings';
 import {CommonModule} from '@angular/common';
-import {TableModule} from 'primeng/table';
-import {DatePicker} from 'primeng/datepicker';
+import {TableModule} from '@openng/optimus-ui/table';
+import {DatePicker} from '@openng/optimus-ui/datepicker';
 import {FormsModule} from '@angular/forms';
-import {SelectModule} from 'primeng/select';
-import {TooltipModule} from 'primeng/tooltip';
+import {SelectModule} from '@openng/optimus-ui/select';
+import {TooltipModule} from '@openng/optimus-ui/tooltip';
 
 
 /**

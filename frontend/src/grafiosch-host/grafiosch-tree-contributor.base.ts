@@ -1,5 +1,5 @@
 import {TranslateService} from '@ngx-translate/core';
-import {MenuItem, TreeNode} from 'primeng/api';
+import {MenuItem, TreeNode} from '@openng/optimus-ui/api';
 import {Observable, of} from 'rxjs';
 
 import {BaseSettings} from '../app/lib/base.settings';

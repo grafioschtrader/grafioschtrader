@@ -4,10 +4,10 @@ import {TranslateModule} from '@ngx-translate/core';
 import {AngularSvgIconModule} from 'angular-svg-icon';
 import {UDFMetadataSecurityService} from '../service/udf.metadata.security.service';
 import {AppSettings} from '../../shared/app.settings';
-import {ConfirmationService, FilterService} from 'primeng/api';
+import {ConfirmationService, FilterService} from '@openng/optimus-ui/api';
 import {MessageToastService} from '../../lib/message/message.toast.service';
 import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {DialogService} from 'primeng/dynamicdialog';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 import {TranslateService} from '@ngx-translate/core';
 import {GlobalparameterService} from '../../lib/services/globalparameter.service';
 import {UserSettingsService} from '../../lib/services/user.settings.service';
@@ -86,11 +86,11 @@ export class UDFMetadataSecurityTableComponent extends UDFMetaTable<UDFMetadataS
    *
    * @param udfSpecialTypeDisableUserService - Service for managing disabled special types
    * @param uDFMetadataSecurityService - Service for security UDF metadata CRUD operations
-   * @param confirmationService - PrimeNG confirmation dialog service
+   * @param confirmationService - Optimus confirmation dialog service
    * @param messageToastService - Service for displaying user notifications
    * @param activePanelService - Service for managing active panels in the UI
-   * @param dialogService - PrimeNG dynamic dialog service
-   * @param filterService - PrimeNG filter service for table filtering
+   * @param dialogService - Optimus dynamic dialog service
+   * @param filterService - Optimus filter service for table filtering
    * @param translateService - Translation service for i18n support
    * @param gps - Global parameter service providing user settings and system configuration
    * @param usersettingsService - Service for managing user preferences

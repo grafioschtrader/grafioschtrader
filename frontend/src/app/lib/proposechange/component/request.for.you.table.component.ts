@@ -16,7 +16,7 @@ import {InfoLevelType} from '../../message/info.leve.type';
 import {MessageToastService} from '../../message/message.toast.service';
 import {ProposeChangeEntity} from '../../entities/propose.change.entity';
 import {TranslateValue} from '../../datashowbase/column.config';
-import {FilterService, MenuItem} from 'primeng/api';
+import {FilterService, MenuItem} from '@openng/optimus-ui/api';
 import {TranslateHelper} from '../../helper/translate.helper';
 import {HelpIds} from '../../help/help.ids';
 import {EntityPrepareRegistry} from '../service/entity.prepare.registry';
@@ -70,7 +70,7 @@ export class RequestForYouTableComponent extends TableConfigBase implements OnIn
    * @param proposeChangeEntityService - Service for managing propose change entities
    * @param activePanelService - Service for managing active panel state
    * @param messageToastService - Service for displaying toast messages
-   * @param filterService - PrimeNG filter service for table filtering
+   * @param filterService - Optimus filter service for table filtering
    * @param translateService - Translation service for i18n
    * @param gps - Global parameter service for user settings
    * @param usersettingsService - User settings service for persisting table state

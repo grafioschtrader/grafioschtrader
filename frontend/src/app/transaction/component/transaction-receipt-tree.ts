@@ -1,4 +1,4 @@
-import {TreeNode} from 'primeng/api';
+import {TreeNode} from '@openng/optimus-ui/api';
 
 import {Transaction} from '../../entities/transaction';
 
@@ -44,10 +44,10 @@ export function buildTransactionReceiptTree(transactions: Transaction[]): TreeNo
 }
 
 /**
- * Converts PrimeNG tree selection into the original transaction order while excluding duplicate or synthetic nodes.
+ * Converts Optimus tree selection into the original transaction order while excluding duplicate or synthetic nodes.
  *
  * @param transactions persisted transactions offered for selection
- * @param selectedNodes nodes selected by PrimeNG
+ * @param selectedNodes nodes selected by Optimus
  * @returns selected persisted transactions in their original order
  */
 export function getSelectedTransactions(transactions: Transaction[], selectedNodes: TreeNode[]): Transaction[] {

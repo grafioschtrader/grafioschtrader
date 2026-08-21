@@ -16,7 +16,7 @@ import {ColumnConfig} from '../../lib/datashowbase/column.config';
 import {SecurityService} from '../../securitycurrency/service/security.service';
 import {PageFirstRowSelectedRow, ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
 import {BusinessHelper} from '../../shared/helper/business.helper';
-import {ConfirmationService, FilterService} from 'primeng/api';
+import {ConfirmationService, FilterService} from '@openng/optimus-ui/api';
 import {TransactionSecurityFieldDefinition} from './transaction.security.field.definition';
 import {TransactionSecurityOptionalParam} from '../model/transaction.security.optional.param';
 import {HelpIds} from '../../lib/help/help.ids';
@@ -77,9 +77,9 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
    * @param parentChildRegisterService Service for managing parent-child component relationships
    * @param activePanelService Service for managing active panel state in the application
    * @param transactionService Service for transaction operations and data management
-   * @param confirmationService PrimeNG service for displaying confirmation dialogs
+   * @param confirmationService Optimus service for displaying confirmation dialogs
    * @param messageToastService Service for displaying user notification messages
-   * @param filterService PrimeNG service for data filtering operations
+   * @param filterService Optimus service for data filtering operations
    * @param translateService Angular service for internationalization and translations
    * @param gps Global parameter service for application-wide settings and configurations
    * @param usersettingsService Service for managing user-specific settings and preferences
@@ -113,7 +113,7 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
    * Records the current paginator page (keyed by security) on every page change so it survives this component being
    * destroyed and recreated by a parent reload.
    *
-   * @param event PrimeNG page event; {@code event.first} is the index of the first row on the new page
+   * @param event Optimus page event; {@code event.first} is the index of the first row on the new page
    */
   override onPage(event: any): void {
     super.onPage(event);

@@ -16,8 +16,8 @@ import {Security} from '../../entities/security';
 import {ProcessedAction} from '../../lib/types/processed.action';
 import {ProcessedActionData} from '../../lib/types/processed.action.data';
 import {TransactionCallParam} from './transaction.call.parm';
-import {ConfirmationService, FilterService, MenuItem} from 'primeng/api';
-import {DialogService} from 'primeng/dynamicdialog';
+import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
+import {DialogService} from '@openng/optimus-ui/dynamicdialog';
 import {HelpIds} from '../../lib/help/help.ids';
 import {TranslateValue} from '../../lib/datashowbase/column.config';
 import {AppSettings} from '../../shared/app.settings';
@@ -46,9 +46,9 @@ export abstract class TransactionTable extends TransactionContextMenu {
    * @param parentChildRegisterService Service for managing parent-child component relationships and state preservation
    * @param activePanelService Service for managing active panel states and menu interactions
    * @param transactionService Service for transaction CRUD operations and business logic
-   * @param confirmationService PrimeNG service for displaying confirmation dialogs
+   * @param confirmationService Optimus service for displaying confirmation dialogs
    * @param messageToastService Service for displaying user notification messages
-   * @param filterService PrimeNG service for table filtering functionality
+   * @param filterService Optimus service for table filtering functionality
    * @param translateService Angular service for internationalization and text translation
    * @param gps Global parameter service for application-wide settings and configurations
    * @param usersettingsService Service for managing user-specific settings and preferences

@@ -68,7 +68,7 @@ async function openMappingView(page: Page): Promise<Locator> {
 }
 
 /**
- * Accepts the PrimeNG confirmation dialog raised by a delete.
+ * Accepts the Optimus UI confirmation dialog raised by a delete.
  */
 async function acceptConfirm(page: Page): Promise<void> {
   const dialog = page.getByRole('alertdialog', {name: CONFIRM_MATCH});

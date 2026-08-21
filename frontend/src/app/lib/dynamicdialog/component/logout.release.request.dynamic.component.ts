@@ -9,7 +9,7 @@ import {GlobalparameterService} from '../../services/globalparameter.service';
 import {LoginService} from '../../login/service/log-in.service';
 import {InfoLevelType} from '../../message/info.leve.type';
 import {MessageToastService} from '../../message/message.toast.service';
-import {DialogService, DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
+import {DialogService, DynamicDialogConfig, DynamicDialogRef} from '@openng/optimus-ui/dynamicdialog';
 import {BaseSettings} from '../../base.settings';
 import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
 
